@@ -1,20 +1,30 @@
-# shadcn/ui monorepo template
+# Arda MFE
 
-This is a Vite monorepo template with shadcn/ui.
+Vite micro frontend workspace for Arda.
+
+## Apps
+
+- `apps/shell` owns layout, auth, and top-level navigation.
+- `apps/iam` exposes the IAM remote at `remoteEntry.js`.
+- `packages/ui` contains shared shadcn/ui components.
+
+## Commands
+
+```bash
+bun install
+bun run dev
+bun run build
+```
+
+Shell runs on `5000`; IAM runs on `5101`.
 
 ## Adding components
 
-To add components to your app, run the following command at the root of your `web` app:
+Run shadcn from the target app:
 
 ```bash
-pnpm dlx shadcn@latest add button -c apps/web
+bunx --bun shadcn@latest add button -c apps/shell
 ```
-
-This will place the ui components in the `packages/ui/src/components` directory.
-
-## Using components
-
-To use the components in your app, import them from the `ui` package.
 
 ```tsx
 import { Button } from "@workspace/ui/components/button";

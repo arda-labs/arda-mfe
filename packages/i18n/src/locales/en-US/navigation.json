@@ -1,0 +1,39 @@
+{
+  "dashboard": "Dashboard",
+  "admin": {
+    "_self": "Admin",
+    "users": "Users",
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "audit": "Audit"
+  },
+  "finance": {
+    "_self": "Finance",
+    "accounts": "Accounts",
+    "transactions": "Transactions",
+    "approvals": "Approvals",
+    "trial_balance": "Trial Balance"
+  },
+  "platform": {
+    "_self": "Platform",
+    "organizations": "Organizations",
+    "parameters": "System Parameters",
+    "provinces": "Provinces",
+    "wards": "Wards",
+    "lookups": "Lookup Tables",
+    "area_types": "Area Types",
+    "areas": "Areas",
+    "credit_institutions": "Credit Institutions",
+    "templates": "Templates",
+    "calendar": "System Calendar & EOD",
+    "cutoff": "Cut-off Configuration"
+  },
+  "settings": {
+    "_self": "Settings",
+    "sessions": "Sessions",
+    "devices": "Devices",
+    "security": "Security",
+    "profile": "Profile",
+    "appearance": "Appearance"
+  }
+}

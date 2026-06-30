@@ -1,0 +1,68 @@
+{
+  "app": {
+    "name": "Arda"
+  },
+  "action": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "done": "Done",
+    "enable": "Enable",
+    "disable": "Disable",
+    "next": "Next",
+    "prev": "Prev",
+    "review": "Review",
+    "sign_in": "Sign in",
+    "signing_in": "Signing in...",
+    "submit": "Submit",
+    "toggle_sidebar": "Toggle sidebar",
+    "toggle_theme": "Toggle theme",
+    "logout": "Logout",
+    "select_all": "Select all",
+    "select_row": "Select row"
+  },
+  "confirm": {
+    "delete_title": "Confirm delete",
+    "delete_description": "This action cannot be undone. Are you sure you want to delete {item}?"
+  },
+  "error": {
+    "session_expired": "Session expired",
+    "unknown": "Something went wrong",
+    "api_failed": "API request failed",
+    "internal": "Internal server error",
+    "bad_gateway": "Upstream service error",
+    "conflict": "Resource conflict",
+    "method_not_allowed": "Method not allowed",
+    "not_found": {
+      "title": "404",
+      "body": "Page not found"
+    }
+  },
+  "field": {
+    "action": "Actions",
+    "code": "Code",
+    "created": "Created",
+    "currency": "Currency",
+    "date": "Date",
+    "description": "Description",
+    "email": "Email",
+    "id": "ID",
+    "name": "Name",
+    "operation": "Operation",
+    "resource": "Resource",
+    "status": "Status",
+    "type": "Type"
+  },
+  "locale": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  },
+  "pagination": {
+    "page_of": "Page {page} of {totalPages}"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  }
+}

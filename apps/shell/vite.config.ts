@@ -11,6 +11,7 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     federation({
       name: "shell",
+      dts: false,
       remotes: {
         iam: {
           type: "module",
@@ -20,6 +21,36 @@ export default defineConfig(({ command }) => ({
             (command === "serve"
               ? "http://localhost:5101/remoteEntry.js"
               : "/mfes/iam/remoteEntry.js"),
+          shareScope: "default",
+        },
+        platform: {
+          type: "module",
+          name: "platform",
+          entry:
+            process.env.PLATFORM_REMOTE_ENTRY ??
+            (command === "serve"
+              ? "http://localhost:5102/remoteEntry.js"
+              : "/mfes/platform/remoteEntry.js"),
+          shareScope: "default",
+        },
+        finance: {
+          type: "module",
+          name: "finance",
+          entry:
+            process.env.FINANCE_REMOTE_ENTRY ??
+            (command === "serve"
+              ? "http://localhost:5103/remoteEntry.js"
+              : "/mfes/finance/remoteEntry.js"),
+          shareScope: "default",
+        },
+        account: {
+          type: "module",
+          name: "account",
+          entry:
+            process.env.ACCOUNT_REMOTE_ENTRY ??
+            (command === "serve"
+              ? "http://localhost:5104/remoteEntry.js"
+              : "/mfes/account/remoteEntry.js"),
           shareScope: "default",
         },
       },

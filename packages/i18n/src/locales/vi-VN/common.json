@@ -1,0 +1,68 @@
+{
+  "app": {
+    "name": "Arda"
+  },
+  "action": {
+    "back": "Quay lại",
+    "cancel": "Hủy",
+    "create": "Tạo mới",
+    "delete": "Xóa",
+    "done": "Hoàn tất",
+    "enable": "Bật",
+    "disable": "Tắt",
+    "next": "Tiếp",
+    "prev": "Trước",
+    "review": "Xem xét",
+    "sign_in": "Đăng nhập",
+    "signing_in": "Đang đăng nhập...",
+    "submit": "Gửi",
+    "toggle_sidebar": "Thu gọn/mở menu",
+    "toggle_theme": "Đổi giao diện",
+    "logout": "Đăng xuất",
+    "select_all": "Chọn tất cả",
+    "select_row": "Chọn dòng"
+  },
+  "confirm": {
+    "delete_title": "Xác nhận xóa",
+    "delete_description": "Hành động này không thể hoàn tác. Bạn có chắc muốn xóa {item}?"
+  },
+  "error": {
+    "session_expired": "Phiên đăng nhập đã hết hạn",
+    "unknown": "Đã có lỗi xảy ra",
+    "api_failed": "Yêu cầu API thất bại",
+    "internal": "Lỗi hệ thống",
+    "bad_gateway": "Dịch vụ phụ trợ đang lỗi",
+    "conflict": "Dữ liệu đang xung đột",
+    "method_not_allowed": "Phương thức không được hỗ trợ",
+    "not_found": {
+      "title": "404",
+      "body": "Không tìm thấy trang"
+    }
+  },
+  "field": {
+    "action": "Thao tác",
+    "code": "Mã",
+    "created": "Ngày tạo",
+    "currency": "Tiền tệ",
+    "date": "Ngày",
+    "description": "Mô tả",
+    "email": "Email",
+    "id": "ID",
+    "name": "Tên",
+    "operation": "Hành động",
+    "resource": "Tài nguyên",
+    "status": "Trạng thái",
+    "type": "Loại"
+  },
+  "locale": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  },
+  "pagination": {
+    "page_of": "Trang {page} / {totalPages}"
+  },
+  "status": {
+    "active": "Đang hoạt động",
+    "inactive": "Ngưng hoạt động"
+  }
+}

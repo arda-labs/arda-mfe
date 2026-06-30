@@ -1,0 +1,23 @@
+{
+  "name": "@workspace/media",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/api": "workspace:*",
+    "@workspace/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "eslint": "^10",
+    "typescript": "~6"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

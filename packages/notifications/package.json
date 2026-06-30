@@ -1,0 +1,30 @@
+{
+  "name": "@workspace/notifications",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/api": "workspace:*",
+    "@workspace/ui": "workspace:*",
+    "lucide-react": "^1.22.0",
+    "react": "^19.2.6",
+    "react-i18next": "^17.0.8",
+    "sonner": "^2.0.7",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "eslint": "^10",
+    "typescript": "~6"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./notify": "./src/notify.ts"
+  }
+}

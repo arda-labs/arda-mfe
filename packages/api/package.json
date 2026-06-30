@@ -1,0 +1,24 @@
+{
+  "name": "@workspace/api",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/auth": "workspace:*",
+    "@workspace/core": "workspace:*",
+    "@workspace/i18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "eslint": "^10",
+    "typescript": "~6"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

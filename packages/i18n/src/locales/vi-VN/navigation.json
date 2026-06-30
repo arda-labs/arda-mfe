@@ -1,0 +1,39 @@
+{
+  "dashboard": "Tổng quan",
+  "admin": {
+    "_self": "Quản trị",
+    "users": "Người dùng",
+    "roles": "Vai trò",
+    "permissions": "Quyền",
+    "audit": "Nhật ký"
+  },
+  "finance": {
+    "_self": "Tài chính",
+    "accounts": "Tài khoản",
+    "transactions": "Giao dịch",
+    "approvals": "Phê duyệt",
+    "trial_balance": "Bảng cân đối thử"
+  },
+  "platform": {
+    "_self": "Nền tảng",
+    "organizations": "Đơn vị & Tổ chức",
+    "parameters": "Tham số hệ thống",
+    "provinces": "Tỉnh thành",
+    "wards": "Phường xã",
+    "lookups": "Danh mục lookups",
+    "area_types": "Loại khu vực",
+    "areas": "Khu vực",
+    "credit_institutions": "Tổ chức tín dụng",
+    "templates": "Mẫu biểu hệ thống",
+    "calendar": "Lịch hệ thống & EOD",
+    "cutoff": "Cấu hình Cut-off Time"
+  },
+  "settings": {
+    "_self": "Cài đặt",
+    "sessions": "Phiên đăng nhập",
+    "devices": "Thiết bị",
+    "security": "Bảo mật",
+    "profile": "Hồ sơ",
+    "appearance": "Giao diện"
+  }
+}

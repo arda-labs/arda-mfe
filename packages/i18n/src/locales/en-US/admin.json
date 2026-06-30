@@ -1,0 +1,118 @@
+{
+  "title": "Admin",
+  "field": {
+    "module": "Module"
+  },
+  "roles": {
+    "title": "Roles",
+    "count": "{count} roles",
+    "create": "Create Role"
+  },
+  "permissions": {
+    "title": "Permissions",
+    "count": "{count} permissions",
+    "create": "Create Permission"
+  },
+  "users": {
+    "title": "Users",
+    "count": "{count} users",
+    "create": "Create User",
+    "edit": "Edit user",
+    "search": "Search users...",
+    "load_failed": "Failed to load users",
+    "create_success": "User created",
+    "create_failed": "Failed to create user",
+    "update_success": "User updated",
+    "update_failed": "Failed to update user",
+    "delete_success": "User deleted",
+    "delete_failed": "Failed to delete user",
+    "enable_success": "User enabled",
+    "disable_success": "User disabled",
+    "field": {
+      "username": "Username",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "nickname": "Nickname",
+      "gender": "Gender",
+      "country": "Country",
+      "address": "Address",
+      "position": "Position / Title",
+      "tenant": "Tenant"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "action": {
+      "open_actions": "Open user actions",
+      "edit": "Edit user",
+      "audit_identity": "Audit identity",
+      "reset_password": "Reset password",
+      "provision_identity": "Provision Kratos identity",
+      "manage_sessions": "Manage sessions",
+      "save_changes": "Save changes",
+      "revoke_sessions": "Revoke all sessions"
+    },
+    "identity": {
+      "reset_success": "Password reset successfully",
+      "reset_failed": "Reset password failed",
+      "provision_success": "Kratos identity provisioned",
+      "provision_failed": "Provision identity failed",
+      "audit_ok": "Identity consistency OK",
+      "audit_issues": "Identity consistency issues found",
+      "audit_failed": "Identity audit failed",
+      "audit_title": "Identity consistency audit",
+      "audit_empty": "All Kratos identity mappings are consistent.",
+      "new_password": "New password",
+      "temporary_password": "Temporary password",
+      "reset_description": "Set a new Kratos password for {user}.",
+      "provision_description": "Create or link a Kratos identity for {user}."
+    },
+    "sessions": {
+      "title": "Sessions for {user}",
+      "load_failed": "Load sessions failed",
+      "revoke_success": "Sessions revoked",
+      "revoke_failed": "Revoke sessions failed",
+      "loading": "Loading sessions...",
+      "empty": "No active sessions.",
+      "last_seen": "Last seen"
+    }
+  },
+  "audit": {
+    "title": "Audit",
+    "count": "{count} events",
+    "time": "Time",
+    "subject": "Subject",
+    "search_subject": "Search subject",
+    "type": "Type",
+    "action": "Action",
+    "resource": "Resource",
+    "result": "Result",
+    "events_7d": "7d events",
+    "login_ok": "Login OK",
+    "login_fail": "Login Fail",
+    "event_types": "Event types",
+    "chain_intact": "Chain intact",
+    "tampered_detected": "Tampered detected",
+    "entries_checked": "{count} entries checked",
+    "tampered_entries": "{count} tampered entries",
+    "hide_verify": "Hide Verify",
+    "verify_chain": "Verify Chain",
+    "event_type": {
+      "login_attempt": "Login Attempt",
+      "login_blocked": "Login Blocked",
+      "session_created": "Session Created",
+      "session_revoked": "Session Revoked",
+      "token_issued": "Token Issued",
+      "token_refreshed": "Token Refreshed",
+      "permission_denied": "Permission Denied",
+      "consent_granted": "Consent Granted"
+    },
+    "result_value": {
+      "success": "Success",
+      "failure": "Failure",
+      "denied": "Denied",
+      "blocked": "Blocked"
+    }
+  }
+}

@@ -1,7 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from "react"
-import { Button } from "@workspace/ui/components/button"
+import { AuthGuard, CallbackPage, ConsentPage, LoginPage } from "@workspace/auth"
+import { ShellLayout } from "./ShellLayout"
 
 const IamRoutes = lazy(() => import("iam/Routes"))
+const PlatformRoutes = lazy(() => import("platform/Routes"))
+const FinanceRoutes = lazy(() => import("finance/Routes"))
+const AccountRoutes = lazy(() => import("account/Routes"))
 
 function navigate(pathname: string) {
   window.history.pushState({}, "", pathname)
@@ -22,51 +26,70 @@ function usePathname() {
 
 export function App() {
   const pathname = usePathname()
-  const isIam = pathname.startsWith("/iam")
+  if (pathname === "/login") return <LoginPage />
+  if (pathname === "/callback" || pathname === "/login-callback") return <CallbackPage />
+  if (pathname === "/consent") return <ConsentPage />
+
+  const isIam =
+    pathname === "/iam" ||
+    pathname.startsWith("/admin/users") ||
+    pathname.startsWith("/admin/roles") ||
+    pathname.startsWith("/admin/permissions") ||
+    pathname.startsWith("/admin/audit")
+  const isPlatform =
+    pathname.startsWith("/admin/organizations") ||
+    pathname.startsWith("/admin/parameters") ||
+    pathname.startsWith("/admin/provinces") ||
+    pathname.startsWith("/admin/wards") ||
+    pathname.startsWith("/admin/lookups") ||
+    pathname.startsWith("/admin/area-types") ||
+    pathname.startsWith("/admin/areas") ||
+    pathname.startsWith("/admin/credit-institutions") ||
+    pathname.startsWith("/admin/templates") ||
+    pathname.startsWith("/admin/calendar") ||
+    pathname.startsWith("/admin/cutoff")
+  const isFinance = pathname.startsWith("/finance/")
+  const isAccount =
+    pathname.startsWith("/my-account/") ||
+    pathname.startsWith("/settings/") ||
+    pathname.startsWith("/in/")
 
   return (
-    <div className="bg-background text-foreground min-h-svh">
-      <header className="border-b">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <button
-            className="font-semibold"
-            type="button"
-            onClick={() => navigate("/")}
-          >
-            Arda
-          </button>
-          <nav className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant={isIam ? "default" : "ghost"}
-              onClick={() => navigate("/iam")}
-            >
-              IAM
-            </Button>
-          </nav>
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-6 py-8">
+    <AuthGuard>
+      <ShellLayout pathname={pathname} navigate={navigate}>
         {isIam ? (
-          <Suspense fallback={<div className="text-sm">Loading IAM...</div>}>
+          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading IAM...</div>}>
             <IamRoutes />
           </Suspense>
+        ) : isPlatform ? (
+          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Platform...</div>}>
+            <PlatformRoutes />
+          </Suspense>
+        ) : isFinance ? (
+          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Finance...</div>}>
+            <FinanceRoutes />
+          </Suspense>
+        ) : isAccount ? (
+          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Account...</div>}>
+            <AccountRoutes />
+          </Suspense>
         ) : (
-          <section className="flex max-w-2xl flex-col gap-4">
-            <p className="text-muted-foreground text-sm">Shell</p>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              Arda micro frontend shell
-            </h1>
-            <p className="text-muted-foreground">
-              The shell owns auth, layout, and top-level navigation. Business
-              domains are loaded as runtime remotes.
-            </p>
-            <div>
-              <Button onClick={() => navigate("/iam")}>Open IAM remote</Button>
-            </div>
-          </section>
+          <Dashboard />
         )}
-      </main>
-    </div>
+      </ShellLayout>
+    </AuthGuard>
+  )
+}
+
+function Dashboard() {
+  return (
+    <section className="flex max-w-2xl flex-col gap-4">
+      <p className="text-sm text-muted-foreground">Shell</p>
+      <h1 className="text-3xl font-semibold tracking-tight">Arda workspace</h1>
+      <p className="text-muted-foreground">
+        Auth, layout, i18n, theme, and notifications now live in the shell. Domain
+        pages load as runtime micro frontends.
+      </p>
+    </section>
   )
 }

@@ -1,0 +1,118 @@
+{
+  "title": "Quản trị",
+  "field": {
+    "module": "Phân hệ"
+  },
+  "roles": {
+    "title": "Vai trò",
+    "count": "{count} vai trò",
+    "create": "Tạo vai trò"
+  },
+  "permissions": {
+    "title": "Quyền",
+    "count": "{count} quyền",
+    "create": "Tạo quyền"
+  },
+  "users": {
+    "title": "Người dùng",
+    "count": "{count} người dùng",
+    "create": "Tạo người dùng",
+    "edit": "Sửa người dùng",
+    "search": "Tìm người dùng...",
+    "load_failed": "Không tải được danh sách người dùng",
+    "create_success": "Đã tạo người dùng",
+    "create_failed": "Tạo người dùng thất bại",
+    "update_success": "Đã cập nhật người dùng",
+    "update_failed": "Cập nhật người dùng thất bại",
+    "delete_success": "Đã xóa người dùng",
+    "delete_failed": "Xóa người dùng thất bại",
+    "enable_success": "Đã bật người dùng",
+    "disable_success": "Đã tắt người dùng",
+    "field": {
+      "username": "Tên đăng nhập",
+      "first_name": "Tên",
+      "last_name": "Họ",
+      "nickname": "Biệt danh",
+      "gender": "Giới tính",
+      "country": "Quốc gia",
+      "address": "Địa chỉ",
+      "position": "Chức vụ",
+      "tenant": "Tenant"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "disabled": "Đã vô hiệu"
+    },
+    "action": {
+      "open_actions": "Mở thao tác người dùng",
+      "edit": "Sửa người dùng",
+      "audit_identity": "Kiểm tra định danh",
+      "reset_password": "Đặt lại mật khẩu",
+      "provision_identity": "Tạo định danh Kratos",
+      "manage_sessions": "Quản lý phiên",
+      "save_changes": "Lưu thay đổi",
+      "revoke_sessions": "Thu hồi tất cả phiên"
+    },
+    "identity": {
+      "reset_success": "Đã đặt lại mật khẩu",
+      "reset_failed": "Đặt lại mật khẩu thất bại",
+      "provision_success": "Đã tạo định danh Kratos",
+      "provision_failed": "Tạo định danh thất bại",
+      "audit_ok": "Định danh nhất quán",
+      "audit_issues": "Phát hiện vấn đề định danh",
+      "audit_failed": "Kiểm tra định danh thất bại",
+      "audit_title": "Kiểm tra nhất quán định danh",
+      "audit_empty": "Tất cả ánh xạ định danh Kratos đều nhất quán.",
+      "new_password": "Mật khẩu mới",
+      "temporary_password": "Mật khẩu tạm thời",
+      "reset_description": "Đặt mật khẩu Kratos mới cho {user}.",
+      "provision_description": "Tạo hoặc liên kết định danh Kratos cho {user}."
+    },
+    "sessions": {
+      "title": "Phiên của {user}",
+      "load_failed": "Tải phiên thất bại",
+      "revoke_success": "Đã thu hồi phiên",
+      "revoke_failed": "Thu hồi phiên thất bại",
+      "loading": "Đang tải phiên...",
+      "empty": "Không có phiên hoạt động.",
+      "last_seen": "Lần cuối hoạt động"
+    }
+  },
+  "audit": {
+    "title": "Nhật ký",
+    "count": "{count} sự kiện",
+    "time": "Thời gian",
+    "subject": "Chủ thể",
+    "search_subject": "Tìm chủ thể",
+    "type": "Loại",
+    "action": "Hành động",
+    "resource": "Tài nguyên",
+    "result": "Kết quả",
+    "events_7d": "Sự kiện 7 ngày",
+    "login_ok": "Đăng nhập OK",
+    "login_fail": "Đăng nhập lỗi",
+    "event_types": "Loại sự kiện",
+    "chain_intact": "Chuỗi toàn vẹn",
+    "tampered_detected": "Phát hiện chỉnh sửa",
+    "entries_checked": "{count} bản ghi đã kiểm tra",
+    "tampered_entries": "{count} bản ghi bị chỉnh sửa",
+    "hide_verify": "Ẩn kiểm tra",
+    "verify_chain": "Kiểm tra chuỗi",
+    "event_type": {
+      "login_attempt": "Thử đăng nhập",
+      "login_blocked": "Đăng nhập bị chặn",
+      "session_created": "Tạo phiên",
+      "session_revoked": "Thu hồi phiên",
+      "token_issued": "Cấp token",
+      "token_refreshed": "Làm mới token",
+      "permission_denied": "Từ chối quyền",
+      "consent_granted": "Đã đồng ý"
+    },
+    "result_value": {
+      "success": "Thành công",
+      "failure": "Thất bại",
+      "denied": "Từ chối",
+      "blocked": "Bị chặn"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@workspace/core",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "eslint": "^10",
+    "typescript": "~6"
+  },
+  "exports": {
+    "./appearance": "./src/appearance/index.ts",
+    "./browser/pkce": "./src/browser/pkce.ts",
+    "./http/api-client": "./src/http/api-client.ts",
+    "./media/urls": "./src/media/urls.ts"
+  }
+}

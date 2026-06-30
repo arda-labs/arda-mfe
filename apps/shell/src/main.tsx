@@ -1,14 +1,17 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
+import { I18nProvider } from "@workspace/i18n"
+import { ThemeProvider } from "@workspace/theme"
 import "@workspace/ui/globals.css"
 import { App } from "./App.tsx"
-import { ThemeProvider } from "@/components/theme-provider.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </I18nProvider>
   </StrictMode>
 )
