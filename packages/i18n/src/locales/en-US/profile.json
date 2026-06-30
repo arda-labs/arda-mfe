@@ -1,4 +1,41 @@
 {
   "title": "Account profile",
-  "description": "Basic information for the signed-in account."
+  "description": "Basic information for the signed-in account.",
+  "update_success": "Profile updated successfully",
+  "save_changes": "Save changes",
+  "edit_profile": "Edit profile",
+  "position_title": "Position title",
+  "org_info": "Organization information",
+  "department": "Department",
+  "employee_id": "Employee ID",
+  "approval_level": "Approval level",
+  "daily_limit": "Daily limit",
+  "bio": "Bio",
+  "banking_queue": "Banking queue",
+  "pending_approvals": "Pending approvals",
+  "duty_status": "Duty status",
+  "assigned_accounts": "Assigned accounts",
+  "field": {
+    "user_id": "User ID",
+    "subject": "Subject",
+    "avatar_file_id": "Avatar file ID",
+    "avatar_url": "Avatar URL"
+  },
+  "avatar": {
+    "title": "Avatar",
+    "description": "Upload a profile picture for your account.",
+    "hint": "PNG, JPEG, or WebP. Maximum file size is 5 MB.",
+    "invalid_type": "Please choose an image file.",
+    "too_large": "Avatar must be at most 5 MB.",
+    "upload": "Upload avatar",
+    "uploading": "Uploading...",
+    "upload_success": "Avatar updated successfully",
+    "upload_failed": "Failed to upload avatar",
+    "status_uploaded": "Uploaded",
+    "status_empty": "No avatar"
+  },
+  "cover": {
+    "upload": "Upload cover",
+    "uploading": "Uploading..."
+  }
 }

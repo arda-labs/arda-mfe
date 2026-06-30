@@ -1,4 +1,41 @@
 {
   "title": "Thông tin tài khoản",
-  "description": "Thông tin cơ bản của tài khoản đang đăng nhập."
+  "description": "Thông tin cơ bản của tài khoản đang đăng nhập.",
+  "update_success": "Đã cập nhật hồ sơ",
+  "save_changes": "Lưu thay đổi",
+  "edit_profile": "Chỉnh sửa hồ sơ",
+  "position_title": "Chức danh",
+  "org_info": "Thông tin tổ chức",
+  "department": "Phòng ban",
+  "employee_id": "Mã nhân viên",
+  "approval_level": "Cấp phê duyệt",
+  "daily_limit": "Hạn mức ngày",
+  "bio": "Giới thiệu",
+  "banking_queue": "Hàng đợi nghiệp vụ",
+  "pending_approvals": "Chờ phê duyệt",
+  "duty_status": "Trạng thái trực",
+  "assigned_accounts": "Tài khoản phụ trách",
+  "field": {
+    "user_id": "Mã người dùng",
+    "subject": "Subject",
+    "avatar_file_id": "Mã file ảnh đại diện",
+    "avatar_url": "URL ảnh đại diện"
+  },
+  "avatar": {
+    "title": "Ảnh đại diện",
+    "description": "Tải ảnh đại diện cho tài khoản.",
+    "hint": "Hỗ trợ PNG, JPEG hoặc WebP. Dung lượng tối đa 5 MB.",
+    "invalid_type": "Vui lòng chọn file hình ảnh.",
+    "too_large": "Ảnh đại diện tối đa 5 MB.",
+    "upload": "Tải ảnh đại diện",
+    "uploading": "Đang tải lên...",
+    "upload_success": "Đã cập nhật ảnh đại diện",
+    "upload_failed": "Tải ảnh đại diện thất bại",
+    "status_uploaded": "Đã tải lên",
+    "status_empty": "Chưa có ảnh"
+  },
+  "cover": {
+    "upload": "Tải ảnh bìa",
+    "uploading": "Đang tải lên..."
+  }
 }
