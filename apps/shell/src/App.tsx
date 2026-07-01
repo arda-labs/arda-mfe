@@ -50,6 +50,7 @@ export function App() {
     pathname.startsWith("/admin/cutoff")
   const isFinance = pathname.startsWith("/finance/")
   const isAccount =
+    pathname === "/my-account" ||
     pathname.startsWith("/my-account/") ||
     pathname.startsWith("/settings/") ||
     pathname.startsWith("/in/")

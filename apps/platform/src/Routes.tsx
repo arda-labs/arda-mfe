@@ -1,6 +1,3 @@
-import { I18nProvider } from "@workspace/i18n"
-import { ThemeProvider } from "@workspace/theme"
-import { NuqsAdapter } from "nuqs/adapters/react"
 import {
   AreaTypesPage,
   AreasPage,
@@ -21,15 +18,7 @@ function getPathname() {
 }
 
 export default function Routes() {
-  return (
-    <I18nProvider>
-      <ThemeProvider>
-        <NuqsAdapter>
-          <PlatformRoutes />
-        </NuqsAdapter>
-      </ThemeProvider>
-    </I18nProvider>
-  )
+  return <PlatformRoutes />
 }
 
 function PlatformRoutes() {

@@ -1,6 +1,3 @@
-import { I18nProvider } from "@workspace/i18n"
-import { ThemeProvider } from "@workspace/theme"
-import { NuqsAdapter } from "nuqs/adapters/react"
 import { AuditPage, PermissionsPage, RolesPage, UsersPage } from "@/features/iam"
 
 function getPathname() {
@@ -9,15 +6,7 @@ function getPathname() {
 }
 
 export default function Routes() {
-  return (
-    <I18nProvider>
-      <ThemeProvider>
-        <NuqsAdapter>
-          <IamRoutes />
-        </NuqsAdapter>
-      </ThemeProvider>
-    </I18nProvider>
-  )
+  return <IamRoutes />
 }
 
 function IamRoutes() {

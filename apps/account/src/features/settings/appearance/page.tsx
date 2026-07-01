@@ -34,7 +34,7 @@ export function AppearancePage() {
 
   useEffect(() => {
     applyAppearance(settings)
-  }, [settings])
+  }, [settings, theme])
 
   const cssPreview = useMemo(() => buildCSSPreview(settings), [settings])
 

@@ -1,7 +1,4 @@
 import { useEffect, useState } from "react"
-import { I18nProvider } from "@workspace/i18n"
-import { ThemeProvider } from "@workspace/theme"
-import { NuqsAdapter } from "nuqs/adapters/react"
 import { AppearancePage } from "@/features/settings/appearance/page"
 import { DevicesPage } from "@/features/settings/devices/page"
 import { SettingsLayout } from "@/features/settings/layout"
@@ -28,15 +25,7 @@ function usePathname() {
 }
 
 export default function Routes() {
-  return (
-    <I18nProvider>
-      <ThemeProvider>
-        <NuqsAdapter>
-          <AccountRoutes />
-        </NuqsAdapter>
-      </ThemeProvider>
-    </I18nProvider>
-  )
+  return <AccountRoutes />
 }
 
 function AccountRoutes() {

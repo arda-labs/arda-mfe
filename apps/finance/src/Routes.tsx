@@ -1,6 +1,3 @@
-import { I18nProvider } from "@workspace/i18n"
-import { ThemeProvider } from "@workspace/theme"
-import { NuqsAdapter } from "nuqs/adapters/react"
 import { AccountsPage } from "@/features/finance/accounts/page"
 import { ApprovalsPage } from "@/features/finance/approvals/page"
 import { TransactionsPage } from "@/features/finance/transactions/page"
@@ -12,15 +9,7 @@ function getPathname() {
 }
 
 export default function Routes() {
-  return (
-    <I18nProvider>
-      <ThemeProvider>
-        <NuqsAdapter>
-          <FinanceRoutes />
-        </NuqsAdapter>
-      </ThemeProvider>
-    </I18nProvider>
-  )
+  return <FinanceRoutes />
 }
 
 function FinanceRoutes() {

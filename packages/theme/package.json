@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@workspace/core": "workspace:*",
     "react": "^19.2.6"
   },
   "devDependencies": {
