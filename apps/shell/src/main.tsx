@@ -28,9 +28,11 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <I18nProvider>
       <theme.ThemeProvider>
-        <NuqsAdapter>
-          <App />
-        </NuqsAdapter>
+        <auth.StepUpProvider>
+          <NuqsAdapter>
+            <App />
+          </NuqsAdapter>
+        </auth.StepUpProvider>
       </theme.ThemeProvider>
     </I18nProvider>
   </StrictMode>

@@ -22,14 +22,14 @@ export interface CreateApiClientOptions {
   baseURL?: string
   getLocale?: () => string
   onUnauthorized?: () => void | Promise<void>
-  onRecentAuthRequired?: () => void | Promise<void>
+  onRecentAuthRequired?: () => boolean | void | Promise<boolean | void>
 }
 
 export function createApiClient(options: CreateApiClientOptions = {}) {
   const baseURL = options.baseURL ?? ""
   const inflightGet = new Map<string, Promise<unknown>>()
 
-  const request = async <T>(method: string, path: string, body?: unknown): Promise<T> => {
+  const request = async <T>(method: string, path: string, body?: unknown, didStepUp = false): Promise<T> => {
     const headers: Record<string, string> = {}
     const locale = options.getLocale?.()
     if (locale) headers["Accept-Language"] = locale
@@ -59,7 +59,10 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     if (!res.ok) {
       const payload = await parseApiClientError(res)
       if (res.status === 403 && payload.code === "recent_auth_required") {
-        await options.onRecentAuthRequired?.()
+        const verified = await options.onRecentAuthRequired?.()
+        if (!didStepUp && verified !== false) {
+          return request<T>(method, path, body, true)
+        }
       }
       throw new ApiClientError(payload.code, payload.message, res.status, payload.fields)
     }

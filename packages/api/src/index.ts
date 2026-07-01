@@ -1,6 +1,7 @@
 import { createApiClient } from "@workspace/core/http/api-client"
 import { ApiErrorLike, getCurrentLocale } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
+import { requestStepUp } from "@workspace/auth/step-up"
 
 export const api = createApiClient({
   getLocale: getCurrentLocale,
@@ -10,11 +11,7 @@ export const api = createApiClient({
       window.location.href = "/login"
     }
   },
-  onRecentAuthRequired: () => {
-    if (typeof window !== "undefined") {
-      window.location.href = "/login?error=recent_auth_required"
-    }
-  },
+  onRecentAuthRequired: requestStepUp,
 })
 
 export function toApiError(input: unknown) {
