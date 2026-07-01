@@ -1,11 +1,25 @@
-import { lazy, Suspense, useEffect, useState } from "react"
+import { lazy, Suspense, useEffect, useState, type ComponentType } from "react"
 import { AuthGuard, CallbackPage, ConsentPage, LoginPage } from "@workspace/auth"
 import { ShellLayout } from "./ShellLayout"
 
-const IamRoutes = lazy(() => import("iam/Routes"))
-const PlatformRoutes = lazy(() => import("platform/Routes"))
-const FinanceRoutes = lazy(() => import("finance/Routes"))
-const AccountRoutes = lazy(() => import("account/Routes"))
+type RemoteModule = {
+  default?: ComponentType
+  [key: string]: unknown
+}
+
+function lazyRemote(load: () => Promise<RemoteModule>) {
+  return lazy(async () => {
+    const mod = await load()
+    const component = mod.default ?? Object.values(mod).find((value) => typeof value === "function")
+    if (!component) throw new Error("Remote module did not expose a React component")
+    return { default: component as ComponentType }
+  })
+}
+
+const IamRoutes = lazyRemote(() => import("iam/Routes"))
+const PlatformRoutes = lazyRemote(() => import("platform/Routes"))
+const FinanceRoutes = lazyRemote(() => import("finance/Routes"))
+const AccountRoutes = lazyRemote(() => import("account/Routes"))
 
 function navigate(pathname: string) {
   window.history.pushState({}, "", pathname)
