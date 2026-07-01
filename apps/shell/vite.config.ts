@@ -4,6 +4,15 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
+const backend = {
+  authGateway: "http://localhost:8082",
+  finance: "http://localhost:8090",
+  media: "http://localhost:8092",
+  workflow: "http://localhost:8093",
+  crm: "http://localhost:8094",
+  notification: "http://localhost:8095",
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   plugins: [
@@ -62,4 +71,23 @@ export default defineConfig(({ command }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  preview: {
+    allowedHosts: ["arda.io.vn", "www.arda.io.vn", "localhost"],
+  },
+  server: {
+    proxy: {
+      "/api/auth": { target: backend.authGateway, changeOrigin: true },
+      "/api/kratos": { target: backend.authGateway, changeOrigin: true },
+      "/api/iam": { target: backend.authGateway, changeOrigin: true },
+      "/api/admin": { target: backend.authGateway, changeOrigin: true },
+      "/api/platform": { target: backend.authGateway, changeOrigin: true },
+      "/api/identity": { target: backend.authGateway, changeOrigin: true },
+      "/api/finance": { target: backend.finance, changeOrigin: true },
+      "/api/media": { target: backend.media, changeOrigin: true },
+      "/api/workflow": { target: backend.workflow, changeOrigin: true },
+      "/api/crm": { target: backend.crm, changeOrigin: true },
+      "/api/notifications": { target: backend.notification, changeOrigin: true },
+    },
+  },
 }))
+
