@@ -15,6 +15,8 @@ const sharedDependencies = {
   "@workspace/i18n": { singleton: true },
   "@workspace/i18n/": { singleton: true },
   "@workspace/theme": { singleton: true },
+  "@workspace/notifications": { singleton: true },
+  "@workspace/notifications/": { singleton: true },
 }
 
 export default defineConfig(({ command }) => ({
