@@ -21,9 +21,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react"
-import { useAuthStore } from "@workspace/auth"
 import { useI18n, type MessageKey } from "@workspace/i18n"
-import { NotificationBell, useNotificationStream } from "@workspace/notifications"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import {
   Breadcrumb,
@@ -49,6 +47,8 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Toaster } from "@workspace/ui/components/sonner"
 import { cn } from "@workspace/ui/lib/utils"
+import { useAuthStore } from "../../../packages/auth/src/index"
+import { NotificationBell, useNotificationStream } from "../../../packages/notifications/src/index"
 import { useTheme } from "../../../packages/theme/src/index"
 
 type NavNode = {

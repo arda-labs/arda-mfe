@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from "react"
-import { AuthGuard, CallbackPage, ConsentPage, LoginPage } from "@workspace/auth"
+import { AuthGuard, CallbackPage, ConsentPage, LoginPage } from "../../../packages/auth/src/index"
 import { ShellLayout } from "./ShellLayout"
 
 type RemoteModule = {
