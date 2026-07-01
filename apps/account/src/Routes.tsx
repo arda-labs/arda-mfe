@@ -32,12 +32,12 @@ function AccountRoutes() {
   const pathname = usePathname()
 
   if (pathname.startsWith("/in/")) return <PublicProfilePage />
+  if (pathname.startsWith("/settings/appearance")) return <AppearancePage />
 
   let page = <AccountProfilePage />
   if (pathname.startsWith("/my-account/security")) page = <SecurityPage />
   if (pathname.startsWith("/my-account/sessions")) page = <SessionsPage />
   if (pathname.startsWith("/my-account/devices")) page = <DevicesPage />
-  if (pathname.startsWith("/settings/appearance")) page = <AppearancePage />
 
   return (
     <SettingsLayout pathname={pathname} navigate={navigate}>

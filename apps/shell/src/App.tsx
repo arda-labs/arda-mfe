@@ -52,7 +52,7 @@ export function App() {
   const isAccount =
     pathname === "/my-account" ||
     pathname.startsWith("/my-account/") ||
-    pathname.startsWith("/settings/") ||
+    pathname.startsWith("/settings/appearance") ||
     pathname.startsWith("/in/")
 
   return (

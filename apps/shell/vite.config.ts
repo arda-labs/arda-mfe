@@ -13,6 +13,19 @@ const backend = {
   notification: "http://localhost:8095",
 }
 
+const sharedDependencies = {
+  react: { singleton: true },
+  "react-dom": { singleton: true },
+  "react-dom/client": { singleton: true },
+  "react/jsx-runtime": { singleton: true },
+  "react/jsx-dev-runtime": { singleton: true },
+  nuqs: { singleton: true },
+  "nuqs/adapters/react": { singleton: true },
+  "@workspace/i18n": { singleton: true },
+  "@workspace/i18n/": { singleton: true },
+  "@workspace/theme": { singleton: true },
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   plugins: [
@@ -63,7 +76,7 @@ export default defineConfig(({ command }) => ({
           shareScope: "default",
         },
       },
-      shared: ["react", "react-dom"],
+      shared: sharedDependencies,
     }),
   ],
   resolve: {
@@ -90,4 +103,3 @@ export default defineConfig(({ command }) => ({
     },
   },
 }))
-
