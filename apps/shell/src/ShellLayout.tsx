@@ -24,7 +24,6 @@ import {
 import { useAuthStore } from "@workspace/auth"
 import { useI18n, type MessageKey } from "@workspace/i18n"
 import { NotificationBell, useNotificationStream } from "@workspace/notifications"
-import { useTheme } from "@workspace/theme"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import {
   Breadcrumb,
@@ -50,6 +49,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Toaster } from "@workspace/ui/components/sonner"
 import { cn } from "@workspace/ui/lib/utils"
+import { useTheme } from "../../../packages/theme/src/index"
 
 type NavNode = {
   href?: string
