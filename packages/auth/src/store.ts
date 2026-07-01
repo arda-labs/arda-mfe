@@ -97,7 +97,7 @@ interface AuthState {
   login: (user: AuthUser) => void
   updateUser: (patch: Partial<AuthUser>) => void
   setActiveOrgId: (orgId: string) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const noopStorage: PersistStorage<AuthState> = {
@@ -132,9 +132,9 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, activeOrgId: orgId } : null,
         })),
-      logout: () => {
+      logout: async () => {
         if (typeof window !== "undefined") {
-          fetch("/api/auth/logout", { method: "POST" }).catch(() => {})
+          await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {})
         }
         set({ user: null, isAuthenticated: false })
       },
