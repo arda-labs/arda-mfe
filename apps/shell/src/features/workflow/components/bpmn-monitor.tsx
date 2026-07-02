@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { LocateFixed, Redo2, Save, Undo2, ZoomIn, ZoomOut } from "lucide-react"
 import BpmnViewer from "bpmn-js/lib/NavigatedViewer"
 import BpmnModeler from "bpmn-js/lib/Modeler"
+import zeebeModdle from "zeebe-bpmn-moddle/resources/zeebe.json"
 import "bpmn-js/dist/assets/bpmn-js.css"
 import "bpmn-js/dist/assets/diagram-js.css"
 import "bpmn-js/dist/assets/bpmn-font/css/bpmn.css"
@@ -56,6 +57,7 @@ type BpmnElement = {
     $attrs?: Record<string, unknown>
     conditionExpression?: { body?: string }
     documentation?: { text?: string }[]
+    extensionElements?: BpmnExtensionElements
     isExecutable?: boolean
     incoming?: { id: string }[]
     outgoing?: { id: string }[]
@@ -77,7 +79,16 @@ type BpmnModeling = {
 }
 
 type BpmnModdle = {
-  create: (type: string, properties: Record<string, unknown>) => unknown
+  create: (type: string, properties: Record<string, unknown>) => BpmnModdleElement
+}
+
+type BpmnModdleElement = Record<string, unknown> & {
+  $type?: string
+  values?: BpmnModdleElement[]
+}
+
+type BpmnExtensionElements = BpmnModdleElement & {
+  values?: BpmnModdleElement[]
 }
 
 type BpmnCommandStack = {
@@ -118,7 +129,10 @@ export function BpmnViewerPanel({
     let frame = 0
     const container = containerRef.current
     container.replaceChildren()
-    const viewer = new BpmnViewer({ container })
+    const viewer = new BpmnViewer({
+      container,
+      moddleExtensions: { zeebe: zeebeModdle },
+    })
     setError("")
 
     frame = window.requestAnimationFrame(() => {
@@ -259,6 +273,7 @@ function BpmnModelerWorkspace({
     const modeler = new BpmnModeler({
       container,
       keyboard: { bindTo: document },
+      moddleExtensions: { zeebe: zeebeModdle },
     }) as BpmnSaveCapable
     modelerRef.current = modeler
 
@@ -352,9 +367,10 @@ function BpmnModelerWorkspace({
     const modeler = modelerRef.current
     if (!modeler || !selectedElement) return
     const moddle = modeler.get("moddle") as BpmnModdle
+    const expression = normalizeZeebeExpression(value)
     updateSelectedProperties({
-      conditionExpression: value
-        ? moddle.create("bpmn:FormalExpression", { body: value })
+      conditionExpression: expression
+        ? moddle.create("bpmn:FormalExpression", { body: expression })
         : undefined,
     })
   }
@@ -381,11 +397,46 @@ function BpmnModelerWorkspace({
     updateSelectedProperties({ $attrs: attrs })
   }
 
+  function updateTaskDefinition(properties: { type?: string; retries?: string }) {
+    const modeler = modelerRef.current
+    if (!modeler || !selectedElement) return
+    const moddle = modeler.get("moddle") as BpmnModdle
+    const businessObject = selectedElement.businessObject
+    const current = getZeebeElement(businessObject, "zeebe:TaskDefinition")
+    const next = {
+      type: properties.type ?? String(current?.type ?? ""),
+      retries: properties.retries ?? String(current?.retries ?? ""),
+    }
+    const extensionElements = buildZeebeExtensionElements({
+      moddle,
+      businessObject,
+      elementType: "zeebe:TaskDefinition",
+      properties: next,
+      keep: Boolean(next.type.trim()),
+    })
+    updateSelectedProperties({ extensionElements })
+  }
+
+  function updateFormDefinition(formKey: string) {
+    const modeler = modelerRef.current
+    if (!modeler || !selectedElement) return
+    const moddle = modeler.get("moddle") as BpmnModdle
+    const extensionElements = buildZeebeExtensionElements({
+      moddle,
+      businessObject: selectedElement.businessObject,
+      elementType: "zeebe:FormDefinition",
+      properties: { formKey },
+      keep: Boolean(formKey.trim()),
+    })
+    updateSelectedProperties({ extensionElements })
+  }
+
   async function saveXml() {
     const modeler = modelerRef.current
     if (!modeler) return
     setSaving(true)
     try {
+      normalizeModelBeforeSave(modeler)
       const result = await modeler.saveXML({ format: true })
       const nextXml = result.xml ?? ""
       const file = new File([nextXml], item.resourceName || `${item.bpmnProcessId}.bpmn`, {
@@ -407,6 +458,7 @@ function BpmnModelerWorkspace({
   async function exportXml() {
     const modeler = modelerRef.current
     if (!modeler) return
+    normalizeModelBeforeSave(modeler)
     const result = await modeler.saveXML({ format: true })
     downloadText(result.xml ?? "", item.resourceName || `${item.bpmnProcessId}.bpmn`, "application/xml")
   }
@@ -507,6 +559,8 @@ function BpmnModelerWorkspace({
           onUpdateCondition={updateConditionExpression}
           onUpdateDocumentation={updateDocumentation}
           onUpdateExtensionAttr={updateExtensionAttr}
+          onUpdateFormDefinition={updateFormDefinition}
+          onUpdateTaskDefinition={updateTaskDefinition}
         />
         <div
           className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-primary/30"
@@ -580,6 +634,8 @@ function BpmnInspector({
   onUpdateCondition,
   onUpdateDocumentation,
   onUpdateExtensionAttr,
+  onUpdateFormDefinition,
+  onUpdateTaskDefinition,
 }: {
   item: WorkflowProcessDefinition
   selectedElement: BpmnElement | null
@@ -588,10 +644,14 @@ function BpmnInspector({
   onUpdateCondition: (value: string) => void
   onUpdateDocumentation: (value: string) => void
   onUpdateExtensionAttr: (key: string, value: string) => void
+  onUpdateFormDefinition: (formKey: string) => void
+  onUpdateTaskDefinition: (properties: { type?: string; retries?: string }) => void
 }) {
   const businessObject = selectedElement?.businessObject
   const docs = businessObject?.documentation?.map((item) => item.text ?? "").join("\n") ?? ""
   const attrs = businessObject?.$attrs ?? {}
+  const formDefinition = getZeebeElement(businessObject, "zeebe:FormDefinition")
+  const taskDefinition = getZeebeElement(businessObject, "zeebe:TaskDefinition")
   const isProcess = businessObject?.$type === "bpmn:Process"
   const isSequenceFlow = businessObject?.$type === "bpmn:SequenceFlow"
   const isTask = selectedElement ? bpmnJobTypes.has(selectedElement.type) : false
@@ -656,18 +716,18 @@ function BpmnInspector({
                   <>
                     <TextInput
                       label="Job type"
-                      value={String(attrs["zeebe:taskDefinition:type"] ?? attrs["taskType"] ?? "")}
-                      onChange={(value) => onUpdateExtensionAttr("zeebe:taskDefinition:type", value)}
+                      value={String(taskDefinition?.type ?? attrs["zeebe:taskDefinition:type"] ?? attrs["taskType"] ?? "")}
+                      onChange={(type) => onUpdateTaskDefinition({ type })}
                     />
                     <TextInput
                       label="Retries"
-                      value={String(attrs["zeebe:taskDefinition:retries"] ?? "")}
-                      onChange={(value) => onUpdateExtensionAttr("zeebe:taskDefinition:retries", value)}
+                      value={String(taskDefinition?.retries ?? attrs["zeebe:taskDefinition:retries"] ?? "")}
+                      onChange={(retries) => onUpdateTaskDefinition({ retries })}
                     />
                     <TextInput
                       label="Form key"
-                      value={String(attrs["formKey"] ?? attrs["zeebe:formDefinition:formKey"] ?? "")}
-                      onChange={(value) => onUpdateExtensionAttr("formKey", value)}
+                      value={String(formDefinition?.formKey ?? attrs["formKey"] ?? attrs["zeebe:formDefinition:formKey"] ?? "")}
+                      onChange={onUpdateFormDefinition}
                     />
                   </>
                 ) : (
@@ -1054,6 +1114,88 @@ function findBpmnElement(elements: BpmnElement[], ref: string) {
 
 function normalizeBpmnRef(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, "-")
+}
+
+function normalizeModelBeforeSave(modeler: BpmnSaveCapable) {
+  const registry = modeler.get("elementRegistry") as BpmnElementRegistry
+  const modeling = modeler.get("modeling") as BpmnModeling
+  const moddle = modeler.get("moddle") as BpmnModdle
+
+  for (const element of registry.getAll()) {
+    const businessObject = element.businessObject
+    if (!businessObject) continue
+
+    const condition = businessObject.conditionExpression
+    if (condition?.body) {
+      const nextBody = normalizeZeebeExpression(condition.body)
+      if (nextBody !== condition.body) {
+        modeling.updateProperties(element, {
+          conditionExpression: moddle.create("bpmn:FormalExpression", { body: nextBody }),
+        })
+      }
+    }
+
+    const attrs = businessObject.$attrs ?? {}
+    const legacyType = String(
+      attrs["zeebe:taskDefinition:type"] ?? attrs["taskType"] ?? attrs["camunda:topic"] ?? ""
+    )
+    if (!bpmnJobTypes.has(element.type) || !legacyType.trim()) continue
+
+    const extensionElements = buildZeebeExtensionElements({
+      moddle,
+      businessObject,
+      elementType: "zeebe:TaskDefinition",
+      properties: {
+        type: legacyType,
+        retries: String(attrs["zeebe:taskDefinition:retries"] ?? ""),
+      },
+      keep: true,
+    })
+    modeling.updateProperties(element, { extensionElements })
+  }
+}
+
+function normalizeZeebeExpression(value: string) {
+  const expression = value.trim()
+  if (!expression || expression.startsWith("=")) return expression
+  const c7Expression = expression.match(/^\$\{(.+)\}$/)
+  const body = c7Expression ? c7Expression[1].trim() : expression
+  return `=${body
+    .replace(/\s+==\s+/g, " = ")
+    .replace(/\s+&&\s+/g, " and ")
+    .replace(/\s+\|\|\s+/g, " or ")
+    .replace(/'([^']*)'/g, '"$1"')}`
+}
+
+function getZeebeElement(businessObject: BpmnElement["businessObject"], elementType: string) {
+  return businessObject?.extensionElements?.values?.find((item) => item.$type === elementType)
+}
+
+function buildZeebeExtensionElements({
+  moddle,
+  businessObject,
+  elementType,
+  properties,
+  keep,
+}: {
+  moddle: BpmnModdle
+  businessObject: BpmnElement["businessObject"]
+  elementType: string
+  properties: Record<string, string>
+  keep: boolean
+}) {
+  const values = [...(businessObject?.extensionElements?.values ?? [])].filter(
+    (item) => item.$type !== elementType
+  )
+  if (keep) values.push(moddle.create(elementType, compactStringProperties(properties)))
+  if (!values.length) return undefined
+  return moddle.create("bpmn:ExtensionElements", { values })
+}
+
+function compactStringProperties(properties: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(properties).filter(([, value]) => value.trim())
+  )
 }
 
 function clampNumber(value: number, min: number, max: number) {

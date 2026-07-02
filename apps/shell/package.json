@@ -23,7 +23,8 @@
     "lucide-react": "^1.22.0",
     "nuqs": "^2.9.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "zeebe-bpmn-moddle": "^1.16.0"
   },
   "devDependencies": {
     "@eslint/js": "^10",
