@@ -3,14 +3,17 @@ import * as authShare from "../../../packages/auth/src/index"
 import * as authStoreShare from "../../../packages/auth/src/store"
 import * as stepUpChannelShare from "../../../packages/auth/src/step-up-channel"
 import * as themeShare from "../../../packages/theme/src/index"
+import { WorkflowAdminPage } from "./features/workflow/page"
 import { ShellLayout } from "./ShellLayout"
 
-const mfCache = ((globalThis as typeof globalThis & {
-  __mf_module_cache__?: {
-    share: Record<string, unknown>
-    remote: Record<string, unknown>
+const mfCache = ((
+  globalThis as typeof globalThis & {
+    __mf_module_cache__?: {
+      share: Record<string, unknown>
+      remote: Record<string, unknown>
+    }
   }
-}).__mf_module_cache__ ??= { share: {}, remote: {} })
+).__mf_module_cache__ ??= { share: {}, remote: {} })
 
 // ponytail: Workspace-only seeding keeps auth routes light; remove when federation exposes local singletons lazily.
 mfCache.share["default:@workspace/auth"] ??= authShare
@@ -30,8 +33,11 @@ type RemoteModule = {
 function lazyRemote(load: () => Promise<RemoteModule>) {
   return lazy(async () => {
     const mod = await load()
-    const component = mod.default ?? Object.values(mod).find((value) => typeof value === "function")
-    if (!component) throw new Error("Remote module did not expose a React component")
+    const component =
+      mod.default ??
+      Object.values(mod).find((value) => typeof value === "function")
+    if (!component)
+      throw new Error("Remote module did not expose a React component")
     return { default: component as ComponentType }
   })
 }
@@ -73,6 +79,8 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
     pathname.startsWith("/admin/calendar") ||
     pathname.startsWith("/admin/cutoff")
   const isFinance = pathname.startsWith("/finance/")
+  const isCustomerOperation = pathname.startsWith("/customers/")
+  const isWorkflowAdmin = pathname.startsWith("/workflow/")
   const isAccount =
     pathname === "/my-account" ||
     pathname.startsWith("/my-account/") ||
@@ -95,6 +103,13 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
             <Suspense fallback={routeFallback}>
               <FinanceRoutes />
             </Suspense>
+          ) : isCustomerOperation ? (
+            <BusinessRoutePlaceholder
+              title="Khách hàng hội viên"
+              description="Các màn hình nghiệp vụ khách hàng sẽ được gắn vào shell theo từng operation."
+            />
+          ) : isWorkflowAdmin ? (
+            <WorkflowAdminPage pathname={pathname} />
           ) : isAccount ? (
             <Suspense fallback={routeFallback}>
               <AccountRoutes />
@@ -108,14 +123,30 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
   )
 }
 
+function BusinessRoutePlaceholder({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <section className="flex max-w-2xl flex-col gap-3">
+      <p className="text-sm text-muted-foreground">Arda workflow</p>
+      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+      <p className="text-muted-foreground">{description}</p>
+    </section>
+  )
+}
+
 function Dashboard() {
   return (
     <section className="flex max-w-2xl flex-col gap-4">
       <p className="text-sm text-muted-foreground">Shell</p>
       <h1 className="text-3xl font-semibold tracking-tight">Arda workspace</h1>
       <p className="text-muted-foreground">
-        Auth, layout, i18n, theme, and notifications now live in the shell. Domain
-        pages load as runtime micro frontends.
+        Auth, layout, i18n, theme, and notifications now live in the shell.
+        Domain pages load as runtime micro frontends.
       </p>
     </section>
   )

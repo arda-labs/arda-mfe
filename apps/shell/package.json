@@ -19,6 +19,7 @@
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.2",
+    "bpmn-js": "^18.9.1",
     "lucide-react": "^1.22.0",
     "nuqs": "^2.9.0",
     "react": "^19.2.6",

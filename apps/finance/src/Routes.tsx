@@ -1,5 +1,11 @@
 import { AccountsPage } from "@/features/finance/accounts/page"
 import { ApprovalsPage } from "@/features/finance/approvals/page"
+import {
+  AccountingConfigPage,
+  FinanceTransactionSearchPage,
+  IncomingTransactionsOperationPage,
+  OutgoingTransactionsOperationPage,
+} from "@/features/finance/operation/page"
 import { TransactionsPage } from "@/features/finance/transactions/page"
 import { TrialBalancePage } from "@/features/finance/trial-balance/page"
 
@@ -15,6 +21,28 @@ export default function Routes() {
 function FinanceRoutes() {
   const pathname = getPathname()
 
+  if (
+    pathname.startsWith("/finance/transactions/search") ||
+    pathname.startsWith("/finance/transaction-search")
+  )
+    return <FinanceTransactionSearchPage />
+  if (
+    pathname.startsWith("/finance/transactions/outgoing") ||
+    pathname.startsWith("/finance/outgoing-transactions")
+  )
+    return <OutgoingTransactionsOperationPage />
+  if (
+    pathname.startsWith("/finance/transactions/incoming") ||
+    pathname.startsWith("/finance/incoming-transactions")
+  )
+    return <IncomingTransactionsOperationPage />
+  if (
+    pathname.startsWith("/finance/accounting-config") ||
+    pathname.startsWith("/finance/transactions/accounting-config")
+  )
+    return <AccountingConfigPage />
+  if (pathname.startsWith("/finance/transactions/ledger"))
+    return <TransactionsPage />
   if (pathname.startsWith("/finance/transactions")) return <TransactionsPage />
   if (pathname.startsWith("/finance/approvals")) return <ApprovalsPage />
   if (pathname.startsWith("/finance/trial-balance")) return <TrialBalancePage />

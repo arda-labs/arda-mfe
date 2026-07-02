@@ -24,7 +24,11 @@ import {
 import { useI18n, type MessageKey } from "@workspace/i18n"
 import type { AuthUser } from "@workspace/auth/store"
 import { hasAnyPermission } from "@workspace/auth/store"
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -50,12 +54,16 @@ import { Input } from "@workspace/ui/components/input"
 import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { useAuthStore } from "../../../packages/auth/src/index"
-import { NotificationBell, useNotificationStream } from "../../../packages/notifications/src/index"
+import {
+  NotificationBell,
+  useNotificationStream,
+} from "../../../packages/notifications/src/index"
 import { useTheme } from "../../../packages/theme/src/index"
 
 type NavNode = {
   href?: string
   labelKey: MessageKey
+  label?: string
   icon: LucideIcon
   permissions?: string[]
   children?: NavNode[]
@@ -67,15 +75,30 @@ const navItems: NavNode[] = [
     labelKey: "nav.admin",
     icon: Users,
     children: [
-      { href: "/admin/users", labelKey: "nav.admin.users", icon: Users, permissions: ["iam.user.read"] },
-      { href: "/admin/roles", labelKey: "nav.admin.roles", icon: Users, permissions: ["iam.role.read"] },
+      {
+        href: "/admin/users",
+        labelKey: "nav.admin.users",
+        icon: Users,
+        permissions: ["iam.user.read"],
+      },
+      {
+        href: "/admin/roles",
+        labelKey: "nav.admin.roles",
+        icon: Users,
+        permissions: ["iam.role.read"],
+      },
       {
         href: "/admin/permissions",
         labelKey: "nav.admin.permissions",
         icon: ShieldCheck,
         permissions: ["iam.permission.read"],
       },
-      { href: "/admin/audit", labelKey: "nav.admin.audit", icon: FileText, permissions: ["iam.user.read"] },
+      {
+        href: "/admin/audit",
+        labelKey: "nav.admin.audit",
+        icon: FileText,
+        permissions: ["iam.user.read"],
+      },
       {
         href: "/admin/settings",
         labelKey: "nav.admin.system_settings",
@@ -85,12 +108,74 @@ const navItems: NavNode[] = [
     ],
   },
   {
+    labelKey: "nav.customer_members",
+    label: "Khách hàng hội viên",
+    icon: Users,
+    children: [
+      {
+        href: "/customers/registrations",
+        labelKey: "nav.customer_members.registrations",
+        label: "Đăng ký khách hàng",
+        icon: FileText,
+      },
+      {
+        href: "/customers/profiles",
+        labelKey: "nav.customer_members.profiles",
+        label: "Hồ sơ khách hàng",
+        icon: Users,
+      },
+      {
+        href: "/customers/risk-cases",
+        labelKey: "nav.customer_members.risk_cases",
+        label: "Khách hàng rủi ro",
+        icon: ShieldCheck,
+      },
+    ],
+  },
+  {
     labelKey: "nav.finance",
+    label: "Kế toán",
     icon: Wallet,
     children: [
-      { href: "/finance/accounts", labelKey: "nav.finance.accounts", icon: Wallet },
-      { href: "/finance/transactions", labelKey: "nav.finance.transactions", icon: FileText },
-      { href: "/finance/approvals", labelKey: "nav.finance.approvals", icon: ShieldCheck },
+      {
+        href: "/finance/incoming-transactions",
+        labelKey: "nav.finance.incoming_transactions",
+        label: "Giao dịch đến",
+        icon: FileText,
+      },
+      {
+        href: "/finance/outgoing-transactions",
+        labelKey: "nav.finance.outgoing_transactions",
+        label: "Giao dịch đi",
+        icon: FileText,
+      },
+      {
+        href: "/finance/transactions/search",
+        labelKey: "nav.finance.transaction_search",
+        label: "Tìm kiếm giao dịch",
+        icon: ListTree,
+      },
+      {
+        href: "/finance/accounting-config",
+        labelKey: "nav.finance.accounting_config",
+        label: "Cấu hình kế toán",
+        icon: Settings,
+      },
+      {
+        href: "/finance/accounts",
+        labelKey: "nav.finance.accounts",
+        icon: Wallet,
+      },
+      {
+        href: "/finance/transactions",
+        labelKey: "nav.finance.transactions",
+        icon: FileText,
+      },
+      {
+        href: "/finance/approvals",
+        labelKey: "nav.finance.approvals",
+        icon: ShieldCheck,
+      },
       {
         href: "/finance/trial-balance",
         labelKey: "nav.finance.trial_balance",
@@ -102,22 +187,115 @@ const navItems: NavNode[] = [
     labelKey: "nav.platform",
     icon: Settings,
     children: [
-      { href: "/admin/organizations", labelKey: "nav.platform.organizations", icon: Building2, permissions: ["platform.read"] },
-      { href: "/admin/parameters", labelKey: "nav.platform.parameters", icon: SlidersHorizontal, permissions: ["platform.manage"] },
-      { href: "/admin/provinces", labelKey: "nav.platform.provinces", icon: Building2, permissions: ["platform.read"] },
-      { href: "/admin/wards", labelKey: "nav.platform.wards", icon: Building2, permissions: ["platform.read"] },
-      { href: "/admin/lookups", labelKey: "nav.platform.lookups", icon: ListTree, permissions: ["platform.manage"] },
-      { href: "/admin/area-types", labelKey: "nav.platform.area_types", icon: ListTree, permissions: ["platform.manage"] },
-      { href: "/admin/areas", labelKey: "nav.platform.areas", icon: Building2, permissions: ["platform.read"] },
+      {
+        href: "/admin/organizations",
+        labelKey: "nav.platform.organizations",
+        icon: Building2,
+        permissions: ["platform.read"],
+      },
+      {
+        href: "/admin/parameters",
+        labelKey: "nav.platform.parameters",
+        icon: SlidersHorizontal,
+        permissions: ["platform.manage"],
+      },
+      {
+        href: "/admin/provinces",
+        labelKey: "nav.platform.provinces",
+        icon: Building2,
+        permissions: ["platform.read"],
+      },
+      {
+        href: "/admin/wards",
+        labelKey: "nav.platform.wards",
+        icon: Building2,
+        permissions: ["platform.read"],
+      },
+      {
+        href: "/admin/lookups",
+        labelKey: "nav.platform.lookups",
+        icon: ListTree,
+        permissions: ["platform.manage"],
+      },
+      {
+        href: "/admin/area-types",
+        labelKey: "nav.platform.area_types",
+        icon: ListTree,
+        permissions: ["platform.manage"],
+      },
+      {
+        href: "/admin/areas",
+        labelKey: "nav.platform.areas",
+        icon: Building2,
+        permissions: ["platform.read"],
+      },
       {
         href: "/admin/credit-institutions",
         labelKey: "nav.platform.credit_institutions",
         icon: Building2,
         permissions: ["platform.read"],
       },
-      { href: "/admin/templates", labelKey: "nav.platform.templates", icon: FileText, permissions: ["platform.manage"] },
-      { href: "/admin/calendar", labelKey: "nav.platform.calendar", icon: Calendar, permissions: ["platform.manage"] },
-      { href: "/admin/cutoff", labelKey: "nav.platform.cutoff", icon: Clock, permissions: ["platform.manage"] },
+      {
+        href: "/admin/templates",
+        labelKey: "nav.platform.templates",
+        icon: FileText,
+        permissions: ["platform.manage"],
+      },
+      {
+        href: "/admin/calendar",
+        labelKey: "nav.platform.calendar",
+        icon: Calendar,
+        permissions: ["platform.manage"],
+      },
+      {
+        href: "/admin/cutoff",
+        labelKey: "nav.platform.cutoff",
+        icon: Clock,
+        permissions: ["platform.manage"],
+      },
+    ],
+  },
+  {
+    labelKey: "nav.workflow",
+    label: "Quy trình",
+    icon: ListTree,
+    children: [
+      {
+        href: "/workflow/case-types",
+        labelKey: "nav.workflow.case_types",
+        label: "Danh mục loại nghiệp vụ",
+        icon: ListTree,
+      },
+      {
+        href: "/workflow/process-configs",
+        labelKey: "nav.workflow.process_configs",
+        label: "Cấu hình quy trình",
+        icon: Settings,
+      },
+      {
+        href: "/workflow/sla-policies",
+        labelKey: "nav.workflow.sla_policies",
+        label: "Cấu hình SLA",
+        icon: Clock,
+      },
+      {
+        href: "/workflow/description-templates",
+        labelKey: "nav.workflow.description_templates",
+        label: "Cấu trúc diễn giải",
+        icon: FileText,
+      },
+      {
+        href: "/workflow/roles",
+        labelKey: "nav.workflow.roles",
+        label: "Vai trò quy trình",
+        icon: Users,
+      },
+      {
+        href: "/workflow/monitoring",
+        labelKey: "nav.workflow.monitoring",
+        label: "Giám sát quy trình",
+        icon: LayoutDashboard,
+      },
     ],
   },
 ]
@@ -135,8 +313,11 @@ export function ShellLayout({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "nav.admin": true,
     "nav.finance": true,
+    "nav.workflow": true,
   })
-  const [authHydrated, setAuthHydrated] = useState(() => useAuthStore.persist.hasHydrated())
+  const [authHydrated, setAuthHydrated] = useState(() =>
+    useAuthStore.persist.hasHydrated()
+  )
   const { user, isAuthenticated, logout } = useAuthStore()
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useI18n()
@@ -150,7 +331,9 @@ export function ShellLayout({
 
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light")
   const ThemeIcon = theme === "dark" ? Sun : Moon
-  const displayUserName = user ? formatUserLabel(user.name || "", user.nickname) : ""
+  const displayUserName = user
+    ? formatUserLabel(user.name || "", user.nickname)
+    : ""
   const initials = user
     ? (user.name || user.email || "?")
         .split(" ")
@@ -178,7 +361,7 @@ export function ShellLayout({
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
           {visibleNavItems.map((item) => (
             <SidebarNode
-              key={item.labelKey}
+              key={getNavNodeId(item)}
               item={item}
               depth={0}
               locationPath={pathname}
@@ -228,7 +411,10 @@ export function ShellLayout({
               userName={displayUserName}
               email={user?.email || ""}
               picture={user?.picture || ""}
-              username={user?.username || (user?.email ? user.email.split("@")[0] : "me")}
+              username={
+                user?.username ||
+                (user?.email ? user.email.split("@")[0] : "me")
+              }
               onLogout={logout}
               navigate={navigate}
               t={t}
@@ -263,12 +449,19 @@ function SidebarNode({
   setOpenGroups: Dispatch<SetStateAction<Record<string, boolean>>>
   t: (key: MessageKey) => string
 }) {
-  const label = t(item.labelKey)
+  const label = getNavLabel(item, t)
   const hasChildren = Boolean(item.children?.length)
   const isActive =
-    item.href === "/" ? locationPath === "/" : item.href ? locationPath.startsWith(item.href) : false
-  const hasActiveChild = hasChildren && item.children?.some((child) => isNodeActive(child, locationPath))
-  const isExpanded = openGroups[item.labelKey] ?? hasActiveChild
+    item.href === "/"
+      ? locationPath === "/"
+      : item.href
+        ? locationPath.startsWith(item.href)
+        : false
+  const hasActiveChild =
+    hasChildren &&
+    item.children?.some((child) => isNodeActive(child, locationPath))
+  const nodeId = getNavNodeId(item)
+  const isExpanded = openGroups[nodeId] ?? hasActiveChild
   const open = sidebarOpen && isExpanded
   const itemClassName = cn(
     "flex h-9 w-full items-center gap-3 rounded-md px-3 text-sm transition-colors",
@@ -276,7 +469,9 @@ function SidebarNode({
       ? "bg-primary/10 font-medium text-primary"
       : "text-muted-foreground hover:bg-muted hover:text-foreground"
   )
-  const style = sidebarOpen ? { paddingLeft: `${0.75 + depth * 0.9}rem` } : undefined
+  const style = sidebarOpen
+    ? { paddingLeft: `${0.75 + depth * 0.9}rem` }
+    : undefined
 
   if (hasChildren) {
     return (
@@ -285,8 +480,8 @@ function SidebarNode({
           type="button"
           onClick={() =>
             setOpenGroups((current) => {
-              const currentVal = current[item.labelKey] ?? hasActiveChild
-              return { ...current, [item.labelKey]: !currentVal }
+              const currentVal = current[nodeId] ?? hasActiveChild
+              return { ...current, [nodeId]: !currentVal }
             })
           }
           className={itemClassName}
@@ -297,7 +492,12 @@ function SidebarNode({
           {sidebarOpen && (
             <>
               <span className="min-w-0 flex-1 truncate text-left">{label}</span>
-              <ChevronRight className={cn("size-3.5 transition-transform", open && "rotate-90")} />
+              <ChevronRight
+                className={cn(
+                  "size-3.5 transition-transform",
+                  open && "rotate-90"
+                )}
+              />
             </>
           )}
         </button>
@@ -305,7 +505,7 @@ function SidebarNode({
           <div className="mt-0.5 space-y-0.5">
             {item.children?.map((child) => (
               <SidebarNode
-                key={child.labelKey}
+                key={getNavNodeId(child)}
                 item={child}
                 depth={depth + 1}
                 locationPath={locationPath}
@@ -339,15 +539,19 @@ function SidebarNode({
 }
 
 function isNodeActive(item: NavNode, pathname: string): boolean {
-  if (item.href) return item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+  if (item.href)
+    return item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
   return Boolean(item.children?.some((child) => isNodeActive(child, pathname)))
 }
 
 function filterNavItems(items: NavNode[], user: AuthUser | null): NavNode[] {
   const visible: NavNode[] = []
   for (const item of items) {
-    const children = item.children ? filterNavItems(item.children, user) : undefined
-    if (!hasAnyPermission(user, item.permissions ?? []) && !children?.length) continue
+    const children = item.children
+      ? filterNavItems(item.children, user)
+      : undefined
+    if (!hasAnyPermission(user, item.permissions ?? []) && !children?.length)
+      continue
     visible.push({ ...item, children })
   }
   return visible
@@ -360,14 +564,16 @@ function AppBreadcrumb({
   pathname: string
   t: (key: MessageKey) => string
 }) {
-  const items = getBreadcrumbItems(pathname)
+  const items = getBreadcrumbItems(pathname, t)
   return (
     <Breadcrumb className="min-w-0">
       <BreadcrumbList className="flex-nowrap">
         {items.map((item, index) => [
-          index > 0 ? <BreadcrumbSeparator key={`${item.labelKey}-${index}-separator`} /> : null,
-          <BreadcrumbItem key={`${item.labelKey}-${index}`} className="min-w-0">
-            <BreadcrumbPage className="truncate">{t(item.labelKey)}</BreadcrumbPage>
+          index > 0 ? (
+            <BreadcrumbSeparator key={`${item.label}-${index}-separator`} />
+          ) : null,
+          <BreadcrumbItem key={`${item.label}-${index}`} className="min-w-0">
+            <BreadcrumbPage className="truncate">{item.label}</BreadcrumbPage>
           </BreadcrumbItem>,
         ])}
       </BreadcrumbList>
@@ -375,18 +581,28 @@ function AppBreadcrumb({
   )
 }
 
-function getBreadcrumbItems(pathname: string): { labelKey: MessageKey }[] {
-  if (pathname === "/") return [{ labelKey: "nav.dashboard" }]
+function getBreadcrumbItems(
+  pathname: string,
+  t: (key: MessageKey) => string
+): { label: string }[] {
+  if (pathname === "/") return [{ label: t("nav.dashboard") }]
   const matched = findBreadcrumb(navItems, pathname)
   return matched.length > 0
-    ? matched.map((item) => ({ labelKey: item.labelKey }))
-    : [{ labelKey: "common.app.name" }]
+    ? matched.map((item) => ({ label: getNavLabel(item, t) }))
+    : [{ label: t("common.app.name") }]
 }
 
-function findBreadcrumb(items: NavNode[], pathname: string, parents: NavNode[] = []): NavNode[] {
+function findBreadcrumb(
+  items: NavNode[],
+  pathname: string,
+  parents: NavNode[] = []
+): NavNode[] {
   for (const item of items) {
     const nextParents = [...parents, item]
-    if (item.href && (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))) {
+    if (
+      item.href &&
+      (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))
+    ) {
       return nextParents
     }
     if (item.children) {
@@ -395,6 +611,14 @@ function findBreadcrumb(items: NavNode[], pathname: string, parents: NavNode[] =
     }
   }
   return []
+}
+
+function getNavNodeId(item: NavNode) {
+  return item.href ?? item.labelKey
+}
+
+function getNavLabel(item: NavNode, t: (key: MessageKey) => string) {
+  return item.label ?? t(item.labelKey)
 }
 
 function UserMenu({
@@ -429,8 +653,14 @@ function UserMenu({
             className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
           >
             <Avatar className="size-8 cursor-pointer">
-              <AvatarImage src={picture} alt={userName || email || "User"} className="object-cover" />
-              <AvatarFallback className="bg-primary/10 text-xs text-primary">{initials}</AvatarFallback>
+              <AvatarImage
+                src={picture}
+                alt={userName || email || "User"}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-primary/10 text-xs text-primary">
+                {initials}
+              </AvatarFallback>
             </Avatar>
           </button>
         </DropdownMenuTrigger>
@@ -441,12 +671,22 @@ function UserMenu({
           >
             <div className="flex w-full min-w-0 items-center gap-3">
               <Avatar className="size-9">
-                <AvatarImage src={picture} alt={userName || email || "User"} className="object-cover" />
-                <AvatarFallback className="bg-primary/10 text-xs text-primary">{initials}</AvatarFallback>
+                <AvatarImage
+                  src={picture}
+                  alt={userName || email || "User"}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-primary/10 text-xs text-primary">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">{userName || email || "User"}</p>
-                <p className="truncate text-xs text-muted-foreground">{email}</p>
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {userName || email || "User"}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {email}
+                </p>
               </div>
             </div>
           </DropdownMenuItem>
@@ -468,7 +708,10 @@ function UserMenu({
             <span>{t("user.menu.help_support")}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+          <DropdownMenuItem
+            onClick={onLogout}
+            className="text-destructive focus:text-destructive"
+          >
             <LogOut className="size-4" />
             {t("common.action.logout")}
           </DropdownMenuItem>
@@ -482,7 +725,9 @@ function UserMenu({
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-muted-foreground">Quick Status</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                Quick Status
+              </span>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { value: "active", label: "Active", color: "bg-green-500" },
@@ -495,7 +740,9 @@ function UserMenu({
                     onClick={() => setUserStatus(status.value)}
                     className={cn(
                       "flex cursor-pointer items-center gap-2 rounded-md border p-2 text-xs font-medium transition-colors hover:bg-muted",
-                      userStatus === status.value ? "border-primary bg-primary/5" : "border-border"
+                      userStatus === status.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
                     )}
                   >
                     <span className={cn("size-2 rounded-full", status.color)} />
@@ -505,7 +752,9 @@ function UserMenu({
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium text-muted-foreground">Custom Message</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                Custom Message
+              </span>
               <Input
                 placeholder="What's happening?"
                 value={customStatusText}
@@ -513,7 +762,11 @@ function UserMenu({
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" size="sm" onClick={() => setStatusOpen(false)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStatusOpen(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
               <Button size="sm" onClick={() => setStatusOpen(false)}>

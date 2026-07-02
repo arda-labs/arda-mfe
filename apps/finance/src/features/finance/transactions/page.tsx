@@ -88,6 +88,10 @@ const STATUS_VARIANTS: Partial<
 
 const DEFAULT_PAGE_SIZE = 10
 
+function createIdempotencyKey() {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+}
+
 export function TransactionsPage() {
   const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
@@ -122,7 +126,7 @@ export function TransactionsPage() {
   }
 
   const handleCreate = handleSubmit(async (values) => {
-    const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const idempotencyKey = createIdempotencyKey()
     try {
       await createTransaction.mutateAsync({ ...values, idempotencyKey })
       setOpen(false)
