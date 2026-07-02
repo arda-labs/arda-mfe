@@ -1,4 +1,5 @@
 import { AuditPage, PermissionsPage, RolesPage, UsersPage } from "@/features/iam"
+import { SystemSettingsPage } from "@/features/iam/system-settings/page"
 
 function getPathname() {
   if (typeof window === "undefined") return "/admin/users"
@@ -15,6 +16,7 @@ function IamRoutes() {
   if (pathname.startsWith("/admin/roles")) return <RolesPage />
   if (pathname.startsWith("/admin/permissions")) return <PermissionsPage />
   if (pathname.startsWith("/admin/audit")) return <AuditPage />
+  if (pathname.startsWith("/admin/settings")) return <SystemSettingsPage />
 
   return <UsersPage />
 }

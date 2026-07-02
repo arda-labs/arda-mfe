@@ -76,6 +76,12 @@ const navItems: NavNode[] = [
         permissions: ["iam.permission.read"],
       },
       { href: "/admin/audit", labelKey: "nav.admin.audit", icon: FileText, permissions: ["iam.user.read"] },
+      {
+        href: "/admin/settings",
+        labelKey: "nav.admin.system_settings",
+        icon: Settings,
+        permissions: ["platform.manage"],
+      },
     ],
   },
   {
