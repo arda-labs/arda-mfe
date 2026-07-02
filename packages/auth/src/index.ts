@@ -1,4 +1,5 @@
 export { AuthGuard } from "./auth-guard"
+export { AuthLoadingScreen } from "./loading-screen"
 export { acceptHydraConsent, exchangeCode, redirectToHydraLogin } from "./oauth"
 export { CallbackPage, ConsentPage, LoginPage } from "./pages"
 export { requestStepUp, StepUpProvider } from "./step-up"

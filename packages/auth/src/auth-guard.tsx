@@ -2,6 +2,7 @@ import { getMediaContentUrl } from "@workspace/core/media/urls"
 import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
 import { Building2 } from "lucide-react"
+import { AuthLoadingScreen } from "./loading-screen"
 import { normalizeAuthUser, useAuthStore } from "./store"
 
 type Organization = {
@@ -65,7 +66,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     if (user.picture !== contentURL) updateUser({ picture: contentURL })
   }, [hydrated, isAuthenticated, updateUser, user?.avatarFileId, user?.picture])
 
-  if (!hydrated || !isAuthenticated) return <AuthGuardFallback />
+  if (!hydrated || !isAuthenticated) return <AuthLoadingScreen />
 
   if (user?.orgIds && user.orgIds.length > 1 && !user.activeOrgId) {
     return (
@@ -126,25 +127,4 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>
-}
-
-function AuthGuardFallback() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 px-4 py-6 text-foreground transition-colors duration-500" style={{ minHeight: "100dvh" }}>
-      <div className="flex flex-col items-center gap-6 py-6 text-center">
-        <div className="relative flex size-16 items-center justify-center">
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-lg shadow-primary/20 animate-pulse">
-            A
-          </div>
-          <div className="absolute inset-0 rounded-2xl border-2 border-primary/10" />
-          <div className="absolute inset-0 rounded-2xl border-2 border-transparent border-t-primary animate-spin" />
-        </div>
-        
-        <div className="space-y-1.5">
-          <h1 className="text-xl font-bold tracking-tight">Arda Secure Session</h1>
-          <p className="text-xs leading-relaxed text-muted-foreground max-w-xs mx-auto">Checking authorization status...</p>
-        </div>
-      </div>
-    </main>
-  )
 }

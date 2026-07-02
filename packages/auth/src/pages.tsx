@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner"
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useTheme } from "../../theme/src/index"
+import { AuthLoadingScreen } from "./loading-screen"
 import { acceptHydraConsent, exchangeCode, redirectToHydraLogin } from "./oauth"
 import { normalizeAuthUser, useAuthStore } from "./store"
 
@@ -71,10 +72,7 @@ export function LoginPage() {
 
   if (!loginChallenge && !searchError) {
     return (
-      <AuthLoading
-        description="We are preparing a secure authorization challenge."
-        title="Preparing sign in"
-      />
+      <AuthLoadingScreen />
     )
   }
 
@@ -427,10 +425,7 @@ export function CallbackPage() {
   }, [code, consentChallenge, error, errorDescription, login, state])
 
   return (
-    <AuthLoading
-      description="We are validating the authorization response."
-      title="Completing sign in"
-    />
+    <AuthLoadingScreen />
   )
 }
 
@@ -466,31 +461,7 @@ export function ConsentPage() {
   }
 
   return (
-    <AuthLoading
-      description="We are finishing the requested access grant."
-      title="Finishing authorization"
-    />
-  )
-}
-
-function AuthLoading({ title, description }: { title: string; description: string }) {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 px-4 py-6 text-foreground transition-colors duration-500" style={{ minHeight: "100dvh" }}>
-      <div className="flex flex-col items-center gap-6 py-6 text-center">
-        <div className="relative flex size-16 items-center justify-center">
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-lg shadow-primary/20 animate-pulse">
-            A
-          </div>
-          <div className="absolute inset-0 rounded-2xl border-2 border-primary/10" />
-          <div className="absolute inset-0 rounded-2xl border-2 border-transparent border-t-primary animate-spin" />
-        </div>
-        
-        <div className="space-y-1.5">
-          <h1 className="text-xl font-bold tracking-tight">{title}</h1>
-          <p className="text-xs leading-relaxed text-muted-foreground max-w-xs mx-auto">{description}</p>
-        </div>
-      </div>
-    </main>
+    <AuthLoadingScreen />
   )
 }
 

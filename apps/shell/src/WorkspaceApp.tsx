@@ -41,6 +41,8 @@ const PlatformRoutes = lazyRemote(() => import("platform/Routes"))
 const FinanceRoutes = lazyRemote(() => import("finance/Routes"))
 const AccountRoutes = lazyRemote(() => import("account/Routes"))
 
+const routeFallback = <authShare.AuthLoadingScreen fullscreen={false} />
+
 type WorkspaceAppProps = {
   pathname: string
 }
@@ -81,19 +83,19 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
       <authShare.AuthGuard>
         <ShellLayout pathname={pathname} navigate={navigate}>
           {isIam ? (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading IAM...</div>}>
+            <Suspense fallback={routeFallback}>
               <IamRoutes />
             </Suspense>
           ) : isPlatform ? (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Platform...</div>}>
+            <Suspense fallback={routeFallback}>
               <PlatformRoutes />
             </Suspense>
           ) : isFinance ? (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Finance...</div>}>
+            <Suspense fallback={routeFallback}>
               <FinanceRoutes />
             </Suspense>
           ) : isAccount ? (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Account...</div>}>
+            <Suspense fallback={routeFallback}>
               <AccountRoutes />
             </Suspense>
           ) : (
