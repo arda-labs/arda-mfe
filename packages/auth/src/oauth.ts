@@ -1,5 +1,3 @@
-import { generatePKCEAsync } from "@workspace/core/browser/pkce"
-
 export const HYDRA_PUBLIC_URL = "https://auth.arda.io.vn"
 export const OAUTH_CLIENT_ID = "arda-shell"
 export const BFF_API = "/api/auth"
@@ -13,25 +11,12 @@ export function getOAuthRedirectUri(): string {
   return `${getOrigin()}/callback`
 }
 
-export async function redirectToHydraLogin(): Promise<void> {
-  const pkce = await generatePKCEAsync()
+export async function redirectToHydraLogin(returnTo?: string): Promise<void> {
   if (typeof window !== "undefined") {
-    sessionStorage.setItem("hydra_state", pkce.state)
-    sessionStorage.setItem("hydra_code_verifier", pkce.codeVerifier)
-  }
-
-  const params = new URLSearchParams({
-    response_type: "code",
-    client_id: OAUTH_CLIENT_ID,
-    redirect_uri: getOAuthRedirectUri(),
-    scope: "openid email offline_access",
-    state: pkce.state,
-    code_challenge: pkce.codeChallenge,
-    code_challenge_method: pkce.codeChallengeMethod,
-  })
-
-  if (typeof window !== "undefined") {
-    window.location.href = `${HYDRA_PUBLIC_URL}/oauth2/auth?${params.toString()}`
+    const next = returnTo ?? `${window.location.pathname}${window.location.search}`
+    const authRoute = /^\/(auth|login|callback|login-callback|consent)(\/|$)/.test(window.location.pathname)
+    const params = new URLSearchParams({ return_to: authRoute ? "/" : next })
+    window.location.href = `${BFF_API}/start?${params.toString()}`
   }
 }
 
