@@ -58,6 +58,11 @@ type BpmnElement = {
     conditionExpression?: { body?: string }
     documentation?: { text?: string }[]
     extensionElements?: BpmnExtensionElements
+    processRef?: {
+      id?: string
+      name?: string
+      isExecutable?: boolean
+    }
     isExecutable?: boolean
     incoming?: { id: string }[]
     outgoing?: { id: string }[]
@@ -101,6 +106,20 @@ type BpmnCommandStack = {
 type BpmnSaveCapable = BpmnViewer & {
   saveXML: (options?: { format?: boolean }) => Promise<{ xml?: string }>
   saveSVG: () => Promise<{ svg: string }>
+}
+
+type BpmnFileInfo = {
+  processId: string
+  processName: string
+  executable?: boolean
+  tasks: number
+  gateways: number
+  events: number
+  flows: number
+  jobs: number
+  callActivities: number
+  missingJobTypes: string[]
+  legacyConditions: string[]
 }
 
 export function BpmnViewerPanel({
@@ -255,6 +274,7 @@ function BpmnModelerWorkspace({
   const [error, setError] = useState("")
   const [elementCount, setElementCount] = useState(0)
   const [modelElements, setModelElements] = useState<BpmnElement[]>([])
+  const [fileInfo, setFileInfo] = useState<BpmnFileInfo | null>(null)
   const [sidebarWidth, setSidebarWidth] = useState(300)
   const [dockHeight, setDockHeight] = useState(200)
   const [saving, setSaving] = useState(false)
@@ -269,6 +289,7 @@ function BpmnModelerWorkspace({
     setError("")
     setSelectedElement(null)
     setModelElements([])
+    setFileInfo(null)
 
     const modeler = new BpmnModeler({
       container,
@@ -286,11 +307,19 @@ function BpmnModelerWorkspace({
       const canvas = modeler.get("canvas") as BpmnCanvas
       setZoom(Number(canvas.zoom().toFixed(2)))
     }
+    const syncElements = () => {
+      const registry = modeler.get("elementRegistry") as BpmnElementRegistry
+      const elements = registry.getAll().filter((element) => !element.type.includes("Label"))
+      setModelElements(elements)
+      setElementCount(elements.length)
+      setFileInfo(analyzeBpmnFile(elements))
+    }
 
     modeler.on("selection.changed", syncSelection)
     modeler.on("commandStack.changed", () => {
       syncSelection()
       syncZoom()
+      syncElements()
     })
 
     frame = window.requestAnimationFrame(() => {
@@ -299,12 +328,9 @@ function BpmnModelerWorkspace({
         .then(() => {
           if (disposed) return
           const canvas = modeler.get("canvas") as BpmnCanvas
-          const registry = modeler.get("elementRegistry") as BpmnElementRegistry
-          const elements = registry.getAll().filter((element) => !element.type.includes("Label"))
           fitCanvasViewport(canvas)
           syncZoom()
-          setModelElements(elements)
-          setElementCount(elements.length)
+          syncElements()
         })
         .catch((err: unknown) => {
           const message = err instanceof Error ? err.message : "Không đọc được BPMN XML."
@@ -555,6 +581,7 @@ function BpmnModelerWorkspace({
           item={item}
           selectedElement={selectedElement}
           elementCount={elementCount}
+          fileInfo={fileInfo}
           onUpdateProperties={updateSelectedProperties}
           onUpdateCondition={updateConditionExpression}
           onUpdateDocumentation={updateDocumentation}
@@ -630,6 +657,7 @@ function BpmnInspector({
   item,
   selectedElement,
   elementCount,
+  fileInfo,
   onUpdateProperties,
   onUpdateCondition,
   onUpdateDocumentation,
@@ -640,6 +668,7 @@ function BpmnInspector({
   item: WorkflowProcessDefinition
   selectedElement: BpmnElement | null
   elementCount: number
+  fileInfo: BpmnFileInfo | null
   onUpdateProperties: (properties: Record<string, unknown>) => void
   onUpdateCondition: (value: string) => void
   onUpdateDocumentation: (value: string) => void
@@ -670,6 +699,7 @@ function BpmnInspector({
           <Field label="Elements" value={String(elementCount)} />
           <Field label="Deploy key" value={String(item.deploymentKey ?? "-")} />
         </div>
+        <BpmnFileInfoCard info={fileInfo} />
         <div className="rounded-md border bg-card p-2.5 text-card-foreground">
           <h4 className="mb-2 text-sm font-semibold text-card-foreground">Properties</h4>
           {selectedElement ? (
@@ -1052,6 +1082,58 @@ function EmptyState({ text }: { text: string }) {
   return <div className="rounded-md border p-3 text-sm text-muted-foreground">{text}</div>
 }
 
+function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
+  if (!info) return <EmptyState text="Chưa nhận diện được nội dung BPMN." />
+
+  const hasWarnings = info.missingJobTypes.length > 0 || info.legacyConditions.length > 0
+
+  return (
+    <div className="rounded-md border bg-card p-2.5 text-card-foreground">
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-foreground/70">BPMN file</p>
+          <p className="truncate text-sm font-semibold text-foreground">
+            {info.processName || info.processId || "Unnamed process"}
+          </p>
+          <p className="break-all font-mono text-[11px] text-foreground/70">{info.processId || "-"}</p>
+        </div>
+        <Badge variant={hasWarnings ? "outline" : "secondary"}>
+          {hasWarnings ? "Cần sửa" : "Sẵn sàng"}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-3 gap-1.5 text-sm">
+        <Field label="Tasks" value={String(info.tasks)} />
+        <Field label="Gateways" value={String(info.gateways)} />
+        <Field label="Events" value={String(info.events)} />
+        <Field label="Flows" value={String(info.flows)} />
+        <Field label="Jobs" value={String(info.jobs)} />
+        <Field label="Calls" value={String(info.callActivities)} />
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <Badge variant="outline">Executable: {String(Boolean(info.executable))}</Badge>
+        {info.missingJobTypes.length ? (
+          <Badge variant="outline">{info.missingJobTypes.length} task thiếu job type</Badge>
+        ) : null}
+        {info.legacyConditions.length ? (
+          <Badge variant="outline">{info.legacyConditions.length} condition C7</Badge>
+        ) : null}
+      </div>
+      {hasWarnings ? (
+        <div className="mt-2 space-y-1 text-xs text-amber-700 dark:text-amber-300">
+          {info.missingJobTypes.slice(0, 2).map((id) => (
+            <p key={id} className="truncate font-mono">
+              Missing job type: {id}
+            </p>
+          ))}
+          {info.legacyConditions.slice(0, 2).map((id) => (
+            <p key={id} className="truncate font-mono">Legacy condition: {id}</p>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -1110,6 +1192,44 @@ function findBpmnElement(elements: BpmnElement[], ref: string) {
     const name = normalizeBpmnRef(element.businessObject?.name ?? "")
     return id === target || boID === target || name === target
   })
+}
+
+function analyzeBpmnFile(elements: BpmnElement[]): BpmnFileInfo {
+  const process = elements.find((element) => element.businessObject?.$type === "bpmn:Process")?.businessObject
+  const participant = elements.find((element) => element.businessObject?.$type === "bpmn:Participant")?.businessObject
+  const processRef = process ?? participant?.processRef
+  const taskElements = elements.filter((element) => bpmnJobTypes.has(element.type))
+  const missingJobTypes = taskElements
+    .filter((element) => !getTaskDefinitionType(element.businessObject))
+    .map((element) => element.businessObject?.id ?? element.id)
+  const legacyConditions = elements
+    .filter((element) => element.businessObject?.conditionExpression?.body?.trim().startsWith("${"))
+    .map((element) => element.businessObject?.id ?? element.id)
+
+  return {
+    processId: processRef?.id ?? "",
+    processName: processRef?.name ?? participant?.name ?? "",
+    executable: processRef?.isExecutable,
+    tasks: taskElements.length,
+    gateways: elements.filter((element) => element.type.includes("Gateway")).length,
+    events: elements.filter((element) => element.type.includes("Event")).length,
+    flows: elements.filter((element) => element.type === "bpmn:SequenceFlow").length,
+    jobs: taskElements.length - missingJobTypes.length,
+    callActivities: elements.filter((element) => element.type === "bpmn:CallActivity").length,
+    missingJobTypes,
+    legacyConditions,
+  }
+}
+
+function getTaskDefinitionType(businessObject: BpmnElement["businessObject"]) {
+  const attrs = businessObject?.$attrs ?? {}
+  return String(
+    getZeebeElement(businessObject, "zeebe:TaskDefinition")?.type ??
+      attrs["zeebe:taskDefinition:type"] ??
+      attrs["taskType"] ??
+      attrs["camunda:topic"] ??
+      ""
+  ).trim()
 }
 
 function normalizeBpmnRef(value: string) {
