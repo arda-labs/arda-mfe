@@ -456,65 +456,54 @@ export function ConsentPage() {
 
 function AuthLoading({ title, description }: { title: string; description: string }) {
   return (
-    <AuthFrame compact>
-      <div className="flex flex-col items-center gap-6 py-6 text-center relative overflow-hidden">
-        {/* Glow effect */}
-        <div className="absolute -left-10 -top-10 size-32 rounded-full bg-primary/5 blur-3xl animate-pulse" />
-        <div className="absolute -right-10 -bottom-10 size-32 rounded-full bg-primary/5 blur-3xl animate-pulse" />
-
-        <div className="relative flex size-12 items-center justify-center">
-          <div className="absolute size-full rounded-xl border-4 border-primary/10" />
-          <div className="absolute size-full rounded-xl border-4 border-transparent border-t-primary animate-spin" />
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 px-4 py-6 text-foreground transition-colors duration-500" style={{ minHeight: "100dvh" }}>
+      <div className="flex flex-col items-center gap-6 py-6 text-center">
+        <div className="relative flex size-16 items-center justify-center">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-lg shadow-primary/20 animate-pulse">
+            A
+          </div>
+          <div className="absolute inset-0 rounded-2xl border-2 border-primary/10" />
+          <div className="absolute inset-0 rounded-2xl border-2 border-transparent border-t-primary animate-spin" />
         </div>
         
-        <div className="space-y-2 relative z-10">
+        <div className="space-y-1.5">
           <h1 className="text-xl font-bold tracking-tight">{title}</h1>
-          <p className="text-sm leading-relaxed text-muted-foreground max-w-xs mx-auto">{description}</p>
+          <p className="text-xs leading-relaxed text-muted-foreground max-w-xs mx-auto">{description}</p>
         </div>
       </div>
-    </AuthFrame>
+    </main>
   )
 }
 
 function AuthFrame({
   actions,
   children,
-  compact = false,
 }: {
   actions?: ReactNode
   children: ReactNode
-  compact?: boolean
 }) {
   return (
     <main
-      className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 px-4 py-6 text-foreground sm:px-6 transition-colors duration-500"
+      className="flex min-h-screen items-center justify-center bg-slate-100 dark:bg-zinc-950 px-4 py-6 text-foreground sm:px-6 transition-colors duration-500"
       style={{ minHeight: "100dvh" }}
     >
-      <div className={compact ? "w-full max-w-md" : "w-full max-w-5xl"}>
-        <div
-          className={
-            compact
-              ? "w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-xl p-8 transition-all duration-300"
-              : "grid w-full overflow-hidden rounded-3xl border border-border bg-card shadow-2xl transition-all duration-300 lg:grid-cols-12"
-          }
-        >
-          {!compact && <AuthBrandPanel />}
-          <div className={compact ? "p-0" : "lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between bg-card"}>
-            {!compact && (
-              <div className="mb-10 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
-                    <ShieldCheck className="size-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold leading-none tracking-tight">Arda</p>
-                    <p className="mt-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Secure Workspace</p>
-                  </div>
+      <div className="w-full max-w-5xl">
+        <div className="grid w-full overflow-hidden rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl transition-all duration-300 lg:grid-cols-12">
+          <AuthBrandPanel />
+          <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between bg-white dark:bg-zinc-900">
+            <div className="mb-10 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+                  <ShieldCheck className="size-5" />
                 </div>
-                {actions}
+                <div>
+                  <p className="text-sm font-bold leading-none tracking-tight text-slate-900 dark:text-white">Arda</p>
+                  <p className="mt-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Secure Workspace</p>
+                </div>
               </div>
-            )}
-            <div className={compact ? "w-full" : "mx-auto w-full max-w-sm my-auto py-4"}>{children}</div>
+              {actions}
+            </div>
+            <div className="mx-auto w-full max-w-sm my-auto py-4">{children}</div>
           </div>
         </div>
       </div>
@@ -524,7 +513,7 @@ function AuthFrame({
 
 function AuthBrandPanel() {
   return (
-    <div className="relative hidden overflow-hidden bg-zinc-900 border-r border-border p-10 lg:flex lg:flex-col lg:justify-between lg:col-span-5 text-white">
+    <div className="relative hidden overflow-hidden bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 p-10 lg:flex lg:flex-col lg:justify-between lg:col-span-5 text-white">
       {/* Background radial glow */}
       <div className="absolute -left-10 -top-10 size-72 rounded-full bg-indigo-500/15 blur-3xl animate-pulse" />
       <div className="absolute -right-10 -bottom-10 size-72 rounded-full bg-violet-500/15 blur-3xl animate-pulse" />

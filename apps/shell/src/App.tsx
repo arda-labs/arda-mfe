@@ -32,22 +32,18 @@ export function App() {
 function WorkspaceLoading() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 px-4 py-6 text-foreground transition-colors duration-500" style={{ minHeight: "100dvh" }}>
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card p-8 text-center shadow-xl">
-        {/* Glow effect */}
-        <div className="absolute -left-10 -top-10 size-40 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -right-10 -bottom-10 size-40 rounded-full bg-primary/5 blur-3xl" />
-
-        <div className="relative">
-          <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 animate-bounce">
+      <div className="flex flex-col items-center gap-6 py-6 text-center">
+        <div className="relative flex size-16 items-center justify-center">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-lg shadow-primary/20 animate-pulse">
             A
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Preparing Arda</h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Loading workspace...</p>
-          
-          <div className="relative mx-auto mt-8 flex size-8 items-center justify-center">
-            <div className="absolute size-full rounded-full border-4 border-primary/10" />
-            <div className="absolute size-full rounded-full border-4 border-transparent border-t-primary animate-spin" />
-          </div>
+          <div className="absolute inset-0 rounded-2xl border-2 border-primary/10" />
+          <div className="absolute inset-0 rounded-2xl border-2 border-transparent border-t-primary animate-spin" />
+        </div>
+        
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-bold tracking-tight">Arda Secure Session</h1>
+          <p className="text-xs leading-relaxed text-muted-foreground max-w-xs mx-auto">Loading secure workspace...</p>
         </div>
       </div>
     </main>
