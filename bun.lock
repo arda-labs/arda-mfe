@@ -7,6 +7,7 @@
       "devDependencies": {
         "@eslint/js": "^10",
         "@module-federation/vite": "^1.16.12",
+        "@tanstack/react-query": "^5.101.2",
         "eslint": "^10",
         "eslint-plugin-react-hooks": "^7.1.1",
         "eslint-plugin-react-refresh": "^0.5.2",
@@ -21,6 +22,7 @@
       "name": "account",
       "version": "0.0.1",
       "dependencies": {
+        "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-query": "^5.101.2",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
@@ -34,6 +36,8 @@
         "nuqs": "^2.9.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
+        "react-hook-form": "^7.80.0",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@eslint/js": "^10",
@@ -168,6 +172,7 @@
       "name": "shell",
       "version": "0.0.1",
       "dependencies": {
+        "@tanstack/react-query": "^5.101.2",
         "@workspace/auth": "workspace:*",
         "@workspace/core": "workspace:*",
         "@workspace/i18n": "workspace:*",

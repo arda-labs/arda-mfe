@@ -10,6 +10,7 @@ const sharedDependencies = {
   "react-dom/client": { singleton: true },
   "react/jsx-runtime": { singleton: true },
   "react/jsx-dev-runtime": { singleton: true },
+  "@tanstack/react-query": { singleton: true },
   nuqs: { singleton: true },
   "nuqs/adapters/react": { singleton: true },
   "@workspace/i18n": { singleton: true },

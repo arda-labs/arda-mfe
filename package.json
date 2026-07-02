@@ -11,6 +11,7 @@
     "typecheck": "bun run --filter @workspace/core typecheck && bun run --filter @workspace/i18n typecheck && bun run --filter @workspace/auth typecheck && bun run --filter @workspace/api typecheck && bun run --filter @workspace/media typecheck && bun run --filter @workspace/notifications typecheck && bun run --filter @workspace/theme typecheck && bun run --filter @workspace/ui typecheck && bun run --filter iam typecheck && bun run --filter platform typecheck && bun run --filter finance typecheck && bun run --filter account typecheck && bun run --filter shell typecheck"
   },
   "devDependencies": {
+    "@tanstack/react-query": "^5.101.2",
     "@eslint/js": "^10",
     "@module-federation/vite": "^1.16.12",
     "eslint": "^10",
