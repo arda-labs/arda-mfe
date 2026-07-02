@@ -1,45 +1,70 @@
 import { useEffect, useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "react-toastify"
 import { z } from "zod"
-import { financeApi } from "@/features/finance/api"
-import type { Transaction } from "@/features/finance/api"
+import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { useCreateTransaction, useTransactions } from "./queries"
 
 const entrySchema = z.object({
   accountId: z.string().trim().min(1, "Account ID is required"),
   type: z.enum(["DEBIT", "CREDIT"]),
-  amount: z.string().trim().min(1, "Amount is required").refine((value) => Number(value) > 0, "Amount must be positive"),
+  amount: z
+    .string()
+    .trim()
+    .min(1, "Amount is required")
+    .refine((value) => Number(value) > 0, "Amount must be positive"),
 })
 
-const transactionFormSchema = z.object({
-  txnType: z.enum(["TRANSFER", "DEPOSIT", "WITHDRAWAL", "FEE"]),
-  description: z.string().trim().max(500, "Description is too long").optional(),
-  entries: z.array(entrySchema).min(2, "At least two entries are required"),
-}).superRefine((values, ctx) => {
-  const debit = values.entries
-    .filter((entry) => entry.type === "DEBIT")
-    .reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
-  const credit = values.entries
-    .filter((entry) => entry.type === "CREDIT")
-    .reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
+const transactionFormSchema = z
+  .object({
+    txnType: z.enum(["TRANSFER", "DEPOSIT", "WITHDRAWAL", "FEE"]),
+    description: z
+      .string()
+      .trim()
+      .max(500, "Description is too long")
+      .optional(),
+    entries: z.array(entrySchema).min(2, "At least two entries are required"),
+  })
+  .superRefine((values, ctx) => {
+    const debit = values.entries
+      .filter((entry) => entry.type === "DEBIT")
+      .reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
+    const credit = values.entries
+      .filter((entry) => entry.type === "CREDIT")
+      .reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
 
-  if (debit !== credit) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Debit total must equal credit total",
-      path: ["entries"],
-    })
-  }
-})
+    if (debit !== credit) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Debit total must equal credit total",
+        path: ["entries"],
+      })
+    }
+  })
 
 type TransactionFormValues = z.infer<typeof transactionFormSchema>
 
@@ -52,7 +77,9 @@ const transactionDefaultValues: TransactionFormValues = {
   ],
 }
 
-const STATUS_VARIANTS: Partial<Record<string, "default" | "success" | "error" | "warning" | "info">> = {
+const STATUS_VARIANTS: Partial<
+  Record<string, "default" | "success" | "error" | "warning" | "info">
+> = {
   POSTED: "success",
   PENDING: "warning",
   REVERSED: "default",
@@ -62,11 +89,17 @@ const STATUS_VARIANTS: Partial<Record<string, "default" | "success" | "error" | 
 const DEFAULT_PAGE_SIZE = 10
 
 export function TransactionsPage() {
-  const [txns, setTxns] = useState<Transaction[]>([])
-  const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
-  const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  const size = DEFAULT_PAGE_SIZE
+  const {
+    data,
+    isError: isTransactionsError,
+    isLoading,
+  } = useTransactions({ page, size })
+  const createTransaction = useCreateTransaction()
+  const txns = data?.transactions || []
+  const total = data?.total || 0
   const {
     control,
     formState: { errors, isSubmitting },
@@ -78,20 +111,10 @@ export function TransactionsPage() {
     defaultValues: transactionDefaultValues,
   })
   const { append, fields } = useFieldArray({ control, name: "entries" })
-  const size = DEFAULT_PAGE_SIZE
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const res = await financeApi.listTransactions({ page, size })
-      setTxns(res.transactions || [])
-      setTotal(res.total)
-    } catch {
-      toast.error("Could not load transactions")
-    } finally { setLoading(false) }
-  }
-
-  useEffect(() => { load() }, [page])
+  useEffect(() => {
+    if (isTransactionsError) notify.error("Could not load transactions")
+  }, [isTransactionsError])
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
@@ -101,19 +124,22 @@ export function TransactionsPage() {
   const handleCreate = handleSubmit(async (values) => {
     const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`
     try {
-      await financeApi.createTransaction({ ...values, idempotencyKey })
-      toast.success("Transaction posted")
+      await createTransaction.mutateAsync({ ...values, idempotencyKey })
       setOpen(false)
       reset(transactionDefaultValues)
-      await load()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not post transaction")
+    } catch {
+      // Mutation hook owns the toast.
     }
   })
 
-  const totalPages = Math.ceil(total / size)
+  const totalPages = data?.totalPages || Math.ceil(total / size)
 
-  if (loading) return <div className="flex justify-center p-8"><Spinner className="size-6" /></div>
+  if (isLoading)
+    return (
+      <div className="flex justify-center p-8">
+        <Spinner className="size-6" />
+      </div>
+    )
 
   return (
     <div className="space-y-4">
@@ -124,11 +150,18 @@ export function TransactionsPage() {
           </Badge>
         </div>
         <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger className="h-9 px-4 text-sm">Create Transaction</DialogTrigger>
+          <DialogTrigger className="h-9 px-4 text-sm">
+            Create Transaction
+          </DialogTrigger>
           <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle>Create Transaction</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>Create Transaction</DialogTitle>
+            </DialogHeader>
             <form className="space-y-3" onSubmit={handleCreate}>
-              <FormField label="Transaction type" error={errors.txnType?.message}>
+              <FormField
+                label="Transaction type"
+                error={errors.txnType?.message}
+              >
                 <Controller
                   control={control}
                   name="txnType"
@@ -147,26 +180,51 @@ export function TransactionsPage() {
                   )}
                 />
               </FormField>
-              <FormField label="Description" error={errors.description?.message}>
-                <Input aria-invalid={Boolean(errors.description)} {...register("description")} />
+              <FormField
+                label="Description"
+                error={errors.description?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(errors.description)}
+                  {...register("description")}
+                />
               </FormField>
 
               <p className="text-sm font-medium">Entries (debit = credit)</p>
               {typeof errors.entries?.message === "string" ? (
-                <p className="text-xs font-medium text-destructive">{errors.entries.message}</p>
+                <p className="text-xs font-medium text-destructive">
+                  {errors.entries.message}
+                </p>
               ) : null}
               {fields.map((entry, i) => (
-                <div key={entry.id} className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]">
-                  <FormField label="Account ID" error={errors.entries?.[i]?.accountId?.message}>
-                    <Input aria-invalid={Boolean(errors.entries?.[i]?.accountId)} {...register(`entries.${i}.accountId`)} />
+                <div
+                  key={entry.id}
+                  className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]"
+                >
+                  <FormField
+                    label="Account ID"
+                    error={errors.entries?.[i]?.accountId?.message}
+                  >
+                    <Input
+                      aria-invalid={Boolean(errors.entries?.[i]?.accountId)}
+                      {...register(`entries.${i}.accountId`)}
+                    />
                   </FormField>
-                  <FormField label="Type" error={errors.entries?.[i]?.type?.message}>
+                  <FormField
+                    label="Type"
+                    error={errors.entries?.[i]?.type?.message}
+                  >
                     <Controller
                       control={control}
                       name={`entries.${i}.type`}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger aria-invalid={Boolean(errors.entries?.[i]?.type)}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger
+                            aria-invalid={Boolean(errors.entries?.[i]?.type)}
+                          >
                             <SelectValue placeholder="Type" />
                           </SelectTrigger>
                           <SelectContent>
@@ -177,19 +235,38 @@ export function TransactionsPage() {
                       )}
                     />
                   </FormField>
-                  <FormField label="Amount" error={errors.entries?.[i]?.amount?.message}>
-                    <Input aria-invalid={Boolean(errors.entries?.[i]?.amount)} {...register(`entries.${i}.amount`)} />
+                  <FormField
+                    label="Amount"
+                    error={errors.entries?.[i]?.amount?.message}
+                  >
+                    <Input
+                      aria-invalid={Boolean(errors.entries?.[i]?.amount)}
+                      {...register(`entries.${i}.amount`)}
+                    />
                   </FormField>
                 </div>
               ))}
 
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" type="button" onClick={() => append({ accountId: "", type: "DEBIT", amount: "" })}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() =>
+                    append({ accountId: "", type: "DEBIT", amount: "" })
+                  }
+                >
                   + Entry
                 </Button>
               </div>
 
-              <Button className="w-full" type="submit" disabled={isSubmitting}>Post Transaction</Button>
+              <Button
+                className="w-full"
+                type="submit"
+                disabled={isSubmitting || createTransaction.isPending}
+              >
+                Post Transaction
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -209,18 +286,27 @@ export function TransactionsPage() {
           </thead>
           <tbody>
             {txns.map((t) => (
-              <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30">
+              <tr
+                key={t.id}
+                className="border-b last:border-0 hover:bg-muted/30"
+              >
                 <td className="p-3 font-mono text-xs">{t.id.slice(0, 8)}…</td>
                 <td className="p-3 font-medium">{t.txnType}</td>
-                <td className="p-3 text-muted-foreground">{new Date(t.postedAt).toLocaleDateString()}</td>
+                <td className="p-3 text-muted-foreground">
+                  {new Date(t.postedAt).toLocaleDateString()}
+                </td>
                 <td className="p-3">
                   <Status variant={STATUS_VARIANTS[t.status] || "default"}>
                     <StatusIndicator />
                     <StatusLabel>{t.status}</StatusLabel>
                   </Status>
                 </td>
-                <td className="p-3 text-muted-foreground max-w-xs truncate">{t.description || "—"}</td>
-                <td className="p-3 text-muted-foreground">{t.createdBy.slice(0, 8)}</td>
+                <td className="max-w-xs truncate p-3 text-muted-foreground">
+                  {t.description || "—"}
+                </td>
+                <td className="p-3 text-muted-foreground">
+                  {t.createdBy.slice(0, 8)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -229,9 +315,25 @@ export function TransactionsPage() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Prev</Button>
-          <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Prev
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
         </div>
       )}
     </div>

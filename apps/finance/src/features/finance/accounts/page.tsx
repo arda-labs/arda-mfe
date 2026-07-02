@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "react-toastify"
 import { z } from "zod"
-import { financeApi } from "@/features/finance/api"
-import type { Account, AccountBalance } from "@/features/finance/api"
+import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Dialog,
@@ -19,14 +21,33 @@ import {
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
 import { useI18n } from "@workspace/i18n"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { useAccounts, useCreateAccount } from "./queries"
 
 const accountFormSchema = z.object({
-  code: z.string().trim().min(1, "Code is required").max(64, "Code is too long"),
-  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long"),
+  code: z
+    .string()
+    .trim()
+    .min(1, "Code is required")
+    .max(64, "Code is too long"),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(255, "Name is too long"),
   type: z.enum(["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"]),
   normalBalance: z.enum(["DEBIT", "CREDIT"]),
-  currency: z.string().trim().min(3, "Currency is required").max(3, "Use a 3-letter currency code"),
+  currency: z
+    .string()
+    .trim()
+    .min(3, "Currency is required")
+    .max(3, "Use a 3-letter currency code"),
 })
 
 type AccountFormValues = z.infer<typeof accountFormSchema>
@@ -51,11 +72,13 @@ const ACCOUNT_TYPE_COLORS: Record<string, string> = {
 
 export function AccountsPage() {
   const { t } = useI18n()
-  const [accounts, setAccounts] = useState<
-    (Account & { balance?: AccountBalance })[]
-  >([])
-  const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  const {
+    data: accounts = [],
+    isError: isAccountsError,
+    isLoading,
+  } = useAccounts()
+  const createAccount = useCreateAccount()
   const {
     control,
     formState: { errors, isSubmitting },
@@ -68,21 +91,9 @@ export function AccountsPage() {
     defaultValues: accountDefaultValues,
   })
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const res = await financeApi.listAccounts()
-      setAccounts(res.accounts)
-    } catch {
-      toast.error("Could not load accounts")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [])
+    if (isAccountsError) notify.error("Could not load accounts")
+  }, [isAccountsError])
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
@@ -91,25 +102,27 @@ export function AccountsPage() {
 
   const handleCreate = handleSubmit(async (values) => {
     try {
-      await financeApi.createAccount(values)
-      toast.success("Account created")
+      await createAccount.mutateAsync(values)
       setOpen(false)
       reset(accountDefaultValues)
-      await load()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not create account")
+    } catch {
+      // Mutation hook owns the toast.
     }
   })
 
   const handleTypeChange = (type: AccountFormValues["type"]) => {
     setValue("type", type, { shouldDirty: true, shouldValidate: true })
-    setValue("normalBalance", type === "ASSET" || type === "EXPENSE" ? "DEBIT" : "CREDIT", {
-      shouldDirty: true,
-      shouldValidate: true,
-    })
+    setValue(
+      "normalBalance",
+      type === "ASSET" || type === "EXPENSE" ? "DEBIT" : "CREDIT",
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      }
+    )
   }
 
-  if (loading)
+  if (isLoading)
     return (
       <div className="flex justify-center p-8">
         <Spinner className="size-6" />
@@ -125,54 +138,84 @@ export function AccountsPage() {
           </Badge>
         </div>
         <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger className="h-9 px-4 text-sm">{t("finance.accounts.create")}</DialogTrigger>
+          <DialogTrigger className="h-9 px-4 text-sm">
+            {t("finance.accounts.create")}
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("finance.accounts.create")}</DialogTitle>
             </DialogHeader>
             <form className="space-y-3" onSubmit={handleCreate}>
-              <FormField label={t("common.field.code")} error={errors.code?.message}>
+              <FormField
+                label={t("common.field.code")}
+                error={errors.code?.message}
+              >
                 <Input
                   aria-invalid={Boolean(errors.code)}
                   {...register("code")}
                 />
               </FormField>
-              <FormField label={t("common.field.name")} error={errors.name?.message}>
+              <FormField
+                label={t("common.field.name")}
+                error={errors.name?.message}
+              >
                 <Input
                   aria-invalid={Boolean(errors.name)}
                   {...register("name")}
                 />
               </FormField>
-              <FormField label={t("common.field.type")} error={errors.type?.message}>
+              <FormField
+                label={t("common.field.type")}
+                error={errors.type?.message}
+              >
                 <Controller
                   control={control}
                   name="type"
                   render={({ field }) => (
                     <Select
                       value={field.value}
-                      onValueChange={(val) => handleTypeChange(val as AccountFormValues["type"])}
+                      onValueChange={(val) =>
+                        handleTypeChange(val as AccountFormValues["type"])
+                      }
                     >
                       <SelectTrigger aria-invalid={Boolean(errors.type)}>
                         <SelectValue placeholder={t("common.field.type")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ASSET">{t("finance.account_type.asset")}</SelectItem>
-                        <SelectItem value="LIABILITY">{t("finance.account_type.liability")}</SelectItem>
-                        <SelectItem value="EQUITY">{t("finance.account_type.equity")}</SelectItem>
-                        <SelectItem value="INCOME">{t("finance.account_type.income")}</SelectItem>
-                        <SelectItem value="EXPENSE">{t("finance.account_type.expense")}</SelectItem>
+                        <SelectItem value="ASSET">
+                          {t("finance.account_type.asset")}
+                        </SelectItem>
+                        <SelectItem value="LIABILITY">
+                          {t("finance.account_type.liability")}
+                        </SelectItem>
+                        <SelectItem value="EQUITY">
+                          {t("finance.account_type.equity")}
+                        </SelectItem>
+                        <SelectItem value="INCOME">
+                          {t("finance.account_type.income")}
+                        </SelectItem>
+                        <SelectItem value="EXPENSE">
+                          {t("finance.account_type.expense")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
               </FormField>
-              <FormField label={t("common.field.currency")} error={errors.currency?.message}>
+              <FormField
+                label={t("common.field.currency")}
+                error={errors.currency?.message}
+              >
                 <Input
                   aria-invalid={Boolean(errors.currency)}
                   {...register("currency")}
                 />
               </FormField>
-              <Button className="w-full" type="submit" disabled={isSubmitting}>
+              <Button
+                className="w-full"
+                type="submit"
+                disabled={isSubmitting || createAccount.isPending}
+              >
                 {t("common.action.create")}
               </Button>
             </form>

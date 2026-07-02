@@ -1,7 +1,6 @@
 import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
-import { useEffect, useState } from "react"
-import { mfaApi } from "@/features/settings/api/mfa"
-import type { MFASecret } from "@/features/settings/api/mfa"
+import { useState } from "react"
+import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -19,43 +18,31 @@ import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { KeyRound, ShieldAlert, CheckCircle2, QrCode, Copy } from "lucide-react"
+import { useEnrollMfa, useMfaStatus, useResetMfa, useVerifyMfaEnrollment } from "./queries"
 
 export function SecurityPage() {
-  const [status, setStatus] = useState<{
-    is_enrolled: boolean
-    method: string
-  } | null>(null)
-  const [loading, setLoading] = useState(true)
   const [step, setStep] = useState<"idle" | "generating" | "qr" | "done">(
     "idle"
   )
-  const [secret, setSecret] = useState<MFASecret | null>(null)
   const [code, setCode] = useState("")
   const [backupCodes, setBackupCodes] = useState<string[]>([])
   const [error, setError] = useState("")
-
-  const loadStatus = async () => {
-    try {
-      const res = await mfaApi.status()
-      setStatus(res)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    loadStatus()
-  }, [])
+  const statusQuery = useMfaStatus()
+  const enrollMfaMutation = useEnrollMfa()
+  const verifyMfaEnrollmentMutation = useVerifyMfaEnrollment()
+  const resetMfaMutation = useResetMfa()
+  const status = statusQuery.data
+  const secret = enrollMfaMutation.data
 
   const handleEnroll = async () => {
     setStep("generating")
     setError("")
     try {
-      const s = await mfaApi.getSecret()
-      setSecret(s)
+      enrollMfaMutation.reset()
+      await enrollMfaMutation.mutateAsync()
       setStep("qr")
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e) {
+      setError(translateApiError(e))
       setStep("idle")
     }
   }
@@ -64,21 +51,24 @@ export function SecurityPage() {
     if (code.length !== 6) return
     setError("")
     try {
-      const res = await mfaApi.verifyEnroll(code)
+      const res = await verifyMfaEnrollmentMutation.mutateAsync(code)
       setBackupCodes(res.backup_codes)
       setStep("done")
-      setStatus({ is_enrolled: true, method: "totp" })
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e) {
+      setError(translateApiError(e))
     }
   }
 
-  if (loading) {
+  if (statusQuery.isLoading) {
     return (
       <div className="flex justify-center p-8">
         <Spinner className="size-6" />
       </div>
     )
+  }
+
+  if (statusQuery.error) {
+    return <div className="text-destructive p-4">{translateApiError(statusQuery.error)}</div>
   }
 
   return (
@@ -141,10 +131,10 @@ export function SecurityPage() {
                 variant="destructive"
                 className="rounded-xl px-5 py-4 text-xs font-semibold"
                 onClick={async () => {
-                  await mfaApi.reset()
-                  setStatus({ is_enrolled: false, method: "" })
+                  await resetMfaMutation.mutateAsync()
                   setStep("idle")
                 }}
+                disabled={resetMfaMutation.isPending}
               >
                 Reset 2FA
               </Button>
@@ -218,7 +208,7 @@ export function SecurityPage() {
                       ))}
                     </InputOTPGroup>
                   </InputOTP>
-                  <Button onClick={handleVerify} disabled={code.length !== 6} className="rounded-xl px-6 py-5 font-semibold shadow-sm">
+                  <Button onClick={handleVerify} disabled={code.length !== 6 || verifyMfaEnrollmentMutation.isPending} className="rounded-xl px-6 py-5 font-semibold shadow-sm">
                     Verify & Activate
                   </Button>
                 </div>

@@ -4,8 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { platformApi } from "../api"
 import type { CreditInstitution } from "../api"
+import {
+  useCreateCreditInstitution,
+  useCreditInstitutions,
+  useDeleteCreditInstitution,
+  useUpdateCreditInstitution,
+} from "./queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -121,14 +126,22 @@ function toCreditInstitutionFormValues(item: CreditInstitution): CreditInstituti
 }
 
 export function CreditInstitutionsPage() {
-  const [items, setItems] = useState<CreditInstitution[]>([])
-  const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState("")
+  const [submittedQuery, setSubmittedQuery] = useState("")
   const [statusFilter, setStatusFilter] =
     useState<(typeof STATUS_OPTIONS)[number]["value"]>("all")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<CreditInstitution | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<CreditInstitution | null>(null)
+  const creditInstitutionsQuery = useCreditInstitutions({
+    status: statusFilter === "all" ? undefined : statusFilter,
+    q: submittedQuery || undefined,
+  })
+  const createMutation = useCreateCreditInstitution()
+  const updateMutation = useUpdateCreditInstitution()
+  const deleteMutation = useDeleteCreditInstitution()
+  const items = creditInstitutionsQuery.data ?? []
+  const loading = creditInstitutionsQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -140,24 +153,11 @@ export function CreditInstitutionsPage() {
     defaultValues: creditInstitutionDefaultValues,
   })
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const data = await platformApi.listCreditInstitutions({
-        status: statusFilter === "all" ? undefined : statusFilter,
-        q: query.trim() || undefined,
-      })
-      setItems(data)
-    } catch (err) {
-      notify.error("Khong the tai danh sach to chuc tin dung", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [statusFilter])
+    if (creditInstitutionsQuery.error) {
+      notify.error("Khong the tai danh sach to chuc tin dung", translateApiError(creditInstitutionsQuery.error))
+    }
+  }, [creditInstitutionsQuery.error])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -198,30 +198,25 @@ export function CreditInstitutionsPage() {
       }
 
       if (editingItem) {
-        await platformApi.updateCreditInstitution(editingItem.id, payload)
-        notify.success("Cap nhat to chuc tin dung thanh cong")
+        await updateMutation.mutateAsync({ id: editingItem.id, payload })
       } else {
-        await platformApi.createCreditInstitution(payload)
-        notify.success("Them to chuc tin dung thanh cong")
+        await createMutation.mutateAsync(payload)
       }
 
       setDialogOpen(false)
       reset(creditInstitutionDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu to chuc tin dung that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await platformApi.deleteCreditInstitution(deleteTarget.id)
-      notify.success("Xoa to chuc tin dung thanh cong")
+      await deleteMutation.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
-      await load()
-    } catch (err) {
-      notify.error("Xoa to chuc tin dung that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   }
 
@@ -266,7 +261,7 @@ export function CreditInstitutionsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={load}>
+            <Button variant="outline" onClick={() => setSubmittedQuery(query.trim())}>
               Tim kiem
             </Button>
           </div>
@@ -468,7 +463,7 @@ export function CreditInstitutionsPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}>
                 {isSubmitting ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
@@ -488,6 +483,7 @@ export function CreditInstitutionsPage() {
             <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Xoa bo

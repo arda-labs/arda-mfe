@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
-import { sessionApi } from "@/features/settings/api/session"
+import { useState } from "react"
 import type { Device } from "@/features/settings/api/session"
+import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Laptop, Smartphone, Globe, ShieldCheck, Calendar, Clock } from "lucide-react"
+import { useDeleteDevice, useDevices, useTrustDevice } from "./queries"
 
 function formatDeviceName(device: Device) {
   const name = device.deviceName?.trim()
@@ -46,28 +47,19 @@ function formatDeviceType(deviceType: string) {
 }
 
 export function DevicesPage() {
-  const [devices, setDevices] = useState<Device[]>([])
-  const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<Device | null>(null)
-
-  const load = async () => {
-    try {
-      const res = await sessionApi.devices()
-      setDevices(res.devices)
-    } catch {} finally { setLoading(false) }
-  }
-
-  useEffect(() => { load() }, [])
+  const devicesQuery = useDevices()
+  const trustDeviceMutation = useTrustDevice()
+  const deleteDeviceMutation = useDeleteDevice()
+  const devices = devicesQuery.data?.devices ?? []
 
   const handleTrust = async (id: string) => {
-    await sessionApi.trustDevice(id)
-    load()
+    await trustDeviceMutation.mutateAsync(id)
   }
 
   const handleDelete = async (id: string) => {
-    await sessionApi.deleteDevice(id)
+    await deleteDeviceMutation.mutateAsync(id)
     setDeleteTarget(null)
-    load()
   }
 
   const getDeviceIcon = (type?: string) => {
@@ -85,7 +77,8 @@ export function DevicesPage() {
     }
   }
 
-  if (loading) return <div className="flex justify-center p-8"><Spinner className="size-6" /></div>
+  if (devicesQuery.isLoading) return <div className="flex justify-center p-8"><Spinner className="size-6" /></div>
+  if (devicesQuery.error) return <div className="text-destructive p-4">{translateApiError(devicesQuery.error)}</div>
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -138,7 +131,7 @@ export function DevicesPage() {
               </div>
               <div className="flex items-center gap-2 justify-end shrink-0">
                 {!d.isTrusted && (
-                  <Button variant="outline" size="sm" onClick={() => handleTrust(d.id)} className="rounded-xl border-muted-foreground/20 hover:border-primary hover:text-primary px-3.5 py-4 text-xs font-semibold">
+                  <Button variant="outline" size="sm" onClick={() => handleTrust(d.id)} disabled={trustDeviceMutation.isPending} className="rounded-xl border-muted-foreground/20 hover:border-primary hover:text-primary px-3.5 py-4 text-xs font-semibold">
                     Trust Device
                   </Button>
                 )}
@@ -163,6 +156,7 @@ export function DevicesPage() {
             <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+              disabled={deleteDeviceMutation.isPending}
               onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
             >
               Remove Device

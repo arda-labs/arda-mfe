@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
-import { platformApi } from "../api"
 import type { Area, GeoAdminUnit, LookupValue } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -51,6 +50,13 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Edit2, Plus, Search, Trash2 } from "lucide-react"
+import {
+  useAreaDependencies,
+  useAreas,
+  useCreateArea,
+  useDeleteArea,
+  useUpdateArea,
+} from "./queries"
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Tat ca" },
@@ -99,17 +105,28 @@ function toAreaFormValues(item: Area): AreaFormValues {
 }
 
 export function AreasPage() {
-  const [items, setItems] = useState<Area[]>([])
-  const [areaTypes, setAreaTypes] = useState<LookupValue[]>([])
-  const [adminUnits, setAdminUnits] = useState<GeoAdminUnit[]>([])
-  const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState("")
+  const [submittedQuery, setSubmittedQuery] = useState("")
   const [statusFilter, setStatusFilter] =
     useState<(typeof STATUS_OPTIONS)[number]["value"]>("all")
   const [typeFilter, setTypeFilter] = useState("all")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Area | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Area | null>(null)
+  const areaParams = {
+    status: statusFilter === "all" ? undefined : statusFilter,
+    areaTypeCode: typeFilter === "all" ? undefined : typeFilter,
+    q: submittedQuery || undefined,
+  }
+  const dependenciesQuery = useAreaDependencies()
+  const areasQuery = useAreas(areaParams)
+  const createArea = useCreateArea()
+  const updateArea = useUpdateArea()
+  const deleteArea = useDeleteArea()
+  const items = areasQuery.data ?? []
+  const areaTypes = (dependenciesQuery.data?.areaTypes ?? []) as LookupValue[]
+  const adminUnits = (dependenciesQuery.data?.adminUnits ?? []) as GeoAdminUnit[]
+  const loading = areasQuery.isLoading || dependenciesQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -121,40 +138,12 @@ export function AreasPage() {
     defaultValues: areaDefaultValues,
   })
 
-  const loadDependencies = async () => {
-    const [types, provinces, wards] = await Promise.all([
-      platformApi.listLookupValues("AREA_TYPE").catch(() => []),
-      platformApi.listGeoAdminUnits(undefined, 1).catch(() => []),
-      platformApi.listGeoAdminUnits(undefined, 2).catch(() => []),
-    ])
-    setAreaTypes(types)
-    setAdminUnits([...provinces, ...wards])
-  }
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      setItems(
-        await platformApi.listAreas({
-          status: statusFilter === "all" ? undefined : statusFilter,
-          areaTypeCode: typeFilter === "all" ? undefined : typeFilter,
-          q: query.trim() || undefined,
-        })
-      )
-    } catch (err) {
-      notify.error("Khong the tai danh sach khu vuc", translateApiError(err))
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    const error = dependenciesQuery.error || areasQuery.error
+    if (error) {
+      notify.error("Khong the tai danh sach khu vuc", translateApiError(error))
     }
-  }
-
-  useEffect(() => {
-    loadDependencies()
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [statusFilter, typeFilter])
+  }, [dependenciesQuery.error, areasQuery.error])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -191,30 +180,25 @@ export function AreasPage() {
       }
 
       if (editingItem) {
-        await platformApi.updateArea(editingItem.id, payload)
-        notify.success("Cap nhat khu vuc thanh cong")
+        await updateArea.mutateAsync({ id: editingItem.id, payload })
       } else {
-        await platformApi.createArea(payload)
-        notify.success("Them khu vuc thanh cong")
+        await createArea.mutateAsync(payload)
       }
 
       setDialogOpen(false)
       reset(areaDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu khu vuc that bai", translateApiError(err))
+    } catch {
+      // Mutation hooks already show the save error toast.
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await platformApi.deleteArea(deleteTarget.id)
-      notify.success("Ngung hieu luc khu vuc thanh cong")
+      await deleteArea.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
-      await load()
-    } catch (err) {
-      notify.error("Cap nhat trang thai khu vuc that bai", translateApiError(err))
+    } catch {
+      // Mutation hook already shows the delete error toast.
     }
   }
 
@@ -281,7 +265,7 @@ export function AreasPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={load}>
+            <Button variant="outline" onClick={() => setSubmittedQuery(query.trim())}>
               Tim kiem
             </Button>
           </div>
@@ -502,8 +486,8 @@ export function AreasPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              <Button type="submit" disabled={isSubmitting || createArea.isPending || updateArea.isPending}>
+                {isSubmitting || createArea.isPending || updateArea.isPending ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
           </form>

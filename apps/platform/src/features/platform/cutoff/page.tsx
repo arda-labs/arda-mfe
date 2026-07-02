@@ -1,203 +1,197 @@
 import { useEffect, useState } from "react"
-import { toast } from "react-toastify"
-import type { SystemDate } from "@/features/platform/api"
-import { platformApi } from "@/features/platform/api"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { translateApiError } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
-import { Clock, SlidersHorizontal, CheckCircle2, AlertTriangle } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { AlertTriangle, CheckCircle2, Clock, SlidersHorizontal } from "lucide-react"
+import { useCalendarStatus, useEvaluateDate } from "../calendar/queries"
 
 interface CutoffDisplay {
-	id: string
-	channelCode: string
-	transactionType: string
-	cutoffTime: string
-	isActive: boolean
+  id: string
+  channelCode: string
+  transactionType: string
+  cutoffTime: string
+  isActive: boolean
 }
 
+const CUTOFFS: CutoffDisplay[] = [
+  { id: "1", channelCode: "CITAD", transactionType: "TRANSFER", cutoffTime: "16:30:00", isActive: true },
+  { id: "2", channelCode: "NAPAS", transactionType: "TRANSFER", cutoffTime: "17:00:00", isActive: true },
+  { id: "3", channelCode: "COUNTER", transactionType: "DEPOSIT", cutoffTime: "17:00:00", isActive: true },
+]
+
 export function CutoffPage() {
-	const [status, setStatus] = useState<SystemDate | null>(null)
-	const [loading, setLoading] = useState(true)
+  const [simChannel, setSimChannel] = useState("CITAD")
+  const [simType, setSimType] = useState("TRANSFER")
+  const [simTime, setSimTime] = useState("")
+  const [simResult, setSimResult] = useState<string | null>(null)
+  const statusQuery = useCalendarStatus("HEAD_OFFICE")
+  const evaluateDateMutation = useEvaluateDate()
+  const status = statusQuery.data ?? null
+  const loading = statusQuery.isLoading
 
-	// Simulator states
-	const [simChannel, setSimChannel] = useState("CITAD")
-	const [simType, setSimType] = useState("TRANSFER")
-	const [simTime, setSimTime] = useState("")
-	const [simResult, setSimResult] = useState<string | null>(null)
-	const [simLoading, setSimLoading] = useState(false)
+  useEffect(() => {
+    if (statusQuery.error) {
+      notify.error("Khong the tai thong tin ngay he thong", translateApiError(statusQuery.error))
+    }
+  }, [statusQuery.error])
 
-	const loadData = async () => {
-		try {
-			const statusRes = await platformApi.getCalendarStatus("HEAD_OFFICE")
-			setStatus(statusRes)
-		} catch (error) {
-			toast.error("Không thể tải thông tin ngày hệ thống")
-		} finally {
-			setLoading(false)
-		}
-	}
+  const handleSimulate = async () => {
+    setSimResult(null)
+    try {
+      let timeParam: string | undefined
+      if (simTime) {
+        const today = new Date().toISOString().split("T")[0]
+        timeParam = new Date(`${today}T${simTime}:00Z`).toISOString()
+      }
+      const res = await evaluateDateMutation.mutateAsync({ channel: simChannel, type: simType, time: timeParam })
+      setSimResult(res.accountingDate)
+    } catch {
+      // Mutation hook owns the toast.
+    }
+  }
 
-	useEffect(() => {
-		loadData()
-	}, [])
+  if (loading) {
+    return (
+      <div className="flex justify-center p-8">
+        <Spinner className="size-6" />
+      </div>
+    )
+  }
 
-	const handleSimulate = async () => {
-		setSimLoading(true)
-		setSimResult(null)
-		try {
-			let timeParam = undefined
-			if (simTime) {
-				const today = new Date().toISOString().split("T")[0]
-				timeParam = new Date(`${today}T${simTime}:00Z`).toISOString()
-			}
-			const res = await platformApi.evaluateDate(simChannel, simType, timeParam)
-			setSimResult(res.accountingDate)
-		} catch (error: any) {
-			toast.error("Kiểm tra hạch toán thất bại")
-		} finally {
-			setSimLoading(false)
-		}
-	}
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="px-2.5 py-1 text-xs">
+            Quan ly Cut-off
+          </Badge>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Cau hinh gio chot so (Cut-off Time)</h1>
+        <p className="text-sm text-muted-foreground">
+          Thiet lap thoi gian chot giao dich trong ngay cho cac kenh thanh toan, chuyen tien lien ngan hang va gia
+          lap ngay hach toan.
+        </p>
+      </div>
 
-	if (loading) {
-		return (
-			<div className="flex justify-center p-8">
-				<Spinner className="size-6" />
-			</div>
-		)
-	}
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="space-y-4 rounded-lg border bg-card p-5 md:col-span-2">
+          <h2 className="flex items-center gap-2 border-b pb-3 text-lg font-semibold">
+            <Clock className="size-5 text-primary" />
+            Gio chot so theo kenh thanh toan
+          </h2>
 
-	return (
-		<div className="space-y-6">
-			<div className="flex flex-col gap-1">
-				<div className="flex items-center gap-2">
-					<Badge variant="secondary" className="px-2.5 py-1 text-xs">
-						Quản lý Cut-off
-					</Badge>
-				</div>
-				<h1 className="text-2xl font-bold tracking-tight">Cấu Hình Giờ Chốt Sổ (Cut-off Time)</h1>
-				<p className="text-sm text-muted-foreground">
-					Thiết lập thời gian chốt giao dịch trong ngày cho các kênh thanh toán, chuyển tiền liên ngân hàng và giả lập ngày hạch toán.
-				</p>
-			</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b bg-muted/50">
+                <tr>
+                  <th className="p-3 text-left font-medium">Kenh</th>
+                  <th className="p-3 text-left font-medium">Loai giao dich</th>
+                  <th className="p-3 text-left font-medium">Gio chot so</th>
+                  <th className="p-3 text-center font-medium">Trang thai</th>
+                </tr>
+              </thead>
+              <tbody>
+                {CUTOFFS.map((cutoff) => (
+                  <tr key={cutoff.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="p-3 font-semibold text-primary">{cutoff.channelCode}</td>
+                    <td className="p-3 text-muted-foreground">{cutoff.transactionType}</td>
+                    <td className="p-3 font-mono font-medium text-destructive">{cutoff.cutoffTime}</td>
+                    <td className="p-3 text-center">
+                      <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                        Hoat dong
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            * Giao dich phat sinh sau gio chot so se duoc chuyen tiep hach toan va doi soat vao ngay lam viec tiep
+            theo (T+1).
+          </p>
+        </div>
 
-			<div className="grid gap-6 md:grid-cols-3">
-				{/* 1. Cut-off list */}
-				<div className="rounded-lg border bg-card p-5 space-y-4 md:col-span-2">
-					<h2 className="font-semibold text-lg flex items-center gap-2 border-b pb-3">
-						<Clock className="size-5 text-primary" />
-						Giờ Chốt Sổ Theo Kênh Thanh Toán (Platform)
-					</h2>
+        <div className="space-y-4 rounded-lg border bg-card p-5 md:col-span-1">
+          <h2 className="flex items-center gap-2 border-b pb-3 text-lg font-semibold">
+            <SlidersHorizontal className="size-5 text-primary" />
+            Gia lap ngay hach toan
+          </h2>
 
-					<div className="overflow-x-auto">
-						<table className="w-full text-sm">
-							<thead className="border-b bg-muted/50">
-								<tr>
-									<th className="p-3 text-left font-medium">Kênh</th>
-									<th className="p-3 text-left font-medium">Loại giao dịch</th>
-									<th className="p-3 text-left font-medium">Giờ chốt sổ</th>
-									<th className="p-3 text-center font-medium">Trạng thái</th>
-								</tr>
-							</thead>
-							<tbody>
-								{([
-									{ id: "1", channelCode: "CITAD", transactionType: "TRANSFER", cutoffTime: "16:30:00", isActive: true },
-									{ id: "2", channelCode: "NAPAS", transactionType: "TRANSFER", cutoffTime: "17:00:00", isActive: true },
-									{ id: "3", channelCode: "COUNTER", transactionType: "DEPOSIT", cutoffTime: "17:00:00", isActive: true },
-								] as CutoffDisplay[]).map((c) => (
-									<tr key={c.id} className="border-b last:border-0 hover:bg-muted/30">
-										<td className="p-3 font-semibold text-primary">{c.channelCode}</td>
-										<td className="p-3 text-muted-foreground">{c.transactionType}</td>
-										<td className="p-3 font-mono font-medium text-destructive">{c.cutoffTime}</td>
-										<td className="p-3 text-center">
-											<Badge variant="default" className="bg-green-500 hover:bg-green-600">
-												Hoạt động
-											</Badge>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-					<p className="text-xs text-muted-foreground mt-2">
-						* Lưu ý: Giao dịch phát sinh sau giờ chốt sổ sẽ được chuyển tiếp hạch toán và đối soát vào ngày làm việc tiếp theo (T+1).
-					</p>
-				</div>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Kenh giao dich</label>
+              <select
+                value={simChannel}
+                onChange={(event) => setSimChannel(event.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="CITAD">CITAD (Chot: 16:30)</option>
+                <option value="NAPAS">NAPAS (Chot: 17:00)</option>
+                <option value="COUNTER">Tai quay (Chot: 17:00)</option>
+              </select>
+            </div>
 
-				{/* 2. Simulator */}
-				<div className="rounded-lg border bg-card p-5 space-y-4 md:col-span-1">
-					<h2 className="font-semibold text-lg flex items-center gap-2 border-b pb-3">
-						<SlidersHorizontal className="size-5 text-primary" />
-						Giả Lập Ngày Hạch Toán
-					</h2>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Loai giao dich</label>
+              <select
+                value={simType}
+                onChange={(event) => setSimType(event.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="TRANSFER">TRANSFER (Chuyen khoan)</option>
+                <option value="DEPOSIT">DEPOSIT (Nop tien)</option>
+              </select>
+            </div>
 
-					<div className="space-y-3">
-						<div>
-							<label className="text-xs font-medium text-muted-foreground">Kênh giao dịch</label>
-							<select
-								value={simChannel}
-								onChange={(e) => setSimChannel(e.target.value)}
-								className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-							>
-								<option value="CITAD">CITAD (Chốt: 16:30)</option>
-								<option value="NAPAS">NAPAS (Chốt: 17:00)</option>
-								<option value="COUNTER">Tại Quầy (Chốt: 17:00)</option>
-							</select>
-						</div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">
+                Gio giao dich gia lap (de trong neu lay gio hien tai)
+              </label>
+              <Input
+                type="time"
+                value={simTime}
+                onChange={(event) => setSimTime(event.target.value)}
+                className="mt-1"
+              />
+            </div>
 
-						<div>
-							<label className="text-xs font-medium text-muted-foreground">Loại giao dịch</label>
-							<select
-								value={simType}
-								onChange={(e) => setSimType(e.target.value)}
-								className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-							>
-								<option value="TRANSFER">TRANSFER (Chuyển khoản)</option>
-								<option value="DEPOSIT">DEPOSIT (Nộp tiền)</option>
-							</select>
-						</div>
+            <Button
+              onClick={handleSimulate}
+              className="mt-2 w-full"
+              variant="outline"
+              disabled={evaluateDateMutation.isPending}
+            >
+              {evaluateDateMutation.isPending ? <Spinner className="size-4" /> : "Kiem tra ngay hach toan"}
+            </Button>
 
-						<div>
-							<label className="text-xs font-medium text-muted-foreground">
-								Giờ giao dịch giả lập (để trống nếu lấy Giờ hiện tại)
-							</label>
-							<Input
-								type="time"
-								value={simTime}
-								onChange={(e) => setSimTime(e.target.value)}
-								className="mt-1"
-							/>
-						</div>
-
-						<Button onClick={handleSimulate} className="w-full mt-2" variant="outline" disabled={simLoading}>
-							{simLoading ? <Spinner className="size-4" /> : "Kiểm tra Ngày Hạch Toán"}
-						</Button>
-
-						{simResult && (
-							<div className="mt-4 p-3 bg-muted/50 rounded-md border text-sm space-y-2">
-								<div className="flex justify-between items-center">
-									<span className="text-muted-foreground">Ngày hạch toán:</span>
-									<span className="font-semibold text-primary">{new Date(simResult).toLocaleDateString("vi-VN")}</span>
-								</div>
-								<div className="border-t pt-2 mt-1">
-									{status && simResult === status.next_business_date.split("T")[0] ? (
-										<div className="flex items-center gap-1.5 text-amber-600 text-xs font-semibold">
-											<AlertTriangle className="size-4 shrink-0" />
-											<span>Quá giờ Cut-off. Hạch toán T+1!</span>
-										</div>
-									) : (
-										<div className="flex items-center gap-1.5 text-green-600 text-xs font-semibold">
-											<CheckCircle2 className="size-4 shrink-0" />
-											<span>Hợp lệ. Hạch toán trong ngày T!</span>
-										</div>
-									)}
-								</div>
-							</div>
-						)}
-					</div>
-				</div>
-			</div>
-		</div>
-	)
+            {simResult && (
+              <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Ngay hach toan:</span>
+                  <span className="font-semibold text-primary">{new Date(simResult).toLocaleDateString("vi-VN")}</span>
+                </div>
+                <div className="mt-1 border-t pt-2">
+                  {status && simResult === status.next_business_date.split("T")[0] ? (
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600">
+                      <AlertTriangle className="size-4 shrink-0" />
+                      <span>Qua gio cut-off. Hach toan T+1.</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600">
+                      <CheckCircle2 className="size-4 shrink-0" />
+                      <span>Hop le. Hach toan trong ngay T.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }

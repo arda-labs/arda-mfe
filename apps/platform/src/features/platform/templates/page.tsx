@@ -5,8 +5,13 @@ import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
 import { uploadFile } from "@workspace/media"
 import { notify } from "@workspace/notifications/notify"
-import { platformApi } from "../api"
 import type { FileTemplate } from "../api"
+import {
+  useCreateFileTemplate,
+  useDeleteFileTemplate,
+  useFileTemplates,
+  useUpdateFileTemplate,
+} from "./queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -86,8 +91,6 @@ function toTemplateFormValues(item: FileTemplate): TemplateFormValues {
 }
 
 export function TemplatesPage() {
-  const [templates, setTemplates] = useState<FileTemplate[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<FileTemplate | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FileTemplate | null>(null)
@@ -95,6 +98,12 @@ export function TemplatesPage() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const templatesQuery = useFileTemplates()
+  const createMutation = useCreateFileTemplate()
+  const updateMutation = useUpdateFileTemplate()
+  const deleteMutation = useDeleteFileTemplate()
+  const templates = templatesQuery.data ?? []
+  const loading = templatesQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -111,21 +120,11 @@ export function TemplatesPage() {
   const fileType = watch("file_type")
   const fileUrl = watch("file_url")
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const data = await platformApi.listFileTemplates()
-      setTemplates(data)
-    } catch (err) {
-      notify.error("Khong the tai danh sach mau bieu", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [])
+    if (templatesQuery.error) {
+      notify.error("Khong the tai danh sach mau bieu", translateApiError(templatesQuery.error))
+    }
+  }, [templatesQuery.error])
 
   const openCreate = () => {
     setEditingTemplate(null)
@@ -167,29 +166,24 @@ export function TemplatesPage() {
       }
 
       if (editingTemplate) {
-        await platformApi.updateFileTemplate(editingTemplate.id, payload)
-        notify.success("Cap nhat mau bieu thanh cong")
+        await updateMutation.mutateAsync({ id: editingTemplate.id, payload })
       } else {
-        await platformApi.createFileTemplate(payload)
-        notify.success("Them mau bieu thanh cong")
+        await createMutation.mutateAsync(payload)
       }
       setDialogOpen(false)
       reset(templateDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu mau bieu that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await platformApi.deleteFileTemplate(deleteTarget.id)
-      notify.success("Xoa mau bieu thanh cong")
+      await deleteMutation.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
-      await load()
-    } catch (err) {
-      notify.error("Xoa mau bieu that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   }
 
@@ -526,7 +520,10 @@ export function TemplatesPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting || uploadProgress !== null}>
+              <Button
+                type="submit"
+                disabled={isSubmitting || createMutation.isPending || updateMutation.isPending || uploadProgress !== null}
+              >
                 {isSubmitting ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
@@ -544,7 +541,11 @@ export function TemplatesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Huy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>

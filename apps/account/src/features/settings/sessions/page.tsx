@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
-import { sessionApi } from "@/features/settings/api/session"
+import { useState } from "react"
 import type { Session } from "@/features/settings/api/session"
+import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Laptop, Smartphone, Globe, MapPin, Calendar, Clock } from "lucide-react"
+import { useRevokeOtherSessions, useRevokeSession, useSessions } from "./queries"
 
 function formatSessionName(session: Session) {
   if (session.deviceName?.trim()) {
@@ -32,38 +33,24 @@ function formatSessionMeta(session: Session) {
 }
 
 export function SessionsPage() {
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [revokeTarget, setRevokeTarget] = useState<Session | "others" | null>(null)
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      const res = await sessionApi.list()
-      setSessions(res.sessions)
-      setCurrentSessionId(res.currentSessionId ?? res.sessions.find((s) => s.isCurrent)?.id ?? null)
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { load() }, [])
+  const sessionsQuery = useSessions()
+  const revokeSessionMutation = useRevokeSession()
+  const revokeOtherSessionsMutation = useRevokeOtherSessions()
+  const sessions = sessionsQuery.data?.sessions ?? []
+  const currentSessionId =
+    sessionsQuery.data?.currentSessionId ?? sessions.find((s) => s.isCurrent)?.id ?? null
+  const isRevoking = revokeSessionMutation.isPending || revokeOtherSessionsMutation.isPending
 
   const handleRevoke = async (id: string) => {
-    await sessionApi.revoke(id)
+    await revokeSessionMutation.mutateAsync(id)
     setRevokeTarget(null)
-    load()
   }
 
   const handleRevokeOthers = async () => {
     if (currentSessionId) {
-      await sessionApi.revokeOthers(currentSessionId)
+      await revokeOtherSessionsMutation.mutateAsync(currentSessionId)
       setRevokeTarget(null)
-      load()
     }
   }
 
@@ -82,8 +69,8 @@ export function SessionsPage() {
     }
   }
 
-  if (loading) return <div className="flex justify-center p-8"><Spinner className="size-6" /></div>
-  if (error) return <div className="text-destructive p-4">{error}</div>
+  if (sessionsQuery.isLoading) return <div className="flex justify-center p-8"><Spinner className="size-6" /></div>
+  if (sessionsQuery.error) return <div className="text-destructive p-4">{translateApiError(sessionsQuery.error)}</div>
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -177,6 +164,7 @@ export function SessionsPage() {
             <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+              disabled={isRevoking}
               onClick={() => {
                 if (revokeTarget === "others") {
                   void handleRevokeOthers()

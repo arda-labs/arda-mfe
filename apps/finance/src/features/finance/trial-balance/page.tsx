@@ -1,35 +1,38 @@
-import { useEffect, useState } from "react"
-import type { Account } from "@/features/finance/api"
-import { financeApi } from "@/features/finance/api"
+import { useEffect } from "react"
+import { notify } from "@workspace/notifications/notify"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
-
-interface TBEntry {
-  account: Account
-  balance: { balance: string; asOf: string } | null
-}
+import { useTrialBalance } from "./queries"
 
 export function TrialBalancePage() {
-  const [entries, setEntries] = useState<TBEntry[]>([])
-  const [loading, setLoading] = useState(true)
+  const {
+    data: entries = [],
+    isError: isTrialBalanceError,
+    isLoading,
+  } = useTrialBalance()
 
-  const load = async () => {
-    try {
-      const res = await financeApi.trialBalance()
-      setEntries(res.entries || [])
-    } catch {} finally { setLoading(false) }
-  }
+  useEffect(() => {
+    if (isTrialBalanceError) notify.error("Could not load trial balance")
+  }, [isTrialBalanceError])
 
-  useEffect(() => { load() }, [])
-
-  if (loading) return <div className="flex justify-center p-8"><Spinner className="size-6" /></div>
+  if (isLoading)
+    return (
+      <div className="flex justify-center p-8">
+        <Spinner className="size-6" />
+      </div>
+    )
 
   const totalDebit = entries
-    .filter(e => e.account.type === "ASSET" || e.account.type === "EXPENSE")
+    .filter((e) => e.account.type === "ASSET" || e.account.type === "EXPENSE")
     .reduce((sum, e) => sum + parseFloat(e.balance?.balance || "0"), 0)
 
   const totalCredit = entries
-    .filter(e => e.account.type === "LIABILITY" || e.account.type === "EQUITY" || e.account.type === "INCOME")
+    .filter(
+      (e) =>
+        e.account.type === "LIABILITY" ||
+        e.account.type === "EQUITY" ||
+        e.account.type === "INCOME"
+    )
     .reduce((sum, e) => sum + parseFloat(e.balance?.balance || "0"), 0)
 
   return (
@@ -38,7 +41,9 @@ export function TrialBalancePage() {
         <Badge variant="secondary" className="px-2.5 py-1 text-xs">
           Trial Balance
         </Badge>
-        <span className="text-xs text-muted-foreground">As of {new Date().toLocaleDateString()}</span>
+        <span className="text-xs text-muted-foreground">
+          As of {new Date().toLocaleDateString()}
+        </span>
       </div>
 
       <div className="rounded-lg border">
@@ -54,24 +59,42 @@ export function TrialBalancePage() {
           </thead>
           <tbody>
             {entries.map((e) => {
-              const isDebit = e.account.type === "ASSET" || e.account.type === "EXPENSE"
+              const isDebit =
+                e.account.type === "ASSET" || e.account.type === "EXPENSE"
               const amt = parseFloat(e.balance?.balance || "0")
               return (
-                <tr key={e.account.id} className="border-b last:border-0 hover:bg-muted/30">
+                <tr
+                  key={e.account.id}
+                  className="border-b last:border-0 hover:bg-muted/30"
+                >
                   <td className="p-3 font-medium">{e.account.name}</td>
-                  <td className="p-3 font-mono text-xs text-muted-foreground">{e.account.code}</td>
-                  <td className="p-3 text-muted-foreground">{e.account.type}</td>
-                  <td className="p-3 text-right font-mono">{isDebit ? amt.toLocaleString() : ""}</td>
-                  <td className="p-3 text-right font-mono">{!isDebit ? amt.toLocaleString() : ""}</td>
+                  <td className="p-3 font-mono text-xs text-muted-foreground">
+                    {e.account.code}
+                  </td>
+                  <td className="p-3 text-muted-foreground">
+                    {e.account.type}
+                  </td>
+                  <td className="p-3 text-right font-mono">
+                    {isDebit ? amt.toLocaleString() : ""}
+                  </td>
+                  <td className="p-3 text-right font-mono">
+                    {!isDebit ? amt.toLocaleString() : ""}
+                  </td>
                 </tr>
               )
             })}
           </tbody>
           <tfoot className="border-t bg-muted/30 font-medium">
             <tr>
-              <td colSpan={3} className="p-3 text-right">Total</td>
-              <td className="p-3 text-right font-mono">{totalDebit.toLocaleString()}</td>
-              <td className="p-3 text-right font-mono">{totalCredit.toLocaleString()}</td>
+              <td colSpan={3} className="p-3 text-right">
+                Total
+              </td>
+              <td className="p-3 text-right font-mono">
+                {totalDebit.toLocaleString()}
+              </td>
+              <td className="p-3 text-right font-mono">
+                {totalCredit.toLocaleString()}
+              </td>
             </tr>
           </tfoot>
         </table>
@@ -80,8 +103,7 @@ export function TrialBalancePage() {
       <p className="text-sm text-muted-foreground">
         {Math.abs(totalDebit - totalCredit) < 0.01
           ? "✓ Balanced (Total Debit = Total Credit)"
-          : `✗ Unbalanced: difference ${(totalDebit - totalCredit).toLocaleString()}`
-        }
+          : `✗ Unbalanced: difference ${(totalDebit - totalCredit).toLocaleString()}`}
       </p>
     </div>
   )

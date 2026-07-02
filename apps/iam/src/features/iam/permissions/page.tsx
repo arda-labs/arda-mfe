@@ -2,8 +2,12 @@ import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { adminApi } from "@/features/iam"
 import type { Permission } from "@/features/iam"
+import {
+  useCreatePermission,
+  useDeletePermission,
+  usePermissions,
+} from "@/features/iam/permissions/queries"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
@@ -34,6 +38,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Trash2 } from "lucide-react"
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -57,12 +62,8 @@ const permissionDefaultValues: PermissionFormValues = {
 
 export function PermissionsPage() {
   const { t } = useI18n()
-  const [perms, setPerms] = useState<Permission[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Permission | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -72,6 +73,8 @@ export function PermissionsPage() {
     resolver: zodResolver(permissionFormSchema),
     defaultValues: permissionDefaultValues,
   })
+  const createPermission = useCreatePermission()
+  const deletePermission = useDeletePermission()
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
@@ -80,11 +83,10 @@ export function PermissionsPage() {
 
   const handleCreate = handleSubmit(async (values) => {
     try {
-      await adminApi.createPermission(values)
+      await createPermission.mutateAsync(values)
       notify.success("Đã tạo quyền")
       setOpen(false)
       reset(permissionDefaultValues)
-      setRefreshKey((key) => key + 1)
     } catch (err) {
       notify.error("Không tạo được quyền", translateApiError(err))
     }
@@ -92,10 +94,9 @@ export function PermissionsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await adminApi.deletePermission(id)
+      await deletePermission.mutateAsync(id)
       notify.success("Đã xóa quyền")
       setDeleteTarget(null)
-      setRefreshKey((key) => key + 1)
     } catch (err) {
       notify.error("Không xóa được quyền", translateApiError(err))
     }
@@ -169,7 +170,18 @@ export function PermissionsPage() {
     },
   ], [t])
 
-  const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
+  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
+  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
+  const [moduleParam] = useQueryState("module", parseAsString)
+  const permissionsQuery = usePermissions({
+    page: pageParam,
+    size: pageSizeParam,
+    module: moduleParam || undefined,
+  })
+  const perms = permissionsQuery.data?.permissions ?? []
+  const total = permissionsQuery.data?.total ?? 0
+  const loading = permissionsQuery.isLoading
+  const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   const { table } = useDataTable<Permission>({
     columns,
@@ -183,32 +195,11 @@ export function PermissionsPage() {
     },
   })
 
-  const tableState = table.getState()
-  const pageIndex = tableState.pagination.pageIndex
-  const pageSize = tableState.pagination.pageSize
-  const moduleVal = tableState.columnFilters.find((f) => f.id === "module")?.value as string | string[] | undefined
-  const moduleStr = Array.isArray(moduleVal) ? moduleVal.join(" ") : (moduleVal ?? "")
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      const res = await adminApi.listPermissions({
-        page: pageIndex + 1,
-        size: pageSize,
-        module: moduleStr || undefined,
-      })
-      setPerms(res.permissions)
-      setTotal(res.total)
-    } catch (err) {
-      notify.error("Không tải được danh sách quyền", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [pageIndex, pageSize, moduleStr, refreshKey])
+    if (permissionsQuery.error) {
+      notify.error("Không tải được danh sách quyền", translateApiError(permissionsQuery.error))
+    }
+  }, [permissionsQuery.error])
 
   if (loading && perms.length === 0) {
     return (
@@ -277,7 +268,7 @@ export function PermissionsPage() {
                 {...register("operation")}
               />
             </FormField>
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
+            <Button className="w-full" type="submit" disabled={isSubmitting || createPermission.isPending}>
               {t("common.action.create")}
             </Button>
           </form>
@@ -298,6 +289,7 @@ export function PermissionsPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletePermission.isPending}
               onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
             >
               {t("common.action.delete")}

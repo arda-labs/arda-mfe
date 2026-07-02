@@ -3,9 +3,9 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
-import { platformApi } from "../api"
-import type { Organization, Parameter } from "../api"
+import type { Parameter } from "../api"
 import { notify } from "@workspace/notifications/notify"
+import { useDeleteParameter, useParameterDependencies, useParameters, useUpsertParameter } from "./queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -134,15 +134,19 @@ function toParameterFormValues(item: Parameter): ParameterFormValues {
 }
 
 export function ParametersPage() {
-  const [params, setParams] = useState<Parameter[]>([])
-  const [orgs, setOrgs] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [orgSearchOpen, setOrgSearchOpen] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingParam, setEditingParam] = useState<Parameter | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Parameter | null>(null)
   const [revealedSecrets, setRevealedSecrets] = useState<Record<string, boolean>>({})
+  const parametersQuery = useParameters()
+  const dependenciesQuery = useParameterDependencies()
+  const upsertMutation = useUpsertParameter()
+  const deleteMutation = useDeleteParameter()
+  const params = parametersQuery.data ?? []
+  const orgs = dependenciesQuery.data?.orgs ?? []
+  const loading = parametersQuery.isLoading || dependenciesQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -160,25 +164,11 @@ export function ParametersPage() {
   const scopeId = watch("scope_id")
   const value = watch("value")
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const [data, orgList] = await Promise.all([
-        platformApi.listParameters(),
-        platformApi.listOrganizations().catch(() => []),
-      ])
-      setParams(data)
-      setOrgs(orgList)
-    } catch (err) {
-      notify.error("Khong the tai du lieu tham so", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [])
+    if (parametersQuery.error) {
+      notify.error("Khong the tai du lieu tham so", translateApiError(parametersQuery.error))
+    }
+  }, [parametersQuery.error])
 
   const openCreate = () => {
     setEditingParam(null)
@@ -215,25 +205,21 @@ export function ParametersPage() {
       if (editingParam) {
         payload.id = editingParam.id
       }
-      await platformApi.upsertParameter(payload)
-      notify.success("Luu tham so he thong thanh cong")
+      await upsertMutation.mutateAsync(payload)
       setDialogOpen(false)
       reset(parameterDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu tham so that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await platformApi.deleteParameter(deleteTarget.id)
-      notify.success("Xoa tham so thanh cong")
+      await deleteMutation.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
-      await load()
-    } catch (err) {
-      notify.error("Xoa tham so that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   }
 
@@ -582,7 +568,7 @@ export function ParametersPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || upsertMutation.isPending}>
                 {isSubmitting ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
@@ -600,7 +586,11 @@ export function ParametersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Huy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>

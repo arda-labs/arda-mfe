@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
-import { platformApi } from "../api"
 import type { GeoAdminUnit } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -35,6 +34,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Edit2, Plus } from "lucide-react"
+import { useUpsertWard, useWardProvinces, useWards } from "./queries"
 
 const wardFormSchema = z.object({
   code: z.string().trim().min(1, "Ma phuong xa la bat buoc").max(32, "Ma phuong xa qua dai"),
@@ -77,12 +77,15 @@ function toWardFormValues(item: GeoAdminUnit): WardFormValues {
 }
 
 export function WardsPage() {
-  const [items, setItems] = useState<GeoAdminUnit[]>([])
-  const [provinces, setProvinces] = useState<GeoAdminUnit[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedProvince, setSelectedProvince] = useState("all")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<GeoAdminUnit | null>(null)
+  const provincesQuery = useWardProvinces()
+  const wardsQuery = useWards(selectedProvince)
+  const upsertWard = useUpsertWard(Boolean(editingItem))
+  const provinces = provincesQuery.data ?? []
+  const items = wardsQuery.data ?? []
+  const loading = provincesQuery.isLoading || wardsQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -94,26 +97,12 @@ export function WardsPage() {
     defaultValues: wardDefaultValues,
   })
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const provinceData = await platformApi.listGeoAdminUnits(undefined, 1)
-      setProvinces(provinceData)
-      setItems(
-        selectedProvince === "all"
-          ? await platformApi.listGeoAdminUnits(undefined, 2)
-          : await platformApi.listGeoAdminUnits(selectedProvince, 2)
-      )
-    } catch (err) {
-      notify.error("Khong the tai danh sach phuong xa", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [selectedProvince])
+    const error = provincesQuery.error || wardsQuery.error
+    if (error) {
+      notify.error("Khong the tai danh sach phuong xa", translateApiError(error))
+    }
+  }, [provincesQuery.error, wardsQuery.error])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -140,7 +129,7 @@ export function WardsPage() {
 
   const submitWard = handleSubmit(async (values) => {
     try {
-      await platformApi.upsertGeoAdminUnit({
+      await upsertWard.mutateAsync({
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         full_name: values.full_name?.trim() || undefined,
@@ -153,12 +142,10 @@ export function WardsPage() {
         effective_to: values.effective_to || undefined,
         is_active: true,
       })
-      notify.success(editingItem ? "Cap nhat phuong xa thanh cong" : "Them phuong xa thanh cong")
       setDialogOpen(false)
       reset(wardDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu phuong xa that bai", translateApiError(err))
+    } catch {
+      // Mutation hook already shows the save error toast.
     }
   })
 
@@ -334,8 +321,8 @@ export function WardsPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              <Button type="submit" disabled={isSubmitting || upsertWard.isPending}>
+                {isSubmitting || upsertWard.isPending ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
           </form>

@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
-import { platformApi } from "../api"
 import type { GeoAdminUnit } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -33,6 +32,7 @@ import {
   StatusLabel,
 } from "@workspace/ui/components/status"
 import { Edit2, Plus } from "lucide-react"
+import { useProvinces, useUpsertProvince } from "./queries"
 
 const provinceFormSchema = z.object({
   code: z.string().trim().min(1, "Ma tinh thanh la bat buoc").max(32, "Ma tinh thanh qua dai"),
@@ -72,10 +72,12 @@ function toProvinceFormValues(item: GeoAdminUnit): ProvinceFormValues {
 }
 
 export function ProvincesPage() {
-  const [items, setItems] = useState<GeoAdminUnit[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<GeoAdminUnit | null>(null)
+  const provincesQuery = useProvinces()
+  const upsertProvince = useUpsertProvince(Boolean(editingItem))
+  const items = provincesQuery.data ?? []
+  const loading = provincesQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -87,20 +89,11 @@ export function ProvincesPage() {
     defaultValues: provinceDefaultValues,
   })
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      setItems(await platformApi.listGeoAdminUnits(undefined, 1))
-    } catch (err) {
-      notify.error("Khong the tai danh sach tinh thanh", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [])
+    if (provincesQuery.error) {
+      notify.error("Khong the tai danh sach tinh thanh", translateApiError(provincesQuery.error))
+    }
+  }, [provincesQuery.error])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -124,7 +117,7 @@ export function ProvincesPage() {
 
   const submitProvince = handleSubmit(async (values) => {
     try {
-      await platformApi.upsertGeoAdminUnit({
+      await upsertProvince.mutateAsync({
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         full_name: values.full_name?.trim() || undefined,
@@ -136,12 +129,10 @@ export function ProvincesPage() {
         effective_to: values.effective_to || undefined,
         is_active: true,
       })
-      notify.success(editingItem ? "Cap nhat tinh thanh thanh cong" : "Them tinh thanh thanh cong")
       setDialogOpen(false)
       reset(provinceDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu tinh thanh that bai", translateApiError(err))
+    } catch {
+      // Mutation hook already shows the save error toast.
     }
   })
 
@@ -296,8 +287,8 @@ export function ProvincesPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              <Button type="submit" disabled={isSubmitting || upsertProvince.isPending}>
+                {isSubmitting || upsertProvince.isPending ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
           </form>

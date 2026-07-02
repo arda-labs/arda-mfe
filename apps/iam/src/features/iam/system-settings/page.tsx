@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
-import { api } from "@workspace/api"
 import { notify } from "@workspace/notifications/notify"
+import {
+  type Parameter,
+  useSaveSystemSettings,
+  useSystemParameters,
+} from "@/features/iam/system-settings/queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -27,16 +31,6 @@ import {
   Save,
   Settings2,
 } from "lucide-react"
-
-type Parameter = {
-  id: string
-  key: string
-  value: string
-  value_type: "string" | "number" | "boolean" | "json" | "date"
-  scope_type: "global" | "tenant" | "org" | "branch" | "department"
-  description?: string
-  is_secret: boolean
-}
 
 type SystemSettings = {
   appName: string
@@ -136,11 +130,17 @@ const fields: Record<keyof SystemSettings, { key: string }> = {
 
 export function SystemSettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>(defaults)
-  const [parametersByKey, setParametersByKey] = useState<
-    Record<string, Parameter>
-  >({})
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const parametersQuery = useSystemParameters()
+  const saveSettingsMutation = useSaveSystemSettings()
+  const parametersByKey = useMemo(
+    () =>
+      Object.fromEntries(
+        (parametersQuery.data ?? []).map((param) => [param.key, param])
+      ) as Record<string, Parameter>,
+    [parametersQuery.data]
+  )
+  const loading = parametersQuery.isLoading
+  const saving = saveSettingsMutation.isPending
 
   const passwordRuleCount = useMemo(
     () =>
@@ -155,24 +155,16 @@ export function SystemSettingsPage() {
   )
 
   useEffect(() => {
-    loadSettings()
-  }, [])
-
-  async function loadSettings() {
-    setLoading(true)
-    try {
-      const parameters = await api.get<Parameter[]>("/api/platform/parameters")
-      const nextByKey = Object.fromEntries(
-        parameters.map((param) => [param.key, param])
-      )
-      setParametersByKey(nextByKey)
-      setSettings(readSettings(nextByKey))
-    } catch {
-      notify.error("Không thể tải cấu hình hệ thống")
-    } finally {
-      setLoading(false)
+    if (parametersQuery.data) {
+      setSettings(readSettings(parametersByKey))
     }
-  }
+  }, [parametersByKey, parametersQuery.data])
+
+  useEffect(() => {
+    if (parametersQuery.error) {
+      notify.error("Không thể tải cấu hình hệ thống")
+    }
+  }, [parametersQuery.error])
 
   async function saveSettings() {
     const validationError = validateSettings(settings)
@@ -181,9 +173,8 @@ export function SystemSettingsPage() {
       return
     }
 
-    setSaving(true)
     try {
-      await api.post<Parameter>("/api/platform/parameters", {
+      await saveSettingsMutation.mutateAsync({
         id: parametersByKey[SYSTEM_SETTINGS_KEY]?.id,
         key: SYSTEM_SETTINGS_KEY,
         value: JSON.stringify(settings),
@@ -193,11 +184,8 @@ export function SystemSettingsPage() {
         is_secret: false,
       })
       notify.success("Đã lưu cấu hình hệ thống")
-      await loadSettings()
     } catch {
       notify.error("Lưu cấu hình thất bại")
-    } finally {
-      setSaving(false)
     }
   }
 

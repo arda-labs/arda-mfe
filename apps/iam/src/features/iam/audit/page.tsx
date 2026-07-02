@@ -1,7 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { useEffect, useMemo, useState } from "react"
-import { auditApi } from "@/features/iam/audit"
-import type { AuditEvent, AuditStats, ChainVerification } from "@/features/iam/audit"
+import { useMemo, useState } from "react"
+import type { AuditEvent } from "@/features/iam/audit"
+import {
+  useAuditChainVerification,
+  useAuditEvents,
+  useAuditStats,
+} from "@/features/iam/audit/queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
@@ -10,6 +14,7 @@ import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { useI18n } from "@workspace/i18n"
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -22,11 +27,6 @@ const RESULT_VARIANTS: Partial<Record<string, "default" | "success" | "error" | 
 
 export function AuditPage() {
   const { t, formatDate, formatNumber } = useI18n()
-  const [events, setEvents] = useState<AuditEvent[]>([])
-  const [stats, setStats] = useState<AuditStats | null>(null)
-  const [verifyResult, setVerifyResult] = useState<ChainVerification | null>(null)
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [showVerify, setShowVerify] = useState(false)
 
   const eventTypeOptions = useMemo(
@@ -123,7 +123,42 @@ export function AuditPage() {
     },
   ], [eventTypeOptions, formatDate, resultOptions, t])
 
-  const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
+  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
+  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
+  const [eventTypesParam] = useQueryState("eventType", parseAsArrayOf(parseAsString, ",").withDefault([]))
+  const [resultParam] = useQueryState("result", parseAsArrayOf(parseAsString, ",").withDefault([]))
+  const [subjectParam] = useQueryState("subject", parseAsString)
+  const [sortParam] = useQueryState("sort", parseAsString)
+  const sort = useMemo(() => {
+    if (!sortParam) return undefined
+    try {
+      const [timestampSort] = JSON.parse(sortParam) as Array<{ id: string; desc: boolean }>
+      return timestampSort?.id === "timestamp" && !timestampSort.desc ? "timestamp" : undefined
+    } catch {
+      return undefined
+    }
+  }, [sortParam])
+  const auditQuery = useAuditEvents({
+    event_type: eventTypesParam.length > 0 ? eventTypesParam : undefined,
+    result: resultParam.length === 1 ? resultParam[0] : undefined,
+    subject: subjectParam || undefined,
+    page: pageParam,
+    size: pageSizeParam,
+    sort,
+  })
+  const range = useMemo(() => {
+    const now = new Date()
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    return { from: weekAgo.toISOString(), to: now.toISOString() }
+  }, [])
+  const statsQuery = useAuditStats(range.from, range.to)
+  const verifyQuery = useAuditChainVerification(range.from, range.to, showVerify)
+  const events = auditQuery.data?.events ?? []
+  const total = auditQuery.data?.total ?? 0
+  const stats = statsQuery.data
+  const verifyResult = verifyQuery.data
+  const loading = auditQuery.isLoading
+  const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   const { table } = useDataTable<AuditEvent>({
     columns,
@@ -137,64 +172,8 @@ export function AuditPage() {
     },
   })
 
-  const tableState = table.getState()
-  const pageIndex = tableState.pagination.pageIndex
-  const pageSize = tableState.pagination.pageSize
-  const eventTypeFilter = tableState.columnFilters.find((f) => f.id === "eventType")?.value as string[] | undefined
-  const resultFilter = tableState.columnFilters.find((f) => f.id === "result")?.value as string[] | undefined
-  const subjectFilter = tableState.columnFilters.find((f) => f.id === "subject")?.value as string[] | string | undefined
-  const eventTypes = eventTypeFilter?.join(",") ?? ""
-  const result = resultFilter?.length === 1 ? resultFilter[0] : ""
-  const subject = Array.isArray(subjectFilter) ? subjectFilter.join(" ") : (subjectFilter ?? "")
-  const timestampSort = tableState.sorting.find((sort) => sort.id === "timestamp")
-  const sort = timestampSort && !timestampSort.desc ? "timestamp" : ""
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      const res = await auditApi.query({
-        event_type: eventTypes ? eventTypes.split(",") : undefined,
-        result: result || undefined,
-        subject: subject || undefined,
-        page: pageIndex + 1,
-        size: pageSize,
-        sort: sort || undefined,
-      })
-      setEvents(res.events)
-      setTotal(res.total)
-    } catch {
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    load()
-  }, [eventTypes, pageIndex, pageSize, result, subject, sort])
-
-  const loadStats = async () => {
-    const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    try {
-      const s = await auditApi.stats(weekAgo.toISOString(), now.toISOString())
-      setStats(s)
-    } catch {}
-  }
-
-  useEffect(() => {
-    loadStats()
-  }, [])
-
-  const handleVerify = async () => {
+  const handleVerify = () => {
     setShowVerify(!showVerify)
-    if (!showVerify) {
-      const now = new Date()
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      try {
-        const v = await auditApi.verify(weekAgo.toISOString(), now.toISOString())
-        setVerifyResult(v)
-      } catch {}
-    }
   }
 
   if (loading && events.length === 0) {
@@ -246,7 +225,13 @@ export function AuditPage() {
 
       <DataTable table={table}>
         <DataTableToolbar table={table}>
-          <Button variant="outline" size="sm" className="h-8" onClick={handleVerify}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8"
+            disabled={verifyQuery.isFetching}
+            onClick={handleVerify}
+          >
             {showVerify ? t("admin.audit.hide_verify") : t("admin.audit.verify_chain")}
           </Button>
         </DataTableToolbar>

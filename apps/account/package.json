@@ -12,6 +12,7 @@
     "preview": "vite preview --host 0.0.0.0 --port 5104"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.2",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
     "@workspace/core": "workspace:*",

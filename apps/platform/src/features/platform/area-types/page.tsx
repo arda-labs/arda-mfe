@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
-import { platformApi } from "../api"
 import type { LookupValue } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -43,8 +42,7 @@ import {
   StatusLabel,
 } from "@workspace/ui/components/status"
 import { Edit2, Plus, Trash2 } from "lucide-react"
-
-const CATEGORY_CODE = "AREA_TYPE"
+import { useAreaTypes, useDeleteAreaType, useUpsertAreaType } from "./queries"
 
 const areaTypeFormSchema = z.object({
   code: z.string().trim().min(1, "Ma loai khu vuc la bat buoc").max(64, "Ma loai khu vuc qua dai"),
@@ -72,11 +70,14 @@ function toAreaTypeFormValues(item: LookupValue): AreaTypeFormValues {
 }
 
 export function AreaTypesPage() {
-  const [items, setItems] = useState<LookupValue[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<LookupValue | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<LookupValue | null>(null)
+  const areaTypesQuery = useAreaTypes()
+  const upsertAreaType = useUpsertAreaType()
+  const deleteAreaType = useDeleteAreaType()
+  const items = areaTypesQuery.data ?? []
+  const loading = areaTypesQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -88,31 +89,11 @@ export function AreaTypesPage() {
     defaultValues: areaTypeDefaultValues,
   })
 
-  const ensureCategory = async () => {
-    await platformApi.upsertLookupCategory({
-      code: CATEGORY_CODE,
-      name: "Loai khu vuc",
-      scope_type: "global",
-      is_system: false,
-      description: "Danh muc loai khu vuc",
-    })
-  }
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      await ensureCategory()
-      setItems(await platformApi.listLookupValues(CATEGORY_CODE))
-    } catch (err) {
-      notify.error("Khong the tai danh sach loai khu vuc", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [])
+    if (areaTypesQuery.error) {
+      notify.error("Khong the tai danh sach loai khu vuc", translateApiError(areaTypesQuery.error))
+    }
+  }, [areaTypesQuery.error])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -136,7 +117,6 @@ export function AreaTypesPage() {
 
   const submitAreaType = handleSubmit(async (values) => {
     try {
-      await ensureCategory()
       const payload: Partial<LookupValue> = {
         code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),
         name: values.name.trim(),
@@ -147,25 +127,21 @@ export function AreaTypesPage() {
         payload.id = editingItem.id
         payload.category_id = editingItem.category_id
       }
-      await platformApi.upsertLookupValue(CATEGORY_CODE, payload)
-      notify.success("Luu loai khu vuc thanh cong")
+      await upsertAreaType.mutateAsync(payload)
       setDialogOpen(false)
       reset(areaTypeDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu loai khu vuc that bai", translateApiError(err))
+    } catch {
+      // Mutation hook already shows the save error toast.
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await platformApi.deleteLookupValue(deleteTarget.id)
-      notify.success("Xoa loai khu vuc thanh cong")
+      await deleteAreaType.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
-      await load()
-    } catch (err) {
-      notify.error("Xoa loai khu vuc that bai", translateApiError(err))
+    } catch {
+      // Mutation hook already shows the delete error toast.
     }
   }
 
@@ -292,8 +268,8 @@ export function AreaTypesPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              <Button type="submit" disabled={isSubmitting || upsertAreaType.isPending}>
+                {isSubmitting || upsertAreaType.isPending ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
           </form>

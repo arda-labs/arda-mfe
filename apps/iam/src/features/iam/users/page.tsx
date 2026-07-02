@@ -4,8 +4,21 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { FormField } from "@workspace/ui/components/form-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { adminApi } from "@/features/iam"
 import type { Role, User } from "@/features/iam"
+import {
+  useAuditIdentityConsistency,
+  useCreateUser,
+  useDeleteUser,
+  useProvisionUserIdentity,
+  useResetUserPassword,
+  useRevokeUserSessions,
+  useRoleOptions,
+  useSetUserRole,
+  useSetUserStatus,
+  useUpdateUser,
+  useUserSessions,
+  useUsers,
+} from "@/features/iam/users/queries"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -36,7 +49,8 @@ import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table
 import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Check, X, Trash2, KeyRound, ShieldCheck, MonitorCog, SearchCheck, Pencil, MoreHorizontal } from "lucide-react"
-import type { AdminUserSession, IdentityConsistencyIssue } from "@/features/iam"
+import type { IdentityConsistencyIssue } from "@/features/iam"
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -118,23 +132,13 @@ function toEditUserValues(user: User): EditUserValues {
 
 export function UsersPage() {
   const { t, formatDate } = useI18n()
-  const [users, setUsers] = useState<User[]>([])
-  const [total, setTotal] = useState(0)
-  
-  const [loading, setLoading] = useState(true)
-  const [busyUserID, setBusyUserID] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<User | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [resetTarget, setResetTarget] = useState<User | null>(null)
   const [provisionTarget, setProvisionTarget] = useState<User | null>(null)
   const [roleTarget, setRoleTarget] = useState<User | null>(null)
-  const [availableRoles, setAvailableRoles] = useState<Role[]>([])
-  const [rolesLoading, setRolesLoading] = useState(false)
-  const [busyRoleID, setBusyRoleID] = useState<string | null>(null)
   const [sessionTarget, setSessionTarget] = useState<User | null>(null)
-  const [sessions, setSessions] = useState<AdminUserSession[]>([])
-  const [sessionsLoading, setSessionsLoading] = useState(false)
   const [identityIssues, setIdentityIssues] = useState<IdentityConsistencyIssue[] | null>(null)
   const [identityAuditOpen, setIdentityAuditOpen] = useState(false)
   const {
@@ -156,43 +160,46 @@ export function UsersPage() {
     defaultValues: editUserDefaultValues,
   })
   const [identityPassword, setIdentityPassword] = useState("")
+  const createUser = useCreateUser()
+  const updateUser = useUpdateUser()
+  const deleteUser = useDeleteUser()
+  const setUserStatus = useSetUserStatus()
+  const setUserRole = useSetUserRole()
+  const resetUserPassword = useResetUserPassword()
+  const provisionUserIdentity = useProvisionUserIdentity()
+  const auditIdentityConsistency = useAuditIdentityConsistency()
+  const revokeUserSessions = useRevokeUserSessions()
+  const roleOptions = useRoleOptions(roleTarget !== null)
+  const sessionsQuery = useUserSessions(sessionTarget?.id)
+  const availableRoles = roleOptions.data?.roles ?? []
+  const rolesLoading = roleOptions.isLoading
+  const sessions = sessionsQuery.data?.sessions ?? []
+  const sessionsLoading = sessionsQuery.isLoading
+  const busyRoleID = setUserRole.isPending ? setUserRole.variables?.roleId : null
+  const busyUserID =
+    (setUserStatus.isPending ? setUserStatus.variables?.id : undefined) ??
+    (updateUser.isPending ? updateUser.variables?.id : undefined) ??
+    (deleteUser.isPending ? deleteUser.variables : undefined) ??
+    (resetUserPassword.isPending ? resetUserPassword.variables?.id : undefined) ??
+    (provisionUserIdentity.isPending ? provisionUserIdentity.variables?.id : undefined) ??
+    (revokeUserSessions.isPending ? sessionTarget?.id : undefined) ??
+    null
 
-  const openRoles = async (user: User) => {
+  const openRoles = (user: User) => {
     setRoleTarget(user)
-    setRolesLoading(true)
-    try {
-      const res = await adminApi.listRoles({ page: 1, size: 100 })
-      setAvailableRoles(res.roles)
-    } catch (err) {
-      notify.error("Không tải được danh sách vai trò", translateApiError(err))
-    } finally {
-      setRolesLoading(false)
-    }
   }
 
   const toggleRole = async (role: Role, assigned: boolean) => {
     if (!roleTarget) return
-    setBusyRoleID(role.id)
     try {
-      if (assigned) {
-        await adminApi.unassignRole(roleTarget.id, role.id)
-      } else {
-        await adminApi.assignRole(roleTarget.id, role.id)
-      }
+      await setUserRole.mutateAsync({ userId: roleTarget.id, roleId: role.id, assigned })
       const nextRoles = assigned
         ? roleTarget.roles.filter((code) => code !== role.code)
         : [...roleTarget.roles, role.code]
       setRoleTarget({ ...roleTarget, roles: nextRoles })
-      setUsers((current) =>
-        current.map((user) =>
-          user.id === roleTarget.id ? { ...user, roles: nextRoles } : user
-        )
-      )
       notify.success("Đã cập nhật vai trò")
     } catch (err) {
       notify.error("Không cập nhật được vai trò", translateApiError(err))
-    } finally {
-      setBusyRoleID(null)
     }
   }
 
@@ -203,45 +210,35 @@ export function UsersPage() {
 
   const handleCreate = handleCreateSubmit(async (values) => {
     try {
-      await adminApi.createUser(values)
+      await createUser.mutateAsync(values)
       notify.success(t("admin.users.create_success"))
       setCreateOpen(false)
       resetCreateForm(createUserDefaultValues)
-      load()
     } catch (err) {
       notify.error(t("admin.users.create_failed"), translateApiError(err))
     }
   })
 
   const handleSetStatus = async (user: User, nextStatus: "ACTIVE" | "DISABLED") => {
-    setBusyUserID(user.id)
     try {
-      if (nextStatus === "ACTIVE") {
-        await adminApi.enableUser(user.id)
-        notify.success(t("admin.users.enable_success"))
-      } else {
-        await adminApi.disableUser(user.id)
-        notify.success(t("admin.users.disable_success"))
-      }
-      load()
+      await setUserStatus.mutateAsync({ id: user.id, status: nextStatus })
+      notify.success(
+        nextStatus === "ACTIVE"
+          ? t("admin.users.enable_success")
+          : t("admin.users.disable_success")
+      )
     } catch (err) {
       notify.error(t("admin.users.update_failed"), translateApiError(err))
-    } finally {
-      setBusyUserID(null)
     }
   }
 
   const handleDelete = async (user: User) => {
-    setBusyUserID(user.id)
     try {
-      await adminApi.deleteUser(user.id)
+      await deleteUser.mutateAsync(user.id)
       notify.success(t("admin.users.delete_success"))
       setDeleteTarget(null)
-      load()
     } catch (err) {
       notify.error(t("admin.users.delete_failed"), translateApiError(err))
-    } finally {
-      setBusyUserID(null)
     }
   }
 
@@ -252,66 +249,61 @@ export function UsersPage() {
 
   const handleEdit = handleEditSubmit(async (values) => {
     if (!editTarget) return
-    setBusyUserID(editTarget.id)
     try {
-      await adminApi.updateUser(editTarget.id, {
-        username: values.username.trim(),
-        email: values.email.trim(),
-        firstName: values.firstName?.trim() || "",
-        lastName: values.lastName?.trim() || "",
-        nickname: values.nickname?.trim() || "",
-        gender: values.gender?.trim() || "",
-        country: values.country?.trim() || "",
-        address: values.address?.trim() || "",
-        position: values.position?.trim() || "",
-        status: values.status,
-        tenantId: values.tenantId.trim() || "default",
+      await updateUser.mutateAsync({
+        id: editTarget.id,
+        data: {
+          username: values.username.trim(),
+          email: values.email.trim(),
+          firstName: values.firstName?.trim() || "",
+          lastName: values.lastName?.trim() || "",
+          nickname: values.nickname?.trim() || "",
+          gender: values.gender?.trim() || "",
+          country: values.country?.trim() || "",
+          address: values.address?.trim() || "",
+          position: values.position?.trim() || "",
+          status: values.status,
+          tenantId: values.tenantId.trim() || "default",
+        },
       })
       notify.success(t("admin.users.update_success"))
       setEditTarget(null)
       resetEditForm(editUserDefaultValues)
-      load()
     } catch (err) {
       notify.error(t("admin.users.update_failed"), translateApiError(err))
-    } finally {
-      setBusyUserID(null)
     }
   })
 
   const handleResetPassword = async () => {
     if (!resetTarget) return
-    setBusyUserID(resetTarget.id)
     try {
-      await adminApi.resetUserPassword(resetTarget.id, identityPassword)
+      await resetUserPassword.mutateAsync({ id: resetTarget.id, password: identityPassword })
       notify.success(t("admin.users.identity.reset_success"))
       setResetTarget(null)
       setIdentityPassword("")
     } catch (err) {
       notify.error(t("admin.users.identity.reset_failed"), translateApiError(err))
-    } finally {
-      setBusyUserID(null)
     }
   }
 
   const handleProvisionIdentity = async () => {
     if (!provisionTarget) return
-    setBusyUserID(provisionTarget.id)
     try {
-      const res = await adminApi.provisionUserIdentity(provisionTarget.id, identityPassword)
+      const res = await provisionUserIdentity.mutateAsync({
+        id: provisionTarget.id,
+        temporaryPassword: identityPassword,
+      })
       notify.success(t("admin.users.identity.provision_success"), res.kratosIdentityId)
       setProvisionTarget(null)
       setIdentityPassword("")
-      load()
     } catch (err) {
       notify.error(t("admin.users.identity.provision_failed"), translateApiError(err))
-    } finally {
-      setBusyUserID(null)
     }
   }
 
   const handleAuditIdentity = async () => {
     try {
-      const res = await adminApi.auditIdentityConsistency()
+      const res = await auditIdentityConsistency.mutateAsync()
       setIdentityIssues(res.issues ?? [])
       setIdentityAuditOpen(true)
       if (res.ok) {
@@ -324,31 +316,17 @@ export function UsersPage() {
     }
   }
 
-  const openSessions = async (user: User) => {
+  const openSessions = (user: User) => {
     setSessionTarget(user)
-    setSessions([])
-    setSessionsLoading(true)
-    try {
-      const res = await adminApi.listUserSessions(user.id)
-      setSessions(res.sessions ?? [])
-    } catch (err) {
-      notify.error(t("admin.users.sessions.load_failed"), translateApiError(err))
-    } finally {
-      setSessionsLoading(false)
-    }
   }
 
   const revokeSessions = async () => {
     if (!sessionTarget) return
-    setBusyUserID(sessionTarget.id)
     try {
-      const res = await adminApi.revokeUserSessions(sessionTarget.id)
+      const res = await revokeUserSessions.mutateAsync(sessionTarget.id)
       notify.success(t("admin.users.sessions.revoke_success"), `${res.count}`)
-      await openSessions(sessionTarget)
     } catch (err) {
       notify.error(t("admin.users.sessions.revoke_failed"), translateApiError(err))
-    } finally {
-      setBusyUserID(null)
     }
   }
 
@@ -504,7 +482,32 @@ export function UsersPage() {
     }
   ], [t, formatDate, busyUserID])
 
-  const totalPages = Math.ceil(total / DEFAULT_PAGE_SIZE) // estimated page count fallback
+  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
+  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
+  const [searchParam] = useQueryState("username", parseAsString)
+  const [statusParam] = useQueryState("status", parseAsArrayOf(parseAsString, ",").withDefault([]))
+  const [sortParam] = useQueryState("sort", parseAsString)
+  const [sortField, sortOrder] = useMemo(() => {
+    if (!sortParam) return [undefined, undefined] as const
+    try {
+      const [sort] = JSON.parse(sortParam) as Array<{ id: string; desc: boolean }>
+      return [sort?.id, sort ? (sort.desc ? "DESC" : "ASC") : undefined] as const
+    } catch {
+      return [undefined, undefined] as const
+    }
+  }, [sortParam])
+  const usersQuery = useUsers({
+    page: pageParam,
+    size: pageSizeParam,
+    search: searchParam || undefined,
+    status: statusParam.length === 1 ? statusParam[0] : undefined,
+    sortField,
+    sortOrder,
+  })
+  const users = usersQuery.data?.users ?? []
+  const total = usersQuery.data?.total ?? 0
+  const loading = usersQuery.isLoading
+  const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   // Dice UI useDataTable hook binds state to nuqs query state automatically
   const { table } = useDataTable<User>({
@@ -519,45 +522,17 @@ export function UsersPage() {
     }
   })
 
-  // Read current query state from table state
-  const tableState = table.getState()
-  const pageIndex = tableState.pagination.pageIndex
-  const pageSize = tableState.pagination.pageSize
-  
-  const searchVal = tableState.columnFilters.find((f) => f.id === "username")?.value as string | string[] | undefined
-  const searchStr = Array.isArray(searchVal) ? searchVal.join(" ") : (searchVal ?? "")
-
-  const statusFilter = tableState.columnFilters.find((f) => f.id === "status")?.value as string[] | string | undefined
-  const statusParam = Array.isArray(statusFilter)
-    ? (statusFilter.length === 1 ? statusFilter[0] : undefined)
-    : statusFilter
-
-  const sortField = tableState.sorting[0]?.id
-  const sortOrder = tableState.sorting[0] ? (tableState.sorting[0].desc ? "DESC" : "ASC") : undefined
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      const res = await adminApi.listUsers({
-        page: pageIndex + 1, // API is 1-based page index
-        size: pageSize,
-        search: searchStr || undefined,
-        status: statusParam || undefined,
-        sortField,
-        sortOrder,
-      })
-      setUsers(res.users)
-      setTotal(res.total)
-    } catch (err) {
-      notify.error(t("admin.users.load_failed"), translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [pageIndex, pageSize, searchStr, statusParam, sortField, sortOrder])
+    if (usersQuery.error) {
+      notify.error(t("admin.users.load_failed"), translateApiError(usersQuery.error))
+    }
+    if (roleOptions.error) {
+      notify.error("Không tải được danh sách vai trò", translateApiError(roleOptions.error))
+    }
+    if (sessionsQuery.error) {
+      notify.error(t("admin.users.sessions.load_failed"), translateApiError(sessionsQuery.error))
+    }
+  }, [roleOptions.error, sessionsQuery.error, t, usersQuery.error])
 
   if (loading && users.length === 0) {
     return (
@@ -586,6 +561,7 @@ export function UsersPage() {
           <Button
             variant="outline"
             onClick={handleAuditIdentity}
+            disabled={auditIdentityConsistency.isPending}
             className="h-8 px-3 text-xs font-semibold cursor-pointer"
           >
             <SearchCheck className="mr-2 size-3.5" />
@@ -647,7 +623,7 @@ export function UsersPage() {
             </FormField>
           </DialogBody>
           <DialogFooter>
-            <Button className="w-full" type="submit" disabled={isCreating}>
+            <Button className="w-full" type="submit" disabled={isCreating || createUser.isPending}>
               {t("common.action.create")}
             </Button>
           </DialogFooter>
@@ -892,6 +868,7 @@ export function UsersPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteUser.isPending}
               onClick={() => deleteTarget && handleDelete(deleteTarget)}
             >
               {t("common.action.delete")}

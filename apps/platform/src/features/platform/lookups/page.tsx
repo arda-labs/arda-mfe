@@ -3,9 +3,16 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
-import { platformApi } from "../api"
 import type { LookupCategory, LookupValue } from "../api"
 import { notify } from "@workspace/notifications/notify"
+import {
+  useDeleteLookupCategory,
+  useDeleteLookupValue,
+  useLookupCategories,
+  useLookupValues,
+  useUpsertLookupCategory,
+  useUpsertLookupValue,
+} from "./queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -135,11 +142,7 @@ function toValueFormValues(item: LookupValue): ValueFormValues {
 }
 
 export function LookupsPage() {
-  const [categories, setCategories] = useState<LookupCategory[]>([])
   const [selectedCat, setSelectedCat] = useState<LookupCategory | null>(null)
-  const [values, setValues] = useState<LookupValue[]>([])
-  const [loadingCats, setLoadingCats] = useState(true)
-  const [loadingValues, setLoadingValues] = useState(false)
   const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [editingCat, setEditingCat] = useState<LookupCategory | null>(null)
   const [deleteCatTarget, setDeleteCatTarget] = useState<LookupCategory | null>(null)
@@ -169,45 +172,34 @@ export function LookupsPage() {
     defaultValues: valueDefaultValues,
   })
   const catScopeType = watchCat("scope_type")
-
-  const loadCategories = async () => {
-    setLoadingCats(true)
-    try {
-      const data = await platformApi.listLookupCategories()
-      setCategories(data)
-      if (data.length > 0 && !selectedCat) {
-        setSelectedCat(data[0])
-      }
-    } catch (err) {
-      notify.error("Khong the tai danh muc he thong", translateApiError(err))
-    } finally {
-      setLoadingCats(false)
-    }
-  }
-
-  const loadValues = async (catCode: string) => {
-    setLoadingValues(true)
-    try {
-      const data = await platformApi.listLookupValues(catCode)
-      setValues(data)
-    } catch (err) {
-      notify.error("Khong the tai danh sach gia tri", translateApiError(err))
-    } finally {
-      setLoadingValues(false)
-    }
-  }
+  const categoriesQuery = useLookupCategories()
+  const valuesQuery = useLookupValues(selectedCat?.code)
+  const upsertCategoryMutation = useUpsertLookupCategory()
+  const deleteCategoryMutation = useDeleteLookupCategory()
+  const upsertValueMutation = useUpsertLookupValue(selectedCat?.code)
+  const deleteValueMutation = useDeleteLookupValue(selectedCat?.code)
+  const categories = categoriesQuery.data ?? []
+  const values = valuesQuery.data ?? []
+  const loadingCats = categoriesQuery.isLoading
+  const loadingValues = valuesQuery.isLoading
 
   useEffect(() => {
-    loadCategories()
-  }, [])
+    if (categoriesQuery.error) {
+      notify.error("Khong the tai danh muc he thong", translateApiError(categoriesQuery.error))
+    }
+  }, [categoriesQuery.error])
 
   useEffect(() => {
-    if (selectedCat) {
-      loadValues(selectedCat.code)
-    } else {
-      setValues([])
+    if (!selectedCat && categories.length > 0) {
+      setSelectedCat(categories[0])
     }
-  }, [selectedCat])
+  }, [categories, selectedCat])
+
+  useEffect(() => {
+    if (valuesQuery.error) {
+      notify.error("Khong the tai danh sach gia tri", translateApiError(valuesQuery.error))
+    }
+  }, [valuesQuery.error])
 
   const openCreateCat = () => {
     setEditingCat(null)
@@ -243,29 +235,25 @@ export function LookupsPage() {
       if (editingCat) {
         payload.id = editingCat.id
       }
-      const saved = await platformApi.upsertLookupCategory(payload)
-      notify.success("Luu danh muc thanh cong")
+      const saved = await upsertCategoryMutation.mutateAsync(payload)
       setCatDialogOpen(false)
       resetCat(categoryDefaultValues)
-      await loadCategories()
       setSelectedCat(saved)
-    } catch (err) {
-      notify.error("Luu danh muc that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   })
 
   const handleCatDelete = async () => {
     if (!deleteCatTarget) return
     try {
-      await platformApi.deleteLookupCategory(deleteCatTarget.id)
-      notify.success("Xoa danh muc thanh cong")
+      await deleteCategoryMutation.mutateAsync(deleteCatTarget.id)
       if (selectedCat?.id === deleteCatTarget.id) {
         setSelectedCat(null)
       }
       setDeleteCatTarget(null)
-      await loadCategories()
-    } catch (err) {
-      notify.error("Xoa danh muc that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   }
 
@@ -307,25 +295,21 @@ export function LookupsPage() {
         payload.id = editingVal.id
         payload.category_id = editingVal.category_id
       }
-      await platformApi.upsertLookupValue(selectedCat.code, payload)
-      notify.success("Luu gia tri danh muc thanh cong")
+      await upsertValueMutation.mutateAsync(payload)
       setValDialogOpen(false)
       resetVal(valueDefaultValues)
-      await loadValues(selectedCat.code)
-    } catch (err) {
-      notify.error("Luu gia tri that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   })
 
   const handleValDelete = async () => {
     if (!deleteValTarget || !selectedCat) return
     try {
-      await platformApi.deleteLookupValue(deleteValTarget.id)
-      notify.success("Xoa gia tri thanh cong")
+      await deleteValueMutation.mutateAsync(deleteValTarget.id)
       setDeleteValTarget(null)
-      await loadValues(selectedCat.code)
-    } catch (err) {
-      notify.error("Xoa gia tri that bai", translateApiError(err))
+    } catch {
+      // Mutation hook owns the toast.
     }
   }
 
@@ -550,7 +534,7 @@ export function LookupsPage() {
               <Button variant="outline" type="button" onClick={() => handleCatDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isCatSubmitting}>
+              <Button type="submit" disabled={isCatSubmitting || upsertCategoryMutation.isPending}>
                 {isCatSubmitting ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
@@ -635,7 +619,7 @@ export function LookupsPage() {
               <Button variant="outline" type="button" onClick={() => handleValDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isValSubmitting}>
+              <Button type="submit" disabled={isValSubmitting || upsertValueMutation.isPending}>
                 {isValSubmitting ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
@@ -653,7 +637,11 @@ export function LookupsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Huy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCatDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleCatDelete}
+              disabled={deleteCategoryMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -670,7 +658,11 @@ export function LookupsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Huy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleValDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleValDelete}
+              disabled={deleteValueMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
