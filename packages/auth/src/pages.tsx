@@ -530,7 +530,7 @@ async function acceptKratosLogin(
     throw new Error(err.error?.code ?? err.error ?? "auth.login.error.failed")
   }
   const data = await readJsonResponse(res, "auth.login.error.failed")
-  if (data.mfa_required) return data
+  if (data.mfa_required || data.mfa_enrollment_required) return data
   if (!data.redirect_url) throw new Error("auth.login.error.empty_redirect")
   window.location.href = data.redirect_url
   return data
