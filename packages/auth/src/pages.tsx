@@ -1,7 +1,6 @@
 import { getMediaContentUrl } from "@workspace/core/media/urls"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
@@ -9,6 +8,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertCircle,
   CheckCircle2,
+  Copy,
   Eye,
   EyeOff,
   Languages,
@@ -18,7 +18,7 @@ import {
   Sun,
 } from "lucide-react"
 import { toast } from "sonner"
-import { useEffect, useRef, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useTheme } from "../../theme/src/index"
 import { acceptHydraConsent, exchangeCode, redirectToHydraLogin } from "./oauth"
 import { normalizeAuthUser, useAuthStore } from "./store"
@@ -67,13 +67,10 @@ export function LoginPage() {
 
   if (!loginChallenge) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background" style={{ minHeight: "100dvh" }}>
-        <Card>
-          <CardContent className="p-8">
-            <Spinner className="mx-auto size-8" />
-          </CardContent>
-        </Card>
-      </div>
+      <AuthLoading
+        description="We are preparing a secure authorization challenge."
+        title="Preparing sign in"
+      />
     )
   }
 
@@ -149,43 +146,46 @@ export function LoginPage() {
 
   if (backupCodes.length > 0) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground" style={{ minHeight: "100dvh" }}>
-        <Card className="w-full max-w-lg">
-          <CardHeader>
-            <CardTitle>Save your backup codes</CardTitle>
-            <p className="text-sm text-muted-foreground">
+      <AuthFrame>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold">Save your backup codes</h1>
+            <p className="text-sm leading-6 text-muted-foreground">
               Store these somewhere safe. Each code can be used once if you lose your authenticator.
             </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2 font-mono text-sm">
-              {backupCodes.map((backupCode) => (
-                <div key={backupCode} className="rounded-md border bg-muted/30 p-2 text-center">
-                  {backupCode}
-                </div>
-              ))}
-            </div>
-            <Button className="w-full" onClick={() => (window.location.href = pendingRedirectURL || "/")}>
+          </div>
+          <div className="grid grid-cols-2 gap-2 font-mono text-sm">
+            {backupCodes.map((backupCode) => (
+              <div key={backupCode} className="rounded-md border bg-muted/30 p-2 text-center">
+                {backupCode}
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                navigator.clipboard
+                  ?.writeText(backupCodes.join("\n"))
+                  .then(() => toast.success("Backup codes copied"))
+                  .catch(() => toast.error("Could not copy backup codes"))
+              }
+            >
+              <Copy className="mr-2 size-4" /> Copy codes
+            </Button>
+            <Button type="button" onClick={() => (window.location.href = pendingRedirectURL || "/")}>
               Continue
             </Button>
-          </CardContent>
-        </Card>
-      </main>
+          </div>
+        </div>
+      </AuthFrame>
     )
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-background text-foreground" style={{ minHeight: "100dvh" }}>
-      <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <ShieldCheck className="size-4" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold leading-none">Arda</p>
-            <p className="mt-1 text-xs text-muted-foreground">Secure workspace</p>
-          </div>
-        </div>
+    <AuthFrame
+      actions={
         <div className="flex items-center gap-2">
           <button
             aria-label={t("common.action.toggle_theme")}
@@ -207,146 +207,115 @@ export function LoginPage() {
             {locale === "vi-VN" ? "VI" : "EN"}
           </button>
         </div>
-      </header>
-
-      <section className="mx-auto flex w-full max-w-6xl flex-1 items-center px-4 py-4 sm:px-6">
-        <div className="grid w-full overflow-hidden rounded-lg border bg-card shadow-sm lg:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="hidden bg-muted/35 p-8 lg:flex lg:flex-col lg:justify-between">
-            <div className="max-w-md space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                <ShieldCheck className="size-3.5 text-primary" />
-                Identity access
-              </div>
-              <div className="space-y-3">
-                <h1 className="text-4xl font-semibold leading-tight">Welcome back to Arda.</h1>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  One secure session for platform, IAM, finance, and account operations.
-                </p>
-              </div>
-            </div>
-            <div className="grid max-w-md gap-3 text-sm text-muted-foreground">
-              {["OAuth2 authorization", "Kratos identity", "Hydra consent"].map((item) => (
-                <div className="flex items-center gap-2" key={item}>
-                  <CheckCircle2 className="size-4 text-primary" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-5 sm:p-8">
-            <Card className="border-0 bg-transparent shadow-none">
-              <CardHeader className="space-y-2 px-0 pb-5 pt-0">
-                <CardTitle className="text-2xl">{t("auth.login.title")}</CardTitle>
-                <p className="text-sm text-muted-foreground">Use your account credentials to continue.</p>
-              </CardHeader>
-              <CardContent className="px-0 pb-0">
-                <form className="space-y-4" onSubmit={handleLogin}>
-                  {error && (
-                    <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-                      <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-                  {mfaEnrollmentRequired ? (
-                    <div className="space-y-4">
-                      <div className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
-                        Admin access requires two-factor authentication. Scan the QR code, then enter the 6-digit code.
-                      </div>
-                      {mfaOTPAuthURL && (
-                        <div className="flex justify-center">
-                          <div className="rounded-md border bg-white p-4">
-                            <QRCode value={mfaOTPAuthURL} size={176} level="M" margin={0}>
-                              <QRCodeSvg />
-                            </QRCode>
-                          </div>
-                        </div>
-                      )}
-                      <FormField label="Manual setup key">
-                        <Input readOnly className="font-mono text-xs" value={mfaSecret} />
-                      </FormField>
-                      <FormField label="Verification code">
-                        <Input
-                          autoComplete="one-time-code"
-                          autoFocus
-                          inputMode="numeric"
-                          maxLength={6}
-                          onChange={(e) => setMfaCode(e.target.value)}
-                          placeholder="6-digit code"
-                          value={mfaCode}
-                        />
-                      </FormField>
-                    </div>
-                  ) : mfaRequired ? (
-                    <FormField label="Verification code">
-                      <Input
-                        autoComplete="one-time-code"
-                        autoFocus
-                        inputMode="numeric"
-                        maxLength={6}
-                        onChange={(e) => setMfaCode(e.target.value)}
-                        placeholder="6-digit code"
-                        value={mfaCode}
-                      />
-                    </FormField>
-                  ) : (
-                    <>
-                      <FormField label={t("auth.login.field.username")}>
-                        <Input
-                          autoComplete="username"
-                          autoFocus
-                          onChange={(e) => setUsername(e.target.value)}
-                          type="text"
-                          value={username}
-                        />
-                      </FormField>
-                      <FormField label={t("auth.login.field.password")}>
-                        <div className="relative">
-                          <Input
-                            autoComplete="current-password"
-                            className="pr-10"
-                            onChange={(e) => setPassword(e.target.value)}
-                            type={showPassword ? "text" : "password"}
-                            value={password}
-                          />
-                          <button
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                            className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                            onClick={() => setShowPassword((value) => !value)}
-                            type="button"
-                          >
-                            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                          </button>
-                        </div>
-                      </FormField>
-                    </>
-                  )}
-                  <Button
-                    className="h-10 w-full"
-                    disabled={isPending || (mfaRequired || mfaEnrollmentRequired ? mfaCode.length !== 6 : !username || !password)}
-                    type="submit"
-                  >
-                    {isPending ? (
-                      <>
-                        <Spinner className="mr-2 size-4" /> {t("common.action.signing_in")}
-                      </>
-                    ) : mfaRequired || mfaEnrollmentRequired ? (
-                      <>
-                        <ShieldCheck className="mr-2 size-4" /> Verify
-                      </>
-                    ) : (
-                      <>
-                        <LogIn className="mr-2 size-4" /> {t("common.action.sign_in")}
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+      }
+    >
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold">{t("auth.login.title")}</h1>
+          <p className="text-sm text-muted-foreground">Use your account credentials to continue.</p>
         </div>
-      </section>
-    </main>
+        <form className="space-y-4" onSubmit={handleLogin}>
+          {error && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          {mfaEnrollmentRequired ? (
+            <div className="space-y-4">
+              <div className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
+                Admin access requires two-factor authentication. Scan the QR code, then enter the 6-digit code.
+              </div>
+              {mfaOTPAuthURL && (
+                <div className="flex justify-center">
+                  <div className="rounded-md border bg-white p-4">
+                    <QRCode value={mfaOTPAuthURL} size={176} level="M" margin={0}>
+                      <QRCodeSvg />
+                    </QRCode>
+                  </div>
+                </div>
+              )}
+              <FormField label="Manual setup key">
+                <Input readOnly className="font-mono text-xs" value={mfaSecret} />
+              </FormField>
+              <FormField label="Verification code">
+                <Input
+                  autoComplete="one-time-code"
+                  autoFocus
+                  inputMode="numeric"
+                  maxLength={6}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  placeholder="6-digit code"
+                  value={mfaCode}
+                />
+              </FormField>
+            </div>
+          ) : mfaRequired ? (
+            <FormField label="Verification code">
+              <Input
+                autoComplete="one-time-code"
+                autoFocus
+                inputMode="numeric"
+                maxLength={6}
+                onChange={(e) => setMfaCode(e.target.value)}
+                placeholder="6-digit code"
+                value={mfaCode}
+              />
+            </FormField>
+          ) : (
+            <>
+              <FormField label={t("auth.login.field.username")}>
+                <Input
+                  autoComplete="username"
+                  autoFocus
+                  onChange={(e) => setUsername(e.target.value)}
+                  type="text"
+                  value={username}
+                />
+              </FormField>
+              <FormField label={t("auth.login.field.password")}>
+                <div className="relative">
+                  <Input
+                    autoComplete="current-password"
+                    className="pr-10"
+                    onChange={(e) => setPassword(e.target.value)}
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                  />
+                  <button
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    onClick={() => setShowPassword((value) => !value)}
+                    type="button"
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </FormField>
+            </>
+          )}
+          <Button
+            className="h-10 w-full"
+            disabled={isPending || (mfaRequired || mfaEnrollmentRequired ? mfaCode.length !== 6 : !username || !password)}
+            type="submit"
+          >
+            {isPending ? (
+              <>
+                <Spinner className="mr-2 size-4" /> {t("common.action.signing_in")}
+              </>
+            ) : mfaRequired || mfaEnrollmentRequired ? (
+              <>
+                <ShieldCheck className="mr-2 size-4" /> Verify
+              </>
+            ) : (
+              <>
+                <LogIn className="mr-2 size-4" /> {t("common.action.sign_in")}
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
+    </AuthFrame>
   )
 }
 
@@ -401,7 +370,12 @@ export function CallbackPage() {
     if (!consentChallenge && !code) window.location.href = "/login"
   }, [code, consentChallenge, error, errorDescription, login, state])
 
-  return <FullPageSpinner />
+  return (
+    <AuthLoading
+      description="We are validating the authorization response."
+      title="Completing sign in"
+    />
+  )
 }
 
 const handledCode = { current: "" }
@@ -426,7 +400,7 @@ export function ConsentPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4" style={{ minHeight: "100dvh" }}>
+      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4" style={{ minHeight: "100dvh" }}>
         <div className="max-w-md rounded-lg border bg-background p-6 text-sm">
           <p className="font-medium">Consent flow failed</p>
           <p className="mt-2 text-muted-foreground">{error}</p>
@@ -435,13 +409,92 @@ export function ConsentPage() {
     )
   }
 
-  return <FullPageSpinner />
+  return (
+    <AuthLoading
+      description="We are finishing the requested access grant."
+      title="Finishing authorization"
+    />
+  )
 }
 
-function FullPageSpinner() {
+function AuthLoading({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40" style={{ minHeight: "100dvh" }}>
-      <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    <AuthFrame compact>
+      <div className="flex flex-col items-center gap-4 py-8 text-center">
+        <Spinner className="size-8" />
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold">{title}</h1>
+          <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+        </div>
+      </div>
+    </AuthFrame>
+  )
+}
+
+function AuthFrame({
+  actions,
+  children,
+  compact = false,
+}: {
+  actions?: ReactNode
+  children: ReactNode
+  compact?: boolean
+}) {
+  return (
+    <main className="min-h-screen bg-muted/30 px-4 py-6 text-foreground sm:px-6" style={{ minHeight: "100dvh" }}>
+      <div className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-5xl items-center justify-center">
+        <div
+          className={
+            compact
+              ? "w-full max-w-md rounded-lg border bg-background shadow-sm"
+              : "grid w-full overflow-hidden rounded-lg border bg-background shadow-sm lg:grid-cols-[minmax(0,1fr)_400px]"
+          }
+        >
+          {!compact && <AuthBrandPanel />}
+          <div className={compact ? "p-6 sm:p-8" : "p-5 sm:p-8"}>
+            <div className="mb-8 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                  <ShieldCheck className="size-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold leading-none">Arda</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Secure workspace</p>
+                </div>
+              </div>
+              {actions}
+            </div>
+            <div className="mx-auto w-full max-w-sm">{children}</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function AuthBrandPanel() {
+  return (
+    <div className="hidden bg-muted/35 p-8 lg:flex lg:flex-col lg:justify-between">
+      <div className="max-w-md space-y-4">
+        <div className="inline-flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <ShieldCheck className="size-3.5 text-primary" />
+          Identity access
+        </div>
+        <div className="space-y-3">
+          <h1 className="text-3xl font-semibold leading-tight">Welcome back to Arda.</h1>
+          <p className="text-sm leading-6 text-muted-foreground">
+            One secure session for platform, IAM, finance, and account operations.
+          </p>
+        </div>
+      </div>
+      <div className="grid max-w-md gap-3 text-sm text-muted-foreground">
+        {["OAuth2 authorization", "Kratos identity", "Hydra consent"].map((item) => (
+          <div className="flex items-center gap-2" key={item}>
+            <CheckCircle2 className="size-4 text-primary" />
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -508,11 +561,7 @@ type AcceptKratosLoginResult = {
   backup_codes?: string[]
 }
 
-async function acceptKratosLogin(
-  loginChallenge: string,
-  kratosSessionToken: string,
-  mfaCode = ""
-): Promise<AcceptKratosLoginResult> {
+async function acceptKratosLogin(loginChallenge: string, kratosSessionToken: string, mfaCode = ""): Promise<AcceptKratosLoginResult> {
   const res = await fetch("/api/auth/kratos/accept-login", {
     method: "POST",
     credentials: "include",

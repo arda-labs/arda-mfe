@@ -40,6 +40,7 @@ function usePathname() {
 
 export function App() {
   const pathname = usePathname()
+  if (pathname === "/auth") return <LoginPage />
   if (pathname === "/login") return <LoginPage />
   if (pathname === "/callback" || pathname === "/login-callback") return <CallbackPage />
   if (pathname === "/consent") return <ConsentPage />
