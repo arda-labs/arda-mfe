@@ -13,6 +13,16 @@ import {
   Trash2,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -72,6 +82,7 @@ import type {
 } from "./api"
 import {
   useAssignmentRules,
+  useDeleteProcessDefinition,
   useDeployProcessDefinition,
   useDelegations,
   useDescriptionTemplates,
@@ -944,11 +955,21 @@ function ProcessDefinitionsTable({
   onUpdate: (item: WorkflowProcessDefinition) => void
 }) {
   const deployMutation = useDeployProcessDefinition()
+  const deleteMutation = useDeleteProcessDefinition()
+  const [deleteTarget, setDeleteTarget] = useState<WorkflowProcessDefinition | null>(null)
+
+  function confirmDeleteDefinition() {
+    if (!deleteTarget) return
+    deleteMutation.mutate(deleteTarget.id, {
+      onSuccess: () => setDeleteTarget(null),
+    })
+  }
 
   if (!items.length) return <EmptyState text="Chưa có định nghĩa BPMN. Import file BPMN/XML để bắt đầu." />
 
   return (
-    <DataShell>
+    <>
+      <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
@@ -957,7 +978,7 @@ function ProcessDefinitionsTable({
             <TableHead>Version</TableHead>
             <TableHead>Deploy</TableHead>
             <TableHead>Trạng thái</TableHead>
-            <TableHead className="w-[18rem]" />
+            <TableHead className="w-[20rem]" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -999,13 +1020,44 @@ function ProcessDefinitionsTable({
                   >
                     <Rocket className="size-4" />
                   </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    disabled={deleteMutation.isPending}
+                    onClick={() => setDeleteTarget(item)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-    </DataShell>
+      </DataShell>
+      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa định nghĩa quy trình?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Định nghĩa "{deleteTarget?.name}" sẽ bị xóa khỏi danh sách quản trị. Bản đã deploy trên Zeebe sẽ
+              không bị gỡ khỏi engine.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              onClick={confirmDeleteDefinition}
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 

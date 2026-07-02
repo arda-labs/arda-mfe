@@ -532,6 +532,11 @@ export const workflowApi = {
       { method: "POST" }
     )
   },
+  deleteProcessDefinition(id: string) {
+    return request<void>(`/api/workflow/process-definitions/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    })
+  },
   createCaseType(payload: Omit<WorkflowCaseType, "effectiveFrom" | "effectiveTo">) {
     return request<WorkflowCaseType>("/api/workflow/case-types", {
       method: "POST",
@@ -675,7 +680,7 @@ async function getArrayOrMock<T>(
 
 async function request<T>(
   path: string,
-  options: { method: "POST" | "PUT"; body?: unknown }
+  options: { method: "POST" | "PUT" | "DELETE"; body?: unknown }
 ) {
   const response = await fetch(path, {
     method: options.method,
@@ -687,6 +692,7 @@ async function request<T>(
     const message = await response.text().catch(() => "")
     throw new Error(message || `Request failed with status ${response.status}`)
   }
+  if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }
 

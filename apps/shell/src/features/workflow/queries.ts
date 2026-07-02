@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { notify } from "@workspace/notifications/notify"
 import { workflowApi } from "./api"
 
 export const workflowKeys = {
@@ -247,5 +248,21 @@ export function useDeployProcessDefinition() {
     mutationFn: workflowApi.deployProcessDefinition,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: workflowKeys.processDefinitions() }),
+  })
+}
+
+export function useDeleteProcessDefinition() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: workflowApi.deleteProcessDefinition,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workflowKeys.processDefinitions() })
+      notify.success("Đã xóa định nghĩa quy trình")
+    },
+    onError: (error) =>
+      notify.error(
+        "Xóa định nghĩa quy trình thất bại",
+        error instanceof Error ? error.message : String(error)
+      ),
   })
 }
