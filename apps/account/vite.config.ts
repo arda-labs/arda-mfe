@@ -30,6 +30,7 @@ export default defineConfig(({ command }) => ({
       name: "account",
       filename: "remoteEntry.js",
       dts: false,
+      shareStrategy: "loaded-first",
       exposes: {
         "./Routes": "./src/Routes.tsx",
       },

@@ -26,6 +26,7 @@ export default defineConfig(({ command }) => ({
       name: "finance",
       filename: "remoteEntry.js",
       dts: false,
+      shareStrategy: "loaded-first",
       exposes: {
         "./Routes": "./src/Routes.tsx",
       },

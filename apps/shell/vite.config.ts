@@ -37,6 +37,7 @@ export default defineConfig(({ command }) => ({
     federation({
       name: "shell",
       dts: false,
+      shareStrategy: "loaded-first",
       remotes: {
         iam: {
           type: "module",
