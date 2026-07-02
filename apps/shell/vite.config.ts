@@ -25,9 +25,8 @@ const sharedDependencies = {
   "@workspace/i18n/": { singleton: true },
   "@workspace/theme": { singleton: true },
   "@workspace/auth": { singleton: true },
-  "@workspace/auth/": { singleton: true },
-  "@workspace/notifications": { singleton: true },
-  "@workspace/notifications/": { singleton: true },
+  "@workspace/auth/store": { singleton: true },
+  "@workspace/auth/step-up-channel": { singleton: true },
 }
 
 // https://vite.dev/config/

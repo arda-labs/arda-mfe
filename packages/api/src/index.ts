@@ -1,7 +1,7 @@
 import { createApiClient } from "@workspace/core/http/api-client"
 import { ApiErrorLike, getCurrentLocale } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
-import { requestStepUp } from "@workspace/auth/step-up"
+import { requestStepUp } from "@workspace/auth/step-up-channel"
 
 export const api = createApiClient({
   getLocale: getCurrentLocale,

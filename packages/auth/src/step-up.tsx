@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { ShieldCheck } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -10,22 +10,9 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
+import { setStepUpHandler, type StepUpRequest } from "./step-up-channel"
 
-type StepUpRequest = {
-  resolve: (verified: boolean) => void
-}
-
-let openStepUp: ((request: StepUpRequest) => void) | undefined
-
-export function requestStepUp() {
-  return new Promise<boolean>((resolve) => {
-    if (!openStepUp) {
-      resolve(false)
-      return
-    }
-    openStepUp({ resolve })
-  })
-}
+export { requestStepUp } from "./step-up-channel"
 
 export function StepUpProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<StepUpRequest | null>(null)
@@ -33,11 +20,15 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
-  openStepUp = (next) => {
-    setCode("")
-    setError("")
-    setRequest(next)
-  }
+  useEffect(
+    () =>
+      setStepUpHandler((next) => {
+        setCode("")
+        setError("")
+        setRequest(next)
+      }),
+    []
+  )
 
   const close = (verified: boolean) => {
     request?.resolve(verified)

@@ -1,30 +1,7 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType } from "react"
-import { AuthGuard, CallbackPage, ConsentPage, LoginPage } from "../../../packages/auth/src/index"
-import { ShellLayout } from "./ShellLayout"
+import { lazy, Suspense, useEffect, useState } from "react"
+import { CallbackPage, ConsentPage, LoginPage } from "../../../packages/auth/src/pages"
 
-type RemoteModule = {
-  default?: ComponentType
-  [key: string]: unknown
-}
-
-function lazyRemote(load: () => Promise<RemoteModule>) {
-  return lazy(async () => {
-    const mod = await load()
-    const component = mod.default ?? Object.values(mod).find((value) => typeof value === "function")
-    if (!component) throw new Error("Remote module did not expose a React component")
-    return { default: component as ComponentType }
-  })
-}
-
-const IamRoutes = lazyRemote(() => import("iam/Routes"))
-const PlatformRoutes = lazyRemote(() => import("platform/Routes"))
-const FinanceRoutes = lazyRemote(() => import("finance/Routes"))
-const AccountRoutes = lazyRemote(() => import("account/Routes"))
-
-function navigate(pathname: string) {
-  window.history.pushState({}, "", pathname)
-  window.dispatchEvent(new PopStateEvent("popstate"))
-}
+const WorkspaceApp = lazy(() => import("./WorkspaceApp"))
 
 function usePathname() {
   const [pathname, setPathname] = useState(window.location.pathname)
@@ -45,67 +22,24 @@ export function App() {
   if (pathname === "/callback" || pathname === "/login-callback") return <CallbackPage />
   if (pathname === "/consent") return <ConsentPage />
 
-  const isIam =
-    pathname === "/iam" ||
-    pathname.startsWith("/admin/users") ||
-    pathname.startsWith("/admin/roles") ||
-    pathname.startsWith("/admin/permissions") ||
-    pathname.startsWith("/admin/audit")
-  const isPlatform =
-    pathname.startsWith("/admin/organizations") ||
-    pathname.startsWith("/admin/parameters") ||
-    pathname.startsWith("/admin/provinces") ||
-    pathname.startsWith("/admin/wards") ||
-    pathname.startsWith("/admin/lookups") ||
-    pathname.startsWith("/admin/area-types") ||
-    pathname.startsWith("/admin/areas") ||
-    pathname.startsWith("/admin/credit-institutions") ||
-    pathname.startsWith("/admin/templates") ||
-    pathname.startsWith("/admin/calendar") ||
-    pathname.startsWith("/admin/cutoff")
-  const isFinance = pathname.startsWith("/finance/")
-  const isAccount =
-    pathname === "/my-account" ||
-    pathname.startsWith("/my-account/") ||
-    pathname.startsWith("/settings/appearance") ||
-    pathname.startsWith("/in/")
-
   return (
-    <AuthGuard>
-      <ShellLayout pathname={pathname} navigate={navigate}>
-        {isIam ? (
-          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading IAM...</div>}>
-            <IamRoutes />
-          </Suspense>
-        ) : isPlatform ? (
-          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Platform...</div>}>
-            <PlatformRoutes />
-          </Suspense>
-        ) : isFinance ? (
-          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Finance...</div>}>
-            <FinanceRoutes />
-          </Suspense>
-        ) : isAccount ? (
-          <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Account...</div>}>
-            <AccountRoutes />
-          </Suspense>
-        ) : (
-          <Dashboard />
-        )}
-      </ShellLayout>
-    </AuthGuard>
+    <Suspense fallback={<WorkspaceLoading />}>
+      <WorkspaceApp pathname={pathname} />
+    </Suspense>
   )
 }
 
-function Dashboard() {
+function WorkspaceLoading() {
   return (
-    <section className="flex max-w-2xl flex-col gap-4">
-      <p className="text-sm text-muted-foreground">Shell</p>
-      <h1 className="text-3xl font-semibold tracking-tight">Arda workspace</h1>
-      <p className="text-muted-foreground">
-        Auth, layout, i18n, theme, and notifications now live in the shell. Domain
-        pages load as runtime micro frontends.
-      </p>
-    </section>
+    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-6 text-foreground" style={{ minHeight: "100dvh" }}>
+      <div className="w-full max-w-md rounded-lg border bg-background p-8 text-center shadow-sm">
+        <div className="mx-auto mb-5 flex size-9 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
+          A
+        </div>
+        <h1 className="text-xl font-semibold">Preparing Arda</h1>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">Loading workspace...</p>
+        <div className="mx-auto mt-5 size-7 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      </div>
+    </main>
   )
 }
