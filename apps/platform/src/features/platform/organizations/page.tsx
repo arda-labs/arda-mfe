@@ -3,7 +3,6 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
-import { platformApi } from "../api"
 import type { Organization } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -40,6 +39,12 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
+import {
+  useCreateOrganization,
+  useDeleteOrganization,
+  useOrganizations,
+  useUpdateOrganization,
+} from "./queries"
 
 const organizationFormSchema = z.object({
   code: z.string().trim().min(1, "Ma don vi la bat buoc").max(64, "Ma don vi qua dai"),
@@ -70,12 +75,16 @@ function toOrganizationFormValues(item: Organization): OrganizationFormValues {
 }
 
 export function OrganizationsPage() {
-  const [orgs, setOrgs] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<"list" | "tree">("list")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null)
+  const organizationsQuery = useOrganizations()
+  const createOrganization = useCreateOrganization()
+  const updateOrganization = useUpdateOrganization()
+  const deleteOrganization = useDeleteOrganization()
+  const orgs = organizationsQuery.data ?? []
+  const loading = organizationsQuery.isLoading
   const {
     control,
     formState: { errors, isSubmitting },
@@ -87,21 +96,11 @@ export function OrganizationsPage() {
     defaultValues: organizationDefaultValues,
   })
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const data = await platformApi.listOrganizations()
-      setOrgs(data)
-    } catch (err) {
-      notify.error("Khong the tai danh sach don vi", translateApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-  }, [])
+    if (organizationsQuery.error) {
+      notify.error("Khong the tai danh sach don vi", translateApiError(organizationsQuery.error))
+    }
+  }, [organizationsQuery.error])
 
   const openCreate = () => {
     setEditingOrg(null)
@@ -134,29 +133,24 @@ export function OrganizationsPage() {
       }
 
       if (editingOrg) {
-        await platformApi.updateOrganization(editingOrg.id, payload)
-        notify.success("Cap nhat don vi thanh cong")
+        await updateOrganization.mutateAsync({ id: editingOrg.id, payload })
       } else {
-        await platformApi.createOrganization(payload)
-        notify.success("Them don vi thanh cong")
+        await createOrganization.mutateAsync(payload)
       }
       setDialogOpen(false)
       reset(organizationDefaultValues)
-      await load()
-    } catch (err) {
-      notify.error("Luu don vi that bai", translateApiError(err))
+    } catch {
+      // Mutation hooks already show the action error toast.
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await platformApi.deleteOrganization(deleteTarget.id)
-      notify.success("Xoa don vi thanh cong")
+      await deleteOrganization.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
-      await load()
-    } catch (err) {
-      notify.error("Xoa don vi that bai", translateApiError(err))
+    } catch {
+      // Mutation hook already shows the delete error toast.
     }
   }
 
@@ -373,8 +367,8 @@ export function OrganizationsPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              <Button type="submit" disabled={isSubmitting || createOrganization.isPending || updateOrganization.isPending}>
+                {isSubmitting || createOrganization.isPending || updateOrganization.isPending ? "Dang luu..." : "Luu lai"}
               </Button>
             </div>
           </form>

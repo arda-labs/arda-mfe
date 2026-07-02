@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@workspace/auth": "workspace:*",
+    "@workspace/core": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",
