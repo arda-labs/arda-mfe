@@ -5,7 +5,8 @@
     "users": "Người dùng",
     "roles": "Vai trò",
     "permissions": "Quyền",
-    "audit": "Nhật ký"
+    "audit": "Nhật ký",
+    "system_settings": "Cài đặt hệ thống"
   },
   "finance": {
     "_self": "Tài chính",

@@ -58,7 +58,8 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
     pathname.startsWith("/admin/users") ||
     pathname.startsWith("/admin/roles") ||
     pathname.startsWith("/admin/permissions") ||
-    pathname.startsWith("/admin/audit")
+    pathname.startsWith("/admin/audit") ||
+    pathname.startsWith("/admin/settings")
   const isPlatform =
     pathname.startsWith("/admin/organizations") ||
     pathname.startsWith("/admin/parameters") ||
