@@ -1,6 +1,7 @@
 import { getMediaContentUrl } from "@workspace/core/media/urls"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
@@ -30,6 +31,8 @@ function getSearch() {
   return new URLSearchParams(window.location.search)
 }
 
+const LOGIN_REMEMBER_FOR_SECONDS = 30 * 24 * 60 * 60
+
 export function LoginPage() {
   const search = getSearch()
   const loginChallenge = search.get("login_challenge") || ""
@@ -42,6 +45,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberLogin, setRememberLogin] = useState(true)
   const [mfaRequired, setMfaRequired] = useState(false)
   const [mfaEnrollmentRequired, setMfaEnrollmentRequired] = useState(false)
   const [mfaCode, setMfaCode] = useState("")
@@ -83,7 +87,7 @@ export function LoginPage() {
     setIsPending(true)
     try {
       if (mfaRequired || mfaEnrollmentRequired) {
-        const result = await acceptKratosLogin(loginChallenge, kratosSessionToken, mfaCode)
+        const result = await acceptKratosLogin(loginChallenge, kratosSessionToken, rememberLogin, mfaCode)
         if (result.backup_codes?.length && result.redirect_url) {
           setBackupCodes(result.backup_codes)
           setPendingRedirectURL(result.redirect_url)
@@ -92,7 +96,7 @@ export function LoginPage() {
       }
       const flow = await createKratosLoginFlow()
       if (flow.sessionAlreadyAvailable) {
-        const result = await acceptKratosLogin(loginChallenge, "")
+        const result = await acceptKratosLogin(loginChallenge, "", rememberLogin)
         handleMFAResult(result, "")
         return
       }
@@ -123,7 +127,7 @@ export function LoginPage() {
       if (flowError) throw new Error(flowError)
       const sessionToken = loginResult.session_token || ""
       if (!sessionToken) throw new Error("auth.login.error.failed")
-      const result = await acceptKratosLogin(loginChallenge, sessionToken)
+      const result = await acceptKratosLogin(loginChallenge, sessionToken, rememberLogin)
       handleMFAResult(result, sessionToken)
     } catch (err) {
       setError(translateApiError(err, "auth.login.error.failed"))
@@ -336,6 +340,17 @@ export function LoginPage() {
                     </button>
                   </div>
                 </FormField>
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-background/50 p-3 text-sm text-muted-foreground transition-colors hover:bg-muted/50 dark:border-zinc-800">
+                  <Checkbox
+                    checked={rememberLogin}
+                    className="mt-0.5"
+                    onCheckedChange={(checked) => setRememberLogin(checked === true)}
+                  />
+                  <span className="grid gap-0.5 leading-none">
+                    <span className="font-medium text-foreground">Keep me signed in</span>
+                    <span className="text-xs leading-relaxed">Remember this browser for 30 days.</span>
+                  </span>
+                </label>
               </>
             )}
             <Button
@@ -612,15 +627,20 @@ type AcceptKratosLoginResult = {
   backup_codes?: string[]
 }
 
-async function acceptKratosLogin(loginChallenge: string, kratosSessionToken: string, mfaCode = ""): Promise<AcceptKratosLoginResult> {
+async function acceptKratosLogin(
+  loginChallenge: string,
+  kratosSessionToken: string,
+  rememberLogin = true,
+  mfaCode = ""
+): Promise<AcceptKratosLoginResult> {
   const res = await fetch("/api/auth/kratos/accept-login", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       login_challenge: loginChallenge,
-      remember: true,
-      remember_for: 86400,
+      remember: rememberLogin,
+      remember_for: rememberLogin ? LOGIN_REMEMBER_FOR_SECONDS : 0,
       kratos_session_token: kratosSessionToken,
       mfa_code: mfaCode,
     }),
