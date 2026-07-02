@@ -1,4 +1,7 @@
 import { useEffect, useState, useMemo } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { FormField } from "@workspace/ui/components/form-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { adminApi } from "@/features/iam"
@@ -37,6 +40,82 @@ import type { AdminUserSession, IdentityConsistencyIssue } from "@/features/iam"
 
 const DEFAULT_PAGE_SIZE = 10
 
+const createUserSchema = z.object({
+  username: z.string().trim().min(1, "Username is required").max(64, "Username is too long"),
+  email: z.string().trim().email("Enter a valid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  firstName: z.string().trim().max(100, "First name is too long").optional(),
+  lastName: z.string().trim().max(100, "Last name is too long").optional(),
+  nickname: z.string().trim().max(100, "Nickname is too long").optional(),
+  gender: z.string().trim().max(32, "Gender is too long").optional(),
+  country: z.string().trim().max(64, "Country is too long").optional(),
+  address: z.string().trim().max(255, "Address is too long").optional(),
+  position: z.string().trim().max(128, "Position is too long").optional(),
+  tenantId: z.string().trim().min(1, "Tenant is required"),
+})
+
+type CreateUserValues = z.infer<typeof createUserSchema>
+
+const editUserSchema = z.object({
+  username: z.string().trim().min(1, "Username is required").max(64, "Username is too long"),
+  email: z.string().trim().email("Enter a valid email"),
+  firstName: z.string().trim().max(100, "First name is too long").optional(),
+  lastName: z.string().trim().max(100, "Last name is too long").optional(),
+  nickname: z.string().trim().max(100, "Nickname is too long").optional(),
+  gender: z.string().trim().max(32, "Gender is too long").optional(),
+  country: z.string().trim().max(64, "Country is too long").optional(),
+  address: z.string().trim().max(255, "Address is too long").optional(),
+  position: z.string().trim().max(128, "Position is too long").optional(),
+  status: z.enum(["ACTIVE", "DISABLED"]),
+  tenantId: z.string().trim().min(1, "Tenant is required"),
+})
+
+type EditUserValues = z.infer<typeof editUserSchema>
+
+const createUserDefaultValues: CreateUserValues = {
+  username: "",
+  email: "",
+  password: "",
+  firstName: "",
+  lastName: "",
+  nickname: "",
+  gender: "",
+  country: "",
+  address: "",
+  position: "",
+  tenantId: "default",
+}
+
+const editUserDefaultValues: EditUserValues = {
+  username: "",
+  email: "",
+  firstName: "",
+  lastName: "",
+  nickname: "",
+  gender: "",
+  country: "",
+  address: "",
+  position: "",
+  status: "ACTIVE",
+  tenantId: "default",
+}
+
+function toEditUserValues(user: User): EditUserValues {
+  return {
+    username: user.username || "",
+    email: user.email || "",
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    nickname: user.nickname || "",
+    gender: user.gender || "",
+    country: user.country || "",
+    address: user.address || "",
+    position: user.position || "",
+    status: user.status === "DISABLED" ? "DISABLED" : "ACTIVE",
+    tenantId: user.tenantId || "default",
+  }
+}
+
 export function UsersPage() {
   const { t, formatDate } = useI18n()
   const [users, setUsers] = useState<User[]>([])
@@ -58,31 +137,23 @@ export function UsersPage() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [identityIssues, setIdentityIssues] = useState<IdentityConsistencyIssue[] | null>(null)
   const [identityAuditOpen, setIdentityAuditOpen] = useState(false)
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-    nickname: "",
-    gender: "",
-    country: "",
-    address: "",
-    position: "",
-    tenantId: "default",
+  const {
+    formState: { errors: createErrors, isSubmitting: isCreating },
+    handleSubmit: handleCreateSubmit,
+    register: registerCreate,
+    reset: resetCreateForm,
+  } = useForm<CreateUserValues>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: createUserDefaultValues,
   })
-  const [editForm, setEditForm] = useState({
-    username: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    nickname: "",
-    gender: "",
-    country: "",
-    address: "",
-    position: "",
-    status: "ACTIVE",
-    tenantId: "default",
+  const {
+    formState: { errors: editErrors, isSubmitting: isUpdatingUser },
+    handleSubmit: handleEditSubmit,
+    register: registerEdit,
+    reset: resetEditForm,
+  } = useForm<EditUserValues>({
+    resolver: zodResolver(editUserSchema),
+    defaultValues: editUserDefaultValues,
   })
   const [identityPassword, setIdentityPassword] = useState("")
 
@@ -125,29 +196,22 @@ export function UsersPage() {
     }
   }
 
-  const handleCreate = async () => {
+  const handleCreateOpenChange = (open: boolean) => {
+    setCreateOpen(open)
+    if (!open) resetCreateForm(createUserDefaultValues)
+  }
+
+  const handleCreate = handleCreateSubmit(async (values) => {
     try {
-      await adminApi.createUser(form)
+      await adminApi.createUser(values)
       notify.success(t("admin.users.create_success"))
       setCreateOpen(false)
-      setForm({
-        username: "",
-        email: "",
-        password: "",
-        firstName: "",
-        lastName: "",
-        nickname: "",
-        gender: "",
-        country: "",
-        address: "",
-        position: "",
-        tenantId: "default",
-      })
+      resetCreateForm(createUserDefaultValues)
       load()
     } catch (err) {
       notify.error(t("admin.users.create_failed"), translateApiError(err))
     }
-  }
+  })
 
   const handleSetStatus = async (user: User, nextStatus: "ACTIVE" | "DISABLED") => {
     setBusyUserID(user.id)
@@ -183,47 +247,36 @@ export function UsersPage() {
 
   const openEdit = (user: User) => {
     setEditTarget(user)
-    setEditForm({
-      username: user.username || "",
-      email: user.email || "",
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
-      nickname: user.nickname || "",
-      gender: user.gender || "",
-      country: user.country || "",
-      address: user.address || "",
-      position: user.position || "",
-      status: user.status || "ACTIVE",
-      tenantId: user.tenantId || "default",
-    })
+    resetEditForm(toEditUserValues(user))
   }
 
-  const handleEdit = async () => {
+  const handleEdit = handleEditSubmit(async (values) => {
     if (!editTarget) return
     setBusyUserID(editTarget.id)
     try {
       await adminApi.updateUser(editTarget.id, {
-        username: editForm.username.trim(),
-        email: editForm.email.trim(),
-        firstName: editForm.firstName.trim(),
-        lastName: editForm.lastName.trim(),
-        nickname: editForm.nickname.trim(),
-        gender: editForm.gender.trim(),
-        country: editForm.country.trim(),
-        address: editForm.address.trim(),
-        position: editForm.position.trim(),
-        status: editForm.status,
-        tenantId: editForm.tenantId.trim() || "default",
+        username: values.username.trim(),
+        email: values.email.trim(),
+        firstName: values.firstName?.trim() || "",
+        lastName: values.lastName?.trim() || "",
+        nickname: values.nickname?.trim() || "",
+        gender: values.gender?.trim() || "",
+        country: values.country?.trim() || "",
+        address: values.address?.trim() || "",
+        position: values.position?.trim() || "",
+        status: values.status,
+        tenantId: values.tenantId.trim() || "default",
       })
       notify.success(t("admin.users.update_success"))
       setEditTarget(null)
+      resetEditForm(editUserDefaultValues)
       load()
     } catch (err) {
       notify.error(t("admin.users.update_failed"), translateApiError(err))
     } finally {
       setBusyUserID(null)
     }
-  }
+  })
 
   const handleResetPassword = async () => {
     if (!resetTarget) return
@@ -548,115 +601,127 @@ export function UsersPage() {
       </DataTable>
 
       {/* Create Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog open={createOpen} onOpenChange={handleCreateOpenChange}>
         <DialogContent className="overflow-hidden">
           <DialogHeader>
             <DialogTitle>{t("admin.users.create")}</DialogTitle>
           </DialogHeader>
+          <form onSubmit={handleCreate}>
           <DialogBody className="space-y-3">
-            <FormField label={t("admin.users.field.username")}>
-              <Input value={form.username} onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))} />
+            <FormField label={t("admin.users.field.username")} error={createErrors.username?.message}>
+              <Input aria-invalid={Boolean(createErrors.username)} {...registerCreate("username")} />
             </FormField>
-            <FormField label={t("common.field.email")}>
-              <Input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
-            </FormField>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t("admin.users.field.first_name")}>
-                <Input value={form.firstName} onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))} />
-              </FormField>
-              <FormField label={t("admin.users.field.last_name")}>
-                <Input value={form.lastName} onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))} />
-              </FormField>
-            </div>
-            <FormField label={t("admin.users.field.nickname")}>
-              <Input value={form.nickname} onChange={(e) => setForm((p) => ({ ...p, nickname: e.target.value }))} />
+            <FormField label={t("common.field.email")} error={createErrors.email?.message}>
+              <Input type="email" aria-invalid={Boolean(createErrors.email)} {...registerCreate("email")} />
             </FormField>
             <div className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t("admin.users.field.gender")}>
-                <Input value={form.gender} onChange={(e) => setForm((p) => ({ ...p, gender: e.target.value }))} />
+              <FormField label={t("admin.users.field.first_name")} error={createErrors.firstName?.message}>
+                <Input aria-invalid={Boolean(createErrors.firstName)} {...registerCreate("firstName")} />
               </FormField>
-              <FormField label={t("admin.users.field.country")}>
-                <Input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} />
+              <FormField label={t("admin.users.field.last_name")} error={createErrors.lastName?.message}>
+                <Input aria-invalid={Boolean(createErrors.lastName)} {...registerCreate("lastName")} />
               </FormField>
             </div>
-            <FormField label={t("admin.users.field.address")}>
-              <Input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
+            <FormField label={t("admin.users.field.nickname")} error={createErrors.nickname?.message}>
+              <Input aria-invalid={Boolean(createErrors.nickname)} {...registerCreate("nickname")} />
             </FormField>
-            <FormField label={t("admin.users.field.position")}>
-              <Input value={form.position} onChange={(e) => setForm((p) => ({ ...p, position: e.target.value }))} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormField label={t("admin.users.field.gender")} error={createErrors.gender?.message}>
+                <Input aria-invalid={Boolean(createErrors.gender)} {...registerCreate("gender")} />
+              </FormField>
+              <FormField label={t("admin.users.field.country")} error={createErrors.country?.message}>
+                <Input aria-invalid={Boolean(createErrors.country)} {...registerCreate("country")} />
+              </FormField>
+            </div>
+            <FormField label={t("admin.users.field.address")} error={createErrors.address?.message}>
+              <Input aria-invalid={Boolean(createErrors.address)} {...registerCreate("address")} />
             </FormField>
-            <FormField label={t("admin.users.field.tenant")}>
-              <Input value={form.tenantId} onChange={(e) => setForm((p) => ({ ...p, tenantId: e.target.value }))} />
+            <FormField label={t("admin.users.field.position")} error={createErrors.position?.message}>
+              <Input aria-invalid={Boolean(createErrors.position)} {...registerCreate("position")} />
             </FormField>
-            <FormField label={t("auth.login.field.password")}>
-              <Input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} />
+            <FormField label={t("admin.users.field.tenant")} error={createErrors.tenantId?.message}>
+              <Input aria-invalid={Boolean(createErrors.tenantId)} {...registerCreate("tenantId")} />
+            </FormField>
+            <FormField label={t("auth.login.field.password")} error={createErrors.password?.message}>
+              <Input type="password" aria-invalid={Boolean(createErrors.password)} {...registerCreate("password")} />
             </FormField>
           </DialogBody>
           <DialogFooter>
-            <Button className="w-full" onClick={handleCreate}>
+            <Button className="w-full" type="submit" disabled={isCreating}>
               {t("common.action.create")}
             </Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={editTarget !== null} onOpenChange={(open) => !open && setEditTarget(null)}>
+      <Dialog
+        open={editTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditTarget(null)
+            resetEditForm(editUserDefaultValues)
+          }
+        }}
+      >
         <DialogContent className="overflow-hidden">
           <DialogHeader>
             <DialogTitle>{t("admin.users.edit")}</DialogTitle>
           </DialogHeader>
-          <DialogBody className="space-y-3">
-            <FormField label={t("admin.users.field.username")}>
-              <Input value={editForm.username} onChange={(e) => setEditForm((p) => ({ ...p, username: e.target.value }))} />
-            </FormField>
-            <FormField label={t("common.field.email")}>
-              <Input type="email" value={editForm.email} onChange={(e) => setEditForm((p) => ({ ...p, email: e.target.value }))} />
-            </FormField>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t("admin.users.field.first_name")}>
-                <Input value={editForm.firstName} onChange={(e) => setEditForm((p) => ({ ...p, firstName: e.target.value }))} />
+          <form onSubmit={handleEdit}>
+            <DialogBody className="space-y-3">
+              <FormField label={t("admin.users.field.username")} error={editErrors.username?.message}>
+                <Input aria-invalid={Boolean(editErrors.username)} {...registerEdit("username")} />
               </FormField>
-              <FormField label={t("admin.users.field.last_name")}>
-                <Input value={editForm.lastName} onChange={(e) => setEditForm((p) => ({ ...p, lastName: e.target.value }))} />
+              <FormField label={t("common.field.email")} error={editErrors.email?.message}>
+                <Input type="email" aria-invalid={Boolean(editErrors.email)} {...registerEdit("email")} />
               </FormField>
-            </div>
-            <FormField label={t("admin.users.field.nickname")}>
-              <Input value={editForm.nickname} onChange={(e) => setEditForm((p) => ({ ...p, nickname: e.target.value }))} />
-            </FormField>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t("admin.users.field.gender")}>
-                <Input value={editForm.gender} onChange={(e) => setEditForm((p) => ({ ...p, gender: e.target.value }))} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormField label={t("admin.users.field.first_name")} error={editErrors.firstName?.message}>
+                  <Input aria-invalid={Boolean(editErrors.firstName)} {...registerEdit("firstName")} />
+                </FormField>
+                <FormField label={t("admin.users.field.last_name")} error={editErrors.lastName?.message}>
+                  <Input aria-invalid={Boolean(editErrors.lastName)} {...registerEdit("lastName")} />
+                </FormField>
+              </div>
+              <FormField label={t("admin.users.field.nickname")} error={editErrors.nickname?.message}>
+                <Input aria-invalid={Boolean(editErrors.nickname)} {...registerEdit("nickname")} />
               </FormField>
-              <FormField label={t("admin.users.field.country")}>
-                <Input value={editForm.country} onChange={(e) => setEditForm((p) => ({ ...p, country: e.target.value }))} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormField label={t("admin.users.field.gender")} error={editErrors.gender?.message}>
+                  <Input aria-invalid={Boolean(editErrors.gender)} {...registerEdit("gender")} />
+                </FormField>
+                <FormField label={t("admin.users.field.country")} error={editErrors.country?.message}>
+                  <Input aria-invalid={Boolean(editErrors.country)} {...registerEdit("country")} />
+                </FormField>
+              </div>
+              <FormField label={t("admin.users.field.address")} error={editErrors.address?.message}>
+                <Input aria-invalid={Boolean(editErrors.address)} {...registerEdit("address")} />
               </FormField>
-            </div>
-            <FormField label={t("admin.users.field.address")}>
-              <Input value={editForm.address} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))} />
-            </FormField>
-            <FormField label={t("admin.users.field.position")}>
-              <Input value={editForm.position} onChange={(e) => setEditForm((p) => ({ ...p, position: e.target.value }))} />
-            </FormField>
-            <FormField label={t("common.field.status")}>
-              <Input
-                value={editForm.status}
-                onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value.toUpperCase() }))}
-                placeholder="ACTIVE/DISABLED"
-              />
-            </FormField>
-            <FormField label={t("admin.users.field.tenant")}>
-              <Input value={editForm.tenantId} onChange={(e) => setEditForm((p) => ({ ...p, tenantId: e.target.value }))} />
-            </FormField>
-          </DialogBody>
-          <DialogFooter>
-            <Button
-              className="w-full"
-              onClick={handleEdit}
-              disabled={!editForm.username || !editForm.email || busyUserID === editTarget?.id}
-            >
-              {t("admin.users.action.save_changes")}
-            </Button>
-          </DialogFooter>
+              <FormField label={t("admin.users.field.position")} error={editErrors.position?.message}>
+                <Input aria-invalid={Boolean(editErrors.position)} {...registerEdit("position")} />
+              </FormField>
+              <FormField label={t("common.field.status")} error={editErrors.status?.message}>
+                <Input
+                  aria-invalid={Boolean(editErrors.status)}
+                  placeholder="ACTIVE/DISABLED"
+                  {...registerEdit("status", {
+                    onChange: (event) => {
+                      event.target.value = event.target.value.toUpperCase()
+                    },
+                  })}
+                />
+              </FormField>
+              <FormField label={t("admin.users.field.tenant")} error={editErrors.tenantId?.message}>
+                <Input aria-invalid={Boolean(editErrors.tenantId)} {...registerEdit("tenantId")} />
+              </FormField>
+            </DialogBody>
+            <DialogFooter>
+              <Button className="w-full" type="submit" disabled={isUpdatingUser || busyUserID === editTarget?.id}>
+                {t("admin.users.action.save_changes")}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

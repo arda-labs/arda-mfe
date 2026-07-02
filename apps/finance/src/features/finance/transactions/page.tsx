@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react"
+import { Controller, useFieldArray, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "react-toastify"
+import { z } from "zod"
 import { financeApi } from "@/features/finance/api"
 import type { Transaction } from "@/features/finance/api"
 import { Button } from "@workspace/ui/components/button"
@@ -9,6 +13,44 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
+
+const entrySchema = z.object({
+  accountId: z.string().trim().min(1, "Account ID is required"),
+  type: z.enum(["DEBIT", "CREDIT"]),
+  amount: z.string().trim().min(1, "Amount is required").refine((value) => Number(value) > 0, "Amount must be positive"),
+})
+
+const transactionFormSchema = z.object({
+  txnType: z.enum(["TRANSFER", "DEPOSIT", "WITHDRAWAL", "FEE"]),
+  description: z.string().trim().max(500, "Description is too long").optional(),
+  entries: z.array(entrySchema).min(2, "At least two entries are required"),
+}).superRefine((values, ctx) => {
+  const debit = values.entries
+    .filter((entry) => entry.type === "DEBIT")
+    .reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
+  const credit = values.entries
+    .filter((entry) => entry.type === "CREDIT")
+    .reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
+
+  if (debit !== credit) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Debit total must equal credit total",
+      path: ["entries"],
+    })
+  }
+})
+
+type TransactionFormValues = z.infer<typeof transactionFormSchema>
+
+const transactionDefaultValues: TransactionFormValues = {
+  txnType: "TRANSFER",
+  description: "",
+  entries: [
+    { accountId: "", type: "DEBIT", amount: "" },
+    { accountId: "", type: "CREDIT", amount: "" },
+  ],
+}
 
 const STATUS_VARIANTS: Partial<Record<string, "default" | "success" | "error" | "warning" | "info">> = {
   POSTED: "success",
@@ -25,7 +67,17 @@ export function TransactionsPage() {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ txnType: "TRANSFER", description: "", entries: [{ accountId: "", type: "DEBIT", amount: "" }, { accountId: "", type: "CREDIT", amount: "" }] })
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionFormSchema),
+    defaultValues: transactionDefaultValues,
+  })
+  const { append, fields } = useFieldArray({ control, name: "entries" })
   const size = DEFAULT_PAGE_SIZE
 
   const load = async () => {
@@ -34,24 +86,30 @@ export function TransactionsPage() {
       const res = await financeApi.listTransactions({ page, size })
       setTxns(res.transactions || [])
       setTotal(res.total)
-    } catch {} finally { setLoading(false) }
+    } catch {
+      toast.error("Could not load transactions")
+    } finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [page])
 
-  const handleCreate = async () => {
-    const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    await financeApi.createTransaction({ ...form, idempotencyKey })
-    setOpen(false)
-    setForm({ txnType: "TRANSFER", description: "", entries: [{ accountId: "", type: "DEBIT", amount: "" }, { accountId: "", type: "CREDIT", amount: "" }] })
-    load()
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (!nextOpen) reset(transactionDefaultValues)
   }
 
-  const updateEntry = (idx: number, field: string, value: string) => {
-    const entries = [...form.entries]
-    entries[idx] = { ...entries[idx], [field]: value }
-    setForm(p => ({ ...p, entries }))
-  }
+  const handleCreate = handleSubmit(async (values) => {
+    const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    try {
+      await financeApi.createTransaction({ ...values, idempotencyKey })
+      toast.success("Transaction posted")
+      setOpen(false)
+      reset(transactionDefaultValues)
+      await load()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not post transaction")
+    }
+  })
 
   const totalPages = Math.ceil(total / size)
 
@@ -65,65 +123,74 @@ export function TransactionsPage() {
             {total} total
           </Badge>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger className="h-9 px-4 text-sm">Create Transaction</DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Create Transaction</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <FormField label="Transaction type">
-                <Select
-                  value={form.txnType}
-                  onValueChange={(val) => setForm(p => ({ ...p, txnType: val }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TRANSFER">Transfer</SelectItem>
-                    <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                    <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-                    <SelectItem value="FEE">Fee</SelectItem>
-                  </SelectContent>
-                </Select>
+            <form className="space-y-3" onSubmit={handleCreate}>
+              <FormField label="Transaction type" error={errors.txnType?.message}>
+                <Controller
+                  control={control}
+                  name="txnType"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger aria-invalid={Boolean(errors.txnType)}>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="TRANSFER">Transfer</SelectItem>
+                        <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                        <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                        <SelectItem value="FEE">Fee</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </FormField>
-              <FormField label="Description">
-                <Input value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))} />
+              <FormField label="Description" error={errors.description?.message}>
+                <Input aria-invalid={Boolean(errors.description)} {...register("description")} />
               </FormField>
 
               <p className="text-sm font-medium">Entries (debit = credit)</p>
-              {form.entries.map((e, i) => (
-                <div key={i} className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]">
-                  <FormField label="Account ID">
-                    <Input value={e.accountId} onChange={v => updateEntry(i, "accountId", v.target.value)} />
+              {typeof errors.entries?.message === "string" ? (
+                <p className="text-xs font-medium text-destructive">{errors.entries.message}</p>
+              ) : null}
+              {fields.map((entry, i) => (
+                <div key={entry.id} className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]">
+                  <FormField label="Account ID" error={errors.entries?.[i]?.accountId?.message}>
+                    <Input aria-invalid={Boolean(errors.entries?.[i]?.accountId)} {...register(`entries.${i}.accountId`)} />
                   </FormField>
-                  <FormField label="Type">
-                    <Select
-                      value={e.type}
-                      onValueChange={(val) => updateEntry(i, "type", val)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="DEBIT">Debit</SelectItem>
-                        <SelectItem value="CREDIT">Credit</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <FormField label="Type" error={errors.entries?.[i]?.type?.message}>
+                    <Controller
+                      control={control}
+                      name={`entries.${i}.type`}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger aria-invalid={Boolean(errors.entries?.[i]?.type)}>
+                            <SelectValue placeholder="Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="DEBIT">Debit</SelectItem>
+                            <SelectItem value="CREDIT">Credit</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </FormField>
-                  <FormField label="Amount">
-                    <Input value={e.amount} onChange={v => updateEntry(i, "amount", v.target.value)} />
+                  <FormField label="Amount" error={errors.entries?.[i]?.amount?.message}>
+                    <Input aria-invalid={Boolean(errors.entries?.[i]?.amount)} {...register(`entries.${i}.amount`)} />
                   </FormField>
                 </div>
               ))}
 
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setForm(p => ({...p, entries: [...p.entries, { accountId: "", type: "DEBIT", amount: "" }] }))}>
+                <Button variant="outline" size="sm" type="button" onClick={() => append({ accountId: "", type: "DEBIT", amount: "" })}>
                   + Entry
                 </Button>
               </div>
 
-              <Button className="w-full" onClick={handleCreate}>Post Transaction</Button>
-            </div>
+              <Button className="w-full" type="submit" disabled={isSubmitting}>Post Transaction</Button>
+            </form>
           </DialogContent>
         </Dialog>
       </div>

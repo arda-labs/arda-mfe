@@ -1,14 +1,35 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, type MouseEvent } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
 import { platformApi } from "../api"
 import type { LookupCategory, LookupValue } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Card, CardContent } from "@workspace/ui/components/card"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
+import { Textarea } from "@workspace/ui/components/textarea"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,68 +40,135 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
-import { Card, CardContent } from "@workspace/ui/components/card"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { Plus, Edit2, Trash2, Tag, ChevronRight } from "lucide-react"
+import { ChevronRight, Edit2, Plus, Tag, Trash2 } from "lucide-react"
+
+const scopeTypeValues = ["global", "tenant", "org", "branch", "department"] as const
 
 const SCOPE_TYPES = [
-  { value: "global", label: "Toàn cục (Global)" },
-  { value: "tenant", label: "Khách hàng (Tenant)" },
-  { value: "org", label: "Tổ chức (Organization)" },
-  { value: "branch", label: "Chi nhánh (Branch)" },
-  { value: "department", label: "Phòng ban (Department)" },
-]
+  { value: "global", label: "Toan cuc (Global)" },
+  { value: "tenant", label: "Khach hang (Tenant)" },
+  { value: "org", label: "To chuc (Organization)" },
+  { value: "branch", label: "Chi nhanh (Branch)" },
+  { value: "department", label: "Phong ban (Department)" },
+] as const
+
+const categoryFormSchema = z
+  .object({
+    code: z.string().trim().min(1, "Ma danh muc la bat buoc").max(64, "Ma danh muc qua dai"),
+    name: z.string().trim().min(1, "Ten danh muc la bat buoc").max(255, "Ten danh muc qua dai"),
+    scope_type: z.enum(scopeTypeValues),
+    scope_id: z.string().trim().optional(),
+    is_system: z.boolean(),
+    description: z.string().trim().max(500, "Mo ta qua dai").optional(),
+  })
+  .superRefine((values, ctx) => {
+    if (values.scope_type !== "global" && !values.scope_id?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Scope ID la bat buoc",
+        path: ["scope_id"],
+      })
+    }
+  })
+
+const valueFormSchema = z
+  .object({
+    code: z.string().trim().min(1, "Ma gia tri la bat buoc").max(64, "Ma gia tri qua dai"),
+    name: z.string().trim().min(1, "Ten hien thi la bat buoc").max(255, "Ten hien thi qua dai"),
+    sort_order: z.coerce.number().int("Thu tu phai la so nguyen").min(0, "Thu tu khong duoc am"),
+    is_active: z.boolean(),
+    metadata: z.string().trim().optional(),
+  })
+  .superRefine((values, ctx) => {
+    if (values.metadata?.trim()) {
+      try {
+        JSON.parse(values.metadata)
+      } catch {
+        ctx.addIssue({
+          code: "custom",
+          message: "Metadata JSON khong hop le",
+          path: ["metadata"],
+        })
+      }
+    }
+  })
+
+type CategoryFormValues = z.infer<typeof categoryFormSchema>
+type ValueFormValues = z.infer<typeof valueFormSchema>
+
+const categoryDefaultValues: CategoryFormValues = {
+  code: "",
+  name: "",
+  scope_type: "global",
+  scope_id: "",
+  is_system: false,
+  description: "",
+}
+
+const valueDefaultValues: ValueFormValues = {
+  code: "",
+  name: "",
+  sort_order: 0,
+  is_active: true,
+  metadata: "",
+}
+
+function toCategoryFormValues(item: LookupCategory): CategoryFormValues {
+  return {
+    code: item.code,
+    name: item.name,
+    scope_type: item.scope_type,
+    scope_id: item.scope_id || "",
+    is_system: item.is_system,
+    description: item.description || "",
+  }
+}
+
+function toValueFormValues(item: LookupValue): ValueFormValues {
+  return {
+    code: item.code,
+    name: item.name,
+    sort_order: item.sort_order,
+    is_active: item.is_active,
+    metadata: item.metadata || "",
+  }
+}
 
 export function LookupsPage() {
   const [categories, setCategories] = useState<LookupCategory[]>([])
   const [selectedCat, setSelectedCat] = useState<LookupCategory | null>(null)
   const [values, setValues] = useState<LookupValue[]>([])
-
   const [loadingCats, setLoadingCats] = useState(true)
   const [loadingValues, setLoadingValues] = useState(false)
-
-  // Category Dialog States
   const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [editingCat, setEditingCat] = useState<LookupCategory | null>(null)
   const [deleteCatTarget, setDeleteCatTarget] = useState<LookupCategory | null>(null)
-  const [catForm, setCatForm] = useState({
-    code: "",
-    name: "",
-    scope_type: "global" as any,
-    scope_id: "",
-    is_system: false,
-    description: "",
-  })
-
-  // Value Dialog States
   const [valDialogOpen, setValDialogOpen] = useState(false)
   const [editingVal, setEditingVal] = useState<LookupValue | null>(null)
   const [deleteValTarget, setDeleteValTarget] = useState<LookupValue | null>(null)
-  const [valForm, setValForm] = useState({
-    code: "",
-    name: "",
-    sort_order: 0,
-    is_active: true,
-    metadata: "",
+  const {
+    control: catControl,
+    formState: { errors: catErrors, isSubmitting: isCatSubmitting },
+    handleSubmit: handleCatSubmit,
+    register: registerCat,
+    reset: resetCat,
+    setValue: setCatValue,
+    watch: watchCat,
+  } = useForm<CategoryFormValues>({
+    resolver: zodResolver(categoryFormSchema),
+    defaultValues: categoryDefaultValues,
   })
-
-  const [submitting, setSubmitting] = useState(false)
+  const {
+    control: valControl,
+    formState: { errors: valErrors, isSubmitting: isValSubmitting },
+    handleSubmit: handleValSubmit,
+    register: registerVal,
+    reset: resetVal,
+  } = useForm<ValueFormValues>({
+    resolver: zodResolver(valueFormSchema),
+    defaultValues: valueDefaultValues,
+  })
+  const catScopeType = watchCat("scope_type")
 
   const loadCategories = async () => {
     setLoadingCats(true)
@@ -91,7 +179,7 @@ export function LookupsPage() {
         setSelectedCat(data[0])
       }
     } catch (err) {
-      notify.error("Không thể tải danh mục hệ thống", translateApiError(err))
+      notify.error("Khong the tai danh muc he thong", translateApiError(err))
     } finally {
       setLoadingCats(false)
     }
@@ -103,7 +191,7 @@ export function LookupsPage() {
       const data = await platformApi.listLookupValues(catCode)
       setValues(data)
     } catch (err) {
-      notify.error("Không thể tải danh sách giá trị", translateApiError(err))
+      notify.error("Khong the tai danh sach gia tri", translateApiError(err))
     } finally {
       setLoadingValues(false)
     }
@@ -121,144 +209,123 @@ export function LookupsPage() {
     }
   }, [selectedCat])
 
-  // Category Handlers
   const openCreateCat = () => {
     setEditingCat(null)
-    setCatForm({
-      code: "",
-      name: "",
-      scope_type: "global",
-      scope_id: "",
-      is_system: false,
-      description: "",
-    })
+    resetCat(categoryDefaultValues)
     setCatDialogOpen(true)
   }
 
-  const openEditCat = (cat: LookupCategory, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const openEditCat = (cat: LookupCategory, event: MouseEvent) => {
+    event.stopPropagation()
     setEditingCat(cat)
-    setCatForm({
-      code: cat.code,
-      name: cat.name,
-      scope_type: cat.scope_type,
-      scope_id: cat.scope_id || "",
-      is_system: cat.is_system,
-      description: cat.description || "",
-    })
+    resetCat(toCategoryFormValues(cat))
     setCatDialogOpen(true)
   }
 
-  const handleCatSubmit = async () => {
-    if (!catForm.code.trim() || !catForm.name.trim()) {
-      notify.error("Mã và tên danh mục không được trống")
-      return
+  const handleCatDialogOpenChange = (open: boolean) => {
+    setCatDialogOpen(open)
+    if (!open) {
+      setEditingCat(null)
+      resetCat(categoryDefaultValues)
     }
-    setSubmitting(true)
+  }
+
+  const submitCategory = handleCatSubmit(async (formValues) => {
     try {
       const payload: Partial<LookupCategory> = {
-        code: catForm.code.trim(),
-        name: catForm.name.trim(),
-        scope_type: catForm.scope_type,
-        scope_id: catForm.scope_id.trim() || undefined,
-        is_system: catForm.is_system,
-        description: catForm.description.trim() || undefined,
+        code: formValues.code.trim().toUpperCase().replace(/\s+/g, "_"),
+        name: formValues.name.trim(),
+        scope_type: formValues.scope_type,
+        scope_id: formValues.scope_id?.trim() || undefined,
+        is_system: formValues.is_system,
+        description: formValues.description?.trim() || undefined,
       }
       if (editingCat) {
         payload.id = editingCat.id
       }
       const saved = await platformApi.upsertLookupCategory(payload)
-      notify.success("Lưu danh mục thành công")
+      notify.success("Luu danh muc thanh cong")
       setCatDialogOpen(false)
-      loadCategories()
+      resetCat(categoryDefaultValues)
+      await loadCategories()
       setSelectedCat(saved)
     } catch (err) {
-      notify.error("Lưu danh mục thất bại", translateApiError(err))
-    } finally {
-      setSubmitting(false)
+      notify.error("Luu danh muc that bai", translateApiError(err))
     }
-  }
+  })
 
   const handleCatDelete = async () => {
     if (!deleteCatTarget) return
     try {
       await platformApi.deleteLookupCategory(deleteCatTarget.id)
-      notify.success("Xóa danh mục thành công")
+      notify.success("Xoa danh muc thanh cong")
       if (selectedCat?.id === deleteCatTarget.id) {
         setSelectedCat(null)
       }
       setDeleteCatTarget(null)
-      loadCategories()
+      await loadCategories()
     } catch (err) {
-      notify.error("Xóa danh mục thất bại", translateApiError(err))
+      notify.error("Xoa danh muc that bai", translateApiError(err))
     }
   }
 
-  // Value Handlers
   const openCreateVal = () => {
     if (!selectedCat) return
     setEditingVal(null)
-    setValForm({
-      code: "",
-      name: "",
+    resetVal({
+      ...valueDefaultValues,
       sort_order: values.length * 10 + 10,
-      is_active: true,
-      metadata: "",
     })
     setValDialogOpen(true)
   }
 
-  const openEditVal = (val: LookupValue) => {
-    setEditingVal(val)
-    setValForm({
-      code: val.code,
-      name: val.name,
-      sort_order: val.sort_order,
-      is_active: val.is_active,
-      metadata: val.metadata || "",
-    })
+  const openEditVal = (value: LookupValue) => {
+    setEditingVal(value)
+    resetVal(toValueFormValues(value))
     setValDialogOpen(true)
   }
 
-  const handleValSubmit = async () => {
-    if (!selectedCat) return
-    if (!valForm.code.trim() || !valForm.name.trim()) {
-      notify.error("Mã và tên giá trị không được trống")
-      return
+  const handleValDialogOpenChange = (open: boolean) => {
+    setValDialogOpen(open)
+    if (!open) {
+      setEditingVal(null)
+      resetVal(valueDefaultValues)
     }
-    setSubmitting(true)
+  }
+
+  const submitValue = handleValSubmit(async (formValues) => {
+    if (!selectedCat) return
     try {
       const payload: Partial<LookupValue> = {
-        code: valForm.code.trim(),
-        name: valForm.name.trim(),
-        sort_order: Number(valForm.sort_order),
-        is_active: valForm.is_active,
-        metadata: valForm.metadata.trim() || undefined,
+        code: formValues.code.trim().toUpperCase().replace(/\s+/g, "_"),
+        name: formValues.name.trim(),
+        sort_order: formValues.sort_order,
+        is_active: formValues.is_active,
+        metadata: formValues.metadata?.trim() || undefined,
       }
       if (editingVal) {
         payload.id = editingVal.id
         payload.category_id = editingVal.category_id
       }
       await platformApi.upsertLookupValue(selectedCat.code, payload)
-      notify.success("Lưu giá trị danh mục thành công")
+      notify.success("Luu gia tri danh muc thanh cong")
       setValDialogOpen(false)
-      loadValues(selectedCat.code)
+      resetVal(valueDefaultValues)
+      await loadValues(selectedCat.code)
     } catch (err) {
-      notify.error("Lưu giá trị thất bại", translateApiError(err))
-    } finally {
-      setSubmitting(false)
+      notify.error("Luu gia tri that bai", translateApiError(err))
     }
-  }
+  })
 
   const handleValDelete = async () => {
     if (!deleteValTarget || !selectedCat) return
     try {
       await platformApi.deleteLookupValue(deleteValTarget.id)
-      notify.success("Xóa giá trị thành công")
+      notify.success("Xoa gia tri thanh cong")
       setDeleteValTarget(null)
-      loadValues(selectedCat.code)
+      await loadValues(selectedCat.code)
     } catch (err) {
-      notify.error("Xóa giá trị thất bại", translateApiError(err))
+      notify.error("Xoa gia tri that bai", translateApiError(err))
     }
   }
 
@@ -266,29 +333,28 @@ export function LookupsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="font-bold text-foreground text-xl">Danh mục hệ thống</h2>
-          <Badge variant="secondary" className="px-2.5 py-0.5 font-bold text-xs">
+          <h2 className="text-xl font-bold text-foreground">Danh muc he thong</h2>
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
             Lookups
           </Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Side: Categories List */}
-        <Card className="md:col-span-1 border-muted/50 rounded-2xl shadow-sm flex flex-col overflow-hidden h-[600px]">
-          <CardContent className="p-0 flex flex-col h-full">
-            <div className="p-4 border-b border-muted flex items-center justify-between bg-muted/5">
-              <span className="font-bold text-sm text-foreground">Loại danh mục</span>
-              <Button size="sm" variant="outline" className="h-7 px-2 font-semibold text-xs gap-1" onClick={openCreateCat}>
-                <Plus className="size-3" /> Thêm mới
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <Card className="flex h-[600px] flex-col overflow-hidden rounded-2xl border-muted/50 shadow-sm md:col-span-1">
+          <CardContent className="flex h-full flex-col p-0">
+            <div className="flex items-center justify-between border-b border-muted bg-muted/5 p-4">
+              <span className="text-sm font-bold text-foreground">Loai danh muc</span>
+              <Button size="sm" variant="outline" className="h-7 gap-1 px-2 text-xs font-semibold" onClick={openCreateCat}>
+                <Plus className="size-3" /> Them moi
               </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-muted/30">
+            <div className="flex-1 divide-y divide-muted/30 overflow-y-auto">
               {loadingCats ? (
-                <div className="p-8 text-center text-xs text-muted-foreground animate-pulse">Đang tải danh mục...</div>
+                <div className="p-8 text-center text-xs text-muted-foreground">Dang tai danh muc...</div>
               ) : categories.length === 0 ? (
-                <div className="p-8 text-center text-xs text-muted-foreground">Chưa có danh mục nào.</div>
+                <div className="p-8 text-center text-xs text-muted-foreground">Chua co danh muc nao.</div>
               ) : (
                 categories.map((cat) => {
                   const isSelected = selectedCat?.id === cat.id
@@ -296,20 +362,20 @@ export function LookupsPage() {
                     <div
                       key={cat.id}
                       onClick={() => setSelectedCat(cat)}
-                      className={`p-4 flex items-center justify-between cursor-pointer transition-all hover:bg-muted/10 ${
-                        isSelected ? "bg-primary/5 border-r-2 border-primary" : ""
+                      className={`flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-muted/10 ${
+                        isSelected ? "border-r-2 border-primary bg-primary/5" : ""
                       }`}
                     >
-                      <div className="space-y-1 max-w-[70%]">
-                        <div className="font-semibold text-sm flex items-center gap-1.5 truncate">
-                          <Tag className="size-3.5 text-muted-foreground shrink-0" />
+                      <div className="max-w-[70%] space-y-1">
+                        <div className="flex items-center gap-1.5 truncate text-sm font-semibold">
+                          <Tag className="size-3.5 shrink-0 text-muted-foreground" />
                           <span className={isSelected ? "text-primary" : "text-foreground"}>{cat.name}</span>
                         </div>
-                        <div className="font-mono text-[10px] text-muted-foreground truncate">{cat.code}</div>
+                        <div className="truncate font-mono text-[10px] text-muted-foreground">{cat.code}</div>
                       </div>
 
                       <div className="flex items-center gap-1.5 opacity-60 hover:opacity-100">
-                        <Button size="icon" variant="ghost" className="size-6" onClick={(e) => openEditCat(cat, e)}>
+                        <Button size="icon" variant="ghost" className="size-6" onClick={(event) => openEditCat(cat, event)}>
                           <Edit2 className="size-3" />
                         </Button>
                         {!cat.is_system && (
@@ -317,15 +383,15 @@ export function LookupsPage() {
                             size="icon"
                             variant="ghost"
                             className="size-6 text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation()
+                            onClick={(event) => {
+                              event.stopPropagation()
                               setDeleteCatTarget(cat)
                             }}
                           >
                             <Trash2 className="size-3" />
                           </Button>
                         )}
-                        <ChevronRight className="size-3.5 text-muted-foreground ml-1" />
+                        <ChevronRight className="ml-1 size-3.5 text-muted-foreground" />
                       </div>
                     </div>
                   )
@@ -335,64 +401,56 @@ export function LookupsPage() {
           </CardContent>
         </Card>
 
-        {/* Right Side: Detail Values List */}
-        <Card className="md:col-span-2 border-muted/50 rounded-2xl shadow-sm flex flex-col overflow-hidden h-[600px]">
-          <CardContent className="p-0 flex flex-col h-full">
-            <div className="p-4 border-b border-muted flex items-center justify-between bg-muted/5">
+        <Card className="flex h-[600px] flex-col overflow-hidden rounded-2xl border-muted/50 shadow-sm md:col-span-2">
+          <CardContent className="flex h-full flex-col p-0">
+            <div className="flex items-center justify-between border-b border-muted bg-muted/5 p-4">
               <div>
-                <span className="font-bold text-sm text-foreground">
-                  Giá trị của: <span className="text-primary">{selectedCat ? selectedCat.name : "..."}</span>
+                <span className="text-sm font-bold text-foreground">
+                  Gia tri cua: <span className="text-primary">{selectedCat ? selectedCat.name : "..."}</span>
                 </span>
-                {selectedCat?.description && (
-                  <p className="text-xs text-muted-foreground font-normal mt-1">{selectedCat.description}</p>
-                )}
+                {selectedCat?.description && <p className="mt-1 text-xs font-normal text-muted-foreground">{selectedCat.description}</p>}
               </div>
-              <Button
-                size="sm"
-                disabled={!selectedCat}
-                className="h-7 px-3.5 font-semibold text-xs gap-1.5"
-                onClick={openCreateVal}
-              >
-                <Plus className="size-3.5" /> Thêm giá trị
+              <Button size="sm" disabled={!selectedCat} className="h-7 gap-1.5 px-3.5 text-xs font-semibold" onClick={openCreateVal}>
+                <Plus className="size-3.5" /> Them gia tri
               </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto">
               {loadingValues ? (
-                <div className="p-8 text-center text-sm text-muted-foreground animate-pulse">Đang tải giá trị...</div>
+                <div className="p-8 text-center text-sm text-muted-foreground">Dang tai gia tri...</div>
               ) : !selectedCat ? (
-                <div className="p-12 text-center text-sm text-muted-foreground">Chọn danh mục ở bên trái để quản lý giá trị.</div>
+                <div className="p-12 text-center text-sm text-muted-foreground">Chon danh muc o ben trai de quan ly gia tri.</div>
               ) : values.length === 0 ? (
-                <div className="p-12 text-center text-sm text-muted-foreground">Danh mục này chưa có giá trị nào. Nhấn nút Thêm để bắt đầu.</div>
+                <div className="p-12 text-center text-sm text-muted-foreground">Danh muc nay chua co gia tri nao.</div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-6">Mã</TableHead>
-                      <TableHead>Tên hiển thị</TableHead>
-                      <TableHead>Sắp xếp</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead className="text-right pr-6">Thao tác</TableHead>
+                      <TableHead className="pl-6">Ma</TableHead>
+                      <TableHead>Ten hien thi</TableHead>
+                      <TableHead>Sap xep</TableHead>
+                      <TableHead>Trang thai</TableHead>
+                      <TableHead className="pr-6 text-right">Thao tac</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {values.map((val) => (
-                      <TableRow key={val.id}>
-                        <TableCell className="pl-6 font-mono text-xs text-primary">{val.code}</TableCell>
-                        <TableCell className="font-semibold">{val.name}</TableCell>
-                        <TableCell className="font-mono text-xs">{val.sort_order}</TableCell>
+                    {values.map((value) => (
+                      <TableRow key={value.id}>
+                        <TableCell className="pl-6 font-mono text-xs text-primary">{value.code}</TableCell>
+                        <TableCell className="font-semibold">{value.name}</TableCell>
+                        <TableCell className="font-mono text-xs">{value.sort_order}</TableCell>
                         <TableCell>
-                          <Status variant={val.is_active ? "success" : "default"}>
+                          <Status variant={value.is_active ? "success" : "default"}>
                             <StatusIndicator />
-                            <StatusLabel>{val.is_active ? "Bật" : "Tắt"}</StatusLabel>
+                            <StatusLabel>{value.is_active ? "Bat" : "Tat"}</StatusLabel>
                           </Status>
                         </TableCell>
-                        <TableCell className="text-right pr-6">
+                        <TableCell className="pr-6 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEditVal(val)}>
+                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEditVal(value)}>
                               <Edit2 className="size-3.5" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteValTarget(val)}>
+                            <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteValTarget(value)}>
                               <Trash2 className="size-3.5" />
                             </Button>
                           </div>
@@ -407,203 +465,213 @@ export function LookupsPage() {
         </Card>
       </div>
 
-      {/* Category Create/Edit Dialog */}
-      <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+      <Dialog open={catDialogOpen} onOpenChange={handleCatDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingCat ? "Cập nhật danh mục" : "Thêm danh mục mới"}</DialogTitle>
-            <DialogDescription>Nhóm danh mục phân loại dữ liệu hệ thống.</DialogDescription>
+            <DialogTitle>{editingCat ? "Cap nhat danh muc" : "Them danh muc moi"}</DialogTitle>
+            <DialogDescription>Nhom danh muc phan loai du lieu he thong.</DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={(e) => e.preventDefault()} className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="cat_code">Mã danh mục</Label>
+          <form autoComplete="off" onSubmit={submitCategory} className="space-y-4 py-2">
+            <FormField label="Ma danh muc" htmlFor="cat_code" error={catErrors.code?.message}>
               <Input
                 id="cat_code"
                 placeholder="DOC_TYPE"
-                value={catForm.code}
-                onChange={(e) => setCatForm(p => ({ ...p, code: e.target.value.toUpperCase().replace(/\s+/g, "_") }))}
+                aria-invalid={Boolean(catErrors.code)}
                 disabled={!!editingCat}
                 className="font-mono uppercase"
                 spellCheck={false}
+                {...registerCat("code", {
+                  onChange: (event) => {
+                    event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "_")
+                  },
+                })}
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="cat_name">Tên danh mục</Label>
+            </FormField>
+            <FormField label="Ten danh muc" htmlFor="cat_name" error={catErrors.name?.message}>
               <Input
                 id="cat_name"
-                placeholder="Loại tài liệu"
-                value={catForm.name}
-                onChange={(e) => setCatForm(p => ({ ...p, name: e.target.value }))}
+                placeholder="Loai tai lieu"
+                aria-invalid={Boolean(catErrors.name)}
                 spellCheck={false}
+                {...registerCat("name")}
               />
-            </div>
+            </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="cat_scope_type">Phạm vi hiệu lực</Label>
-                <Select
-                  value={catForm.scope_type}
-                  onValueChange={(val) => setCatForm(p => ({ ...p, scope_type: val as any }))}
-                >
-                  <SelectTrigger id="cat_scope_type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SCOPE_TYPES.map(scope => (
-                      <SelectItem key={scope.value} value={scope.value}>
-                        {scope.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {catForm.scope_type !== "global" && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="cat_scope_id">Mã phạm vi (Scope ID)</Label>
+              <FormField label="Pham vi hieu luc" htmlFor="cat_scope_type" error={catErrors.scope_type?.message}>
+                <Controller
+                  control={catControl}
+                  name="scope_type"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value)
+                        setCatValue("scope_id", "", { shouldDirty: true, shouldValidate: true })
+                      }}
+                    >
+                      <SelectTrigger id="cat_scope_type" aria-invalid={Boolean(catErrors.scope_type)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SCOPE_TYPES.map((scope) => (
+                          <SelectItem key={scope.value} value={scope.value}>
+                            {scope.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
+              {catScopeType !== "global" && (
+                <FormField label="Ma pham vi" htmlFor="cat_scope_id" error={catErrors.scope_id?.message}>
                   <Input
                     id="cat_scope_id"
-                    placeholder="Mã ID hiệu lực"
-                    value={catForm.scope_id}
-                    onChange={(e) => setCatForm(p => ({ ...p, scope_id: e.target.value }))}
+                    placeholder="Ma ID hieu luc"
+                    aria-invalid={Boolean(catErrors.scope_id)}
                     spellCheck={false}
+                    {...registerCat("scope_id")}
                   />
-                </div>
+                </FormField>
               )}
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="cat_description">Mô tả</Label>
+            <FormField label="Mo ta" htmlFor="cat_description" error={catErrors.description?.message}>
               <Input
                 id="cat_description"
-                placeholder="Mô tả công dụng của nhóm danh mục..."
-                value={catForm.description}
-                onChange={(e) => setCatForm(p => ({ ...p, description: e.target.value }))}
+                placeholder="Mo ta cong dung cua nhom danh muc..."
+                aria-invalid={Boolean(catErrors.description)}
                 spellCheck={false}
+                {...registerCat("description")}
               />
+            </FormField>
+
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" type="button" onClick={() => handleCatDialogOpenChange(false)}>
+                Huy
+              </Button>
+              <Button type="submit" disabled={isCatSubmitting}>
+                {isCatSubmitting ? "Dang luu..." : "Luu lai"}
+              </Button>
             </div>
           </form>
-
-          <DialogFooter className="flex sm:justify-end gap-2">
-            <Button variant="outline" onClick={() => setCatDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleCatSubmit} disabled={submitting}>
-              Lưu lại
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Value Create/Edit Dialog */}
-      <Dialog open={valDialogOpen} onOpenChange={setValDialogOpen}>
+      <Dialog open={valDialogOpen} onOpenChange={handleValDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingVal ? "Cập nhật giá trị" : "Thêm giá trị danh mục"}</DialogTitle>
-            <DialogDescription>Thêm các lựa chọn chi tiết cho danh mục dữ liệu.</DialogDescription>
+            <DialogTitle>{editingVal ? "Cap nhat gia tri" : "Them gia tri danh muc"}</DialogTitle>
+            <DialogDescription>Them cac lua chon chi tiet cho danh muc du lieu.</DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={(e) => e.preventDefault()} className="space-y-4 py-2">
+          <form autoComplete="off" onSubmit={submitValue} className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="val_code">Mã giá trị</Label>
+              <FormField label="Ma gia tri" htmlFor="val_code" error={valErrors.code?.message}>
                 <Input
                   id="val_code"
                   placeholder="ID_CARD"
-                  value={valForm.code}
-                  onChange={(e) => setValForm(p => ({ ...p, code: e.target.value.toUpperCase().replace(/\s+/g, "_") }))}
+                  aria-invalid={Boolean(valErrors.code)}
                   disabled={!!editingVal}
                   className="font-mono uppercase"
                   spellCheck={false}
+                  {...registerVal("code", {
+                    onChange: (event) => {
+                      event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "_")
+                    },
+                  })}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="val_name">Tên hiển thị</Label>
+              </FormField>
+              <FormField label="Ten hien thi" htmlFor="val_name" error={valErrors.name?.message}>
                 <Input
                   id="val_name"
-                  placeholder="Chứng minh nhân dân"
-                  value={valForm.name}
-                  onChange={(e) => setValForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="Chung minh nhan dan"
+                  aria-invalid={Boolean(valErrors.name)}
                   spellCheck={false}
+                  {...registerVal("name")}
                 />
-              </div>
+              </FormField>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="val_sort">Thứ tự sắp xếp</Label>
+              <FormField label="Thu tu sap xep" htmlFor="val_sort" error={valErrors.sort_order?.message}>
                 <Input
                   id="val_sort"
                   type="number"
-                  value={valForm.sort_order}
-                  onChange={(e) => setValForm(p => ({ ...p, sort_order: Number(e.target.value) }))}
+                  aria-invalid={Boolean(valErrors.sort_order)}
+                  {...registerVal("sort_order", { valueAsNumber: true })}
                 />
-              </div>
-              <div className="flex items-center gap-2 pt-6">
-                <Checkbox
-                  id="val_active"
-                  checked={valForm.is_active}
-                  onCheckedChange={(checked) => setValForm(p => ({ ...p, is_active: !!checked }))}
-                />
-                <Label htmlFor="val_active" className="select-none cursor-pointer">
-                  Kích hoạt sử dụng
-                </Label>
-              </div>
+              </FormField>
+              <Controller
+                control={valControl}
+                name="is_active"
+                render={({ field }) => (
+                  <div className="flex items-center gap-2 pt-6">
+                    <Checkbox
+                      id="val_active"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
+                    <label htmlFor="val_active" className="cursor-pointer select-none text-sm font-medium">
+                      Kich hoat su dung
+                    </label>
+                  </div>
+                )}
+              />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="val_meta">Metadata cấu hình (JSON)</Label>
+            <FormField label="Metadata cau hinh (JSON)" htmlFor="val_meta" error={valErrors.metadata?.message}>
               <Textarea
                 id="val_meta"
                 placeholder='{ "icon": "card-icon" }'
-                value={valForm.metadata}
-                onChange={(e) => setValForm(p => ({ ...p, metadata: e.target.value }))}
                 className="font-mono"
                 spellCheck={false}
+                aria-invalid={Boolean(valErrors.metadata)}
+                {...registerVal("metadata")}
               />
+            </FormField>
+
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" type="button" onClick={() => handleValDialogOpenChange(false)}>
+                Huy
+              </Button>
+              <Button type="submit" disabled={isValSubmitting}>
+                {isValSubmitting ? "Dang luu..." : "Luu lai"}
+              </Button>
             </div>
           </form>
-
-          <DialogFooter className="flex sm:justify-end gap-2">
-            <Button variant="outline" onClick={() => setValDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleValSubmit} disabled={submitting}>
-              Lưu lại
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Category Confirmation */}
       <AlertDialog open={!!deleteCatTarget} onOpenChange={() => setDeleteCatTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa danh mục?</AlertDialogTitle>
+            <AlertDialogTitle>Xac nhan xoa danh muc?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa danh mục <strong>{deleteCatTarget?.name}</strong> cùng toàn bộ các giá trị con trực thuộc.
+              Hanh dong nay se xoa danh muc <strong>{deleteCatTarget?.name}</strong> cung toan bo cac gia tri con truc thuoc.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction onClick={handleCatDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Xóa bỏ
+              Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Value Confirmation */}
       <AlertDialog open={!!deleteValTarget} onOpenChange={() => setDeleteValTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa giá trị?</AlertDialogTitle>
+            <AlertDialogTitle>Xac nhan xoa gia tri?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn chắc chắn muốn xóa giá trị <strong>{deleteValTarget?.name}</strong> khỏi danh mục này?
+              Ban chac chan muon xoa gia tri <strong>{deleteValTarget?.name}</strong> khoi danh muc nay?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction onClick={handleValDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Xóa bỏ
+              Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

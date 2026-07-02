@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { platformApi } from "../api"
@@ -6,8 +9,8 @@ import type { CreditInstitution } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import { MaskInput } from "@workspace/ui/components/mask-input"
 import {
   Select,
@@ -33,7 +36,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
@@ -51,28 +53,40 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Edit2, Plus, Search, Trash2 } from "lucide-react"
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "Tất cả" },
-  { value: "active", label: "Hoạt động" },
-  { value: "inactive", label: "Ngừng hiệu lực" },
+  { value: "all", label: "Tat ca" },
+  { value: "active", label: "Hoat dong" },
+  { value: "inactive", label: "Ngung hieu luc" },
 ] as const
 
-type FormState = {
-  code: string
-  name: string
-  address: string
-  status: "active" | "inactive"
-  effective_from: string
-  short_name: string
-  phone: string
-  email: string
-  license_no: string
-  license_date: string
-  tax_code: string
-  website: string
-  note: string
-}
+const optionalEmailSchema = z.union([
+  z.literal(""),
+  z.string().trim().email("Email khong hop le"),
+])
 
-const EMPTY_FORM: FormState = {
+const optionalUrlSchema = z.union([
+  z.literal(""),
+  z.string().trim().url("Website khong hop le"),
+])
+
+const creditInstitutionFormSchema = z.object({
+  code: z.string().trim().min(1, "Ma to chuc la bat buoc").max(64, "Ma to chuc qua dai"),
+  name: z.string().trim().min(1, "Ten to chuc la bat buoc").max(255, "Ten to chuc qua dai"),
+  address: z.string().trim().min(1, "Dia chi la bat buoc").max(500, "Dia chi qua dai"),
+  status: z.enum(["active", "inactive"]),
+  effective_from: z.string().trim().optional(),
+  short_name: z.string().trim().max(128, "Ten viet tat qua dai").optional(),
+  phone: z.string().trim().max(32, "So dien thoai qua dai").optional(),
+  email: optionalEmailSchema,
+  license_no: z.string().trim().max(128, "So giay phep qua dai").optional(),
+  license_date: z.string().trim().optional(),
+  tax_code: z.string().trim().max(64, "Ma so thue qua dai").optional(),
+  website: optionalUrlSchema,
+  note: z.string().trim().max(500, "Ghi chu qua dai").optional(),
+})
+
+type CreditInstitutionFormValues = z.infer<typeof creditInstitutionFormSchema>
+
+const creditInstitutionDefaultValues: CreditInstitutionFormValues = {
   code: "",
   name: "",
   address: "",
@@ -88,6 +102,24 @@ const EMPTY_FORM: FormState = {
   note: "",
 }
 
+function toCreditInstitutionFormValues(item: CreditInstitution): CreditInstitutionFormValues {
+  return {
+    code: item.code,
+    name: item.name,
+    address: item.address,
+    status: item.status,
+    effective_from: item.effective_from || "",
+    short_name: item.short_name || "",
+    phone: item.phone || "",
+    email: item.email || "",
+    license_no: item.license_no || "",
+    license_date: item.license_date || "",
+    tax_code: item.tax_code || "",
+    website: item.website || "",
+    note: item.note || "",
+  }
+}
+
 export function CreditInstitutionsPage() {
   const [items, setItems] = useState<CreditInstitution[]>([])
   const [loading, setLoading] = useState(true)
@@ -96,11 +128,17 @@ export function CreditInstitutionsPage() {
     useState<(typeof STATUS_OPTIONS)[number]["value"]>("all")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<CreditInstitution | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<CreditInstitution | null>(
-    null
-  )
-  const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [deleteTarget, setDeleteTarget] = useState<CreditInstitution | null>(null)
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<CreditInstitutionFormValues>({
+    resolver: zodResolver(creditInstitutionFormSchema),
+    defaultValues: creditInstitutionDefaultValues,
+  })
 
   const load = async () => {
     setLoading(true)
@@ -111,10 +149,7 @@ export function CreditInstitutionsPage() {
       })
       setItems(data)
     } catch (err) {
-      notify.error(
-        "Không thể tải danh sách tổ chức tín dụng",
-        translateApiError(err)
-      )
+      notify.error("Khong the tai danh sach to chuc tin dung", translateApiError(err))
     } finally {
       setLoading(false)
     }
@@ -126,85 +161,67 @@ export function CreditInstitutionsPage() {
 
   const openCreate = () => {
     setEditingItem(null)
-    setForm(EMPTY_FORM)
+    reset(creditInstitutionDefaultValues)
     setDialogOpen(true)
   }
 
   const openEdit = (item: CreditInstitution) => {
     setEditingItem(item)
-    setForm({
-      code: item.code,
-      name: item.name,
-      address: item.address,
-      status: item.status,
-      effective_from: item.effective_from || "",
-      short_name: item.short_name || "",
-      phone: item.phone || "",
-      email: item.email || "",
-      license_no: item.license_no || "",
-      license_date: item.license_date || "",
-      tax_code: item.tax_code || "",
-      website: item.website || "",
-      note: item.note || "",
-    })
+    reset(toCreditInstitutionFormValues(item))
     setDialogOpen(true)
   }
 
-  const handleSubmit = async () => {
-    if (
-      !form.code.trim() ||
-      !form.name.trim() ||
-      !form.address.trim() ||
-      !form.status
-    ) {
-      notify.error("Mã tổ chức, tên tổ chức, địa chỉ và trạng thái là bắt buộc")
-      return
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open)
+    if (!open) {
+      setEditingItem(null)
+      reset(creditInstitutionDefaultValues)
     }
+  }
 
-    setSubmitting(true)
+  const submitCreditInstitution = handleSubmit(async (values) => {
     try {
       const payload: Partial<CreditInstitution> = {
-        code: form.code.trim(),
-        name: form.name.trim(),
-        address: form.address.trim(),
-        status: form.status,
-        effective_from: form.effective_from || undefined,
-        short_name: form.short_name.trim() || undefined,
-        phone: form.phone.trim() || undefined,
-        email: form.email.trim() || undefined,
-        license_no: form.license_no.trim() || undefined,
-        license_date: form.license_date || undefined,
-        tax_code: form.tax_code.trim() || undefined,
-        website: form.website.trim() || undefined,
-        note: form.note.trim() || undefined,
+        code: values.code.trim().toUpperCase(),
+        name: values.name.trim(),
+        address: values.address.trim(),
+        status: values.status,
+        effective_from: values.effective_from || undefined,
+        short_name: values.short_name?.trim() || undefined,
+        phone: values.phone?.trim() || undefined,
+        email: values.email.trim() || undefined,
+        license_no: values.license_no?.trim() || undefined,
+        license_date: values.license_date || undefined,
+        tax_code: values.tax_code?.trim() || undefined,
+        website: values.website.trim() || undefined,
+        note: values.note?.trim() || undefined,
       }
 
       if (editingItem) {
         await platformApi.updateCreditInstitution(editingItem.id, payload)
-        notify.success("Cập nhật tổ chức tín dụng thành công")
+        notify.success("Cap nhat to chuc tin dung thanh cong")
       } else {
         await platformApi.createCreditInstitution(payload)
-        notify.success("Thêm tổ chức tín dụng thành công")
+        notify.success("Them to chuc tin dung thanh cong")
       }
 
       setDialogOpen(false)
-      load()
+      reset(creditInstitutionDefaultValues)
+      await load()
     } catch (err) {
-      notify.error("Lưu tổ chức tín dụng thất bại", translateApiError(err))
-    } finally {
-      setSubmitting(false)
+      notify.error("Luu to chuc tin dung that bai", translateApiError(err))
     }
-  }
+  })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
       await platformApi.deleteCreditInstitution(deleteTarget.id)
-      notify.success("Xóa tổ chức tín dụng thành công")
+      notify.success("Xoa to chuc tin dung thanh cong")
       setDeleteTarget(null)
-      load()
+      await load()
     } catch (err) {
-      notify.error("Xóa tổ chức tín dụng thất bại", translateApiError(err))
+      notify.error("Xoa to chuc tin dung that bai", translateApiError(err))
     }
   }
 
@@ -212,18 +229,13 @@ export function CreditInstitutionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">
-            Tổ chức tín dụng
-          </h2>
-          <Badge
-            variant="secondary"
-            className="px-2.5 py-0.5 text-xs font-bold"
-          >
-            Tổng số: {items.length}
+          <h2 className="text-xl font-bold text-foreground">To chuc tin dung</h2>
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+            Tong so: {items.length}
           </Badge>
         </div>
         <Button onClick={openCreate} className="h-9 gap-1.5 px-4 font-semibold">
-          <Plus className="size-4" /> Thêm tổ chức
+          <Plus className="size-4" /> Them to chuc
         </Button>
       </div>
 
@@ -231,19 +243,17 @@ export function CreditInstitutionsPage() {
         <CardContent className="space-y-4 p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative flex-1">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Tìm theo mã, tên, MST, số giấy phép..."
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Tim theo ma, ten, MST, so giay phep..."
                 className="pl-9"
               />
             </div>
             <Select
               value={statusFilter}
-              onValueChange={(value) =>
-                setStatusFilter(value as typeof statusFilter)
-              }
+              onValueChange={(value) => setStatusFilter(value as typeof statusFilter)}
             >
               <SelectTrigger className="w-full md:w-52">
                 <SelectValue />
@@ -257,79 +267,59 @@ export function CreditInstitutionsPage() {
               </SelectContent>
             </Select>
             <Button variant="outline" onClick={load}>
-              Tìm kiếm
+              Tim kiem
             </Button>
           </div>
 
           {loading ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
-              Đang tải dữ liệu tổ chức tín dụng...
+              Dang tai du lieu to chuc tin dung...
             </div>
           ) : (
             <div className="overflow-hidden rounded-xl border border-muted/50">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead>Mã tổ chức</TableHead>
-                    <TableHead>Tên tổ chức</TableHead>
-                    <TableHead>Tên viết tắt</TableHead>
-                    <TableHead>Số giấy phép</TableHead>
-                    <TableHead>Mã số thuế</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead>Hiệu lực</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
+                    <TableHead>Ma to chuc</TableHead>
+                    <TableHead>Ten to chuc</TableHead>
+                    <TableHead>Ten viet tat</TableHead>
+                    <TableHead>So giay phep</TableHead>
+                    <TableHead>Ma so thue</TableHead>
+                    <TableHead>Trang thai</TableHead>
+                    <TableHead>Hieu luc</TableHead>
+                    <TableHead className="text-right">Thao tac</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="h-24 text-center text-muted-foreground"
-                      >
-                        Chưa có tổ chức tín dụng nào.
+                      <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                        Chua co to chuc tin dung nao.
                       </TableCell>
                     </TableRow>
                   ) : (
                     items.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-mono text-xs">
-                          {item.code}
-                        </TableCell>
+                        <TableCell className="font-mono text-xs">{item.code}</TableCell>
                         <TableCell>
                           <div className="space-y-1">
                             <div className="font-medium">{item.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.address}
-                            </div>
+                            <div className="text-xs text-muted-foreground">{item.address}</div>
                           </div>
                         </TableCell>
                         <TableCell>{item.short_name || "-"}</TableCell>
                         <TableCell>{item.license_no || "-"}</TableCell>
                         <TableCell>{item.tax_code || "-"}</TableCell>
                         <TableCell>
-                          <Status
-                            variant={
-                              item.status === "active" ? "success" : "default"
-                            }
-                          >
+                          <Status variant={item.status === "active" ? "success" : "default"}>
                             <StatusIndicator />
-                            <StatusLabel>
-                              {item.status === "active"
-                                ? "Hoạt động"
-                                : "Ngừng hiệu lực"}
-                            </StatusLabel>
+                            <StatusLabel>{item.status === "active" ? "Hoat dong" : "Ngung hieu luc"}</StatusLabel>
                           </Status>
                         </TableCell>
                         <TableCell>{item.effective_from || "-"}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="size-7"
-                              onClick={() => openEdit(item)}
-                            >
+                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(item)}>
                               <Edit2 className="size-3.5" />
                             </Button>
                             <Button
@@ -352,231 +342,155 @@ export function CreditInstitutionsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingItem
-                ? "Cập nhật tổ chức tín dụng"
-                : "Thêm tổ chức tín dụng"}
-            </DialogTitle>
-            <DialogDescription>
-              Quản lý danh mục tổ chức tín dụng dùng chung cho hệ thống.
-            </DialogDescription>
+            <DialogTitle>{editingItem ? "Cap nhat to chuc tin dung" : "Them to chuc tin dung"}</DialogTitle>
+            <DialogDescription>Quan ly danh muc to chuc tin dung dung chung cho he thong.</DialogDescription>
           </DialogHeader>
 
-          <form
-            autoComplete="off"
-            onSubmit={(e) => e.preventDefault()}
-            className="space-y-4 py-2"
-          >
+          <form autoComplete="off" onSubmit={submitCreditInstitution} className="space-y-4 py-2">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="code">Mã tổ chức *</Label>
+              <FormField label="Ma to chuc" htmlFor="credit_code" error={errors.code?.message}>
                 <Input
-                  id="code"
-                  value={form.code}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      code: e.target.value.toUpperCase(),
-                    }))
-                  }
+                  id="credit_code"
                   placeholder="BIDV"
+                  aria-invalid={Boolean(errors.code)}
                   disabled={!!editingItem}
+                  {...register("code")}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="name">Tên tổ chức *</Label>
+              </FormField>
+              <FormField label="Ten to chuc" htmlFor="credit_name" error={errors.name?.message}>
                 <Input
-                  id="name"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Ngân hàng thương mại cổ phần ..."
+                  id="credit_name"
+                  placeholder="Ngan hang thuong mai co phan ..."
+                  aria-invalid={Boolean(errors.name)}
+                  {...register("name")}
                 />
-              </div>
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="address">Địa chỉ *</Label>
+              <FormField label="Dia chi" htmlFor="credit_address" error={errors.address?.message}>
                 <Input
-                  id="address"
-                  value={form.address}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, address: e.target.value }))
-                  }
-                  placeholder="Địa chỉ trụ sở"
+                  id="credit_address"
+                  placeholder="Dia chi tru so"
+                  aria-invalid={Boolean(errors.address)}
+                  {...register("address")}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="status">Trạng thái *</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      status: value as FormState["status"],
-                    }))
-                  }
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Hoạt động</SelectItem>
-                    <SelectItem value="inactive">Ngừng hiệu lực</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              </FormField>
+              <FormField label="Trang thai" htmlFor="credit_status" error={errors.status?.message}>
+                <Controller
+                  control={control}
+                  name="status"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="credit_status" aria-invalid={Boolean(errors.status)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Hoat dong</SelectItem>
+                        <SelectItem value="inactive">Ngung hieu luc</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="effective_from">Hiệu lực (MM/DD/YYYY)</Label>
-                <MaskInput
-                  id="effective_from"
-                  mask="date"
-                  className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
-                  value={form.effective_from}
-                  onValueChange={(masked) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      effective_from: masked,
-                    }))
-                  }
+              <FormField label="Hieu luc (MM/DD/YYYY)" htmlFor="credit_effective_from" error={errors.effective_from?.message}>
+                <Controller
+                  control={control}
+                  name="effective_from"
+                  render={({ field }) => (
+                    <MaskInput
+                      id="credit_effective_from"
+                      mask="date"
+                      className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    />
+                  )}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="short_name">Tên viết tắt</Label>
-                <Input
-                  id="short_name"
-                  value={form.short_name}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, short_name: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="phone">Số điện thoại</Label>
-                <Input
-                  id="phone"
-                  value={form.phone}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, phone: e.target.value }))
-                  }
-                />
-              </div>
+              </FormField>
+              <FormField label="Ten viet tat" htmlFor="credit_short_name" error={errors.short_name?.message}>
+                <Input id="credit_short_name" aria-invalid={Boolean(errors.short_name)} {...register("short_name")} />
+              </FormField>
+              <FormField label="So dien thoai" htmlFor="credit_phone" error={errors.phone?.message}>
+                <Input id="credit_phone" aria-invalid={Boolean(errors.phone)} {...register("phone")} />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, email: e.target.value }))
-                  }
+              <FormField label="Email" htmlFor="credit_email" error={errors.email?.message}>
+                <Input id="credit_email" type="email" aria-invalid={Boolean(errors.email)} {...register("email")} />
+              </FormField>
+              <FormField label="So giay phep" htmlFor="credit_license_no" error={errors.license_no?.message}>
+                <Input id="credit_license_no" aria-invalid={Boolean(errors.license_no)} {...register("license_no")} />
+              </FormField>
+              <FormField label="Ngay cap (MM/DD/YYYY)" htmlFor="credit_license_date" error={errors.license_date?.message}>
+                <Controller
+                  control={control}
+                  name="license_date"
+                  render={({ field }) => (
+                    <MaskInput
+                      id="credit_license_date"
+                      mask="date"
+                      className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    />
+                  )}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="license_no">Số giấy phép</Label>
-                <Input
-                  id="license_no"
-                  value={form.license_no}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, license_no: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="license_date">Ngày cấp (MM/DD/YYYY)</Label>
-                <MaskInput
-                  id="license_date"
-                  mask="date"
-                  className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
-                  value={form.license_date}
-                  onValueChange={(masked) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      license_date: masked,
-                    }))
-                  }
-                />
-              </div>
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="tax_code">Mã số thuế</Label>
-                <Input
-                  id="tax_code"
-                  value={form.tax_code}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, tax_code: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1.5 md:col-span-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  type="url"
-                  value={form.website}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, website: e.target.value }))
-                  }
-                />
-              </div>
+              <FormField label="Ma so thue" htmlFor="credit_tax_code" error={errors.tax_code?.message}>
+                <Input id="credit_tax_code" aria-invalid={Boolean(errors.tax_code)} {...register("tax_code")} />
+              </FormField>
+              <FormField className="md:col-span-2" label="Website" htmlFor="credit_website" error={errors.website?.message}>
+                <Input id="credit_website" type="url" aria-invalid={Boolean(errors.website)} {...register("website")} />
+              </FormField>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="note">Ghi chú</Label>
+            <FormField label="Ghi chu" htmlFor="credit_note" error={errors.note?.message}>
               <Textarea
-                id="note"
-                value={form.note}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, note: e.target.value }))
-                }
-                placeholder="Thông tin bổ sung..."
+                id="credit_note"
+                placeholder="Thong tin bo sung..."
+                aria-invalid={Boolean(errors.note)}
+                {...register("note")}
               />
+            </FormField>
+
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+                Huy
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              </Button>
             </div>
           </form>
-
-          <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Đang lưu..." : "Lưu lại"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={() => setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa tổ chức tín dụng?</AlertDialogTitle>
+            <AlertDialogTitle>Xac nhan xoa to chuc tin dung?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn chắc chắn muốn xóa <strong>{deleteTarget?.name}</strong> khỏi
-              danh mục?
+              Ban chac chan muon xoa <strong>{deleteTarget?.name}</strong> khoi danh muc?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xóa bỏ
+              Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

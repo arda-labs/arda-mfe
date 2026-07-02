@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { adminApi } from "@/features/iam"
 import type { Permission } from "@/features/iam"
+import { notify } from "@workspace/notifications/notify"
+import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
@@ -32,6 +37,24 @@ import { Trash2 } from "lucide-react"
 
 const DEFAULT_PAGE_SIZE = 10
 
+const permissionFormSchema = z.object({
+  code: z.string().trim().min(1, "Code is required").max(128, "Code is too long"),
+  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long"),
+  module: z.string().trim().min(1, "Module is required").max(64, "Module is too long"),
+  resource: z.string().trim().min(1, "Resource is required").max(64, "Resource is too long"),
+  operation: z.string().trim().min(1, "Operation is required").max(64, "Operation is too long"),
+})
+
+type PermissionFormValues = z.infer<typeof permissionFormSchema>
+
+const permissionDefaultValues: PermissionFormValues = {
+  code: "",
+  name: "",
+  module: "",
+  resource: "",
+  operation: "",
+}
+
 export function PermissionsPage() {
   const { t } = useI18n()
   const [perms, setPerms] = useState<Permission[]>([])
@@ -40,25 +63,42 @@ export function PermissionsPage() {
   const [open, setOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Permission | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [form, setForm] = useState({
-    code: "",
-    name: "",
-    module: "",
-    resource: "",
-    operation: "",
+  const {
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<PermissionFormValues>({
+    resolver: zodResolver(permissionFormSchema),
+    defaultValues: permissionDefaultValues,
   })
 
-  const handleCreate = async () => {
-    await adminApi.createPermission(form)
-    setOpen(false)
-    setForm({ code: "", name: "", module: "", resource: "", operation: "" })
-    setRefreshKey((key) => key + 1)
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (!nextOpen) reset(permissionDefaultValues)
   }
 
+  const handleCreate = handleSubmit(async (values) => {
+    try {
+      await adminApi.createPermission(values)
+      notify.success("Đã tạo quyền")
+      setOpen(false)
+      reset(permissionDefaultValues)
+      setRefreshKey((key) => key + 1)
+    } catch (err) {
+      notify.error("Không tạo được quyền", translateApiError(err))
+    }
+  })
+
   const handleDelete = async (id: string) => {
-    await adminApi.deletePermission(id)
-    setDeleteTarget(null)
-    setRefreshKey((key) => key + 1)
+    try {
+      await adminApi.deletePermission(id)
+      notify.success("Đã xóa quyền")
+      setDeleteTarget(null)
+      setRefreshKey((key) => key + 1)
+    } catch (err) {
+      notify.error("Không xóa được quyền", translateApiError(err))
+    }
   }
 
   const columns = useMemo<ColumnDef<Permission>[]>(() => [
@@ -159,7 +199,8 @@ export function PermissionsPage() {
       })
       setPerms(res.permissions)
       setTotal(res.total)
-    } catch {
+    } catch (err) {
+      notify.error("Không tải được danh sách quyền", translateApiError(err))
     } finally {
       setLoading(false)
     }
@@ -200,56 +241,46 @@ export function PermissionsPage() {
         </DataTableToolbar>
       </DataTable>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("admin.permissions.create")}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <FormField label={t("common.field.code")}>
+          <form className="space-y-3" onSubmit={handleCreate}>
+            <FormField label={t("common.field.code")} error={errors.code?.message}>
               <Input
-                value={form.code}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, code: e.target.value }))
-                }
+                aria-invalid={Boolean(errors.code)}
+                {...register("code")}
               />
             </FormField>
-            <FormField label={t("common.field.name")}>
+            <FormField label={t("common.field.name")} error={errors.name?.message}>
               <Input
-                value={form.name}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, name: e.target.value }))
-                }
+                aria-invalid={Boolean(errors.name)}
+                {...register("name")}
               />
             </FormField>
-            <FormField label={t("admin.field.module")}>
+            <FormField label={t("admin.field.module")} error={errors.module?.message}>
               <Input
-                value={form.module}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, module: e.target.value }))
-                }
+                aria-invalid={Boolean(errors.module)}
+                {...register("module")}
               />
             </FormField>
-            <FormField label={t("common.field.resource")}>
+            <FormField label={t("common.field.resource")} error={errors.resource?.message}>
               <Input
-                value={form.resource}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, resource: e.target.value }))
-                }
+                aria-invalid={Boolean(errors.resource)}
+                {...register("resource")}
               />
             </FormField>
-            <FormField label={t("common.field.operation")}>
+            <FormField label={t("common.field.operation")} error={errors.operation?.message}>
               <Input
-                value={form.operation}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, operation: e.target.value }))
-                }
+                aria-invalid={Boolean(errors.operation)}
+                {...register("operation")}
               />
             </FormField>
-            <Button className="w-full" onClick={handleCreate}>
+            <Button className="w-full" type="submit" disabled={isSubmitting}>
               {t("common.action.create")}
             </Button>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 

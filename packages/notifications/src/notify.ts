@@ -1,27 +1,37 @@
-import { toast } from "sonner"
+import { toast } from "react-toastify"
+
+function messageWithDescription(message: string, description?: string) {
+  return description ? `${message}\n${description}` : message
+}
 
 export const notify = {
   success: (message: string, description?: string) => {
-    toast.success(message, { description })
+    toast.success(messageWithDescription(message, description))
   },
   error: (message: string, description?: string) => {
-    toast.error(message, { description, duration: 5000 })
+    toast.error(messageWithDescription(message, description), {
+      autoClose: 5000,
+    })
   },
   info: (message: string, description?: string) => {
-    toast.info(message, { description })
+    toast.info(messageWithDescription(message, description))
   },
   warning: (message: string, description?: string) => {
-    toast.warning(message, { description, duration: 4000 })
+    toast.warning(messageWithDescription(message, description), {
+      autoClose: 4000,
+    })
   },
-  promise: <T,>(
+  promise: <T>(
     promise: Promise<T>,
     messages: { loading: string; success: string; error: string }
   ) => {
     return toast.promise(promise, {
-      loading: messages.loading,
+      pending: messages.loading,
       success: messages.success,
-      error: (err: unknown) =>
-        `${messages.error}: ${err instanceof Error ? err.message : String(err)}`,
+      error: {
+        render: ({ data }) =>
+          `${messages.error}: ${data instanceof Error ? data.message : String(data)}`,
+      },
     })
   },
   dismiss: () => toast.dismiss(),

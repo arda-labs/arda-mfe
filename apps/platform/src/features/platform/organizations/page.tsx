@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
 import { platformApi } from "../api"
 import type { Organization } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Card, CardContent } from "@workspace/ui/components/card"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Table,
   TableBody,
@@ -35,26 +39,52 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { Card, CardContent } from "@workspace/ui/components/card"
-import { Building2, Plus, Edit2, Trash2, FolderTree, List } from "lucide-react"
+import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
+
+const organizationFormSchema = z.object({
+  code: z.string().trim().min(1, "Ma don vi la bat buoc").max(64, "Ma don vi qua dai"),
+  name: z.string().trim().min(1, "Ten don vi la bat buoc").max(255, "Ten don vi qua dai"),
+  parent_id: z.string().trim().optional(),
+  address: z.string().trim().max(500, "Dia chi qua dai").optional(),
+  is_active: z.boolean(),
+})
+
+type OrganizationFormValues = z.infer<typeof organizationFormSchema>
+
+const organizationDefaultValues: OrganizationFormValues = {
+  code: "",
+  name: "",
+  parent_id: "",
+  address: "",
+  is_active: true,
+}
+
+function toOrganizationFormValues(item: Organization): OrganizationFormValues {
+  return {
+    code: item.code,
+    name: item.name,
+    parent_id: item.parent_id || "",
+    address: item.address || "",
+    is_active: item.is_active,
+  }
+}
 
 export function OrganizationsPage() {
   const [orgs, setOrgs] = useState<Organization[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<"list" | "tree">("list")
-
-  // Form states
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  const [form, setForm] = useState({
-    code: "",
-    name: "",
-    parent_id: "",
-    address: "",
-    is_active: true,
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<OrganizationFormValues>({
+    resolver: zodResolver(organizationFormSchema),
+    defaultValues: organizationDefaultValues,
   })
 
   const load = async () => {
@@ -63,7 +93,7 @@ export function OrganizationsPage() {
       const data = await platformApi.listOrganizations()
       setOrgs(data)
     } catch (err) {
-      notify.error("Không thể tải danh sách đơn vị", translateApiError(err))
+      notify.error("Khong the tai danh sach don vi", translateApiError(err))
     } finally {
       setLoading(false)
     }
@@ -75,88 +105,78 @@ export function OrganizationsPage() {
 
   const openCreate = () => {
     setEditingOrg(null)
-    setForm({
-      code: "",
-      name: "",
-      parent_id: "",
-      address: "",
-      is_active: true,
-    })
+    reset(organizationDefaultValues)
     setDialogOpen(true)
   }
 
   const openEdit = (org: Organization) => {
     setEditingOrg(org)
-    setForm({
-      code: org.code,
-      name: org.name,
-      parent_id: org.parent_id || "",
-      address: org.address || "",
-      is_active: org.is_active,
-    })
+    reset(toOrganizationFormValues(org))
     setDialogOpen(true)
   }
 
-  const handleSubmit = async () => {
-    if (!form.code.trim() || !form.name.trim()) {
-      notify.error("Mã và tên đơn vị không được để trống")
-      return
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open)
+    if (!open) {
+      setEditingOrg(null)
+      reset(organizationDefaultValues)
     }
-    setSubmitting(true)
+  }
+
+  const submitOrganization = handleSubmit(async (values) => {
     try {
       const payload: Partial<Organization> = {
-        code: form.code.trim(),
-        name: form.name.trim(),
-        parent_id: form.parent_id || undefined,
-        address: form.address.trim() || undefined,
-        is_active: form.is_active,
+        code: values.code.trim(),
+        name: values.name.trim(),
+        parent_id: values.parent_id || undefined,
+        address: values.address?.trim() || undefined,
+        is_active: values.is_active,
       }
 
       if (editingOrg) {
         await platformApi.updateOrganization(editingOrg.id, payload)
-        notify.success("Cập nhật đơn vị thành công")
+        notify.success("Cap nhat don vi thanh cong")
       } else {
         await platformApi.createOrganization(payload)
-        notify.success("Thêm đơn vị thành công")
+        notify.success("Them don vi thanh cong")
       }
       setDialogOpen(false)
-      load()
+      reset(organizationDefaultValues)
+      await load()
     } catch (err) {
-      notify.error("Lưu đơn vị thất bại", translateApiError(err))
-    } finally {
-      setSubmitting(false)
+      notify.error("Luu don vi that bai", translateApiError(err))
     }
-  }
+  })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
       await platformApi.deleteOrganization(deleteTarget.id)
-      notify.success("Xóa đơn vị thành công")
+      notify.success("Xoa don vi thanh cong")
       setDeleteTarget(null)
-      load()
+      await load()
     } catch (err) {
-      notify.error("Xóa đơn vị thất bại", translateApiError(err))
+      notify.error("Xoa don vi that bai", translateApiError(err))
     }
   }
 
-  const renderTree = (parent_id: string | undefined = undefined, depth = 0) => {
-    const children = orgs.filter(o => o.parent_id === parent_id)
+  const renderTree = (parentId: string | undefined = undefined, depth = 0) => {
+    const children = orgs.filter((org) => org.parent_id === parentId)
     if (children.length === 0) return null
 
     return (
       <div className={`space-y-2 ${depth > 0 ? "pl-6 border-l border-muted/80 ml-3 mt-2" : ""}`}>
-        {children.map(org => (
+        {children.map((org) => (
           <div key={org.id} className="group">
-            <div className="flex items-center justify-between p-3 rounded-xl border border-muted/60 bg-muted/10 hover:bg-muted/20 transition-all">
+            <div className="flex items-center justify-between rounded-xl border border-muted/60 bg-muted/10 p-3 transition-all hover:bg-muted/20">
               <div className="flex items-center gap-3">
                 <Building2 className="size-4 text-primary/70" />
                 <div>
-                  <span className="font-semibold text-sm">{org.name}</span>
-                  <span className="text-xs text-muted-foreground ml-2 font-mono">({org.code})</span>
+                  <span className="text-sm font-semibold">{org.name}</span>
+                  <span className="ml-2 font-mono text-xs text-muted-foreground">({org.code})</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                 <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(org)}>
                   <Edit2 className="size-3.5" />
                 </Button>
@@ -176,80 +196,76 @@ export function OrganizationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="font-bold text-foreground text-xl">Đơn vị & Tổ chức</h2>
-          <Badge variant="secondary" className="px-2.5 py-0.5 font-bold text-xs">
-            Tổng số: {orgs.length}
+          <h2 className="text-xl font-bold text-foreground">Don vi & To chuc</h2>
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+            Tong so: {orgs.length}
           </Badge>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex rounded-lg border border-input p-0.5 bg-background">
+          <div className="flex rounded-lg border border-input bg-background p-0.5">
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="sm"
-              className="h-7 px-2.5 rounded-md"
+              className="h-7 rounded-md px-2.5"
               onClick={() => setViewMode("list")}
             >
-              <List className="size-3.5 mr-1" /> Danh sách
+              <List className="mr-1 size-3.5" /> Danh sach
             </Button>
             <Button
               variant={viewMode === "tree" ? "secondary" : "ghost"}
               size="sm"
-              className="h-7 px-2.5 rounded-md"
+              className="h-7 rounded-md px-2.5"
               onClick={() => setViewMode("tree")}
             >
-              <FolderTree className="size-3.5 mr-1" /> Sơ đồ cây
+              <FolderTree className="mr-1 size-3.5" /> So do cay
             </Button>
           </div>
-          <Button onClick={openCreate} className="h-9 px-4 font-semibold text-sm gap-1.5">
-            <Plus className="size-4" /> Thêm đơn vị
+          <Button onClick={openCreate} className="h-9 gap-1.5 px-4 text-sm font-semibold">
+            <Plus className="size-4" /> Them don vi
           </Button>
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-          Đang tải dữ liệu đơn vị...
+          Dang tai du lieu don vi...
         </div>
       ) : viewMode === "tree" ? (
-        <Card className="border-muted/50 rounded-2xl shadow-sm">
-          <CardContent className="p-6">
-            {renderTree(undefined)}
-          </CardContent>
+        <Card className="rounded-2xl border-muted/50 shadow-sm">
+          <CardContent className="p-6">{renderTree(undefined)}</CardContent>
         </Card>
       ) : (
-        <Card className="border-muted/50 rounded-2xl shadow-sm overflow-hidden">
+        <Card className="overflow-hidden rounded-2xl border-muted/50 shadow-sm">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[150px]">Mã đơn vị</TableHead>
-                  <TableHead>Tên đơn vị</TableHead>
-                  <TableHead>Đơn vị cấp trên</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
+                  <TableHead className="w-[150px]">Ma don vi</TableHead>
+                  <TableHead>Ten don vi</TableHead>
+                  <TableHead>Don vi cap tren</TableHead>
+                  <TableHead>Trang thai</TableHead>
+                  <TableHead className="text-right">Thao tac</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orgs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      Chưa có đơn vị nào được tạo.
+                      Chua co don vi nao duoc tao.
                     </TableCell>
                   </TableRow>
                 ) : (
                   orgs.map((org) => {
-                    const parent = orgs.find(o => o.id === org.parent_id)
+                    const parent = orgs.find((item) => item.id === org.parent_id)
                     return (
                       <TableRow key={org.id}>
                         <TableCell className="font-mono text-xs">{org.code}</TableCell>
                         <TableCell className="font-medium">{org.name}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {parent ? parent.name : "—"}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground">{parent ? parent.name : "-"}</TableCell>
                         <TableCell>
                           <Status variant={org.is_active ? "success" : "default"}>
                             <StatusIndicator />
-                            <StatusLabel>{org.is_active ? "Hoạt động" : "Tạm ngưng"}</StatusLabel>
+                            <StatusLabel>{org.is_active ? "Hoat dong" : "Tam ngung"}</StatusLabel>
                           </Status>
                         </TableCell>
                         <TableCell className="text-right">
@@ -272,110 +288,111 @@ export function OrganizationsPage() {
         </Card>
       )}
 
-      {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingOrg ? "Cập nhật đơn vị" : "Thêm đơn vị mới"}</DialogTitle>
-            <DialogDescription>
-              Nhập các thông tin cấu trúc tổ chức hoặc đơn vị dưới đây.
-            </DialogDescription>
+            <DialogTitle>{editingOrg ? "Cap nhat don vi" : "Them don vi moi"}</DialogTitle>
+            <DialogDescription>Nhap thong tin cau truc to chuc hoac don vi.</DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={(e) => e.preventDefault()} className="space-y-4 py-2">
+          <form autoComplete="off" onSubmit={submitOrganization} className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="code">Mã đơn vị</Label>
+              <FormField label="Ma don vi" htmlFor="org_code" error={errors.code?.message}>
                 <Input
-                  id="code"
+                  id="org_code"
                   placeholder="ORG_01"
-                  value={form.code}
-                  onChange={(e) => setForm(p => ({ ...p, code: e.target.value }))}
+                  aria-invalid={Boolean(errors.code)}
                   disabled={!!editingOrg}
                   spellCheck={false}
+                  {...register("code")}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="name">Tên đơn vị</Label>
+              </FormField>
+              <FormField label="Ten don vi" htmlFor="org_name" error={errors.name?.message}>
                 <Input
-                  id="name"
-                  placeholder="Văn phòng đại diện"
-                  value={form.name}
-                  onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
+                  id="org_name"
+                  placeholder="Van phong dai dien"
+                  aria-invalid={Boolean(errors.name)}
                   spellCheck={false}
+                  {...register("name")}
                 />
-              </div>
+              </FormField>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="parent_id">Đơn vị cấp trên</Label>
-              <Select
-                value={form.parent_id}
-                onValueChange={(val) => setForm(p => ({ ...p, parent_id: val }))}
-              >
-                <SelectTrigger id="parent_id">
-                  <SelectValue placeholder="— Không có —" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Không có —</SelectItem>
-                  {orgs
-                    .filter(o => !editingOrg || o.id !== editingOrg.id)
-                    .map(org => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <FormField label="Don vi cap tren" htmlFor="org_parent_id" error={errors.parent_id?.message}>
+              <Controller
+                control={control}
+                name="parent_id"
+                render={({ field }) => (
+                  <Select value={field.value || "none"} onValueChange={(value) => field.onChange(value === "none" ? "" : value)}>
+                    <SelectTrigger id="org_parent_id" aria-invalid={Boolean(errors.parent_id)}>
+                      <SelectValue placeholder="Khong co" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Khong co</SelectItem>
+                      {orgs
+                        .filter((org) => !editingOrg || org.id !== editingOrg.id)
+                        .map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </FormField>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="address">Địa chỉ</Label>
+            <FormField label="Dia chi" htmlFor="org_address" error={errors.address?.message}>
               <Input
-                id="address"
-                placeholder="Địa chỉ trụ sở"
-                value={form.address}
-                onChange={(e) => setForm(p => ({ ...p, address: e.target.value }))}
+                id="org_address"
+                placeholder="Dia chi tru so"
+                aria-invalid={Boolean(errors.address)}
                 spellCheck={false}
+                {...register("address")}
               />
-            </div>
+            </FormField>
 
-            <div className="flex items-center gap-2 pt-2">
-              <Checkbox
-                id="is_active"
-                checked={form.is_active}
-                onCheckedChange={(checked) => setForm(p => ({ ...p, is_active: !!checked }))}
-              />
-              <Label htmlFor="is_active" className="select-none cursor-pointer">
-                Đơn vị đang hoạt động
-              </Label>
+            <Controller
+              control={control}
+              name="is_active"
+              render={({ field }) => (
+                <div className="flex items-center gap-2 pt-2">
+                  <Checkbox
+                    id="org_is_active"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                  <label htmlFor="org_is_active" className="cursor-pointer select-none text-sm font-medium">
+                    Don vi dang hoat dong
+                  </label>
+                </div>
+              )}
+            />
+
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+                Huy
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              </Button>
             </div>
           </form>
-
-          <DialogFooter className="flex sm:justify-end gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Đang lưu..." : "Lưu lại"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa đơn vị?</AlertDialogTitle>
+            <AlertDialogTitle>Xac nhan xoa don vi?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ ngưng kích hoạt đơn vị <strong>{deleteTarget?.name}</strong>. Cấu trúc cây cấp dưới liên quan cũng có thể bị ảnh hưởng.
+              Hanh dong nay se ngung kich hoat don vi <strong>{deleteTarget?.name}</strong>. Cau truc cay cap duoi lien quan cung co the bi anh huong.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Xóa bỏ
+              Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

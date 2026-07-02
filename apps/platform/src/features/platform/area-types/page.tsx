@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
 import { platformApi } from "../api"
@@ -6,14 +9,13 @@ import type { LookupValue } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import { Checkbox } from "@workspace/ui/components/checkbox"
+import { FormField } from "@workspace/ui/components/form-field"
+import { Input } from "@workspace/ui/components/input"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
@@ -44,27 +46,55 @@ import { Edit2, Plus, Trash2 } from "lucide-react"
 
 const CATEGORY_CODE = "AREA_TYPE"
 
+const areaTypeFormSchema = z.object({
+  code: z.string().trim().min(1, "Ma loai khu vuc la bat buoc").max(64, "Ma loai khu vuc qua dai"),
+  name: z.string().trim().min(1, "Ten loai khu vuc la bat buoc").max(255, "Ten loai khu vuc qua dai"),
+  sort_order: z.coerce.number().int("Thu tu phai la so nguyen").min(0, "Thu tu khong hop le"),
+  is_active: z.boolean(),
+})
+
+type AreaTypeFormValues = z.infer<typeof areaTypeFormSchema>
+
+const areaTypeDefaultValues: AreaTypeFormValues = {
+  code: "",
+  name: "",
+  sort_order: 10,
+  is_active: true,
+}
+
+function toAreaTypeFormValues(item: LookupValue): AreaTypeFormValues {
+  return {
+    code: item.code,
+    name: item.name,
+    sort_order: item.sort_order,
+    is_active: item.is_active,
+  }
+}
+
 export function AreaTypesPage() {
   const [items, setItems] = useState<LookupValue[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<LookupValue | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<LookupValue | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState({
-    code: "",
-    name: "",
-    sort_order: 10,
-    is_active: true,
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<AreaTypeFormValues>({
+    resolver: zodResolver(areaTypeFormSchema),
+    defaultValues: areaTypeDefaultValues,
   })
 
   const ensureCategory = async () => {
     await platformApi.upsertLookupCategory({
       code: CATEGORY_CODE,
-      name: "Loại khu vực",
+      name: "Loai khu vuc",
       scope_type: "global",
       is_system: false,
-      description: "Danh mục loại khu vực",
+      description: "Danh muc loai khu vuc",
     })
   }
 
@@ -72,13 +102,9 @@ export function AreaTypesPage() {
     setLoading(true)
     try {
       await ensureCategory()
-      const data = await platformApi.listLookupValues(CATEGORY_CODE)
-      setItems(data)
+      setItems(await platformApi.listLookupValues(CATEGORY_CODE))
     } catch (err) {
-      notify.error(
-        "Không thể tải danh sách loại khu vực",
-        translateApiError(err)
-      )
+      notify.error("Khong the tai danh sach loai khu vuc", translateApiError(err))
     } finally {
       setLoading(false)
     }
@@ -90,65 +116,56 @@ export function AreaTypesPage() {
 
   const openCreate = () => {
     setEditingItem(null)
-    setForm({
-      code: "",
-      name: "",
-      sort_order: items.length * 10 + 10,
-      is_active: true,
-    })
+    reset({ ...areaTypeDefaultValues, sort_order: items.length * 10 + 10 })
     setDialogOpen(true)
   }
 
   const openEdit = (item: LookupValue) => {
     setEditingItem(item)
-    setForm({
-      code: item.code,
-      name: item.name,
-      sort_order: item.sort_order,
-      is_active: item.is_active,
-    })
+    reset(toAreaTypeFormValues(item))
     setDialogOpen(true)
   }
 
-  const handleSubmit = async () => {
-    if (!form.code.trim() || !form.name.trim()) {
-      notify.error("Mã loại khu vực và tên loại khu vực là bắt buộc")
-      return
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open)
+    if (!open) {
+      setEditingItem(null)
+      reset(areaTypeDefaultValues)
     }
+  }
 
-    setSubmitting(true)
+  const submitAreaType = handleSubmit(async (values) => {
     try {
       await ensureCategory()
       const payload: Partial<LookupValue> = {
-        code: form.code.trim(),
-        name: form.name.trim(),
-        sort_order: Number(form.sort_order) || 0,
-        is_active: form.is_active,
+        code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),
+        name: values.name.trim(),
+        sort_order: values.sort_order,
+        is_active: values.is_active,
       }
       if (editingItem) {
         payload.id = editingItem.id
         payload.category_id = editingItem.category_id
       }
       await platformApi.upsertLookupValue(CATEGORY_CODE, payload)
-      notify.success("Lưu loại khu vực thành công")
+      notify.success("Luu loai khu vuc thanh cong")
       setDialogOpen(false)
-      load()
+      reset(areaTypeDefaultValues)
+      await load()
     } catch (err) {
-      notify.error("Lưu loại khu vực thất bại", translateApiError(err))
-    } finally {
-      setSubmitting(false)
+      notify.error("Luu loai khu vuc that bai", translateApiError(err))
     }
-  }
+  })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
       await platformApi.deleteLookupValue(deleteTarget.id)
-      notify.success("Xóa loại khu vực thành công")
+      notify.success("Xoa loai khu vuc thanh cong")
       setDeleteTarget(null)
-      load()
+      await load()
     } catch (err) {
-      notify.error("Xóa loại khu vực thất bại", translateApiError(err))
+      notify.error("Xoa loai khu vuc that bai", translateApiError(err))
     }
   }
 
@@ -156,16 +173,13 @@ export function AreaTypesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">Loại khu vực</h2>
-          <Badge
-            variant="secondary"
-            className="px-2.5 py-0.5 text-xs font-bold"
-          >
-            Tổng số: {items.length}
+          <h2 className="text-xl font-bold text-foreground">Loai khu vuc</h2>
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+            Tong so: {items.length}
           </Badge>
         </div>
         <Button onClick={openCreate} className="h-9 gap-1.5 px-4 font-semibold">
-          <Plus className="size-4" /> Thêm loại khu vực
+          <Plus className="size-4" /> Them loai khu vuc
         </Button>
       </div>
 
@@ -173,55 +187,41 @@ export function AreaTypesPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
-              Đang tải dữ liệu loại khu vực...
+              Dang tai du lieu loai khu vuc...
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead>Mã loại</TableHead>
-                  <TableHead>Tên loại</TableHead>
-                  <TableHead>Thứ tự</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
+                  <TableHead>Ma loai</TableHead>
+                  <TableHead>Ten loai</TableHead>
+                  <TableHead>Thu tu</TableHead>
+                  <TableHead>Trang thai</TableHead>
+                  <TableHead className="text-right">Thao tac</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      Chưa có loại khu vực nào.
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      Chua co loai khu vuc nao.
                     </TableCell>
                   </TableRow>
                 ) : (
                   items.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-mono text-xs">
-                        {item.code}
-                      </TableCell>
+                      <TableCell className="font-mono text-xs">{item.code}</TableCell>
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell>{item.sort_order}</TableCell>
                       <TableCell>
-                        <Status
-                          variant={item.is_active ? "success" : "default"}
-                        >
+                        <Status variant={item.is_active ? "success" : "default"}>
                           <StatusIndicator />
-                          <StatusLabel>
-                            {item.is_active ? "Hoạt động" : "Ngừng hiệu lực"}
-                          </StatusLabel>
+                          <StatusLabel>{item.is_active ? "Hoat dong" : "Ngung hieu luc"}</StatusLabel>
                         </Status>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-7"
-                            onClick={() => openEdit(item)}
-                          >
+                          <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(item)}>
                             <Edit2 className="size-3.5" />
                           </Button>
                           <Button
@@ -243,108 +243,78 @@ export function AreaTypesPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {editingItem ? "Cập nhật loại khu vực" : "Thêm loại khu vực"}
-            </DialogTitle>
-            <DialogDescription>
-              Quản lý danh mục loại khu vực dùng chung.
-            </DialogDescription>
+            <DialogTitle>{editingItem ? "Cap nhat loai khu vuc" : "Them loai khu vuc"}</DialogTitle>
+            <DialogDescription>Quan ly danh muc loai khu vuc dung chung.</DialogDescription>
           </DialogHeader>
-          <form
-            autoComplete="off"
-            onSubmit={(e) => e.preventDefault()}
-            className="space-y-4 py-2"
-          >
-            <div className="space-y-1.5">
-              <Label htmlFor="area_type_code">Mã loại khu vực</Label>
+          <form autoComplete="off" onSubmit={submitAreaType} className="space-y-4 py-2">
+            <FormField label="Ma loai khu vuc" htmlFor="area_type_code" error={errors.code?.message}>
               <Input
                 id="area_type_code"
-                value={form.code}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    code: e.target.value.toUpperCase().replace(/\s+/g, "_"),
-                  }))
-                }
+                aria-invalid={Boolean(errors.code)}
                 disabled={!!editingItem}
                 className="font-mono uppercase"
+                {...register("code")}
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="area_type_name">Tên loại khu vực</Label>
-              <Input
-                id="area_type_name"
-                value={form.name}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-              />
-            </div>
+            </FormField>
+            <FormField label="Ten loai khu vuc" htmlFor="area_type_name" error={errors.name?.message}>
+              <Input id="area_type_name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+            </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="area_type_sort">Thứ tự</Label>
+              <FormField label="Thu tu" htmlFor="area_type_sort" error={errors.sort_order?.message}>
                 <Input
                   id="area_type_sort"
                   type="number"
-                  value={form.sort_order}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      sort_order: Number(e.target.value),
-                    }))
-                  }
+                  aria-invalid={Boolean(errors.sort_order)}
+                  {...register("sort_order")}
                 />
-              </div>
+              </FormField>
               <div className="flex items-center gap-2 pt-7">
-                <Checkbox
-                  id="area_type_active"
-                  checked={form.is_active}
-                  onCheckedChange={(checked) =>
-                    setForm((prev) => ({ ...prev, is_active: !!checked }))
-                  }
+                <Controller
+                  control={control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <Checkbox
+                      id="area_type_active"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
+                  )}
                 />
-                <Label
-                  htmlFor="area_type_active"
-                  className="cursor-pointer select-none"
-                >
-                  Đang hoạt động
-                </Label>
+                <label htmlFor="area_type_active" className="cursor-pointer select-none text-sm font-medium">
+                  Dang hoat dong
+                </label>
               </div>
             </div>
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+                Huy
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              </Button>
+            </div>
           </form>
-          <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Đang lưu..." : "Lưu lại"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={() => setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa loại khu vực?</AlertDialogTitle>
+            <AlertDialogTitle>Xac nhan xoa loai khu vuc?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn chắc chắn muốn xóa <strong>{deleteTarget?.name}</strong> khỏi
-              danh mục?
+              Ban chac chan muon xoa <strong>{deleteTarget?.name}</strong> khoi danh muc?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xóa bỏ
+              Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

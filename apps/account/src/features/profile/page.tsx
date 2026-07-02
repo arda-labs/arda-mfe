@@ -1,10 +1,14 @@
-import { useRef, useState, type ChangeEvent, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ChangeEvent } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { useAuthStore } from "@workspace/auth"
 import { useI18n } from "@workspace/i18n"
 import { uploadAvatar, uploadCover } from "@workspace/media"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { MaskInput } from "@workspace/ui/components/mask-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
@@ -36,6 +40,26 @@ function formatDisplayName(name: string, nickname?: string) {
   return cleanNickname ? `${name} (${cleanNickname})` : name
 }
 
+const profileFormSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(160, "Name is too long"),
+  nickname: z.string().trim().max(80, "Nickname is too long").optional(),
+  firstName: z.string().trim().max(80, "First name is too long").optional(),
+  lastName: z.string().trim().max(80, "Last name is too long").optional(),
+  phoneNumber: z.string().trim().max(32, "Phone is too long").optional(),
+  birthdate: z.string().trim().optional(),
+  gender: z.string().trim().max(32, "Gender is too long").optional(),
+  address: z.string().trim().max(255, "Address is too long").optional(),
+  country: z.string().trim().max(80, "Country is too long").optional(),
+  headline: z.string().trim().max(128, "Position is too long").optional(),
+  department: z.string().trim().max(128, "Department is too long").optional(),
+  employeeId: z.string().trim().max(64, "Employee ID is too long").optional(),
+  approvalLevel: z.string().trim().max(64, "Approval level is too long").optional(),
+  dailyLimit: z.string().trim().max(64, "Daily limit is too long").optional(),
+  bio: z.string().trim().max(1000, "Bio is too long").optional(),
+})
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>
+
 export function ProfilePage() {
   const username = getPublicProfileUsername()
   const { user, updateUser } = useAuthStore()
@@ -51,7 +75,8 @@ export function ProfilePage() {
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [coverUrl, setCoverUrl] = useState(currentUser?.coverImage || "")
-  const [formData, setFormData] = useState({
+
+  const profileDefaultValues: ProfileFormValues = {
     name: currentUser?.name || username,
     nickname: currentUser?.nickname || "",
     firstName: currentUser?.firstName || "",
@@ -67,18 +92,27 @@ export function ProfilePage() {
     approvalLevel: currentUser?.approvalLevel || "Standard",
     dailyLimit: currentUser?.dailyLimit || "N/A",
     bio: currentUser?.bio || "No profile summary yet.",
+  }
+  const {
+    control,
+    formState: { errors, isSubmitting: isSavingProfile },
+    handleSubmit,
+    register,
+    reset,
+    watch,
+  } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: profileDefaultValues,
   })
+  const profileValues = watch()
+
+  useEffect(() => {
+    reset(profileDefaultValues)
+    setCoverUrl(currentUser?.coverImage || "")
+  }, [currentUser, reset])
 
   const profile = {
-    ...formData,
-    name: currentUser?.name || formData.name,
-    nickname: currentUser?.nickname || formData.nickname,
-    headline: currentUser?.position || formData.headline,
-    department: currentUser?.department || formData.department,
-    employeeId: currentUser?.employeeId || formData.employeeId,
-    approvalLevel: currentUser?.approvalLevel || formData.approvalLevel,
-    dailyLimit: currentUser?.dailyLimit || formData.dailyLimit,
-    bio: currentUser?.bio || formData.bio,
+    ...profileValues,
     email: currentUser?.email || `${username}@arda.local`,
     picture: currentUser?.picture || "",
   }
@@ -142,7 +176,7 @@ export function ProfilePage() {
     }
   }
 
-  const handleSave = async () => {
+  const handleSave = handleSubmit(async (values) => {
     if (!isCurrentUser) {
       setIsEditing(false)
       return
@@ -150,28 +184,28 @@ export function ProfilePage() {
 
     try {
       const finalDisplayName =
-        formData.lastName && formData.firstName
-          ? `${formData.lastName} ${formData.firstName}`
-          : formData.name
+        values.lastName && values.firstName
+          ? `${values.lastName} ${values.firstName}`
+          : values.name
       const res = await fetch("/api/iam/me/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: finalDisplayName,
-          nickname: formData.nickname,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          phone_number: formData.phoneNumber,
-          birthdate: formData.birthdate,
-          gender: formData.gender,
-          address: formData.address,
-          country: formData.country,
-          headline: formData.headline,
-          department: formData.department,
-          employee_id: formData.employeeId,
-          approval_level: formData.approvalLevel,
-          daily_limit: formData.dailyLimit,
-          bio: formData.bio,
+          nickname: values.nickname,
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone_number: values.phoneNumber,
+          birthdate: values.birthdate,
+          gender: values.gender,
+          address: values.address,
+          country: values.country,
+          headline: values.headline,
+          department: values.department,
+          employee_id: values.employeeId,
+          approval_level: values.approvalLevel,
+          daily_limit: values.dailyLimit,
+          bio: values.bio,
         }),
       })
       if (!res.ok) throw new Error("Failed to update profile")
@@ -180,7 +214,7 @@ export function ProfilePage() {
       updateUser({
         name: finalDisplayName,
         displayName: finalDisplayName,
-        nickname: updated.nickname || formData.nickname,
+        nickname: updated.nickname || values.nickname,
         firstName: updated.firstName,
         lastName: updated.lastName,
         phoneNumber: updated.phoneNumber,
@@ -200,6 +234,16 @@ export function ProfilePage() {
     } catch {
       notify.error("Error updating profile")
     }
+  })
+
+  const startEditing = () => {
+    reset(profileDefaultValues)
+    setIsEditing(true)
+  }
+
+  const cancelEditing = () => {
+    reset(profileDefaultValues)
+    setIsEditing(false)
   }
 
   return (
@@ -309,17 +353,17 @@ export function ProfilePage() {
             <div className="flex gap-2 md:justify-end">
               {isEditing ? (
                 <>
-                  <Button variant="outline" onClick={() => setIsEditing(false)} className="gap-2">
+                  <Button variant="outline" onClick={cancelEditing} className="gap-2">
                     <X className="size-4" />
                     {t("common.action.cancel")}
                   </Button>
-                  <Button onClick={handleSave} className="gap-2">
+                  <Button type="submit" form="profile-edit-form" disabled={isSavingProfile} className="gap-2">
                     <Check className="size-4" />
                     {t("profile.save_changes")}
                   </Button>
                 </>
               ) : (
-                <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2">
+                <Button variant="outline" onClick={startEditing} className="gap-2">
                   <Pencil className="size-4" />
                   {t("profile.edit_profile")}
                 </Button>
@@ -332,61 +376,75 @@ export function ProfilePage() {
       {isEditing ? (
         <section className="rounded-lg border bg-card p-5 md:p-6">
           <h2 className="text-base font-semibold">{t("profile.edit_profile")}</h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <Field label="Last name">
-              <Input value={formData.lastName} onChange={(event) => setFormData((p) => ({ ...p, lastName: event.target.value }))} />
-            </Field>
-            <Field label="First name">
-              <Input value={formData.firstName} onChange={(event) => setFormData((p) => ({ ...p, firstName: event.target.value }))} />
-            </Field>
-            <Field label="Nickname">
-              <Input value={formData.nickname} onChange={(event) => setFormData((p) => ({ ...p, nickname: event.target.value }))} />
-            </Field>
-            <Field label="Phone">
-              <Input value={formData.phoneNumber} onChange={(event) => setFormData((p) => ({ ...p, phoneNumber: event.target.value }))} />
-            </Field>
-            <Field label="Birthdate">
-              <MaskInput
-                mask="date"
-                value={formData.birthdate}
-                onValueChange={(masked) => setFormData((p) => ({ ...p, birthdate: masked }))}
-                className="h-10 w-full"
+          <form id="profile-edit-form" onSubmit={handleSave} className="mt-5 grid gap-4 md:grid-cols-2">
+            <FormField label="Last name" htmlFor="profile_last_name" error={errors.lastName?.message}>
+              <Input id="profile_last_name" aria-invalid={Boolean(errors.lastName)} {...register("lastName")} />
+            </FormField>
+            <FormField label="First name" htmlFor="profile_first_name" error={errors.firstName?.message}>
+              <Input id="profile_first_name" aria-invalid={Boolean(errors.firstName)} {...register("firstName")} />
+            </FormField>
+            <FormField label="Nickname" htmlFor="profile_nickname" error={errors.nickname?.message}>
+              <Input id="profile_nickname" aria-invalid={Boolean(errors.nickname)} {...register("nickname")} />
+            </FormField>
+            <FormField label="Phone" htmlFor="profile_phone" error={errors.phoneNumber?.message}>
+              <Input id="profile_phone" aria-invalid={Boolean(errors.phoneNumber)} {...register("phoneNumber")} />
+            </FormField>
+            <FormField label="Birthdate" htmlFor="profile_birthdate" error={errors.birthdate?.message}>
+              <Controller
+                control={control}
+                name="birthdate"
+                render={({ field }) => (
+                  <MaskInput
+                    id="profile_birthdate"
+                    mask="date"
+                    value={field.value || ""}
+                    onValueChange={field.onChange}
+                    className="h-10 w-full"
+                  />
+                )}
               />
-            </Field>
-            <Field label="Gender">
-              <Select value={formData.gender} onValueChange={(gender) => setFormData((p) => ({ ...p, gender }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Address">
-              <Input value={formData.address} onChange={(event) => setFormData((p) => ({ ...p, address: event.target.value }))} />
-            </Field>
-            <Field label="Country">
-              <Input value={formData.country} onChange={(event) => setFormData((p) => ({ ...p, country: event.target.value }))} />
-            </Field>
-            <Field label={t("profile.position_title")}>
-              <Input value={formData.headline} onChange={(event) => setFormData((p) => ({ ...p, headline: event.target.value }))} />
-            </Field>
-            <Field label={t("profile.department")}>
-              <Input value={formData.department} onChange={(event) => setFormData((p) => ({ ...p, department: event.target.value }))} />
-            </Field>
-            <Field label={t("profile.approval_level")}>
-              <Input value={formData.approvalLevel} onChange={(event) => setFormData((p) => ({ ...p, approvalLevel: event.target.value }))} />
-            </Field>
-            <Field label={t("profile.daily_limit")}>
-              <Input value={formData.dailyLimit} onChange={(event) => setFormData((p) => ({ ...p, dailyLimit: event.target.value }))} />
-            </Field>
-            <Field label={t("profile.bio")} className="md:col-span-2">
-              <Textarea value={formData.bio} onChange={(event) => setFormData((p) => ({ ...p, bio: event.target.value }))} />
-            </Field>
-          </div>
+            </FormField>
+            <FormField label="Gender" htmlFor="profile_gender" error={errors.gender?.message}>
+              <Controller
+                control={control}
+                name="gender"
+                render={({ field }) => (
+                  <Select value={field.value || "none"} onValueChange={(value) => field.onChange(value === "none" ? "" : value)}>
+                    <SelectTrigger id="profile_gender" aria-invalid={Boolean(errors.gender)}>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Not specified</SelectItem>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </FormField>
+            <FormField label="Address" htmlFor="profile_address" error={errors.address?.message}>
+              <Input id="profile_address" aria-invalid={Boolean(errors.address)} {...register("address")} />
+            </FormField>
+            <FormField label="Country" htmlFor="profile_country" error={errors.country?.message}>
+              <Input id="profile_country" aria-invalid={Boolean(errors.country)} {...register("country")} />
+            </FormField>
+            <FormField label={t("profile.position_title")} htmlFor="profile_headline" error={errors.headline?.message}>
+              <Input id="profile_headline" aria-invalid={Boolean(errors.headline)} {...register("headline")} />
+            </FormField>
+            <FormField label={t("profile.department")} htmlFor="profile_department" error={errors.department?.message}>
+              <Input id="profile_department" aria-invalid={Boolean(errors.department)} {...register("department")} />
+            </FormField>
+            <FormField label={t("profile.approval_level")} htmlFor="profile_approval_level" error={errors.approvalLevel?.message}>
+              <Input id="profile_approval_level" aria-invalid={Boolean(errors.approvalLevel)} {...register("approvalLevel")} />
+            </FormField>
+            <FormField label={t("profile.daily_limit")} htmlFor="profile_daily_limit" error={errors.dailyLimit?.message}>
+              <Input id="profile_daily_limit" aria-invalid={Boolean(errors.dailyLimit)} {...register("dailyLimit")} />
+            </FormField>
+            <FormField label={t("profile.bio")} htmlFor="profile_bio" error={errors.bio?.message} className="md:col-span-2">
+              <Textarea id="profile_bio" aria-invalid={Boolean(errors.bio)} {...register("bio")} />
+            </FormField>
+          </form>
         </section>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -431,23 +489,6 @@ export function ProfilePage() {
         </div>
       )}
     </div>
-  )
-}
-
-function Field({
-  label,
-  children,
-  className,
-}: {
-  label: string
-  children: ReactNode
-  className?: string
-}) {
-  return (
-    <label className={className}>
-      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
-      {children}
-    </label>
   )
 }
 

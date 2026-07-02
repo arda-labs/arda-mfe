@@ -1,14 +1,28 @@
 import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
 import { platformApi } from "../api"
-import type { Parameter, Organization } from "../api"
+import type { Organization, Parameter } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Card, CardContent } from "@workspace/ui/components/card"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@workspace/ui/components/command"
+import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,13 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import {
   Table,
   TableBody,
@@ -34,29 +42,96 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { Card, CardContent } from "@workspace/ui/components/card"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@workspace/ui/components/command"
 import { cn } from "@workspace/ui/lib/utils"
-import { Plus, Edit2, Trash2, Key, Eye, EyeOff, Search, Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Edit2, Eye, EyeOff, Key, Plus, Search, Trash2 } from "lucide-react"
+
+const valueTypeValues = ["string", "number", "boolean", "json", "date"] as const
+const scopeTypeValues = ["global", "tenant", "org", "branch", "department"] as const
 
 const VALUE_TYPES = [
-  { value: "string", label: "Chuỗi (String)" },
-  { value: "number", label: "Số (Number)" },
-  { value: "boolean", label: "Boolean (Đúng/Sai)" },
-  { value: "json", label: "Cấu hình JSON" },
-  { value: "date", label: "Ngày tháng (Date)" },
-]
+  { value: "string", label: "Chuoi (String)" },
+  { value: "number", label: "So (Number)" },
+  { value: "boolean", label: "Boolean (Dung/Sai)" },
+  { value: "json", label: "Cau hinh JSON" },
+  { value: "date", label: "Ngay thang (Date)" },
+] as const
 
 const SCOPE_TYPES = [
-  { value: "global", label: "Toàn cục (Global)" },
-  { value: "tenant", label: "Khách hàng (Tenant)" },
-  { value: "org", label: "Tổ chức (Organization)" },
-  { value: "branch", label: "Chi nhánh (Branch)" },
-  { value: "department", label: "Phòng ban (Department)" },
-]
+  { value: "global", label: "Toan cuc (Global)" },
+  { value: "tenant", label: "Khach hang (Tenant)" },
+  { value: "org", label: "To chuc (Organization)" },
+  { value: "branch", label: "Chi nhanh (Branch)" },
+  { value: "department", label: "Phong ban (Department)" },
+] as const
+
+const parameterFormSchema = z
+  .object({
+    key: z.string().trim().min(1, "Khoa tham so la bat buoc").max(128, "Khoa tham so qua dai"),
+    value: z.string(),
+    value_type: z.enum(valueTypeValues),
+    scope_type: z.enum(scopeTypeValues),
+    scope_id: z.string().trim().optional(),
+    description: z.string().trim().max(500, "Mo ta qua dai").optional(),
+    is_secret: z.boolean(),
+  })
+  .superRefine((values, ctx) => {
+    if (!values.is_secret && !values.value.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Gia tri tham so la bat buoc",
+        path: ["value"],
+      })
+    }
+    if (values.scope_type !== "global" && !values.scope_id?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Scope ID la bat buoc",
+        path: ["scope_id"],
+      })
+    }
+    if (values.value_type === "number" && values.value.trim() && !Number.isFinite(Number(values.value))) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Gia tri number khong hop le",
+        path: ["value"],
+      })
+    }
+    if (values.value_type === "json" && values.value.trim()) {
+      try {
+        JSON.parse(values.value)
+      } catch {
+        ctx.addIssue({
+          code: "custom",
+          message: "Gia tri JSON khong hop le",
+          path: ["value"],
+        })
+      }
+    }
+  })
+
+type ParameterFormValues = z.infer<typeof parameterFormSchema>
+
+const parameterDefaultValues: ParameterFormValues = {
+  key: "",
+  value: "",
+  value_type: "string",
+  scope_type: "global",
+  scope_id: "",
+  description: "",
+  is_secret: false,
+}
+
+function toParameterFormValues(item: Parameter): ParameterFormValues {
+  return {
+    key: item.key,
+    value: item.value,
+    value_type: item.value_type,
+    scope_type: item.scope_type,
+    scope_id: item.scope_id || "",
+    description: item.description || "",
+    is_secret: item.is_secret,
+  }
+}
 
 export function ParametersPage() {
   const [params, setParams] = useState<Parameter[]>([])
@@ -64,25 +139,26 @@ export function ParametersPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [orgSearchOpen, setOrgSearchOpen] = useState(false)
-
-  // Form states
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingParam, setEditingParam] = useState<Parameter | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Parameter | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  // Secret display mapping
   const [revealedSecrets, setRevealedSecrets] = useState<Record<string, boolean>>({})
-
-  const [form, setForm] = useState({
-    key: "",
-    value: "",
-    value_type: "string" as any,
-    scope_type: "global" as any,
-    scope_id: "",
-    description: "",
-    is_secret: false,
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+    setValue,
+    watch,
+  } = useForm<ParameterFormValues>({
+    resolver: zodResolver(parameterFormSchema),
+    defaultValues: parameterDefaultValues,
   })
+  const valueType = watch("value_type")
+  const scopeType = watch("scope_type")
+  const scopeId = watch("scope_id")
+  const value = watch("value")
 
   const load = async () => {
     setLoading(true)
@@ -94,7 +170,7 @@ export function ParametersPage() {
       setParams(data)
       setOrgs(orgList)
     } catch (err) {
-      notify.error("Không thể tải dữ liệu tham số", translateApiError(err))
+      notify.error("Khong the tai du lieu tham so", translateApiError(err))
     } finally {
       setLoading(false)
     }
@@ -106,190 +182,174 @@ export function ParametersPage() {
 
   const openCreate = () => {
     setEditingParam(null)
-    setForm({
-      key: "",
-      value: "",
-      value_type: "string",
-      scope_type: "global",
-      scope_id: "",
-      description: "",
-      is_secret: false,
-    })
+    reset(parameterDefaultValues)
     setDialogOpen(true)
   }
 
   const openEdit = (param: Parameter) => {
     setEditingParam(param)
-    setForm({
-      key: param.key,
-      value: param.value,
-      value_type: param.value_type,
-      scope_type: param.scope_type,
-      scope_id: param.scope_id || "",
-      description: param.description || "",
-      is_secret: param.is_secret,
-    })
+    reset(toParameterFormValues(param))
     setDialogOpen(true)
   }
 
-  const handleSubmit = async () => {
-    if (!form.key.trim() || (!form.is_secret && !form.value.trim())) {
-      notify.error("Khóa và giá trị tham số không được để trống")
-      return
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open)
+    if (!open) {
+      setEditingParam(null)
+      setOrgSearchOpen(false)
+      reset(parameterDefaultValues)
     }
-    setSubmitting(true)
+  }
+
+  const submitParameter = handleSubmit(async (values) => {
     try {
       const payload: Partial<Parameter> = {
-        key: form.key.trim(),
-        value: form.value,
-        value_type: form.value_type,
-        scope_type: form.scope_type,
-        scope_id: form.scope_id.trim() || undefined,
-        description: form.description.trim() || undefined,
-        is_secret: form.is_secret,
+        key: values.key.trim().toUpperCase().replace(/\s+/g, "_"),
+        value: values.value,
+        value_type: values.value_type,
+        scope_type: values.scope_type,
+        scope_id: values.scope_id?.trim() || undefined,
+        description: values.description?.trim() || undefined,
+        is_secret: values.is_secret,
       }
       if (editingParam) {
         payload.id = editingParam.id
       }
       await platformApi.upsertParameter(payload)
-      notify.success("Lưu tham số hệ thống thành công")
+      notify.success("Luu tham so he thong thanh cong")
       setDialogOpen(false)
-      load()
+      reset(parameterDefaultValues)
+      await load()
     } catch (err) {
-      notify.error("Lưu tham số thất bại", translateApiError(err))
-    } finally {
-      setSubmitting(false)
+      notify.error("Luu tham so that bai", translateApiError(err))
     }
-  }
+  })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
       await platformApi.deleteParameter(deleteTarget.id)
-      notify.success("Xóa tham số thành công")
+      notify.success("Xoa tham so thanh cong")
       setDeleteTarget(null)
-      load()
+      await load()
     } catch (err) {
-      notify.error("Xóa tham số thất bại", translateApiError(err))
+      notify.error("Xoa tham so that bai", translateApiError(err))
     }
   }
 
   const toggleRevealSecret = (id: string) => {
-    setRevealedSecrets(p => ({ ...p, [id]: !p[id] }))
+    setRevealedSecrets((previous) => ({ ...previous, [id]: !previous[id] }))
   }
 
   const filteredParams = params.filter(
-    p =>
-      p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    (param) =>
+      param.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (param.description && param.description.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="font-bold text-foreground text-xl">Tham số hệ thống</h2>
-          <Badge variant="secondary" className="px-2.5 py-0.5 font-bold text-xs">
-            Tổng số: {filteredParams.length}
+          <h2 className="text-xl font-bold text-foreground">Tham so he thong</h2>
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+            Tong so: {filteredParams.length}
           </Badge>
         </div>
-        <Button onClick={openCreate} className="h-9 px-4 font-semibold text-sm gap-1.5">
-          <Plus className="size-4" /> Thêm tham số
+        <Button onClick={openCreate} className="h-9 gap-1.5 px-4 text-sm font-semibold">
+          <Plus className="size-4" /> Them tham so
         </Button>
       </div>
 
-      <div className="flex items-center gap-3 bg-muted/10 p-3 rounded-2xl border border-muted/60">
+      <div className="flex items-center gap-3 rounded-2xl border border-muted/60 bg-muted/10 p-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Tìm kiếm theo tên tham số hoặc mô tả..."
+            placeholder="Tim kiem theo ten tham so hoac mo ta..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-10 rounded-xl"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            className="h-10 rounded-xl pl-10"
           />
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-          Đang tải cấu hình tham số...
+          Dang tai cau hinh tham so...
         </div>
       ) : (
-        <Card className="border-muted/50 rounded-2xl shadow-sm overflow-hidden bg-background">
+        <Card className="overflow-hidden rounded-2xl border-muted/50 bg-background shadow-sm">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead>Tham số (Key)</TableHead>
-                  <TableHead>Giá trị (Value)</TableHead>
-                  <TableHead>Kiểu dữ liệu</TableHead>
-                  <TableHead>Phạm vi (Scope)</TableHead>
-                  <TableHead>Mô tả</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
+                  <TableHead>Tham so (Key)</TableHead>
+                  <TableHead>Gia tri (Value)</TableHead>
+                  <TableHead>Kieu du lieu</TableHead>
+                  <TableHead>Pham vi (Scope)</TableHead>
+                  <TableHead>Mo ta</TableHead>
+                  <TableHead className="text-right">Thao tac</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredParams.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                      Không tìm thấy tham số nào.
+                      Khong tim thay tham so nao.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredParams.map((p) => {
-                    const isRevealed = revealedSecrets[p.id]
+                  filteredParams.map((param) => {
+                    const isRevealed = revealedSecrets[param.id]
                     return (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-mono text-xs font-semibold text-primary">{p.key}</TableCell>
+                      <TableRow key={param.id}>
+                        <TableCell className="font-mono text-xs font-semibold text-primary">{param.key}</TableCell>
                         <TableCell className="max-w-xs truncate">
-                          {p.is_secret ? (
+                          {param.is_secret ? (
                             <div className="flex items-center gap-2">
-                              <Key className="size-3.5 text-yellow-500 shrink-0" />
-                              <span className="font-mono text-xs">
-                                {isRevealed ? (p.value || "[Bảo mật]") : "••••••••••••"}
-                              </span>
+                              <Key className="size-3.5 shrink-0 text-yellow-500" />
+                              <span className="font-mono text-xs">{isRevealed ? param.value || "[Bao mat]" : "************"}</span>
                               <button
                                 type="button"
-                                onClick={() => toggleRevealSecret(p.id)}
-                                className="text-muted-foreground hover:text-foreground ml-1"
+                                onClick={() => toggleRevealSecret(param.id)}
+                                className="ml-1 text-muted-foreground hover:text-foreground"
                               >
                                 {isRevealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                               </button>
                             </div>
-                          ) : p.value_type === "boolean" ? (
-                            <Status variant={p.value === "true" ? "success" : "default"}>
+                          ) : param.value_type === "boolean" ? (
+                            <Status variant={param.value === "true" ? "success" : "default"}>
                               <StatusIndicator />
-                              <StatusLabel>{p.value === "true" ? "TRUE" : "FALSE"}</StatusLabel>
+                              <StatusLabel>{param.value === "true" ? "TRUE" : "FALSE"}</StatusLabel>
                             </Status>
-                          ) : p.value_type === "json" ? (
-                            <code className="text-xs bg-muted/30 border border-muted/80 rounded px-1.5 py-0.5">JSON</code>
+                          ) : param.value_type === "json" ? (
+                            <code className="rounded border border-muted/80 bg-muted/30 px-1.5 py-0.5 text-xs">JSON</code>
                           ) : (
-                            <span className="font-mono text-xs">{p.value}</span>
+                            <span className="font-mono text-xs">{param.value}</span>
                           )}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs font-normal">
-                            {p.value_type}
+                            {param.value_type}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary" className="capitalize text-xs font-semibold">
-                            {p.scope_type} {p.scope_id ? (
-                              p.scope_type === "org"
-                                ? `(${orgs.find(o => o.id === p.scope_id)?.name || p.scope_id})`
-                                : `(${p.scope_id})`
-                            ) : ""}
+                          <Badge variant="secondary" className="text-xs font-semibold capitalize">
+                            {param.scope_type}{" "}
+                            {param.scope_id
+                              ? param.scope_type === "org"
+                                ? `(${orgs.find((org) => org.id === param.scope_id)?.name || param.scope_id})`
+                                : `(${param.scope_id})`
+                              : ""}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-sm truncate">
-                          {p.description || "—"}
-                        </TableCell>
+                        <TableCell className="max-w-sm truncate text-xs text-muted-foreground">{param.description || "-"}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(p)}>
+                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(param)}>
                               <Edit2 className="size-3.5" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteTarget(p)}>
+                            <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteTarget(param)}>
                               <Trash2 className="size-3.5" />
                             </Button>
                           </div>
@@ -304,232 +364,244 @@ export function ParametersPage() {
         </Card>
       )}
 
-      {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingParam ? "Cập nhật tham số" : "Thêm tham số mới"}</DialogTitle>
-            <DialogDescription>
-              Tùy chỉnh thông tin cấu hình tham số động cho các phân hệ chức năng.
-            </DialogDescription>
+            <DialogTitle>{editingParam ? "Cap nhat tham so" : "Them tham so moi"}</DialogTitle>
+            <DialogDescription>Tuy chinh thong tin cau hinh tham so dong cho cac phan he chuc nang.</DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={(e) => e.preventDefault()} className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="key">Khóa tham số (Key)</Label>
+          <form autoComplete="off" onSubmit={submitParameter} className="space-y-4 py-2">
+            <FormField label="Khoa tham so (Key)" htmlFor="param_key" error={errors.key?.message}>
               <Input
-                id="key"
-                placeholder="APP_ROUTING_TIMOUT"
-                value={form.key}
-                onChange={(e) => setForm(p => ({ ...p, key: e.target.value.toUpperCase().replace(/\s+/g, "_") }))}
+                id="param_key"
+                placeholder="APP_ROUTING_TIMEOUT"
+                aria-invalid={Boolean(errors.key)}
                 disabled={!!editingParam}
                 className="font-mono uppercase"
                 autoComplete="off"
+                {...register("key", {
+                  onChange: (event) => {
+                    event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "_")
+                  },
+                })}
               />
-            </div>
+            </FormField>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="value_type">Kiểu dữ liệu</Label>
-                <Select
-                  value={form.value_type}
-                  onValueChange={(val) => setForm(p => ({ ...p, value_type: val as any, value: "" }))}
-                >
-                  <SelectTrigger id="value_type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VALUE_TYPES.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="scope_type">Phạm vi hiệu lực</Label>
-                <Select
-                  value={form.scope_type}
-                  onValueChange={(val) => setForm(p => ({ ...p, scope_type: val as any, scope_id: "" }))}
-                >
-                  <SelectTrigger id="scope_type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SCOPE_TYPES.map(scope => (
-                      <SelectItem key={scope.value} value={scope.value}>
-                        {scope.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <FormField label="Kieu du lieu" htmlFor="param_value_type" error={errors.value_type?.message}>
+                <Controller
+                  control={control}
+                  name="value_type"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(selectedValue) => {
+                        field.onChange(selectedValue)
+                        setValue("value", "", { shouldDirty: true, shouldValidate: true })
+                      }}
+                    >
+                      <SelectTrigger id="param_value_type" aria-invalid={Boolean(errors.value_type)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VALUE_TYPES.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
+              <FormField label="Pham vi hieu luc" htmlFor="param_scope_type" error={errors.scope_type?.message}>
+                <Controller
+                  control={control}
+                  name="scope_type"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(selectedValue) => {
+                        field.onChange(selectedValue)
+                        setValue("scope_id", "", { shouldDirty: true, shouldValidate: true })
+                      }}
+                    >
+                      <SelectTrigger id="param_scope_type" aria-invalid={Boolean(errors.scope_type)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SCOPE_TYPES.map((scope) => (
+                          <SelectItem key={scope.value} value={scope.value}>
+                            {scope.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
             </div>
 
-            {form.scope_type !== "global" && (
-              <div className="space-y-1.5 flex flex-col">
-                <Label htmlFor="scope_id">Mã định danh phạm vi (Scope ID)</Label>
-                {form.scope_type === "org" ? (
-                  <Popover open={orgSearchOpen} onOpenChange={setOrgSearchOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={orgSearchOpen}
-                        className="justify-between text-left font-normal h-10 w-full rounded-xl"
-                      >
-                        {form.scope_id
-                          ? orgs.find((org) => org.id === form.scope_id)?.name || form.scope_id
-                          : "Chọn tổ chức..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[450px] p-0 rounded-xl" align="start">
-                      <Command className="rounded-xl">
-                        <CommandInput placeholder="Tìm kiếm tổ chức..." />
-                        <CommandList>
-                          <CommandEmpty>Không tìm thấy tổ chức nào.</CommandEmpty>
-                          <CommandGroup>
-                            {orgs.map((org) => (
-                              <CommandItem
-                                key={org.id}
-                                value={org.name}
-                                onSelect={() => {
-                                  setForm((p) => ({ ...p, scope_id: org.id }))
-                                  setOrgSearchOpen(false)
-                                }}
-                                className="flex items-center justify-between"
-                              >
-                                <div className="flex flex-col">
-                                  <span className="font-medium text-sm">{org.name}</span>
-                                  <span className="text-[10px] text-muted-foreground font-mono">{org.code}</span>
-                                </div>
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 text-primary",
-                                    form.scope_id === org.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+            {scopeType !== "global" && (
+              <FormField label="Ma dinh danh pham vi (Scope ID)" htmlFor="param_scope_id" error={errors.scope_id?.message}>
+                {scopeType === "org" ? (
+                  <Controller
+                    control={control}
+                    name="scope_id"
+                    render={({ field }) => (
+                      <Popover open={orgSearchOpen} onOpenChange={setOrgSearchOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={orgSearchOpen}
+                            className="h-10 w-full justify-between rounded-xl text-left font-normal"
+                          >
+                            {field.value ? orgs.find((org) => org.id === field.value)?.name || field.value : "Chon to chuc..."}
+                            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[450px] rounded-xl p-0" align="start">
+                          <Command className="rounded-xl">
+                            <CommandInput placeholder="Tim kiem to chuc..." />
+                            <CommandList>
+                              <CommandEmpty>Khong tim thay to chuc nao.</CommandEmpty>
+                              <CommandGroup>
+                                {orgs.map((org) => (
+                                  <CommandItem
+                                    key={org.id}
+                                    value={org.name}
+                                    onSelect={() => {
+                                      field.onChange(org.id)
+                                      setOrgSearchOpen(false)
+                                    }}
+                                    className="flex items-center justify-between"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-medium">{org.name}</span>
+                                      <span className="font-mono text-[10px] text-muted-foreground">{org.code}</span>
+                                    </div>
+                                    <Check className={cn("size-4 text-primary", field.value === org.id ? "opacity-100" : "opacity-0")} />
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  />
                 ) : (
                   <Input
-                    id="scope_id"
-                    placeholder={`Mã ${form.scope_type} cần áp dụng`}
-                    value={form.scope_id}
-                    onChange={(e) => setForm((p) => ({ ...p, scope_id: e.target.value }))}
+                    id="param_scope_id"
+                    placeholder={`Ma ${scopeType} can ap dung`}
+                    aria-invalid={Boolean(errors.scope_id)}
                     autoComplete="off"
+                    {...register("scope_id")}
                   />
                 )}
-              </div>
+              </FormField>
             )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="value">Giá trị tham số (Value)</Label>
-              {form.value_type === "boolean" ? (
-                <div className="flex rounded-lg border border-input p-0.5 bg-background h-10 w-fit items-center px-1">
+            <FormField label="Gia tri tham so (Value)" htmlFor="param_value" error={errors.value?.message}>
+              {valueType === "boolean" ? (
+                <div className="flex h-10 w-fit items-center rounded-lg border border-input bg-background p-0.5 px-1">
                   <Button
                     type="button"
-                    variant={form.value === "true" ? "secondary" : "ghost"}
+                    variant={value === "true" ? "secondary" : "ghost"}
                     size="sm"
                     className="h-8 rounded-md text-xs"
-                    onClick={() => setForm(p => ({ ...p, value: "true" }))}
+                    onClick={() => setValue("value", "true", { shouldDirty: true, shouldValidate: true })}
                   >
                     TRUE
                   </Button>
                   <Button
                     type="button"
-                    variant={form.value === "false" ? "secondary" : "ghost"}
+                    variant={value === "false" ? "secondary" : "ghost"}
                     size="sm"
                     className="h-8 rounded-md text-xs"
-                    onClick={() => setForm(p => ({ ...p, value: "false" }))}
+                    onClick={() => setValue("value", "false", { shouldDirty: true, shouldValidate: true })}
                   >
                     FALSE
                   </Button>
                 </div>
-              ) : form.value_type === "json" ? (
+              ) : valueType === "json" ? (
                 <Textarea
-                  id="value"
+                  id="param_value"
                   placeholder='{ "key": "value" }'
-                  value={form.value}
-                  onChange={(e) => setForm(p => ({ ...p, value: e.target.value }))}
                   className="font-mono"
                   spellCheck={false}
                   autoComplete="off"
+                  aria-invalid={Boolean(errors.value)}
+                  {...register("value")}
                 />
-              ) : form.value_type === "date" ? (
-                <Input
-                  id="value"
-                  type="date"
-                  value={form.value}
-                  onChange={(e) => setForm(p => ({ ...p, value: e.target.value }))}
-                />
+              ) : valueType === "date" ? (
+                <Input id="param_value" type="date" aria-invalid={Boolean(errors.value)} {...register("value")} />
               ) : (
                 <Input
-                  id="value"
-                  placeholder="Nhập giá trị"
-                  value={form.value}
-                  onChange={(e) => setForm(p => ({ ...p, value: e.target.value }))}
+                  id="param_value"
+                  placeholder="Nhap gia tri"
                   spellCheck={false}
                   autoComplete="off"
+                  aria-invalid={Boolean(errors.value)}
+                  {...register("value")}
                 />
               )}
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="description">Mô tả tham số</Label>
+            <FormField label="Mo ta tham so" htmlFor="param_description" error={errors.description?.message}>
               <Input
-                id="description"
-                placeholder="Giải thích mục đích cấu hình tham số..."
-                value={form.description}
-                onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
+                id="param_description"
+                placeholder="Giai thich muc dich cau hinh tham so..."
                 spellCheck={false}
                 autoComplete="off"
+                aria-invalid={Boolean(errors.description)}
+                {...register("description")}
               />
-            </div>
+            </FormField>
 
-            <div className="flex items-center gap-2 pt-2">
-              <Checkbox
-                id="is_secret"
-                checked={form.is_secret}
-                onCheckedChange={(checked) => setForm(p => ({ ...p, is_secret: !!checked }))}
-              />
-              <Label htmlFor="is_secret" className="select-none cursor-pointer">
-                Đây là tham số bảo mật (Ẩn hiển thị giá trị)
-              </Label>
+            <Controller
+              control={control}
+              name="is_secret"
+              render={({ field }) => (
+                <div className="flex items-center gap-2 pt-2">
+                  <Checkbox
+                    id="param_is_secret"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                  <label htmlFor="param_is_secret" className="cursor-pointer select-none text-sm font-medium">
+                    Day la tham so bao mat
+                  </label>
+                </div>
+              )}
+            />
+
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+                Huy
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              </Button>
             </div>
           </form>
-
-          <DialogFooter className="flex sm:justify-end gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Đang lưu..." : "Lưu lại"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa tham số?</AlertDialogTitle>
+            <AlertDialogTitle>Xac nhan xoa tham so?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa hoàn toàn tham số <strong>{deleteTarget?.key}</strong> khỏi hệ thống và không thể khôi phục.
+              Hanh dong nay se xoa hoan toan tham so <strong>{deleteTarget?.key}</strong> khoi he thong va khong the khoi phuc.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Xóa bỏ
+              Xoa bo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

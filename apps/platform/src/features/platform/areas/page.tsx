@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
 import { platformApi } from "../api"
@@ -6,8 +9,8 @@ import type { Area, GeoAdminUnit, LookupValue } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import { MaskInput } from "@workspace/ui/components/mask-input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
@@ -26,7 +29,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
@@ -51,21 +53,49 @@ import {
 import { Edit2, Plus, Search, Trash2 } from "lucide-react"
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "Tất cả" },
-  { value: "active", label: "Hoạt động" },
-  { value: "inactive", label: "Ngừng hiệu lực" },
+  { value: "all", label: "Tat ca" },
+  { value: "active", label: "Hoat dong" },
+  { value: "inactive", label: "Ngung hieu luc" },
 ] as const
 
-const EMPTY_FORM = {
+const areaFormSchema = z.object({
+  code: z.string().trim().min(1, "Ma khu vuc la bat buoc").max(64, "Ma khu vuc qua dai"),
+  name: z.string().trim().min(1, "Ten khu vuc la bat buoc").max(255, "Ten khu vuc qua dai"),
+  area_type_code: z.string().trim().min(1, "Loai khu vuc la bat buoc"),
+  parent_id: z.string().trim().optional(),
+  admin_unit_code: z.string().trim().optional(),
+  description: z.string().trim().max(500, "Mo ta qua dai").optional(),
+  status: z.enum(["active", "inactive"]),
+  effective_from: z.string().trim().optional(),
+  effective_to: z.string().trim().optional(),
+})
+
+type AreaFormValues = z.infer<typeof areaFormSchema>
+
+const areaDefaultValues: AreaFormValues = {
   code: "",
   name: "",
   area_type_code: "",
   parent_id: "",
   admin_unit_code: "",
   description: "",
-  status: "active" as "active" | "inactive",
+  status: "active",
   effective_from: "",
   effective_to: "",
+}
+
+function toAreaFormValues(item: Area): AreaFormValues {
+  return {
+    code: item.code,
+    name: item.name,
+    area_type_code: item.area_type_code,
+    parent_id: item.parent_id || "",
+    admin_unit_code: item.admin_unit_code || "",
+    description: item.description || "",
+    status: item.status,
+    effective_from: item.effective_from || "",
+    effective_to: item.effective_to || "",
+  }
 }
 
 export function AreasPage() {
@@ -80,8 +110,16 @@ export function AreasPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Area | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Area | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState(EMPTY_FORM)
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<AreaFormValues>({
+    resolver: zodResolver(areaFormSchema),
+    defaultValues: areaDefaultValues,
+  })
 
   const loadDependencies = async () => {
     const [types, provinces, wards] = await Promise.all([
@@ -96,14 +134,15 @@ export function AreasPage() {
   const load = async () => {
     setLoading(true)
     try {
-      const data = await platformApi.listAreas({
-        status: statusFilter === "all" ? undefined : statusFilter,
-        areaTypeCode: typeFilter === "all" ? undefined : typeFilter,
-        q: query.trim() || undefined,
-      })
-      setItems(data)
+      setItems(
+        await platformApi.listAreas({
+          status: statusFilter === "all" ? undefined : statusFilter,
+          areaTypeCode: typeFilter === "all" ? undefined : typeFilter,
+          q: query.trim() || undefined,
+        })
+      )
     } catch (err) {
-      notify.error("Không thể tải danh sách khu vực", translateApiError(err))
+      notify.error("Khong the tai danh sach khu vuc", translateApiError(err))
     } finally {
       setLoading(false)
     }
@@ -119,82 +158,63 @@ export function AreasPage() {
 
   const openCreate = () => {
     setEditingItem(null)
-    setForm(EMPTY_FORM)
+    reset(areaDefaultValues)
     setDialogOpen(true)
   }
 
   const openEdit = (item: Area) => {
     setEditingItem(item)
-    setForm({
-      code: item.code,
-      name: item.name,
-      area_type_code: item.area_type_code,
-      parent_id: item.parent_id || "",
-      admin_unit_code: item.admin_unit_code || "",
-      description: item.description || "",
-      status: item.status,
-      effective_from: item.effective_from || "",
-      effective_to: item.effective_to || "",
-    })
+    reset(toAreaFormValues(item))
     setDialogOpen(true)
   }
 
-  const handleSubmit = async () => {
-    if (
-      !form.code.trim() ||
-      !form.name.trim() ||
-      !form.area_type_code ||
-      !form.status
-    ) {
-      notify.error(
-        "Mã khu vực, tên khu vực, loại khu vực và trạng thái là bắt buộc"
-      )
-      return
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open)
+    if (!open) {
+      setEditingItem(null)
+      reset(areaDefaultValues)
     }
+  }
 
-    setSubmitting(true)
+  const submitArea = handleSubmit(async (values) => {
     try {
       const payload: Partial<Area> = {
-        code: form.code.trim(),
-        name: form.name.trim(),
-        area_type_code: form.area_type_code,
-        parent_id: form.parent_id || undefined,
-        admin_unit_code: form.admin_unit_code || undefined,
-        description: form.description.trim() || undefined,
-        status: form.status,
-        effective_from: form.effective_from || undefined,
-        effective_to: form.effective_to || undefined,
+        code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),
+        name: values.name.trim(),
+        area_type_code: values.area_type_code,
+        parent_id: values.parent_id || undefined,
+        admin_unit_code: values.admin_unit_code || undefined,
+        description: values.description?.trim() || undefined,
+        status: values.status,
+        effective_from: values.effective_from || undefined,
+        effective_to: values.effective_to || undefined,
       }
 
       if (editingItem) {
         await platformApi.updateArea(editingItem.id, payload)
-        notify.success("Cập nhật khu vực thành công")
+        notify.success("Cap nhat khu vuc thanh cong")
       } else {
         await platformApi.createArea(payload)
-        notify.success("Thêm khu vực thành công")
+        notify.success("Them khu vuc thanh cong")
       }
 
       setDialogOpen(false)
-      load()
+      reset(areaDefaultValues)
+      await load()
     } catch (err) {
-      notify.error("Lưu khu vực thất bại", translateApiError(err))
-    } finally {
-      setSubmitting(false)
+      notify.error("Luu khu vuc that bai", translateApiError(err))
     }
-  }
+  })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
       await platformApi.deleteArea(deleteTarget.id)
-      notify.success("Ngừng hiệu lực khu vực thành công")
+      notify.success("Ngung hieu luc khu vuc thanh cong")
       setDeleteTarget(null)
-      load()
+      await load()
     } catch (err) {
-      notify.error(
-        "Cập nhật trạng thái khu vực thất bại",
-        translateApiError(err)
-      )
+      notify.error("Cap nhat trang thai khu vuc that bai", translateApiError(err))
     }
   }
 
@@ -211,16 +231,13 @@ export function AreasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">Khu vực</h2>
-          <Badge
-            variant="secondary"
-            className="px-2.5 py-0.5 text-xs font-bold"
-          >
-            Tổng số: {items.length}
+          <h2 className="text-xl font-bold text-foreground">Khu vuc</h2>
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+            Tong so: {items.length}
           </Badge>
         </div>
         <Button onClick={openCreate} className="h-9 gap-1.5 px-4 font-semibold">
-          <Plus className="size-4" /> Thêm khu vực
+          <Plus className="size-4" /> Them khu vuc
         </Button>
       </div>
 
@@ -228,20 +245,20 @@ export function AreasPage() {
         <CardContent className="space-y-4 p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative flex-1">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Tìm theo mã, tên hoặc mô tả..."
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Tim theo ma, ten hoac mo ta..."
                 className="pl-9"
               />
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full md:w-56">
-                <SelectValue placeholder="Loại khu vực" />
+                <SelectValue placeholder="Loai khu vuc" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả loại khu vực</SelectItem>
+                <SelectItem value="all">Tat ca loai khu vuc</SelectItem>
                 {areaTypes.map((item) => (
                   <SelectItem key={item.id} value={item.code}>
                     {item.name}
@@ -251,9 +268,7 @@ export function AreasPage() {
             </Select>
             <Select
               value={statusFilter}
-              onValueChange={(value) =>
-                setStatusFilter(value as typeof statusFilter)
-              }
+              onValueChange={(value) => setStatusFilter(value as typeof statusFilter)}
             >
               <SelectTrigger className="w-full md:w-52">
                 <SelectValue />
@@ -267,81 +282,57 @@ export function AreasPage() {
               </SelectContent>
             </Select>
             <Button variant="outline" onClick={load}>
-              Tìm kiếm
+              Tim kiem
             </Button>
           </div>
 
           {loading ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
-              Đang tải dữ liệu khu vực...
+              Dang tai du lieu khu vuc...
             </div>
           ) : (
             <div className="overflow-hidden rounded-xl border border-muted/50">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead>Mã khu vực</TableHead>
-                    <TableHead>Tên khu vực</TableHead>
-                    <TableHead>Loại khu vực</TableHead>
-                    <TableHead>Khu vực cha</TableHead>
-                    <TableHead>Đơn vị hành chính</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
+                    <TableHead>Ma khu vuc</TableHead>
+                    <TableHead>Ten khu vuc</TableHead>
+                    <TableHead>Loai khu vuc</TableHead>
+                    <TableHead>Khu vuc cha</TableHead>
+                    <TableHead>Don vi hanh chinh</TableHead>
+                    <TableHead>Trang thai</TableHead>
+                    <TableHead className="text-right">Thao tac</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="h-24 text-center text-muted-foreground"
-                      >
-                        Chưa có khu vực nào.
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                        Chua co khu vuc nao.
                       </TableCell>
                     </TableRow>
                   ) : (
                     items.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-mono text-xs">
-                          {item.code}
-                        </TableCell>
+                        <TableCell className="font-mono text-xs">{item.code}</TableCell>
                         <TableCell>
                           <div className="space-y-1">
                             <div className="font-medium">{item.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.description || "-"}
-                            </div>
+                            <div className="text-xs text-muted-foreground">{item.description || "-"}</div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          {getAreaTypeLabel(item.area_type_code)}
-                        </TableCell>
+                        <TableCell>{getAreaTypeLabel(item.area_type_code)}</TableCell>
                         <TableCell>{getParentLabel(item.parent_id)}</TableCell>
+                        <TableCell>{getAdminUnitLabel(item.admin_unit_code)}</TableCell>
                         <TableCell>
-                          {getAdminUnitLabel(item.admin_unit_code)}
-                        </TableCell>
-                        <TableCell>
-                          <Status
-                            variant={
-                              item.status === "active" ? "success" : "default"
-                            }
-                          >
+                          <Status variant={item.status === "active" ? "success" : "default"}>
                             <StatusIndicator />
-                            <StatusLabel>
-                              {item.status === "active"
-                                ? "Hoạt động"
-                                : "Ngừng hiệu lực"}
-                            </StatusLabel>
+                            <StatusLabel>{item.status === "active" ? "Hoat dong" : "Ngung hieu luc"}</StatusLabel>
                           </Status>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="size-7"
-                              onClick={() => openEdit(item)}
-                            >
+                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(item)}>
                               <Edit2 className="size-3.5" />
                             </Button>
                             <Button
@@ -364,221 +355,176 @@ export function AreasPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingItem ? "Cập nhật khu vực" : "Thêm khu vực"}
-            </DialogTitle>
-            <DialogDescription>
-              Quản lý khu vực nghiệp vụ với phân cấp cha con.
-            </DialogDescription>
+            <DialogTitle>{editingItem ? "Cap nhat khu vuc" : "Them khu vuc"}</DialogTitle>
+            <DialogDescription>Quan ly khu vuc nghiep vu voi phan cap cha con.</DialogDescription>
           </DialogHeader>
 
-          <form
-            autoComplete="off"
-            onSubmit={(e) => e.preventDefault()}
-            className="space-y-4 py-2"
-          >
+          <form autoComplete="off" onSubmit={submitArea} className="space-y-4 py-2">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="area_code">Mã khu vực</Label>
-                <Input
-                  id="area_code"
-                  value={form.code}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      code: e.target.value.toUpperCase().replace(/\s+/g, "_"),
-                    }))
-                  }
-                  disabled={!!editingItem}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="area_name">Tên khu vực</Label>
-                <Input
-                  id="area_name"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                />
-              </div>
+              <FormField label="Ma khu vuc" htmlFor="area_code" error={errors.code?.message}>
+                <Input id="area_code" aria-invalid={Boolean(errors.code)} disabled={!!editingItem} {...register("code")} />
+              </FormField>
+              <FormField label="Ten khu vuc" htmlFor="area_name" error={errors.name?.message}>
+                <Input id="area_name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="area_type_code">Loại khu vực</Label>
-                <Select
-                  value={form.area_type_code}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({ ...prev, area_type_code: value }))
-                  }
-                >
-                  <SelectTrigger id="area_type_code">
-                    <SelectValue placeholder="Chọn loại khu vực" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {areaTypes.map((item) => (
-                      <SelectItem key={item.id} value={item.code}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="area_parent_id">Khu vực cha</Label>
-                <Select
-                  value={form.parent_id || "none"}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      parent_id: value === "none" ? "" : value,
-                    }))
-                  }
-                >
-                  <SelectTrigger id="area_parent_id">
-                    <SelectValue placeholder="Không có" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Không có</SelectItem>
-                    {items
-                      .filter(
-                        (item) => !editingItem || item.id !== editingItem.id
-                      )
-                      .map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="area_admin_unit_code">Đơn vị hành chính</Label>
-                <Select
-                  value={form.admin_unit_code || "none"}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      admin_unit_code: value === "none" ? "" : value,
-                    }))
-                  }
-                >
-                  <SelectTrigger id="area_admin_unit_code">
-                    <SelectValue placeholder="Không liên kết" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Không liên kết</SelectItem>
-                    {adminUnits.map((item) => (
-                      <SelectItem key={item.code} value={item.code}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <FormField label="Loai khu vuc" htmlFor="area_type_code" error={errors.area_type_code?.message}>
+                <Controller
+                  control={control}
+                  name="area_type_code"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="area_type_code" aria-invalid={Boolean(errors.area_type_code)}>
+                        <SelectValue placeholder="Chon loai khu vuc" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {areaTypes.map((item) => (
+                          <SelectItem key={item.id} value={item.code}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
+              <FormField label="Khu vuc cha" htmlFor="area_parent_id" error={errors.parent_id?.message}>
+                <Controller
+                  control={control}
+                  name="parent_id"
+                  render={({ field }) => (
+                    <Select value={field.value || "none"} onValueChange={(value) => field.onChange(value === "none" ? "" : value)}>
+                      <SelectTrigger id="area_parent_id" aria-invalid={Boolean(errors.parent_id)}>
+                        <SelectValue placeholder="Khong co" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Khong co</SelectItem>
+                        {items
+                          .filter((item) => !editingItem || item.id !== editingItem.id)
+                          .map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
+              <FormField label="Don vi hanh chinh" htmlFor="area_admin_unit_code" error={errors.admin_unit_code?.message}>
+                <Controller
+                  control={control}
+                  name="admin_unit_code"
+                  render={({ field }) => (
+                    <Select value={field.value || "none"} onValueChange={(value) => field.onChange(value === "none" ? "" : value)}>
+                      <SelectTrigger id="area_admin_unit_code" aria-invalid={Boolean(errors.admin_unit_code)}>
+                        <SelectValue placeholder="Khong lien ket" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Khong lien ket</SelectItem>
+                        {adminUnits.map((item) => (
+                          <SelectItem key={item.code} value={item.code}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="area_status">Trạng thái</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      status: value as Area["status"],
-                    }))
-                  }
-                >
-                  <SelectTrigger id="area_status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Hoạt động</SelectItem>
-                    <SelectItem value="inactive">Ngừng hiệu lực</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="area_effective_from">
-                  Hiệu lực từ (MM/DD/YYYY)
-                </Label>
-                <MaskInput
-                  id="area_effective_from"
-                  mask="date"
-                  className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
-                  value={form.effective_from}
-                  onValueChange={(masked) =>
-                    setForm((prev) => ({ ...prev, effective_from: masked }))
-                  }
+              <FormField label="Trang thai" htmlFor="area_status" error={errors.status?.message}>
+                <Controller
+                  control={control}
+                  name="status"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="area_status" aria-invalid={Boolean(errors.status)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Hoat dong</SelectItem>
+                        <SelectItem value="inactive">Ngung hieu luc</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="area_effective_to">
-                  Hiệu lực đến (MM/DD/YYYY)
-                </Label>
-                <MaskInput
-                  id="area_effective_to"
-                  mask="date"
-                  className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
-                  value={form.effective_to}
-                  onValueChange={(masked) =>
-                    setForm((prev) => ({ ...prev, effective_to: masked }))
-                  }
+              </FormField>
+              <FormField label="Hieu luc tu (MM/DD/YYYY)" htmlFor="area_effective_from" error={errors.effective_from?.message}>
+                <Controller
+                  control={control}
+                  name="effective_from"
+                  render={({ field }) => (
+                    <MaskInput
+                      id="area_effective_from"
+                      mask="date"
+                      className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    />
+                  )}
                 />
-              </div>
+              </FormField>
+              <FormField label="Hieu luc den (MM/DD/YYYY)" htmlFor="area_effective_to" error={errors.effective_to?.message}>
+                <Controller
+                  control={control}
+                  name="effective_to"
+                  render={({ field }) => (
+                    <MaskInput
+                      id="area_effective_to"
+                      mask="date"
+                      className="h-10 w-full bg-background py-2 [box-shadow:none] ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-background"
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    />
+                  )}
+                />
+              </FormField>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="area_description">Ghi chú / mô tả</Label>
+            <FormField label="Ghi chu / mo ta" htmlFor="area_description" error={errors.description?.message}>
               <Textarea
                 id="area_description"
-                value={form.description}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, description: e.target.value }))
-                }
-                placeholder="Thông tin mô tả khu vực..."
+                aria-invalid={Boolean(errors.description)}
+                placeholder="Thong tin mo ta khu vuc..."
+                {...register("description")}
               />
+            </FormField>
+
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+                Huy
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Dang luu..." : "Luu lai"}
+              </Button>
             </div>
           </form>
-
-          <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Đang lưu..." : "Lưu lại"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={() => setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Xác nhận ngừng hiệu lực khu vực?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Xac nhan ngung hieu luc khu vuc?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ chuyển khu vực{" "}
-              <strong>{deleteTarget?.name}</strong> sang trạng thái ngừng hiệu
-              lực.
+              Hanh dong nay se chuyen khu vuc <strong>{deleteTarget?.name}</strong> sang trang thai ngung hieu luc.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>Huy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xác nhận
+              Xac nhan
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

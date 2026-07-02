@@ -47,7 +47,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
-import { Toaster } from "@workspace/ui/components/sonner"
+import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { useAuthStore } from "../../../packages/auth/src/index"
 import { NotificationBell, useNotificationStream } from "../../../packages/notifications/src/index"

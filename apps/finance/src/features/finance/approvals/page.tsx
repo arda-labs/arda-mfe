@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "react-toastify"
+import { z } from "zod"
 import { financeApi } from "@/features/finance/api"
 import type { ApprovalRequest } from "@/features/finance/api"
 import { Button } from "@workspace/ui/components/button"
@@ -20,6 +24,22 @@ import { Input } from "@workspace/ui/components/input"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 
+const approvalFormSchema = z.object({
+  refId: z.string().trim().min(1, "Reference ID is required"),
+  requestType: z.enum(["TRANSFER", "DEPOSIT", "WITHDRAWAL"]),
+  amount: z.string().trim().optional().refine((value) => !value || Number(value) > 0, "Amount must be positive"),
+  note: z.string().trim().max(500, "Note is too long").optional(),
+})
+
+type ApprovalFormValues = z.infer<typeof approvalFormSchema>
+
+const approvalDefaultValues: ApprovalFormValues = {
+  refId: "",
+  requestType: "TRANSFER",
+  amount: "",
+  note: "",
+}
+
 const STATUS_VARIANTS: Partial<Record<string, "default" | "success" | "error" | "warning" | "info">> = {
   PENDING: "warning",
   APPROVED: "success",
@@ -32,7 +52,16 @@ export function ApprovalsPage() {
   const [loading, setLoading] = useState(true)
   const [level, setLevel] = useState(1)
   const [createOpen, setCreateOpen] = useState(false)
-  const [createForm, setCreateForm] = useState({ refId: "", requestType: "TRANSFER", amount: "", note: "" })
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<ApprovalFormValues>({
+    resolver: zodResolver(approvalFormSchema),
+    defaultValues: approvalDefaultValues,
+  })
   const [note, setNote] = useState("")
   const [actionId, setActionId] = useState<string | null>(null)
   const [cancelTarget, setCancelTarget] = useState<ApprovalRequest | null>(null)
@@ -40,32 +69,61 @@ export function ApprovalsPage() {
   const load = async () => {
     setLoading(true)
     try { const res = await financeApi.listPendingApprovals(level); setApprovals(res.approvals || []) }
-    catch {} finally { setLoading(false) }
+    catch { toast.error("Could not load approvals") } finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [level])
 
-  const handleCreate = async () => {
-    await financeApi.createApproval(createForm)
-    setCreateOpen(false)
-    setCreateForm({ refId: "", requestType: "TRANSFER", amount: "", note: "" })
-    load()
+  const handleCreateOpenChange = (nextOpen: boolean) => {
+    setCreateOpen(nextOpen)
+    if (!nextOpen) reset(approvalDefaultValues)
   }
 
+  const handleCreate = handleSubmit(async (values) => {
+    try {
+      await financeApi.createApproval({
+        ...values,
+        amount: values.amount || undefined,
+        note: values.note || undefined,
+      })
+      toast.success("Approval request created")
+      setCreateOpen(false)
+      reset(approvalDefaultValues)
+      await load()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not create approval request")
+    }
+  })
+
   const handleApprove = async (id: string) => {
-    await financeApi.approveApproval(id, note)
-    setActionId(null); setNote(""); load()
+    try {
+      await financeApi.approveApproval(id, note)
+      toast.success("Approval accepted")
+      setActionId(null); setNote(""); load()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not approve request")
+    }
   }
 
   const handleReject = async (id: string) => {
-    await financeApi.rejectApproval(id, note)
-    setActionId(null); setNote(""); load()
+    try {
+      await financeApi.rejectApproval(id, note)
+      toast.success("Approval rejected")
+      setActionId(null); setNote(""); load()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not reject request")
+    }
   }
 
   const handleCancel = async (id: string) => {
-    await financeApi.cancelApproval(id)
-    setCancelTarget(null)
-    load()
+    try {
+      await financeApi.cancelApproval(id)
+      toast.success("Approval cancelled")
+      setCancelTarget(null)
+      load()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not cancel approval")
+    }
   }
 
   if (loading) return <div className="flex justify-center p-8"><Spinner className="size-6" /></div>
@@ -85,37 +143,40 @@ export function ApprovalsPage() {
               <Button key={l} variant={level === l ? "default" : "outline"} size="sm" onClick={() => setLevel(l)}>{l}</Button>
             ))}
           </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <Dialog open={createOpen} onOpenChange={handleCreateOpenChange}>
             <DialogTrigger className="h-9 px-4 text-sm">Create Approval</DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Create Approval Request</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <FormField label="Reference ID">
-                  <Input value={createForm.refId} onChange={e => setCreateForm(p => ({...p, refId: e.target.value}))} />
+              <form className="space-y-3" onSubmit={handleCreate}>
+                <FormField label="Reference ID" error={errors.refId?.message}>
+                  <Input aria-invalid={Boolean(errors.refId)} {...register("refId")} />
                 </FormField>
-                <FormField label="Request type">
-                  <Select
-                    value={createForm.requestType}
-                    onValueChange={(val) => setCreateForm(p => ({...p, requestType: val}))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="TRANSFER">Transfer</SelectItem>
-                      <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                      <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <FormField label="Request type" error={errors.requestType?.message}>
+                  <Controller
+                    control={control}
+                    name="requestType"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger aria-invalid={Boolean(errors.requestType)}>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TRANSFER">Transfer</SelectItem>
+                          <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                          <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </FormField>
-                <FormField label="Amount">
-                  <Input value={createForm.amount} onChange={e => setCreateForm(p => ({...p, amount: e.target.value}))} />
+                <FormField label="Amount" error={errors.amount?.message}>
+                  <Input aria-invalid={Boolean(errors.amount)} {...register("amount")} />
                 </FormField>
-                <FormField label="Note">
-                  <Input value={createForm.note} onChange={e => setCreateForm(p => ({...p, note: e.target.value}))} />
+                <FormField label="Note" error={errors.note?.message}>
+                  <Input aria-invalid={Boolean(errors.note)} {...register("note")} />
                 </FormField>
-                <Button className="w-full" onClick={handleCreate}>Submit</Button>
-              </div>
+                <Button className="w-full" type="submit" disabled={isSubmitting}>Submit</Button>
+              </form>
             </DialogContent>
           </Dialog>
         </div>

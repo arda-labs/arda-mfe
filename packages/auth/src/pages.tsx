@@ -19,7 +19,7 @@ import {
   ShieldCheck,
   Sun,
 } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useTheme } from "../../theme/src/index"
 import { AuthLoadingScreen } from "./loading-screen"
@@ -59,7 +59,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (searchError) {
-      toast.error("Lỗi xác thực", { description: searchError })
+      toast.error(`Lỗi xác thực: ${searchError}`)
     }
   }, [searchError])
 

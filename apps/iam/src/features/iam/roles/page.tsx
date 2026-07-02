@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { adminApi } from "@/features/iam"
 import type { Permission, Role } from "@/features/iam"
 import { notify } from "@workspace/notifications/notify"
@@ -35,6 +38,18 @@ import { ShieldCheck, Trash2 } from "lucide-react"
 
 const DEFAULT_PAGE_SIZE = 10
 
+const roleFormSchema = z.object({
+  code: z.string().trim().min(1, "Code is required").max(64, "Code is too long"),
+  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long"),
+})
+
+type RoleFormValues = z.infer<typeof roleFormSchema>
+
+const roleDefaultValues: RoleFormValues = {
+  code: "",
+  name: "",
+}
+
 export function RolesPage() {
   const { t } = useI18n()
   const [roles, setRoles] = useState<Role[]>([])
@@ -48,20 +63,44 @@ export function RolesPage() {
   const [permissionsLoading, setPermissionsLoading] = useState(false)
   const [busyPermissionID, setBusyPermissionID] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [form, setForm] = useState({ code: "", name: "" })
+  const {
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<RoleFormValues>({
+    resolver: zodResolver(roleFormSchema),
+    defaultValues: roleDefaultValues,
+  })
 
-  const handleCreate = async () => {
-    await adminApi.createRole(form)
-    setOpen(false)
-    setForm({ code: "", name: "" })
-    setRefreshKey((key) => key + 1)
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (!nextOpen) reset(roleDefaultValues)
   }
+
+  const handleCreate = handleSubmit(async (values) => {
+    try {
+      await adminApi.createRole(values)
+      notify.success("Đã tạo vai trò")
+      setOpen(false)
+      reset(roleDefaultValues)
+      setRefreshKey((key) => key + 1)
+    } catch (err) {
+      notify.error("Không tạo được vai trò", translateApiError(err))
+    }
+  })
 
   const handleDelete = async (id: string) => {
-    await adminApi.deleteRole(id)
-    setDeleteTarget(null)
-    setRefreshKey((key) => key + 1)
+    try {
+      await adminApi.deleteRole(id)
+      notify.success("Đã xóa vai trò")
+      setDeleteTarget(null)
+      setRefreshKey((key) => key + 1)
+    } catch (err) {
+      notify.error("Không xóa được vai trò", translateApiError(err))
+    }
   }
+
 
   const openPermissions = async (role: Role) => {
     setPermissionTarget(role)
@@ -216,7 +255,8 @@ export function RolesPage() {
       })
       setRoles(res.roles)
       setTotal(res.total)
-    } catch {
+    } catch (err) {
+      notify.error("Không tải được danh sách vai trò", translateApiError(err))
     } finally {
       setLoading(false)
     }
@@ -257,32 +297,28 @@ export function RolesPage() {
         </DataTableToolbar>
       </DataTable>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("admin.roles.create")}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <FormField label={t("common.field.code")}>
+          <form className="space-y-3" onSubmit={handleCreate}>
+            <FormField label={t("common.field.code")} error={errors.code?.message}>
               <Input
-                value={form.code}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, code: e.target.value }))
-                }
+                aria-invalid={Boolean(errors.code)}
+                {...register("code")}
               />
             </FormField>
-            <FormField label={t("common.field.name")}>
+            <FormField label={t("common.field.name")} error={errors.name?.message}>
               <Input
-                value={form.name}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, name: e.target.value }))
-                }
+                aria-invalid={Boolean(errors.name)}
+                {...register("name")}
               />
             </FormField>
-            <Button className="w-full" onClick={handleCreate}>
+            <Button className="w-full" type="submit" disabled={isSubmitting}>
               {t("common.action.create")}
             </Button>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 

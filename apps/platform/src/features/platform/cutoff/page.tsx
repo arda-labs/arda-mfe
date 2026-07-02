@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import type { SystemDate } from "@/features/platform/api"
 import { platformApi } from "@/features/platform/api"
 import { Spinner } from "@workspace/ui/components/spinner"
