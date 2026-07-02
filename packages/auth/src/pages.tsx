@@ -4,6 +4,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
+import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertCircle,
@@ -39,6 +40,14 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [mfaRequired, setMfaRequired] = useState(false)
+  const [mfaEnrollmentRequired, setMfaEnrollmentRequired] = useState(false)
+  const [mfaCode, setMfaCode] = useState("")
+  const [kratosSessionToken, setKratosSessionToken] = useState("")
+  const [mfaSecret, setMfaSecret] = useState("")
+  const [mfaOTPAuthURL, setMfaOTPAuthURL] = useState("")
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [pendingRedirectURL, setPendingRedirectURL] = useState("")
   const isDarkMode =
     typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : theme === "dark"
 
@@ -74,9 +83,18 @@ export function LoginPage() {
     setError(null)
     setIsPending(true)
     try {
+      if (mfaRequired || mfaEnrollmentRequired) {
+        const result = await acceptKratosLogin(loginChallenge, kratosSessionToken, mfaCode)
+        if (result.backup_codes?.length && result.redirect_url) {
+          setBackupCodes(result.backup_codes)
+          setPendingRedirectURL(result.redirect_url)
+        }
+        return
+      }
       const flow = await createKratosLoginFlow()
       if (flow.sessionAlreadyAvailable) {
-        await acceptKratosLogin(loginChallenge, "")
+        const result = await acceptKratosLogin(loginChallenge, "")
+        handleMFAResult(result, "")
         return
       }
       const csrfToken = getKratosCsrfToken(flow)
@@ -106,12 +124,54 @@ export function LoginPage() {
       if (flowError) throw new Error(flowError)
       const sessionToken = loginResult.session_token || ""
       if (!sessionToken) throw new Error("auth.login.error.failed")
-      await acceptKratosLogin(loginChallenge, sessionToken)
+      const result = await acceptKratosLogin(loginChallenge, sessionToken)
+      handleMFAResult(result, sessionToken)
     } catch (err) {
       setError(translateApiError(err, "auth.login.error.failed"))
     } finally {
       setIsPending(false)
     }
+  }
+
+  const handleMFAResult = (result: AcceptKratosLoginResult, sessionToken: string) => {
+    if (result.mfa_required) {
+      setKratosSessionToken(sessionToken)
+      setMfaRequired(true)
+      return
+    }
+    if (result.mfa_enrollment_required) {
+      setKratosSessionToken(sessionToken)
+      setMfaEnrollmentRequired(true)
+      setMfaSecret(result.secret || "")
+      setMfaOTPAuthURL(result.otpauth_url || "")
+    }
+  }
+
+  if (backupCodes.length > 0) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground" style={{ minHeight: "100dvh" }}>
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle>Save your backup codes</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Store these somewhere safe. Each code can be used once if you lose your authenticator.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 font-mono text-sm">
+              {backupCodes.map((backupCode) => (
+                <div key={backupCode} className="rounded-md border bg-muted/30 p-2 text-center">
+                  {backupCode}
+                </div>
+              ))}
+            </div>
+            <Button className="w-full" onClick={() => (window.location.href = pendingRedirectURL || "/")}>
+              Continue
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+    )
   }
 
   return (
@@ -188,38 +248,91 @@ export function LoginPage() {
                       <span>{error}</span>
                     </div>
                   )}
-                  <FormField label={t("auth.login.field.username")}>
-                    <Input
-                      autoComplete="username"
-                      autoFocus
-                      onChange={(e) => setUsername(e.target.value)}
-                      type="text"
-                      value={username}
-                    />
-                  </FormField>
-                  <FormField label={t("auth.login.field.password")}>
-                    <div className="relative">
-                      <Input
-                        autoComplete="current-password"
-                        className="pr-10"
-                        onChange={(e) => setPassword(e.target.value)}
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                      />
-                      <button
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                        className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        onClick={() => setShowPassword((value) => !value)}
-                        type="button"
-                      >
-                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                      </button>
+                  {mfaEnrollmentRequired ? (
+                    <div className="space-y-4">
+                      <div className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
+                        Admin access requires two-factor authentication. Scan the QR code, then enter the 6-digit code.
+                      </div>
+                      {mfaOTPAuthURL && (
+                        <div className="flex justify-center">
+                          <div className="rounded-md border bg-white p-4">
+                            <QRCode value={mfaOTPAuthURL} size={176} level="M" margin={0}>
+                              <QRCodeSvg />
+                            </QRCode>
+                          </div>
+                        </div>
+                      )}
+                      <FormField label="Manual setup key">
+                        <Input readOnly className="font-mono text-xs" value={mfaSecret} />
+                      </FormField>
+                      <FormField label="Verification code">
+                        <Input
+                          autoComplete="one-time-code"
+                          autoFocus
+                          inputMode="numeric"
+                          maxLength={6}
+                          onChange={(e) => setMfaCode(e.target.value)}
+                          placeholder="6-digit code"
+                          value={mfaCode}
+                        />
+                      </FormField>
                     </div>
-                  </FormField>
-                  <Button className="h-10 w-full" disabled={isPending || !username || !password} type="submit">
+                  ) : mfaRequired ? (
+                    <FormField label="Verification code">
+                      <Input
+                        autoComplete="one-time-code"
+                        autoFocus
+                        inputMode="numeric"
+                        maxLength={6}
+                        onChange={(e) => setMfaCode(e.target.value)}
+                        placeholder="6-digit code"
+                        value={mfaCode}
+                      />
+                    </FormField>
+                  ) : (
+                    <>
+                      <FormField label={t("auth.login.field.username")}>
+                        <Input
+                          autoComplete="username"
+                          autoFocus
+                          onChange={(e) => setUsername(e.target.value)}
+                          type="text"
+                          value={username}
+                        />
+                      </FormField>
+                      <FormField label={t("auth.login.field.password")}>
+                        <div className="relative">
+                          <Input
+                            autoComplete="current-password"
+                            className="pr-10"
+                            onChange={(e) => setPassword(e.target.value)}
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                          />
+                          <button
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            onClick={() => setShowPassword((value) => !value)}
+                            type="button"
+                          >
+                            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                          </button>
+                        </div>
+                      </FormField>
+                    </>
+                  )}
+                  <Button
+                    className="h-10 w-full"
+                    disabled={isPending || (mfaRequired || mfaEnrollmentRequired ? mfaCode.length !== 6 : !username || !password)}
+                    type="submit"
+                  >
                     {isPending ? (
                       <>
                         <Spinner className="mr-2 size-4" /> {t("common.action.signing_in")}
+                      </>
+                    ) : mfaRequired || mfaEnrollmentRequired ? (
+                      <>
+                        <ShieldCheck className="mr-2 size-4" /> Verify
                       </>
                     ) : (
                       <>
@@ -386,7 +499,20 @@ function getKratosFlowError(flow: KratosFlow) {
   return typeof message?.text === "string" ? message.text : ""
 }
 
-async function acceptKratosLogin(loginChallenge: string, kratosSessionToken: string) {
+type AcceptKratosLoginResult = {
+  redirect_url?: string
+  mfa_required?: boolean
+  mfa_enrollment_required?: boolean
+  secret?: string
+  otpauth_url?: string
+  backup_codes?: string[]
+}
+
+async function acceptKratosLogin(
+  loginChallenge: string,
+  kratosSessionToken: string,
+  mfaCode = ""
+): Promise<AcceptKratosLoginResult> {
   const res = await fetch("/api/auth/kratos/accept-login", {
     method: "POST",
     credentials: "include",
@@ -396,6 +522,7 @@ async function acceptKratosLogin(loginChallenge: string, kratosSessionToken: str
       remember: true,
       remember_for: 86400,
       kratos_session_token: kratosSessionToken,
+      mfa_code: mfaCode,
     }),
   })
   if (!res.ok) {
@@ -403,8 +530,10 @@ async function acceptKratosLogin(loginChallenge: string, kratosSessionToken: str
     throw new Error(err.error?.code ?? err.error ?? "auth.login.error.failed")
   }
   const data = await readJsonResponse(res, "auth.login.error.failed")
+  if (data.mfa_required) return data
   if (!data.redirect_url) throw new Error("auth.login.error.empty_redirect")
   window.location.href = data.redirect_url
+  return data
 }
 
 async function readJsonResponse(res: Response, fallbackError: string) {
