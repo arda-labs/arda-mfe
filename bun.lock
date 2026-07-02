@@ -56,9 +56,11 @@
       "version": "0.0.1",
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
+        "@tanstack/react-query": "^5.101.2",
         "@workspace/api": "workspace:*",
         "@workspace/core": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/notifications": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
         "lucide-react": "^1.22.0",
