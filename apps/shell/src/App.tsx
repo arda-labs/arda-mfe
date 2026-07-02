@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { CallbackPage, ConsentPage, LoginPage } from "../../../packages/auth/src/pages"
+import { redirectToHydraLogin } from "../../../packages/auth/src/oauth"
 
 const WorkspaceApp = lazy(() => import("./WorkspaceApp"))
 
@@ -17,6 +18,29 @@ function usePathname() {
 
 export function App() {
   const pathname = usePathname()
+  const [redirecting, setRedirecting] = useState(false)
+
+  useEffect(() => {
+    const isAuthRoute = ["/login", "/auth", "/callback", "/login-callback", "/consent"].includes(pathname)
+    if (!isAuthRoute) {
+      const authStorage = typeof window !== "undefined" ? localStorage.getItem("auth-storage") : null
+      let isAuthed = false
+      try {
+        isAuthed = authStorage ? JSON.parse(authStorage)?.state?.isAuthenticated : false
+      } catch {
+        isAuthed = false
+      }
+      if (!isAuthed) {
+        setRedirecting(true)
+        redirectToHydraLogin()
+      }
+    }
+  }, [pathname])
+
+  if (redirecting) {
+    return <WorkspaceLoading />
+  }
+
   if (pathname === "/auth") return <LoginPage />
   if (pathname === "/login") return <LoginPage />
   if (pathname === "/callback" || pathname === "/login-callback") return <CallbackPage />

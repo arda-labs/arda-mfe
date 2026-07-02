@@ -5,6 +5,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@workspace/ui/components/input-otp"
 import {
   AlertCircle,
   CheckCircle2,
@@ -263,30 +264,48 @@ export function LoginPage() {
                   <Input readOnly className="font-mono text-xs bg-muted/20 rounded-xl" value={mfaSecret} />
                 </FormField>
                 <FormField label="Verification code">
-                  <Input
-                    autoComplete="one-time-code"
-                    autoFocus
-                    inputMode="numeric"
-                    maxLength={6}
-                    onChange={(e) => setMfaCode(e.target.value)}
-                    placeholder="6-digit code"
-                    value={mfaCode}
-                    className="h-11 rounded-xl text-center text-lg tracking-widest font-bold"
-                  />
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={mfaCode}
+                      onChange={setMfaCode}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                      </InputOTPGroup>
+                      <InputOTPSeparator />
+                      <InputOTPGroup>
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
                 </FormField>
               </div>
             ) : mfaRequired ? (
               <FormField label="Verification code">
-                <Input
-                  autoComplete="one-time-code"
-                  autoFocus
-                  inputMode="numeric"
-                  maxLength={6}
-                  onChange={(e) => setMfaCode(e.target.value)}
-                  placeholder="6-digit code"
-                  value={mfaCode}
-                  className="h-11 rounded-xl text-center text-lg tracking-widest font-bold"
-                />
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={mfaCode}
+                    onChange={setMfaCode}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                    </InputOTPGroup>
+                    <InputOTPSeparator />
+                    <InputOTPGroup>
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
               </FormField>
             ) : (
               <>
