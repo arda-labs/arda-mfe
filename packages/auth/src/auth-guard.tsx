@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
 import { Building2 } from "lucide-react"
 import { AuthLoadingScreen } from "./loading-screen"
+import { redirectToHydraLogin } from "./oauth"
 import { normalizeAuthUser, useAuthStore } from "./store"
 
 type Organization = {
@@ -34,8 +35,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
         logout()
         hasRedirected.current = true
         if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/callback")) {
-          window.history.pushState(null, "", "/login")
-          window.dispatchEvent(new PopStateEvent("popstate"))
+          void redirectToHydraLogin(`${window.location.pathname}${window.location.search}`)
         }
       })
   }, [hydrated, isAuthenticated, login, logout])

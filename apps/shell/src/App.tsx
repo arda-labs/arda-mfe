@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react"
+import { lazy, Suspense, useEffect, useRef, useState } from "react"
 import { AuthLoadingScreen } from "../../../packages/auth/src/loading-screen"
 import { CallbackPage, ConsentPage, LoginPage } from "../../../packages/auth/src/pages"
 import { redirectToHydraLogin } from "../../../packages/auth/src/oauth"
@@ -24,6 +24,7 @@ export function App() {
   const { isAuthenticated, login, logout } = useAuthStore()
   const isAuthRoute = ["/login", "/auth", "/callback", "/login-callback", "/consent"].includes(pathname)
   const [checkingSession, setCheckingSession] = useState(!isAuthRoute && !isAuthenticated)
+  const redirectingToAuth = useRef(false)
 
   useEffect(() => {
     if (isAuthRoute || isAuthenticated) {
@@ -43,17 +44,18 @@ export function App() {
       .catch(() => {
         if (cancelled) return
         logout()
-        redirectToHydraLogin(`${window.location.pathname}${window.location.search}`)
+        redirectingToAuth.current = true
+        void redirectToHydraLogin(`${window.location.pathname}${window.location.search}`)
       })
       .finally(() => {
-        if (!cancelled) setCheckingSession(false)
+        if (!cancelled && !redirectingToAuth.current) setCheckingSession(false)
       })
     return () => {
       cancelled = true
     }
   }, [isAuthRoute, isAuthenticated, login, logout, pathname])
 
-  if (checkingSession) return <AuthLoadingScreen />
+  if (checkingSession || redirectingToAuth.current) return <AuthLoadingScreen />
 
   if (pathname === "/auth") return <LoginPage />
   if (pathname === "/login") return <LoginPage />
