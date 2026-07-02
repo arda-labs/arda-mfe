@@ -62,10 +62,10 @@ export function LoginPage() {
   }, [isAuthenticated, user])
 
   useEffect(() => {
-    if (!loginChallenge && !isAuthenticated) redirectToHydraLogin()
-  }, [loginChallenge, isAuthenticated])
+    if (!loginChallenge && !isAuthenticated && !searchError) redirectToHydraLogin()
+  }, [loginChallenge, isAuthenticated, searchError])
 
-  if (!loginChallenge) {
+  if (!loginChallenge && !searchError) {
     return (
       <AuthLoading
         description="We are preparing a secure authorization challenge."
@@ -183,13 +183,15 @@ export function LoginPage() {
     )
   }
 
+  const showRetryButton = !loginChallenge && searchError
+
   return (
     <AuthFrame
       actions={
         <div className="flex items-center gap-2">
           <button
             aria-label={t("common.action.toggle_theme")}
-            className="flex size-9 items-center justify-center rounded-md border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-slate-200 dark:border-zinc-800 bg-background/50 text-muted-foreground backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:text-foreground hover:scale-105 active:scale-95"
             onClick={() =>
               setTheme(document.documentElement.classList.contains("dark") ? "light" : "dark")
             }
@@ -199,7 +201,7 @@ export function LoginPage() {
           </button>
           <button
             aria-label={locale === "vi-VN" ? "Switch to English" : "Chuyen sang tieng Viet"}
-            className="flex h-9 items-center gap-2 rounded-md border bg-background px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-9 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-background/50 px-3.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:text-foreground hover:scale-105 active:scale-95"
             onClick={() => setLocale(locale === "vi-VN" ? "en-US" : "vi-VN")}
             type="button"
           >
@@ -209,35 +211,68 @@ export function LoginPage() {
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">{t("auth.login.title")}</h1>
-          <p className="text-sm text-muted-foreground">Use your account credentials to continue.</p>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/75 bg-clip-text text-transparent">
+            {t("auth.login.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {showRetryButton ? "Session establishment failed." : "Enter your credentials to access your secure workspace."}
+          </p>
         </div>
-        <form className="space-y-4" onSubmit={handleLogin}>
-          {error && (
-            <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-              <AlertCircle className="mt-0.5 size-4 shrink-0" />
-              <span>{error}</span>
+
+        {error && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
+            <AlertCircle className="mt-0.5 size-4 shrink-0 animate-bounce" />
+            <span className="font-medium leading-normal">{error}</span>
+          </div>
+        )}
+
+        {showRetryButton ? (
+          <div className="space-y-4 py-2">
+            <div className="text-sm text-muted-foreground leading-relaxed">
+              We were unable to secure a connection with the authorization server. This may be due to an expired session or network configuration issues.
             </div>
-          )}
-          {mfaEnrollmentRequired ? (
-            <div className="space-y-4">
-              <div className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
-                Admin access requires two-factor authentication. Scan the QR code, then enter the 6-digit code.
-              </div>
-              {mfaOTPAuthURL && (
-                <div className="flex justify-center">
-                  <div className="rounded-md border bg-white p-4">
-                    <QRCode value={mfaOTPAuthURL} size={176} level="M" margin={0}>
-                      <QRCodeSvg />
-                    </QRCode>
-                  </div>
+            <Button
+              onClick={() => redirectToHydraLogin()}
+              className="h-11 w-full font-semibold rounded-xl bg-primary hover:bg-primary/95 text-primary-foreground shadow-lg shadow-primary/10 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+            >
+              Retry Secure Sign In
+            </Button>
+          </div>
+        ) : (
+          <form className="space-y-4" onSubmit={handleLogin}>
+            {mfaEnrollmentRequired ? (
+              <div className="space-y-4">
+                <div className="rounded-xl border bg-muted/40 p-4 text-xs leading-relaxed text-muted-foreground">
+                  Administrator privileges require Multi-Factor Authentication. Please scan the QR code using your authenticator app, then input the verification code below.
                 </div>
-              )}
-              <FormField label="Manual setup key">
-                <Input readOnly className="font-mono text-xs" value={mfaSecret} />
-              </FormField>
+                {mfaOTPAuthURL && (
+                  <div className="flex justify-center">
+                    <div className="rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white p-4 shadow-md transition-all hover:shadow-lg">
+                      <QRCode value={mfaOTPAuthURL} size={176} level="M" margin={0}>
+                        <QRCodeSvg />
+                      </QRCode>
+                    </div>
+                  </div>
+                )}
+                <FormField label="Manual setup key">
+                  <Input readOnly className="font-mono text-xs bg-muted/20 rounded-xl" value={mfaSecret} />
+                </FormField>
+                <FormField label="Verification code">
+                  <Input
+                    autoComplete="one-time-code"
+                    autoFocus
+                    inputMode="numeric"
+                    maxLength={6}
+                    onChange={(e) => setMfaCode(e.target.value)}
+                    placeholder="6-digit code"
+                    value={mfaCode}
+                    className="h-11 rounded-xl text-center text-lg tracking-widest font-bold"
+                  />
+                </FormField>
+              </div>
+            ) : mfaRequired ? (
               <FormField label="Verification code">
                 <Input
                   autoComplete="one-time-code"
@@ -247,73 +282,63 @@ export function LoginPage() {
                   onChange={(e) => setMfaCode(e.target.value)}
                   placeholder="6-digit code"
                   value={mfaCode}
+                  className="h-11 rounded-xl text-center text-lg tracking-widest font-bold"
                 />
               </FormField>
-            </div>
-          ) : mfaRequired ? (
-            <FormField label="Verification code">
-              <Input
-                autoComplete="one-time-code"
-                autoFocus
-                inputMode="numeric"
-                maxLength={6}
-                onChange={(e) => setMfaCode(e.target.value)}
-                placeholder="6-digit code"
-                value={mfaCode}
-              />
-            </FormField>
-          ) : (
-            <>
-              <FormField label={t("auth.login.field.username")}>
-                <Input
-                  autoComplete="username"
-                  autoFocus
-                  onChange={(e) => setUsername(e.target.value)}
-                  type="text"
-                  value={username}
-                />
-              </FormField>
-              <FormField label={t("auth.login.field.password")}>
-                <div className="relative">
-                  <Input
-                    autoComplete="current-password"
-                    className="pr-10"
-                    onChange={(e) => setPassword(e.target.value)}
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                  />
-                  <button
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    onClick={() => setShowPassword((value) => !value)}
-                    type="button"
-                  >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
-              </FormField>
-            </>
-          )}
-          <Button
-            className="h-10 w-full"
-            disabled={isPending || (mfaRequired || mfaEnrollmentRequired ? mfaCode.length !== 6 : !username || !password)}
-            type="submit"
-          >
-            {isPending ? (
-              <>
-                <Spinner className="mr-2 size-4" /> {t("common.action.signing_in")}
-              </>
-            ) : mfaRequired || mfaEnrollmentRequired ? (
-              <>
-                <ShieldCheck className="mr-2 size-4" /> Verify
-              </>
             ) : (
               <>
-                <LogIn className="mr-2 size-4" /> {t("common.action.sign_in")}
+                <FormField label={t("auth.login.field.username")}>
+                  <Input
+                    autoComplete="username"
+                    autoFocus
+                    onChange={(e) => setUsername(e.target.value)}
+                    type="text"
+                    value={username}
+                    className="h-11 rounded-xl"
+                  />
+                </FormField>
+                <FormField label={t("auth.login.field.password")}>
+                  <div className="relative">
+                    <Input
+                      autoComplete="current-password"
+                      className="pr-10 h-11 rounded-xl"
+                      onChange={(e) => setPassword(e.target.value)}
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                    />
+                    <button
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-2.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+                      onClick={() => setShowPassword((value) => !value)}
+                      type="button"
+                    >
+                      {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </FormField>
               </>
             )}
-          </Button>
-        </form>
+            <Button
+              className="h-11 w-full font-semibold rounded-xl bg-primary hover:bg-primary/95 text-primary-foreground shadow-lg shadow-primary/10 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              disabled={isPending || (mfaRequired || mfaEnrollmentRequired ? mfaCode.length !== 6 : !username || !password)}
+              type="submit"
+            >
+              {isPending ? (
+                <>
+                  <Spinner className="mr-2 size-4 animate-spin" /> {t("common.action.signing_in")}
+                </>
+              ) : mfaRequired || mfaEnrollmentRequired ? (
+                <>
+                  <ShieldCheck className="mr-2 size-4" /> Verify
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 size-4" /> {t("common.action.sign_in")}
+                </>
+              )}
+            </Button>
+          </form>
+        )}
       </div>
     </AuthFrame>
   )
@@ -420,11 +445,19 @@ export function ConsentPage() {
 function AuthLoading({ title, description }: { title: string; description: string }) {
   return (
     <AuthFrame compact>
-      <div className="flex flex-col items-center gap-4 py-8 text-center">
-        <Spinner className="size-8" />
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold">{title}</h1>
-          <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+      <div className="flex flex-col items-center gap-6 py-6 text-center relative overflow-hidden">
+        {/* Glow effect */}
+        <div className="absolute -left-10 -top-10 size-32 rounded-full bg-primary/5 blur-3xl animate-pulse" />
+        <div className="absolute -right-10 -bottom-10 size-32 rounded-full bg-primary/5 blur-3xl animate-pulse" />
+
+        <div className="relative flex size-12 items-center justify-center">
+          <div className="absolute size-full rounded-xl border-4 border-primary/10" />
+          <div className="absolute size-full rounded-xl border-4 border-transparent border-t-primary animate-spin" />
+        </div>
+        
+        <div className="space-y-2 relative z-10">
+          <h1 className="text-xl font-bold tracking-tight">{title}</h1>
+          <p className="text-sm leading-relaxed text-muted-foreground max-w-xs mx-auto">{description}</p>
         </div>
       </div>
     </AuthFrame>
@@ -442,32 +475,34 @@ function AuthFrame({
 }) {
   return (
     <main
-      className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-6 text-foreground sm:px-6"
+      className="flex min-h-screen items-center justify-center bg-radial from-slate-50 via-slate-100 to-zinc-200 dark:from-zinc-950 dark:via-slate-950 dark:to-neutral-900 px-4 py-6 text-foreground sm:px-6 transition-colors duration-500"
       style={{ minHeight: "100dvh" }}
     >
       <div className={compact ? "w-full max-w-md" : "w-full max-w-5xl"}>
         <div
           className={
             compact
-              ? "w-full max-w-md rounded-lg border bg-background shadow-sm"
-              : "grid w-full overflow-hidden rounded-lg border bg-background shadow-sm lg:grid-cols-2"
+              ? "w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-background/70 backdrop-blur-md shadow-xl p-8 transition-all duration-300"
+              : "grid w-full overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 bg-background/40 dark:bg-zinc-900/40 backdrop-blur-xl shadow-2xl transition-all duration-300 lg:grid-cols-12"
           }
         >
           {!compact && <AuthBrandPanel />}
-          <div className={compact ? "p-6 sm:p-8" : "p-5 sm:p-8"}>
-            <div className="mb-8 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <ShieldCheck className="size-4" />
+          <div className={compact ? "p-0" : "lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between"}>
+            {!compact && (
+              <div className="mb-10 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+                    <ShieldCheck className="size-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold leading-none tracking-tight">Arda</p>
+                    <p className="mt-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Secure Workspace</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold leading-none">Arda</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Secure workspace</p>
-                </div>
+                {actions}
               </div>
-              {actions}
-            </div>
-            <div className="mx-auto w-full max-w-sm">{children}</div>
+            )}
+            <div className={compact ? "w-full" : "mx-auto w-full max-w-sm my-auto py-4"}>{children}</div>
           </div>
         </div>
       </div>
@@ -477,26 +512,48 @@ function AuthFrame({
 
 function AuthBrandPanel() {
   return (
-    <div className="hidden bg-muted/35 p-8 lg:flex lg:flex-col lg:justify-between">
-      <div className="max-w-md space-y-4">
-        <div className="inline-flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground">
-          <ShieldCheck className="size-3.5 text-primary" />
-          Identity access
+    <div className="relative hidden overflow-hidden bg-zinc-950 p-10 lg:flex lg:flex-col lg:justify-between lg:col-span-5 text-white">
+      {/* Background radial glow */}
+      <div className="absolute -left-10 -top-10 size-72 rounded-full bg-indigo-500/10 blur-3xl" />
+      <div className="absolute -right-10 -bottom-10 size-72 rounded-full bg-violet-500/10 blur-3xl" />
+      
+      {/* Mesh grid overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]" />
+
+      <div className="relative z-10 space-y-6">
+        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-3.5 py-1.5 text-xs font-semibold text-zinc-300">
+          <ShieldCheck className="size-4 text-indigo-400 animate-pulse" />
+          <span>Identity Access Management</span>
         </div>
-        <div className="space-y-3">
-          <h1 className="text-3xl font-semibold leading-tight">Welcome back to Arda.</h1>
-          <p className="text-sm leading-6 text-muted-foreground">
-            One secure session for platform, IAM, finance, and account operations.
+        
+        <div className="space-y-4">
+          <h1 className="text-4xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+            Welcome back <br />to Arda.
+          </h1>
+          <p className="text-sm leading-relaxed text-zinc-400">
+            A unified, enterprise-grade secure session for platform, identity, financial operations, and account auditing.
           </p>
         </div>
       </div>
-      <div className="grid max-w-md gap-3 text-sm text-muted-foreground">
-        {["OAuth2 authorization", "Kratos identity", "Hydra consent"].map((item) => (
-          <div className="flex items-center gap-2" key={item}>
-            <CheckCircle2 className="size-4 text-primary" />
-            <span>{item}</span>
-          </div>
-        ))}
+
+      <div className="relative z-10 space-y-4">
+        <div className="h-[1px] w-full bg-gradient-to-r from-zinc-800 via-zinc-800 to-transparent" />
+        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Security Ecosystem</p>
+        <div className="grid gap-3 text-sm text-zinc-400">
+          {[
+            { label: "OAuth 2.1 / OIDC compliance", desc: "Hydra secured token flows" },
+            { label: "Kratos Identity Management", desc: "Advanced session & credential store" },
+            { label: "Multi-Factor Authentication", desc: "TOTP / Backup codes enabled" }
+          ].map((item) => (
+            <div className="flex items-start gap-3" key={item.label}>
+              <CheckCircle2 className="size-5 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-zinc-200 leading-none">{item.label}</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

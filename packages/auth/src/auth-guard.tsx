@@ -32,7 +32,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
       .catch(() => {
         logout()
         hasRedirected.current = true
-        window.location.href = "/login"
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/callback")) {
+          window.location.href = "/login"
+        }
       })
   }, [hydrated, isAuthenticated, login, logout])
 
@@ -66,23 +68,23 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   if (user?.orgIds && user.orgIds.length > 1 && !user.activeOrgId) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-        <div className="w-full max-w-md space-y-6 rounded-2xl border bg-background p-6 shadow-xl">
+      <div className="flex min-h-screen items-center justify-center bg-radial from-background via-muted/50 to-muted p-4">
+        <div className="w-full max-w-md space-y-6 rounded-2xl border bg-background/70 backdrop-blur-md p-6 shadow-2xl transition-all">
           <div className="space-y-2 text-center">
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary animate-pulse">
               <Building2 className="size-6" />
             </div>
-            <h2 className="text-xl font-bold">Chọn đơn vị làm việc</h2>
+            <h2 className="text-xl font-bold tracking-tight">Chọn đơn vị làm việc</h2>
             <p className="text-xs text-muted-foreground">
-              Tài khoản của bạn thuộc nhiều đơn vị. Vui lòng chọn một đơn vị để
-              bắt đầu phiên làm việc.
+              Tài khoản của bạn thuộc nhiều đơn vị. Vui lòng chọn một đơn vị để bắt đầu phiên làm việc.
             </p>
           </div>
 
           <div className="space-y-3">
             {availableOrgs === null ? (
-              <div className="animate-pulse py-6 text-center text-xs text-muted-foreground">
-                Đang tải danh sách đơn vị...
+              <div className="py-6 text-center text-xs text-muted-foreground flex flex-col items-center gap-2">
+                <div className="size-4 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+                <span>Đang tải danh sách đơn vị...</span>
               </div>
             ) : availableOrgs.length === 0 ? (
               <div className="py-6 text-center text-xs text-muted-foreground">
@@ -91,7 +93,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             ) : (
               availableOrgs.map((org) => (
                 <button
-                  className="group flex w-full cursor-pointer items-center justify-between rounded-xl border p-4 text-left transition-all hover:border-primary/50 hover:bg-primary/5"
+                  className="group flex w-full cursor-pointer items-center justify-between rounded-xl border bg-background/50 p-4 text-left transition-all duration-300 hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
                   key={org.id}
                   onClick={() => updateUser({ activeOrgId: org.id })}
                 >
@@ -109,9 +111,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             )}
           </div>
 
-          <div className="text-center">
+          <div className="text-center pt-2">
             <button
-              className="cursor-pointer text-xs text-muted-foreground underline hover:text-foreground"
+              className="cursor-pointer text-xs text-muted-foreground underline hover:text-foreground transition-colors"
               onClick={() => logout()}
             >
               Đăng xuất
@@ -127,14 +129,24 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
 function AuthGuardFallback() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-6 text-foreground" style={{ minHeight: "100dvh" }}>
-      <div className="w-full max-w-md rounded-lg border bg-background p-8 text-center shadow-sm">
-        <div className="mx-auto mb-5 flex size-9 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-          A
+    <main className="flex min-h-screen items-center justify-center bg-radial from-background via-muted/30 to-muted/50 px-4 py-6 text-foreground" style={{ minHeight: "100dvh" }}>
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border bg-background/60 backdrop-blur-lg p-8 text-center shadow-xl">
+        {/* Glow effect */}
+        <div className="absolute -left-10 -top-10 size-40 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -right-10 -bottom-10 size-40 rounded-full bg-primary/5 blur-3xl" />
+
+        <div className="relative">
+          <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 animate-bounce">
+            A
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Preparing Arda</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Checking your secure session...</p>
+          
+          <div className="relative mx-auto mt-8 flex size-8 items-center justify-center">
+            <div className="absolute size-full rounded-full border-4 border-primary/10" />
+            <div className="absolute size-full rounded-full border-4 border-transparent border-t-primary animate-spin" />
+          </div>
         </div>
-        <h1 className="text-xl font-semibold">Preparing Arda</h1>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">Checking your secure session...</p>
-        <div className="mx-auto mt-5 size-7 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
       </div>
     </main>
   )
