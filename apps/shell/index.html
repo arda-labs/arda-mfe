@@ -5,9 +5,105 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Arda</title>
+    <style>
+      html,
+      body,
+      #root {
+        min-height: 100%;
+      }
+      body {
+        margin: 0;
+        background: hsl(240 4.8% 95.9%);
+        color: hsl(240 10% 3.9%);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .arda-boot {
+        display: grid;
+        min-height: 100dvh;
+        padding: 24px;
+        place-items: center;
+      }
+      .arda-boot-card {
+        box-sizing: border-box;
+        width: min(100%, 448px);
+        padding: 32px;
+        border: 1px solid hsl(240 5.9% 90%);
+        border-radius: 8px;
+        background: hsl(0 0% 100%);
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+        text-align: center;
+      }
+      .arda-boot-mark {
+        display: inline-grid;
+        width: 36px;
+        height: 36px;
+        margin-bottom: 20px;
+        place-items: center;
+        border-radius: 6px;
+        background: hsl(240 5.9% 10%);
+        color: hsl(0 0% 98%);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .arda-boot-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .arda-boot-text {
+        margin: 6px 0 0;
+        color: hsl(240 3.8% 46.1%);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .arda-boot-spinner {
+        width: 28px;
+        height: 28px;
+        margin: 22px auto 0;
+        border: 3px solid hsl(240 5.9% 90%);
+        border-top-color: hsl(240 5.9% 10%);
+        border-radius: 999px;
+        animation: arda-boot-spin 0.8s linear infinite;
+      }
+      @media (prefers-color-scheme: dark) {
+        body,
+        .arda-boot-card {
+          background: hsl(240 10% 3.9%);
+          color: hsl(0 0% 98%);
+        }
+        .arda-boot-card,
+        .arda-boot-spinner {
+          border-color: hsl(240 3.7% 15.9%);
+        }
+        .arda-boot-mark {
+          background: hsl(0 0% 98%);
+          color: hsl(240 5.9% 10%);
+        }
+        .arda-boot-spinner {
+          border-top-color: hsl(0 0% 98%);
+        }
+        .arda-boot-text {
+          color: hsl(240 5% 64.9%);
+        }
+      }
+      @keyframes arda-boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="arda-boot" role="status" aria-live="polite">
+        <div class="arda-boot-card">
+          <div class="arda-boot-mark">A</div>
+          <p class="arda-boot-title">Preparing Arda</p>
+          <p class="arda-boot-text">Loading secure workspace...</p>
+          <div class="arda-boot-spinner" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

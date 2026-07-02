@@ -62,7 +62,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     if (user.picture !== contentURL) updateUser({ picture: contentURL })
   }, [hydrated, isAuthenticated, updateUser, user?.avatarFileId, user?.picture])
 
-  if (!hydrated || !isAuthenticated) return null
+  if (!hydrated || !isAuthenticated) return <AuthGuardFallback />
 
   if (user?.orgIds && user.orgIds.length > 1 && !user.activeOrgId) {
     return (
@@ -123,4 +123,19 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>
+}
+
+function AuthGuardFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-6 text-foreground" style={{ minHeight: "100dvh" }}>
+      <div className="w-full max-w-md rounded-lg border bg-background p-8 text-center shadow-sm">
+        <div className="mx-auto mb-5 flex size-9 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
+          A
+        </div>
+        <h1 className="text-xl font-semibold">Preparing Arda</h1>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">Checking your secure session...</p>
+        <div className="mx-auto mt-5 size-7 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      </div>
+    </main>
+  )
 }
