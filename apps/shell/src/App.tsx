@@ -1,5 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { CallbackPage, ConsentPage, LoginPage } from "../../../packages/auth/src/pages"
+import { redirectToHydraLogin } from "../../../packages/auth/src/oauth"
+import { normalizeAuthUser, useAuthStore } from "../../../packages/auth/src/store"
+import { getMediaContentUrl } from "../../../packages/core/src/media/urls"
 
 const WorkspaceApp = lazy(() => import("./WorkspaceApp"))
 
@@ -17,6 +20,39 @@ function usePathname() {
 
 export function App() {
   const pathname = usePathname()
+  const { isAuthenticated, login, logout } = useAuthStore()
+  const isAuthRoute = ["/login", "/auth", "/callback", "/login-callback", "/consent"].includes(pathname)
+  const [checkingSession, setCheckingSession] = useState(!isAuthRoute && !isAuthenticated)
+
+  useEffect(() => {
+    if (isAuthRoute || isAuthenticated) {
+      setCheckingSession(false)
+      return
+    }
+    let cancelled = false
+    setCheckingSession(true)
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((res) => {
+        if (res.ok) return res.json()
+        throw new Error("session expired")
+      })
+      .then((userData) => {
+        if (!cancelled) login(normalizeAuthUser(userData, getMediaContentUrl))
+      })
+      .catch(() => {
+        if (cancelled) return
+        logout()
+        redirectToHydraLogin(`${window.location.pathname}${window.location.search}`)
+      })
+      .finally(() => {
+        if (!cancelled) setCheckingSession(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthRoute, isAuthenticated, login, logout, pathname])
+
+  if (checkingSession) return <WorkspaceLoading />
 
   if (pathname === "/auth") return <LoginPage />
   if (pathname === "/login") return <LoginPage />
