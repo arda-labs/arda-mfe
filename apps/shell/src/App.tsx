@@ -31,14 +31,24 @@ export function App() {
 
 function WorkspaceLoading() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-6 text-foreground" style={{ minHeight: "100dvh" }}>
-      <div className="w-full max-w-md rounded-lg border bg-background p-8 text-center shadow-sm">
-        <div className="mx-auto mb-5 flex size-9 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-          A
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 px-4 py-6 text-foreground transition-colors duration-500" style={{ minHeight: "100dvh" }}>
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card p-8 text-center shadow-xl">
+        {/* Glow effect */}
+        <div className="absolute -left-10 -top-10 size-40 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -right-10 -bottom-10 size-40 rounded-full bg-primary/5 blur-3xl" />
+
+        <div className="relative">
+          <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 animate-bounce">
+            A
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Preparing Arda</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Loading workspace...</p>
+          
+          <div className="relative mx-auto mt-8 flex size-8 items-center justify-center">
+            <div className="absolute size-full rounded-full border-4 border-primary/10" />
+            <div className="absolute size-full rounded-full border-4 border-transparent border-t-primary animate-spin" />
+          </div>
         </div>
-        <h1 className="text-xl font-semibold">Preparing Arda</h1>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">Loading workspace...</p>
-        <div className="mx-auto mt-5 size-7 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
       </div>
     </main>
   )

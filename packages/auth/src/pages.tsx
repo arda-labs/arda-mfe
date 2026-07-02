@@ -58,7 +58,10 @@ export function LoginPage() {
   }, [searchError])
 
   useEffect(() => {
-    if (isAuthenticated && user) window.location.href = "/"
+    if (isAuthenticated && user) {
+      window.history.pushState(null, "", "/")
+      window.dispatchEvent(new PopStateEvent("popstate"))
+    }
   }, [isAuthenticated, user])
 
   useEffect(() => {
@@ -355,7 +358,9 @@ export function CallbackPage() {
 
   useEffect(() => {
     if (error) {
-      window.location.href = `/login?error=${encodeURIComponent(errorDescription || error)}`
+      const target = `/login?error=${encodeURIComponent(errorDescription || error)}`
+      window.history.pushState(null, "", target)
+      window.dispatchEvent(new PopStateEvent("popstate"))
       return
     }
     if (consentChallenge && handledConsent.current !== consentChallenge) {
@@ -365,7 +370,8 @@ export function CallbackPage() {
           window.location.href = redirectUrl
         })
         .catch(() => {
-          window.location.href = "/login?error=consent_failed"
+          window.history.pushState(null, "", "/login?error=consent_failed")
+          window.dispatchEvent(new PopStateEvent("popstate"))
         })
       return
     }
@@ -374,7 +380,8 @@ export function CallbackPage() {
       const verifier = sessionStorage.getItem("hydra_code_verifier")
       const storedState = sessionStorage.getItem("hydra_state")
       if (state !== storedState || !verifier) {
-        window.location.href = "/login?error=invalid_state"
+        window.history.pushState(null, "", "/login?error=invalid_state")
+        window.dispatchEvent(new PopStateEvent("popstate"))
         return
       }
       exchangeCode(code, verifier, state)
@@ -385,14 +392,19 @@ export function CallbackPage() {
           login(normalizeAuthUser(me, getMediaContentUrl))
           sessionStorage.removeItem("hydra_state")
           sessionStorage.removeItem("hydra_code_verifier")
-          window.location.href = "/"
+          window.history.pushState(null, "", "/")
+          window.dispatchEvent(new PopStateEvent("popstate"))
         })
         .catch(() => {
-          window.location.href = "/login?error=exchange_failed"
+          window.history.pushState(null, "", "/login?error=exchange_failed")
+          window.dispatchEvent(new PopStateEvent("popstate"))
         })
       return
     }
-    if (!consentChallenge && !code) window.location.href = "/login"
+    if (!consentChallenge && !code) {
+      window.history.pushState(null, "", "/login")
+      window.dispatchEvent(new PopStateEvent("popstate"))
+    }
   }, [code, consentChallenge, error, errorDescription, login, state])
 
   return (
@@ -475,19 +487,19 @@ function AuthFrame({
 }) {
   return (
     <main
-      className="flex min-h-screen items-center justify-center bg-radial from-slate-50 via-slate-100 to-zinc-200 dark:from-zinc-950 dark:via-slate-950 dark:to-neutral-900 px-4 py-6 text-foreground sm:px-6 transition-colors duration-500"
+      className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950 px-4 py-6 text-foreground sm:px-6 transition-colors duration-500"
       style={{ minHeight: "100dvh" }}
     >
       <div className={compact ? "w-full max-w-md" : "w-full max-w-5xl"}>
         <div
           className={
             compact
-              ? "w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-background/70 backdrop-blur-md shadow-xl p-8 transition-all duration-300"
-              : "grid w-full overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 bg-background/40 dark:bg-zinc-900/40 backdrop-blur-xl shadow-2xl transition-all duration-300 lg:grid-cols-12"
+              ? "w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-xl p-8 transition-all duration-300"
+              : "grid w-full overflow-hidden rounded-3xl border border-border bg-card shadow-2xl transition-all duration-300 lg:grid-cols-12"
           }
         >
           {!compact && <AuthBrandPanel />}
-          <div className={compact ? "p-0" : "lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between"}>
+          <div className={compact ? "p-0" : "lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between bg-card"}>
             {!compact && (
               <div className="mb-10 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -512,16 +524,16 @@ function AuthFrame({
 
 function AuthBrandPanel() {
   return (
-    <div className="relative hidden overflow-hidden bg-zinc-950 p-10 lg:flex lg:flex-col lg:justify-between lg:col-span-5 text-white">
+    <div className="relative hidden overflow-hidden bg-zinc-900 border-r border-border p-10 lg:flex lg:flex-col lg:justify-between lg:col-span-5 text-white">
       {/* Background radial glow */}
-      <div className="absolute -left-10 -top-10 size-72 rounded-full bg-indigo-500/10 blur-3xl" />
-      <div className="absolute -right-10 -bottom-10 size-72 rounded-full bg-violet-500/10 blur-3xl" />
+      <div className="absolute -left-10 -top-10 size-72 rounded-full bg-indigo-500/15 blur-3xl animate-pulse" />
+      <div className="absolute -right-10 -bottom-10 size-72 rounded-full bg-violet-500/15 blur-3xl animate-pulse" />
       
       {/* Mesh grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800d_1px,transparent_1px),linear-gradient(to_bottom,#8080800d_1px,transparent_1px)] bg-[size:24px_24px]" />
 
       <div className="relative z-10 space-y-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-3.5 py-1.5 text-xs font-semibold text-zinc-300">
+        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/80 px-3.5 py-1.5 text-xs font-semibold text-zinc-300 shadow-inner">
           <ShieldCheck className="size-4 text-indigo-400 animate-pulse" />
           <span>Identity Access Management</span>
         </div>

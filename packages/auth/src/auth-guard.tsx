@@ -33,7 +33,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
         logout()
         hasRedirected.current = true
         if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/callback")) {
-          window.location.href = "/login"
+          window.history.pushState(null, "", "/login")
+          window.dispatchEvent(new PopStateEvent("popstate"))
         }
       })
   }, [hydrated, isAuthenticated, login, logout])
