@@ -47,7 +47,7 @@ import { useAreaTypes, useDeleteAreaType, useUpsertAreaType } from "./queries"
 const areaTypeFormSchema = z.object({
   code: z.string().trim().min(1, "Ma loai khu vuc la bat buoc").max(64, "Ma loai khu vuc qua dai"),
   name: z.string().trim().min(1, "Ten loai khu vuc la bat buoc").max(255, "Ten loai khu vuc qua dai"),
-  sort_order: z.coerce.number().int("Thu tu phai la so nguyen").min(0, "Thu tu khong hop le"),
+  sort_order: z.number().int("Thu tu phai la so nguyen").min(0, "Thu tu khong hop le"),
   is_active: z.boolean(),
 })
 

@@ -486,7 +486,7 @@ function Detail({
   icon: Icon,
 }: {
   label: string
-  value: string
+  value?: string
   icon: typeof BriefcaseBusiness
 }) {
   return (

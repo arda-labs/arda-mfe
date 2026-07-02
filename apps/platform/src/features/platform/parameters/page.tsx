@@ -161,7 +161,6 @@ export function ParametersPage() {
   })
   const valueType = watch("value_type")
   const scopeType = watch("scope_type")
-  const scopeId = watch("scope_id")
   const value = watch("value")
 
   useEffect(() => {

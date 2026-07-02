@@ -82,7 +82,7 @@ const valueFormSchema = z
   .object({
     code: z.string().trim().min(1, "Ma gia tri la bat buoc").max(64, "Ma gia tri qua dai"),
     name: z.string().trim().min(1, "Ten hien thi la bat buoc").max(255, "Ten hien thi qua dai"),
-    sort_order: z.coerce.number().int("Thu tu phai la so nguyen").min(0, "Thu tu khong duoc am"),
+    sort_order: z.number().int("Thu tu phai la so nguyen").min(0, "Thu tu khong duoc am"),
     is_active: z.boolean(),
     metadata: z.string().trim().optional(),
   })
