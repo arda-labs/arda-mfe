@@ -22,6 +22,8 @@ import {
   Wallet,
 } from "lucide-react"
 import { useI18n, type MessageKey } from "@workspace/i18n"
+import type { AuthUser } from "@workspace/auth/store"
+import { hasAnyPermission } from "@workspace/auth/store"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import {
   Breadcrumb,
@@ -55,6 +57,7 @@ type NavNode = {
   href?: string
   labelKey: MessageKey
   icon: LucideIcon
+  permissions?: string[]
   children?: NavNode[]
 }
 
@@ -64,10 +67,15 @@ const navItems: NavNode[] = [
     labelKey: "nav.admin",
     icon: Users,
     children: [
-      { href: "/admin/users", labelKey: "nav.admin.users", icon: Users },
-      { href: "/admin/roles", labelKey: "nav.admin.roles", icon: Users },
-      { href: "/admin/permissions", labelKey: "nav.admin.permissions", icon: ShieldCheck },
-      { href: "/admin/audit", labelKey: "nav.admin.audit", icon: FileText },
+      { href: "/admin/users", labelKey: "nav.admin.users", icon: Users, permissions: ["iam.user.read"] },
+      { href: "/admin/roles", labelKey: "nav.admin.roles", icon: Users, permissions: ["iam.role.read"] },
+      {
+        href: "/admin/permissions",
+        labelKey: "nav.admin.permissions",
+        icon: ShieldCheck,
+        permissions: ["iam.permission.read"],
+      },
+      { href: "/admin/audit", labelKey: "nav.admin.audit", icon: FileText, permissions: ["iam.user.read"] },
     ],
   },
   {
@@ -88,21 +96,22 @@ const navItems: NavNode[] = [
     labelKey: "nav.platform",
     icon: Settings,
     children: [
-      { href: "/admin/organizations", labelKey: "nav.platform.organizations", icon: Building2 },
-      { href: "/admin/parameters", labelKey: "nav.platform.parameters", icon: SlidersHorizontal },
-      { href: "/admin/provinces", labelKey: "nav.platform.provinces", icon: Building2 },
-      { href: "/admin/wards", labelKey: "nav.platform.wards", icon: Building2 },
-      { href: "/admin/lookups", labelKey: "nav.platform.lookups", icon: ListTree },
-      { href: "/admin/area-types", labelKey: "nav.platform.area_types", icon: ListTree },
-      { href: "/admin/areas", labelKey: "nav.platform.areas", icon: Building2 },
+      { href: "/admin/organizations", labelKey: "nav.platform.organizations", icon: Building2, permissions: ["platform.read"] },
+      { href: "/admin/parameters", labelKey: "nav.platform.parameters", icon: SlidersHorizontal, permissions: ["platform.manage"] },
+      { href: "/admin/provinces", labelKey: "nav.platform.provinces", icon: Building2, permissions: ["platform.read"] },
+      { href: "/admin/wards", labelKey: "nav.platform.wards", icon: Building2, permissions: ["platform.read"] },
+      { href: "/admin/lookups", labelKey: "nav.platform.lookups", icon: ListTree, permissions: ["platform.manage"] },
+      { href: "/admin/area-types", labelKey: "nav.platform.area_types", icon: ListTree, permissions: ["platform.manage"] },
+      { href: "/admin/areas", labelKey: "nav.platform.areas", icon: Building2, permissions: ["platform.read"] },
       {
         href: "/admin/credit-institutions",
         labelKey: "nav.platform.credit_institutions",
         icon: Building2,
+        permissions: ["platform.read"],
       },
-      { href: "/admin/templates", labelKey: "nav.platform.templates", icon: FileText },
-      { href: "/admin/calendar", labelKey: "nav.platform.calendar", icon: Calendar },
-      { href: "/admin/cutoff", labelKey: "nav.platform.cutoff", icon: Clock },
+      { href: "/admin/templates", labelKey: "nav.platform.templates", icon: FileText, permissions: ["platform.manage"] },
+      { href: "/admin/calendar", labelKey: "nav.platform.calendar", icon: Calendar, permissions: ["platform.manage"] },
+      { href: "/admin/cutoff", labelKey: "nav.platform.cutoff", icon: Clock, permissions: ["platform.manage"] },
     ],
   },
 ]
@@ -125,6 +134,7 @@ export function ShellLayout({
   const { user, isAuthenticated, logout } = useAuthStore()
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useI18n()
+  const visibleNavItems = filterNavItems(navItems, user)
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
 
   useEffect(() => {
@@ -160,7 +170,7 @@ export function ShellLayout({
           )}
         </div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <SidebarNode
               key={item.labelKey}
               item={item}
@@ -325,6 +335,16 @@ function SidebarNode({
 function isNodeActive(item: NavNode, pathname: string): boolean {
   if (item.href) return item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
   return Boolean(item.children?.some((child) => isNodeActive(child, pathname)))
+}
+
+function filterNavItems(items: NavNode[], user: AuthUser | null): NavNode[] {
+  const visible: NavNode[] = []
+  for (const item of items) {
+    const children = item.children ? filterNavItems(item.children, user) : undefined
+    if (!hasAnyPermission(user, item.permissions ?? []) && !children?.length) continue
+    visible.push({ ...item, children })
+  }
+  return visible
 }
 
 function AppBreadcrumb({

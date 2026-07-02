@@ -71,6 +71,7 @@ type RoleApiItem = Partial<Role> & {
   Code?: string
   Name?: string
   Status?: string
+  TenantID?: string
 }
 
 type PermissionApiItem = Partial<Permission> & {
@@ -87,6 +88,7 @@ const normalizeRole = (role: RoleApiItem): Role => ({
   code: role.code ?? role.Code ?? "",
   name: role.name ?? role.Name ?? "",
   status: role.status ?? role.Status ?? "",
+  permissions: role.permissions?.map(normalizePermission),
 })
 
 const normalizePermission = (permission: PermissionApiItem): Permission => ({
@@ -169,10 +171,22 @@ export const adminApi = {
         roles: res.roles.map(normalizeRole),
       }))
   },
-  getRole: (id: string) => api.get<any>(`/api/admin/roles/${id}`),
+  getRole: (id: string) =>
+    api.get<{role: RoleApiItem; permissions: PermissionApiItem[]}>(`/api/admin/roles/${id}`)
+      .then((res) => ({
+        role: normalizeRole(res.role),
+        permissions: (res.permissions ?? []).map(normalizePermission),
+      })),
   createRole: (data: {code: string; name: string}) => api.post("/api/admin/roles", data),
   updateRole: (id: string, data: {name?: string}) => api.put(`/api/admin/roles/${id}`, data),
   deleteRole: (id: string) => api.delete(`/api/admin/roles/${id}`),
+  listRolePermissions: (roleId: string) =>
+    api.get<{permissions: PermissionApiItem[]}>(`/api/admin/roles/${roleId}/permissions`)
+      .then((res) => ({ permissions: (res.permissions ?? []).map(normalizePermission) })),
+  assignRolePermission: (roleId: string, permissionId: string) =>
+    api.post(`/api/admin/roles/${roleId}/permissions/assign`, { permission_id: permissionId }),
+  unassignRolePermission: (roleId: string, permissionId: string) =>
+    api.delete(`/api/admin/roles/${roleId}/permissions/${permissionId}`),
 
   // Permissions
   listPermissions: (params?: {page?: number; size?: number; module?: string}) => {

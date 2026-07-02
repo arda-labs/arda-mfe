@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react"
 import { FormField } from "@workspace/ui/components/form-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { adminApi } from "@/features/iam"
-import type { User } from "@/features/iam"
+import type { Role, User } from "@/features/iam"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -49,6 +49,10 @@ export function UsersPage() {
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [resetTarget, setResetTarget] = useState<User | null>(null)
   const [provisionTarget, setProvisionTarget] = useState<User | null>(null)
+  const [roleTarget, setRoleTarget] = useState<User | null>(null)
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([])
+  const [rolesLoading, setRolesLoading] = useState(false)
+  const [busyRoleID, setBusyRoleID] = useState<string | null>(null)
   const [sessionTarget, setSessionTarget] = useState<User | null>(null)
   const [sessions, setSessions] = useState<AdminUserSession[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
@@ -81,6 +85,45 @@ export function UsersPage() {
     tenantId: "default",
   })
   const [identityPassword, setIdentityPassword] = useState("")
+
+  const openRoles = async (user: User) => {
+    setRoleTarget(user)
+    setRolesLoading(true)
+    try {
+      const res = await adminApi.listRoles({ page: 1, size: 100 })
+      setAvailableRoles(res.roles)
+    } catch (err) {
+      notify.error("Không tải được danh sách vai trò", translateApiError(err))
+    } finally {
+      setRolesLoading(false)
+    }
+  }
+
+  const toggleRole = async (role: Role, assigned: boolean) => {
+    if (!roleTarget) return
+    setBusyRoleID(role.id)
+    try {
+      if (assigned) {
+        await adminApi.unassignRole(roleTarget.id, role.id)
+      } else {
+        await adminApi.assignRole(roleTarget.id, role.id)
+      }
+      const nextRoles = assigned
+        ? roleTarget.roles.filter((code) => code !== role.code)
+        : [...roleTarget.roles, role.code]
+      setRoleTarget({ ...roleTarget, roles: nextRoles })
+      setUsers((current) =>
+        current.map((user) =>
+          user.id === roleTarget.id ? { ...user, roles: nextRoles } : user
+        )
+      )
+      notify.success("Đã cập nhật vai trò")
+    } catch (err) {
+      notify.error("Không cập nhật được vai trò", translateApiError(err))
+    } finally {
+      setBusyRoleID(null)
+    }
+  }
 
   const handleCreate = async () => {
     try {
@@ -352,6 +395,10 @@ export function UsersPage() {
                   <Pencil className="mr-2 size-4" />
                   {t("admin.users.action.edit")}
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openRoles(u)}>
+                  <ShieldCheck className="mr-2 size-4" />
+                  Phân vai trò
+                </DropdownMenuItem>
                 {u.status === "ACTIVE" ? (
                   <DropdownMenuItem onClick={() => handleSetStatus(u, "DISABLED")}>
                     <X className="mr-2 size-4" />
@@ -610,6 +657,45 @@ export function UsersPage() {
               {t("admin.users.action.save_changes")}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={roleTarget !== null} onOpenChange={(open) => !open && setRoleTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Phân vai trò cho {roleTarget?.username || roleTarget?.email || ""}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {rolesLoading ? (
+              <div className="text-sm text-muted-foreground">Đang tải vai trò...</div>
+            ) : availableRoles.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Chưa có vai trò để gán.</div>
+            ) : (
+              availableRoles.map((role) => {
+                const assigned = Boolean(roleTarget?.roles.includes(role.code))
+                return (
+                  <label
+                    key={role.id}
+                    className="flex cursor-pointer items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted/50"
+                  >
+                    <Checkbox
+                      checked={assigned}
+                      disabled={busyRoleID === role.id}
+                      onCheckedChange={() => toggleRole(role, assigned)}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium">{role.name}</span>
+                      <span className="block truncate font-mono text-xs text-muted-foreground">
+                        {role.code}
+                      </span>
+                    </span>
+                  </label>
+                )
+              })
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

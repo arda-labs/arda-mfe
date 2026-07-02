@@ -27,8 +27,12 @@ export interface AuthUser {
   approvalLevel?: string
   dailyLimit?: string
   bio?: string
+  tenantId?: string
   orgIds?: string[]
   activeOrgId?: string
+  roles?: string[]
+  permissions?: string[]
+  authVersion?: number
 }
 
 type AuthUserSource = Partial<AuthUser> & {
@@ -86,9 +90,25 @@ export function normalizeAuthUser(
     approvalLevel: source.approvalLevel || "",
     dailyLimit: source.dailyLimit || "",
     bio: source.bio || "",
+    tenantId: source.tenantId || "",
     orgIds: source.orgIds || [],
     activeOrgId: source.activeOrgId || "",
+    roles: Array.isArray(source.roles) ? source.roles : undefined,
+    permissions: Array.isArray(source.permissions) ? source.permissions : undefined,
+    authVersion: source.authVersion || 0,
   }
+}
+
+export function hasPermission(user: AuthUser | null | undefined, code: string): boolean {
+  if (!user) return false
+  if (user.roles?.includes("SUPER_ADMIN")) return true
+  return Boolean(user.permissions?.includes("superadmin") || user.permissions?.includes(code))
+}
+
+export function hasAnyPermission(user: AuthUser | null | undefined, codes: string[]): boolean {
+  if (codes.length === 0) return true
+  if (user && user.roles === undefined && user.permissions === undefined) return true
+  return codes.some((code) => hasPermission(user, code))
 }
 
 interface AuthState {

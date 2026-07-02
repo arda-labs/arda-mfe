@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { adminApi } from "@/features/iam"
-import type { Role } from "@/features/iam"
+import type { Permission, Role } from "@/features/iam"
+import { notify } from "@workspace/notifications/notify"
+import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
@@ -29,7 +31,7 @@ import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { FormField } from "@workspace/ui/components/form-field"
 import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Trash2 } from "lucide-react"
+import { ShieldCheck, Trash2 } from "lucide-react"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -40,6 +42,11 @@ export function RolesPage() {
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Role | null>(null)
+  const [permissionTarget, setPermissionTarget] = useState<Role | null>(null)
+  const [permissions, setPermissions] = useState<Permission[]>([])
+  const [rolePermissions, setRolePermissions] = useState<Permission[]>([])
+  const [permissionsLoading, setPermissionsLoading] = useState(false)
+  const [busyPermissionID, setBusyPermissionID] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [form, setForm] = useState({ code: "", name: "" })
 
@@ -54,6 +61,42 @@ export function RolesPage() {
     await adminApi.deleteRole(id)
     setDeleteTarget(null)
     setRefreshKey((key) => key + 1)
+  }
+
+  const openPermissions = async (role: Role) => {
+    setPermissionTarget(role)
+    setPermissionsLoading(true)
+    try {
+      const [all, assigned] = await Promise.all([
+        adminApi.listPermissions({ page: 1, size: 100 }),
+        adminApi.listRolePermissions(role.id),
+      ])
+      setPermissions(all.permissions)
+      setRolePermissions(assigned.permissions)
+    } catch (err) {
+      notify.error("Không tải được danh sách quyền", translateApiError(err))
+    } finally {
+      setPermissionsLoading(false)
+    }
+  }
+
+  const togglePermission = async (permission: Permission, assigned: boolean) => {
+    if (!permissionTarget) return
+    setBusyPermissionID(permission.id)
+    try {
+      if (assigned) {
+        await adminApi.unassignRolePermission(permissionTarget.id, permission.id)
+        setRolePermissions((current) => current.filter((item) => item.id !== permission.id))
+      } else {
+        await adminApi.assignRolePermission(permissionTarget.id, permission.id)
+        setRolePermissions((current) => [...current, permission])
+      }
+      notify.success("Đã cập nhật quyền")
+    } catch (err) {
+      notify.error("Không cập nhật được quyền", translateApiError(err))
+    } finally {
+      setBusyPermissionID(null)
+    }
   }
 
   const columns = useMemo<ColumnDef<Role>[]>(() => [
@@ -113,6 +156,15 @@ export function RolesPage() {
           <Button
             variant="ghost"
             size="icon"
+            className="size-7 text-muted-foreground"
+            onClick={() => openPermissions(row.original)}
+            title="Phân quyền"
+          >
+            <ShieldCheck className="size-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
             onClick={() => setDeleteTarget(row.original)}
             title={t("common.action.delete")}
@@ -127,6 +179,14 @@ export function RolesPage() {
   ], [t])
 
   const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
+  const permissionsByModule = useMemo(() => {
+    const groups = new Map<string, Permission[]>()
+    for (const permission of permissions) {
+      const key = permission.module || "other"
+      groups.set(key, [...(groups.get(key) ?? []), permission])
+    }
+    return Array.from(groups.entries())
+  }, [permissions])
 
   const { table } = useDataTable<Role>({
     columns,
@@ -222,6 +282,54 @@ export function RolesPage() {
             <Button className="w-full" onClick={handleCreate}>
               {t("common.action.create")}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={permissionTarget !== null} onOpenChange={(nextOpen) => !nextOpen && setPermissionTarget(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Phân quyền cho {permissionTarget?.name || permissionTarget?.code || ""}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[65vh] space-y-4 overflow-auto pr-1">
+            {permissionsLoading ? (
+              <div className="text-sm text-muted-foreground">Đang tải quyền...</div>
+            ) : permissions.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Chưa có quyền để gán.</div>
+            ) : (
+              permissionsByModule.map(([module, items]) => (
+                <section key={module} className="space-y-2">
+                  <div className="text-xs font-semibold uppercase text-muted-foreground">
+                    {module}
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    {items.map((permission) => {
+                      const assigned = rolePermissions.some((item) => item.id === permission.id)
+                      return (
+                        <label
+                          key={permission.id}
+                          className="flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm hover:bg-muted/50"
+                        >
+                          <Checkbox
+                            checked={assigned}
+                            disabled={busyPermissionID === permission.id}
+                            onCheckedChange={() => togglePermission(permission, assigned)}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block font-medium">{permission.name}</span>
+                            <span className="block truncate font-mono text-xs text-muted-foreground">
+                              {permission.code}
+                            </span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </section>
+              ))
+            )}
           </div>
         </DialogContent>
       </Dialog>
