@@ -441,13 +441,16 @@ function AuthFrame({
   compact?: boolean
 }) {
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-6 text-foreground sm:px-6" style={{ minHeight: "100dvh" }}>
-      <div className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-5xl items-center justify-center">
+    <main
+      className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-6 text-foreground sm:px-6"
+      style={{ minHeight: "100dvh" }}
+    >
+      <div className={compact ? "w-full max-w-md" : "w-full max-w-5xl"}>
         <div
           className={
             compact
               ? "w-full max-w-md rounded-lg border bg-background shadow-sm"
-              : "grid w-full overflow-hidden rounded-lg border bg-background shadow-sm lg:grid-cols-[minmax(0,1fr)_400px]"
+              : "grid w-full overflow-hidden rounded-lg border bg-background shadow-sm lg:grid-cols-2"
           }
         >
           {!compact && <AuthBrandPanel />}
