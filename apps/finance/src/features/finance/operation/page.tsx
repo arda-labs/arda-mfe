@@ -370,19 +370,19 @@ function OperationNav({
   const links = [
     {
       key: "incoming",
-      href: "/finance/transactions/incoming",
+      href: "/workbench/incoming-transactions",
       label: "Giao dịch đến",
       icon: ArrowDownToLine,
     },
     {
       key: "outgoing",
-      href: "/finance/transactions/outgoing",
+      href: "/workbench/outgoing-transactions",
       label: "Giao dịch đi",
       icon: ArrowUpFromLine,
     },
     {
       key: "search",
-      href: "/finance/transactions/search",
+      href: "/workbench/transaction-search",
       label: "Tìm kiếm",
       icon: Search,
     },
@@ -491,8 +491,8 @@ function CaseTable({
                     className="inline-flex h-8 items-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-muted"
                     href={
                       item.operation === "incoming"
-                        ? "/finance/transactions/incoming"
-                        : "/finance/transactions/outgoing"
+                        ? "/workbench/incoming-transactions"
+                        : "/workbench/outgoing-transactions"
                     }
                   >
                     <Eye className="size-4" />

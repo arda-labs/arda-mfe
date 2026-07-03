@@ -1,11 +1,7 @@
+import { useEffect } from "react"
 import { AccountsPage } from "@/features/finance/accounts/page"
 import { ApprovalsPage } from "@/features/finance/approvals/page"
-import {
-  AccountingConfigPage,
-  FinanceTransactionSearchPage,
-  IncomingTransactionsOperationPage,
-  OutgoingTransactionsOperationPage,
-} from "@/features/finance/operation/page"
+import { AccountingConfigPage } from "@/features/finance/operation/page"
 import { TransactionsPage } from "@/features/finance/transactions/page"
 import { TrialBalancePage } from "@/features/finance/trial-balance/page"
 
@@ -25,17 +21,17 @@ function FinanceRoutes() {
     pathname.startsWith("/finance/transactions/search") ||
     pathname.startsWith("/finance/transaction-search")
   )
-    return <FinanceTransactionSearchPage />
+    return <RedirectTo path="/workbench/transaction-search" />
   if (
     pathname.startsWith("/finance/transactions/outgoing") ||
     pathname.startsWith("/finance/outgoing-transactions")
   )
-    return <OutgoingTransactionsOperationPage />
+    return <RedirectTo path="/workbench/outgoing-transactions" />
   if (
     pathname.startsWith("/finance/transactions/incoming") ||
     pathname.startsWith("/finance/incoming-transactions")
   )
-    return <IncomingTransactionsOperationPage />
+    return <RedirectTo path="/workbench/incoming-transactions" />
   if (
     pathname.startsWith("/finance/accounting-config") ||
     pathname.startsWith("/finance/transactions/accounting-config")
@@ -48,4 +44,12 @@ function FinanceRoutes() {
   if (pathname.startsWith("/finance/trial-balance")) return <TrialBalancePage />
 
   return <AccountsPage />
+}
+
+function RedirectTo({ path }: { path: string }) {
+  useEffect(() => {
+    window.history.replaceState({}, "", path)
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  }, [path])
+  return null
 }

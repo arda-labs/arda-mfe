@@ -226,15 +226,16 @@ export const financeOperationApi = {
     view: OperationView
   ): Promise<OperationResult<FinanceOperationCase>> {
     const p = new URLSearchParams()
-    p.set("case_type", caseTypeByOperation[operation])
-    p.set("view", view)
+    p.set("size", "100")
 
     try {
       const data = await api.get<
-        WorkflowCase[] | { cases?: WorkflowCase[]; items?: WorkflowCase[] }
-      >(`/api/workflow/cases?${p.toString()}`)
+        | FinanceTransaction[]
+        | { transactions?: FinanceTransaction[]; items?: FinanceTransaction[] }
+      >(`/api/finance/${operation}-transactions?${p.toString()}`)
+      const items = normalizeItems(data, "transactions").map(caseFromTransaction)
       return {
-        items: normalizeItems(data, "cases").map(caseFromWorkflow),
+        items: filterCases(items, operation, view),
         source: "api",
       }
     } catch (error) {

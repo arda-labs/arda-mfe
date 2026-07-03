@@ -172,10 +172,12 @@
       "name": "shell",
       "version": "0.0.1",
       "dependencies": {
+        "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-query": "^5.101.2",
         "@workspace/auth": "workspace:*",
         "@workspace/core": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/media": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
@@ -184,7 +186,9 @@
         "nuqs": "^2.9.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
+        "react-hook-form": "^7.80.0",
         "zeebe-bpmn-moddle": "^1.16.0",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@eslint/js": "^10",

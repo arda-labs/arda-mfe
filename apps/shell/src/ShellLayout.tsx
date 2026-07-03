@@ -108,6 +108,37 @@ const navItems: NavNode[] = [
     ],
   },
   {
+    labelKey: "nav.workbench",
+    label: "Cong viec",
+    icon: Clock,
+    children: [
+      {
+        href: "/workbench/drafts",
+        labelKey: "nav.workbench.drafts",
+        label: "Ho so nhap",
+        icon: FileText,
+      },
+      {
+        href: "/workbench/incoming-transactions",
+        labelKey: "nav.workbench.incoming_transactions",
+        label: "Giao dich den",
+        icon: FileText,
+      },
+      {
+        href: "/workbench/outgoing-transactions",
+        labelKey: "nav.workbench.outgoing_transactions",
+        label: "Giao dich di",
+        icon: FileText,
+      },
+      {
+        href: "/workbench/transaction-search",
+        labelKey: "nav.workbench.transaction_search",
+        label: "Tim kiem giao dich",
+        icon: ListTree,
+      },
+    ],
+  },
+  {
     labelKey: "nav.customer_members",
     label: "Khách hàng hội viên",
     icon: Users,
@@ -137,24 +168,6 @@ const navItems: NavNode[] = [
     label: "Kế toán",
     icon: Wallet,
     children: [
-      {
-        href: "/finance/incoming-transactions",
-        labelKey: "nav.finance.incoming_transactions",
-        label: "Giao dịch đến",
-        icon: FileText,
-      },
-      {
-        href: "/finance/outgoing-transactions",
-        labelKey: "nav.finance.outgoing_transactions",
-        label: "Giao dịch đi",
-        icon: FileText,
-      },
-      {
-        href: "/finance/transactions/search",
-        labelKey: "nav.finance.transaction_search",
-        label: "Tìm kiếm giao dịch",
-        icon: ListTree,
-      },
       {
         href: "/finance/accounting-config",
         labelKey: "nav.finance.accounting_config",
@@ -312,6 +325,7 @@ export function ShellLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "nav.admin": true,
+    "nav.workbench": true,
     "nav.finance": true,
     "nav.workflow": true,
   })

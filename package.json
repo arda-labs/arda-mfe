@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "build": "bun run --filter iam build && bun run --filter platform build && bun run --filter finance build && bun run --filter account build && bun run --filter shell build",
-    "dev": "bun run --filter iam --filter platform --filter finance --filter account --filter shell --parallel dev",
+    "clear:dev-ports": "bun ./scripts/clear-dev-ports.mjs",
+    "dev": "bun run clear:dev-ports && bun run --filter iam --filter platform --filter finance --filter account --filter shell --parallel dev",
     "lint": "bun run --filter @workspace/core lint && bun run --filter @workspace/i18n lint && bun run --filter @workspace/auth lint && bun run --filter @workspace/api lint && bun run --filter @workspace/media lint && bun run --filter @workspace/notifications lint && bun run --filter @workspace/theme lint && bun run --filter @workspace/ui lint && bun run --filter iam lint && bun run --filter platform lint && bun run --filter finance lint && bun run --filter account lint && bun run --filter shell lint",
     "format": "bun run --workspaces --parallel format",
     "typecheck": "bun run --filter @workspace/core typecheck && bun run --filter @workspace/i18n typecheck && bun run --filter @workspace/auth typecheck && bun run --filter @workspace/api typecheck && bun run --filter @workspace/media typecheck && bun run --filter @workspace/notifications typecheck && bun run --filter @workspace/theme typecheck && bun run --filter @workspace/ui typecheck && bun run --filter iam typecheck && bun run --filter platform typecheck && bun run --filter finance typecheck && bun run --filter account typecheck && bun run --filter shell typecheck"

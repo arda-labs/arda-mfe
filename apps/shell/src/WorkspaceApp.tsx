@@ -3,6 +3,8 @@ import * as authShare from "../../../packages/auth/src/index"
 import * as authStoreShare from "../../../packages/auth/src/store"
 import * as stepUpChannelShare from "../../../packages/auth/src/step-up-channel"
 import * as themeShare from "../../../packages/theme/src/index"
+import { CustomersPage } from "./features/customers/page"
+import { WorkbenchPage } from "./features/workbench/page"
 import { WorkflowAdminPage } from "./features/workflow/page"
 import { ShellLayout } from "./ShellLayout"
 
@@ -78,8 +80,10 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
     pathname.startsWith("/admin/templates") ||
     pathname.startsWith("/admin/calendar") ||
     pathname.startsWith("/admin/cutoff")
-  const isFinance = pathname.startsWith("/finance/")
+  const isFinance =
+    pathname.startsWith("/finance/")
   const isCustomerOperation = pathname.startsWith("/customers/")
+  const isWorkbench = pathname.startsWith("/workbench/")
   const isWorkflowAdmin = pathname.startsWith("/workflow/")
   const isAccount =
     pathname === "/my-account" ||
@@ -104,10 +108,9 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
               <FinanceRoutes />
             </Suspense>
           ) : isCustomerOperation ? (
-            <BusinessRoutePlaceholder
-              title="Khách hàng hội viên"
-              description="Các màn hình nghiệp vụ khách hàng sẽ được gắn vào shell theo từng operation."
-            />
+            <CustomersPage pathname={pathname} />
+          ) : isWorkbench ? (
+            <WorkbenchPage pathname={pathname} />
           ) : isWorkflowAdmin ? (
             <WorkflowAdminPage pathname={pathname} />
           ) : isAccount ? (
@@ -120,22 +123,6 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
         </ShellLayout>
       </authShare.AuthGuard>
     </authShare.StepUpProvider>
-  )
-}
-
-function BusinessRoutePlaceholder({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <section className="flex max-w-2xl flex-col gap-3">
-      <p className="text-sm text-muted-foreground">Arda workflow</p>
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="text-muted-foreground">{description}</p>
-    </section>
   )
 }
 
