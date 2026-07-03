@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+﻿import { useState, type ReactNode } from "react"
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -53,15 +53,15 @@ type WorkbenchRoute = "drafts" | "incoming" | "outgoing" | "search"
 
 const directionMeta = {
   incoming: {
-    title: "Giao dich den",
+    title: "Giao dịch đến",
     description:
-      "Danh sach case va user task BPMN cua cac luong giao dich den dang cho xu ly.",
+      "Danh sách case và user task BPMN của các luồng giao dịch đến đang chờ xử lý.",
     icon: ArrowDownToLine,
   },
   outgoing: {
-    title: "Giao dich di",
+    title: "Giao dịch đi",
     description:
-      "Danh sach case va user task BPMN cua cac luong giao dich di dang cho xu ly.",
+      "Danh sách case và user task BPMN của các luồng giao dịch đi đang chờ xử lý.",
     icon: ArrowUpFromLine,
   },
 } satisfies Record<
@@ -94,11 +94,11 @@ function DraftWorkbenchPage() {
   return (
     <section className="space-y-4">
       <Header
-        title="Ho so nhap"
-        description="Cac ban nhap chua submit vao BPMN. Khi trinh duyet thanh cong, ho so se thanh case workflow."
+        title="Hồ sơ nhập"
+        description="Các bản nháp chưa submit vào BPMN. Khi trình duyệt thành công, hồ sơ sẽ thành case workflow."
       />
       <Panel
-        title="Ban nhap nghiep vu"
+        title="Bản nháp nghiệp vụ"
         action={
           <Button
             type="button"
@@ -107,7 +107,7 @@ function DraftWorkbenchPage() {
             onClick={() => void draftsQuery.refetch()}
           >
             <RefreshCw className="size-4" />
-            Tai lai
+            Tải lại
           </Button>
         }
       >
@@ -115,11 +115,11 @@ function DraftWorkbenchPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Ma</TableHead>
-              <TableHead>Tieu de</TableHead>
-              <TableHead>Nghiep vu</TableHead>
-              <TableHead>Trang thai</TableHead>
-              <TableHead>Cap nhat</TableHead>
-              <TableHead className="text-right">Thao tac</TableHead>
+              <TableHead>Tiêu đề</TableHead>
+              <TableHead>Nghiệp vụ</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Cập nhật</TableHead>
+              <TableHead className="text-right">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -149,7 +149,7 @@ function DraftWorkbenchPage() {
               </TableRow>
             ))}
             {!items.length ? (
-              <EmptyTable colSpan={6} text="Chua co ban nhap nao." />
+              <EmptyTable colSpan={6} text="Chưa có bản nháp nào." />
             ) : null}
           </TableBody>
         </Table>
@@ -208,7 +208,7 @@ function TransactionWorkbench({
         title="User task BPMN"
         action={
           <div className="flex flex-wrap items-end gap-2">
-            <FormField className="w-72" label="Buoc can lay">
+            <FormField className="w-72" label="Bước cần lấy">
               <Select
                 value={taskRequest.taskType}
                 onValueChange={(value) => {
@@ -238,7 +238,7 @@ function TransactionWorkbench({
               onClick={() => void tasksQuery.refetch()}
             >
               <RefreshCw className="size-4" />
-              Lay task BPMN
+              Lấy task BPMN
             </Button>
           </div>
         }
@@ -262,7 +262,7 @@ function TransactionWorkbench({
               onClick={() => void casesQuery.refetch()}
             >
               <RefreshCw className="size-4" />
-              Tai lai
+              Tải lại
             </Button>
           }
         >
@@ -286,8 +286,8 @@ function TransactionSearchPage() {
   return (
     <section className="space-y-4">
       <Header
-        title="Tim kiem giao dich"
-        description="Tra cuu case workflow theo ma, doi tuong, trang thai va chieu giao dich."
+        title="Tìm kiếm giao dịch"
+        description="Tra cứu case workflow theo mã, đối tượng, trạng thái và chiều giao dịch."
       />
       <form
         className="grid gap-3 rounded-md border p-4 md:grid-cols-[minmax(14rem,1fr)_12rem_12rem_auto]"
@@ -296,10 +296,10 @@ function TransactionSearchPage() {
           setParams(draft)
         }}
       >
-        <FormField label="Tu khoa">
+        <FormField label="Từ khóa">
           <Input
             value={draft.keyword}
-            placeholder="Ma case, tieu de, doi tuong"
+            placeholder="Mã case, tiêu đề, đối tượng"
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
@@ -308,7 +308,7 @@ function TransactionSearchPage() {
             }
           />
         </FormField>
-        <FormField label="Chieu giao dich">
+        <FormField label="Chiều giao dịch">
           <Select
             value={draft.direction}
             onValueChange={(value) =>
@@ -322,13 +322,13 @@ function TransactionSearchPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">Tat ca</SelectItem>
-              <SelectItem value="INCOMING">Giao dich den</SelectItem>
-              <SelectItem value="OUTGOING">Giao dich di</SelectItem>
+              <SelectItem value="ALL">Tất cả</SelectItem>
+              <SelectItem value="INCOMING">Giao dịch đến</SelectItem>
+              <SelectItem value="OUTGOING">Giao dịch đi</SelectItem>
             </SelectContent>
           </Select>
         </FormField>
-        <FormField label="Trang thai">
+        <FormField label="Trạng thái">
           <Select
             value={draft.status}
             onValueChange={(value) =>
@@ -339,22 +339,22 @@ function TransactionSearchPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">Tat ca</SelectItem>
-              <SelectItem value="DRAFT">Nhap</SelectItem>
-              <SelectItem value="SUBMITTED">Da gui</SelectItem>
-              <SelectItem value="IN_REVIEW">Dang xu ly</SelectItem>
-              <SelectItem value="COMPLETED">Hoan tat</SelectItem>
-              <SelectItem value="FAILED">Loi</SelectItem>
-              <SelectItem value="SUSPENDED">Tam treo</SelectItem>
+              <SelectItem value="ALL">Tất cả</SelectItem>
+              <SelectItem value="DRAFT">Nháp</SelectItem>
+              <SelectItem value="SUBMITTED">Đã gửi</SelectItem>
+              <SelectItem value="IN_REVIEW">Đang xử lý</SelectItem>
+              <SelectItem value="COMPLETED">Hoàn tất</SelectItem>
+              <SelectItem value="FAILED">Lỗi</SelectItem>
+              <SelectItem value="SUSPENDED">Tạm treo</SelectItem>
             </SelectContent>
           </Select>
         </FormField>
         <Button className="mt-6" type="submit">
           <Search className="size-4" />
-          Tim
+          Tìm
         </Button>
       </form>
-      <Panel title="Ket qua">
+      <Panel title="Kết quả">
         <CaseTable cases={searchQuery.data ?? []} />
       </Panel>
     </section>
@@ -379,11 +379,11 @@ function TaskTable({
       <TableHeader>
         <TableRow>
           <TableHead>Task</TableHead>
-          <TableHead>Ma case</TableHead>
-          <TableHead>Buoc BPMN</TableHead>
-          <TableHead>Vai tro</TableHead>
+          <TableHead>Mã case</TableHead>
+          <TableHead>Bước BPMN</TableHead>
+          <TableHead>Vai trò</TableHead>
           <TableHead>Form</TableHead>
-          <TableHead className="text-right">Xu ly</TableHead>
+          <TableHead className="text-right">Xử lý</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -402,7 +402,7 @@ function TaskTable({
                 onClick={() => onOpen(task)}
               >
                 <Eye className="size-4" />
-                Mo
+                Mở
               </Button>
               <Button
                 type="button"
@@ -411,7 +411,7 @@ function TaskTable({
                 onClick={() => onComplete(task, "SUBMIT")}
               >
                 <Send className="size-4" />
-                Gui
+                Gửi
               </Button>
               <Button
                 type="button"
@@ -420,7 +420,7 @@ function TaskTable({
                 onClick={() => onComplete(task, "APPROVE")}
               >
                 <Check className="size-4" />
-                Duyet
+                Duyệt
               </Button>
               <Button
                 type="button"
@@ -430,7 +430,7 @@ function TaskTable({
                 onClick={() => onComplete(task, "REQUEST_CHANGES")}
               >
                 <RotateCcw className="size-4" />
-                Tra ve
+                Trả về
               </Button>
               <Button
                 type="button"
@@ -440,7 +440,7 @@ function TaskTable({
                 onClick={() => onComplete(task, "REJECT")}
               >
                 <X className="size-4" />
-                Tu choi
+                Từ chối
               </Button>
             </TableCell>
           </TableRow>
@@ -448,7 +448,7 @@ function TaskTable({
         {!tasks.length ? (
           <EmptyTable
             colSpan={6}
-            text="Chua co user task nao. Bam Lay task BPMN khi can nhan viec tu Zeebe."
+            text="Chưa có user task nào. Bấm Lấy task BPMN khi cần nhận việc từ Zeebe."
           />
         ) : null}
       </TableBody>
@@ -467,14 +467,14 @@ function CaseTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Ma case</TableHead>
-          <TableHead>Tieu de</TableHead>
-          <TableHead>Loai</TableHead>
-          <TableHead>Trang thai</TableHead>
-          <TableHead>Buoc hien tai</TableHead>
-          <TableHead>Vai tro</TableHead>
-          <TableHead>Cap nhat</TableHead>
-          <TableHead className="text-right">Thao tac</TableHead>
+          <TableHead>Mã case</TableHead>
+          <TableHead>Tiêu đề</TableHead>
+          <TableHead>Loại</TableHead>
+          <TableHead>Trạng thái</TableHead>
+          <TableHead>Bước hiện tại</TableHead>
+          <TableHead>Vai trò</TableHead>
+          <TableHead>Cập nhật</TableHead>
+          <TableHead className="text-right">Thao tác</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -508,14 +508,14 @@ function CaseTable({
                   onClick={() => navigateTo(caseHref(item))}
                 >
                   <Eye className="size-4" />
-                  Mo
+                  Mở
                 </Button>
               )}
             </TableCell>
           </TableRow>
         ))}
         {!cases.length ? (
-          <EmptyTable colSpan={8} text="Chua co case workflow phu hop." />
+          <EmptyTable colSpan={8} text="Chưa có case workflow phù hợp." />
         ) : null}
       </TableBody>
     </Table>
@@ -532,7 +532,7 @@ function CaseDetail({
   if (!item && !task) {
     return (
       <aside className="rounded-md border p-4 text-sm text-muted-foreground">
-        Chon case hoac task de xem chi tiet.
+        Chọn case hoặc task để xem chi tiết.
       </aside>
     )
   }
@@ -548,20 +548,20 @@ function CaseDetail({
         </h2>
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
-        <Field label="Trang thai" value={item?.status ?? "TASK_ACTIVE"} />
+        <Field label="Trạng thái" value={item?.status ?? "TASK_ACTIVE"} />
         <Field
-          label="Buoc hien tai"
+          label="Bước hiện tại"
           value={stepLabel(task?.elementId || item?.currentStep || "-")}
         />
-        <Field label="Vai tro" value={task?.candidateRole || item?.candidateRole || "-"} />
-        <Field label="Nguoi xu ly" value={item?.assignedTo || "Chua gan"} />
+        <Field label="Vai trò" value={task?.candidateRole || item?.candidateRole || "-"} />
+        <Field label="Người xử lý" value={item?.assignedTo || "Chưa gán"} />
         <Field label="Form BPMN" value={task?.formKey || "-"} />
         <Field label="Instance" value={String(task?.processInstanceKey || item?.processInstanceKey || "-")} />
       </div>
       {task ? (
         <div className="rounded-md bg-muted/40 p-3">
           <p className="mb-2 text-xs font-medium text-muted-foreground">
-            Bien task
+            Biến task
           </p>
           <pre className="max-h-72 overflow-auto text-xs">
             {JSON.stringify(task.variables, null, 2)}
@@ -657,44 +657,44 @@ function caseHref(item: WorkflowCase) {
 
 function customerTypeLabel(item: Customer) {
   return item.customerType === "BUSINESS"
-    ? "Khach hang doanh nghiep"
-    : "Khach hang ca nhan"
+    ? "Khách hàng doanh nghiệp"
+    : "Khách hàng cá nhân"
 }
 
 function caseTypeLabel(value: string) {
-  if (value === "FINANCE_INCOMING_TRANSACTION") return "Giao dich den"
-  if (value === "FINANCE_OUTGOING_TRANSACTION") return "Giao dich di"
-  if (value === "CUSTOMER_REGISTRATION") return "Dang ky khach hang"
+  if (value === "FINANCE_INCOMING_TRANSACTION") return "Giao dịch đến"
+  if (value === "FINANCE_OUTGOING_TRANSACTION") return "Giao dịch đi"
+  if (value === "CUSTOMER_REGISTRATION") return "Đăng ký khách hàng"
   return value
 }
 
 function taskLabel(value: string) {
   const labels: Record<string, string> = {
-    "workflow.customer_checker_review": "Kiem soat ho so khach hang",
-    "workflow.customer_risk_review": "Ra soat rui ro khach hang",
-    "workflow.customer_maker_revise": "Maker bo sung ho so",
-    "workflow.finance_incoming_classify": "Phan loai giao dich den",
-    "workflow.finance_incoming_approve": "Duyet giao dich den",
-    "workflow.finance_outgoing_verify": "Kiem tra giao dich di",
-    "workflow.finance_outgoing_approve": "Duyet giao dich di",
+    "workflow.customer_checker_review": "Kiểm soát hồ sơ khách hàng",
+    "workflow.customer_risk_review": "Rà soát rủi ro khách hàng",
+    "workflow.customer_maker_revise": "Maker bổ sung hồ sơ",
+    "workflow.finance_incoming_classify": "Phân loại giao dịch đến",
+    "workflow.finance_incoming_approve": "Duyệt giao dịch đến",
+    "workflow.finance_outgoing_verify": "Kiểm tra giao dịch đi",
+    "workflow.finance_outgoing_approve": "Duyệt giao dịch đi",
   }
   return labels[value] ?? value
 }
 
 function stepLabel(value: string) {
   const labels: Record<string, string> = {
-    submitted: "Da gui",
-    Activity_CheckerReview: "Kiem soat ho so khach hang",
-    Activity_MakerRevise: "Maker bo sung ho so",
-    Activity_RiskReview: "Ra soat rui ro khach hang",
-    Activity_ApproveCustomer: "Kich hoat ho so khach hang",
-    "classify-account": "Phan loai tai khoan",
-    "approve-journal": "Duyet but toan",
-    "verify-beneficiary": "Kiem tra nguoi nhan",
-    "workflow.finance_incoming_classify": "Phan loai giao dich den",
-    "workflow.finance_incoming_approve": "Duyet giao dich den",
-    "workflow.finance_outgoing_verify": "Kiem tra giao dich di",
-    "workflow.finance_outgoing_approve": "Duyet giao dich di",
+    submitted: "Đã gửi",
+    Activity_CheckerReview: "Kiểm soát hồ sơ khách hàng",
+    Activity_MakerRevise: "Maker bổ sung hồ sơ",
+    Activity_RiskReview: "Rà soát rủi ro khách hàng",
+    Activity_ApproveCustomer: "Kích hoạt hồ sơ khách hàng",
+    "classify-account": "Phân loại tài khoản",
+    "approve-journal": "Duyệt bút toán",
+    "verify-beneficiary": "Kiểm tra người nhận",
+    "workflow.finance_incoming_classify": "Phân loại giao dịch đến",
+    "workflow.finance_incoming_approve": "Duyệt giao dịch đến",
+    "workflow.finance_outgoing_verify": "Kiểm tra giao dịch đi",
+    "workflow.finance_outgoing_approve": "Duyệt giao dịch đi",
   }
   return labels[value] ?? value
 }

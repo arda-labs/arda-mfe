@@ -49,11 +49,11 @@ type CustomerRoute = "registrations" | "profiles" | "risk"
 type WorkbenchRoute = "drafts" | "tasks"
 
 const customerSchema = z.object({
-  id: z.string().trim().min(1, "Ma khach hang la bat buoc"),
+  id: z.string().trim().min(1, "Mã khách hàng là bắt buộc"),
   customerType: z.enum(["PERSONAL", "BUSINESS"]),
   avatarFileId: z.string().trim(),
   orgUnit: z.string().trim(),
-  name: z.string().trim().min(1, "Ten khach hang la bat buoc"),
+  name: z.string().trim().min(1, "Tên khách hàng là bắt buộc"),
   provinceCode: z.string().trim(),
   wardCode: z.string().trim(),
   areaCode: z.string().trim(),
@@ -61,7 +61,7 @@ const customerSchema = z.object({
   currentAddress: z.string().trim(),
   mobile: z.string().trim(),
   fixedPhone: z.string().trim(),
-  email: z.string().trim().email("Email khong hop le").or(z.literal("")),
+  email: z.string().trim().email("Email không hợp lệ").or(z.literal("")),
   taxCode: z.string().trim(),
   fax: z.string().trim(),
   economicType: z.string().trim(),
@@ -110,11 +110,11 @@ const customerSchema = z.object({
 type CustomerFormValues = z.infer<typeof customerSchema>
 
 const relationshipSchema = z.object({
-  relatedCustomerId: z.string().trim().min(1, "Ma khach hang la bat buoc"),
-  relationType: z.string().trim().min(1, "Loai quan he la bat buoc"),
-  relationCode: z.string().trim().min(1, "Ma quan he la bat buoc"),
-  reciprocalRelationCode: z.string().trim().min(1, "Ma QH doi ung la bat buoc"),
-  status: z.string().trim().min(1, "Trang thai quan he la bat buoc"),
+  relatedCustomerId: z.string().trim().min(1, "Mã khách hàng là bắt buộc"),
+  relationType: z.string().trim().min(1, "Loại quan hệ là bắt buộc"),
+  relationCode: z.string().trim().min(1, "Mã quan hệ là bắt buộc"),
+  reciprocalRelationCode: z.string().trim().min(1, "Mã QH đối ứng là bắt buộc"),
+  status: z.string().trim().min(1, "Trạng thái quan hệ là bắt buộc"),
 })
 
 type RelationshipFormValues = z.infer<typeof relationshipSchema>
@@ -142,12 +142,12 @@ const defaultValues: CustomerFormValues = {
   gender: "Nam",
   dateOfBirth: "",
   ethnicity: "Kinh",
-  maritalStatus: "Da lap gia dinh",
+  maritalStatus: "Đã lập gia đình",
   birthPlace: "",
   occupation: "",
   educationLevel: "",
   cultureLevel: "",
-  identityType: "Can cuoc cong dan",
+  identityType: "Căn cước công dân",
   identityNo: "",
   oldIdentityNo: "",
   identityIssueDate: "",
@@ -180,105 +180,105 @@ const defaultValues: CustomerFormValues = {
 
 const selectOptions = {
   customerType: [
-    { value: "PERSONAL", label: "Khach hang ca nhan" },
-    { value: "BUSINESS", label: "Doanh nghiep" },
+    { value: "PERSONAL", label: "Khách hàng cá nhân" },
+    { value: "BUSINESS", label: "Doanh nghiệp" },
   ],
-  province: [{ value: "none", label: "-- Chon Tinh, Thanh pho --" }],
-  ward: [{ value: "none", label: "-- Chon Phuong/Xa --" }],
-  area: [{ value: "none", label: "-- Chon khu vuc --" }],
-  generic: [{ value: "none", label: "-- Chon --" }],
+  province: [{ value: "none", label: "-- Chọn Tỉnh, Thành phố --" }],
+  ward: [{ value: "none", label: "-- Chọn Phường/Xã --" }],
+  area: [{ value: "none", label: "-- Chọn khu vực --" }],
+  generic: [{ value: "none", label: "-- Chọn --" }],
   relation: [
-    { value: "SPOUSE", label: "Vo/Chong" },
-    { value: "PARENT", label: "Cha/Me" },
+    { value: "SPOUSE", label: "Vợ/Chồng" },
+    { value: "PARENT", label: "Cha/Mẹ" },
     { value: "CHILD", label: "Con" },
-    { value: "GUARANTOR", label: "Nguoi bao lanh" },
+    { value: "GUARANTOR", label: "Người bảo lãnh" },
   ],
   status: [
-    { value: "ACTIVE", label: "Hoat dong" },
-    { value: "INACTIVE", label: "Ngung hieu luc" },
+    { value: "ACTIVE", label: "Hoạt động" },
+    { value: "INACTIVE", label: "Ngừng hiệu lực" },
   ],
 }
 
 const generalFields: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "textarea"]
 > = [
-  ["id", "Ma khach hang(*)", "input"],
-  ["orgUnit", "Don vi", "input"],
-  ["name", "Ten khach hang(*)", "input"],
-  ["provinceCode", "Ma tinh", "select"],
-  ["wardCode", "Ma phuong xa", "select"],
-  ["areaCode", "Ma khu vuc", "select"],
-  ["permanentAddress", "Dia chi thuong tru", "textarea"],
-  ["currentAddress", "Dia chi hien tai", "textarea"],
-  ["mobile", "So di dong", "input"],
-  ["fixedPhone", "So co dinh", "input"],
+  ["id", "Mã khách hàng(*)", "input"],
+  ["orgUnit", "Đơn vị", "input"],
+  ["name", "Tên khách hàng(*)", "input"],
+  ["provinceCode", "Mã tỉnh", "select"],
+  ["wardCode", "Mã phường xã", "select"],
+  ["areaCode", "Mã khu vực", "select"],
+  ["permanentAddress", "Địa chỉ thường trú", "textarea"],
+  ["currentAddress", "Địa chỉ hiện tại", "textarea"],
+  ["mobile", "Số di động", "input"],
+  ["fixedPhone", "Số cố định", "input"],
   ["email", "Email", "input"],
-  ["taxCode", "Ma so thue", "input"],
+  ["taxCode", "Mã số thuế", "input"],
   ["fax", "Fax", "input"],
-  ["economicType", "Loai hinh kinh te", "select"],
-  ["economicSector", "Nganh kinh te", "select"],
-  ["bankAccount", "So tai khoan", "input"],
-  ["bankName", "Tai ngan hang", "input"],
+  ["economicType", "Loại hình kinh tế", "select"],
+  ["economicSector", "Ngành kinh tế", "select"],
+  ["bankAccount", "Số tài khoản", "input"],
+  ["bankName", "Tại ngân hàng", "input"],
 ]
 
 const personalFields: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "date"]
 > = [
-  ["gender", "Gioi tinh", "select"],
-  ["dateOfBirth", "Ngay sinh", "date"],
-  ["ethnicity", "Dan toc", "input"],
-  ["maritalStatus", "Tinh trang hon nhan", "input"],
-  ["birthPlace", "Noi sinh", "input"],
-  ["occupation", "Nghe nghiep", "select"],
-  ["educationLevel", "Trinh do hoc van", "select"],
-  ["cultureLevel", "Trinh do van hoa", "select"],
-  ["identityType", "Loai dinh danh", "input"],
+  ["gender", "Giới tính", "select"],
+  ["dateOfBirth", "Ngày sinh", "date"],
+  ["ethnicity", "Dân tộc", "input"],
+  ["maritalStatus", "Tình trạng hôn nhân", "input"],
+  ["birthPlace", "Nơi sinh", "input"],
+  ["occupation", "Nghề nghiệp", "select"],
+  ["educationLevel", "Trình độ học vấn", "select"],
+  ["cultureLevel", "Trình độ văn hóa", "select"],
+  ["identityType", "Loại định danh", "input"],
   ["identityNo", "CCCD/CMND", "input"],
-  ["oldIdentityNo", "So dinh danh cu", "input"],
-  ["identityIssueDate", "Ngay cap", "date"],
-  ["identityExpiryDate", "Ngay het hieu luc", "date"],
-  ["identityIssuePlace", "Noi cap", "input"],
+  ["oldIdentityNo", "Số định danh cũ", "input"],
+  ["identityIssueDate", "Ngày cấp", "date"],
+  ["identityExpiryDate", "Ngày hết hiệu lực", "date"],
+  ["identityIssuePlace", "Nơi cấp", "input"],
 ]
 
 const extendedFields: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "date" | "textarea"]
 > = [
-  ["segment", "Phan khuc KH", "select"],
-  ["riskLevel", "Phan loai rui ro", "select"],
-  ["rank", "Hang khach hang", "select"],
-  ["memberCardNo", "So the hoi vien", "input"],
-  ["memberCardIssueDate", "Ngay cap the", "date"],
-  ["memberCardIssuePlace", "Noi cap the", "input"],
-  ["extendedOccupation", "Nghe nghiep", "input"],
-  ["jobTitle", "Chuc vu noi cong tac", "input"],
-  ["workDuration", "Thoi gian cong tac", "select"],
-  ["laborContractType", "Loai HDLD", "input"],
-  ["workplace", "Noi cong tac", "input"],
-  ["workplaceAddress", "Dia chi cong tac", "input"],
-  ["note", "Ghi chu", "textarea"],
+  ["segment", "Phân khúc KH", "select"],
+  ["riskLevel", "Phân loại rủi ro", "select"],
+  ["rank", "Hạng khách hàng", "select"],
+  ["memberCardNo", "Số thẻ hội viên", "input"],
+  ["memberCardIssueDate", "Ngày cấp thẻ", "date"],
+  ["memberCardIssuePlace", "Nơi cấp thẻ", "input"],
+  ["extendedOccupation", "Nghề nghiệp", "input"],
+  ["jobTitle", "Chức vụ nơi công tác", "input"],
+  ["workDuration", "Thời gian công tác", "select"],
+  ["laborContractType", "Loại HĐLĐ", "input"],
+  ["workplace", "Nơi công tác", "input"],
+  ["workplaceAddress", "Địa chỉ công tác", "input"],
+  ["note", "Ghi chú", "textarea"],
 ]
 
 const businessFields: Array<
   [keyof CustomerFormValues, string, "input" | "date"]
 > = [
-  ["shortName", "Ten tat doanh nghiep", "input"],
-  ["businessRegistrationNo", "So dang ky kinh doanh", "input"],
-  ["businessIssueDate", "Ngay cap", "date"],
-  ["issuingAuthority", "Co quan ban hanh", "input"],
-  ["establishedDate", "Ngay thanh lap", "date"],
+  ["shortName", "Tên tắt doanh nghiệp", "input"],
+  ["businessRegistrationNo", "Số đăng ký kinh doanh", "input"],
+  ["businessIssueDate", "Ngày cấp", "date"],
+  ["issuingAuthority", "Cơ quan ban hành", "input"],
+  ["establishedDate", "Ngày thành lập", "date"],
   ["website", "Website", "input"],
-  ["representative", "Nguoi dai dien", "input"],
-  ["representativeTitle", "Chuc vu noi cong tac", "input"],
+  ["representative", "Người đại diện", "input"],
+  ["representativeTitle", "Chức vụ nơi công tác", "input"],
   ["representativeIdentityNo", "CCCD/CMND", "input"],
-  ["businessLine", "Nganh kinh doanh", "input"],
+  ["businessLine", "Ngành kinh doanh", "input"],
 ]
 
 export function CustomersPage({ pathname }: { pathname: string }) {
   const route = routeFromPath(pathname)
   if (route === "profiles")
-    return <CustomerTable title="Ho so khach hang" mode="profiles" />
+    return <CustomerTable title="Hồ sơ khách hàng" mode="profiles" />
   if (route === "risk")
-    return <CustomerTable title="Khach hang rui ro" mode="risk" />
+    return <CustomerTable title="Khách hàng rủi ro" mode="risk" />
   return <CustomerRegistrationPage initialCustomerId={customerIdFromSearch()} />
 }
 
@@ -324,15 +324,15 @@ function CustomerRegistrationPage({
   async function uploadAvatarFile(file: File) {
     const customerId = form.getValues("id").trim()
     if (!customerId) {
-      notify.error("Nhap Ma khach hang truoc khi upload anh dai dien")
+      notify.error("Nhập Mã khách hàng trước khi upload ảnh đại diện")
       return
     }
     if (!file.type.startsWith("image/")) {
-      notify.error("File anh khong hop le")
+      notify.error("File ảnh không hợp lệ")
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      notify.error("Anh dai dien toi da 5MB")
+      notify.error("Ảnh đại diện tối đa 5MB")
       return
     }
     const result = await uploadAvatar.mutateAsync({ file, customerId })
@@ -342,12 +342,12 @@ function CustomerRegistrationPage({
   return (
     <section className="space-y-4">
       <Header
-        title="Dang ky khach hang"
-        description="Nhap thong tin khach hang hoi vien, luu nhap hoac trinh duyet theo BPM."
+        title="Đăng ký khách hàng"
+        description="Nhập thông tin khách hàng hội viên, lưu nháp hoặc trình duyệt theo BPM."
       />
       {customerQuery.isFetching ? (
         <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-          Dang tai ho so {initialCustomerId}...
+          Đang tải hồ sơ {initialCustomerId}...
         </div>
       ) : null}
       <form
@@ -356,18 +356,18 @@ function CustomerRegistrationPage({
       >
         <Tabs defaultValue="general" className="space-y-4">
           <TabsList className="flex h-auto flex-wrap justify-start">
-            <TabsTrigger value="general">Thong tin khach hang</TabsTrigger>
+            <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
             {isPersonal ? (
               <TabsTrigger value="relationships" disabled={!canAddRelationship}>
-                Nguoi co lien quan
+                Người có liên quan
               </TabsTrigger>
             ) : null}
           </TabsList>
           <TabsContent value="general" className="space-y-4">
-            <Panel title="Thong tin chung">
+            <Panel title="Thông tin chung">
               <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
                 <div className="space-y-3">
-                  <FormField label="Loai khach hang">
+                  <FormField label="Loại khách hàng">
                     <Controller
                       control={form.control}
                       name="customerType"
@@ -409,15 +409,15 @@ function CustomerRegistrationPage({
             </Panel>
             {isPersonal ? (
               <>
-                <Panel title="Thong tin dinh danh">
+                <Panel title="Thông tin định danh">
                   <FieldGrid fields={personalFields} form={form} />
                 </Panel>
-                <Panel title="Thong tin mo rong">
+                <Panel title="Thông tin mở rộng">
                   <FieldGrid fields={extendedFields} form={form} />
                 </Panel>
               </>
             ) : (
-              <Panel title="Thong tin doanh nghiep">
+              <Panel title="Thông tin doanh nghiệp">
                 <FieldGrid fields={businessFields} form={form} />
               </Panel>
             )}
@@ -427,7 +427,7 @@ function CustomerRegistrationPage({
               {savedCustomer ? (
                 <RelationshipsPanel customer={savedCustomer} />
               ) : (
-                <EmptyState text="Luu va hoan thanh ho so khach hang truoc khi khai bao nguoi co lien quan." />
+                <EmptyState text="Lưu và hoàn thành hồ sơ khách hàng trước khi khai báo người có liên quan." />
               )}
             </TabsContent>
           ) : null}
@@ -439,7 +439,7 @@ function CustomerRegistrationPage({
             disabled={form.formState.isSubmitting || saveCustomer.isPending}
           >
             <Save className="size-4" />
-            Luu nhap
+            Lưu nháp
           </Button>
           <Button
             type="button"
@@ -452,7 +452,7 @@ function CustomerRegistrationPage({
             onClick={form.handleSubmit((values) => save(values, true))}
           >
             <Send className="size-4" />
-            Trinh duyet
+            Trình duyệt
           </Button>
         </div>
       </form>
@@ -464,8 +464,8 @@ function DraftWorkbenchPage() {
   return (
     <section className="space-y-4">
       <Header
-        title="Ho so nhap"
-        description="Danh sach ho so dang soan, dang cho duyet hoac bi tra ve bo sung tu cac luong nghiep vu."
+        title="Hồ sơ nhập"
+        description="Danh sách hồ sơ đang soạn hoặc bị trả về bổ sung từ các luồng nghiệp vụ."
       />
       <CustomerDraftList
         onOpen={(customer) =>
@@ -482,8 +482,8 @@ function TaskWorkbenchPage() {
   return (
     <section className="space-y-4">
       <Header
-        title="Viec can xu ly"
-        description="Hang doi task BPM dung chung cho khach hang, giao dich den, giao dich di va cac luong ve sau."
+        title="Việc cần xử lý"
+        description="Hàng đợi task BPM dùng chung cho khách hàng, giao dịch đến, giao dịch đi và các luồng về sau."
       />
       <CustomerTaskInbox />
     </section>
@@ -568,19 +568,19 @@ function AvatarUploader({
       <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-md border bg-muted/30">
         {fileId ? (
           <img
-            alt="Avatar khach hang"
+            alt="Avatar khách hàng"
             className="h-full w-full object-cover"
             src={getMediaContentUrl(fileId)}
           />
         ) : (
           <div className="px-4 text-center text-sm text-muted-foreground">
-            Anh dai dien
+            Ảnh đại diện
           </div>
         )}
       </div>
       <label className="inline-flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-muted">
         <Upload className="size-4" />
-        {uploading ? "Dang tai" : "Upload"}
+        {uploading ? "Đang tải" : "Upload"}
         <input
           accept="image/*"
           className="sr-only"
@@ -597,7 +597,7 @@ function AvatarUploader({
           variant="ghost"
           onClick={onClear}
         >
-          Xoa anh
+          Xóa ảnh
         </Button>
       ) : null}
     </div>
@@ -613,7 +613,7 @@ function CustomerDraftList({
   const items = draftsQuery.data ?? []
 
   return (
-    <Panel title="Ho so dang xu ly">
+    <Panel title="Hồ sơ đang xử lý">
       <div className="mb-4 flex justify-end">
         <Button
           type="button"
@@ -621,19 +621,19 @@ function CustomerDraftList({
           disabled={draftsQuery.isFetching}
           onClick={() => void draftsQuery.refetch()}
         >
-          Tai lai
+          Tải lại
         </Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Ma khach hang</TableHead>
-            <TableHead>Ten khach hang</TableHead>
+            <TableHead>Mã khách hàng</TableHead>
+            <TableHead>Tên khách hàng</TableHead>
             <TableHead>Loai</TableHead>
-            <TableHead>Trang thai</TableHead>
-            <TableHead>So di dong</TableHead>
+            <TableHead>Trạng thái</TableHead>
+            <TableHead>Số di động</TableHead>
             <TableHead>CCCD/CMND</TableHead>
-            <TableHead className="text-right">Thao tac</TableHead>
+            <TableHead className="text-right">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -655,7 +655,7 @@ function CustomerDraftList({
             </TableRow>
           ))}
           {!items.length ? (
-            <EmptyTable colSpan={7} text="Chua co ho so nhap dang xu ly." />
+            <EmptyTable colSpan={7} text="Chưa có hồ sơ nhập đang xử lý." />
           ) : null}
         </TableBody>
       </Table>
@@ -685,9 +685,9 @@ function CustomerTaskInbox() {
   }
 
   return (
-    <Panel title="Viec can xu ly">
+    <Panel title="Việc cần xử lý">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-        <FormField className="sm:w-72" label="Vai tro xu ly">
+        <FormField className="sm:w-72" label="Vai trò xử lý">
           <Select
             value={role}
             onValueChange={(value) => setRole(value as WorkflowTaskRole)}
@@ -700,7 +700,7 @@ function CustomerTaskInbox() {
               <SelectItem value="CUSTOMER_RISK_CHECKER">
                 Risk checker
               </SelectItem>
-              <SelectItem value="CUSTOMER_MAKER">Maker bo sung</SelectItem>
+              <SelectItem value="CUSTOMER_MAKER">Maker bổ sung</SelectItem>
             </SelectContent>
           </Select>
         </FormField>
@@ -710,18 +710,18 @@ function CustomerTaskInbox() {
           disabled={tasksQuery.isFetching}
           onClick={() => void tasksQuery.refetch()}
         >
-          Lay task
+          Lấy task
         </Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Task</TableHead>
-            <TableHead>Ma ho so</TableHead>
-            <TableHead>Ma khach hang</TableHead>
-            <TableHead>Ten khach hang</TableHead>
-            <TableHead>Vai tro</TableHead>
-            <TableHead className="text-right">Xu ly</TableHead>
+            <TableHead>Mã hồ sơ</TableHead>
+            <TableHead>Mã khách hàng</TableHead>
+            <TableHead>Tên khách hàng</TableHead>
+            <TableHead>Vai trò</TableHead>
+            <TableHead className="text-right">Xử lý</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -742,7 +742,7 @@ function CustomerTaskInbox() {
                       type="button"
                       onClick={() => complete(task, "APPROVE")}
                     >
-                      Duyet
+                      Duyệt
                     </Button>
                     <Button
                       size="sm"
@@ -750,7 +750,7 @@ function CustomerTaskInbox() {
                       variant="outline"
                       onClick={() => complete(task, "REQUEST_CHANGES")}
                     >
-                      Bo sung
+                      Bổ sung
                     </Button>
                     <Button
                       size="sm"
@@ -758,7 +758,7 @@ function CustomerTaskInbox() {
                       variant="destructive"
                       onClick={() => complete(task, "REJECT")}
                     >
-                      Tu choi
+                      Từ chối
                     </Button>
                   </>
                 ) : (
@@ -767,14 +767,14 @@ function CustomerTaskInbox() {
                     type="button"
                     onClick={() => complete(task, "APPROVE")}
                   >
-                    Gui lai
+                    Gửi lại
                   </Button>
                 )}
               </TableCell>
             </TableRow>
           ))}
           {!tasks.length ? (
-            <EmptyTable colSpan={6} text="Chua co task nao duoc lay." />
+            <EmptyTable colSpan={6} text="Chưa có task nào được lấy." />
           ) : null}
         </TableBody>
       </Table>
@@ -812,13 +812,13 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
   })
 
   return (
-    <Panel title="Nguoi co lien quan">
+    <Panel title="Người có liên quan">
       <form
         className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5"
         onSubmit={submit}
       >
         <FormField
-          label="Ma khach hang(*)"
+          label="Mã khách hàng(*)"
           error={form.formState.errors.relatedCustomerId?.message}
         >
           <Controller
@@ -832,10 +832,10 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chon khach hang" />
+                  <SelectValue placeholder="Chọn khách hàng" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">-- Chon khach hang --</SelectItem>
+                  <SelectItem value="none">-- Chọn khách hàng --</SelectItem>
                   {candidates.map((item) => (
                     <SelectItem key={item.id} value={item.id}>
                       {item.id} - {item.name}
@@ -847,13 +847,13 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
           />
         </FormField>
         <FormField
-          label="Loai quan he(*)"
+          label="Loại quan hệ(*)"
           error={form.formState.errors.relationType?.message}
         >
           <Input {...form.register("relationType")} />
         </FormField>
         <FormField
-          label="Ma quan he(*)"
+          label="Mã quan hệ(*)"
           error={form.formState.errors.relationCode?.message}
         >
           <Controller
@@ -865,7 +865,7 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
           />
         </FormField>
         <FormField
-          label="Ma QH doi ung(*)"
+          label="Mã QH đối ứng(*)"
           error={form.formState.errors.reciprocalRelationCode?.message}
         >
           <Controller
@@ -877,7 +877,7 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
           />
         </FormField>
         <FormField
-          label="Trang thai quan he(*)"
+          label="Trạng thái quan he(*)"
           error={form.formState.errors.status?.message}
         >
           <Controller
@@ -905,7 +905,7 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
             disabled={createRelationship.isPending || !candidates.length}
           >
             <Plus className="size-4" />
-            Them moi
+            Thêm mới
           </Button>
         </div>
       </form>
@@ -913,12 +913,12 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
         <TableHeader>
           <TableRow>
             <TableHead>TT</TableHead>
-            <TableHead>Ma khach hang</TableHead>
-            <TableHead>Ten khach hang</TableHead>
-            <TableHead>Dia chi</TableHead>
-            <TableHead>Ten quan he</TableHead>
-            <TableHead>Ten quan he doi ung</TableHead>
-            <TableHead>Trang thai quan he</TableHead>
+            <TableHead>Mã khách hàng</TableHead>
+            <TableHead>Tên khách hàng</TableHead>
+            <TableHead>Địa chỉ</TableHead>
+            <TableHead>Tên quan hệ</TableHead>
+            <TableHead>Tên quan hệ đối ứng</TableHead>
+            <TableHead>Trạng thái quan he</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -942,7 +942,7 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
             </TableRow>
           ))}
           {!relationshipsQuery.data?.length ? (
-            <EmptyTable colSpan={7} text="Chua co quan he khach hang." />
+            <EmptyTable colSpan={7} text="Chưa có quan hệ khách hàng." />
           ) : null}
         </TableBody>
       </Table>
@@ -966,7 +966,7 @@ function RelationSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="none">-- Chon Ma quan he --</SelectItem>
+        <SelectItem value="none">-- Chọn Mã quan hệ --</SelectItem>
         {selectOptions.relation.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
@@ -999,8 +999,8 @@ function CustomerTable({
         title={title}
         description={
           mode === "risk"
-            ? "Theo doi khach hang co phan loai rui ro."
-            : "Tra cuu ho so khach hang da ghi nhan tren CRM."
+            ? "Theo dõi khách hàng có phân loại rủi ro."
+            : "Tra cứu hồ sơ khách hàng đã ghi nhận trên CRM."
         }
       />
       <form
@@ -1016,34 +1016,34 @@ function CustomerTable({
             className="pl-9"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Tim theo ma, ten, so di dong, CCCD/CMND"
+            placeholder="Tìm theo mã, tên, số di động, CCCD/CMND"
           />
         </div>
         <Button type="submit">
           <Search className="size-4" />
-          Tim
+          Tìm
         </Button>
       </form>
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              {mode === "profiles" ? <TableHead>Chon</TableHead> : null}
+              {mode === "profiles" ? <TableHead>Chọn</TableHead> : null}
               <TableHead>TT</TableHead>
-              <TableHead>Ma khach hang</TableHead>
-              <TableHead>Ten khach hang</TableHead>
+              <TableHead>Mã khách hàng</TableHead>
+              <TableHead>Tên khách hàng</TableHead>
               {mode === "profiles" ? (
-                <TableHead>Phan khuc khach hang</TableHead>
+                <TableHead>Phân khúc khách hàng</TableHead>
               ) : null}
-              <TableHead>Loai khach hang</TableHead>
+              <TableHead>Loại khách hàng</TableHead>
               {mode === "profiles" ? (
-                <TableHead>Hang khach hang</TableHead>
+                <TableHead>Hạng khách hàng</TableHead>
               ) : (
-                <TableHead>Phan loai rui ro</TableHead>
+                <TableHead>Phân loại rủi ro</TableHead>
               )}
-              <TableHead>So di dong</TableHead>
+              <TableHead>Số di động</TableHead>
               <TableHead>CCCD/CMND</TableHead>
-              <TableHead>Dia chi</TableHead>
+              <TableHead>Địa chỉ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1051,7 +1051,7 @@ function CustomerTable({
               <TableRow key={item.id}>
                 {mode === "profiles" ? (
                   <TableCell>
-                    <input aria-label={`Chon ${item.id}`} type="checkbox" />
+                    <input aria-label={`Chọn ${item.id}`} type="checkbox" />
                   </TableCell>
                 ) : null}
                 <TableCell>{index + 1}</TableCell>
@@ -1076,7 +1076,7 @@ function CustomerTable({
             {!items.length ? (
               <EmptyTable
                 colSpan={mode === "profiles" ? 10 : 8}
-                text="Chua co du lieu khach hang."
+                text="Chưa có dữ liệu khách hàng."
               />
             ) : null}
           </TableBody>
@@ -1316,7 +1316,7 @@ function stringValue(value: unknown) {
 }
 
 function customerTypeLabel(value: CustomerType) {
-  return value === "BUSINESS" ? "Doanh nghiep" : "Ca nhan"
+  return value === "BUSINESS" ? "Doanh nghiệp" : "Cá nhân"
 }
 
 function relationLabel(value: string) {

@@ -64,11 +64,11 @@ export function useSaveCustomer() {
     mutationFn: (payload: CustomerPayload) => customerApi.save(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
-      notify.success("Da luu ho so khach hang")
+      notify.success("Đã lưu hồ sơ khách hàng")
     },
     onError: (error) =>
       notify.error(
-        "Luu ho so khach hang that bai",
+        "Lưu hồ sơ khách hàng thất bại",
         error instanceof Error ? error.message : undefined
       ),
   })
@@ -80,11 +80,11 @@ export function useSubmitCustomer() {
     mutationFn: (id: string) => customerApi.submit(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
-      notify.success("Da trinh duyet ho so khach hang")
+      notify.success("Đã trình duyệt hồ sơ khách hàng")
     },
     onError: (error) =>
       notify.error(
-        "Trinh duyet ho so that bai",
+        "Trình duyệt hồ sơ thất bại",
         error instanceof Error ? error.message : undefined
       ),
   })
@@ -99,11 +99,11 @@ export function useCreateCustomerRelationship(customerId: string) {
       queryClient.invalidateQueries({
         queryKey: customerKeys.relationships(customerId),
       })
-      notify.success("Da them quan he khach hang")
+      notify.success("Đã thêm quan hệ khách hàng")
     },
     onError: (error) =>
       notify.error(
-        "Them quan he that bai",
+        "Thêm quan hệ thất bại",
         error instanceof Error ? error.message : undefined
       ),
   })
@@ -113,10 +113,10 @@ export function useUploadCustomerAvatar() {
   return useMutation({
     mutationFn: ({ file, customerId }: { file: File; customerId: string }) =>
       uploadFile(file, "crm", "customer_avatar", customerId),
-    onSuccess: () => notify.success("Da tai anh dai dien len media-service"),
+    onSuccess: () => notify.success("Đã tải ảnh đại diện lên media-service"),
     onError: (error) =>
       notify.error(
-        "Tai anh dai dien that bai",
+        "Tải ảnh đại diện thất bại",
         error instanceof Error ? error.message : undefined
       ),
   })
@@ -147,11 +147,11 @@ export function useCompleteWorkflowTask(role: WorkflowTaskRole) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.tasks(role) })
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
-      notify.success("Da hoan tat task quy trinh")
+      notify.success("Đã hoàn tất task quy trình")
     },
     onError: (error) =>
       notify.error(
-        "Hoan tat task that bai",
+        "Hoàn tất task thất bại",
         error instanceof Error ? error.message : undefined
       ),
   })

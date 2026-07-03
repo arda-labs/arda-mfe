@@ -48,11 +48,11 @@ export function useCompleteWorkflowTask(direction: WorkbenchDirection) {
       queryClient.invalidateQueries({
         queryKey: workbenchKeys.direction(direction),
       })
-      notify.success("Da hoan tat task BPMN")
+      notify.success("Đã hoàn tất task BPMN")
     },
     onError: (error) =>
       notify.error(
-        "Xu ly task that bai",
+        "Xử lý task that bai",
         error instanceof Error ? error.message : undefined
       ),
   })

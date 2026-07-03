@@ -109,31 +109,31 @@ const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.workbench",
-    label: "Cong viec",
+    label: "Công việc",
     icon: Clock,
     children: [
       {
         href: "/workbench/drafts",
         labelKey: "nav.workbench.drafts",
-        label: "Ho so nhap",
+        label: "Hồ sơ nhập",
         icon: FileText,
       },
       {
         href: "/workbench/incoming-transactions",
         labelKey: "nav.workbench.incoming_transactions",
-        label: "Giao dich den",
+        label: "Giao dịch đến",
         icon: FileText,
       },
       {
         href: "/workbench/outgoing-transactions",
         labelKey: "nav.workbench.outgoing_transactions",
-        label: "Giao dich di",
+        label: "Giao dịch đi",
         icon: FileText,
       },
       {
         href: "/workbench/transaction-search",
         labelKey: "nav.workbench.transaction_search",
-        label: "Tim kiem giao dich",
+        label: "Tìm kiếm giao dịch",
         icon: ListTree,
       },
     ],
