@@ -105,6 +105,7 @@ function createIdempotencyKey() {
 }
 
 export function TransactionsPage() {
+  const { t } = useI18n()
   const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
   const size = DEFAULT_PAGE_SIZE

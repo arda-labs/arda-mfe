@@ -315,7 +315,6 @@ function ApprovalsTable({
   onReject: (id: string, note: string) => void
   onCancel: (target: ApprovalRequest) => void
 }) {
-  const { t } = useI18n()
   const [reviewTarget, setReviewTarget] = useState<ApprovalRequest | null>(null)
   const [decision, setDecision] = useState<DecisionAction>("approve")
   const [note, setNote] = useState("")
