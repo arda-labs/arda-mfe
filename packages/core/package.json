@@ -20,6 +20,7 @@
   },
   "exports": {
     "./appearance": "./src/appearance/index.ts",
+    "./branding": "./src/branding/index.ts",
     "./browser/pkce": "./src/browser/pkce.ts",
     "./http/api-client": "./src/http/api-client.ts",
     "./media/urls": "./src/media/urls.ts",

@@ -21,6 +21,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react"
+import { useSystemBranding } from "@workspace/core/branding"
 import { useI18n, type MessageKey } from "@workspace/i18n"
 import type { AuthUser } from "@workspace/auth/store"
 import { hasAnyPermission } from "@workspace/auth/store"
@@ -36,6 +37,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
+import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -335,6 +337,7 @@ export function ShellLayout({
   const { user, isAuthenticated, logout } = useAuthStore()
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useI18n()
+  const { branding } = useSystemBranding()
   const visibleNavItems = filterNavItems(navItems, user)
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
 
@@ -365,11 +368,21 @@ export function ShellLayout({
           sidebarOpen ? "w-64" : "w-14"
         )}
       >
-        <div className="flex h-14 items-center border-b px-3">
+        <div className="flex h-14 items-center gap-3 border-b px-3">
+          <BrandMark
+            name={branding.appName}
+            logoUrl={branding.dashboardLogoUrl || branding.loginLogoUrl}
+            size="sm"
+          />
           {sidebarOpen && (
-            <span className="truncate text-lg font-semibold tracking-tight">
-              {t("common.app.name")}
-            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold leading-none">
+                {branding.appName}
+              </p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">
+                {branding.organizationName || "Workspace"}
+              </p>
+            </div>
           )}
         </div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
@@ -394,6 +407,7 @@ export function ShellLayout({
             <Button
               variant="ghost"
               size="icon"
+              aria-label={t("common.action.toggle_sidebar")}
               onClick={() => setSidebarOpen(!sidebarOpen)}
               title={t("common.action.toggle_sidebar")}
             >
@@ -406,6 +420,7 @@ export function ShellLayout({
             <Button
               variant="ghost"
               size="icon"
+              aria-label={t("common.action.toggle_theme")}
               onClick={toggleTheme}
               title={t("common.action.toggle_theme")}
               className="size-8"
