@@ -358,7 +358,7 @@ export function ShellLayout({
     : "?"
 
   return (
-    <div className="flex h-svh overflow-hidden bg-background text-foreground">
+    <div className="fixed inset-0 flex min-h-0 overflow-hidden bg-background text-foreground">
       <aside
         className={cn(
           "flex shrink-0 flex-col border-r bg-muted/30 transition-all duration-200",
@@ -388,7 +388,7 @@ export function ShellLayout({
           ))}
         </nav>
       </aside>
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-14 items-center justify-between gap-3 border-b bg-background px-4">
           <div className="flex min-w-0 items-center gap-2">
             <Button
@@ -435,7 +435,7 @@ export function ShellLayout({
             />
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-6">
+        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-6">
           {children}
           <Toaster />
         </main>
