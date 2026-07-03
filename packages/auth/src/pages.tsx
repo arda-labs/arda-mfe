@@ -251,7 +251,7 @@ export function LoginPage() {
       <AuthFrame branding={branding}>
       <div className="space-y-6">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-balance">
+          <h1 className="text-2xl font-semibold text-balance text-foreground">
             {mfaRequired || mfaEnrollmentRequired ? "Xác thực bảo mật" : t("auth.login.title")}
           </h1>
           <p className="text-sm text-muted-foreground text-pretty">
