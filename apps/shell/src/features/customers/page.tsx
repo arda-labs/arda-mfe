@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { getMediaContentUrl } from "@workspace/media"
 import { notify } from "@workspace/notifications/notify"
-import { FileText, Plus, Save, Search, Send, Upload } from "lucide-react"
+import { Check, FileText, Plus, RotateCcw, Save, Search, Send, Upload, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -40,13 +40,10 @@ import {
   useCustomers,
   useSaveCustomer,
   useSubmitCustomer,
-  useCustomerDrafts,
   useUploadCustomerAvatar,
-  useWorkflowTasks,
 } from "./queries"
 
 type CustomerRoute = "registrations" | "profiles" | "risk"
-type WorkbenchRoute = "drafts" | "tasks"
 
 const customerSchema = z.object({
   id: z.string().trim().min(1, "Mã khách hàng là bắt buộc"),
@@ -282,20 +279,16 @@ export function CustomersPage({ pathname }: { pathname: string }) {
   return <CustomerRegistrationPage initialCustomerId={customerIdFromSearch()} />
 }
 
-export function WorkbenchPage({ pathname }: { pathname: string }) {
-  const route = workbenchRouteFromPath(pathname)
-  if (route === "tasks") return <TaskWorkbenchPage />
-  return <DraftWorkbenchPage />
-}
-
 function CustomerRegistrationPage({
   initialCustomerId,
 }: {
   initialCustomerId?: string | null
 }) {
   const [savedCustomer, setSavedCustomer] = useState<Customer | null>(null)
+  const taskContext = taskContextFromSearch()
   const saveCustomer = useSaveCustomer()
   const submitCustomer = useSubmitCustomer()
+  const completeTask = useCompleteWorkflowTask(taskContext.role)
   const uploadAvatar = useUploadCustomerAvatar()
   const customerQuery = useCustomer(initialCustomerId ?? null)
   const form = useForm<CustomerFormValues>({
@@ -319,6 +312,23 @@ function CustomerRegistrationPage({
       const submitted = await submitCustomer.mutateAsync(saved.id)
       setSavedCustomer(submitted)
     }
+  }
+
+  function completeCurrentTask(decision: string) {
+    if (!taskContext.taskKey || !taskContext.processInstanceKey || !taskContext.elementId) {
+      notify.error("Thiếu ngữ cảnh task BPM")
+      return
+    }
+    const variables =
+      taskContext.role === "CUSTOMER_RISK_CHECKER"
+        ? { riskDecision: decision }
+        : { reviewDecision: decision }
+    completeTask.mutate({
+      jobKey: taskContext.taskKey,
+      processInstanceKey: taskContext.processInstanceKey,
+      elementId: taskContext.elementId,
+      variables,
+    })
   }
 
   async function uploadAvatarFile(file: File) {
@@ -350,6 +360,11 @@ function CustomerRegistrationPage({
           Đang tải hồ sơ {initialCustomerId}...
         </div>
       ) : null}
+      <CurrentTaskPanel
+        context={taskContext}
+        completing={completeTask.isPending}
+        onComplete={completeCurrentTask}
+      />
       <form
         className="space-y-4"
         onSubmit={form.handleSubmit((values) => save(values))}
@@ -460,33 +475,69 @@ function CustomerRegistrationPage({
   )
 }
 
-function DraftWorkbenchPage() {
-  return (
-    <section className="space-y-4">
-      <Header
-        title="Hồ sơ nhập"
-        description="Danh sách hồ sơ đang soạn hoặc bị trả về bổ sung từ các luồng nghiệp vụ."
-      />
-      <CustomerDraftList
-        onOpen={(customer) =>
-          navigateTo(
-            `/customers/registrations?customerId=${encodeURIComponent(customer.id)}`
-          )
-        }
-      />
-    </section>
-  )
-}
+function CurrentTaskPanel({
+  context,
+  completing,
+  onComplete,
+}: {
+  context: CustomerTaskContext
+  completing: boolean
+  onComplete: (decision: string) => void
+}) {
+  if (!hasTaskContext(context)) return null
 
-function TaskWorkbenchPage() {
+  const makerTask = context.role === "CUSTOMER_MAKER"
   return (
-    <section className="space-y-4">
-      <Header
-        title="Việc cần xử lý"
-        description="Hàng đợi task BPM dùng chung cho khách hàng, giao dịch đến, giao dịch đi và các luồng về sau."
-      />
-      <CustomerTaskInbox />
-    </section>
+    <Panel title="Việc BPM hiện tại">
+      <div className="grid gap-3 text-sm md:grid-cols-5">
+        <ContextField label="Mã case" value={context.caseCode || context.caseId} />
+        <ContextField label="Task key" value={context.taskKey?.toString()} />
+        <ContextField label="Bước" value={context.elementId} />
+        <ContextField label="Vai trò" value={context.role} />
+        <ContextField label="Customer" value={context.customerId} />
+      </div>
+      <div className="flex flex-wrap justify-end gap-2">
+        {makerTask ? (
+          <Button
+            type="button"
+            disabled={completing}
+            onClick={() => onComplete("APPROVE")}
+          >
+            <Send className="size-4" />
+            Gửi lại
+          </Button>
+        ) : (
+          <>
+            <Button
+              type="button"
+              disabled={completing}
+              onClick={() => onComplete("APPROVE")}
+            >
+              <Check className="size-4" />
+              Duyệt
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={completing}
+              onClick={() => onComplete("REQUEST_CHANGES")}
+            >
+              <RotateCcw className="size-4" />
+              Bổ sung
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={completing}
+              onClick={() => onComplete("REJECT")}
+            >
+              <X className="size-4" />
+              Từ chối
+            </Button>
+          </>
+        )}
+      </div>
+    </Panel>
   )
 }
 
@@ -601,184 +652,6 @@ function AvatarUploader({
         </Button>
       ) : null}
     </div>
-  )
-}
-
-function CustomerDraftList({
-  onOpen,
-}: {
-  onOpen: (customer: Customer) => void
-}) {
-  const draftsQuery = useCustomerDrafts()
-  const items = draftsQuery.data ?? []
-
-  return (
-    <Panel title="Hồ sơ đang xử lý">
-      <div className="mb-4 flex justify-end">
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={draftsQuery.isFetching}
-          onClick={() => void draftsQuery.refetch()}
-        >
-          Tải lại
-        </Button>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Mã khách hàng</TableHead>
-            <TableHead>Tên khách hàng</TableHead>
-            <TableHead>Loai</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead>Số di động</TableHead>
-            <TableHead>CCCD/CMND</TableHead>
-            <TableHead className="text-right">Thao tác</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-mono text-xs">{item.id}</TableCell>
-              <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell>{customerTypeLabel(item.customerType)}</TableCell>
-              <TableCell>
-                <StatusBadge status={item.status} />
-              </TableCell>
-              <TableCell>{item.mobile || "-"}</TableCell>
-              <TableCell>{item.identityNo || "-"}</TableCell>
-              <TableCell className="text-right">
-                <Button type="button" size="sm" onClick={() => onOpen(item)}>
-                  Mo
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-          {!items.length ? (
-            <EmptyTable colSpan={7} text="Chưa có hồ sơ nhập đang xử lý." />
-          ) : null}
-        </TableBody>
-      </Table>
-    </Panel>
-  )
-}
-
-function CustomerTaskInbox() {
-  const [role, setRole] = useState<WorkflowTaskRole>("CUSTOMER_CHECKER")
-  const tasksQuery = useWorkflowTasks(role)
-  const completeTask = useCompleteWorkflowTask(role)
-  const tasks = tasksQuery.data ?? []
-
-  function complete(task: { jobKey: number; processInstanceKey: number; elementId: string }, decision: string) {
-    const variables =
-      role === "CUSTOMER_RISK_CHECKER"
-        ? { riskDecision: decision }
-        : role === "CUSTOMER_CHECKER"
-          ? { reviewDecision: decision }
-          : { reviewDecision: "APPROVE" }
-    completeTask.mutate({
-      jobKey: task.jobKey,
-      processInstanceKey: task.processInstanceKey,
-      elementId: task.elementId,
-      variables,
-    })
-  }
-
-  return (
-    <Panel title="Việc cần xử lý">
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-        <FormField className="sm:w-72" label="Vai trò xử lý">
-          <Select
-            value={role}
-            onValueChange={(value) => setRole(value as WorkflowTaskRole)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="CUSTOMER_CHECKER">Checker</SelectItem>
-              <SelectItem value="CUSTOMER_RISK_CHECKER">
-                Risk checker
-              </SelectItem>
-              <SelectItem value="CUSTOMER_MAKER">Maker bổ sung</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={tasksQuery.isFetching}
-          onClick={() => void tasksQuery.refetch()}
-        >
-          Lấy task
-        </Button>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Task</TableHead>
-            <TableHead>Mã hồ sơ</TableHead>
-            <TableHead>Mã khách hàng</TableHead>
-            <TableHead>Tên khách hàng</TableHead>
-            <TableHead>Vai trò</TableHead>
-            <TableHead className="text-right">Xử lý</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tasks.map((task) => (
-            <TableRow key={task.jobKey}>
-              <TableCell className="font-mono text-xs">{task.type}</TableCell>
-              <TableCell>{task.caseCode || task.caseId || "-"}</TableCell>
-              <TableCell className="font-mono text-xs">
-                {task.customerId || "-"}
-              </TableCell>
-              <TableCell>{task.customerName || "-"}</TableCell>
-              <TableCell>{task.candidateRole || role}</TableCell>
-              <TableCell className="space-x-2 text-right">
-                {role !== "CUSTOMER_MAKER" ? (
-                  <>
-                    <Button
-                      size="sm"
-                      type="button"
-                      onClick={() => complete(task, "APPROVE")}
-                    >
-                      Duyệt
-                    </Button>
-                    <Button
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                      onClick={() => complete(task, "REQUEST_CHANGES")}
-                    >
-                      Bổ sung
-                    </Button>
-                    <Button
-                      size="sm"
-                      type="button"
-                      variant="destructive"
-                      onClick={() => complete(task, "REJECT")}
-                    >
-                      Từ chối
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    size="sm"
-                    type="button"
-                    onClick={() => complete(task, "APPROVE")}
-                  >
-                    Gửi lại
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-          {!tasks.length ? (
-            <EmptyTable colSpan={6} text="Chưa có task nào được lấy." />
-          ) : null}
-        </TableBody>
-      </Table>
-    </Panel>
   )
 }
 
@@ -1330,8 +1203,54 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"))
 }
 
+type CustomerTaskContext = {
+  customerId: string | null
+  caseId: string | null
+  caseCode: string | null
+  taskKey: number | null
+  processInstanceKey: number | null
+  elementId: string | null
+  role: WorkflowTaskRole
+}
+
+function taskContextFromSearch(): CustomerTaskContext {
+  const params = new URLSearchParams(window.location.search)
+  return {
+    customerId: params.get("customerId"),
+    caseId: params.get("caseId"),
+    caseCode: params.get("caseCode"),
+    taskKey: numberParam(params, "taskKey"),
+    processInstanceKey: numberParam(params, "processInstanceKey"),
+    elementId: params.get("elementId"),
+    role: roleParam(params.get("role")),
+  }
+}
+
+function hasTaskContext(context: CustomerTaskContext) {
+  return Boolean(context.caseId || context.taskKey || context.elementId)
+}
+
+function ContextField({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="break-words font-mono text-xs">{value || "-"}</p>
+    </div>
+  )
+}
+
+function numberParam(params: URLSearchParams, key: string) {
+  const value = Number(params.get(key))
+  return Number.isFinite(value) && value > 0 ? value : null
+}
+
+function roleParam(value: string | null): WorkflowTaskRole {
+  if (value === "CUSTOMER_RISK_CHECKER" || value === "CUSTOMER_MAKER") return value
+  return "CUSTOMER_CHECKER"
+}
+
 function customerIdFromSearch() {
-  return new URLSearchParams(window.location.search).get("customerId")
+  return taskContextFromSearch().customerId
 }
 
 function routeFromPath(pathname: string): CustomerRoute {
@@ -1340,7 +1259,3 @@ function routeFromPath(pathname: string): CustomerRoute {
   return "registrations"
 }
 
-function workbenchRouteFromPath(pathname: string): WorkbenchRoute {
-  if (pathname.startsWith("/workbench/tasks")) return "tasks"
-  return "drafts"
-}

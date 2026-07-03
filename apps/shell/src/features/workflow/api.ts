@@ -19,6 +19,9 @@ export interface WorkflowCase {
   caseType: string
   caseCode: string
   title: string
+  primaryObjectType?: string
+  primaryObjectId?: string
+  domainService?: string
   status: string
   currentStep: string
   assignedTo?: string

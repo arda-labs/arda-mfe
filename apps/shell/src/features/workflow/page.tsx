@@ -1111,11 +1111,20 @@ function MonitoringTable({
 }
 
 function MonitoringDetail({ item }: { item: WorkflowCase }) {
+  const domainHref = workflowDomainHref(item)
   return (
     <aside className="space-y-3 rounded-lg border p-4">
-      <div>
-        <p className="font-mono text-xs text-muted-foreground">{item.caseCode}</p>
-        <h2 className="text-base font-semibold">{item.title}</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="font-mono text-xs text-muted-foreground">{item.caseCode}</p>
+          <h2 className="text-base font-semibold">{item.title}</h2>
+        </div>
+        {domainHref ? (
+          <Button type="button" size="sm" variant="outline" onClick={() => navigateTo(domainHref)}>
+            <Eye className="size-4" />
+            Mở hồ sơ CRM
+          </Button>
+        ) : null}
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Field label="Trạng thái" value={item.status} />
@@ -2239,6 +2248,21 @@ function Field({ label, value }: { label: string; value: string }) {
       <p className="break-words font-medium text-foreground">{value}</p>
     </div>
   )
+}
+
+function workflowDomainHref(item: WorkflowCase) {
+  if (item.caseType !== "CUSTOMER_REGISTRATION" || !item.primaryObjectId) return ""
+  const search = new URLSearchParams({
+    customerId: item.primaryObjectId,
+    caseId: item.id,
+    caseCode: item.caseCode,
+  })
+  return `/customers/registrations?${search.toString()}`
+}
+
+function navigateTo(path: string) {
+  window.history.pushState({}, "", path)
+  window.dispatchEvent(new PopStateEvent("popstate"))
 }
 
 function StatusBadge({ status }: { status: string }) {
