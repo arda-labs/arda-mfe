@@ -119,6 +119,7 @@ export interface WorkItemSummaryNode {
   id: string
   label: string
   count: number
+  overdue?: number
   status?: string
   caseType?: string
   direction?: WorkbenchSearchDirection
