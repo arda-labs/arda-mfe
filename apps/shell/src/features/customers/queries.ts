@@ -46,7 +46,7 @@ export function useCustomerRelationships(customerId: string) {
 }
 
 export function useCustomerDrafts() {
-  const statuses: CustomerStatus[] = ["DRAFT", "NEEDS_CHANGES", "SUBMITTED"]
+  const statuses: CustomerStatus[] = ["DRAFT", "NEEDS_CHANGES"]
   return useQuery({
     queryKey: customerKeys.drafts(),
     queryFn: async () => {

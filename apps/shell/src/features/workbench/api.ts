@@ -51,7 +51,7 @@ export interface WorkflowTaskRequest {
 }
 
 const caseTypesByDirection: Record<WorkbenchDirection, string[]> = {
-  incoming: ["FINANCE_INCOMING_TRANSACTION"],
+  incoming: ["CUSTOMER_REGISTRATION", "FINANCE_INCOMING_TRANSACTION"],
   outgoing: ["FINANCE_OUTGOING_TRANSACTION"],
 }
 
@@ -60,6 +60,18 @@ export const taskTypesByDirection: Record<
   WorkflowTaskRequest[]
 > = {
   incoming: [
+    {
+      taskType: "workflow.customer_checker_review",
+      role: "CUSTOMER_CHECKER",
+    },
+    {
+      taskType: "workflow.customer_risk_review",
+      role: "CUSTOMER_RISK_CHECKER",
+    },
+    {
+      taskType: "workflow.customer_maker_revise",
+      role: "CUSTOMER_MAKER",
+    },
     {
       taskType: "workflow.finance_incoming_classify",
       role: "FINANCE_TXN_MAKER",

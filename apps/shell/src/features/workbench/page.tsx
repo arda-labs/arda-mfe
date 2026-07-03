@@ -670,6 +670,9 @@ function caseTypeLabel(value: string) {
 
 function taskLabel(value: string) {
   const labels: Record<string, string> = {
+    "workflow.customer_checker_review": "Kiem soat ho so khach hang",
+    "workflow.customer_risk_review": "Ra soat rui ro khach hang",
+    "workflow.customer_maker_revise": "Maker bo sung ho so",
     "workflow.finance_incoming_classify": "Phan loai giao dich den",
     "workflow.finance_incoming_approve": "Duyet giao dich den",
     "workflow.finance_outgoing_verify": "Kiem tra giao dich di",
@@ -681,6 +684,10 @@ function taskLabel(value: string) {
 function stepLabel(value: string) {
   const labels: Record<string, string> = {
     submitted: "Da gui",
+    Activity_CheckerReview: "Kiem soat ho so khach hang",
+    Activity_MakerRevise: "Maker bo sung ho so",
+    Activity_RiskReview: "Ra soat rui ro khach hang",
+    Activity_ApproveCustomer: "Kich hoat ho so khach hang",
     "classify-account": "Phan loai tai khoan",
     "approve-journal": "Duyet but toan",
     "verify-beneficiary": "Kiem tra nguoi nhan",
