@@ -201,11 +201,7 @@ function TransactionWorkbench({
         jobKey: task.jobKey,
         processInstanceKey: task.processInstanceKey,
         elementId: task.elementId,
-        variables: {
-          action,
-          decision: action,
-          reviewDecision: action,
-        },
+        variables: taskDecisionVariables(task.type, action),
       },
       { onSuccess: () => setClaimedTask(undefined) }
     )
@@ -759,6 +755,16 @@ function taskLabel(value: string) {
     "workflow.finance_outgoing_approve": "Duyệt giao dịch đi",
   }
   return labels[value] ?? value
+}
+
+function taskDecisionVariables(taskType: string, action: string) {
+  const decisionKey =
+    taskType === "workflow.customer_risk_review" ? "riskDecision" : "reviewDecision"
+  return {
+    action,
+    decision: action,
+    [decisionKey]: action,
+  }
 }
 
 function stepLabel(value: string) {
