@@ -34,7 +34,7 @@ export function AuthLoadingScreen({
     )
   }
 
-  const bgColor = `bg-gradient-to-br from-background via-muted/30 to-background`
+  const bgColor = "bg-background"
   return (
     <main
       className={`flex min-h-dvh items-center justify-center ${bgColor} px-4`}
