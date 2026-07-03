@@ -2,10 +2,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { notify } from "@workspace/notifications/notify"
 import {
   workbenchApi,
+  type ClaimWorkItemRequest,
   type WorkbenchDirection,
+  type WorkItemFilter,
   type WorkflowCaseSearchParams,
   type WorkflowTaskRequest,
 } from "./api"
+
+type WorkItemQueryOptions = {
+  enabled?: boolean
+  refetchInterval?: number | false
+  refetchIntervalInBackground?: boolean
+}
 
 export const workbenchKeys = {
   all: ["workflow", "workbench"] as const,
@@ -15,6 +23,43 @@ export const workbenchKeys = {
     [...workbenchKeys.all, "search", params] as const,
   tasks: (input: WorkflowTaskRequest) =>
     [...workbenchKeys.all, "tasks", input.taskType, input.role] as const,
+  workItemsRoot: () => [...workbenchKeys.all, "work-items"] as const,
+  workItems: (filter: WorkItemFilter = {}) =>
+    [...workbenchKeys.workItemsRoot(), filter] as const,
+  workItemSummary: (filter: WorkItemFilter = {}) =>
+    [...workbenchKeys.workItemsRoot(), "summary", filter] as const,
+}
+
+export function useWorkItems(
+  filter: WorkItemFilter = {},
+  options: WorkItemQueryOptions = {}
+) {
+  return useQuery({
+    queryKey: workbenchKeys.workItems(filter),
+    queryFn: () => workbenchApi.listWorkItems(filter),
+    ...options,
+  })
+}
+
+export function useWorkItemSummary(
+  filter: WorkItemFilter = {},
+  options: WorkItemQueryOptions = {}
+) {
+  return useQuery({
+    queryKey: workbenchKeys.workItemSummary(filter),
+    queryFn: () => workbenchApi.listWorkItemSummary(filter),
+    ...options,
+  })
+}
+
+export function useClaimWorkItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ClaimWorkItemRequest) => workbenchApi.claimWorkItem(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workbenchKeys.workItemsRoot() })
+    },
+  })
 }
 
 export function useWorkbenchCases(direction: WorkbenchDirection) {

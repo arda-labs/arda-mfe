@@ -2,14 +2,11 @@
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
-  Check,
+  Clock3,
   Eye,
   FileText,
   RefreshCw,
-  RotateCcw,
   Search,
-  Send,
-  X,
 } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -30,24 +27,21 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/notifications/notify"
 import type { Customer } from "../customers/api"
 import { useCustomerDrafts } from "../customers/queries"
 import {
-  taskTypesByDirection,
   type WorkbenchDirection,
   type WorkbenchSearchDirection,
-  type WorkflowCase,
-  type WorkflowCaseSearchParams,
-  type WorkflowTask,
-  type WorkflowTaskRequest,
+  type WorkItem,
+  type WorkItemFilter,
+  type WorkItemSummaryNode,
 } from "./api"
 import {
-  useClaimWorkflowTask,
-  useCompleteWorkflowTask,
-  useWorkbenchCases,
-  useWorkflowCaseSearch,
-  useWorkflowTasks,
+  useClaimWorkItem,
+  useWorkItemSummary,
+  useWorkItems,
 } from "./queries"
 
 type WorkbenchRoute = "drafts" | "incoming" | "outgoing" | "search"
@@ -56,13 +50,13 @@ const directionMeta = {
   incoming: {
     title: "Giao dịch đến",
     description:
-      "Danh sách case và user task BPMN của các luồng giao dịch đến đang chờ xử lý.",
+      "Hàng việc xử lý giao dịch đến, ưu tiên theo bước hiện tại và SLA.",
     icon: ArrowDownToLine,
   },
   outgoing: {
     title: "Giao dịch đi",
     description:
-      "Danh sách case và user task BPMN của các luồng giao dịch đi đang chờ xử lý.",
+      "Hàng việc xử lý giao dịch đi, ưu tiên theo bước hiện tại và SLA.",
     icon: ArrowUpFromLine,
   },
 } satisfies Record<
@@ -73,12 +67,6 @@ const directionMeta = {
     icon: typeof ArrowDownToLine
   }
 >
-
-const defaultSearch: WorkflowCaseSearchParams = {
-  keyword: "",
-  direction: "ALL",
-  status: "ALL",
-}
 
 export function WorkbenchPage({ pathname }: { pathname: string }) {
   const route = routeFromPath(pathname)
@@ -164,185 +152,133 @@ function TransactionWorkbench({
 }: {
   direction: WorkbenchDirection
 }) {
-  const [taskRequest, setTaskRequest] = useState<WorkflowTaskRequest>(
-    taskTypesByDirection[direction][0]
-  )
-  const [selectedCaseId, setSelectedCaseId] = useState<string>()
-  const [claimedTask, setClaimedTask] = useState<WorkflowTask>()
-  const casesQuery = useWorkbenchCases(direction)
-  const tasksQuery = useWorkflowTasks(taskRequest)
-  const claimTask = useClaimWorkflowTask(direction)
-  const completeTask = useCompleteWorkflowTask(direction)
-  const cases = casesQuery.data ?? []
-  const tasks = tasksQuery.data ?? []
-  const requestedCaseCode = new URLSearchParams(window.location.search).get("caseCode")
-  const selectedTask = claimedTask
-  const selectedCase =
-    cases.find((item) => item.id === selectedCaseId) ??
-    cases.find((item) => item.caseCode === selectedTask?.caseCode) ??
-    cases.find((item) => item.caseCode === requestedCaseCode) ??
-    cases[0]
   const meta = directionMeta[direction]
   const Icon = meta.icon
+  const [filters, setFilters] = useState<WorkItemFilter>({
+    direction: apiDirection(direction),
+    accounting: "ALL",
+    slaStatus: "ALL",
+    limit: 100,
+  })
+  const [activeNode, setActiveNode] = useState("ALL")
+  const queryFilter = { ...filters, node: activeNode === "ALL" ? undefined : activeNode }
+  const workItemsQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
+  const summaryQuery = useWorkItemSummary(filters, { refetchInterval: 15000 })
+  const claimWorkItem = useClaimWorkItem()
+  const items = workItemsQuery.data ?? []
+  const nodes = summaryQuery.data ?? []
 
-  function claim() {
-    claimTask.mutate(taskRequest, {
-      onSuccess: setClaimedTask,
-    })
+  function updateFilter(patch: Partial<WorkItemFilter>) {
+    setFilters((current) => ({ ...current, ...patch }))
   }
 
-  function complete(task: WorkflowTask, action: string) {
-    if (!task.jobKey || !task.processInstanceKey || !task.elementId) {
-      notify.error("Hãy nhận task trước khi xử lý")
+  function openWorkItem(item: WorkItem) {
+    if (item.assignedTo && !item.canOpen) {
+      notify.error("Không thể nhận task", item.claimBlockedReason)
       return
     }
-    completeTask.mutate(
-      {
-        jobKey: task.jobKey,
-        processInstanceKey: task.processInstanceKey,
-        elementId: task.elementId,
-        variables: taskDecisionVariables(task.type, action),
-      },
-      { onSuccess: () => setClaimedTask(undefined) }
-    )
-  }
-
-  function openTask(task: WorkflowTask) {
-    if (customerIdFromTask(task)) {
-      navigateTo(taskHref(task))
+    if (item.canClaim) {
+      claimWorkItem.mutate(
+        { workItemId: item.id },
+        {
+          onSuccess: ({ workItem }) => navigateTo(workItemHref(workItem, direction)),
+        }
+      )
       return
     }
-    if (task.caseCode) {
-      navigateTo(caseCodeHref(direction, task.caseCode))
+    if (item.canOpen) {
+      navigateTo(workItemHref(item, direction))
       return
     }
-    if (task.formKey) {
-      notify.info("Form BPMN", task.formKey)
-    }
+    notify.error("Không thể nhận task", item.claimBlockedReason)
   }
 
   return (
     <section className="space-y-4">
       <Header title={meta.title} description={meta.description} />
-      <Panel
-        title="User task BPMN"
-        action={
-          <div className="flex flex-wrap items-end gap-2">
-            <FormField className="w-72" label="Bước cần lấy">
-              <Select
-                value={taskRequest.taskType}
-                onValueChange={(value) => {
-                  const next =
-                    taskTypesByDirection[direction].find(
-                      (item) => item.taskType === value
-                    ) ?? taskTypesByDirection[direction][0]
-                  setTaskRequest(next)
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {taskTypesByDirection[direction].map((item) => (
-                    <SelectItem key={item.taskType} value={item.taskType}>
-                      {taskLabel(item.taskType)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={tasksQuery.isFetching}
-              onClick={() => void tasksQuery.refetch()}
-            >
-              <RefreshCw className="size-4" />
-              Tải danh sách
-            </Button>
-            <Button
-              type="button"
-              disabled={claimTask.isPending}
-              onClick={claim}
-            >
-              <Send className="size-4" />
-              Nhận việc
-            </Button>
-          </div>
-        }
-      >
-        <TaskTable
-          tasks={taskRows(claimedTask, tasks)}
-          role={taskRequest.role}
-          completing={completeTask.isPending}
-          onOpen={openTask}
-          onComplete={complete}
-        />
+      <Panel title="Điều kiện tìm kiếm">
+        <WorkbenchFilters direction={direction} filters={filters} onChange={updateFilter} />
       </Panel>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
+        <Panel title="Loại nghiệp vụ">
+          <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <Icon className="size-4" />
+            <span>{items.length} việc</span>
+          </div>
+          <WorkItemTree nodes={nodes} activeNode={activeNode} onSelect={setActiveNode} />
+        </Panel>
         <Panel
-          title="Case workflow"
+          title="Công việc cần xử lý"
           action={
             <Button
               type="button"
               variant="secondary"
-              disabled={casesQuery.isFetching}
-              onClick={() => void casesQuery.refetch()}
+              disabled={workItemsQuery.isFetching}
+              onClick={() => {
+                void workItemsQuery.refetch()
+                void summaryQuery.refetch()
+              }}
             >
               <RefreshCw className="size-4" />
-              Tải lại
+              Làm mới
             </Button>
           }
         >
-          <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <Icon className="size-4" />
-            <span>{cases.length} case</span>
-          </div>
-          <CaseTable cases={cases} onSelect={setSelectedCaseId} />
+          <WorkItemTable
+            items={items}
+            claiming={claimWorkItem.isPending}
+            onOpen={openWorkItem}
+          />
         </Panel>
-        <CaseDetail task={selectedTask} item={selectedCase} />
       </div>
     </section>
   )
 }
 
 function TransactionSearchPage() {
-  const [draft, setDraft] = useState(defaultSearch)
-  const [params, setParams] = useState(defaultSearch)
-  const searchQuery = useWorkflowCaseSearch(params)
+  const [draft, setDraft] = useState<WorkItemFilter>({
+    direction: "ALL",
+    transactionStatus: "ALL",
+    slaStatus: "ALL",
+    limit: 100,
+  })
+  const [params, setParams] = useState<WorkItemFilter>(draft)
+  const searchQuery = useWorkItems(params, { refetchInterval: 15000 })
 
   return (
     <section className="space-y-4">
       <Header
         title="Tìm kiếm giao dịch"
-        description="Tra cứu case workflow theo mã, đối tượng, trạng thái và chiều giao dịch."
+        description="Tra cứu giao dịch theo ngày, trạng thái xử lý và trạng thái SLA."
       />
       <form
-        className="grid gap-3 rounded-md border p-4 md:grid-cols-[minmax(14rem,1fr)_12rem_12rem_auto]"
+        className="grid gap-3 rounded-md border p-4 md:grid-cols-[1fr_1fr_12rem_12rem_auto]"
         onSubmit={(event) => {
           event.preventDefault()
           setParams(draft)
         }}
       >
-        <FormField label="Từ khóa">
+        <FormField label="Từ ngày">
           <Input
-            value={draft.keyword}
-            placeholder="Mã case, tiêu đề, đối tượng"
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                keyword: event.target.value,
-              }))
-            }
+            type="date"
+            value={draft.fromDate ?? ""}
+            onChange={(event) => setDraft((current) => ({ ...current, fromDate: event.target.value }))}
           />
         </FormField>
-        <FormField label="Chiều giao dịch">
+        <FormField label="Đến ngày">
+          <Input
+            type="date"
+            value={draft.toDate ?? ""}
+            onChange={(event) => setDraft((current) => ({ ...current, toDate: event.target.value }))}
+          />
+        </FormField>
+        <FormField label="Trạng thái giao dịch">
           <Select
-            value={draft.direction}
+            value={draft.transactionStatus ?? "ALL"}
             onValueChange={(value) =>
               setDraft((current) => ({
                 ...current,
-                direction: value as WorkbenchSearchDirection,
+                transactionStatus: value,
               }))
             }
           >
@@ -351,31 +287,18 @@ function TransactionSearchPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">Tất cả</SelectItem>
-              <SelectItem value="INCOMING">Giao dịch đến</SelectItem>
-              <SelectItem value="OUTGOING">Giao dịch đi</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField label="Trạng thái">
-          <Select
-            value={draft.status}
-            onValueChange={(value) =>
-              setDraft((current) => ({ ...current, status: value }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Tất cả</SelectItem>
-              <SelectItem value="DRAFT">Nháp</SelectItem>
               <SelectItem value="SUBMITTED">Đã gửi</SelectItem>
               <SelectItem value="IN_REVIEW">Đang xử lý</SelectItem>
               <SelectItem value="COMPLETED">Hoàn tất</SelectItem>
-              <SelectItem value="FAILED">Lỗi</SelectItem>
-              <SelectItem value="SUSPENDED">Tạm treo</SelectItem>
+              <SelectItem value="REJECTED">Từ chối</SelectItem>
             </SelectContent>
           </Select>
+        </FormField>
+        <FormField label="Trạng thái SLA">
+          <SlaFilterSelect
+            value={draft.slaStatus ?? "ALL"}
+            onChange={(slaStatus) => setDraft((current) => ({ ...current, slaStatus }))}
+          />
         </FormField>
         <Button className="mt-6" type="submit">
           <Search className="size-4" />
@@ -383,224 +306,231 @@ function TransactionSearchPage() {
         </Button>
       </form>
       <Panel title="Kết quả">
-        <CaseTable cases={searchQuery.data ?? []} />
+        <WorkItemTable
+          items={searchQuery.data ?? []}
+          claiming={false}
+          onOpen={(item) =>
+            navigateTo(workItemHref(item, item.direction === "OUTGOING" ? "outgoing" : "incoming"))
+          }
+        />
       </Panel>
     </section>
   )
 }
 
-function TaskTable({
-  tasks,
-  role,
-  completing,
-  onOpen,
-  onComplete,
+function WorkbenchFilters({
+  direction,
+  filters,
+  onChange,
 }: {
-  tasks: WorkflowTask[]
-  role: string
-  completing: boolean
-  onOpen: (task: WorkflowTask) => void
-  onComplete: (task: WorkflowTask, action: string) => void
+  direction: WorkbenchDirection
+  filters: WorkItemFilter
+  onChange: (patch: Partial<WorkItemFilter>) => void
 }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Task</TableHead>
-          <TableHead>Mã case</TableHead>
-          <TableHead>Bước BPMN</TableHead>
-          <TableHead>Vai trò</TableHead>
-          <TableHead>Form</TableHead>
-          <TableHead className="text-right">Xử lý</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tasks.map((task) => (
-          <TableRow key={task.jobKey ?? `${task.caseId}-${task.type}`}>
-            <TableCell className="font-mono text-xs">{task.type}</TableCell>
-            <TableCell>{task.caseCode || task.caseId || "-"}</TableCell>
-            <TableCell>{task.elementId}</TableCell>
-            <TableCell>{task.candidateRole || role}</TableCell>
-            <TableCell>{task.formKey || "-"}</TableCell>
-            <TableCell className="space-x-2 text-right">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => onOpen(task)}
-              >
-                <Eye className="size-4" />
-                Mở
-              </Button>
-              {task.jobKey ? (
-                <>
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={completing}
-                    onClick={() => onComplete(task, "SUBMIT")}
-                  >
-                    <Send className="size-4" />
-                    Gửi
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={completing}
-                    onClick={() => onComplete(task, "APPROVE")}
-                  >
-                    <Check className="size-4" />
-                    Duyệt
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={completing}
-                    onClick={() => onComplete(task, "REQUEST_CHANGES")}
-                  >
-                    <RotateCcw className="size-4" />
-                    Trả về
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="destructive"
-                    disabled={completing}
-                    onClick={() => onComplete(task, "REJECT")}
-                  >
-                    <X className="size-4" />
-                    Từ chối
-                  </Button>
-                </>
-              ) : null}
-            </TableCell>
-          </TableRow>
-        ))}
-        {!tasks.length ? (
-          <EmptyTable
-            colSpan={6}
-            text="Chưa có task/case nào phù hợp. Bấm Nhận việc để lấy task tiếp theo từ Zeebe."
-          />
-        ) : null}
-      </TableBody>
-    </Table>
+    <div className="grid gap-3 md:grid-cols-4">
+      <FormField label="Từ ngày">
+        <Input
+          type="date"
+          value={filters.fromDate ?? ""}
+          onChange={(event) => onChange({ fromDate: event.target.value })}
+        />
+      </FormField>
+      <FormField label="Đến ngày">
+        <Input
+          type="date"
+          value={filters.toDate ?? ""}
+          onChange={(event) => onChange({ toDate: event.target.value })}
+        />
+      </FormField>
+      {direction === "incoming" ? (
+        <FormField label="Loại hạch toán">
+          <Select
+            value={filters.accounting ?? "ALL"}
+            onValueChange={(accounting) =>
+              onChange({ accounting: accounting as WorkItemFilter["accounting"] })
+            }
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Tất cả</SelectItem>
+              <SelectItem value="POSTED">Có hạch toán</SelectItem>
+              <SelectItem value="NOT_POSTED">Không hạch toán</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+      ) : (
+        <FormField label="Trạng thái SLA">
+          <SlaFilterSelect value={filters.slaStatus ?? "ALL"} onChange={(slaStatus) => onChange({ slaStatus })} />
+        </FormField>
+      )}
+    </div>
   )
 }
 
-function CaseTable({
-  cases,
+function WorkItemTree({
+  nodes,
+  activeNode,
   onSelect,
 }: {
-  cases: WorkflowCase[]
-  onSelect?: (id: string) => void
+  nodes: WorkItemSummaryNode[]
+  activeNode: string
+  onSelect: (node: string) => void
+}) {
+  const visibleNodes = nodes.length
+    ? nodes
+    : [{ id: "ALL", label: "Tất cả việc được phép nhận", count: 0 }]
+  return (
+    <div className="space-y-1">
+      {visibleNodes.map((node) => (
+        <button
+          key={node.id}
+          type="button"
+          className={cn(
+            "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm",
+            activeNode === node.id ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+          )}
+          onClick={() => onSelect(node.id)}
+        >
+          <span className="truncate">{node.label}</span>
+          <span className="flex items-center gap-1.5">
+            {node.overdue ? <Badge variant="destructive">{node.overdue}</Badge> : null}
+            <Badge variant="secondary">{node.count}</Badge>
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function WorkItemTable({
+  items,
+  claiming,
+  onOpen,
+}: {
+  items: WorkItem[]
+  claiming: boolean
+  onOpen: (item: WorkItem) => void
 }) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Mã case</TableHead>
-          <TableHead>Tiêu đề</TableHead>
-          <TableHead>Loại</TableHead>
-          <TableHead>Trạng thái</TableHead>
-          <TableHead>Bước hiện tại</TableHead>
-          <TableHead>Vai trò</TableHead>
-          <TableHead>Cập nhật</TableHead>
+          <TableHead>Công việc</TableHead>
+          <TableHead>SLA</TableHead>
+          <TableHead>Tiến độ</TableHead>
+          <TableHead>Người giữ việc</TableHead>
           <TableHead className="text-right">Thao tác</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {cases.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell className="font-mono text-xs">{item.caseCode}</TableCell>
-            <TableCell className="min-w-52 font-medium">{item.title}</TableCell>
-            <TableCell>{caseTypeLabel(item.caseType)}</TableCell>
-            <TableCell>
-              <StatusBadge status={item.status} />
+        {items.map((item) => (
+          <TableRow
+            key={item.id}
+            className="cursor-pointer align-top"
+            onClick={() => onOpen(item)}
+          >
+            <TableCell className="min-w-80">
+              <div className="space-y-2">
+                <div>
+                  <p className="font-medium text-pretty">{item.title}</p>
+                  <p className="line-clamp-2 text-sm text-muted-foreground text-pretty">
+                    {item.description || item.summary || item.caseCode}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge variant="outline">{item.caseCode}</Badge>
+                  {item.taskType ? (
+                    <Badge variant="secondary" className="font-mono text-[11px]">
+                      {item.taskType}
+                    </Badge>
+                  ) : null}
+                </div>
+              </div>
             </TableCell>
-            <TableCell>{stepLabel(item.currentStep)}</TableCell>
-            <TableCell>{item.candidateRole || "-"}</TableCell>
-            <TableCell>{formatDateTime(item.updatedAt)}</TableCell>
+            <TableCell className="min-w-40">
+              <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
+            </TableCell>
+            <TableCell className="min-w-56">
+              <ProgressRail status={item.status} slaStatus={item.slaStatus} />
+              <div className="mt-2 space-y-1 text-sm">
+                <p className="font-medium">{item.stepName || stepLabel(item.stepCode || item.currentStep || "-")}</p>
+                <p className="text-muted-foreground">{item.transactionStatus || item.status}</p>
+              </div>
+            </TableCell>
+            <TableCell className="min-w-44">
+              <div className="space-y-1 text-sm">
+                <p className="font-medium">{item.assignedTo || "Chưa nhận"}</p>
+                <p className="text-muted-foreground">{item.candidateRole || "Chưa gán vai trò"}</p>
+              </div>
+            </TableCell>
             <TableCell className="text-right">
-              {onSelect ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onSelect(item.id)}
-                >
-                  <Eye className="size-4" />
-                  Xem
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigateTo(caseHref(item))}
-                >
-                  <Eye className="size-4" />
-                  Mở
-                </Button>
-              )}
+              <Button
+                type="button"
+                size="sm"
+                variant={item.canClaim ? "default" : "outline"}
+                disabled={claiming || (!item.canClaim && !item.canOpen)}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onOpen(item)
+                }}
+              >
+                <Eye className="size-4" />
+                {item.canClaim ? "Nhận & mở" : item.canOpen ? "Mở" : "Đã giữ"}
+              </Button>
             </TableCell>
           </TableRow>
         ))}
-        {!cases.length ? (
-          <EmptyTable colSpan={8} text="Chưa có case workflow phù hợp." />
+        {!items.length ? (
+          <EmptyTable colSpan={5} text="Chưa có công việc phù hợp với điều kiện tìm kiếm." />
         ) : null}
       </TableBody>
     </Table>
   )
 }
 
-function CaseDetail({
-  item,
-  task,
+function SlaFilterSelect({
+  value,
+  onChange,
 }: {
-  item?: WorkflowCase
-  task?: WorkflowTask
+  value: NonNullable<WorkItemFilter["slaStatus"]>
+  onChange: (value: NonNullable<WorkItemFilter["slaStatus"]>) => void
 }) {
-  if (!item && !task) {
-    return (
-      <aside className="rounded-md border p-4 text-sm text-muted-foreground">
-        Chọn case hoặc task để xem chi tiết.
-      </aside>
-    )
-  }
-
   return (
-    <aside className="space-y-3 rounded-md border p-4">
-      <div className="space-y-1">
-        <p className="font-mono text-xs text-muted-foreground">
-          {item?.caseCode || task?.caseCode || task?.caseId}
-        </p>
-        <h2 className="text-base font-semibold">
-          {item?.title || task?.type || "User task BPMN"}
-        </h2>
-      </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <Field label="Trạng thái" value={item?.status ?? "TASK_ACTIVE"} />
-        <Field
-          label="Bước hiện tại"
-          value={stepLabel(task?.elementId || item?.currentStep || "-")}
+    <Select value={value} onValueChange={(next) => onChange(next as NonNullable<WorkItemFilter["slaStatus"]>)}>
+      <SelectTrigger><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value="ALL">Tất cả</SelectItem>
+        <SelectItem value="MET">Đạt SLA</SelectItem>
+        <SelectItem value="BREACHED">Không đạt SLA</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+}
+
+function ProgressRail({
+  status,
+  slaStatus,
+}: {
+  status?: string
+  slaStatus?: WorkItem["slaStatus"]
+}) {
+  const steps = ["READY", "CLAIMED", "COMPLETED"]
+  const activeIndex = status === "COMPLETED" ? 2 : status === "CLAIMED" ? 1 : 0
+  return (
+    <div className="grid grid-cols-3 gap-1">
+      {steps.map((step, index) => (
+        <span
+          key={step}
+          className={cn(
+            "h-1.5 rounded-full bg-muted",
+            index <= activeIndex && "bg-primary",
+            slaStatus === "BREACHED" && index <= activeIndex && "bg-destructive",
+            status === "COMPLETED" && index <= activeIndex && "bg-emerald-600"
+          )}
         />
-        <Field label="Vai trò" value={task?.candidateRole || item?.candidateRole || "-"} />
-        <Field label="Người xử lý" value={item?.assignedTo || "Chưa gán"} />
-        <Field label="Form BPMN" value={task?.formKey || "-"} />
-        <Field label="Instance" value={String(task?.processInstanceKey || item?.processInstanceKey || "-")} />
-      </div>
-      {task ? (
-        <div className="rounded-md bg-muted/40 p-3">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">
-            Biến task
-          </p>
-          <pre className="max-h-72 overflow-auto text-xs">
-            {JSON.stringify(task.variables, null, 2)}
-          </pre>
-        </div>
-      ) : null}
-    </aside>
+      ))}
+    </div>
   )
 }
 
@@ -642,11 +572,20 @@ function Header({
   )
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function SlaStatus({ dueAt, status }: { dueAt?: string; status?: WorkItem["slaStatus"] }) {
+  const sla = slaInfo(dueAt, status)
   return (
-    <div>
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="break-words font-medium">{value}</p>
+    <div className="space-y-1">
+      <Badge
+        variant={sla.variant}
+        className={cn("gap-1 tabular-nums", sla.className)}
+      >
+        <Clock3 className="size-3" />
+        {sla.label}
+      </Badge>
+      <p className="text-xs text-muted-foreground tabular-nums">
+        {sla.detail}
+      </p>
     </div>
   )
 }
@@ -659,6 +598,54 @@ function StatusBadge({ status }: { status: string }) {
         ? "destructive"
         : "secondary"
   return <Badge variant={variant}>{status}</Badge>
+}
+
+function slaInfo(dueAt?: string, status?: WorkItem["slaStatus"]): {
+  label: string
+  detail: string
+  variant: "default" | "secondary" | "destructive" | "outline"
+  className?: string
+} {
+  if (!dueAt || status === "NONE") {
+    return {
+      label: "Chưa gán SLA",
+      detail: "Không có hạn xử lý",
+      variant: "outline",
+    }
+  }
+  const due = new Date(dueAt)
+  if (Number.isNaN(due.getTime())) {
+    return { label: "SLA", detail: dueAt, variant: "outline" }
+  }
+  const diffMs = due.getTime() - Date.now()
+  if (diffMs < 0 || status === "BREACHED") {
+    return {
+      label: "Quá hạn",
+      detail: `${durationLabel(-diffMs)} trước · ${formatDateTime(dueAt)}`,
+      variant: "destructive",
+    }
+  }
+  if (diffMs <= 2 * 60 * 60 * 1000) {
+    return {
+      label: "Sắp hết hạn",
+      detail: `Còn ${durationLabel(diffMs)} · ${formatDateTime(dueAt)}`,
+      variant: "secondary",
+      className: "border-amber-300 bg-amber-50 text-amber-900",
+    }
+  }
+  return {
+    label: "Trong hạn",
+    detail: `Còn ${durationLabel(diffMs)} · ${formatDateTime(dueAt)}`,
+    variant: "secondary",
+  }
+}
+
+function durationLabel(ms: number) {
+  const minutes = Math.max(1, Math.ceil(ms / 60000))
+  if (minutes < 60) return `${minutes} phút`
+  const hours = Math.ceil(minutes / 60)
+  if (hours < 24) return `${hours} giờ`
+  return `${Math.ceil(hours / 24)} ngày`
 }
 
 function EmptyTable({ colSpan, text }: { colSpan: number; text: string }) {
@@ -681,46 +668,24 @@ function routeFromPath(pathname: string): WorkbenchRoute {
   return "drafts"
 }
 
-function taskRows(claimedTask: WorkflowTask | undefined, tasks: WorkflowTask[]) {
-  if (!claimedTask) return tasks
-  return [claimedTask, ...tasks.filter((task) => task.caseId !== claimedTask.caseId)]
-}
-
-function caseHref(item: WorkflowCase) {
+function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
   if (item.caseType === "CUSTOMER_REGISTRATION" && item.primaryObjectId) {
     const search = new URLSearchParams({
       customerId: item.primaryObjectId,
-      caseId: item.id,
+      caseId: item.caseId,
       caseCode: item.caseCode,
+      taskKey: String(item.jobKey ?? ""),
+      processInstanceKey: String(item.processInstanceKey ?? ""),
+      elementId: item.stepCode,
+      role: item.candidateRole ?? "",
     })
     return `/customers/registrations?${search.toString()}`
   }
-  return caseCodeHref(
-    item.caseType === "FINANCE_OUTGOING_TRANSACTION" ? "outgoing" : "incoming",
-    item.caseCode
-  )
+  return caseCodeHref(direction, item.caseCode)
 }
 
-function taskHref(task: WorkflowTask) {
-  const search = new URLSearchParams({
-    customerId: customerIdFromTask(task),
-    caseId: textVariable(task, "caseId") || task.caseId,
-    caseCode: textVariable(task, "caseCode") || task.caseCode,
-    taskKey: String(task.jobKey ?? ""),
-    processInstanceKey: String(task.processInstanceKey ?? ""),
-    elementId: task.elementId,
-    role: task.candidateRole,
-  })
-  return `/customers/registrations?${search.toString()}`
-}
-
-function customerIdFromTask(task: WorkflowTask) {
-  return task.customerId || textVariable(task, "customerId") || textVariable(task, "primaryObjectId")
-}
-
-function textVariable(task: WorkflowTask, key: string) {
-  const value = task.variables[key]
-  return typeof value === "string" ? value : ""
+function apiDirection(direction: WorkbenchDirection): WorkbenchSearchDirection {
+  return direction === "outgoing" ? "OUTGOING" : "INCOMING"
 }
 
 function caseCodeHref(direction: WorkbenchDirection, caseCode: string) {
@@ -735,36 +700,6 @@ function customerTypeLabel(item: Customer) {
   return item.customerType === "BUSINESS"
     ? "Khách hàng doanh nghiệp"
     : "Khách hàng cá nhân"
-}
-
-function caseTypeLabel(value: string) {
-  if (value === "FINANCE_INCOMING_TRANSACTION") return "Giao dịch đến"
-  if (value === "FINANCE_OUTGOING_TRANSACTION") return "Giao dịch đi"
-  if (value === "CUSTOMER_REGISTRATION") return "Đăng ký khách hàng"
-  return value
-}
-
-function taskLabel(value: string) {
-  const labels: Record<string, string> = {
-    "workflow.customer_checker_review": "Kiểm soát hồ sơ khách hàng",
-    "workflow.customer_risk_review": "Rà soát rủi ro khách hàng",
-    "workflow.customer_maker_revise": "Maker bổ sung hồ sơ",
-    "workflow.finance_incoming_classify": "Phân loại giao dịch đến",
-    "workflow.finance_incoming_approve": "Duyệt giao dịch đến",
-    "workflow.finance_outgoing_verify": "Kiểm tra giao dịch đi",
-    "workflow.finance_outgoing_approve": "Duyệt giao dịch đi",
-  }
-  return labels[value] ?? value
-}
-
-function taskDecisionVariables(taskType: string, action: string) {
-  const decisionKey =
-    taskType === "workflow.customer_risk_review" ? "riskDecision" : "reviewDecision"
-  return {
-    action,
-    decision: action,
-    [decisionKey]: action,
-  }
 }
 
 function stepLabel(value: string) {

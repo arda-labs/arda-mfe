@@ -36,6 +36,7 @@ export interface WorkflowTask {
   customerName: string
   candidateRole: string
   formKey: string
+  slaDueAt?: string
   variables: Record<string, unknown>
 }
 
@@ -48,6 +49,91 @@ export interface WorkflowCaseSearchParams {
 export interface WorkflowTaskRequest {
   taskType: string
   role: string
+}
+
+export interface WorkItem {
+  id: string
+  tenantId?: string
+  caseId: string
+  caseCode: string
+  caseType: string
+  title: string
+  description?: string
+  summary?: string
+  status: string
+  transactionStatus?: string
+  priority?: string
+  direction?: WorkbenchSearchDirection
+  currentStep?: string
+  stepCode: string
+  stepName?: string
+  taskType?: string
+  formKey?: string
+  primaryObjectType?: string
+  primaryObjectId?: string
+  domainService?: string
+  assignedTo?: string
+  assignedAt?: string
+  claimExpiresAt?: string
+  candidateRole?: string
+  candidateGroupId?: string
+  candidateOrgUnitId?: string
+  createdBy?: string
+  claimable?: boolean
+  canClaim?: boolean
+  canOpen?: boolean
+  canReassign?: boolean
+  claimBlockedReason?: string
+  jobKey?: number
+  processInstanceKey?: number
+  bpmnProcessId?: string
+  bpmnVersion?: number
+  slaDueAt?: string
+  slaStatus?: "NONE" | "MET" | "WARNING" | "BREACHED"
+  createdAt?: string
+  updatedAt: string
+  variables?: Record<string, unknown>
+}
+
+export interface WorkItemFilter {
+  keyword?: string
+  direction?: WorkbenchSearchDirection
+  fromDate?: string
+  toDate?: string
+  accounting?: "ALL" | "POSTED" | "NOT_POSTED"
+  slaStatus?: "ALL" | "MET" | "BREACHED"
+  transactionStatus?: string
+  node?: string
+  status?: string
+  caseType?: string
+  candidateRole?: string
+  assignedTo?: string
+  priority?: string
+  dueBefore?: string
+  limit?: number
+  offset?: number
+}
+
+export interface WorkItemSummaryNode {
+  id: string
+  label: string
+  count: number
+  status?: string
+  caseType?: string
+  direction?: WorkbenchSearchDirection
+  children?: WorkItemSummaryNode[]
+}
+
+export interface ClaimWorkItemRequest {
+  workItemId: string
+  assignee?: string
+  role?: string
+}
+
+export interface ClaimWorkItemResponse {
+  workItem: WorkItem
+  claimedBy?: string
+  claimedAt?: string
 }
 
 const caseTypesByDirection: Record<WorkbenchDirection, string[]> = {
@@ -94,6 +180,32 @@ export const taskTypesByDirection: Record<
 }
 
 export const workbenchApi = {
+  listWorkItems(filter: WorkItemFilter = {}) {
+    const search = toWorkItemSearch(filter)
+    const suffix = search ? `?${search}` : ""
+    return getItems<WorkItem>(`/api/workflow/work-items${suffix}`)
+  },
+
+  listWorkItemSummary(filter: WorkItemFilter = {}) {
+    const search = toWorkItemSearch(filter)
+    const suffix = search ? `?${search}` : ""
+    return getItems<WorkItemSummaryNode>(
+      `/api/workflow/work-items/summary${suffix}`,
+      "nodes"
+    )
+  },
+
+  claimWorkItem(input: ClaimWorkItemRequest) {
+    const { workItemId, ...body } = input
+    return request<ClaimWorkItemResponse>(
+      `/api/workflow/work-items/${encodeURIComponent(workItemId)}/claim`,
+      {
+        method: "POST",
+        body: Object.keys(body).length ? body : undefined,
+      }
+    )
+  },
+
   async listCasesByDirection(direction: WorkbenchDirection) {
     const groups = await Promise.all(
       caseTypesByDirection[direction].map((caseType) =>
@@ -174,6 +286,41 @@ async function listWorkflowCases(params: {
   if (params.status) search.set("status", params.status)
   if (params.keyword) search.set("keyword", params.keyword)
   return request<WorkflowCase[]>(`/api/workflow/cases?${search.toString()}`)
+}
+
+async function getItems<T>(path: string, key = "items") {
+  const data = await request<T[] | Record<string, T[] | undefined>>(path)
+  if (Array.isArray(data)) return data
+  return data[key] ?? data.items ?? data.data ?? []
+}
+
+function toWorkItemSearch(filter: WorkItemFilter) {
+  const search = new URLSearchParams()
+  setSearch(search, "keyword", filter.keyword)
+  setSearch(search, "direction", filter.direction === "ALL" ? undefined : filter.direction)
+  setSearch(search, "fromDate", filter.fromDate)
+  setSearch(search, "toDate", filter.toDate)
+  setSearch(search, "accounting", filter.accounting === "ALL" ? undefined : filter.accounting)
+  setSearch(search, "slaStatus", filter.slaStatus === "ALL" ? undefined : filter.slaStatus)
+  setSearch(search, "transactionStatus", filter.transactionStatus === "ALL" ? undefined : filter.transactionStatus)
+  setSearch(search, "node", filter.node === "ALL" ? undefined : filter.node)
+  setSearch(search, "status", filter.status === "ALL" ? undefined : filter.status)
+  setSearch(search, "case_type", filter.caseType)
+  setSearch(search, "candidate_role", filter.candidateRole)
+  setSearch(search, "assigned_to", filter.assignedTo)
+  setSearch(search, "priority", filter.priority)
+  setSearch(search, "due_before", filter.dueBefore)
+  setSearch(search, "limit", filter.limit)
+  setSearch(search, "offset", filter.offset)
+  return search.toString()
+}
+
+function setSearch(
+  search: URLSearchParams,
+  key: string,
+  value: string | number | undefined
+) {
+  if (value !== undefined && value !== "") search.set(key, String(value))
 }
 
 async function request<T>(
