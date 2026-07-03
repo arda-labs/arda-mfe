@@ -1,7 +1,7 @@
 "use client";
 
 import type { Column, Table } from "@tanstack/react-table";
-import { Check, SlidersHorizontal, X } from "lucide-react";
+import { Check, SlidersHorizontal, XCircle } from "lucide-react";
 import * as React from "react";
 
 import { DataTableDateFilter } from "@workspace/ui/components/data-table/data-table-date-filter";
@@ -51,7 +51,7 @@ export function DataTableToolbar<TData>({
       role="toolbar"
       aria-orientation="horizontal"
       className={cn(
-        "flex w-full items-center justify-between gap-2 p-1",
+        "flex w-full items-center justify-between gap-2",
         className,
       )}
       {...props}
@@ -63,12 +63,12 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             aria-label="Reset filters"
-            variant="outline"
-            className="h-8 border-dashed px-3 font-normal"
+            variant="ghost"
+            className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
             onClick={onReset}
           >
-            <X />
-            Reset
+            <XCircle className="size-3.5" />
+            Xoá bộ lọc
           </Button>
         )}
       </div>

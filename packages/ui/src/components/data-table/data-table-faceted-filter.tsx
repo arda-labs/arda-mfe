@@ -76,55 +76,52 @@ export function DataTableFacetedFilter<TData, TValue>({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="h-8 border-dashed px-3 font-normal">{selectedValues.size > 0 ? (
-                      <div
-                        role="button"
-                        aria-label={`Clear ${title} filter`}
-                        tabIndex={0}
-                        className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        onClick={onReset}
-                      >
-                        <XCircle />
-                      </div>
-                    ) : (
-                      <PlusCircle />
-                    )}{title}{selectedValues.size > 0 && (
-                      <>
-                        <Separator
-                          orientation="vertical"
-                          className="mx-0.5 data-[orientation=vertical]:h-4"
-                        />
-                        <Badge
-                          variant="secondary"
-                          className="rounded-sm px-1 font-normal lg:hidden"
-                        >
-                          {selectedValues.size}
-                        </Badge>
-                        <div className="hidden items-center gap-1 lg:flex">
-                          {selectedValues.size > 2 ? (
-                            <Badge
-                              variant="secondary"
-                              className="rounded-sm px-1 font-normal"
-                            >
-                              {selectedValues.size} selected
-                            </Badge>
-                          ) : (
-                            options
-                              .filter((option) => selectedValues.has(option.value))
-                              .map((option) => (
-                                <Badge
-                                  variant="secondary"
-                                  key={option.value}
-                                  className="rounded-sm px-1 font-normal"
-                                >
-                                  {option.label}
-                                </Badge>
-                              ))
-                          )}
-                        </div>
-                      </>
-                    )}
-                        </Button>
+        <Button
+          variant={selectedValues.size > 0 ? "outline" : "outline"}
+          className={cn(
+            "h-8 px-3 font-normal",
+            selectedValues.size > 0
+              ? "text-foreground"
+              : "border-dashed text-muted-foreground",
+          )}
+        >
+          {selectedValues.size > 0 ? (
+            <span className="flex items-center gap-1">
+              <span>{title}:</span>
+              {selectedValues.size > 2 ? (
+                <Badge className="rounded-sm px-1 text-xs font-normal border-primary/20 bg-primary/10 text-primary">
+                  {selectedValues.size} đã chọn
+                </Badge>
+              ) : (
+                options
+                  .filter((option) => selectedValues.has(option.value))
+                  .map((option) => (
+                    <Badge
+                      variant="secondary"
+                      key={option.value}
+                      className="rounded-sm px-1.5 text-xs font-normal"
+                    >
+                      {option.label}
+                    </Badge>
+                  ))
+              )}
+              <div
+                role="button"
+                aria-label={`Clear ${title} filter`}
+                tabIndex={0}
+                className="ml-0.5 rounded-sm opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                onClick={onReset}
+              >
+                <XCircle className="size-3.5" />
+              </div>
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <PlusCircle className="size-3.5" />
+              <span>{title}</span>
+            </span>
+          )}
+        </Button>
                       </PopoverTrigger>
       <PopoverContent className="w-50 p-0" align="start">
         <Command>

@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import {
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table"
+import { ShieldCheck } from "lucide-react"
 import { notify } from "@workspace/notifications/notify"
 import type { ApprovalRequest } from "@/features/finance/api"
 import { Button } from "@workspace/ui/components/button"
@@ -15,6 +21,8 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -31,6 +39,9 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Input } from "@workspace/ui/components/input"
 import { FormField } from "@workspace/ui/components/form-field"
+import { Page } from "@workspace/ui/components/page"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import {
   Select,
   SelectContent,
@@ -38,6 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { useI18n } from "@workspace/i18n"
 import {
   useApproveApproval,
   useCancelApproval,
@@ -76,6 +88,7 @@ const STATUS_VARIANTS: Partial<
 }
 
 export function ApprovalsPage() {
+  const { t } = useI18n()
   const [level, setLevel] = useState(1)
   const [createOpen, setCreateOpen] = useState(false)
   const {
@@ -97,8 +110,6 @@ export function ApprovalsPage() {
     resolver: zodResolver(approvalFormSchema),
     defaultValues: approvalDefaultValues,
   })
-  const [note, setNote] = useState("")
-  const [actionId, setActionId] = useState<string | null>(null)
   const [cancelTarget, setCancelTarget] = useState<ApprovalRequest | null>(null)
 
   useEffect(() => {
@@ -124,21 +135,17 @@ export function ApprovalsPage() {
     }
   })
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = async (id: string, note: string) => {
     try {
       await approveApproval.mutateAsync({ id, note })
-      setActionId(null)
-      setNote("")
     } catch {
       // Mutation hook owns the toast.
     }
   }
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (id: string, note: string) => {
     try {
       await rejectApproval.mutateAsync({ id, note })
-      setActionId(null)
-      setNote("")
     } catch {
       // Mutation hook owns the toast.
     }
@@ -161,205 +168,105 @@ export function ApprovalsPage() {
     )
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <Page>
+      <PageHeader
+        title={t("finance.approvals.title")}
+        icon={ShieldCheck}
+        badge={
           <Badge variant="secondary" className="px-2.5 py-1 text-xs">
-            Pending approvals
+            {approvals.length} pending
           </Badge>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Level:</span>
-            {[1, 2, 3, 4].map((l) => (
-              <Button
-                key={l}
-                variant={level === l ? "default" : "outline"}
-                size="sm"
-                onClick={() => setLevel(l)}
-              >
-                {l}
-              </Button>
-            ))}
-          </div>
-          <Dialog open={createOpen} onOpenChange={handleCreateOpenChange}>
-            <DialogTrigger className="h-9 px-4 text-sm">
-              Create Approval
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create Approval Request</DialogTitle>
-              </DialogHeader>
-              <form className="space-y-3" onSubmit={handleCreate}>
-                <FormField label="Reference ID" error={errors.refId?.message}>
-                  <Input
-                    aria-invalid={Boolean(errors.refId)}
-                    {...register("refId")}
-                  />
-                </FormField>
-                <FormField
-                  label="Request type"
-                  error={errors.requestType?.message}
-                >
-                  <Controller
-                    control={control}
-                    name="requestType"
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger
-                          aria-invalid={Boolean(errors.requestType)}
-                        >
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="TRANSFER">Transfer</SelectItem>
-                          <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                          <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </FormField>
-                <FormField label="Amount" error={errors.amount?.message}>
-                  <Input
-                    aria-invalid={Boolean(errors.amount)}
-                    {...register("amount")}
-                  />
-                </FormField>
-                <FormField label="Note" error={errors.note?.message}>
-                  <Input
-                    aria-invalid={Boolean(errors.note)}
-                    {...register("note")}
-                  />
-                </FormField>
+        }
+        actions={
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Level:</span>
+              {[1, 2, 3, 4].map((l) => (
                 <Button
-                  className="w-full"
-                  type="submit"
-                  disabled={isSubmitting || createApproval.isPending}
+                  key={l}
+                  variant={level === l ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setLevel(l)}
                 >
-                  Submit
+                  {l}
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {approvals.length === 0 && (
-          <p className="text-muted-foreground">
-            No pending approvals at level {level}.
-          </p>
-        )}
-        {approvals.map((a) => (
-          <div key={a.id} className="rounded-lg border p-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{a.requestType}</span>
-                  <Status variant={STATUS_VARIANTS[a.status] || "default"}>
-                    <StatusIndicator />
-                    <StatusLabel>{a.status}</StatusLabel>
-                  </Status>
-                  <span className="text-xs text-muted-foreground">
-                    Level {a.currentLevel}/{a.totalLevels}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Ref: {a.refId} · Amount:{" "}
-                  {a.amount
-                    ? `${Number(a.amount).toLocaleString()} ${a.currency}`
-                    : "—"}
-                </p>
-                {a.makerNote && <p className="text-sm italic">{a.makerNote}</p>}
-                <p className="text-xs text-muted-foreground">
-                  Created: {new Date(a.createdAt).toLocaleString()}
-                </p>
-              </div>
-
-              {actionId === a.id ? (
-                <div className="flex flex-col items-end gap-2">
-                  <Input
-                    placeholder="Note (optional)"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    className="w-48"
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      disabled={approveApproval.isPending}
-                      onClick={() => handleApprove(a.id)}
-                    >
-                      ✅ Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={rejectApproval.isPending}
-                      onClick={() => handleReject(a.id)}
-                    >
-                      ❌ Reject
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setActionId(null)}
-                    >
-                      Back
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => setActionId(a.id)}
-                  >
-                    Review
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    disabled={cancelApproval.isPending}
-                    onClick={() => setCancelTarget(a)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              )}
+              ))}
             </div>
-
-            {a.steps && a.steps.length > 0 && (
-              <div className="mt-3 border-t pt-3">
-                <p className="mb-1 text-xs font-medium text-muted-foreground">
-                  Approval History:
-                </p>
-                {a.steps.map((s) => (
-                  <div
-                    key={s.id}
-                    className="flex items-center gap-2 text-xs text-muted-foreground"
+            <Dialog open={createOpen} onOpenChange={handleCreateOpenChange}>
+              <DialogTrigger className="h-9 px-4 text-sm">
+                Create Approval
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Approval Request</DialogTitle>
+                </DialogHeader>
+                <form className="space-y-3" onSubmit={handleCreate}>
+                  <FormField label="Reference ID" error={errors.refId?.message}>
+                    <Input
+                      aria-invalid={Boolean(errors.refId)}
+                      {...register("refId")}
+                    />
+                  </FormField>
+                  <FormField
+                    label="Request type"
+                    error={errors.requestType?.message}
                   >
-                    <span>Level {s.level}:</span>
-                    <Status
-                      variant={s.decision === "APPROVED" ? "success" : "error"}
-                    >
-                      <StatusIndicator />
-                      <StatusLabel>{s.decision}</StatusLabel>
-                    </Status>
-                    <span>by {s.checkerId.slice(0, 8)}</span>
-                    {s.note && <span>— {s.note}</span>}
-                  </div>
-                ))}
-              </div>
-            )}
+                    <Controller
+                      control={control}
+                      name="requestType"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger
+                            aria-invalid={Boolean(errors.requestType)}
+                          >
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="TRANSFER">Transfer</SelectItem>
+                            <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                            <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </FormField>
+                  <FormField label="Amount" error={errors.amount?.message}>
+                    <Input
+                      aria-invalid={Boolean(errors.amount)}
+                      {...register("amount")}
+                    />
+                  </FormField>
+                  <FormField label="Note" error={errors.note?.message}>
+                    <Input
+                      aria-invalid={Boolean(errors.note)}
+                      {...register("note")}
+                    />
+                  </FormField>
+                  <Button
+                    className="w-full"
+                    type="submit"
+                    disabled={isSubmitting || createApproval.isPending}
+                  >
+                    Submit
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
-        ))}
-      </div>
+        }
+      />
+      <ApprovalsTable
+        approvals={approvals}
+        approveApproval={approveApproval}
+        rejectApproval={rejectApproval}
+        cancelApproval={cancelApproval}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onCancel={setCancelTarget}
+      />
 
       <AlertDialog
         open={cancelTarget !== null}
@@ -385,6 +292,201 @@ export function ApprovalsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Page>
+  )
+}
+
+type DecisionAction = "approve" | "reject"
+
+function ApprovalsTable({
+  approvals,
+  approveApproval,
+  rejectApproval,
+  cancelApproval,
+  onApprove,
+  onReject,
+  onCancel,
+}: {
+  approvals: ApprovalRequest[]
+  approveApproval: ReturnType<typeof useApproveApproval>
+  rejectApproval: ReturnType<typeof useRejectApproval>
+  cancelApproval: ReturnType<typeof useCancelApproval>
+  onApprove: (id: string, note: string) => void
+  onReject: (id: string, note: string) => void
+  onCancel: (target: ApprovalRequest) => void
+}) {
+  const { t } = useI18n()
+  const [reviewTarget, setReviewTarget] = useState<ApprovalRequest | null>(null)
+  const [decision, setDecision] = useState<DecisionAction>("approve")
+  const [note, setNote] = useState("")
+
+  function openReview(target: ApprovalRequest, action: DecisionAction) {
+    setReviewTarget(target)
+    setDecision(action)
+    setNote("")
+  }
+
+  function closeReview() {
+    setReviewTarget(null)
+    setNote("")
+  }
+
+  async function submitReview() {
+    if (!reviewTarget) return
+    if (decision === "approve") onApprove(reviewTarget.id, note)
+    else onReject(reviewTarget.id, note)
+    closeReview()
+  }
+
+  const columns = useMemo<ColumnDef<ApprovalRequest>[]>(
+    () => [
+      {
+        accessorKey: "requestType",
+        header: "Type",
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.requestType}</span>
+        ),
+      },
+      {
+        accessorKey: "refId",
+        header: "Reference",
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.refId}</span>
+        ),
+      },
+      {
+        accessorKey: "amount",
+        header: "Amount",
+        cell: ({ row }) => (
+          <span className="tabular-nums text-muted-foreground">
+            {row.original.amount
+              ? `${Number(row.original.amount).toLocaleString()} ${row.original.currency}`
+              : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "level",
+        header: "Level",
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">
+            {row.original.currentLevel}/{row.original.totalLevels}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <Status variant={STATUS_VARIANTS[row.original.status] || "default"}>
+            <StatusIndicator />
+            <StatusLabel>{row.original.status}</StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Thao tác",
+        cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={() => openReview(row.original, "approve")}
+            >
+              Review
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={cancelApproval.isPending}
+              onClick={() => onCancel(row.original)}
+            >
+              Cancel
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [cancelApproval.isPending, onCancel],
+  )
+  const table = useReactTable({
+    data: approvals,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    initialState: { pagination: { pageSize: 20 } },
+  })
+
+  return (
+    <>
+      <DataTable table={table} defaultDensity="comfortable" />
+      <Dialog open={reviewTarget !== null} onOpenChange={(o) => !o && closeReview()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {decision === "approve" ? "Approve" : "Reject"} request
+            </DialogTitle>
+            <DialogDescription>
+              {reviewTarget?.requestType} · Ref {reviewTarget?.refId} · Level{" "}
+              {reviewTarget?.currentLevel}/{reviewTarget?.totalLevels}
+            </DialogDescription>
+          </DialogHeader>
+          {reviewTarget?.makerNote ? (
+            <p className="text-sm italic text-muted-foreground">
+              {reviewTarget.makerNote}
+            </p>
+          ) : null}
+          {reviewTarget?.steps && reviewTarget.steps.length > 0 ? (
+            <div className="rounded-md border p-3">
+              <p className="mb-1 text-xs font-medium text-muted-foreground">
+                Approval History:
+              </p>
+              {reviewTarget.steps.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center gap-2 text-xs text-muted-foreground"
+                >
+                  <span>Level {s.level}:</span>
+                  <Status
+                    variant={s.decision === "APPROVED" ? "success" : "error"}
+                  >
+                    <StatusIndicator />
+                    <StatusLabel>{s.decision}</StatusLabel>
+                  </Status>
+                  <span>by {s.checkerId.slice(0, 8)}</span>
+                  {s.note && <span>— {s.note}</span>}
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <FormField label="Note (optional)">
+            <Input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </FormField>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeReview}>
+              Back
+            </Button>
+            {decision === "approve" ? (
+              <Button
+                disabled={approveApproval.isPending}
+                onClick={submitReview}
+              >
+                Approve
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                disabled={rejectApproval.isPending}
+                onClick={submitReview}
+              >
+                Reject
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

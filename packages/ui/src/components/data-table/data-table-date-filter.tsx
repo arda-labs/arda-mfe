@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
 import { Separator } from "@workspace/ui/components/separator";
+import { cn } from "@workspace/ui/lib/utils";
 import { formatDate } from "@workspace/ui/lib/format";
 
 type DateSelection = Date[] | DateRange;
@@ -175,19 +176,42 @@ export function DataTableDateFilter<TData>({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="h-8 border-dashed px-3 font-normal">{hasValue ? (
-                      <div
-                        role="button"
-                        aria-label={`Clear ${title} filter`}
-                        tabIndex={0}
-                        onClick={onReset}
-                        className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <XCircle />
-                      </div>
-                    ) : (
-                      <CalendarIcon />
-                    )}{label}</Button></PopoverTrigger>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-8 px-3 font-normal",
+            hasValue
+              ? "text-foreground"
+              : "border-dashed text-muted-foreground",
+          )}
+        >
+          {hasValue ? (
+            <span className="flex items-center gap-1">
+              <CalendarIcon className="size-3.5" />
+              <span>{title}</span>
+              <span>:</span>
+              <span className="font-medium">
+                {multiple
+                  ? `${formatDate((selectedDates as DateRange).from)} - ${formatDate((selectedDates as DateRange).to)}`
+                  : formatDate((selectedDates as Date[])[0])}
+              </span>
+              <div
+                role="button"
+                aria-label={`Clear ${title} filter`}
+                tabIndex={0}
+                onClick={onReset}
+                className="ml-0.5 rounded-sm opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <XCircle className="size-3.5" />
+              </div>
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <CalendarIcon className="size-3.5" />
+              <span>{title || "Select date"}</span>
+            </span>
+          )}
+        </Button></PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         {multiple ? (
           <Calendar

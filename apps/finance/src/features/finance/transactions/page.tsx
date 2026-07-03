@@ -1,7 +1,14 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import {
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+  type PaginationState,
+} from "@tanstack/react-table"
+import { FileText } from "lucide-react"
 import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -20,6 +27,9 @@ import {
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
+import { Page } from "@workspace/ui/components/page"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import {
   Select,
   SelectContent,
@@ -27,7 +37,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { useI18n } from "@workspace/i18n"
 import { useCreateTransaction, useTransactions } from "./queries"
+import type { Transaction } from "@/features/finance/api"
 
 const entrySchema = z.object({
   accountId: z.string().trim().min(1, "Account ID is required"),
@@ -146,200 +158,241 @@ export function TransactionsPage() {
     )
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <Page>
+      <PageHeader
+        title={t("finance.transactions.title")}
+        icon={FileText}
+        badge={
           <Badge variant="secondary" className="px-2.5 py-1 text-xs">
             {total} total
           </Badge>
-        </div>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger className="h-9 px-4 text-sm">
-            Create Transaction
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Create Transaction</DialogTitle>
-            </DialogHeader>
-            <form className="space-y-3" onSubmit={handleCreate}>
-              <FormField
-                label="Transaction type"
-                error={errors.txnType?.message}
-              >
-                <Controller
-                  control={control}
-                  name="txnType"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger aria-invalid={Boolean(errors.txnType)}>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="TRANSFER">Transfer</SelectItem>
-                        <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                        <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-                        <SelectItem value="FEE">Fee</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </FormField>
-              <FormField
-                label="Description"
-                error={errors.description?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(errors.description)}
-                  {...register("description")}
-                />
-              </FormField>
-
-              <p className="text-sm font-medium">Entries (debit = credit)</p>
-              {typeof errors.entries?.message === "string" ? (
-                <p className="text-xs font-medium text-destructive">
-                  {errors.entries.message}
-                </p>
-              ) : null}
-              {fields.map((entry, i) => (
-                <div
-                  key={entry.id}
-                  className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]"
+        }
+        actions={
+          <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger className="h-9 px-4 text-sm">
+              Create Transaction
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Create Transaction</DialogTitle>
+              </DialogHeader>
+              <form className="space-y-3" onSubmit={handleCreate}>
+                <FormField
+                  label="Transaction type"
+                  error={errors.txnType?.message}
                 >
-                  <FormField
-                    label="Account ID"
-                    error={errors.entries?.[i]?.accountId?.message}
+                  <Controller
+                    control={control}
+                    name="txnType"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger aria-invalid={Boolean(errors.txnType)}>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TRANSFER">Transfer</SelectItem>
+                          <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                          <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                          <SelectItem value="FEE">Fee</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </FormField>
+                <FormField
+                  label="Description"
+                  error={errors.description?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(errors.description)}
+                    {...register("description")}
+                  />
+                </FormField>
+
+                <p className="text-sm font-medium">Entries (debit = credit)</p>
+                {typeof errors.entries?.message === "string" ? (
+                  <p className="text-xs font-medium text-destructive">
+                    {errors.entries.message}
+                  </p>
+                ) : null}
+                {fields.map((entry, i) => (
+                  <div
+                    key={entry.id}
+                    className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]"
                   >
-                    <Input
-                      aria-invalid={Boolean(errors.entries?.[i]?.accountId)}
-                      {...register(`entries.${i}.accountId`)}
-                    />
-                  </FormField>
-                  <FormField
-                    label="Type"
-                    error={errors.entries?.[i]?.type?.message}
-                  >
-                    <Controller
-                      control={control}
-                      name={`entries.${i}.type`}
-                      render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger
-                            aria-invalid={Boolean(errors.entries?.[i]?.type)}
+                    <FormField
+                      label="Account ID"
+                      error={errors.entries?.[i]?.accountId?.message}
+                    >
+                      <Input
+                        aria-invalid={Boolean(errors.entries?.[i]?.accountId)}
+                        {...register(`entries.${i}.accountId`)}
+                      />
+                    </FormField>
+                    <FormField
+                      label="Type"
+                      error={errors.entries?.[i]?.type?.message}
+                    >
+                      <Controller
+                        control={control}
+                        name={`entries.${i}.type`}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
                           >
-                            <SelectValue placeholder="Type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="DEBIT">Debit</SelectItem>
-                            <SelectItem value="CREDIT">Credit</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </FormField>
-                  <FormField
-                    label="Amount"
-                    error={errors.entries?.[i]?.amount?.message}
+                            <SelectTrigger
+                              aria-invalid={Boolean(errors.entries?.[i]?.type)}
+                            >
+                              <SelectValue placeholder="Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="DEBIT">Debit</SelectItem>
+                              <SelectItem value="CREDIT">Credit</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </FormField>
+                    <FormField
+                      label="Amount"
+                      error={errors.entries?.[i]?.amount?.message}
+                    >
+                      <Input
+                        aria-invalid={Boolean(errors.entries?.[i]?.amount)}
+                        {...register(`entries.${i}.amount`)}
+                      />
+                    </FormField>
+                  </div>
+                ))}
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() =>
+                      append({ accountId: "", type: "DEBIT", amount: "" })
+                    }
                   >
-                    <Input
-                      aria-invalid={Boolean(errors.entries?.[i]?.amount)}
-                      {...register(`entries.${i}.amount`)}
-                    />
-                  </FormField>
+                    + Entry
+                  </Button>
                 </div>
-              ))}
 
-              <div className="flex gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() =>
-                    append({ accountId: "", type: "DEBIT", amount: "" })
-                  }
+                  className="w-full"
+                  type="submit"
+                  disabled={isSubmitting || createTransaction.isPending}
                 >
-                  + Entry
+                  Post Transaction
                 </Button>
-              </div>
-
-              <Button
-                className="w-full"
-                type="submit"
-                disabled={isSubmitting || createTransaction.isPending}
-              >
-                Post Transaction
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="border-b bg-muted/50">
-            <tr>
-              <th className="p-3 text-left font-medium">ID</th>
-              <th className="p-3 text-left font-medium">Type</th>
-              <th className="p-3 text-left font-medium">Date</th>
-              <th className="p-3 text-left font-medium">Status</th>
-              <th className="p-3 text-left font-medium">Description</th>
-              <th className="p-3 text-left font-medium">Created By</th>
-            </tr>
-          </thead>
-          <tbody>
-            {txns.map((t) => (
-              <tr
-                key={t.id}
-                className="border-b last:border-0 hover:bg-muted/30"
-              >
-                <td className="p-3 font-mono text-xs">{t.id.slice(0, 8)}…</td>
-                <td className="p-3 font-medium">{t.txnType}</td>
-                <td className="p-3 text-muted-foreground">
-                  {new Date(t.postedAt).toLocaleDateString()}
-                </td>
-                <td className="p-3">
-                  <Status variant={STATUS_VARIANTS[t.status] || "default"}>
-                    <StatusIndicator />
-                    <StatusLabel>{t.status}</StatusLabel>
-                  </Status>
-                </td>
-                <td className="max-w-xs truncate p-3 text-muted-foreground">
-                  {t.description || "—"}
-                </td>
-                <td className="p-3 text-muted-foreground">
-                  {t.createdBy.slice(0, 8)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Prev
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      )}
-    </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
+      <TransactionsTable
+        txns={txns}
+        page={page}
+        size={size}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
+    </Page>
   )
+}
+
+function TransactionsTable({
+  txns,
+  page,
+  size,
+  totalPages,
+  onPageChange,
+}: {
+  txns: Transaction[]
+  page: number
+  size: number
+  totalPages: number
+  onPageChange: (page: number) => void
+}) {
+  const columns = useMemo<ColumnDef<Transaction>[]>(
+    () => [
+      {
+        accessorKey: "id",
+        header: "ID",
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">
+            {row.original.id.slice(0, 8)}…
+          </span>
+        ),
+      },
+      {
+        accessorKey: "txnType",
+        header: "Type",
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.txnType}</span>
+        ),
+      },
+      {
+        accessorKey: "postedAt",
+        header: "Date",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {new Date(row.original.postedAt).toLocaleDateString()}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <Status variant={STATUS_VARIANTS[row.original.status] || "default"}>
+            <StatusIndicator />
+            <StatusLabel>{row.original.status}</StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ row }) => (
+          <span className="max-w-xs truncate text-muted-foreground">
+            {row.original.description || "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "createdBy",
+        header: "Created By",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.createdBy.slice(0, 8)}
+          </span>
+        ),
+      },
+    ],
+    [],
+  )
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: page - 1,
+    pageSize: size,
+  })
+  const table = useReactTable({
+    data: txns,
+    columns,
+    manualPagination: true,
+    pageCount: totalPages,
+    state: { pagination: { pageIndex, pageSize } },
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({ pageIndex, pageSize })
+          : updater
+      setPagination(next)
+      onPageChange(next.pageIndex + 1)
+    },
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  return <DataTable table={table} defaultDensity="comfortable" />
 }

@@ -12,6 +12,9 @@
     "preview": "vite preview --port 5000"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
+    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-table": "^8.21.3",
     "@workspace/auth": "workspace:*",
     "@workspace/core": "workspace:*",
     "@workspace/i18n": "workspace:*",
@@ -19,16 +22,15 @@
     "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
-    "@hookform/resolvers": "^5.4.0",
-    "@tanstack/react-query": "^5.101.2",
     "bpmn-js": "^18.9.1",
+    "date-fns": "^4.4.0",
     "lucide-react": "^1.22.0",
     "nuqs": "^2.9.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.80.0",
-    "zod": "^4.4.3",
-    "zeebe-bpmn-moddle": "^1.16.0"
+    "zeebe-bpmn-moddle": "^1.16.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10",

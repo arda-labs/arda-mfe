@@ -1,7 +1,17 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table"
+import { Wallet } from "lucide-react"
 import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -20,6 +30,9 @@ import {
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
+import { Page } from "@workspace/ui/components/page"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { useI18n } from "@workspace/i18n"
 import {
   Select,
@@ -29,6 +42,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { useAccounts, useCreateAccount } from "./queries"
+import type { Account } from "@/features/finance/api"
 
 const accountFormSchema = z.object({
   code: z
@@ -130,161 +144,187 @@ export function AccountsPage() {
     )
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <Page>
+      <PageHeader
+        title={t("finance.accounts.title")}
+        icon={Wallet}
+        badge={
           <Badge variant="secondary" className="px-2.5 py-1 text-xs">
             {t("finance.accounts.count", { count: accounts.length })}
           </Badge>
-        </div>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger className="h-9 px-4 text-sm">
-            {t("finance.accounts.create")}
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("finance.accounts.create")}</DialogTitle>
-            </DialogHeader>
-            <form className="space-y-3" onSubmit={handleCreate}>
-              <FormField
-                label={t("common.field.code")}
-                error={errors.code?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(errors.code)}
-                  {...register("code")}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.name")}
-                error={errors.name?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(errors.name)}
-                  {...register("name")}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.type")}
-                error={errors.type?.message}
-              >
-                <Controller
-                  control={control}
-                  name="type"
-                  render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={(val) =>
-                        handleTypeChange(val as AccountFormValues["type"])
-                      }
-                    >
-                      <SelectTrigger aria-invalid={Boolean(errors.type)}>
-                        <SelectValue placeholder={t("common.field.type")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ASSET">
-                          {t("finance.account_type.asset")}
-                        </SelectItem>
-                        <SelectItem value="LIABILITY">
-                          {t("finance.account_type.liability")}
-                        </SelectItem>
-                        <SelectItem value="EQUITY">
-                          {t("finance.account_type.equity")}
-                        </SelectItem>
-                        <SelectItem value="INCOME">
-                          {t("finance.account_type.income")}
-                        </SelectItem>
-                        <SelectItem value="EXPENSE">
-                          {t("finance.account_type.expense")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.currency")}
-                error={errors.currency?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(errors.currency)}
-                  {...register("currency")}
-                />
-              </FormField>
-              <Button
-                className="w-full"
-                type="submit"
-                disabled={isSubmitting || createAccount.isPending}
-              >
-                {t("common.action.create")}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="border-b bg-muted/50">
-            <tr>
-              <th className="p-3 text-left font-medium">
-                {t("common.field.code")}
-              </th>
-              <th className="p-3 text-left font-medium">
-                {t("common.field.name")}
-              </th>
-              <th className="p-3 text-left font-medium">
-                {t("common.field.type")}
-              </th>
-              <th className="p-3 text-left font-medium">
-                {t("finance.accounts.field.normal_balance")}
-              </th>
-              <th className="p-3 text-left font-medium">
-                {t("common.field.currency")}
-              </th>
-              <th className="p-3 text-left font-medium">
-                {t("common.field.status")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {accounts.map((a) => (
-              <tr
-                key={a.id}
-                className="border-b last:border-0 hover:bg-muted/30"
-              >
-                <td className="p-3 font-mono text-sm">{a.code}</td>
-                <td className="p-3 font-medium">{a.name}</td>
-                <td className="p-3">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${ACCOUNT_TYPE_COLORS[a.type] || ""}`}
-                  >
-                    {accountTypeLabel(a.type, t)}
-                  </span>
-                </td>
-                <td className="p-3 text-muted-foreground">
-                  {a.normalBalance === "DEBIT"
-                    ? t("finance.entry.debit")
-                    : t("finance.entry.credit")}
-                </td>
-                <td className="p-3 text-muted-foreground">{a.currency}</td>
-                <td className="p-3">
-                  <Status variant={a.isActive ? "success" : "default"}>
-                    <StatusIndicator />
-                    <StatusLabel>
-                      {a.isActive
-                        ? t("common.status.active")
-                        : t("common.status.inactive")}
-                    </StatusLabel>
-                  </Status>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+        }
+        actions={
+          <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger className="h-9 px-4 text-sm">
+              {t("finance.accounts.create")}
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("finance.accounts.create")}</DialogTitle>
+              </DialogHeader>
+              <form className="space-y-3" onSubmit={handleCreate}>
+                <FormField
+                  label={t("common.field.code")}
+                  error={errors.code?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(errors.code)}
+                    {...register("code")}
+                  />
+                </FormField>
+                <FormField
+                  label={t("common.field.name")}
+                  error={errors.name?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(errors.name)}
+                    {...register("name")}
+                  />
+                </FormField>
+                <FormField
+                  label={t("common.field.type")}
+                  error={errors.type?.message}
+                >
+                  <Controller
+                    control={control}
+                    name="type"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={(val) =>
+                          handleTypeChange(val as AccountFormValues["type"])
+                        }
+                      >
+                        <SelectTrigger aria-invalid={Boolean(errors.type)}>
+                          <SelectValue placeholder={t("common.field.type")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ASSET">
+                            {t("finance.account_type.asset")}
+                          </SelectItem>
+                          <SelectItem value="LIABILITY">
+                            {t("finance.account_type.liability")}
+                          </SelectItem>
+                          <SelectItem value="EQUITY">
+                            {t("finance.account_type.equity")}
+                          </SelectItem>
+                          <SelectItem value="INCOME">
+                            {t("finance.account_type.income")}
+                          </SelectItem>
+                          <SelectItem value="EXPENSE">
+                            {t("finance.account_type.expense")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </FormField>
+                <FormField
+                  label={t("common.field.currency")}
+                  error={errors.currency?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(errors.currency)}
+                    {...register("currency")}
+                  />
+                </FormField>
+                <Button
+                  className="w-full"
+                  type="submit"
+                  disabled={isSubmitting || createAccount.isPending}
+                >
+                  {t("common.action.create")}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
+      <AccountsTable accounts={accounts} />
+    </Page>
   )
+}
+
+function AccountsTable({ accounts }: { accounts: Account[] }) {
+  const { t } = useI18n()
+  const [sorting, setSorting] = useState<SortingState>([])
+  const columns = useMemo<ColumnDef<Account>[]>(
+    () => [
+      {
+        accessorKey: "code",
+        header: t("common.field.code"),
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">{row.original.code}</span>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: t("common.field.name"),
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.name}</span>
+        ),
+      },
+      {
+        accessorKey: "type",
+        header: t("common.field.type"),
+        cell: ({ row }) => (
+          <span
+            className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${ACCOUNT_TYPE_COLORS[row.original.type] || ""}`}
+          >
+            {accountTypeLabel(row.original.type, t)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "normalBalance",
+        header: t("finance.accounts.field.normal_balance"),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.normalBalance === "DEBIT"
+              ? t("finance.entry.debit")
+              : t("finance.entry.credit")}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "currency",
+        header: t("common.field.currency"),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.currency}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "isActive",
+        header: t("common.field.status"),
+        cell: ({ row }) => (
+          <Status variant={row.original.isActive ? "success" : "default"}>
+            <StatusIndicator />
+            <StatusLabel>
+              {row.original.isActive
+                ? t("common.status.active")
+                : t("common.status.inactive")}
+            </StatusLabel>
+          </Status>
+        ),
+      },
+    ],
+    [t],
+  )
+  const table = useReactTable({
+    data: accounts,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 20 } },
+  })
+
+  return <DataTable table={table} defaultDensity="comfortable" />
 }
 
 function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {

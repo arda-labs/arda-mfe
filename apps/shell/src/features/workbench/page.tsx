@@ -1,32 +1,31 @@
-﻿import { useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
+  ChevronRight,
   Clock3,
   Eye,
   FileText,
   RefreshCw,
   Search,
+  XCircle,
 } from "lucide-react"
+import {
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+} from "@tanstack/react-table"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { FormField } from "@workspace/ui/components/form-field"
+import { DatePopover } from "@workspace/ui/components/date-popover"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+import { SelectPopover } from "@workspace/ui/components/select-popover"
+import { Page } from "@workspace/ui/components/page"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { PageSubmenu } from "@workspace/ui/components/page-submenu"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { useAsRef } from "@workspace/ui/hooks/use-as-ref"
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/notifications/notify"
 import type { Customer } from "../customers/api"
@@ -41,6 +40,8 @@ import {
 import { useClaimWorkItem, useWorkItemSummary, useWorkItems } from "./queries"
 
 type WorkbenchRoute = "drafts" | "incoming" | "outgoing" | "search"
+
+const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 
 const directionMeta = {
   incoming: {
@@ -77,14 +78,12 @@ function DraftWorkbenchPage() {
   const items = draftsQuery.data ?? []
 
   return (
-    <section className="space-y-4">
-      <Header
+    <Page variant="scroll">
+      <PageHeader
         title="Hồ sơ nhập"
+        icon={FileText}
         description="Các bản nháp chưa submit vào BPMN. Khi trình duyệt thành công, hồ sơ sẽ thành case workflow."
-      />
-      <Panel
-        title="Bản nháp nghiệp vụ"
-        action={
+        actions={
           <Button
             type="button"
             variant="secondary"
@@ -95,52 +94,72 @@ function DraftWorkbenchPage() {
             Tải lại
           </Button>
         }
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ma</TableHead>
-              <TableHead>Tiêu đề</TableHead>
-              <TableHead>Nghiệp vụ</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Cập nhật</TableHead>
-              <TableHead className="text-right">Thao tác</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>{customerTypeLabel(item)}</TableCell>
-                <TableCell>
-                  <StatusBadge status={item.status} />
-                </TableCell>
-                <TableCell>{formatDateTime(item.updatedAt)}</TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() =>
-                      navigateTo(
-                        `/customers/registrations?customerId=${encodeURIComponent(item.id)}`
-                      )
-                    }
-                  >
-                    <Eye className="size-4" />
-                    Mo
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {!items.length ? (
-              <EmptyTable colSpan={6} text="Chưa có bản nháp nào." />
-            ) : null}
-          </TableBody>
-        </Table>
-      </Panel>
-    </section>
+      />
+      <DraftsTable items={items} />
+    </Page>
   )
+}
+
+function DraftsTable({ items }: { items: Customer[] }) {
+  const columns = useMemo<ColumnDef<Customer>[]>(
+    () => [
+      {
+        accessorKey: "id",
+        header: "Mã",
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.id}</span>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: "Tiêu đề",
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.name}</span>
+        ),
+      },
+      {
+        id: "type",
+        header: "Nghiệp vụ",
+        cell: ({ row }) => customerTypeLabel(row.original),
+      },
+      {
+        accessorKey: "status",
+        header: "Trạng thái",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+      {
+        accessorKey: "updatedAt",
+        header: "Cập nhật",
+        cell: ({ row }) => formatDateTime(row.original.updatedAt),
+      },
+      {
+        id: "actions",
+        header: "Thao tác",
+        cell: ({ row }) => (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() =>
+              navigateTo(
+                `/customers/registrations?customerId=${encodeURIComponent(row.original.id)}`
+              )
+            }
+          >
+            <Eye className="size-4" />
+            Mở
+          </Button>
+        ),
+      },
+    ],
+    [],
+  )
+  const table = useReactTable({
+    data: items,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    initialState: { pagination: { pageSize: 25 } },
+  })
+  return <DataTable table={table} defaultDensity="comfortable" />
 }
 
 function TransactionWorkbench({
@@ -150,260 +169,398 @@ function TransactionWorkbench({
 }) {
   const meta = directionMeta[direction]
   const Icon = meta.icon
-  const [filters, setFilters] = useState<WorkItemFilter>({
-    direction: apiDirection(direction),
-    accounting: "ALL",
-    slaStatus: "ALL",
-    limit: 100,
-  })
   const [activeNode, setActiveNode] = useState("ALL")
-  const queryFilter = {
-    ...filters,
-    node: activeNode === "ALL" ? undefined : activeNode,
-  }
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+  const baseFilter: WorkItemFilter = useMemo(
+    () => ({
+      direction: apiDirection(direction),
+      limit: 100,
+      node: activeNode === "ALL" ? undefined : activeNode,
+    }),
+    [direction, activeNode],
+  )
+  const queryFilter = useMemo(() => {
+    const next = { ...baseFilter }
+    for (const f of columnFilters) {
+      if (f.id === "keyword") next.keyword = String(f.value ?? "")
+      if (f.id === "fromDate") next.fromDate = toDateString(f.value)
+      if (f.id === "toDate") next.toDate = toDateString(f.value)
+      if (f.id === "accounting") next.accounting = asAccounting(f.value)
+      if (f.id === "slaStatus") next.slaStatus = asSlaStatus(f.value)
+    }
+    return next
+  }, [baseFilter, columnFilters])
+
   const workItemsQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
-  const summaryQuery = useWorkItemSummary(filters, { refetchInterval: 15000 })
+  const summaryQuery = useWorkItemSummary(baseFilter, { refetchInterval: 15000 })
   const claimWorkItem = useClaimWorkItem()
   const items = workItemsQuery.data ?? []
   const nodes = summaryQuery.data ?? []
+  const [treeCollapsed, setTreeCollapsed] = useState(() =>
+    readStoredBoolean(WORKBENCH_TREE_COLLAPSED_KEY, false)
+  )
 
-  function updateFilter(patch: Partial<WorkItemFilter>) {
-    setFilters((current) => ({ ...current, ...patch }))
-  }
+  useEffect(() => {
+    writeStoredBoolean(WORKBENCH_TREE_COLLAPSED_KEY, treeCollapsed)
+  }, [treeCollapsed])
 
-  function openWorkItem(item: WorkItem) {
-    if (direction !== "incoming") {
-      navigateTo(workItemHref(item, direction))
-      return
-    }
-    if (item.assignedTo && !item.canOpen) {
+  const claiming = direction === "incoming" && claimWorkItem.isPending
+  const claimRef = useAsRef(claimWorkItem)
+  const openWorkItem = useCallback(
+    (item: WorkItem) => {
+      if (direction !== "incoming") {
+        navigateTo(workItemHref(item, direction))
+        return
+      }
+      if (item.assignedTo && !item.canOpen) {
+        notify.error("Không thể nhận task", item.claimBlockedReason)
+        return
+      }
+      if (item.canClaim) {
+        claimRef.current.mutate(
+          { workItemId: item.id },
+          {
+            onSuccess: ({ workItem }) =>
+              navigateTo(workItemHref(workItem, direction)),
+          }
+        )
+        return
+      }
+      if (item.canOpen) {
+        navigateTo(workItemHref(item, direction))
+        return
+      }
       notify.error("Không thể nhận task", item.claimBlockedReason)
-      return
-    }
-    if (item.canClaim) {
-      claimWorkItem.mutate(
-        { workItemId: item.id },
-        {
-          onSuccess: ({ workItem }) =>
-            navigateTo(workItemHref(workItem, direction)),
-        }
-      )
-      return
-    }
-    if (item.canOpen) {
-      navigateTo(workItemHref(item, direction))
-      return
-    }
-    notify.error("Không thể nhận task", item.claimBlockedReason)
-  }
+    },
+    [direction, claimRef],
+  )
 
   return (
-    <section className="space-y-4">
-      <Header title={meta.title} description={meta.description} />
-      <Panel title="Điều kiện tìm kiếm">
-        <WorkbenchFilters
-          direction={direction}
-          filters={filters}
-          onChange={updateFilter}
-        />
-      </Panel>
-      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
-        <Panel title="Loại nghiệp vụ">
-          <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <Icon className="size-4" />
-            <span>{items.length} việc</span>
-          </div>
+    <Page variant="fixed">
+      <PageHeader
+        title={meta.title}
+        icon={Icon}
+        description={meta.description}
+        actions={
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={workItemsQuery.isFetching}
+            onClick={() => {
+              void workItemsQuery.refetch()
+              void summaryQuery.refetch()
+            }}
+          >
+            <RefreshCw className="size-4" />
+            Làm mới
+          </Button>
+        }
+      />
+      <div className="grid min-h-0 flex-1 rounded-md border md:grid-cols-[auto_minmax(0,1fr)]">
+        <PageSubmenu
+          title="Loại nghiệp vụ"
+          icon={Icon}
+          collapsed={treeCollapsed}
+          onCollapsedChange={setTreeCollapsed}
+          meta={`${items.length} việc`}
+          embedded
+        >
           <WorkItemTree
             nodes={nodes}
             activeNode={activeNode}
             onSelect={setActiveNode}
           />
-        </Panel>
-        <Panel
-          title="Công việc cần xử lý"
-          action={
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={workItemsQuery.isFetching}
-              onClick={() => {
-                void workItemsQuery.refetch()
-                void summaryQuery.refetch()
-              }}
-            >
-              <RefreshCw className="size-4" />
-              Làm mới
-            </Button>
-          }
-        >
-          <WorkItemTable
-            variant={direction}
+        </PageSubmenu>
+        <div className="flex min-h-0 flex-col gap-3 p-3">
+          <WorkbenchDataTable
+            direction={direction}
             items={items}
-            claiming={direction === "incoming" && claimWorkItem.isPending}
+            claiming={claiming}
             onOpen={openWorkItem}
+            columnFilters={columnFilters}
+            onColumnFiltersChange={setColumnFilters}
           />
-        </Panel>
+        </div>
       </div>
-    </section>
+    </Page>
+  )
+}
+
+function WorkbenchDataTable({
+  direction,
+  items,
+  claiming,
+  onOpen,
+  columnFilters,
+  onColumnFiltersChange,
+}: {
+  direction: WorkbenchDirection
+  items: WorkItem[]
+  claiming: boolean
+  onOpen: (item: WorkItem) => void
+  columnFilters: ColumnFiltersState
+  onColumnFiltersChange: (
+    updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState),
+  ) => void
+}) {
+  const setFilter = useCallback(
+    (id: string, value: unknown) => {
+      onColumnFiltersChange((prev) => {
+        const next = prev.filter((f) => f.id !== id)
+        if (value !== undefined && value !== null && value !== "") {
+          next.push({ id, value })
+        }
+        return next
+      })
+    },
+    [onColumnFiltersChange],
+  )
+  const getFilter = useCallback(
+    (id: string) => columnFilters.find((f) => f.id === id)?.value,
+    [columnFilters],
+  )
+  const isIncoming = direction === "incoming"
+  const columns = useMemo(
+    () => workItemColumns(direction, claiming, onOpen),
+    [direction, claiming, onOpen],
+  )
+  const table = useReactTable({
+    data: items,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Mã / tiêu đề giao dịch"
+            value={String(getFilter("keyword") ?? "")}
+            onChange={(e) => setFilter("keyword", e.target.value || undefined)}
+            className="h-8 w-56 pl-8"
+          />
+        </div>
+        <DatePopover
+          value={getFilter("fromDate") as string | undefined}
+          onChange={(v) => setFilter("fromDate", v)}
+          label="Từ ngày"
+        />
+        <DatePopover
+          value={getFilter("toDate") as string | undefined}
+          onChange={(v) => setFilter("toDate", v)}
+          label="Đến ngày"
+        />
+        {isIncoming ? (
+          <SelectPopover
+            value={getFilter("accounting") as string | undefined}
+            onChange={(v) => setFilter("accounting", v || undefined)}
+            label="Loại hạch toán"
+            options={[
+              { label: "Tất cả", value: "" },
+              { label: "Có hạch toán", value: "POSTED" },
+              { label: "Không hạch toán", value: "NOT_POSTED" },
+            ]}
+          />
+        ) : (
+          <SelectPopover
+            value={getFilter("slaStatus") as string | undefined}
+            onChange={(v) => setFilter("slaStatus", v || undefined)}
+            label="Trạng thái SLA"
+            options={[
+              { label: "Tất cả", value: "" },
+              { label: "Đạt SLA", value: "MET" },
+              { label: "Không đạt SLA", value: "BREACHED" },
+            ]}
+          />
+        )}
+        {columnFilters.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+            onClick={() => onColumnFiltersChange([])}
+          >
+            <XCircle className="size-3.5" />
+            Xoá bộ lọc
+          </Button>
+        )}
+      </div>
+      <DataTable table={table} defaultDensity="comfortable" className="min-h-0 flex-1 overflow-auto" />
+    </div>
   )
 }
 
 function TransactionSearchPage() {
-  const [draft, setDraft] = useState<WorkItemFilter>({
-    direction: "ALL",
-    transactionStatus: "ALL",
-    slaStatus: "ALL",
-    limit: 100,
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+  const queryFilter = useMemo<WorkItemFilter>(() => {
+    const next: WorkItemFilter = { direction: "ALL", limit: 100 }
+    for (const f of columnFilters) {
+      if (f.id === "keyword") next.keyword = String(f.value ?? "")
+      if (f.id === "fromDate") next.fromDate = toDateString(f.value)
+      if (f.id === "toDate") next.toDate = toDateString(f.value)
+      if (f.id === "transactionStatus")
+        next.transactionStatus =
+          Array.isArray(f.value) && f.value[0] ? String(f.value[0]) : "ALL"
+      if (f.id === "slaStatus") next.slaStatus = asSlaStatus(f.value)
+    }
+    return next
+  }, [columnFilters])
+
+  const searchQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
+  const items = searchQuery.data ?? []
+  const onOpen = (item: WorkItem) =>
+    navigateTo(
+      workItemHref(
+        item,
+        item.direction === "OUTGOING" ? "outgoing" : "incoming"
+      )
+    )
+
+  const columns = useMemo(() => searchColumns(onOpen), [])
+  const table = useReactTable({
+    data: items,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
   })
-  const [params, setParams] = useState<WorkItemFilter>(draft)
-  const searchQuery = useWorkItems(params, { refetchInterval: 15000 })
+
+  const setFilter = useCallback(
+    (id: string, value: unknown) => {
+      setColumnFilters((prev) => {
+        const next = prev.filter((f) => f.id !== id)
+        if (value !== undefined && value !== null && value !== "") {
+          next.push({ id, value })
+        }
+        return next
+      })
+    },
+    [],
+  )
+  const getFilter = useCallback(
+    (id: string) => columnFilters.find((f) => f.id === id)?.value,
+    [columnFilters],
+  )
 
   return (
-    <section className="space-y-4">
-      <Header
+    <Page variant="fixed">
+      <PageHeader
         title="Tìm kiếm giao dịch"
+        icon={Search}
         description="Tra cứu giao dịch theo ngày, trạng thái xử lý và trạng thái SLA."
       />
-      <form
-        className="grid gap-3 rounded-md border p-4 md:grid-cols-[1fr_1fr_12rem_12rem_auto]"
-        onSubmit={(event) => {
-          event.preventDefault()
-          setParams(draft)
-        }}
-      >
-        <FormField label="Từ ngày">
-          <Input
-            type="date"
-            value={draft.fromDate ?? ""}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                fromDate: event.target.value,
-              }))
-            }
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Mã / tiêu đề"
+              value={String(getFilter("keyword") ?? "")}
+              onChange={(e) => setFilter("keyword", e.target.value || undefined)}
+              className="h-8 w-48 pl-8"
+            />
+          </div>
+          <DatePopover
+            value={getFilter("fromDate") as string | undefined}
+            onChange={(v) => setFilter("fromDate", v)}
+            label="Từ ngày"
           />
-        </FormField>
-        <FormField label="Đến ngày">
-          <Input
-            type="date"
-            value={draft.toDate ?? ""}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                toDate: event.target.value,
-              }))
-            }
+          <DatePopover
+            value={getFilter("toDate") as string | undefined}
+            onChange={(v) => setFilter("toDate", v)}
+            label="Đến ngày"
           />
-        </FormField>
-        <FormField label="Trạng thái giao dịch">
-          <Select
-            value={draft.transactionStatus ?? "ALL"}
-            onValueChange={(value) =>
-              setDraft((current) => ({
-                ...current,
-                transactionStatus: value,
-              }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Tất cả</SelectItem>
-              <SelectItem value="SUBMITTED">Đã gửi</SelectItem>
-              <SelectItem value="IN_REVIEW">Đang xử lý</SelectItem>
-              <SelectItem value="COMPLETED">Hoàn tất</SelectItem>
-              <SelectItem value="REJECTED">Từ chối</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField label="Trạng thái SLA">
-          <SlaFilterSelect
-            value={draft.slaStatus ?? "ALL"}
-            onChange={(slaStatus) =>
-              setDraft((current) => ({ ...current, slaStatus }))
-            }
+          <SelectPopover
+            value={getFilter("transactionStatus") as string | undefined}
+            onChange={(v) => setFilter("transactionStatus", v || undefined)}
+            label="Trạng thái giao dịch"
+            options={[
+              { label: "Tất cả", value: "" },
+              { label: "Đã gửi", value: "SUBMITTED" },
+              { label: "Đang xử lý", value: "IN_REVIEW" },
+              { label: "Hoàn tất", value: "COMPLETED" },
+              { label: "Từ chối", value: "REJECTED" },
+            ]}
           />
-        </FormField>
-        <Button className="mt-6" type="submit">
-          <Search className="size-4" />
-          Tìm
-        </Button>
-      </form>
-      <Panel title="Kết quả">
-        <WorkItemTable
-          variant="search"
-          items={searchQuery.data ?? []}
-          claiming={false}
-          onOpen={(item) =>
-            navigateTo(
-              workItemHref(
-                item,
-                item.direction === "OUTGOING" ? "outgoing" : "incoming"
-              )
-            )
-          }
-        />
-      </Panel>
-    </section>
+          <SelectPopover
+            value={getFilter("slaStatus") as string | undefined}
+            onChange={(v) => setFilter("slaStatus", v || undefined)}
+            label="Trạng thái SLA"
+            options={[
+              { label: "Tất cả", value: "" },
+              { label: "Đạt SLA", value: "MET" },
+              { label: "Không đạt SLA", value: "BREACHED" },
+            ]}
+          />
+          {columnFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setColumnFilters([])}
+            >
+              <XCircle className="size-3.5" />
+              Xoá bộ lọc
+            </Button>
+          )}
+        </div>
+        <DataTable table={table} defaultDensity="comfortable" className="min-h-0 flex-1 overflow-auto" />
+      </div>
+    </Page>
   )
 }
 
-function WorkbenchFilters({
-  direction,
-  filters,
-  onChange,
-}: {
-  direction: WorkbenchDirection
-  filters: WorkItemFilter
-  onChange: (patch: Partial<WorkItemFilter>) => void
-}) {
-  return (
-    <div className="grid gap-3 md:grid-cols-4">
-      <FormField label="Từ ngày">
-        <Input
-          type="date"
-          value={filters.fromDate ?? ""}
-          onChange={(event) => onChange({ fromDate: event.target.value })}
-        />
-      </FormField>
-      <FormField label="Đến ngày">
-        <Input
-          type="date"
-          value={filters.toDate ?? ""}
-          onChange={(event) => onChange({ toDate: event.target.value })}
-        />
-      </FormField>
-      {direction === "incoming" ? (
-        <FormField label="Loại hạch toán">
-          <Select
-            value={filters.accounting ?? "ALL"}
-            onValueChange={(accounting) =>
-              onChange({
-                accounting: accounting as WorkItemFilter["accounting"],
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Tất cả</SelectItem>
-              <SelectItem value="POSTED">Có hạch toán</SelectItem>
-              <SelectItem value="NOT_POSTED">Không hạch toán</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-      ) : (
-        <FormField label="Trạng thái SLA">
-          <SlaFilterSelect
-            value={filters.slaStatus ?? "ALL"}
-            onChange={(slaStatus) => onChange({ slaStatus })}
-          />
-        </FormField>
-      )}
-    </div>
-  )
+function searchColumns(onOpen: (item: WorkItem) => void): ColumnDef<WorkItem>[] {
+  return [
+    {
+      id: "info",
+      header: "Thông tin giao dịch",
+      cell: ({ row }) => (
+        <div className="min-w-80">
+          <WorkItemInfo item={row.original} claiming={false} forceOpen onOpen={onOpen} />
+        </div>
+      ),
+    },
+    {
+      id: "status",
+      header: "Trạng thái",
+      cell: ({ row }) => (
+        <div className="min-w-36">
+          <StatusBadge status={row.original.transactionStatus || row.original.status} />
+        </div>
+      ),
+    },
+    {
+      id: "due",
+      header: "Hạn xử lý",
+      cell: ({ row }) => (
+        <div className="min-w-40 tabular-nums">{formatDateTime(row.original.slaDueAt)}</div>
+      ),
+    },
+    {
+      id: "completed",
+      header: "Thời gian hoàn thành",
+      cell: ({ row }) => (
+        <div className="min-w-40 tabular-nums">{completionTime(row.original)}</div>
+      ),
+    },
+    {
+      id: "sla",
+      header: "Trạng thái SLA",
+      cell: ({ row }) => (
+        <div className="min-w-40">
+          <SlaStatus dueAt={row.original.slaDueAt} status={row.original.slaStatus} />
+        </div>
+      ),
+    },
+    {
+      id: "creator",
+      header: "Người tạo",
+      cell: ({ row }) => <div className="min-w-40">{row.original.createdBy || "-"}</div>,
+    },
+  ]
 }
 
 function WorkItemTree({
@@ -418,154 +575,229 @@ function WorkItemTree({
   const visibleNodes = nodes.length
     ? nodes
     : [{ id: "ALL", label: "Tất cả việc được phép nhận", count: 0 }]
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>(
+    {}
+  )
+
+  function toggleNode(nodeId: string) {
+    setExpandedNodes((current) => ({
+      ...current,
+      [nodeId]: !current[nodeId],
+    }))
+  }
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5" role="tree" aria-label="Loại nghiệp vụ">
       {visibleNodes.map((node) => (
-        <button
+        <WorkItemTreeNode
           key={node.id}
-          type="button"
-          className={cn(
-            "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm",
-            activeNode === node.id
-              ? "bg-accent text-accent-foreground"
-              : "hover:bg-muted"
-          )}
-          onClick={() => onSelect(node.id)}
-        >
-          <span className="truncate">{node.label}</span>
-          <span className="flex items-center gap-1.5">
-            {node.overdue ? (
-              <Badge variant="destructive">{node.overdue}</Badge>
-            ) : null}
-            <Badge variant="secondary">{node.count}</Badge>
-          </span>
-        </button>
+          node={node}
+          level={1}
+          activeNode={activeNode}
+          expandedNodes={expandedNodes}
+          onToggle={toggleNode}
+          onSelect={onSelect}
+        />
       ))}
     </div>
   )
 }
 
-function WorkItemTable({
-  variant,
-  items,
-  claiming,
-  onOpen,
+function WorkItemTreeNode({
+  node,
+  level,
+  activeNode,
+  expandedNodes,
+  onToggle,
+  onSelect,
 }: {
-  variant: WorkbenchDirection | "search"
-  items: WorkItem[]
-  claiming: boolean
-  onOpen: (item: WorkItem) => void
+  node: WorkItemSummaryNode
+  level: number
+  activeNode: string
+  expandedNodes: Record<string, boolean>
+  onToggle: (nodeId: string) => void
+  onSelect: (nodeId: string) => void
 }) {
-  const isIncoming = variant === "incoming"
-  const isOutgoing = variant === "outgoing"
+  const children = node.children ?? []
+  const hasChildren = children.length > 0
+  const isExpanded = expandedNodes[node.id] ?? false
+  const isSelected = activeNode === node.id
+  const count = hasChildren
+    ? node.count || children.reduce((total, child) => total + child.count, 0)
+    : node.count
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>
-            {isIncoming ? "Thông tin giao dịch" : "Thông tin tác vụ giao dịch"}
-          </TableHead>
-          {isIncoming ? (
-            <>
-              <TableHead>Trạng thái SLA</TableHead>
-              <TableHead>Tiến độ thời gian</TableHead>
-              <TableHead>Người xử lý</TableHead>
-            </>
-          ) : null}
-          {isOutgoing ? (
-            <>
-              <TableHead>Thời gian hoàn thành</TableHead>
-              <TableHead>Hạn xử lý</TableHead>
-              <TableHead>Trạng thái SLA</TableHead>
-              <TableHead>Người xử lý trước</TableHead>
-            </>
-          ) : null}
-          {variant === "search" ? (
-            <>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Hạn xử lý</TableHead>
-              <TableHead>Thời gian hoàn thành</TableHead>
-              <TableHead>Trạng thái SLA</TableHead>
-              <TableHead>Người tạo</TableHead>
-            </>
-          ) : null}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {items.map((item) => (
-          <TableRow
-            key={item.id}
-            className="cursor-pointer align-top"
-            onClick={() => onOpen(item)}
+    <div role="none">
+      <div
+        className={cn(
+          "group flex items-center rounded-md text-sm",
+          isSelected
+            ? "bg-accent text-accent-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        )}
+        style={{ paddingLeft: (level - 1) * 12 }}
+      >
+        {hasChildren ? (
+          <button
+            type="button"
+            className="flex size-7 shrink-0 items-center justify-center rounded-md"
+            aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
+            aria-expanded={isExpanded}
+            onClick={() => onToggle(node.id)}
           >
-            <TableCell className="min-w-80">
-              <WorkItemInfo
-                item={item}
-                claiming={claiming}
-                forceOpen={variant !== "incoming"}
-                onOpen={onOpen}
-              />
-            </TableCell>
-            {isIncoming ? (
-              <>
-                <TableCell className="min-w-40">
-                  <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
-                </TableCell>
-                <TableCell className="min-w-72">
-                  <TimeProgress item={item} />
-                </TableCell>
-                <TableCell className="min-w-56">
-                  <AssigneeFlow item={item} />
-                </TableCell>
-              </>
+            {isExpanded ? (
+              <ChevronDown className="size-4" />
+            ) : (
+              <ChevronRight className="size-4" />
+            )}
+          </button>
+        ) : (
+          <span className="size-7 shrink-0" aria-hidden="true" />
+        )}
+        <button
+          type="button"
+          role="treeitem"
+          aria-selected={isSelected}
+          aria-expanded={hasChildren ? isExpanded : undefined}
+          className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-md py-2 pr-2 text-left"
+          onClick={() => onSelect(node.id)}
+        >
+          <span className="truncate">{node.label}</span>
+          <span className="flex shrink-0 items-center gap-1.5">
+            {node.overdue ? (
+              <Badge variant="destructive">{node.overdue}</Badge>
             ) : null}
-            {isOutgoing ? (
-              <>
-                <TableCell className="min-w-40 tabular-nums">
-                  {completionTime(item)}
-                </TableCell>
-                <TableCell className="min-w-40 tabular-nums">
-                  {formatDateTime(item.slaDueAt)}
-                </TableCell>
-                <TableCell className="min-w-40">
-                  <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
-                </TableCell>
-                <TableCell className="min-w-44">
-                  {previousAssignee(item)}
-                </TableCell>
-              </>
-            ) : null}
-            {variant === "search" ? (
-              <>
-                <TableCell className="min-w-36">
-                  <StatusBadge status={item.transactionStatus || item.status} />
-                </TableCell>
-                <TableCell className="min-w-40 tabular-nums">
-                  {formatDateTime(item.slaDueAt)}
-                </TableCell>
-                <TableCell className="min-w-40 tabular-nums">
-                  {completionTime(item)}
-                </TableCell>
-                <TableCell className="min-w-40">
-                  <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
-                </TableCell>
-                <TableCell className="min-w-40">
-                  {item.createdBy || "-"}
-                </TableCell>
-              </>
-            ) : null}
-          </TableRow>
-        ))}
-        {!items.length ? (
-          <EmptyTable
-            colSpan={isIncoming ? 4 : isOutgoing ? 5 : 6}
-            text="Chưa có công việc phù hợp với điều kiện tìm kiếm."
-          />
-        ) : null}
-      </TableBody>
-    </Table>
+            <Badge variant="secondary">{count}</Badge>
+          </span>
+        </button>
+      </div>
+      {hasChildren && isExpanded ? (
+        <div role="group" className="mt-0.5 space-y-0.5">
+          {children.map((child) => (
+            <WorkItemTreeNode
+              key={child.id}
+              node={child}
+              level={level + 1}
+              activeNode={activeNode}
+              expandedNodes={expandedNodes}
+              onToggle={onToggle}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   )
+}
+
+function workItemColumns(
+  direction: WorkbenchDirection,
+  claiming: boolean,
+  onOpen: (item: WorkItem) => void,
+): ColumnDef<WorkItem>[] {
+  const isIncoming = direction === "incoming"
+  const cols: ColumnDef<WorkItem>[] = [
+    {
+      id: "info",
+      header: isIncoming
+        ? "Thông tin giao dịch"
+        : "Thông tin tác vụ giao dịch",
+      cell: ({ row }) => (
+        <div className="min-w-80">
+          <WorkItemInfo
+            item={row.original}
+            claiming={claiming}
+            forceOpen={!isIncoming}
+            onOpen={onOpen}
+          />
+        </div>
+      ),
+    },
+  ]
+
+  if (isIncoming) {
+    cols.push(
+      {
+        id: "sla",
+        header: "Trạng thái SLA",
+        cell: ({ row }) => (
+          <div className="min-w-40">
+            <SlaStatus dueAt={row.original.slaDueAt} status={row.original.slaStatus} />
+          </div>
+        ),
+      },
+      {
+        id: "progress",
+        header: "Tiến độ thời gian",
+        cell: ({ row }) => (
+          <div className="min-w-72">
+            <TimeProgress item={row.original} />
+          </div>
+        ),
+      },
+      {
+        id: "assignee",
+        header: "Người xử lý",
+        cell: ({ row }) => (
+          <div className="min-w-56">
+            <AssigneeFlow item={row.original} />
+          </div>
+        ),
+      },
+    )
+  } else {
+    cols.push(
+      {
+        id: "completed",
+        header: "Thời gian hoàn thành",
+        cell: ({ row }) => (
+          <div className="min-w-40 tabular-nums">{completionTime(row.original)}</div>
+        ),
+      },
+      {
+        id: "due",
+        header: "Hạn xử lý",
+        cell: ({ row }) => (
+          <div className="min-w-40 tabular-nums">{formatDateTime(row.original.slaDueAt)}</div>
+        ),
+      },
+      {
+        id: "sla",
+        header: "Trạng thái SLA",
+        cell: ({ row }) => (
+          <div className="min-w-40">
+            <SlaStatus dueAt={row.original.slaDueAt} status={row.original.slaStatus} />
+          </div>
+        ),
+      },
+      {
+        id: "prev",
+        header: "Người xử lý trước",
+        cell: ({ row }) => (
+          <div className="min-w-44">{previousAssignee(row.original)}</div>
+        ),
+      },
+    )
+  }
+  return cols
+}
+
+function toDateString(value: unknown): string | undefined {
+  if (!value) return undefined
+  if (Array.isArray(value)) return value[0] ? String(value[0]) : undefined
+  return String(value)
+}
+
+function asAccounting(value: unknown): WorkItemFilter["accounting"] {
+  if (Array.isArray(value) && value[0]) return value[0] as WorkItemFilter["accounting"]
+  if (typeof value === "string" && value) return value as WorkItemFilter["accounting"]
+  return "ALL"
+}
+
+function asSlaStatus(value: unknown): WorkItemFilter["slaStatus"] {
+  if (Array.isArray(value) && value[0]) return value[0] as WorkItemFilter["slaStatus"]
+  if (typeof value === "string" && value) return value as WorkItemFilter["slaStatus"]
+  return "ALL"
 }
 
 function WorkItemInfo({
@@ -661,32 +893,6 @@ function AssigneeFlow({ item }: { item: WorkItem }) {
   )
 }
 
-function SlaFilterSelect({
-  value,
-  onChange,
-}: {
-  value: NonNullable<WorkItemFilter["slaStatus"]>
-  onChange: (value: NonNullable<WorkItemFilter["slaStatus"]>) => void
-}) {
-  return (
-    <Select
-      value={value}
-      onValueChange={(next) =>
-        onChange(next as NonNullable<WorkItemFilter["slaStatus"]>)
-      }
-    >
-      <SelectTrigger>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="ALL">Tất cả</SelectItem>
-        <SelectItem value="MET">Đạt SLA</SelectItem>
-        <SelectItem value="BREACHED">Không đạt SLA</SelectItem>
-      </SelectContent>
-    </Select>
-  )
-}
-
 function ProgressRail({
   status,
   slaStatus,
@@ -712,44 +918,6 @@ function ProgressRail({
         />
       ))}
     </div>
-  )
-}
-
-function Panel({
-  title,
-  action,
-  children,
-}: {
-  title: string
-  action?: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <section className="space-y-3 rounded-md border p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h2 className="text-base font-semibold">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </section>
-  )
-}
-
-function Header({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <header className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <FileText className="size-5 text-muted-foreground" />
-        <h1 className="text-2xl font-semibold">{title}</h1>
-      </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </header>
   )
 }
 
@@ -850,19 +1018,6 @@ function previousAssignee(item: WorkItem) {
   return typeof value === "string" && value ? value : "Chưa có"
 }
 
-function EmptyTable({ colSpan, text }: { colSpan: number; text: string }) {
-  return (
-    <TableRow>
-      <TableCell
-        colSpan={colSpan}
-        className="h-24 text-center text-muted-foreground"
-      >
-        {text}
-      </TableCell>
-    </TableRow>
-  )
-}
-
 function routeFromPath(pathname: string): WorkbenchRoute {
   if (pathname.startsWith("/workbench/incoming-transactions")) return "incoming"
   if (pathname.startsWith("/workbench/outgoing-transactions")) return "outgoing"
@@ -930,6 +1085,19 @@ function formatDateTime(value?: string) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(date)
+}
+
+function readStoredBoolean(key: string, fallback: boolean) {
+  if (typeof localStorage === "undefined") return fallback
+  const value = localStorage.getItem(key)
+  if (value === "true") return true
+  if (value === "false") return false
+  return fallback
+}
+
+function writeStoredBoolean(key: string, value: boolean) {
+  if (typeof localStorage === "undefined") return
+  localStorage.setItem(key, String(value))
 }
 
 function navigateTo(path: string) {
