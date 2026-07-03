@@ -50,23 +50,6 @@ export interface OperationResult<T> {
   source: FinanceOperationSource
 }
 
-interface WorkflowCase {
-  id: string
-  caseType: string
-  caseCode: string
-  title: string
-  primaryObjectId: string
-  domainService: string
-  status: string
-  currentStep: string
-  priority: "LOW" | "NORMAL" | "HIGH" | string
-  assignedTo?: string
-  candidateRole?: string
-  slaDueAt?: string
-  createdAt: string
-  updatedAt: string
-}
-
 interface FinanceTransaction {
   id: string
   direction?: "INCOMING" | "OUTGOING"
@@ -84,11 +67,6 @@ interface FinanceTransaction {
   priority?: "LOW" | "NORMAL" | "HIGH" | string
   postedAt?: string
   createdAt: string
-}
-
-const caseTypeByOperation: Record<FinanceOperation, string> = {
-  incoming: "FINANCE_INCOMING_TRANSACTION",
-  outgoing: "FINANCE_OUTGOING_TRANSACTION",
 }
 
 const mockCases: FinanceOperationCase[] = [
@@ -330,30 +308,6 @@ function normalizeItems<T>(
 ) {
   if (Array.isArray(data)) return data
   return data.items ?? data[key] ?? []
-}
-
-function caseFromWorkflow(item: WorkflowCase): FinanceOperationCase {
-  return {
-    id: item.id,
-    caseCode: item.caseCode,
-    operation:
-      item.caseType === caseTypeByOperation.outgoing ? "outgoing" : "incoming",
-    primaryObject: item.title,
-    counterparty: item.primaryObjectId,
-    amount: "0",
-    currency: "VND",
-    channel: item.domainService,
-    status: item.status,
-    currentStep: item.currentStep || item.status,
-    assignee: item.assignedTo,
-    candidateRole: item.candidateRole ?? "",
-    slaDueAt: item.slaDueAt ?? item.updatedAt,
-    slaState: item.status === "COMPLETED" ? "DONE" : "ON_TIME",
-    priority: priority(item.priority),
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-    quickAction: item.assignedTo ? "Tiếp tục xử lý" : "Nhận xử lý",
-  }
 }
 
 function caseFromTransaction(item: FinanceTransaction): FinanceOperationCase {
