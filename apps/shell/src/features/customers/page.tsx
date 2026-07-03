@@ -1198,11 +1198,6 @@ function relationLabel(value: string) {
   )
 }
 
-function navigateTo(path: string) {
-  window.history.pushState({}, "", path)
-  window.dispatchEvent(new PopStateEvent("popstate"))
-}
-
 type CustomerTaskContext = {
   customerId: string | null
   caseId: string | null
