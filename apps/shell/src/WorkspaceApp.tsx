@@ -1,3 +1,4 @@
+import { useSystemBranding } from "@workspace/core/branding"
 import { lazy, Suspense, type ComponentType } from "react"
 import * as authShare from "../../../packages/auth/src/index"
 import * as authStoreShare from "../../../packages/auth/src/store"
@@ -127,11 +128,14 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
 }
 
 function Dashboard() {
+  const { branding } = useSystemBranding()
   return (
     <section className="flex max-w-2xl flex-col gap-4">
       <p className="text-sm text-muted-foreground">Shell</p>
-      <h1 className="text-3xl font-semibold tracking-tight">Arda workspace</h1>
-      <p className="text-muted-foreground">
+      <h1 className="text-3xl font-semibold text-balance">
+        {branding.appName} workspace
+      </h1>
+      <p className="text-muted-foreground text-pretty">
         Auth, layout, i18n, theme, and notifications now live in the shell.
         Domain pages load as runtime micro frontends.
       </p>

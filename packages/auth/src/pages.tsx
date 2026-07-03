@@ -1,12 +1,15 @@
+import { useSystemBranding, type BrandingSettings } from "@workspace/core/branding"
 import { getMediaContentUrl } from "@workspace/core/media/urls"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@workspace/ui/components/input-otp"
+import { cn } from "@workspace/ui/lib/utils"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@workspace/ui/components/input-otp"
 import {
   AlertCircle,
   CheckCircle2,
@@ -40,6 +43,7 @@ export function LoginPage() {
   const { isAuthenticated, user } = useAuthStore()
   const { locale, setLocale, t } = useI18n()
   const { theme, setTheme } = useTheme()
+  const { branding } = useSystemBranding()
   const [error, setError] = useState<string | null>(() => searchError || null)
   const [isPending, setIsPending] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -49,6 +53,7 @@ export function LoginPage() {
   const [mfaRequired, setMfaRequired] = useState(false)
   const [mfaEnrollmentRequired, setMfaEnrollmentRequired] = useState(false)
   const [mfaCode, setMfaCode] = useState("")
+  const [otpMethod, setOtpMethod] = useState<"totp" | "recovery">("totp")
   const [kratosSessionToken, setKratosSessionToken] = useState("")
   const [mfaSecret, setMfaSecret] = useState("")
   const [mfaOTPAuthURL, setMfaOTPAuthURL] = useState("")
@@ -152,7 +157,7 @@ export function LoginPage() {
 
   if (backupCodes.length > 0) {
     return (
-      <AuthFrame>
+      <AuthFrame branding={branding}>
         <div className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold">Save your backup codes</h1>
@@ -190,46 +195,60 @@ export function LoginPage() {
   }
 
   const showRetryButton = !loginChallenge && searchError
+  const mfaSubmitDisabled = mfaEnrollmentRequired
+    ? mfaCode.length !== 6
+    : mfaRequired
+      ? otpMethod === "totp"
+        ? mfaCode.length !== 6
+        : !mfaCode.trim()
+      : !username || !password
 
   return (
     <AuthFrame
+      branding={branding}
       actions={
         <div className="flex items-center gap-2">
-          <button
+          <Button
             aria-label={t("common.action.toggle_theme")}
-            className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-slate-200 dark:border-zinc-800 bg-background/50 text-muted-foreground backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:text-foreground hover:scale-105 active:scale-95"
             onClick={() =>
               setTheme(document.documentElement.classList.contains("dark") ? "light" : "dark")
             }
+            size="icon-sm"
             type="button"
+            variant="outline"
           >
             {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </button>
-          <button
-            aria-label={locale === "vi-VN" ? "Switch to English" : "Chuyen sang tieng Viet"}
-            className="flex h-9 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-background/50 px-3.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:text-foreground hover:scale-105 active:scale-95"
+          </Button>
+          <Button
+            aria-label={locale === "vi-VN" ? "Switch to English" : "Chuyển sang tiếng Việt"}
             onClick={() => setLocale(locale === "vi-VN" ? "en-US" : "vi-VN")}
+            size="sm"
             type="button"
+            variant="outline"
           >
             <Languages className="size-4" />
             {locale === "vi-VN" ? "VI" : "EN"}
-          </button>
+          </Button>
         </div>
       }
     >
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="space-y-6">
         <div className="space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/75 bg-clip-text text-transparent">
-            {t("auth.login.title")}
+          <h1 className="text-2xl font-semibold text-balance">
+            {mfaRequired || mfaEnrollmentRequired ? "Xác thực bảo mật" : t("auth.login.title")}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {showRetryButton ? "Session establishment failed." : "Enter your credentials to access your secure workspace."}
+          <p className="text-sm text-muted-foreground text-pretty">
+            {showRetryButton
+              ? "Session establishment failed."
+              : mfaRequired || mfaEnrollmentRequired
+                ? "Nhập mã xác thực để tiếp tục phiên đăng nhập an toàn."
+                : "Enter your credentials to access your secure workspace."}
           </p>
         </div>
 
         {error && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
-            <AlertCircle className="mt-0.5 size-4 shrink-0 animate-bounce" />
+          <div className="flex items-start gap-2.5 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
             <span className="font-medium leading-normal">{error}</span>
           </div>
         )}
@@ -239,10 +258,7 @@ export function LoginPage() {
             <div className="text-sm text-muted-foreground leading-relaxed">
               We were unable to secure a connection with the authorization server. This may be due to an expired session or network configuration issues.
             </div>
-            <Button
-              onClick={() => redirectToHydraLogin()}
-              className="h-11 w-full font-semibold rounded-xl bg-primary hover:bg-primary/95 text-primary-foreground shadow-lg shadow-primary/10 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-            >
+            <Button onClick={() => redirectToHydraLogin()} className="h-10 w-full font-semibold">
               Retry Secure Sign In
             </Button>
           </div>
@@ -250,12 +266,12 @@ export function LoginPage() {
           <form className="space-y-4" onSubmit={handleLogin}>
             {mfaEnrollmentRequired ? (
               <div className="space-y-4">
-                <div className="rounded-xl border bg-muted/40 p-4 text-xs leading-relaxed text-muted-foreground">
-                  Administrator privileges require Multi-Factor Authentication. Please scan the QR code using your authenticator app, then input the verification code below.
+                <div className="rounded-md border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+                  Administrator privileges require Multi-Factor Authentication. Scan the QR code with your authenticator app, then enter the 6-digit code.
                 </div>
                 {mfaOTPAuthURL && (
                   <div className="flex justify-center">
-                    <div className="rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white p-4 shadow-md transition-all hover:shadow-lg">
+                    <div className="rounded-lg border bg-white p-4 shadow-card">
                       <QRCode value={mfaOTPAuthURL} size={176} level="M" margin={0}>
                         <QRCodeSvg />
                       </QRCode>
@@ -263,52 +279,25 @@ export function LoginPage() {
                   </div>
                 )}
                 <FormField label="Manual setup key">
-                  <Input readOnly className="font-mono text-xs bg-muted/20 rounded-xl" value={mfaSecret} />
+                  <Input readOnly className="bg-muted/20 font-mono text-xs" value={mfaSecret} />
                 </FormField>
-                <FormField label="Verification code">
-                  <div className="flex justify-center">
-                    <InputOTP
-                      maxLength={6}
-                      value={mfaCode}
-                      onChange={setMfaCode}
-                    >
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                      </InputOTPGroup>
-                      <InputOTPSeparator />
-                      <InputOTPGroup>
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                </FormField>
+                <OtpCodeInput value={mfaCode} onChange={setMfaCode} />
               </div>
             ) : mfaRequired ? (
-              <FormField label="Verification code">
-                <div className="flex justify-center">
-                  <InputOTP
-                    maxLength={6}
-                    value={mfaCode}
-                    onChange={setMfaCode}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                    </InputOTPGroup>
-                    <InputOTPSeparator />
-                    <InputOTPGroup>
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-              </FormField>
+              <div className="space-y-4">
+                <OtpMethodSelector value={otpMethod} onChange={setOtpMethod} />
+                {otpMethod === "totp" ? (
+                  <OtpCodeInput value={mfaCode} onChange={setMfaCode} />
+                ) : (
+                  <FormField label="Recovery code">
+                    <Input
+                      autoComplete="one-time-code"
+                      value={mfaCode}
+                      onChange={(event) => setMfaCode(event.target.value.trim())}
+                    />
+                  </FormField>
+                )}
+              </div>
             ) : (
               <>
                 <FormField label={t("auth.login.field.username")}>
@@ -318,14 +307,14 @@ export function LoginPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     type="text"
                     value={username}
-                    className="h-11 rounded-xl"
+                    className="h-10"
                   />
                 </FormField>
                 <FormField label={t("auth.login.field.password")}>
                   <div className="relative">
                     <Input
                       autoComplete="current-password"
-                      className="pr-10 h-11 rounded-xl"
+                      className="h-10 pr-10"
                       onChange={(e) => setPassword(e.target.value)}
                       type={showPassword ? "text" : "password"}
                       value={password}
@@ -340,7 +329,7 @@ export function LoginPage() {
                     </button>
                   </div>
                 </FormField>
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-background/50 p-3 text-sm text-muted-foreground transition-colors hover:bg-muted/50 dark:border-zinc-800">
+                <label className="flex cursor-pointer items-start gap-3 rounded-md border bg-background p-3 text-sm text-muted-foreground transition-colors hover:bg-muted/50">
                   <Checkbox
                     checked={rememberLogin}
                     className="mt-0.5"
@@ -354,8 +343,8 @@ export function LoginPage() {
               </>
             )}
             <Button
-              className="h-11 w-full font-semibold rounded-xl bg-primary hover:bg-primary/95 text-primary-foreground shadow-lg shadow-primary/10 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-              disabled={isPending || (mfaRequired || mfaEnrollmentRequired ? mfaCode.length !== 6 : !username || !password)}
+              className="h-10 w-full font-semibold"
+              disabled={isPending || mfaSubmitDisabled}
               type="submit"
             >
               {isPending ? (
@@ -466,10 +455,10 @@ export function ConsentPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4" style={{ minHeight: "100dvh" }}>
+      <div className="flex min-h-dvh items-center justify-center bg-muted/30 p-4">
         <div className="max-w-md rounded-lg border bg-background p-6 text-sm">
-          <p className="font-medium">Consent flow failed</p>
-          <p className="mt-2 text-muted-foreground">{error}</p>
+          <p className="font-medium text-balance">Consent flow failed</p>
+          <p className="mt-2 text-muted-foreground text-pretty">{error}</p>
         </div>
       </div>
     )
@@ -482,33 +471,35 @@ export function ConsentPage() {
 
 function AuthFrame({
   actions,
+  branding,
   children,
 }: {
   actions?: ReactNode
+  branding: BrandingSettings
   children: ReactNode
 }) {
+  const logoUrl = branding.loginLogoUrl || branding.dashboardLogoUrl
   return (
-    <main
-      className="flex min-h-screen items-center justify-center bg-slate-100 dark:bg-zinc-950 px-4 py-6 text-foreground sm:px-6 transition-colors duration-500"
-      style={{ minHeight: "100dvh" }}
-    >
+    <main className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 text-foreground sm:px-6">
       <div className="w-full max-w-5xl">
-        <div className="grid w-full overflow-hidden rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl transition-all duration-300 lg:grid-cols-12">
-          <AuthBrandPanel />
-          <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between bg-white dark:bg-zinc-900">
-            <div className="mb-10 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
-                  <ShieldCheck className="size-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold leading-none tracking-tight text-slate-900 dark:text-white">Arda</p>
-                  <p className="mt-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Secure Workspace</p>
+        <div className="grid w-full overflow-hidden rounded-xl border bg-card shadow-dialog lg:grid-cols-12">
+          <AuthBrandPanel branding={branding} />
+          <div className="flex flex-col justify-between bg-card p-5 sm:p-8 lg:col-span-7">
+            <div className="mb-8 flex items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <BrandMark name={branding.appName} logoUrl={logoUrl} size="md" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold leading-none text-foreground">
+                    {branding.appName}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                    {branding.organizationName || "Secure workspace"}
+                  </p>
                 </div>
               </div>
               {actions}
             </div>
-            <div className="mx-auto w-full max-w-sm my-auto py-4">{children}</div>
+            <div className="mx-auto my-auto w-full max-w-sm py-4">{children}</div>
           </div>
         </div>
       </div>
@@ -516,52 +507,135 @@ function AuthFrame({
   )
 }
 
-function AuthBrandPanel() {
+function AuthBrandPanel({ branding }: { branding: BrandingSettings }) {
+  const hasBackground = branding.loginBackgroundEnabled && branding.loginBackgroundUrl
   return (
-    <div className="relative hidden overflow-hidden bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 p-10 lg:flex lg:flex-col lg:justify-between lg:col-span-5 text-white">
-      {/* Background radial glow */}
-      <div className="absolute -left-10 -top-10 size-72 rounded-full bg-indigo-500/15 blur-3xl animate-pulse" />
-      <div className="absolute -right-10 -bottom-10 size-72 rounded-full bg-violet-500/15 blur-3xl animate-pulse" />
-      
-      {/* Mesh grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800d_1px,transparent_1px),linear-gradient(to_bottom,#8080800d_1px,transparent_1px)] bg-[size:24px_24px]" />
-
-      <div className="relative z-10 space-y-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/80 px-3.5 py-1.5 text-xs font-semibold text-zinc-300 shadow-inner">
-          <ShieldCheck className="size-4 text-indigo-400 animate-pulse" />
+    <div
+      className="relative hidden overflow-hidden border-r bg-muted/40 p-8 lg:col-span-5 lg:flex lg:flex-col lg:justify-between"
+      style={
+        hasBackground
+          ? {
+              backgroundImage: `linear-gradient(to top, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0.2)), url(${branding.loginBackgroundUrl})`,
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+              color: "white",
+            }
+          : undefined
+      }
+    >
+      <div className="space-y-5">
+        <div
+          className={cn(
+            "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
+            hasBackground
+              ? "border-white/30 bg-black/20 text-white"
+              : "bg-background text-foreground"
+          )}
+        >
+          <ShieldCheck
+            className={cn("size-4", hasBackground ? "text-white" : "text-primary")}
+          />
           <span>Identity Access Management</span>
         </div>
-        
-        <div className="space-y-4">
-          <h1 className="text-4xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-            Welcome back <br />to Arda.
+        <div className="space-y-3">
+          <h1 className="text-3xl font-semibold leading-tight text-balance">
+            {branding.loginWelcomeTitle}
           </h1>
-          <p className="text-sm leading-relaxed text-zinc-400">
-            A unified, enterprise-grade secure session for platform, identity, financial operations, and account auditing.
+          <p className="text-sm leading-6 opacity-80 text-pretty">
+            {branding.loginWelcomeSubtitle}
           </p>
         </div>
       </div>
 
-      <div className="relative z-10 space-y-4">
-        <div className="h-[1px] w-full bg-gradient-to-r from-zinc-800 via-zinc-800 to-transparent" />
-        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Security Ecosystem</p>
-        <div className="grid gap-3 text-sm text-zinc-400">
+      <div className="space-y-4 text-sm">
+        <div
+          className={cn("h-px w-full", hasBackground ? "bg-white/40" : "bg-border")}
+        />
+        <p
+          className={cn(
+            "text-xs font-medium uppercase",
+            hasBackground ? "text-white/70" : "text-muted-foreground"
+          )}
+        >
+          Security ecosystem
+        </p>
+        <div className="grid gap-3">
           {[
-            { label: "OAuth 2.1 / OIDC compliance", desc: "Hydra secured token flows" },
-            { label: "Kratos Identity Management", desc: "Advanced session & credential store" },
-            { label: "Multi-Factor Authentication", desc: "TOTP / Backup codes enabled" }
-          ].map((item) => (
-            <div className="flex items-start gap-3" key={item.label}>
-              <CheckCircle2 className="size-5 text-emerald-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-zinc-200 leading-none">{item.label}</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">{item.desc}</p>
-              </div>
+            "OAuth2/OIDC authorization flow",
+            "Kratos identity and session management",
+            "Multi-factor authentication ready",
+          ].map((label) => (
+            <div className="flex items-center gap-3" key={label}>
+              <CheckCircle2
+                className={cn(
+                  "size-4 shrink-0",
+                  hasBackground ? "text-white" : "text-success"
+                )}
+              />
+              <span className="opacity-85">{label}</span>
             </div>
           ))}
         </div>
       </div>
     </div>
+  )
+}
+
+function OtpMethodSelector({
+  value,
+  onChange,
+}: {
+  value: "totp" | "recovery"
+  onChange: (value: "totp" | "recovery") => void
+}) {
+  const options: Array<{ value: "totp" | "recovery"; label: string }> = [
+    { value: "totp", label: "Authenticator app" },
+    { value: "recovery", label: "Recovery code" },
+  ]
+  return (
+    <div className="grid grid-cols-2 gap-2 rounded-md border bg-muted/30 p-1">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={cn(
+            "rounded-sm px-3 py-2 text-xs font-medium transition-colors",
+            value === option.value
+              ? "bg-background text-foreground shadow-card"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function OtpCodeInput({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <FormField label="Verification code">
+      <div className="flex justify-center">
+        <InputOTP
+          maxLength={6}
+          value={value}
+          onChange={(next) => onChange(next.replace(/\D/g, "").slice(0, 6))}
+        >
+          <InputOTPGroup>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <InputOTPSlot key={index} index={index} />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
+      </div>
+    </FormField>
   )
 }
 

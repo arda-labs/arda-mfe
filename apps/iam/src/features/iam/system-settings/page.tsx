@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
+import {
+  cacheBranding,
+  defaultBranding,
+  isSafeBrandImageUrl,
+} from "@workspace/core/branding"
 import { notify } from "@workspace/notifications/notify"
 import {
   type Parameter,
@@ -6,6 +11,7 @@ import {
   useSystemParameters,
 } from "@/features/iam/system-settings/queries"
 import { Badge } from "@workspace/ui/components/badge"
+import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -34,9 +40,18 @@ import {
 
 type SystemSettings = {
   appName: string
+  shortName: string
+  organizationName: string
   supportEmail: string
   supportPhone: string
   helpUrl: string
+  loginLogoUrl: string
+  dashboardLogoUrl: string
+  faviconUrl: string
+  loginBackgroundUrl: string
+  loginBackgroundEnabled: boolean
+  loginWelcomeTitle: string
+  loginWelcomeSubtitle: string
   loginSingleDevice: boolean
   maxFailedAttempts: number
   lockoutMinutes: number
@@ -55,10 +70,19 @@ type SystemSettings = {
 const SYSTEM_SETTINGS_KEY = "system.settings"
 
 const defaults: SystemSettings = {
-  appName: "Arda",
-  supportEmail: "support@arda.io.vn",
-  supportPhone: "",
-  helpUrl: "",
+  appName: defaultBranding.appName,
+  shortName: defaultBranding.shortName,
+  organizationName: defaultBranding.organizationName,
+  supportEmail: defaultBranding.supportEmail,
+  supportPhone: defaultBranding.supportPhone,
+  helpUrl: defaultBranding.helpUrl,
+  loginLogoUrl: defaultBranding.loginLogoUrl,
+  dashboardLogoUrl: defaultBranding.dashboardLogoUrl,
+  faviconUrl: defaultBranding.faviconUrl,
+  loginBackgroundUrl: defaultBranding.loginBackgroundUrl,
+  loginBackgroundEnabled: defaultBranding.loginBackgroundEnabled,
+  loginWelcomeTitle: defaultBranding.loginWelcomeTitle,
+  loginWelcomeSubtitle: defaultBranding.loginWelcomeSubtitle,
   loginSingleDevice: false,
   maxFailedAttempts: 5,
   lockoutMinutes: 15,
@@ -78,6 +102,12 @@ const fields: Record<keyof SystemSettings, { key: string }> = {
   appName: {
     key: "app.name",
   },
+  shortName: {
+    key: "app.short_name",
+  },
+  organizationName: {
+    key: "app.organization_name",
+  },
   supportEmail: {
     key: "app.support_email",
   },
@@ -86,6 +116,27 @@ const fields: Record<keyof SystemSettings, { key: string }> = {
   },
   helpUrl: {
     key: "app.help_url",
+  },
+  loginLogoUrl: {
+    key: "app.login_logo_url",
+  },
+  dashboardLogoUrl: {
+    key: "app.dashboard_logo_url",
+  },
+  faviconUrl: {
+    key: "app.favicon_url",
+  },
+  loginBackgroundUrl: {
+    key: "app.login_background_url",
+  },
+  loginBackgroundEnabled: {
+    key: "app.login_background_enabled",
+  },
+  loginWelcomeTitle: {
+    key: "app.login_welcome_title",
+  },
+  loginWelcomeSubtitle: {
+    key: "app.login_welcome_subtitle",
   },
   loginSingleDevice: {
     key: "auth.login.single_device",
@@ -183,6 +234,7 @@ export function SystemSettingsPage() {
         description: "System display and authentication settings",
         is_secret: false,
       })
+      cacheBranding(settings)
       notify.success("Đã lưu cấu hình hệ thống")
     } catch {
       notify.error("Lưu cấu hình thất bại")
@@ -234,34 +286,102 @@ export function SystemSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                Thông tin hiển thị trên login
+                Thương hiệu và hiển thị
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <TextInput
-                label="Tên ứng dụng"
-                value={settings.appName}
-                onChange={(appName) => setSettings((s) => ({ ...s, appName }))}
-              />
-              <TextInput
-                label="Email hỗ trợ"
-                value={settings.supportEmail}
-                onChange={(supportEmail) =>
-                  setSettings((s) => ({ ...s, supportEmail }))
-                }
-              />
-              <TextInput
-                label="Số điện thoại hỗ trợ"
-                value={settings.supportPhone}
-                onChange={(supportPhone) =>
-                  setSettings((s) => ({ ...s, supportPhone }))
-                }
-              />
-              <TextInput
-                label="Help center URL"
-                value={settings.helpUrl}
-                onChange={(helpUrl) => setSettings((s) => ({ ...s, helpUrl }))}
-              />
+            <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextInput
+                  label="Tên ứng dụng"
+                  value={settings.appName}
+                  onChange={(appName) => setSettings((s) => ({ ...s, appName }))}
+                />
+                <TextInput
+                  label="Tên rút gọn"
+                  value={settings.shortName}
+                  onChange={(shortName) =>
+                    setSettings((s) => ({ ...s, shortName }))
+                  }
+                />
+                <TextInput
+                  label="Tổ chức"
+                  value={settings.organizationName}
+                  onChange={(organizationName) =>
+                    setSettings((s) => ({ ...s, organizationName }))
+                  }
+                />
+                <TextInput
+                  label="Email hỗ trợ"
+                  value={settings.supportEmail}
+                  onChange={(supportEmail) =>
+                    setSettings((s) => ({ ...s, supportEmail }))
+                  }
+                />
+                <TextInput
+                  label="Số điện thoại hỗ trợ"
+                  value={settings.supportPhone}
+                  onChange={(supportPhone) =>
+                    setSettings((s) => ({ ...s, supportPhone }))
+                  }
+                />
+                <TextInput
+                  label="Help center URL"
+                  value={settings.helpUrl}
+                  onChange={(helpUrl) => setSettings((s) => ({ ...s, helpUrl }))}
+                />
+                <TextInput
+                  label="Login logo URL"
+                  value={settings.loginLogoUrl}
+                  onChange={(loginLogoUrl) =>
+                    setSettings((s) => ({ ...s, loginLogoUrl }))
+                  }
+                />
+                <TextInput
+                  label="Dashboard logo URL"
+                  value={settings.dashboardLogoUrl}
+                  onChange={(dashboardLogoUrl) =>
+                    setSettings((s) => ({ ...s, dashboardLogoUrl }))
+                  }
+                />
+                <TextInput
+                  label="Favicon URL"
+                  value={settings.faviconUrl}
+                  onChange={(faviconUrl) =>
+                    setSettings((s) => ({ ...s, faviconUrl }))
+                  }
+                />
+                <TextInput
+                  label="Login background URL"
+                  value={settings.loginBackgroundUrl}
+                  onChange={(loginBackgroundUrl) =>
+                    setSettings((s) => ({ ...s, loginBackgroundUrl }))
+                  }
+                />
+                <TextInput
+                  label="Tiêu đề login"
+                  value={settings.loginWelcomeTitle}
+                  onChange={(loginWelcomeTitle) =>
+                    setSettings((s) => ({ ...s, loginWelcomeTitle }))
+                  }
+                />
+                <TextInput
+                  label="Mô tả login"
+                  value={settings.loginWelcomeSubtitle}
+                  onChange={(loginWelcomeSubtitle) =>
+                    setSettings((s) => ({ ...s, loginWelcomeSubtitle }))
+                  }
+                />
+                <SettingSwitch
+                  className="md:col-span-2"
+                  label="Bật ảnh nền login"
+                  checked={settings.loginBackgroundEnabled}
+                  onCheckedChange={(loginBackgroundEnabled) =>
+                    setSettings((s) => ({ ...s, loginBackgroundEnabled }))
+                  }
+                  source="Arda"
+                />
+              </div>
+              <BrandingPreview settings={settings} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -426,6 +546,46 @@ export function SystemSettingsPage() {
   )
 }
 
+function BrandingPreview({ settings }: { settings: SystemSettings }) {
+  const logoUrl = settings.dashboardLogoUrl || settings.loginLogoUrl
+  return (
+    <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
+      <div className="flex items-center gap-3">
+        <BrandMark name={settings.appName} logoUrl={logoUrl} size="md" />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{settings.appName}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {settings.organizationName || "Workspace"}
+          </p>
+        </div>
+      </div>
+      <div
+        className="flex min-h-36 flex-col justify-end rounded-lg border bg-card p-4 text-sm"
+        style={
+          settings.loginBackgroundEnabled && settings.loginBackgroundUrl
+            ? {
+                backgroundImage: `linear-gradient(to top, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.08)), url(${settings.loginBackgroundUrl})`,
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+                color: "white",
+              }
+            : undefined
+        }
+      >
+        <p className="font-semibold text-balance">
+          {settings.loginWelcomeTitle}
+        </p>
+        <p className="mt-1 text-xs opacity-80 text-pretty">
+          {settings.loginWelcomeSubtitle}
+        </p>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        URL ảnh chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS.
+      </p>
+    </div>
+  )
+}
+
 function TextInput({
   label,
   value,
@@ -553,6 +713,17 @@ function validateSettings(settings: SystemSettings) {
       new URL(settings.helpUrl)
     } catch {
       return "Help center URL không hợp lệ"
+    }
+  }
+  const urlFields: Array<[string, string]> = [
+    ["Login logo URL", settings.loginLogoUrl],
+    ["Dashboard logo URL", settings.dashboardLogoUrl],
+    ["Favicon URL", settings.faviconUrl],
+    ["Login background URL", settings.loginBackgroundUrl],
+  ]
+  for (const [label, value] of urlFields) {
+    if (!isSafeBrandImageUrl(value)) {
+      return `${label} chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS`
     }
   }
   return ""

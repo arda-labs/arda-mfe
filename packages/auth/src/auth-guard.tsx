@@ -2,6 +2,7 @@ import { getMediaContentUrl } from "@workspace/core/media/urls"
 import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
 import { Building2 } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import { AuthLoadingScreen } from "./loading-screen"
 import { redirectToHydraLogin } from "./oauth"
 import { normalizeAuthUser, useAuthStore } from "./store"
@@ -70,14 +71,14 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   if (user?.orgIds && user.orgIds.length > 1 && !user.activeOrgId) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-radial from-background via-muted/50 to-muted p-4">
-        <div className="w-full max-w-md space-y-6 rounded-2xl border bg-background/70 backdrop-blur-md p-6 shadow-2xl transition-all">
+      <div className="flex min-h-dvh items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md space-y-6 rounded-lg border bg-card p-6 shadow-dialog">
           <div className="space-y-2 text-center">
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary animate-pulse">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
               <Building2 className="size-6" />
             </div>
-            <h2 className="text-xl font-bold tracking-tight">Chọn đơn vị làm việc</h2>
-            <p className="text-xs text-muted-foreground">
+            <h2 className="text-xl font-bold text-balance">Chọn đơn vị làm việc</h2>
+            <p className="text-xs text-muted-foreground text-pretty">
               Tài khoản của bạn thuộc nhiều đơn vị. Vui lòng chọn một đơn vị để bắt đầu phiên làm việc.
             </p>
           </div>
@@ -95,7 +96,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             ) : (
               availableOrgs.map((org) => (
                 <button
-                  className="group flex w-full cursor-pointer items-center justify-between rounded-xl border bg-background/50 p-4 text-left transition-all duration-300 hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
+                  className="group flex w-full cursor-pointer items-center justify-between rounded-md border bg-background p-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5"
                   key={org.id}
                   onClick={() => updateUser({ activeOrgId: org.id })}
                 >
@@ -114,12 +115,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           </div>
 
           <div className="text-center pt-2">
-            <button
-              className="cursor-pointer text-xs text-muted-foreground underline hover:text-foreground transition-colors"
-              onClick={() => logout()}
-            >
+            <Button variant="link" size="sm" onClick={() => logout()}>
               Đăng xuất
-            </button>
+            </Button>
           </div>
         </div>
       </div>
