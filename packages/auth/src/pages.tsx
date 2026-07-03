@@ -12,7 +12,6 @@ import { cn } from "@workspace/ui/lib/utils"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@workspace/ui/components/input-otp"
 import {
   AlertCircle,
-  CheckCircle2,
   Copy,
   Eye,
   EyeOff,
@@ -480,104 +479,30 @@ function AuthFrame({
 }) {
   const logoUrl = branding.loginLogoUrl || branding.dashboardLogoUrl
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 text-foreground sm:px-6">
-      <div className="w-full max-w-5xl">
-        <div className="grid w-full overflow-hidden rounded-xl border bg-card shadow-dialog lg:grid-cols-12">
-          <AuthBrandPanel branding={branding} />
-          <div className="flex flex-col justify-between bg-card p-5 sm:p-8 lg:col-span-7">
-            <div className="mb-8 flex items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-3">
-                <BrandMark name={branding.appName} logoUrl={logoUrl} size="md" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold leading-none text-foreground">
-                    {branding.appName}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">
-                    {branding.organizationName || "Secure workspace"}
-                  </p>
-                </div>
+    <main className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4">
+      <div className="w-full max-w-sm">
+        <div className="rounded-xl border bg-card px-6 py-8 shadow-sm sm:px-8 sm:py-10">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BrandMark name={branding.appName} logoUrl={logoUrl} size="md" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {branding.appName}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {branding.organizationName || "Secure workspace"}
+                </p>
               </div>
-              {actions}
             </div>
-            <div className="mx-auto my-auto w-full max-w-sm py-4">{children}</div>
+            {actions}
           </div>
+          {children}
         </div>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} {branding.organizationName || branding.appName}. All rights reserved.
+        </p>
       </div>
     </main>
-  )
-}
-
-function AuthBrandPanel({ branding }: { branding: BrandingSettings }) {
-  const hasBackground = branding.loginBackgroundEnabled && branding.loginBackgroundUrl
-  return (
-    <div
-      className="relative hidden overflow-hidden border-r bg-muted/40 p-8 lg:col-span-5 lg:flex lg:flex-col lg:justify-between"
-      style={
-        hasBackground
-          ? {
-              backgroundImage: `linear-gradient(to top, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0.2)), url(${branding.loginBackgroundUrl})`,
-              backgroundPosition: "center",
-              backgroundSize: "cover",
-              color: "white",
-            }
-          : undefined
-      }
-    >
-      <div className="space-y-5">
-        <div
-          className={cn(
-            "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
-            hasBackground
-              ? "border-white/30 bg-black/20 text-white"
-              : "bg-background text-foreground"
-          )}
-        >
-          <ShieldCheck
-            className={cn("size-4", hasBackground ? "text-white" : "text-primary")}
-          />
-          <span>Identity Access Management</span>
-        </div>
-        <div className="space-y-3">
-          <h1 className="text-3xl font-semibold leading-tight text-balance">
-            {branding.loginWelcomeTitle}
-          </h1>
-          <p className="text-sm leading-6 opacity-80 text-pretty">
-            {branding.loginWelcomeSubtitle}
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-4 text-sm">
-        <div
-          className={cn("h-px w-full", hasBackground ? "bg-white/40" : "bg-border")}
-        />
-        <p
-          className={cn(
-            "text-xs font-medium uppercase",
-            hasBackground ? "text-white/70" : "text-muted-foreground"
-          )}
-        >
-          Security ecosystem
-        </p>
-        <div className="grid gap-3">
-          {[
-            "OAuth2/OIDC authorization flow",
-            "Kratos identity and session management",
-            "Multi-factor authentication ready",
-          ].map((label) => (
-            <div className="flex items-center gap-3" key={label}>
-              <CheckCircle2
-                className={cn(
-                  "size-4 shrink-0",
-                  hasBackground ? "text-white" : "text-success"
-                )}
-              />
-              <span className="opacity-85">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
   )
 }
 
