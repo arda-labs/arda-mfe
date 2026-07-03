@@ -22,10 +22,12 @@ import {
   Eye,
   EyeOff,
   Languages,
+  Lock,
   LogIn,
   Moon,
   ShieldCheck,
   Sun,
+  User,
 } from "lucide-react"
 import { toast } from "react-toastify"
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
@@ -315,21 +317,25 @@ export function LoginPage() {
               </div>
             ) : (
               <>
-                <FormField label={t("auth.login.field.username")}>
-                  <Input
-                    autoComplete="username"
-                    autoFocus
-                    onChange={(e) => setUsername(e.target.value)}
-                    type="text"
-                    value={username}
-                    className="h-10"
-                  />
-                </FormField>
-                <FormField label={t("auth.login.field.password")}>
+                <div className="space-y-3">
                   <div className="relative">
+                    <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      autoComplete="username"
+                      autoFocus
+                      placeholder="Tên đăng nhập"
+                      onChange={(e) => setUsername(e.target.value)}
+                      type="text"
+                      value={username}
+                      className="h-10 pl-9"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       autoComplete="current-password"
-                      className="h-10 pr-10"
+                      className="h-10 pl-9 pr-10"
+                      placeholder="Mật khẩu"
                       onChange={(e) => setPassword(e.target.value)}
                       type={showPassword ? "text" : "password"}
                       value={password}
@@ -343,13 +349,13 @@ export function LoginPage() {
                       {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
                   </div>
-                </FormField>
-                <label className="flex cursor-pointer items-center gap-3 rounded-lg border bg-background px-3 py-2.5 text-sm transition-colors hover:bg-muted/50">
+                </div>
+                <label className="flex cursor-pointer items-center gap-3 py-1 text-sm">
                   <Checkbox
                     checked={rememberLogin}
                     onCheckedChange={(checked) => setRememberLogin(checked === true)}
                   />
-                  <span className="font-medium text-foreground">Ghi nhớ đăng nhập</span>
+                  <span className="text-muted-foreground">Ghi nhớ đăng nhập</span>
                 </label>
               </>
             )}
@@ -490,7 +496,7 @@ function AuthFrame({
 }) {
   const logoUrl = branding.loginLogoUrl || branding.dashboardLogoUrl
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4">
+    <main className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="rounded-xl border bg-card px-6 py-8 shadow-sm sm:px-8 sm:py-10">
           <div className="mb-8 flex items-center gap-3">
