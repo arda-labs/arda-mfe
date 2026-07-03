@@ -43,6 +43,7 @@ import {
   type WorkflowTaskRequest,
 } from "./api"
 import {
+  useClaimWorkflowTask,
   useCompleteWorkflowTask,
   useWorkbenchCases,
   useWorkflowCaseSearch,
@@ -167,35 +168,58 @@ function TransactionWorkbench({
     taskTypesByDirection[direction][0]
   )
   const [selectedCaseId, setSelectedCaseId] = useState<string>()
-  const [selectedTaskKey, setSelectedTaskKey] = useState<number>()
+  const [claimedTask, setClaimedTask] = useState<WorkflowTask>()
   const casesQuery = useWorkbenchCases(direction)
   const tasksQuery = useWorkflowTasks(taskRequest)
+  const claimTask = useClaimWorkflowTask(direction)
   const completeTask = useCompleteWorkflowTask(direction)
   const cases = casesQuery.data ?? []
   const tasks = tasksQuery.data ?? []
-  const selectedTask = tasks.find((item) => item.jobKey === selectedTaskKey)
+  const requestedCaseCode = new URLSearchParams(window.location.search).get("caseCode")
+  const selectedTask = claimedTask
   const selectedCase =
     cases.find((item) => item.id === selectedCaseId) ??
     cases.find((item) => item.caseCode === selectedTask?.caseCode) ??
+    cases.find((item) => item.caseCode === requestedCaseCode) ??
     cases[0]
   const meta = directionMeta[direction]
   const Icon = meta.icon
 
-  function complete(task: WorkflowTask, action: string) {
-    completeTask.mutate({
-      jobKey: task.jobKey,
-      processInstanceKey: task.processInstanceKey,
-      elementId: task.elementId,
-      variables: {
-        action,
-        decision: action,
-        reviewDecision: action,
-      },
+  function claim() {
+    claimTask.mutate(taskRequest, {
+      onSuccess: setClaimedTask,
     })
   }
 
+  function complete(task: WorkflowTask, action: string) {
+    if (!task.jobKey || !task.processInstanceKey || !task.elementId) {
+      notify.error("Hãy nhận task trước khi xử lý")
+      return
+    }
+    completeTask.mutate(
+      {
+        jobKey: task.jobKey,
+        processInstanceKey: task.processInstanceKey,
+        elementId: task.elementId,
+        variables: {
+          action,
+          decision: action,
+          reviewDecision: action,
+        },
+      },
+      { onSuccess: () => setClaimedTask(undefined) }
+    )
+  }
+
   function openTask(task: WorkflowTask) {
-    setSelectedTaskKey(task.jobKey)
+    if (customerIdFromTask(task)) {
+      navigateTo(taskHref(task))
+      return
+    }
+    if (task.caseCode) {
+      navigateTo(caseCodeHref(direction, task.caseCode))
+      return
+    }
     if (task.formKey) {
       notify.info("Form BPMN", task.formKey)
     }
@@ -238,13 +262,21 @@ function TransactionWorkbench({
               onClick={() => void tasksQuery.refetch()}
             >
               <RefreshCw className="size-4" />
-              Lấy task BPMN
+              Tải danh sách
+            </Button>
+            <Button
+              type="button"
+              disabled={claimTask.isPending}
+              onClick={claim}
+            >
+              <Send className="size-4" />
+              Nhận việc
             </Button>
           </div>
         }
       >
         <TaskTable
-          tasks={tasks}
+          tasks={taskRows(claimedTask, tasks)}
           role={taskRequest.role}
           completing={completeTask.isPending}
           onOpen={openTask}
@@ -388,7 +420,7 @@ function TaskTable({
       </TableHeader>
       <TableBody>
         {tasks.map((task) => (
-          <TableRow key={task.jobKey}>
+          <TableRow key={task.jobKey ?? `${task.caseId}-${task.type}`}>
             <TableCell className="font-mono text-xs">{task.type}</TableCell>
             <TableCell>{task.caseCode || task.caseId || "-"}</TableCell>
             <TableCell>{task.elementId}</TableCell>
@@ -404,51 +436,55 @@ function TaskTable({
                 <Eye className="size-4" />
                 Mở
               </Button>
-              <Button
-                type="button"
-                size="sm"
-                disabled={completing}
-                onClick={() => onComplete(task, "SUBMIT")}
-              >
-                <Send className="size-4" />
-                Gửi
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                disabled={completing}
-                onClick={() => onComplete(task, "APPROVE")}
-              >
-                <Check className="size-4" />
-                Duyệt
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={completing}
-                onClick={() => onComplete(task, "REQUEST_CHANGES")}
-              >
-                <RotateCcw className="size-4" />
-                Trả về
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="destructive"
-                disabled={completing}
-                onClick={() => onComplete(task, "REJECT")}
-              >
-                <X className="size-4" />
-                Từ chối
-              </Button>
+              {task.jobKey ? (
+                <>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={completing}
+                    onClick={() => onComplete(task, "SUBMIT")}
+                  >
+                    <Send className="size-4" />
+                    Gửi
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={completing}
+                    onClick={() => onComplete(task, "APPROVE")}
+                  >
+                    <Check className="size-4" />
+                    Duyệt
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={completing}
+                    onClick={() => onComplete(task, "REQUEST_CHANGES")}
+                  >
+                    <RotateCcw className="size-4" />
+                    Trả về
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    disabled={completing}
+                    onClick={() => onComplete(task, "REJECT")}
+                  >
+                    <X className="size-4" />
+                    Từ chối
+                  </Button>
+                </>
+              ) : null}
             </TableCell>
           </TableRow>
         ))}
         {!tasks.length ? (
           <EmptyTable
             colSpan={6}
-            text="Chưa có user task nào. Bấm Lấy task BPMN khi cần nhận việc từ Zeebe."
+            text="Chưa có task/case nào phù hợp. Bấm Nhận việc để lấy task tiếp theo từ Zeebe."
           />
         ) : null}
       </TableBody>
@@ -649,10 +685,54 @@ function routeFromPath(pathname: string): WorkbenchRoute {
   return "drafts"
 }
 
+function taskRows(claimedTask: WorkflowTask | undefined, tasks: WorkflowTask[]) {
+  if (!claimedTask) return tasks
+  return [claimedTask, ...tasks.filter((task) => task.caseId !== claimedTask.caseId)]
+}
+
 function caseHref(item: WorkflowCase) {
-  if (item.caseType === "FINANCE_OUTGOING_TRANSACTION")
-    return "/workbench/outgoing-transactions"
-  return "/workbench/incoming-transactions"
+  if (item.caseType === "CUSTOMER_REGISTRATION" && item.primaryObjectId) {
+    const search = new URLSearchParams({
+      customerId: item.primaryObjectId,
+      caseId: item.id,
+      caseCode: item.caseCode,
+    })
+    return `/customers/registrations?${search.toString()}`
+  }
+  return caseCodeHref(
+    item.caseType === "FINANCE_OUTGOING_TRANSACTION" ? "outgoing" : "incoming",
+    item.caseCode
+  )
+}
+
+function taskHref(task: WorkflowTask) {
+  const search = new URLSearchParams({
+    customerId: customerIdFromTask(task),
+    caseId: textVariable(task, "caseId") || task.caseId,
+    caseCode: textVariable(task, "caseCode") || task.caseCode,
+    taskKey: String(task.jobKey ?? ""),
+    processInstanceKey: String(task.processInstanceKey ?? ""),
+    elementId: task.elementId,
+    role: task.candidateRole,
+  })
+  return `/customers/registrations?${search.toString()}`
+}
+
+function customerIdFromTask(task: WorkflowTask) {
+  return task.customerId || textVariable(task, "customerId") || textVariable(task, "primaryObjectId")
+}
+
+function textVariable(task: WorkflowTask, key: string) {
+  const value = task.variables[key]
+  return typeof value === "string" ? value : ""
+}
+
+function caseCodeHref(direction: WorkbenchDirection, caseCode: string) {
+  const path =
+    direction === "outgoing"
+      ? "/workbench/outgoing-transactions"
+      : "/workbench/incoming-transactions"
+  return `${path}?caseCode=${encodeURIComponent(caseCode)}`
 }
 
 function customerTypeLabel(item: Customer) {

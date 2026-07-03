@@ -39,6 +39,25 @@ export function useWorkflowTasks(input: WorkflowTaskRequest) {
   })
 }
 
+export function useClaimWorkflowTask(direction: WorkbenchDirection) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: workbenchApi.claimTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workbenchKeys.all })
+      queryClient.invalidateQueries({
+        queryKey: workbenchKeys.direction(direction),
+      })
+      notify.success("Đã nhận task BPMN")
+    },
+    onError: (error) =>
+      notify.error(
+        "Nhận task thất bại",
+        error instanceof Error ? error.message : undefined
+      ),
+  })
+}
+
 export function useCompleteWorkflowTask(direction: WorkbenchDirection) {
   const queryClient = useQueryClient()
   return useMutation({

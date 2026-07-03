@@ -26,10 +26,10 @@ export interface WorkflowCase {
 }
 
 export interface WorkflowTask {
-  jobKey: number
+  jobKey?: number
   type: string
   elementId: string
-  processInstanceKey: number
+  processInstanceKey?: number
   caseId: string
   caseCode: string
   customerId: string
@@ -133,6 +133,13 @@ export const workbenchApi = {
       `/api/workflow/tasks?${search.toString()}`
     )
     return Array.isArray(data) ? data : (data.items ?? [])
+  },
+
+  claimTask(input: WorkflowTaskRequest) {
+    return request<WorkflowTask>("/api/workflow/tasks/claim", {
+      method: "POST",
+      body: input,
+    })
   },
 
   completeTask(input: {

@@ -80,6 +80,7 @@ export function useSubmitCustomer() {
     mutationFn: (id: string) => customerApi.submit(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
+      queryClient.invalidateQueries({ queryKey: ["workflow"] })
       notify.success("Đã trình duyệt hồ sơ khách hàng")
     },
     onError: (error) =>
