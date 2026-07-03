@@ -92,6 +92,7 @@ export interface WorkItem {
   slaStatus?: "NONE" | "MET" | "WARNING" | "BREACHED"
   createdAt?: string
   updatedAt: string
+  completedAt?: string
   variables?: Record<string, unknown>
 }
 

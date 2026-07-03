@@ -38,11 +38,7 @@ import {
   type WorkItemFilter,
   type WorkItemSummaryNode,
 } from "./api"
-import {
-  useClaimWorkItem,
-  useWorkItemSummary,
-  useWorkItems,
-} from "./queries"
+import { useClaimWorkItem, useWorkItemSummary, useWorkItems } from "./queries"
 
 type WorkbenchRoute = "drafts" | "incoming" | "outgoing" | "search"
 
@@ -161,7 +157,10 @@ function TransactionWorkbench({
     limit: 100,
   })
   const [activeNode, setActiveNode] = useState("ALL")
-  const queryFilter = { ...filters, node: activeNode === "ALL" ? undefined : activeNode }
+  const queryFilter = {
+    ...filters,
+    node: activeNode === "ALL" ? undefined : activeNode,
+  }
   const workItemsQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
   const summaryQuery = useWorkItemSummary(filters, { refetchInterval: 15000 })
   const claimWorkItem = useClaimWorkItem()
@@ -181,7 +180,8 @@ function TransactionWorkbench({
       claimWorkItem.mutate(
         { workItemId: item.id },
         {
-          onSuccess: ({ workItem }) => navigateTo(workItemHref(workItem, direction)),
+          onSuccess: ({ workItem }) =>
+            navigateTo(workItemHref(workItem, direction)),
         }
       )
       return
@@ -197,7 +197,11 @@ function TransactionWorkbench({
     <section className="space-y-4">
       <Header title={meta.title} description={meta.description} />
       <Panel title="Điều kiện tìm kiếm">
-        <WorkbenchFilters direction={direction} filters={filters} onChange={updateFilter} />
+        <WorkbenchFilters
+          direction={direction}
+          filters={filters}
+          onChange={updateFilter}
+        />
       </Panel>
       <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
         <Panel title="Loại nghiệp vụ">
@@ -205,7 +209,11 @@ function TransactionWorkbench({
             <Icon className="size-4" />
             <span>{items.length} việc</span>
           </div>
-          <WorkItemTree nodes={nodes} activeNode={activeNode} onSelect={setActiveNode} />
+          <WorkItemTree
+            nodes={nodes}
+            activeNode={activeNode}
+            onSelect={setActiveNode}
+          />
         </Panel>
         <Panel
           title="Công việc cần xử lý"
@@ -225,6 +233,7 @@ function TransactionWorkbench({
           }
         >
           <WorkItemTable
+            variant={direction}
             items={items}
             claiming={claimWorkItem.isPending}
             onOpen={openWorkItem}
@@ -262,14 +271,24 @@ function TransactionSearchPage() {
           <Input
             type="date"
             value={draft.fromDate ?? ""}
-            onChange={(event) => setDraft((current) => ({ ...current, fromDate: event.target.value }))}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                fromDate: event.target.value,
+              }))
+            }
           />
         </FormField>
         <FormField label="Đến ngày">
           <Input
             type="date"
             value={draft.toDate ?? ""}
-            onChange={(event) => setDraft((current) => ({ ...current, toDate: event.target.value }))}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                toDate: event.target.value,
+              }))
+            }
           />
         </FormField>
         <FormField label="Trạng thái giao dịch">
@@ -297,7 +316,9 @@ function TransactionSearchPage() {
         <FormField label="Trạng thái SLA">
           <SlaFilterSelect
             value={draft.slaStatus ?? "ALL"}
-            onChange={(slaStatus) => setDraft((current) => ({ ...current, slaStatus }))}
+            onChange={(slaStatus) =>
+              setDraft((current) => ({ ...current, slaStatus }))
+            }
           />
         </FormField>
         <Button className="mt-6" type="submit">
@@ -307,10 +328,16 @@ function TransactionSearchPage() {
       </form>
       <Panel title="Kết quả">
         <WorkItemTable
+          variant="search"
           items={searchQuery.data ?? []}
           claiming={false}
           onOpen={(item) =>
-            navigateTo(workItemHref(item, item.direction === "OUTGOING" ? "outgoing" : "incoming"))
+            navigateTo(
+              workItemHref(
+                item,
+                item.direction === "OUTGOING" ? "outgoing" : "incoming"
+              )
+            )
           }
         />
       </Panel>
@@ -348,10 +375,14 @@ function WorkbenchFilters({
           <Select
             value={filters.accounting ?? "ALL"}
             onValueChange={(accounting) =>
-              onChange({ accounting: accounting as WorkItemFilter["accounting"] })
+              onChange({
+                accounting: accounting as WorkItemFilter["accounting"],
+              })
             }
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">Tất cả</SelectItem>
               <SelectItem value="POSTED">Có hạch toán</SelectItem>
@@ -361,7 +392,10 @@ function WorkbenchFilters({
         </FormField>
       ) : (
         <FormField label="Trạng thái SLA">
-          <SlaFilterSelect value={filters.slaStatus ?? "ALL"} onChange={(slaStatus) => onChange({ slaStatus })} />
+          <SlaFilterSelect
+            value={filters.slaStatus ?? "ALL"}
+            onChange={(slaStatus) => onChange({ slaStatus })}
+          />
         </FormField>
       )}
     </div>
@@ -388,13 +422,17 @@ function WorkItemTree({
           type="button"
           className={cn(
             "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm",
-            activeNode === node.id ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+            activeNode === node.id
+              ? "bg-accent text-accent-foreground"
+              : "hover:bg-muted"
           )}
           onClick={() => onSelect(node.id)}
         >
           <span className="truncate">{node.label}</span>
           <span className="flex items-center gap-1.5">
-            {node.overdue ? <Badge variant="destructive">{node.overdue}</Badge> : null}
+            {node.overdue ? (
+              <Badge variant="destructive">{node.overdue}</Badge>
+            ) : null}
             <Badge variant="secondary">{node.count}</Badge>
           </span>
         </button>
@@ -404,23 +442,50 @@ function WorkItemTree({
 }
 
 function WorkItemTable({
+  variant,
   items,
   claiming,
   onOpen,
 }: {
+  variant: WorkbenchDirection | "search"
   items: WorkItem[]
   claiming: boolean
   onOpen: (item: WorkItem) => void
 }) {
+  const isIncoming = variant === "incoming"
+  const isOutgoing = variant === "outgoing"
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Công việc</TableHead>
-          <TableHead>SLA</TableHead>
-          <TableHead>Tiến độ</TableHead>
-          <TableHead>Người giữ việc</TableHead>
-          <TableHead className="text-right">Thao tác</TableHead>
+          <TableHead>
+            {isIncoming ? "Thông tin giao dịch" : "Thông tin tác vụ giao dịch"}
+          </TableHead>
+          {isIncoming ? (
+            <>
+              <TableHead>Trạng thái SLA</TableHead>
+              <TableHead>Tiến độ thời gian</TableHead>
+              <TableHead>Người xử lý</TableHead>
+            </>
+          ) : null}
+          {isOutgoing ? (
+            <>
+              <TableHead>Thời gian hoàn thành</TableHead>
+              <TableHead>Hạn xử lý</TableHead>
+              <TableHead>Trạng thái SLA</TableHead>
+              <TableHead>Người xử lý trước</TableHead>
+            </>
+          ) : null}
+          {variant === "search" ? (
+            <>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Hạn xử lý</TableHead>
+              <TableHead>Thời gian hoàn thành</TableHead>
+              <TableHead>Trạng thái SLA</TableHead>
+              <TableHead>Người tạo</TableHead>
+            </>
+          ) : null}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -431,61 +496,164 @@ function WorkItemTable({
             onClick={() => onOpen(item)}
           >
             <TableCell className="min-w-80">
-              <div className="space-y-2">
-                <div>
-                  <p className="font-medium text-pretty">{item.title}</p>
-                  <p className="line-clamp-2 text-sm text-muted-foreground text-pretty">
-                    {item.description || item.summary || item.caseCode}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge variant="outline">{item.caseCode}</Badge>
-                  {item.taskType ? (
-                    <Badge variant="secondary" className="font-mono text-[11px]">
-                      {item.taskType}
-                    </Badge>
-                  ) : null}
-                </div>
-              </div>
+              <WorkItemInfo
+                item={item}
+                claiming={claiming}
+                forceOpen={variant === "search"}
+                onOpen={onOpen}
+              />
             </TableCell>
-            <TableCell className="min-w-40">
-              <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
-            </TableCell>
-            <TableCell className="min-w-56">
-              <ProgressRail status={item.status} slaStatus={item.slaStatus} />
-              <div className="mt-2 space-y-1 text-sm">
-                <p className="font-medium">{item.stepName || stepLabel(item.stepCode || item.currentStep || "-")}</p>
-                <p className="text-muted-foreground">{item.transactionStatus || item.status}</p>
-              </div>
-            </TableCell>
-            <TableCell className="min-w-44">
-              <div className="space-y-1 text-sm">
-                <p className="font-medium">{item.assignedTo || "Chưa nhận"}</p>
-                <p className="text-muted-foreground">{item.candidateRole || "Chưa gán vai trò"}</p>
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              <Button
-                type="button"
-                size="sm"
-                variant={item.canClaim ? "default" : "outline"}
-                disabled={claiming || (!item.canClaim && !item.canOpen)}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onOpen(item)
-                }}
-              >
-                <Eye className="size-4" />
-                {item.canClaim ? "Nhận & mở" : item.canOpen ? "Mở" : "Đã giữ"}
-              </Button>
-            </TableCell>
+            {isIncoming ? (
+              <>
+                <TableCell className="min-w-40">
+                  <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
+                </TableCell>
+                <TableCell className="min-w-72">
+                  <TimeProgress item={item} />
+                </TableCell>
+                <TableCell className="min-w-56">
+                  <AssigneeFlow item={item} />
+                </TableCell>
+              </>
+            ) : null}
+            {isOutgoing ? (
+              <>
+                <TableCell className="min-w-40 tabular-nums">
+                  {completionTime(item)}
+                </TableCell>
+                <TableCell className="min-w-40 tabular-nums">
+                  {formatDateTime(item.slaDueAt)}
+                </TableCell>
+                <TableCell className="min-w-40">
+                  <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
+                </TableCell>
+                <TableCell className="min-w-44">
+                  {previousAssignee(item)}
+                </TableCell>
+              </>
+            ) : null}
+            {variant === "search" ? (
+              <>
+                <TableCell className="min-w-36">
+                  <StatusBadge status={item.transactionStatus || item.status} />
+                </TableCell>
+                <TableCell className="min-w-40 tabular-nums">
+                  {formatDateTime(item.slaDueAt)}
+                </TableCell>
+                <TableCell className="min-w-40 tabular-nums">
+                  {completionTime(item)}
+                </TableCell>
+                <TableCell className="min-w-40">
+                  <SlaStatus dueAt={item.slaDueAt} status={item.slaStatus} />
+                </TableCell>
+                <TableCell className="min-w-40">
+                  {item.createdBy || "-"}
+                </TableCell>
+              </>
+            ) : null}
           </TableRow>
         ))}
         {!items.length ? (
-          <EmptyTable colSpan={5} text="Chưa có công việc phù hợp với điều kiện tìm kiếm." />
+          <EmptyTable
+            colSpan={isIncoming ? 4 : isOutgoing ? 5 : 6}
+            text="Chưa có công việc phù hợp với điều kiện tìm kiếm."
+          />
         ) : null}
       </TableBody>
     </Table>
+  )
+}
+
+function WorkItemInfo({
+  item,
+  claiming,
+  forceOpen,
+  onOpen,
+}: {
+  item: WorkItem
+  claiming: boolean
+  forceOpen?: boolean
+  onOpen: (item: WorkItem) => void
+}) {
+  const canAct = forceOpen || item.canClaim || item.canOpen
+  return (
+    <div className="flex min-w-0 items-start justify-between gap-3">
+      <div className="min-w-0 space-y-2">
+        <div>
+          <p className="font-medium text-pretty">{item.title}</p>
+          <p className="line-clamp-2 text-sm text-pretty text-muted-foreground">
+            {item.description || item.summary || item.caseCode}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="outline">{item.caseCode}</Badge>
+          <Badge variant="secondary">
+            {stepLabel(item.stepCode || item.currentStep || "-")}
+          </Badge>
+          {item.taskType ? (
+            <Badge variant="outline" className="font-mono text-[11px]">
+              {item.taskType}
+            </Badge>
+          ) : null}
+        </div>
+      </div>
+      <Button
+        type="button"
+        size="sm"
+        variant={item.canClaim ? "default" : "outline"}
+        disabled={claiming || !canAct}
+        onClick={(event) => {
+          event.stopPropagation()
+          onOpen(item)
+        }}
+      >
+        <Eye className="size-4" />
+        {forceOpen
+          ? "Mở"
+          : item.canClaim
+            ? "Nhận & mở"
+            : item.canOpen
+              ? "Mở"
+              : "Đã giữ"}
+      </Button>
+    </div>
+  )
+}
+
+function TimeProgress({ item }: { item: WorkItem }) {
+  return (
+    <div className="space-y-3">
+      <ProgressRail status={item.status} slaStatus={item.slaStatus} />
+      <div className="grid gap-2 text-xs tabular-nums sm:grid-cols-3">
+        <TimePoint label="Bắt đầu" value={item.createdAt} />
+        <TimePoint label="Hiện tại" value={item.assignedAt || item.updatedAt} />
+        <TimePoint label="Hạn xử lý" value={item.slaDueAt} />
+      </div>
+    </div>
+  )
+}
+
+function TimePoint({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="space-y-0.5">
+      <p className="text-muted-foreground">{label}</p>
+      <p className="font-medium">{formatDateTime(value)}</p>
+    </div>
+  )
+}
+
+function AssigneeFlow({ item }: { item: WorkItem }) {
+  return (
+    <div className="space-y-1 text-sm">
+      <p className="font-medium">
+        {previousAssignee(item)}{" "}
+        <span className="text-muted-foreground">-&gt;</span>{" "}
+        {item.assignedTo || "Chưa nhận"}
+      </p>
+      <p className="text-muted-foreground">
+        {item.candidateRole || "Chưa gán vai trò"}
+      </p>
+    </div>
   )
 }
 
@@ -497,8 +665,15 @@ function SlaFilterSelect({
   onChange: (value: NonNullable<WorkItemFilter["slaStatus"]>) => void
 }) {
   return (
-    <Select value={value} onValueChange={(next) => onChange(next as NonNullable<WorkItemFilter["slaStatus"]>)}>
-      <SelectTrigger><SelectValue /></SelectTrigger>
+    <Select
+      value={value}
+      onValueChange={(next) =>
+        onChange(next as NonNullable<WorkItemFilter["slaStatus"]>)
+      }
+    >
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL">Tất cả</SelectItem>
         <SelectItem value="MET">Đạt SLA</SelectItem>
@@ -525,7 +700,9 @@ function ProgressRail({
           className={cn(
             "h-1.5 rounded-full bg-muted",
             index <= activeIndex && "bg-primary",
-            slaStatus === "BREACHED" && index <= activeIndex && "bg-destructive",
+            slaStatus === "BREACHED" &&
+              index <= activeIndex &&
+              "bg-destructive",
             status === "COMPLETED" && index <= activeIndex && "bg-emerald-600"
           )}
         />
@@ -572,7 +749,13 @@ function Header({
   )
 }
 
-function SlaStatus({ dueAt, status }: { dueAt?: string; status?: WorkItem["slaStatus"] }) {
+function SlaStatus({
+  dueAt,
+  status,
+}: {
+  dueAt?: string
+  status?: WorkItem["slaStatus"]
+}) {
   const sla = slaInfo(dueAt, status)
   return (
     <div className="space-y-1">
@@ -583,9 +766,7 @@ function SlaStatus({ dueAt, status }: { dueAt?: string; status?: WorkItem["slaSt
         <Clock3 className="size-3" />
         {sla.label}
       </Badge>
-      <p className="text-xs text-muted-foreground tabular-nums">
-        {sla.detail}
-      </p>
+      <p className="text-xs text-muted-foreground tabular-nums">{sla.detail}</p>
     </div>
   )
 }
@@ -600,7 +781,10 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant={variant}>{status}</Badge>
 }
 
-function slaInfo(dueAt?: string, status?: WorkItem["slaStatus"]): {
+function slaInfo(
+  dueAt?: string,
+  status?: WorkItem["slaStatus"]
+): {
   label: string
   detail: string
   variant: "default" | "secondary" | "destructive" | "outline"
@@ -646,6 +830,20 @@ function durationLabel(ms: number) {
   const hours = Math.ceil(minutes / 60)
   if (hours < 24) return `${hours} giờ`
   return `${Math.ceil(hours / 24)} ngày`
+}
+
+function completionTime(item: WorkItem) {
+  if (item.completedAt) return formatDateTime(item.completedAt)
+  if (item.status === "COMPLETED" || item.transactionStatus === "COMPLETED") {
+    return formatDateTime(item.updatedAt)
+  }
+  return "-"
+}
+
+function previousAssignee(item: WorkItem) {
+  const variables = item.variables ?? {}
+  const value = variables.previousAssignee ?? variables.previousAssignedTo
+  return typeof value === "string" && value ? value : "Chưa có"
 }
 
 function EmptyTable({ colSpan, text }: { colSpan: number; text: string }) {
