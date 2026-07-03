@@ -172,6 +172,10 @@ function TransactionWorkbench({
   }
 
   function openWorkItem(item: WorkItem) {
+    if (direction !== "incoming") {
+      navigateTo(workItemHref(item, direction))
+      return
+    }
     if (item.assignedTo && !item.canOpen) {
       notify.error("Không thể nhận task", item.claimBlockedReason)
       return
@@ -235,7 +239,7 @@ function TransactionWorkbench({
           <WorkItemTable
             variant={direction}
             items={items}
-            claiming={claimWorkItem.isPending}
+            claiming={direction === "incoming" && claimWorkItem.isPending}
             onOpen={openWorkItem}
           />
         </Panel>
@@ -499,7 +503,7 @@ function WorkItemTable({
               <WorkItemInfo
                 item={item}
                 claiming={claiming}
-                forceOpen={variant === "search"}
+                forceOpen={variant !== "incoming"}
                 onOpen={onOpen}
               />
             </TableCell>
