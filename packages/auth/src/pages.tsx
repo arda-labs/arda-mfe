@@ -4,6 +4,12 @@ import { translateApiError, useI18n } from "@workspace/i18n"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
@@ -203,34 +209,44 @@ export function LoginPage() {
       : !username || !password
 
   return (
-    <AuthFrame
-      branding={branding}
-      actions={
-        <div className="flex items-center gap-2">
-          <Button
-            aria-label={t("common.action.toggle_theme")}
-            onClick={() =>
-              setTheme(document.documentElement.classList.contains("dark") ? "light" : "dark")
-            }
-            size="icon-sm"
-            type="button"
-            variant="outline"
-          >
-            {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </Button>
-          <Button
-            aria-label={locale === "vi-VN" ? "Switch to English" : "Chuyển sang tiếng Việt"}
-            onClick={() => setLocale(locale === "vi-VN" ? "en-US" : "vi-VN")}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            <Languages className="size-4" />
-            {locale === "vi-VN" ? "VI" : "EN"}
-          </Button>
-        </div>
-      }
-    >
+    <>
+      <div className="fixed right-4 top-4 z-50 flex items-center gap-2">
+        <Button
+          aria-label={t("common.action.toggle_theme")}
+          onClick={() =>
+            setTheme(document.documentElement.classList.contains("dark") ? "light" : "dark")
+          }
+          size="icon-sm"
+          type="button"
+          variant="outline"
+          className="size-8 rounded-full bg-background shadow-sm"
+        >
+          {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              aria-label="Select language"
+              size="sm"
+              type="button"
+              variant="outline"
+              className="h-8 gap-1.5 rounded-full bg-background px-3 shadow-sm"
+            >
+              <Languages className="size-4" />
+              {locale === "vi-VN" ? "🇻🇳" : "🇺🇸"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-32">
+            <DropdownMenuItem onClick={() => setLocale("vi-VN")}>
+              <span className="mr-2">🇻🇳</span> Tiếng Việt
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLocale("en-US")}>
+              <span className="mr-2">🇺🇸</span> English
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <AuthFrame branding={branding}>
       <div className="space-y-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold text-balance">
@@ -328,16 +344,12 @@ export function LoginPage() {
                     </button>
                   </div>
                 </FormField>
-                <label className="flex cursor-pointer items-start gap-3 rounded-md border bg-background p-3 text-sm text-muted-foreground transition-colors hover:bg-muted/50">
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg border bg-background px-3 py-2.5 text-sm transition-colors hover:bg-muted/50">
                   <Checkbox
                     checked={rememberLogin}
-                    className="mt-0.5"
                     onCheckedChange={(checked) => setRememberLogin(checked === true)}
                   />
-                  <span className="grid gap-0.5 leading-none">
-                    <span className="font-medium text-foreground">Keep me signed in</span>
-                    <span className="text-xs leading-relaxed">Remember this browser for 30 days.</span>
-                  </span>
+                  <span className="font-medium text-foreground">Ghi nhớ đăng nhập</span>
                 </label>
               </>
             )}
@@ -364,6 +376,7 @@ export function LoginPage() {
         )}
       </div>
     </AuthFrame>
+    </>
   )
 }
 
@@ -469,11 +482,9 @@ export function ConsentPage() {
 }
 
 function AuthFrame({
-  actions,
   branding,
   children,
 }: {
-  actions?: ReactNode
   branding: BrandingSettings
   children: ReactNode
 }) {
@@ -482,19 +493,16 @@ function AuthFrame({
     <main className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4">
       <div className="w-full max-w-sm">
         <div className="rounded-xl border bg-card px-6 py-8 shadow-sm sm:px-8 sm:py-10">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <BrandMark name={branding.appName} logoUrl={logoUrl} size="md" />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  {branding.appName}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {branding.organizationName || "Secure workspace"}
-                </p>
-              </div>
+          <div className="mb-8 flex items-center gap-3">
+            <BrandMark name={branding.appName} logoUrl={logoUrl} size="md" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {branding.appName}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {branding.organizationName || "Secure workspace"}
+              </p>
             </div>
-            {actions}
           </div>
           {children}
         </div>
