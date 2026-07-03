@@ -12,7 +12,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
-import { Separator } from "@workspace/ui/components/separator";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDate } from "@workspace/ui/lib/format";
 
@@ -117,61 +116,6 @@ export function DataTableDateFilter<TData>({
     return selectedDates.length > 0;
   }, [multiple, selectedDates]);
 
-  const formatDateRange = React.useCallback((range: DateRange) => {
-    if (!range.from && !range.to) return "";
-    if (range.from && range.to) {
-      return `${formatDate(range.from)} - ${formatDate(range.to)}`;
-    }
-    return formatDate(range.from ?? range.to);
-  }, []);
-
-  const label = React.useMemo(() => {
-    if (multiple) {
-      if (!getIsDateRange(selectedDates)) return null;
-
-      const hasSelectedDates = selectedDates.from || selectedDates.to;
-      const dateText = hasSelectedDates
-        ? formatDateRange(selectedDates)
-        : "Select date range";
-
-      return (
-        <span className="flex items-center gap-2">
-          <span>{title}</span>
-          {hasSelectedDates && (
-            <>
-              <Separator
-                orientation="vertical"
-                className="mx-0.5 data-[orientation=vertical]:h-4"
-              />
-              <span>{dateText}</span>
-            </>
-          )}
-        </span>
-      );
-    }
-
-    if (getIsDateRange(selectedDates)) return null;
-
-    const hasSelectedDate = selectedDates.length > 0;
-    const dateText = hasSelectedDate
-      ? formatDate(selectedDates[0])
-      : "Select date";
-
-    return (
-      <span className="flex items-center gap-2">
-        <span>{title}</span>
-        {hasSelectedDate && (
-          <>
-            <Separator
-              orientation="vertical"
-              className="mx-0.5 data-[orientation=vertical]:h-4"
-            />
-            <span>{dateText}</span>
-          </>
-        )}
-      </span>
-    );
-  }, [selectedDates, multiple, formatDateRange, title]);
 
   return (
     <Popover>
