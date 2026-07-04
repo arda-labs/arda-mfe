@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import type { LookupValue } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -95,7 +96,8 @@ export function AreaTypesPage() {
   const upsertAreaType = useUpsertAreaType()
   const deleteAreaType = useDeleteAreaType()
   const items = areaTypesQuery.data ?? []
-  const loading = areaTypesQuery.isLoading
+  const pageGate = pageGateFromQueries(areaTypesQuery)
+  const { fetching } = listQueryShellState(areaTypesQuery)
 
   const areaTypeSchema = useMemo(() => buildAreaTypeSchema(t), [t])
   const {
@@ -108,15 +110,6 @@ export function AreaTypesPage() {
     resolver: zodResolver(areaTypeSchema),
     defaultValues: areaTypeDefaultValues,
   })
-
-  useEffect(() => {
-    if (areaTypesQuery.error) {
-      notify.error(
-        t("platform.area_types.load_failed"),
-        translateApiError(areaTypesQuery.error)
-      )
-    }
-  }, [areaTypesQuery.error, t])
 
   const openEdit = (item: LookupValue) => {
     setEditingItem(item)
@@ -360,8 +353,11 @@ export function AreaTypesPage() {
           {t("platform.area_types.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={items.length === 0}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("platform.area_types.load_failed")}
+      fetching={fetching}
       table={table}
       onRowDoubleClick={(row) => openEdit(row.original)}
       toolbar={

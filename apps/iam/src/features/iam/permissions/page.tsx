@@ -39,6 +39,7 @@ import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Trash2 } from "lucide-react"
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -188,7 +189,8 @@ export function PermissionsPage() {
   })
   const perms = permissionsQuery.data?.permissions ?? []
   const total = permissionsQuery.data?.total ?? 0
-  const loading = permissionsQuery.isLoading
+  const pageGate = pageGateFromQueries(permissionsQuery)
+  const { fetching } = listQueryShellState(permissionsQuery)
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   const { table } = useDataTable<Permission>({
@@ -202,12 +204,6 @@ export function PermissionsPage() {
       },
     },
   })
-
-  useEffect(() => {
-    if (permissionsQuery.error) {
-      notify.error("Không tải được danh sách quyền", translateApiError(permissionsQuery.error))
-    }
-  }, [permissionsQuery.error])
 
   const dialogs = (
     <>
@@ -287,10 +283,10 @@ export function PermissionsPage() {
           {t("admin.permissions.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={perms.length === 0}
-      skeletonColumns={6}
-      skeletonFilters={1}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

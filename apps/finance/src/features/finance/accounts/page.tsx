@@ -41,6 +41,7 @@ import {
   textSearchMeta,
 } from "@workspace/ui/admin-list/column-filters"
 import { useAccounts, useCreateAccount } from "./queries"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import type { Account } from "@/features/finance/api"
 
 const accountFormSchema = z.object({
@@ -105,11 +106,11 @@ function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {
 export function AccountsPage() {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
-  const {
-    data: accounts = [],
-    isError: isAccountsError,
-    isLoading,
-  } = useAccounts()
+  const accountsQuery = useAccounts()
+  const pageGate = pageGateFromQueries(accountsQuery)
+  const { fetching } = listQueryShellState(accountsQuery)
+  const accounts = accountsQuery.data ?? []
+  const isAccountsError = accountsQuery.isError
   const createAccount = useCreateAccount()
   const {
     control,
@@ -387,10 +388,10 @@ export function AccountsPage() {
           {t("finance.accounts.count", { count: total })}
         </Badge>
       }
-      loading={isLoading}
-      isEmpty={accounts.length === 0}
-      skeletonColumns={6}
-      skeletonFilters={3}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

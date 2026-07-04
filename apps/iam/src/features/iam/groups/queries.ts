@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { adminApi } from "@/features/iam"
 import { roleKeys } from "@/features/iam/roles/queries"
 import { userKeys } from "@/features/iam/users/queries"
@@ -21,7 +22,7 @@ export function useGroups(params: {
   search?: string
   status?: string
 }) {
-  return useQuery({
+  return useListQuery({
     queryKey: groupKeys.list(params),
     queryFn: () => adminApi.listGroups(params),
   })

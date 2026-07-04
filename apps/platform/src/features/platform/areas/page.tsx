@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import type { Area, GeoAdminUnit, LookupValue } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -144,12 +145,6 @@ export function AreasPage() {
     resolver: zodResolver(areaSchema),
     defaultValues: areaDefaultValues,
   })
-
-  useEffect(() => {
-    if (dependenciesQuery.error) {
-      notify.error(t("platform.areas.load_failed"), translateApiError(dependenciesQuery.error))
-    }
-  }, [dependenciesQuery.error, t])
 
   const getAreaTypeLabel = (code: string) =>
     areaTypes.find((item) => item.code === code)?.name || code
@@ -354,13 +349,8 @@ export function AreasPage() {
 
   const areasQuery = useAreas(areaParams)
   const items = areasQuery.data ?? []
-  const loading = areasQuery.isLoading || dependenciesQuery.isLoading
-
-  useEffect(() => {
-    if (areasQuery.error) {
-      notify.error(t("platform.areas.load_failed"), translateApiError(areasQuery.error))
-    }
-  }, [areasQuery.error, t])
+  const pageGate = pageGateFromQueries(areasQuery, dependenciesQuery)
+  const { fetching } = listQueryShellState(areasQuery)
 
   const { table, total } = useClientListTable({
     columns,
@@ -633,10 +623,11 @@ export function AreasPage() {
           {t("platform.areas.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={items.length === 0}
-      skeletonColumns={7}
-      skeletonFilters={3}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("platform.areas.load_failed")}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

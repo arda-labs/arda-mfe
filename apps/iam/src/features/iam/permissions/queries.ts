@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { adminApi } from "@/features/iam"
 
 export const permissionKeys = {
@@ -8,7 +9,7 @@ export const permissionKeys = {
 }
 
 export function usePermissions(params: { page: number; size: number; module?: string }) {
-  return useQuery({
+  return useListQuery({
     queryKey: permissionKeys.list(params),
     queryFn: () => adminApi.listPermissions(params),
   })

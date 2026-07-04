@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { platformApi } from "../api"
@@ -17,7 +18,7 @@ export const areaKeys = {
 }
 
 export function useAreaDependencies() {
-  return useQuery({
+  return useListQuery({
     queryKey: areaKeys.dependencies(),
     queryFn: async () => {
       const [areaTypes, provinces, wards] = await Promise.all([
@@ -35,7 +36,7 @@ export function useAreaDependencies() {
 }
 
 export function useAreas(params: AreaListParams) {
-  return useQuery({
+  return useListQuery({
     queryKey: areaKeys.list(params),
     queryFn: () => platformApi.listAreas(params),
   })

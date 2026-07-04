@@ -42,6 +42,7 @@ import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
 import { ShieldCheck, Trash2 } from "lucide-react"
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -236,7 +237,8 @@ export function RolesPage() {
   })
   const roles = rolesQuery.data?.roles ?? []
   const total = rolesQuery.data?.total ?? 0
-  const loading = rolesQuery.isLoading
+  const pageGate = pageGateFromQueries(rolesQuery)
+  const { fetching } = listQueryShellState(rolesQuery)
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
   const permissionsByModule = useMemo(() => {
     const groups = new Map<string, Permission[]>()
@@ -260,13 +262,10 @@ export function RolesPage() {
   })
 
   useEffect(() => {
-    if (rolesQuery.error) {
-      notify.error("Không tải được danh sách vai trò", translateApiError(rolesQuery.error))
-    }
     if (rolePermissionOptions.error) {
       notify.error("Không tải được danh sách quyền", translateApiError(rolePermissionOptions.error))
     }
-  }, [rolePermissionOptions.error, rolesQuery.error])
+  }, [rolePermissionOptions.error])
 
   const dialogs = (
     <>
@@ -376,10 +375,10 @@ export function RolesPage() {
           {t("admin.roles.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={roles.length === 0}
-      skeletonColumns={5}
-      skeletonFilters={2}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

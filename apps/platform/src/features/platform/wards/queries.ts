@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { platformApi } from "../api"
@@ -11,14 +12,14 @@ export const wardKeys = {
 }
 
 export function useWardProvinces() {
-  return useQuery({
+  return useListQuery({
     queryKey: wardKeys.provinces(),
     queryFn: () => platformApi.listGeoAdminUnits(undefined, 1),
   })
 }
 
 export function useWards(parentCode: string) {
-  return useQuery({
+  return useListQuery({
     queryKey: wardKeys.list(parentCode),
     queryFn: () =>
       parentCode === "all"

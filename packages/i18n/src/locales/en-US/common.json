@@ -24,7 +24,8 @@
     "toggle_theme": "Toggle theme",
     "logout": "Logout",
     "select_all": "Select all",
-    "select_row": "Select row"
+    "select_row": "Select row",
+    "retry": "Try again"
   },
   "confirm": {
     "delete_title": "Confirm delete",
@@ -41,7 +42,8 @@
     "not_found": {
       "title": "404",
       "body": "Page not found"
-    }
+    },
+    "page_load_title": "Could not load this page"
   },
   "field": {
     "action": "Actions",

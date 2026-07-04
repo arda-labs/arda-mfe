@@ -82,6 +82,8 @@
     "./admin-list/column-filters": "./src/admin-list/column-filters.ts",
     "./admin-list/list-page-shell": "./src/admin-list/list-page-shell.tsx",
     "./admin-list/list-table-toolbar": "./src/admin-list/list-table-toolbar.tsx",
+    "./admin-list/page-error-dialog": "./src/admin-list/page-error-dialog.tsx",
+    "./admin-list/page-load-overlay": "./src/admin-list/page-load-overlay.tsx",
     "./admin-list/table-columns": "./src/admin-list/table-columns.tsx",
     "./config/*": "./src/config/*.ts",
     "./lib/*": "./src/lib/*.ts",

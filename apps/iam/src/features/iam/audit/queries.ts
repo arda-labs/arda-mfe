@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { auditApi } from "@/features/iam/audit"
 
 export const auditKeys = {
@@ -23,7 +24,7 @@ export function useAuditEvents(params: {
   size: number
   sort?: string
 }) {
-  return useQuery({
+  return useListQuery({
     queryKey: auditKeys.list(params),
     queryFn: () => auditApi.query(params),
   })

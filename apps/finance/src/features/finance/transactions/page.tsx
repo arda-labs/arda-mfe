@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { parseAsInteger, useQueryState } from "nuqs"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -107,11 +108,11 @@ export function TransactionsPage() {
     "perPage",
     parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
   )
-  const {
-    data,
-    isError: isTransactionsError,
-    isLoading,
-  } = useTransactions({ page: pageParam, size: perPageParam })
+  const transactionsQuery = useTransactions({ page: pageParam, size: perPageParam })
+  const pageGate = pageGateFromQueries(transactionsQuery)
+  const { fetching } = listQueryShellState(transactionsQuery)
+  const data = transactionsQuery.data
+  const isTransactionsError = transactionsQuery.isError
   const createTransaction = useCreateTransaction()
   const txns = data?.transactions ?? []
   const total = data?.total ?? 0
@@ -382,10 +383,10 @@ export function TransactionsPage() {
           {total}
         </Badge>
       }
-      loading={isLoading}
-      isEmpty={txns.length === 0}
-      skeletonColumns={6}
-      skeletonFilters={0}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

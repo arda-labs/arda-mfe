@@ -15,6 +15,7 @@ import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/s
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { useI18n } from "@workspace/i18n"
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -171,7 +172,8 @@ export function AuditPage() {
   const total = auditQuery.data?.total ?? 0
   const stats = statsQuery.data
   const verifyResult = verifyQuery.data
-  const loading = auditQuery.isLoading
+  const pageGate = pageGateFromQueries(auditQuery)
+  const { fetching } = listQueryShellState(auditQuery)
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   const { table } = useDataTable<AuditEvent>({
@@ -197,7 +199,7 @@ export function AuditPage() {
       <AuditMetric label={t("admin.audit.login_fail")} value={stats.loginFailure} tone="error" formatNumber={formatNumber} />
       <AuditMetric label={t("admin.audit.event_types")} value={Object.keys(stats.byEventType).length} formatNumber={formatNumber} />
     </div>
-  ) : loading && events.length === 0 ? (
+  ) : pageGate.criticalPending && events.length === 0 ? (
     <div className="grid gap-2 md:grid-cols-4">
       {Array.from({ length: 4 }).map((_, index) => (
         <div key={index} className="h-16 rounded-md border bg-muted/30" />
@@ -227,10 +229,10 @@ export function AuditPage() {
           {t("admin.audit.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={events.length === 0}
-      skeletonColumns={7}
-      skeletonFilters={3}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      fetching={fetching}
       table={table}
       header={
         statsHeader || verifyBanner ? (

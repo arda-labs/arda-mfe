@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { adminApi } from "@/features/iam"
 import { roleKeys } from "@/features/iam/roles/queries"
 
@@ -23,7 +24,7 @@ export function useUsers(params: {
   sortField?: string
   sortOrder?: string
 }) {
-  return useQuery({
+  return useListQuery({
     queryKey: userKeys.list(params),
     queryFn: () => adminApi.listUsers(params),
   })

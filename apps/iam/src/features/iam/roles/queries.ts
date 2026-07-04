@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { adminApi } from "@/features/iam"
 import { permissionKeys } from "@/features/iam/permissions/queries"
 
@@ -10,7 +11,7 @@ export const roleKeys = {
 }
 
 export function useRoles(params: { page: number; size: number; search?: string; status?: string }) {
-  return useQuery({
+  return useListQuery({
     queryKey: roleKeys.list(params),
     queryFn: () => adminApi.listRoles(params),
   })

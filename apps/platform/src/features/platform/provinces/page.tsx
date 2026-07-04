@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import type { GeoAdminUnit } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -107,7 +108,8 @@ export function ProvincesPage() {
   const provincesQuery = useProvinces()
   const upsertProvince = useUpsertProvince(Boolean(editingItem))
   const items = provincesQuery.data ?? []
-  const loading = provincesQuery.isLoading
+  const pageGate = pageGateFromQueries(provincesQuery)
+  const { fetching } = listQueryShellState(provincesQuery)
 
   const provinceSchema = useMemo(() => buildProvinceSchema(t), [t])
   const {
@@ -120,15 +122,6 @@ export function ProvincesPage() {
     resolver: zodResolver(provinceSchema),
     defaultValues: provinceDefaultValues,
   })
-
-  useEffect(() => {
-    if (provincesQuery.error) {
-      notify.error(
-        t("platform.provinces.load_failed"),
-        translateApiError(provincesQuery.error)
-      )
-    }
-  }, [provincesQuery.error, t])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -461,10 +454,11 @@ export function ProvincesPage() {
           {t("platform.provinces.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={items.length === 0}
-      skeletonColumns={10}
-      skeletonFilters={2}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("platform.provinces.load_failed")}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

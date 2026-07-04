@@ -26,6 +26,7 @@
     "./http/list-api": "./src/http/list-api.ts",
     "./media/urls": "./src/media/urls.ts",
     "./page-title": "./src/page-title/index.ts",
-    "./query": "./src/query.tsx"
+    "./query": "./src/query.tsx",
+    "./query/list-query": "./src/query/list-query.ts"
   }
 }

@@ -60,6 +60,7 @@ import {
   usePendingApprovals,
   useRejectApproval,
 } from "./queries"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 
 const approvalFormSchema = z.object({
   refId: z.string().trim().min(1, "Reference ID is required"),
@@ -101,11 +102,11 @@ export function ApprovalsPage() {
   const [reviewTarget, setReviewTarget] = useState<ApprovalRequest | null>(null)
   const [decision, setDecision] = useState<DecisionAction>("approve")
   const [note, setNote] = useState("")
-  const {
-    data: approvals = [],
-    isError: isApprovalsError,
-    isLoading,
-  } = usePendingApprovals(level)
+  const approvalsQuery = usePendingApprovals(level)
+  const pageGate = pageGateFromQueries(approvalsQuery)
+  const { fetching } = listQueryShellState(approvalsQuery)
+  const approvals = approvalsQuery.data ?? []
+  const isApprovalsError = approvalsQuery.isError
   const createApproval = useCreateApproval()
   const approveApproval = useApproveApproval()
   const rejectApproval = useRejectApproval()
@@ -497,10 +498,10 @@ export function ApprovalsPage() {
         </Badge>
       }
       actions={levelSelector}
-      loading={isLoading}
-      isEmpty={approvals.length === 0}
-      skeletonColumns={6}
-      skeletonFilters={2}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

@@ -53,6 +53,7 @@ import {
   parseAsString,
   useQueryState,
 } from "nuqs"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import { Pencil, ShieldCheck, Trash2, Users } from "lucide-react"
 
 const DEFAULT_PAGE_SIZE = 10
@@ -146,6 +147,8 @@ export function GroupsPage() {
   })
   const groups = groupsQuery.data?.groups ?? []
   const total = groupsQuery.data?.total ?? 0
+  const pageGate = pageGateFromQueries(groupsQuery)
+  const { fetching } = listQueryShellState(groupsQuery)
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   const openCreate = () => {
@@ -395,11 +398,6 @@ export function GroupsPage() {
   })
 
   useEffect(() => {
-    if (groupsQuery.error)
-      notify.error(
-        "Khong tai duoc danh sach nhom",
-        translateApiError(groupsQuery.error)
-      )
     if (memberOptions.error)
       notify.error(
         "Khong tai duoc thanh vien nhom",
@@ -410,7 +408,7 @@ export function GroupsPage() {
         "Khong tai duoc vai tro nhom",
         translateApiError(roleOptions.error)
       )
-  }, [groupsQuery.error, memberOptions.error, roleOptions.error])
+  }, [memberOptions.error, roleOptions.error])
 
   const dialogs = (
     <>
@@ -612,10 +610,10 @@ export function GroupsPage() {
           {total} groups
         </Badge>
       }
-      loading={groupsQuery.isLoading}
-      isEmpty={groups.length === 0}
-      skeletonColumns={8}
-      skeletonFilters={2}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

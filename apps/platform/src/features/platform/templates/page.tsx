@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import { uploadFile } from "@workspace/media"
 import { notify } from "@workspace/notifications/notify"
 import type { FileTemplate } from "../api"
@@ -125,7 +126,8 @@ export function TemplatesPage() {
   const updateMutation = useUpdateFileTemplate()
   const deleteMutation = useDeleteFileTemplate()
   const templates = templatesQuery.data ?? []
-  const loading = templatesQuery.isLoading
+  const pageGate = pageGateFromQueries(templatesQuery)
+  const { fetching } = listQueryShellState(templatesQuery)
 
   const templateSchema = useMemo(() => buildTemplateSchema(t), [t])
   const {
@@ -143,15 +145,6 @@ export function TemplatesPage() {
   })
   const fileType = watch("file_type")
   const fileUrl = watch("file_url")
-
-  useEffect(() => {
-    if (templatesQuery.error) {
-      notify.error(
-        t("platform.templates.load_failed"),
-        translateApiError(templatesQuery.error)
-      )
-    }
-  }, [templatesQuery.error, t])
 
   const openCreate = () => {
     setEditingTemplate(null)
@@ -689,10 +682,11 @@ export function TemplatesPage() {
           {t("platform.templates.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={templates.length === 0}
-      skeletonColumns={6}
-      skeletonFilters={2}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("platform.templates.load_failed")}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

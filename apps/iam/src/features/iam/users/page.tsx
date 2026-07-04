@@ -51,6 +51,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Check, X, Trash2, KeyRound, ShieldCheck, MonitorCog, SearchCheck, Pencil, MoreHorizontal } from "lucide-react"
 import type { IdentityConsistencyIssue } from "@/features/iam"
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -516,7 +517,8 @@ export function UsersPage() {
   })
   const users = usersQuery.data?.users ?? []
   const total = usersQuery.data?.total ?? 0
-  const loading = usersQuery.isLoading
+  const pageGate = pageGateFromQueries(usersQuery)
+  const { fetching } = listQueryShellState(usersQuery)
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   // Dice UI useDataTable hook binds state to nuqs query state automatically
@@ -533,16 +535,13 @@ export function UsersPage() {
   })
 
   useEffect(() => {
-    if (usersQuery.error) {
-      notify.error(t("admin.users.load_failed"), translateApiError(usersQuery.error))
-    }
     if (roleOptions.error) {
       notify.error("Không tải được danh sách vai trò", translateApiError(roleOptions.error))
     }
     if (sessionsQuery.error) {
       notify.error(t("admin.users.sessions.load_failed"), translateApiError(sessionsQuery.error))
     }
-  }, [roleOptions.error, sessionsQuery.error, t, usersQuery.error])
+  }, [roleOptions.error, sessionsQuery.error, t])
 
   const dialogs = (
     <>
@@ -856,10 +855,11 @@ export function UsersPage() {
           {t("admin.users.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={users.length === 0}
-      skeletonColumns={7}
-      skeletonFilters={2}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("admin.users.load_failed")}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

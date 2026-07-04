@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import type { GeoAdminUnit } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -123,7 +124,8 @@ export function WardsPage() {
   const upsertWard = useUpsertWard(Boolean(editingItem))
   const provinces = provincesQuery.data ?? []
   const items = wardsQuery.data ?? []
-  const loading = provincesQuery.isLoading || wardsQuery.isLoading
+  const pageGate = pageGateFromQueries(wardsQuery, provincesQuery)
+  const { fetching } = listQueryShellState(wardsQuery)
 
   const provinceNameByCode = useMemo(
     () => Object.fromEntries(provinces.map((province) => [province.code, province.name])),
@@ -141,13 +143,6 @@ export function WardsPage() {
     resolver: zodResolver(wardSchema),
     defaultValues: wardDefaultValues,
   })
-
-  useEffect(() => {
-    const error = provincesQuery.error || wardsQuery.error
-    if (error) {
-      notify.error(t("platform.wards.load_failed"), translateApiError(error))
-    }
-  }, [provincesQuery.error, t, wardsQuery.error])
 
   const openEdit = (item: GeoAdminUnit) => {
     setEditingItem(item)
@@ -503,10 +498,11 @@ export function WardsPage() {
           {t("platform.wards.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={items.length === 0}
-      skeletonColumns={10}
-      skeletonFilters={3}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("platform.wards.load_failed")}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

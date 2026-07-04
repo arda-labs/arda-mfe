@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useListQuery } from "@workspace/core/query/list-query"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { platformApi } from "../api"
@@ -11,14 +12,14 @@ export const parameterKeys = {
 }
 
 export function useParameters() {
-  return useQuery({
+  return useListQuery({
     queryKey: parameterKeys.list(),
     queryFn: () => platformApi.listParameters(),
   })
 }
 
 export function useParameterDependencies() {
-  return useQuery({
+  return useListQuery({
     queryKey: parameterKeys.dependencies(),
     queryFn: async () => ({
       orgs: (await platformApi.listOrganizations({ view: "options" }).catch(() => ({

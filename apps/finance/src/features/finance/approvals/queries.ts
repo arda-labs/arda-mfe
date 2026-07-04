@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useFinancialListQuery } from "@workspace/core/query/list-query"
 import { notify } from "@workspace/notifications/notify"
 import { financeApi } from "@/features/finance/api"
 
@@ -8,7 +9,7 @@ export const approvalKeys = {
 }
 
 export function usePendingApprovals(level: number) {
-  return useQuery({
+  return useFinancialListQuery({
     queryKey: approvalKeys.pending(level),
     queryFn: () => financeApi.listPendingApprovals(level),
     select: (res) => res.approvals || [],

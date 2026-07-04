@@ -24,7 +24,8 @@
     "toggle_theme": "Đổi giao diện",
     "logout": "Đăng xuất",
     "select_all": "Chọn tất cả",
-    "select_row": "Chọn dòng"
+    "select_row": "Chọn dòng",
+    "retry": "Thử lại"
   },
   "confirm": {
     "delete_title": "Xác nhận xóa",
@@ -41,7 +42,8 @@
     "not_found": {
       "title": "404",
       "body": "Không tìm thấy trang"
-    }
+    },
+    "page_load_title": "Không tải được trang"
   },
   "field": {
     "action": "Thao tác",

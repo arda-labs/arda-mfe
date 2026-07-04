@@ -1,4 +1,5 @@
 import {
+  type ColumnDef,
   type ColumnFiltersState,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -40,6 +41,42 @@ const JOIN_OPERATOR_KEY = "joinOperator";
 const ARRAY_SEPARATOR = ",";
 const DEBOUNCE_MS = 300;
 const THROTTLE_MS = 50;
+const TEXT_FILTER_VARIANTS = new Set(["text", "number"]);
+
+function shouldDebounceFilterChange(
+  prev: ColumnFiltersState,
+  next: ColumnFiltersState,
+  filterableColumns: ColumnDef<unknown>[],
+): boolean {
+  for (const prevFilter of prev) {
+    if (!next.some((filter) => filter.id === prevFilter.id)) {
+      return false;
+    }
+  }
+
+  for (const filter of next) {
+    const column = filterableColumns.find((item) => item.id === filter.id);
+    const variant = column?.meta?.variant;
+
+    if (variant && !TEXT_FILTER_VARIANTS.has(variant)) {
+      return false;
+    }
+
+    const raw = filter.value;
+    const values = Array.isArray(raw)
+      ? raw.map(String)
+      : raw
+        ? [String(raw)]
+        : [];
+    const hasContent = values.some((value) => value.trim().length > 0);
+
+    if (!hasContent) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 interface UseDataTableProps<TData>
   extends Omit<
@@ -205,11 +242,16 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 
   const [filterValues, setFilterValues] = useQueryStates(filterParsers);
 
-  const debouncedSetFilterValues = useDebouncedCallback(
+  const applyFilterValues = React.useCallback(
     (values: typeof filterValues) => {
       void setPage(1);
       void setFilterValues(values);
     },
+    [setFilterValues, setPage],
+  );
+
+  const debouncedApplyFilterValues = useDebouncedCallback(
+    applyFilterValues,
     debounceMs,
   );
 
@@ -264,11 +306,23 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
           }
         }
 
-        debouncedSetFilterValues(filterUpdates);
+        if (
+          shouldDebounceFilterChange(prev, next, filterableColumns)
+        ) {
+          debouncedApplyFilterValues(filterUpdates);
+        } else {
+          debouncedApplyFilterValues.cancel();
+          applyFilterValues(filterUpdates);
+        }
         return next;
       });
     },
-    [debouncedSetFilterValues, filterableColumns, enableAdvancedFilter],
+    [
+      applyFilterValues,
+      debouncedApplyFilterValues,
+      filterableColumns,
+      enableAdvancedFilter,
+    ],
   );
 
   const columns = React.useMemo(() => {

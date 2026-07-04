@@ -23,6 +23,8 @@ interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   layout?: "default" | "panel";
   /** Double-click row to open detail (skipped on buttons/links/checkboxes). */
   onRowDoubleClick?: (row: Row<TData>) => void;
+  /** Dim rows while a background list refetch is in progress. */
+  fetching?: boolean;
 }
 
 export type DataTableDensity = "compact" | "comfortable" | "spacious";
@@ -75,6 +77,7 @@ export function DataTable<TData>({
   defaultDensity = "compact",
   layout = "default",
   onRowDoubleClick,
+  fetching = false,
   ...props
 }: DataTableProps<TData>) {
   const [density, setDensity] =
@@ -100,8 +103,9 @@ export function DataTable<TData>({
         {children}
         <div
           className={cn(
-            "flex flex-col overflow-hidden rounded-md border bg-background",
+            "flex flex-col overflow-hidden rounded-md border bg-background transition-opacity",
             isPanel ? "min-h-0 flex-1" : "",
+            fetching && "opacity-60",
           )}
         >
           <div className={cn(isPanel && "min-h-0 flex-1 overflow-auto")}>

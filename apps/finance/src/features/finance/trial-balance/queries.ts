@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useFinancialListQuery } from "@workspace/core/query/list-query"
 import { financeApi } from "@/features/finance/api"
 
 export const trialBalanceKeys = {
@@ -7,7 +7,7 @@ export const trialBalanceKeys = {
 }
 
 export function useTrialBalance() {
-  return useQuery({
+  return useFinancialListQuery({
     queryKey: trialBalanceKeys.detail(),
     queryFn: () => financeApi.trialBalance(),
     select: (res) => res.entries || [],

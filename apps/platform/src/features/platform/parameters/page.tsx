@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import type { Parameter } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { useDeleteParameter, useParameterDependencies, useParameters, useUpsertParameter } from "./queries"
@@ -147,7 +148,8 @@ export function ParametersPage() {
 
   const params = parametersQuery.data ?? []
   const orgs = dependenciesQuery.data?.orgs ?? []
-  const loading = parametersQuery.isLoading || dependenciesQuery.isLoading
+  const pageGate = pageGateFromQueries(parametersQuery, dependenciesQuery)
+  const { fetching } = listQueryShellState(parametersQuery)
 
   const parameterSchema = useMemo(() => buildParameterSchema(t), [t])
   const {
@@ -165,15 +167,6 @@ export function ParametersPage() {
   const valueType = watch("value_type")
   const scopeType = watch("scope_type")
   const value = watch("value")
-
-  useEffect(() => {
-    if (parametersQuery.error) {
-      notify.error(
-        t("platform.parameters.load_failed"),
-        translateApiError(parametersQuery.error)
-      )
-    }
-  }, [parametersQuery.error, t])
 
   const toggleRevealSecret = (id: string) => {
     setRevealedSecrets((previous) => ({ ...previous, [id]: !previous[id] }))
@@ -692,10 +685,11 @@ export function ParametersPage() {
           {t("platform.parameters.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={params.length === 0}
-      skeletonColumns={6}
-      skeletonFilters={1}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("platform.parameters.load_failed")}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar

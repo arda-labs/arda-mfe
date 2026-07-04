@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import { notify } from "@workspace/notifications/notify"
 import type { CreditInstitution } from "../api"
 import {
@@ -369,16 +370,8 @@ export function CreditInstitutionsPage() {
 
   const creditInstitutionsQuery = useCreditInstitutions(listParams)
   const items = creditInstitutionsQuery.data ?? []
-  const loading = creditInstitutionsQuery.isLoading
-
-  useEffect(() => {
-    if (creditInstitutionsQuery.error) {
-      notify.error(
-        t("platform.credit_institutions.load_failed"),
-        translateApiError(creditInstitutionsQuery.error)
-      )
-    }
-  }, [creditInstitutionsQuery.error, t])
+  const pageGate = pageGateFromQueries(creditInstitutionsQuery)
+  const { fetching } = listQueryShellState(creditInstitutionsQuery)
 
   const { table, total } = useClientListTable({
     columns,
@@ -630,10 +623,11 @@ export function CreditInstitutionsPage() {
           {t("platform.credit_institutions.count", { count: total })}
         </Badge>
       }
-      loading={loading}
-      isEmpty={items.length === 0}
-      skeletonColumns={8}
-      skeletonFilters={2}
+      criticalPending={pageGate.criticalPending}
+      criticalError={pageGate.criticalError}
+      onRetry={pageGate.onRetry}
+      loadErrorTitle={t("platform.credit_institutions.load_failed")}
+      fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar
