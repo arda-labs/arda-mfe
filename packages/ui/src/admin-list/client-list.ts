@@ -83,7 +83,7 @@ export function useClientListTable<T>({
   return { table, total, paged }
 }
 
-export function sortByColumn<T extends Record<string, unknown>>(
+export function sortByColumn<T>(
   items: T[],
   sorting: SortState,
   fields: Record<string, (a: T, b: T) => number>

@@ -20,13 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { Edit2 } from "lucide-react"
 import { ListPageShell } from "../shared/list-page-shell"
 import {
