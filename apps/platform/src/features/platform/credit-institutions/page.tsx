@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { translateApiError, useI18n } from "@workspace/i18n"
+import { useI18n } from "@workspace/i18n"
 import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
-import { notify } from "@workspace/notifications/notify"
 import type { CreditInstitution } from "../api"
 import {
   useCreateCreditInstitution,

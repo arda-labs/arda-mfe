@@ -2,7 +2,7 @@ import { execFile } from "node:child_process"
 import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
-const ports = (process.env.DEV_PORTS ?? "5000,5101,5102,5103,5104,5105")
+const ports = (process.env.DEV_PORTS ?? "5000,5101,5102,5103,5104,5105,5106,5107")
   .split(",")
   .map((port) => Number(port.trim()))
   .filter(Boolean)

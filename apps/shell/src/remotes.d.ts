@@ -33,7 +33,16 @@ declare module "hrm/Routes" {
   export default Routes
 }
 
-declare module "zeebe-bpmn-moddle/resources/zeebe.json" {
-  const descriptor: Record<string, unknown>
-  export default descriptor
+declare module "crm/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType
+  export default Routes
+}
+
+declare module "workflow/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType
+  export default Routes
 }

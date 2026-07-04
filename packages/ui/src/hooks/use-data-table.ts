@@ -43,10 +43,10 @@ const DEBOUNCE_MS = 300;
 const THROTTLE_MS = 50;
 const TEXT_FILTER_VARIANTS = new Set(["text", "number"]);
 
-function shouldDebounceFilterChange(
+function shouldDebounceFilterChange<TData>(
   prev: ColumnFiltersState,
   next: ColumnFiltersState,
-  filterableColumns: ColumnDef<unknown>[],
+  filterableColumns: ColumnDef<TData, unknown>[],
 ): boolean {
   for (const prevFilter of prev) {
     if (!next.some((filter) => filter.id === prevFilter.id)) {

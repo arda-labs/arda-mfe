@@ -37,6 +37,10 @@
     "api_failed": "API request failed",
     "internal": "Internal server error",
     "bad_gateway": "Upstream service error",
+    "bad_gateway_page": {
+      "title": "502",
+      "body": "An upstream service is temporarily unavailable. Please try again later."
+    },
     "conflict": "Resource conflict",
     "method_not_allowed": "Method not allowed",
     "not_found": {

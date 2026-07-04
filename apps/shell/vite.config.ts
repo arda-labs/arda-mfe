@@ -91,6 +91,26 @@ export default defineConfig(({ command }) => ({
               : "/mfes/account/remoteEntry.js"),
           shareScope: "default",
         },
+        crm: {
+          type: "module",
+          name: "crm",
+          entry:
+            process.env.CRM_REMOTE_ENTRY ??
+            (command === "serve"
+              ? "http://localhost:5107/remoteEntry.js"
+              : "/mfes/crm/remoteEntry.js"),
+          shareScope: "default",
+        },
+        workflow: {
+          type: "module",
+          name: "workflow",
+          entry:
+            process.env.WORKFLOW_REMOTE_ENTRY ??
+            (command === "serve"
+              ? "http://localhost:5106/remoteEntry.js"
+              : "/mfes/workflow/remoteEntry.js"),
+          shareScope: "default",
+        },
       },
       shared: sharedDependencies,
     }),

@@ -16,7 +16,7 @@ export type ListQueryProfile = "admin" | "financial"
 
 const LIST_QUERY_PROFILE_DEFAULTS: Record<
   ListQueryProfile,
-  Pick<UseQueryOptions<unknown>, "staleTime" | "refetchOnWindowFocus">
+  { staleTime: number; refetchOnWindowFocus: boolean }
 > = {
   admin: {
     staleTime: ADMIN_LIST_STALE_TIME_MS,
@@ -51,7 +51,7 @@ export function useListQuery<
 }: ListQueryOptions<TQueryFnData, TError, TData, TQueryKey>) {
   const profileDefaults = LIST_QUERY_PROFILE_DEFAULTS[profile]
 
-  return useQuery({
+  return useQuery<TQueryFnData, TError, TData, TQueryKey>({
     placeholderData: keepPreviousData,
     ...profileDefaults,
     ...options,

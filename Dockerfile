@@ -13,6 +13,8 @@ COPY --from=build /app/apps/platform/dist /usr/share/nginx/html/mfes/platform
 COPY --from=build /app/apps/finance/dist /usr/share/nginx/html/mfes/finance
 COPY --from=build /app/apps/hrm/dist /usr/share/nginx/html/mfes/hrm
 COPY --from=build /app/apps/account/dist /usr/share/nginx/html/mfes/account
+COPY --from=build /app/apps/workflow/dist /usr/share/nginx/html/mfes/workflow
+COPY --from=build /app/apps/crm/dist /usr/share/nginx/html/mfes/crm
 
 EXPOSE 8080
 

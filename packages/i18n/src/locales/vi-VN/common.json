@@ -37,6 +37,10 @@
     "api_failed": "Yêu cầu API thất bại",
     "internal": "Lỗi hệ thống",
     "bad_gateway": "Dịch vụ phụ trợ đang lỗi",
+    "bad_gateway_page": {
+      "title": "502",
+      "body": "Dịch vụ phụ trợ tạm thời không phản hồi. Vui lòng thử lại sau."
+    },
     "conflict": "Dữ liệu đang xung đột",
     "method_not_allowed": "Phương thức không được hỗ trợ",
     "not_found": {

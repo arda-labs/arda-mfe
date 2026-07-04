@@ -4,9 +4,7 @@ import * as authShare from "../../../packages/auth/src/index"
 import * as authStoreShare from "../../../packages/auth/src/store"
 import * as stepUpChannelShare from "../../../packages/auth/src/step-up-channel"
 import * as themeShare from "../../../packages/theme/src/index"
-import { CustomersPage } from "./features/customers/page"
-import { WorkbenchPage } from "./features/workbench/page"
-import { WorkflowAdminPage } from "./features/workflow/page"
+import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
 import { ShellLayout } from "./ShellLayout"
 
 const mfCache = ((
@@ -50,6 +48,8 @@ const PlatformRoutes = lazyRemote(() => import("platform/Routes"))
 const FinanceRoutes = lazyRemote(() => import("finance/Routes"))
 const HrmRoutes = lazyRemote(() => import("hrm/Routes"))
 const AccountRoutes = lazyRemote(() => import("account/Routes"))
+const CrmRoutes = lazyRemote(() => import("crm/Routes"))
+const WorkflowRoutes = lazyRemote(() => import("workflow/Routes"))
 
 const routeFallback = <authShare.AuthLoadingScreen fullscreen={false} />
 
@@ -62,8 +62,23 @@ function navigate(pathname: string) {
   window.dispatchEvent(new PopStateEvent("popstate"))
 }
 
-export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
-  const isIam =
+type WorkspaceRoute =
+  | "dashboard"
+  | "iam"
+  | "platform"
+  | "finance"
+  | "hrm"
+  | "account"
+  | "crm"
+  | "workflow"
+  | "not-found"
+  | "bad-gateway"
+
+function resolveWorkspaceRoute(pathname: string): WorkspaceRoute {
+  if (pathname === "/404") return "not-found"
+  if (pathname === "/502") return "bad-gateway"
+
+  if (
     pathname === "/iam" ||
     pathname.startsWith("/admin/users") ||
     pathname.startsWith("/admin/groups") ||
@@ -71,7 +86,11 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
     pathname.startsWith("/admin/permissions") ||
     pathname.startsWith("/admin/audit") ||
     pathname.startsWith("/admin/settings")
-  const isPlatform =
+  ) {
+    return "iam"
+  }
+
+  if (
     pathname.startsWith("/admin/organizations") ||
     pathname.startsWith("/admin/parameters") ||
     pathname.startsWith("/admin/provinces") ||
@@ -83,49 +102,73 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
     pathname.startsWith("/admin/templates") ||
     pathname.startsWith("/admin/calendar") ||
     pathname.startsWith("/admin/cutoff")
-  const isFinance = pathname.startsWith("/finance/")
-  const isHrm = pathname === "/hrm" || pathname.startsWith("/hrm/")
-  const isCustomerOperation = pathname.startsWith("/customers/")
-  const isWorkbench = pathname.startsWith("/workbench/")
-  const isWorkflowAdmin = pathname.startsWith("/workflow/")
-  const isAccount =
+  ) {
+    return "platform"
+  }
+
+  if (pathname.startsWith("/finance/")) return "finance"
+  if (pathname === "/hrm" || pathname.startsWith("/hrm/")) return "hrm"
+  if (
+    pathname.startsWith("/customers/") ||
+    pathname.startsWith("/workbench/")
+  ) {
+    return "crm"
+  }
+  if (pathname.startsWith("/workflow/")) return "workflow"
+  if (
     pathname === "/my-account" ||
     pathname.startsWith("/my-account/") ||
     pathname.startsWith("/settings/appearance") ||
     pathname.startsWith("/in/")
+  ) {
+    return "account"
+  }
+  if (pathname === "/") return "dashboard"
+
+  return "not-found"
+}
+
+export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
+  const route = resolveWorkspaceRoute(pathname)
 
   return (
     <authShare.StepUpProvider>
       <authShare.AuthGuard>
         <ShellLayout pathname={pathname} navigate={navigate}>
-          {isIam ? (
+          {route === "iam" ? (
             <Suspense fallback={routeFallback}>
               <IamRoutes />
             </Suspense>
-          ) : isPlatform ? (
+          ) : route === "platform" ? (
             <Suspense fallback={routeFallback}>
               <PlatformRoutes />
             </Suspense>
-          ) : isFinance ? (
+          ) : route === "finance" ? (
             <Suspense fallback={routeFallback}>
               <FinanceRoutes />
             </Suspense>
-          ) : isHrm ? (
+          ) : route === "hrm" ? (
             <Suspense fallback={routeFallback}>
               <HrmRoutes />
             </Suspense>
-          ) : isCustomerOperation ? (
-            <CustomersPage pathname={pathname} />
-          ) : isWorkbench ? (
-            <WorkbenchPage pathname={pathname} />
-          ) : isWorkflowAdmin ? (
-            <WorkflowAdminPage pathname={pathname} />
-          ) : isAccount ? (
+          ) : route === "crm" ? (
+            <Suspense fallback={routeFallback}>
+              <CrmRoutes />
+            </Suspense>
+          ) : route === "workflow" ? (
+            <Suspense fallback={routeFallback}>
+              <WorkflowRoutes />
+            </Suspense>
+          ) : route === "account" ? (
             <Suspense fallback={routeFallback}>
               <AccountRoutes />
             </Suspense>
-          ) : (
+          ) : route === "bad-gateway" ? (
+            <BadGatewayPage />
+          ) : route === "dashboard" ? (
             <Dashboard />
+          ) : (
+            <NotFoundPage />
           )}
         </ShellLayout>
       </authShare.AuthGuard>
@@ -138,14 +181,14 @@ function Dashboard() {
   return (
     <div className="overflow-y-auto p-4 md:p-6">
       <section className="flex max-w-2xl flex-col gap-4">
-      <p className="text-sm text-muted-foreground">Shell</p>
-      <h1 className="text-3xl font-semibold text-balance">
-        {branding.appName} workspace
-      </h1>
-      <p className="text-pretty text-muted-foreground">
-        Auth, layout, i18n, theme, and notifications now live in the shell.
-        Domain pages load as runtime micro frontends.
-      </p>
+        <p className="text-sm text-muted-foreground">Shell</p>
+        <h1 className="text-3xl font-semibold text-balance">
+          {branding.appName} workspace
+        </h1>
+        <p className="text-pretty text-muted-foreground">
+          Auth, layout, i18n, theme, and notifications live in the shell.
+          Domain pages load as runtime micro frontends.
+        </p>
       </section>
     </div>
   )
