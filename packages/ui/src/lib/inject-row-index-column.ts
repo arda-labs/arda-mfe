@@ -95,10 +95,10 @@ export function isUtilityTableColumn(columnId: string) {
 
 export function utilityTableColumnClassName(columnId: string) {
   if (columnId === SELECT_COLUMN_ID) {
-    return "w-4 max-w-4 px-2 text-center";
+    return "w-8 max-w-8 px-2 text-center";
   }
   if (columnId === ROW_INDEX_COLUMN_ID) {
-    return "w-5 max-w-5 p-0 text-center tabular-nums text-muted-foreground";
+    return "w-8 max-w-8 p-0 text-center tabular-nums text-muted-foreground";
   }
   if (columnId === ACTIONS_COLUMN_ID) {
     return "w-[4.5rem] max-w-[4.5rem] px-1";

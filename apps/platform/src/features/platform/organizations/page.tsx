@@ -458,7 +458,7 @@ export function OrganizationsPage() {
 
   if (loading && (viewMode === "list" ? orgs.length === 0 : treeOrgs.length === 0)) {
     return (
-      <section className="flex h-full min-h-0 flex-col gap-4 p-4">
+      <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
         {pageHeader}
         <DataTableSkeleton
           className="min-h-0 flex-1"
@@ -471,7 +471,7 @@ export function OrganizationsPage() {
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 p-4">
+    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
       {pageHeader}
 
       {viewMode === "tree" ? (

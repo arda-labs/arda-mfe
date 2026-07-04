@@ -771,7 +771,7 @@ export function LookupsPage() {
   )
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 p-4">
+    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
       <PageHeader
         title={t("platform.lookups.title")}
         meta={

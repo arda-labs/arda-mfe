@@ -84,6 +84,115 @@ export function DataTable<TData>({
     React.useState<DataTableDensity>(defaultDensity);
   const densityClass = densityStyles[density];
   const isPanel = layout === "panel";
+  const headerScrollRef = React.useRef<HTMLDivElement>(null);
+  const tableWidth = Math.max(table.getTotalSize(), 0);
+
+  const syncHeaderScroll = React.useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      if (headerScrollRef.current) {
+        headerScrollRef.current.scrollLeft = event.currentTarget.scrollLeft;
+      }
+    },
+    [],
+  );
+
+  const colGroup = (
+    <colgroup>
+      {table.getVisibleLeafColumns().map((column) => (
+        <col key={column.id} style={{ width: column.getSize() }} />
+      ))}
+    </colgroup>
+  );
+
+  const headerRows = table.getHeaderGroups().map((headerGroup) => (
+    <TableRow
+      key={headerGroup.id}
+      className={cn(isPanel && "border-b-0 hover:bg-transparent")}
+    >
+      {headerGroup.headers.map((header) => (
+        <TableHead
+          key={header.id}
+          colSpan={header.colSpan}
+          className={cn(
+            densityClass.head,
+            utilityTableColumnClassName(header.column.id),
+            isPanel && "bg-muted/60",
+          )}
+          style={getColumnPinningStyle({ column: header.column })}
+        >
+          {header.isPlaceholder
+            ? null
+            : flexRender(
+                header.column.columnDef.header,
+                header.getContext(),
+              )}
+        </TableHead>
+      ))}
+    </TableRow>
+  ));
+
+  const bodyRows = table.getRowModel().rows.length ? (
+    table.getRowModel().rows.map((row) => {
+      const isStriped = row.index % 2 === 1;
+
+      return (
+        <TableRow
+          key={row.id}
+          data-state={row.getIsSelected() && "selected"}
+          className={cn(
+            isStriped && "bg-table-row-stripe hover:bg-muted/70",
+            !isStriped && "hover:bg-muted/40",
+            onRowDoubleClick && "cursor-default",
+          )}
+          onDoubleClick={
+            onRowDoubleClick
+              ? (event) => {
+                  const target = event.target as HTMLElement;
+                  if (
+                    target.closest(
+                      "button, a, [role='checkbox'], input, select, textarea",
+                    )
+                  ) {
+                    return;
+                  }
+                  onRowDoubleClick(row);
+                }
+              : undefined
+          }
+        >
+          {row.getVisibleCells().map((cell) => (
+            <TableCell
+              key={cell.id}
+              className={cn(
+                densityClass.cell,
+                utilityTableColumnClassName(cell.column.id),
+                isStriped && "bg-table-row-stripe",
+              )}
+              style={{
+                ...getColumnPinningStyle({ column: cell.column }),
+                ...(cell.column.getIsPinned() && isStriped
+                  ? { background: "var(--table-row-stripe)" }
+                  : {}),
+              }}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableCell>
+          ))}
+        </TableRow>
+      );
+    })
+  ) : (
+    <TableRow>
+      <TableCell
+        colSpan={table.getAllColumns().length}
+        className={densityClass.empty}
+      >
+        No results.
+      </TableCell>
+    </TableRow>
+  );
+
+  const tableClassName = cn("w-full table-fixed border-separate border-spacing-0");
 
   return (
     <DataTableDensityContext.Provider
@@ -108,111 +217,41 @@ export function DataTable<TData>({
             fetching && "opacity-60",
           )}
         >
-          <div className={cn(isPanel && "min-h-0 flex-1 overflow-auto")}>
-            <Table className="table-fixed">
-              <TableHeader
-                className={cn(
-                  isPanel && "sticky top-0 z-10 bg-muted/60 shadow-[0_1px_0_0_hsl(var(--border))]",
-                )}
+          {isPanel ? (
+            <>
+              <div
+                ref={headerScrollRef}
+                className="shrink-0 overflow-x-auto overflow-y-hidden border-b bg-muted/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow
-                    key={headerGroup.id}
-                    className={cn(
-                      isPanel && "border-b-0 hover:bg-transparent",
-                    )}
-                  >
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        colSpan={header.colSpan}
-                        className={cn(
-                          densityClass.head,
-                          utilityTableColumnClassName(header.column.id),
-                          isPanel && "bg-muted/60",
-                        )}
-                        style={{
-                          ...getColumnPinningStyle({ column: header.column }),
-                        }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => {
-                    const isStriped = row.index % 2 === 1;
-
-                    return (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className={cn(
-                        isStriped && "bg-table-row-stripe hover:bg-muted/70",
-                        !isStriped && "hover:bg-muted/40",
-                        onRowDoubleClick && "cursor-default",
-                      )}
-                      onDoubleClick={
-                        onRowDoubleClick
-                          ? (event) => {
-                              const target = event.target as HTMLElement;
-                              if (
-                                target.closest(
-                                  "button, a, [role='checkbox'], input, select, textarea",
-                                )
-                              ) {
-                                return;
-                              }
-                              onRowDoubleClick(row);
-                            }
-                          : undefined
-                      }
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className={cn(
-                            densityClass.cell,
-                            utilityTableColumnClassName(cell.column.id),
-                            isStriped && "bg-table-row-stripe",
-                          )}
-                          style={{
-                            ...getColumnPinningStyle({ column: cell.column }),
-                            ...(cell.column.getIsPinned() && isStriped
-                              ? { background: "var(--table-row-stripe)" }
-                              : {}),
-                          }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={table.getAllColumns().length}
-                      className={densityClass.empty}
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                <table
+                  className={tableClassName}
+                  style={{ width: tableWidth, minWidth: "100%" }}
+                >
+                  {colGroup}
+                  <TableHeader className="[&_tr]:border-b-0">{headerRows}</TableHeader>
+                </table>
+              </div>
+              <div
+                className="min-h-0 flex-1 overflow-auto"
+                onScroll={syncHeaderScroll}
+              >
+                <table
+                  className={tableClassName}
+                  style={{ width: tableWidth, minWidth: "100%" }}
+                >
+                  {colGroup}
+                  <TableBody>{bodyRows}</TableBody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table className={tableClassName} containerClassName="overflow-visible">
+                <TableHeader>{headerRows}</TableHeader>
+                <TableBody>{bodyRows}</TableBody>
+              </Table>
+            </div>
+          )}
           <div className="shrink-0 border-t bg-background px-3 py-2">
             <DataTablePagination table={table} className="p-0" />
             {actionBar &&

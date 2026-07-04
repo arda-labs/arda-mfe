@@ -44,7 +44,7 @@ export function ListPageShell<TData>({
   const showErrorDialog = criticalError != null && !criticalPending
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 p-4">
+    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
       <PageHeader title={title} meta={meta} actions={actions} />
       {header}
       <div className="relative flex min-h-0 flex-1 flex-col">
