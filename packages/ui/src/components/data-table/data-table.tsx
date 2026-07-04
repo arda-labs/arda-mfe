@@ -1,4 +1,4 @@
-import { flexRender } from "@tanstack/react-table";
+import { flexRender, type Row } from "@tanstack/react-table";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import * as React from "react";
 
@@ -21,6 +21,8 @@ interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   defaultDensity?: DataTableDensity;
   /** `panel` — toolbar + pagination fixed; only table body scrolls. */
   layout?: "default" | "panel";
+  /** Double-click row to open detail (skipped on buttons/links/checkboxes). */
+  onRowDoubleClick?: (row: Row<TData>) => void;
 }
 
 export type DataTableDensity = "compact" | "comfortable" | "spacious";
@@ -38,17 +40,17 @@ const densityStyles: Record<
   { head: string; cell: string; empty: string }
 > = {
   compact: {
-    head: "h-9 px-3 text-xs",
+    head: "h-9 px-3 text-xs font-bold text-foreground",
     cell: "px-3 py-2 text-xs",
     empty: "h-20 px-3 py-2 text-center text-xs",
   },
   comfortable: {
-    head: "h-10 px-3 text-sm",
+    head: "h-10 px-3 text-sm font-bold text-foreground",
     cell: "px-3 py-2.5 text-sm",
     empty: "h-24 px-3 py-2.5 text-center text-sm",
   },
   spacious: {
-    head: "h-12 px-4 text-sm",
+    head: "h-12 px-4 text-sm font-bold text-foreground",
     cell: "p-4 text-sm",
     empty: "h-24 p-4 text-center text-sm",
   },
@@ -72,6 +74,7 @@ export function DataTable<TData>({
   className,
   defaultDensity = "compact",
   layout = "default",
+  onRowDoubleClick,
   ...props
 }: DataTableProps<TData>) {
   const [density, setDensity] =
@@ -105,7 +108,7 @@ export function DataTable<TData>({
             <Table className="table-fixed">
               <TableHeader
                 className={cn(
-                  isPanel && "sticky top-0 z-10 bg-muted/50 shadow-[0_1px_0_0_hsl(var(--border))]",
+                  isPanel && "sticky top-0 z-10 bg-muted/60 shadow-[0_1px_0_0_hsl(var(--border))]",
                 )}
               >
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -122,8 +125,7 @@ export function DataTable<TData>({
                         className={cn(
                           densityClass.head,
                           utilityTableColumnClassName(header.column.id),
-                          isPanel &&
-                            "bg-muted/50 font-semibold text-foreground/80",
+                          isPanel && "bg-muted/60",
                         )}
                         style={{
                           ...getColumnPinningStyle({ column: header.column }),
@@ -142,10 +144,33 @@ export function DataTable<TData>({
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
+                  table.getRowModel().rows.map((row) => {
+                    const isStriped = row.index % 2 === 1;
+
+                    return (
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
+                      className={cn(
+                        isStriped && "bg-table-row-stripe hover:bg-muted/70",
+                        !isStriped && "hover:bg-muted/40",
+                        onRowDoubleClick && "cursor-default",
+                      )}
+                      onDoubleClick={
+                        onRowDoubleClick
+                          ? (event) => {
+                              const target = event.target as HTMLElement;
+                              if (
+                                target.closest(
+                                  "button, a, [role='checkbox'], input, select, textarea",
+                                )
+                              ) {
+                                return;
+                              }
+                              onRowDoubleClick(row);
+                            }
+                          : undefined
+                      }
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
@@ -153,9 +178,13 @@ export function DataTable<TData>({
                           className={cn(
                             densityClass.cell,
                             utilityTableColumnClassName(cell.column.id),
+                            isStriped && "bg-table-row-stripe",
                           )}
                           style={{
                             ...getColumnPinningStyle({ column: cell.column }),
+                            ...(cell.column.getIsPinned() && isStriped
+                              ? { background: "var(--table-row-stripe)" }
+                              : {}),
                           }}
                         >
                           {flexRender(
@@ -165,7 +194,8 @@ export function DataTable<TData>({
                         </TableCell>
                       ))}
                     </TableRow>
-                  ))
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell

@@ -52,7 +52,7 @@ export function DataTableColumnHeader<TData, TValue>({
     return (
       <span
         className={cn(
-          "text-xs font-semibold text-foreground/80",
+          "text-xs font-bold text-foreground",
           className,
         )}
       >
@@ -67,7 +67,7 @@ export function DataTableColumnHeader<TData, TValue>({
         type="button"
         onClick={() => column.toggleSorting(undefined, false)}
         className={cn(
-          "-ml-2 inline-flex h-8 max-w-full items-center gap-1 rounded-md px-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+          "-ml-2 inline-flex h-8 max-w-full items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
           sorted && "text-foreground",
           className,
         )}
@@ -86,7 +86,7 @@ export function DataTableColumnHeader<TData, TValue>({
           type="button"
           onClick={() => column.toggleSorting(undefined, false)}
           className={cn(
-            "-ml-2 inline-flex h-8 max-w-full flex-1 items-center gap-1 rounded-md px-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            "-ml-2 inline-flex h-8 max-w-full flex-1 items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
             sorted && "text-foreground",
           )}
         >
@@ -94,7 +94,7 @@ export function DataTableColumnHeader<TData, TValue>({
           <SortIndicator sorted={sorted} />
         </button>
       ) : (
-        <span className="px-2 text-xs font-semibold text-foreground/80">
+        <span className="px-2 text-xs font-bold text-foreground">
           {label}
         </span>
       )}

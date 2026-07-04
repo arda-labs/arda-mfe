@@ -10,6 +10,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { DataTableKeyCell } from "@workspace/ui/components/data-table/data-table-key-cell"
+import { createActionsColumn } from "@workspace/ui/admin-list/table-columns"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
@@ -30,7 +32,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Edit2, Trash2 } from "lucide-react"
 import { ListPageShell } from "../shared/list-page-shell"
 import {
   activeStatusMeta,
@@ -117,6 +118,12 @@ export function AreaTypesPage() {
     }
   }, [areaTypesQuery.error, t])
 
+  const openEdit = (item: LookupValue) => {
+    setEditingItem(item)
+    reset(toAreaTypeFormValues(item))
+    setDialogOpen(true)
+  }
+
   const columns = useMemo<ColumnDef<LookupValue>[]>(
     () => [
       {
@@ -139,7 +146,11 @@ export function AreaTypesPage() {
           t("platform.area_types.field.name"),
           t("platform.area_types.placeholder.search")
         ),
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+        cell: ({ row }) => (
+          <DataTableKeyCell onActivate={() => openEdit(row.original)}>
+            {row.original.name}
+          </DataTableKeyCell>
+        ),
       },
       {
         accessorKey: "sort_order",
@@ -170,36 +181,13 @@ export function AreaTypesPage() {
           </Status>
         ),
       },
-      {
-        id: "actions",
-        header: () => (
-          <span className="sr-only">{t("platform.area_types.field.actions")}</span>
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1.5">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="size-7"
-              onClick={() => {
-                setEditingItem(row.original)
-                reset(toAreaTypeFormValues(row.original))
-                setDialogOpen(true)
-              }}
-            >
-              <Edit2 className="size-3.5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="size-7 text-destructive"
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          </div>
-        ),
-      },
+      createActionsColumn<LookupValue>({
+        onEdit: openEdit,
+        onDelete: setDeleteTarget,
+        editTitle: t("common.action.edit"),
+        deleteTitle: t("common.action.delete"),
+        headerLabel: t("common.field.action"),
+      }),
     ],
     [t]
   )
@@ -375,6 +363,7 @@ export function AreaTypesPage() {
       loading={loading}
       isEmpty={items.length === 0}
       table={table}
+      onRowDoubleClick={(row) => openEdit(row.original)}
       toolbar={
         <ListTableToolbar
           table={table}

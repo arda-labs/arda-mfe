@@ -2,11 +2,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 export const SELECT_COLUMN_ID = "select";
 export const ROW_INDEX_COLUMN_ID = "row_index";
+export const ACTIONS_COLUMN_ID = "actions";
 
 /** Fixed width for checkbox selection column (px). */
 export const SELECT_COLUMN_SIZE = 40;
 /** Fixed width for row index / STT column (px). */
 export const ROW_INDEX_COLUMN_SIZE = 44;
+/** Fixed width for trailing edit/delete actions (px). */
+export const ACTIONS_COLUMN_SIZE = 72;
 
 type InjectRowIndexColumnOptions = {
   pageIndex: number;
@@ -14,7 +17,7 @@ type InjectRowIndexColumnOptions = {
   label?: string;
 };
 
-function fixedColumnSize(size: number) {
+export function fixedColumnSize(size: number) {
   return {
     size,
     minSize: size,
@@ -27,12 +30,21 @@ export function normalizeSelectColumn<TData>(
   columns: ColumnDef<TData>[],
 ): ColumnDef<TData>[] {
   return columns.map((column) => {
-    if (column.id !== SELECT_COLUMN_ID) return column;
-
-    return {
-      ...column,
-      ...fixedColumnSize(SELECT_COLUMN_SIZE),
-    };
+    if (column.id === SELECT_COLUMN_ID) {
+      return {
+        ...column,
+        ...fixedColumnSize(SELECT_COLUMN_SIZE),
+      };
+    }
+    if (column.id === ACTIONS_COLUMN_ID) {
+      return {
+        ...column,
+        enableSorting: column.enableSorting ?? false,
+        enableHiding: column.enableHiding ?? false,
+        ...fixedColumnSize(ACTIONS_COLUMN_SIZE),
+      };
+    }
+    return column;
   });
 }
 
@@ -74,15 +86,22 @@ export function injectRowIndexColumn<TData>(
 }
 
 export function isUtilityTableColumn(columnId: string) {
-  return columnId === SELECT_COLUMN_ID || columnId === ROW_INDEX_COLUMN_ID;
+  return (
+    columnId === SELECT_COLUMN_ID ||
+    columnId === ROW_INDEX_COLUMN_ID ||
+    columnId === ACTIONS_COLUMN_ID
+  );
 }
 
 export function utilityTableColumnClassName(columnId: string) {
   if (columnId === SELECT_COLUMN_ID) {
-    return "w-5 max-w-5 py-0 text-center";
+    return "w-10 max-w-10 px-2 text-center";
   }
   if (columnId === ROW_INDEX_COLUMN_ID) {
-    return "w-6 max-w-6 px-1.5 text-center tabular-nums text-muted-foreground";
+    return "w-11 max-w-11 px-1.5 text-center tabular-nums text-muted-foreground";
+  }
+  if (columnId === ACTIONS_COLUMN_ID) {
+    return "w-[4.5rem] max-w-[4.5rem] px-1";
   }
   return undefined;
 }
