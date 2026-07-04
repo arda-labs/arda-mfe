@@ -18,7 +18,11 @@ function getPathname() {
 }
 
 export default function Routes() {
-  return <PlatformRoutes />
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <PlatformRoutes />
+    </div>
+  )
 }
 
 function PlatformRoutes() {

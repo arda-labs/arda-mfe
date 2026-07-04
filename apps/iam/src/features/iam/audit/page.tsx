@@ -8,9 +8,9 @@ import {
 } from "@/features/iam/audit/queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table-toolbar"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { useI18n } from "@workspace/i18n"
@@ -56,7 +56,9 @@ export function AuditPage() {
     {
       id: "timestamp",
       accessorKey: "timestamp",
-      header: t("admin.audit.time"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.audit.time")} />
+      ),
       cell: ({ row }) => (
         <span className="whitespace-nowrap text-muted-foreground text-xs">
           {row.original.timestamp ? formatDate(row.original.timestamp) : "-"}
@@ -66,7 +68,9 @@ export function AuditPage() {
     {
       id: "subject",
       accessorKey: "subject",
-      header: t("admin.audit.subject"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.audit.subject")} />
+      ),
       enableColumnFilter: true,
       meta: {
         label: t("admin.audit.subject"),
@@ -80,7 +84,9 @@ export function AuditPage() {
     {
       id: "eventType",
       accessorKey: "eventType",
-      header: t("admin.audit.type"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.audit.type")} />
+      ),
       enableColumnFilter: true,
       meta: {
         label: t("admin.audit.type"),
@@ -91,18 +97,24 @@ export function AuditPage() {
     },
     {
       accessorKey: "action",
-      header: t("admin.audit.action"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.audit.action")} />
+      ),
       cell: ({ row }) => row.original.action || "-",
     },
     {
       accessorKey: "resource",
-      header: t("admin.audit.resource"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.audit.resource")} />
+      ),
       cell: ({ row }) => row.original.resource || "-",
     },
     {
       id: "result",
       accessorKey: "result",
-      header: t("admin.audit.result"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.audit.result")} />
+      ),
       enableColumnFilter: true,
       meta: {
         label: t("admin.audit.result"),
@@ -118,7 +130,9 @@ export function AuditPage() {
     },
     {
       accessorKey: "clientIp",
-      header: "IP",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="IP" />
+      ),
       cell: ({ row }) => <span className="text-muted-foreground text-xs">{row.original.clientIp || "-"}</span>,
     },
   ], [eventTypeOptions, formatDate, resultOptions, t])
@@ -176,55 +190,58 @@ export function AuditPage() {
     setShowVerify(!showVerify)
   }
 
-  if (loading && events.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <h2 className="font-bold text-foreground text-lg">{t("admin.audit.title")}</h2>
-        </div>
-        <div className="grid gap-2 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-16 rounded-md border bg-muted/30" />
-          ))}
-        </div>
-        <DataTableSkeleton columnCount={7} rowCount={10} filterCount={3} />
+  const statsHeader = stats ? (
+    <div className="grid gap-2 md:grid-cols-4">
+      <AuditMetric label={t("admin.audit.events_7d")} value={stats.totalEvents} formatNumber={formatNumber} />
+      <AuditMetric label={t("admin.audit.login_ok")} value={stats.loginSuccess} tone="success" formatNumber={formatNumber} />
+      <AuditMetric label={t("admin.audit.login_fail")} value={stats.loginFailure} tone="error" formatNumber={formatNumber} />
+      <AuditMetric label={t("admin.audit.event_types")} value={Object.keys(stats.byEventType).length} formatNumber={formatNumber} />
+    </div>
+  ) : loading && events.length === 0 ? (
+    <div className="grid gap-2 md:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="h-16 rounded-md border bg-muted/30" />
+      ))}
+    </div>
+  ) : null
+
+  const verifyBanner =
+    showVerify && verifyResult ? (
+      <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/20 px-3 py-2">
+        <Status variant={verifyResult.valid ? "success" : "error"}>
+          <StatusIndicator />
+          <StatusLabel>{verifyResult.valid ? t("admin.audit.chain_intact") : t("admin.audit.tampered_detected")}</StatusLabel>
+        </Status>
+        <span className="text-muted-foreground text-sm">{t("admin.audit.entries_checked", { count: verifyResult.total })}</span>
+        {verifyResult.tampered && verifyResult.tampered.length > 0 && (
+          <span className="text-destructive text-sm">{t("admin.audit.tampered_entries", { count: verifyResult.tampered.length })}</span>
+        )}
       </div>
-    )
-  }
+    ) : null
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <h2 className="font-bold text-foreground text-lg">{t("admin.audit.title")}</h2>
-        <Badge variant="secondary" className="px-2.5 py-0.5 font-bold text-[10px]">
+    <ListPageShell
+      title={t("admin.audit.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
           {t("admin.audit.count", { count: total })}
         </Badge>
-      </div>
-
-      {stats && (
-        <div className="grid gap-2 md:grid-cols-4">
-          <AuditMetric label={t("admin.audit.events_7d")} value={stats.totalEvents} formatNumber={formatNumber} />
-          <AuditMetric label={t("admin.audit.login_ok")} value={stats.loginSuccess} tone="success" formatNumber={formatNumber} />
-          <AuditMetric label={t("admin.audit.login_fail")} value={stats.loginFailure} tone="error" formatNumber={formatNumber} />
-          <AuditMetric label={t("admin.audit.event_types")} value={Object.keys(stats.byEventType).length} formatNumber={formatNumber} />
-        </div>
-      )}
-
-      {showVerify && verifyResult && (
-        <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/20 px-3 py-2">
-          <Status variant={verifyResult.valid ? "success" : "error"}>
-            <StatusIndicator />
-            <StatusLabel>{verifyResult.valid ? t("admin.audit.chain_intact") : t("admin.audit.tampered_detected")}</StatusLabel>
-          </Status>
-          <span className="text-muted-foreground text-sm">{t("admin.audit.entries_checked", { count: verifyResult.total })}</span>
-          {verifyResult.tampered && verifyResult.tampered.length > 0 && (
-            <span className="text-destructive text-sm">{t("admin.audit.tampered_entries", { count: verifyResult.tampered.length })}</span>
-          )}
-        </div>
-      )}
-
-      <DataTable table={table}>
-        <DataTableToolbar table={table}>
+      }
+      loading={loading}
+      isEmpty={events.length === 0}
+      skeletonColumns={7}
+      skeletonFilters={3}
+      table={table}
+      header={
+        statsHeader || verifyBanner ? (
+          <div className="flex flex-col gap-2">
+            {statsHeader}
+            {verifyBanner}
+          </div>
+        ) : undefined
+      }
+      toolbar={
+        <ListTableToolbar table={table}>
           <Button
             variant="outline"
             size="sm"
@@ -234,9 +251,9 @@ export function AuditPage() {
           >
             {showVerify ? t("admin.audit.hide_verify") : t("admin.audit.verify_chain")}
           </Button>
-        </DataTableToolbar>
-      </DataTable>
-    </div>
+        </ListTableToolbar>
+      }
+    />
   )
 }
 

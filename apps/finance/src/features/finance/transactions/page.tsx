@@ -2,13 +2,8 @@ import { useEffect, useMemo, useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import {
-  getCoreRowModel,
-  useReactTable,
-  type ColumnDef,
-  type PaginationState,
-} from "@tanstack/react-table"
-import { FileText } from "lucide-react"
+import type { ColumnDef } from "@tanstack/react-table"
+import { parseAsInteger, useQueryState } from "nuqs"
 import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -18,18 +13,14 @@ import {
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
-import { Page } from "@workspace/ui/components/page"
-import { PageHeader } from "@workspace/ui/components/page-header"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import {
   Select,
   SelectContent,
@@ -38,6 +29,10 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { useI18n } from "@workspace/i18n"
+import { listPageCount } from "@workspace/core/http/list-api"
+import { useDataTable } from "@workspace/ui/hooks/use-data-table"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 import { useCreateTransaction, useTransactions } from "./queries"
 import type { Transaction } from "@/features/finance/api"
 
@@ -106,17 +101,21 @@ function createIdempotencyKey() {
 
 export function TransactionsPage() {
   const { t } = useI18n()
-  const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
-  const size = DEFAULT_PAGE_SIZE
+  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
+  const [perPageParam] = useQueryState(
+    "perPage",
+    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
+  )
   const {
     data,
     isError: isTransactionsError,
     isLoading,
-  } = useTransactions({ page, size })
+  } = useTransactions({ page: pageParam, size: perPageParam })
   const createTransaction = useCreateTransaction()
-  const txns = data?.transactions || []
-  const total = data?.total || 0
+  const txns = data?.transactions ?? []
+  const total = data?.total ?? 0
+  const pageCount = listPageCount(total, perPageParam)
   const {
     control,
     formState: { errors, isSubmitting },
@@ -132,6 +131,113 @@ export function TransactionsPage() {
   useEffect(() => {
     if (isTransactionsError) notify.error("Could not load transactions")
   }, [isTransactionsError])
+
+  const columns = useMemo<ColumnDef<Transaction>[]>(
+    () => [
+      {
+        id: "id",
+        accessorKey: "id",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="ID" />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">
+            {row.original.id.slice(0, 8)}…
+          </span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "txnType",
+        accessorKey: "txnType",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.type")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.txnType}</span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "postedAt",
+        accessorKey: "postedAt",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.date")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {new Date(row.original.postedAt).toLocaleDateString()}
+          </span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
+        cell: ({ row }) => (
+          <Status variant={STATUS_VARIANTS[row.original.status] || "default"}>
+            <StatusIndicator />
+            <StatusLabel>{row.original.status}</StatusLabel>
+          </Status>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "description",
+        accessorKey: "description",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.description")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="max-w-xs truncate text-muted-foreground">
+            {row.original.description || "—"}
+          </span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "createdBy",
+        accessorKey: "createdBy",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Created By" />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.createdBy.slice(0, 8)}
+          </span>
+        ),
+        enableSorting: false,
+      },
+    ],
+    [t]
+  )
+
+  const { table } = useDataTable<Transaction>({
+    columns,
+    data: txns,
+    pageCount,
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: DEFAULT_PAGE_SIZE,
+      },
+    },
+  })
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
@@ -149,251 +255,146 @@ export function TransactionsPage() {
     }
   })
 
-  const totalPages = data?.totalPages || Math.ceil(total / size)
+  const dialogs = (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("finance.transactions.title")}</DialogTitle>
+        </DialogHeader>
+        <form className="space-y-3" onSubmit={handleCreate}>
+          <FormField
+            label={t("common.field.type")}
+            error={errors.txnType?.message}
+          >
+            <Controller
+              control={control}
+              name="txnType"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger aria-invalid={Boolean(errors.txnType)}>
+                    <SelectValue placeholder={t("common.field.type")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TRANSFER">Transfer</SelectItem>
+                    <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                    <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
+                    <SelectItem value="FEE">Fee</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </FormField>
+          <FormField
+            label={t("common.field.description")}
+            error={errors.description?.message}
+          >
+            <Input
+              aria-invalid={Boolean(errors.description)}
+              {...register("description")}
+            />
+          </FormField>
 
-  if (isLoading)
-    return (
-      <div className="flex justify-center p-8">
-        <Spinner className="size-6" />
-      </div>
-    )
+          <p className="text-sm font-medium">Entries (debit = credit)</p>
+          {typeof errors.entries?.message === "string" ? (
+            <p className="text-xs font-medium text-destructive">
+              {errors.entries.message}
+            </p>
+          ) : null}
+          {fields.map((entry, i) => (
+            <div
+              key={entry.id}
+              className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]"
+            >
+              <FormField
+                label="Account ID"
+                error={errors.entries?.[i]?.accountId?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(errors.entries?.[i]?.accountId)}
+                  {...register(`entries.${i}.accountId`)}
+                />
+              </FormField>
+              <FormField
+                label={t("common.field.type")}
+                error={errors.entries?.[i]?.type?.message}
+              >
+                <Controller
+                  control={control}
+                  name={`entries.${i}.type`}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        aria-invalid={Boolean(errors.entries?.[i]?.type)}
+                      >
+                        <SelectValue placeholder={t("common.field.type")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DEBIT">
+                          {t("finance.entry.debit")}
+                        </SelectItem>
+                        <SelectItem value="CREDIT">
+                          {t("finance.entry.credit")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
+              <FormField label="Amount" error={errors.entries?.[i]?.amount?.message}>
+                <Input
+                  aria-invalid={Boolean(errors.entries?.[i]?.amount)}
+                  {...register(`entries.${i}.amount`)}
+                />
+              </FormField>
+            </div>
+          ))}
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() =>
+                append({ accountId: "", type: "DEBIT", amount: "" })
+              }
+            >
+              + Entry
+            </Button>
+          </div>
+
+          <Button
+            className="w-full"
+            type="submit"
+            disabled={isSubmitting || createTransaction.isPending}
+          >
+            {t("common.action.create")}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
 
   return (
-    <Page>
-      <PageHeader
-        title={t("finance.transactions.title")}
-        icon={FileText}
-        badge={
-          <Badge variant="secondary" className="px-2.5 py-1 text-xs">
-            {total} total
-          </Badge>
-        }
-        actions={
-          <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogTrigger className="h-9 px-4 text-sm">
-              Create Transaction
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Create Transaction</DialogTitle>
-              </DialogHeader>
-              <form className="space-y-3" onSubmit={handleCreate}>
-                <FormField
-                  label="Transaction type"
-                  error={errors.txnType?.message}
-                >
-                  <Controller
-                    control={control}
-                    name="txnType"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger aria-invalid={Boolean(errors.txnType)}>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="TRANSFER">Transfer</SelectItem>
-                          <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                          <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-                          <SelectItem value="FEE">Fee</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </FormField>
-                <FormField
-                  label="Description"
-                  error={errors.description?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(errors.description)}
-                    {...register("description")}
-                  />
-                </FormField>
-
-                <p className="text-sm font-medium">Entries (debit = credit)</p>
-                {typeof errors.entries?.message === "string" ? (
-                  <p className="text-xs font-medium text-destructive">
-                    {errors.entries.message}
-                  </p>
-                ) : null}
-                {fields.map((entry, i) => (
-                  <div
-                    key={entry.id}
-                    className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem]"
-                  >
-                    <FormField
-                      label="Account ID"
-                      error={errors.entries?.[i]?.accountId?.message}
-                    >
-                      <Input
-                        aria-invalid={Boolean(errors.entries?.[i]?.accountId)}
-                        {...register(`entries.${i}.accountId`)}
-                      />
-                    </FormField>
-                    <FormField
-                      label="Type"
-                      error={errors.entries?.[i]?.type?.message}
-                    >
-                      <Controller
-                        control={control}
-                        name={`entries.${i}.type`}
-                        render={({ field }) => (
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger
-                              aria-invalid={Boolean(errors.entries?.[i]?.type)}
-                            >
-                              <SelectValue placeholder="Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="DEBIT">Debit</SelectItem>
-                              <SelectItem value="CREDIT">Credit</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </FormField>
-                    <FormField
-                      label="Amount"
-                      error={errors.entries?.[i]?.amount?.message}
-                    >
-                      <Input
-                        aria-invalid={Boolean(errors.entries?.[i]?.amount)}
-                        {...register(`entries.${i}.amount`)}
-                      />
-                    </FormField>
-                  </div>
-                ))}
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    type="button"
-                    onClick={() =>
-                      append({ accountId: "", type: "DEBIT", amount: "" })
-                    }
-                  >
-                    + Entry
-                  </Button>
-                </div>
-
-                <Button
-                  className="w-full"
-                  type="submit"
-                  disabled={isSubmitting || createTransaction.isPending}
-                >
-                  Post Transaction
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        }
-      />
-      <TransactionsTable
-        txns={txns}
-        page={page}
-        size={size}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
-    </Page>
+    <ListPageShell
+      title={t("finance.transactions.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+          {total}
+        </Badge>
+      }
+      loading={isLoading}
+      isEmpty={txns.length === 0}
+      skeletonColumns={6}
+      skeletonFilters={0}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setOpen(true)}
+          createLabel={t("common.action.create")}
+        />
+      }
+      dialogs={dialogs}
+    />
   )
-}
-
-function TransactionsTable({
-  txns,
-  page,
-  size,
-  totalPages,
-  onPageChange,
-}: {
-  txns: Transaction[]
-  page: number
-  size: number
-  totalPages: number
-  onPageChange: (page: number) => void
-}) {
-  const columns = useMemo<ColumnDef<Transaction>[]>(
-    () => [
-      {
-        accessorKey: "id",
-        header: "ID",
-        cell: ({ row }) => (
-          <span className="font-mono text-xs">
-            {row.original.id.slice(0, 8)}…
-          </span>
-        ),
-      },
-      {
-        accessorKey: "txnType",
-        header: "Type",
-        cell: ({ row }) => (
-          <span className="font-medium">{row.original.txnType}</span>
-        ),
-      },
-      {
-        accessorKey: "postedAt",
-        header: "Date",
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {new Date(row.original.postedAt).toLocaleDateString()}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => (
-          <Status variant={STATUS_VARIANTS[row.original.status] || "default"}>
-            <StatusIndicator />
-            <StatusLabel>{row.original.status}</StatusLabel>
-          </Status>
-        ),
-      },
-      {
-        accessorKey: "description",
-        header: "Description",
-        cell: ({ row }) => (
-          <span className="max-w-xs truncate text-muted-foreground">
-            {row.original.description || "—"}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "createdBy",
-        header: "Created By",
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {row.original.createdBy.slice(0, 8)}
-          </span>
-        ),
-      },
-    ],
-    [],
-  )
-  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
-    pageIndex: page - 1,
-    pageSize: size,
-  })
-  const table = useReactTable({
-    data: txns,
-    columns,
-    manualPagination: true,
-    pageCount: totalPages,
-    state: { pagination: { pageIndex, pageSize } },
-    onPaginationChange: (updater) => {
-      const next =
-        typeof updater === "function"
-          ? updater({ pageIndex, pageSize })
-          : updater
-      setPagination(next)
-      onPageChange(next.pageIndex + 1)
-    },
-    getCoreRowModel: getCoreRowModel(),
-  })
-
-  return <DataTable table={table} defaultDensity="comfortable" />
 }

@@ -14,9 +14,9 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table-toolbar"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 import {
   Dialog,
   DialogContent,
@@ -127,13 +127,17 @@ export function PermissionsPage() {
     {
       id: "code",
       accessorKey: "code",
-      header: t("common.field.code"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.code")} />
+      ),
       cell: ({ row }) => <span className="font-mono text-sm">{row.original.code}</span>,
     },
     {
       id: "module",
       accessorKey: "module",
-      header: t("admin.field.module"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.field.module")} />
+      ),
       enableColumnFilter: true,
       meta: {
         label: t("admin.field.module"),
@@ -143,11 +147,15 @@ export function PermissionsPage() {
     },
     {
       accessorKey: "resource",
-      header: t("common.field.resource"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.resource")} />
+      ),
     },
     {
       accessorKey: "operation",
-      header: t("common.field.operation"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.operation")} />
+      ),
     },
     {
       id: "actions",
@@ -201,37 +209,8 @@ export function PermissionsPage() {
     }
   }, [permissionsQuery.error])
 
-  if (loading && perms.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <h2 className="font-bold text-foreground text-lg">{t("admin.permissions.title")}</h2>
-        </div>
-        <DataTableSkeleton columnCount={6} rowCount={10} filterCount={1} />
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <h2 className="font-bold text-foreground text-lg">{t("admin.permissions.title")}</h2>
-        <Badge variant="secondary" className="px-2.5 py-0.5 font-bold text-[10px]">
-          {t("admin.permissions.count", { count: total })}
-        </Badge>
-      </div>
-
-      <DataTable table={table}>
-        <DataTableToolbar table={table}>
-          <Button
-            onClick={() => setOpen(true)}
-            className="h-8 px-3 font-semibold text-xs"
-          >
-            {t("admin.permissions.create")}
-          </Button>
-        </DataTableToolbar>
-      </DataTable>
-
+  const dialogs = (
+    <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
@@ -297,6 +276,30 @@ export function PermissionsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
+  )
+
+  return (
+    <ListPageShell
+      title={t("admin.permissions.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("admin.permissions.count", { count: total })}
+        </Badge>
+      }
+      loading={loading}
+      isEmpty={perms.length === 0}
+      skeletonColumns={6}
+      skeletonFilters={1}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setOpen(true)}
+          createLabel={t("admin.permissions.create")}
+        />
+      }
+      dialogs={dialogs}
+    />
   )
 }

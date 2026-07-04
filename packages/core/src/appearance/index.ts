@@ -13,6 +13,7 @@ export type BaseColor =
 export type ChartPalette = "default" | "finance" | "cool" | "warm"
 export type FontPreset = "inter" | "system" | "serif" | "mono"
 export type RadiusPreset = "none" | "sm" | "md" | "lg" | "xl"
+export type LayoutSurface = "background" | "card" | "muted" | "sidebar" | "accent"
 
 export type AppearanceSettings = {
   baseColor: BaseColor
@@ -20,6 +21,8 @@ export type AppearanceSettings = {
   font: FontPreset
   headingFont: FontPreset
   radius: RadiusPreset
+  headerSurface: LayoutSurface
+  sidebarSurface: LayoutSurface
 }
 
 type BaseColorDefinition = {
@@ -45,6 +48,8 @@ export const defaultAppearance: AppearanceSettings = {
   font: "inter",
   headingFont: "inter",
   radius: "md",
+  headerSurface: "background",
+  sidebarSurface: "sidebar",
 }
 
 export const baseColors: Record<BaseColor, BaseColorDefinition> = {
@@ -348,6 +353,14 @@ export const radiusPresets: Record<RadiusPreset, { label: string; value: string 
   xl: { label: "Extra", value: "1rem" },
 }
 
+export const layoutSurfacePresets: Record<LayoutSurface, { label: string; value: string }> = {
+  background: { label: "Background", value: "var(--background)" },
+  card: { label: "Card", value: "var(--card)" },
+  muted: { label: "Muted", value: "var(--muted)" },
+  sidebar: { label: "Sidebar", value: "var(--sidebar)" },
+  accent: { label: "Accent", value: "var(--accent)" },
+}
+
 export function readAppearance(): AppearanceSettings {
   if (typeof localStorage === "undefined") return defaultAppearance
   try {
@@ -392,6 +405,14 @@ export function applyAppearance(settings: AppearanceSettings) {
   root.style.setProperty("--app-font-heading", headingStack)
   root.style.setProperty("--font-sans", fontStack)
   root.style.setProperty("--font-heading", headingStack)
+  root.style.setProperty(
+    "--layout-header-background",
+    layoutSurfacePresets[settings.headerSurface]?.value ?? layoutSurfacePresets.background.value
+  )
+  root.style.setProperty(
+    "--layout-sidebar-background",
+    layoutSurfacePresets[settings.sidebarSurface]?.value ?? layoutSurfacePresets.sidebar.value
+  )
 }
 
 export function getAppearanceScript() {
@@ -401,8 +422,9 @@ export function getAppearanceScript() {
   const charts = JSON.stringify(chartPalettes)
   const radii = JSON.stringify(radiusPresets)
   const fonts = JSON.stringify(fontPresets)
+  const surfaces = JSON.stringify(layoutSurfacePresets)
 
-  return `(function(){try{var key=${key};var settings=JSON.parse(localStorage.getItem(key)||'null')||${fallback};var bases=${bases};var charts=${charts};var radii=${radii};var fonts=${fonts};var root=document.documentElement;var base=bases[settings.baseColor]||bases.arda;var vars=root.classList.contains('dark')?base.dark:base.light;for(var name in vars){root.style.setProperty(name,vars[name])}var chart=charts[settings.chartPalette]||charts.default;for(var i=0;i<chart.colors.length;i++){root.style.setProperty('--chart-'+(i+1),chart.colors[i])}root.style.setProperty('--radius',(radii[settings.radius]||radii.md).value);var fontStack=(fonts[settings.font]||fonts.inter).stack;var headingStack=(fonts[settings.headingFont]||fonts.inter).stack;root.style.setProperty('--app-font-sans',fontStack);root.style.setProperty('--app-font-heading',headingStack);root.style.setProperty('--font-sans',fontStack);root.style.setProperty('--font-heading',headingStack)}catch(e){}})();`
+  return `(function(){try{var key=${key};var settings=JSON.parse(localStorage.getItem(key)||'null')||${fallback};var bases=${bases};var charts=${charts};var radii=${radii};var fonts=${fonts};var surfaces=${surfaces};var root=document.documentElement;var base=bases[settings.baseColor]||bases.arda;var vars=root.classList.contains('dark')?base.dark:base.light;for(var name in vars){root.style.setProperty(name,vars[name])}var chart=charts[settings.chartPalette]||charts.default;for(var i=0;i<chart.colors.length;i++){root.style.setProperty('--chart-'+(i+1),chart.colors[i])}root.style.setProperty('--radius',(radii[settings.radius]||radii.md).value);var fontStack=(fonts[settings.font]||fonts.inter).stack;var headingStack=(fonts[settings.headingFont]||fonts.inter).stack;root.style.setProperty('--app-font-sans',fontStack);root.style.setProperty('--app-font-heading',headingStack);root.style.setProperty('--font-sans',fontStack);root.style.setProperty('--font-heading',headingStack);root.style.setProperty('--layout-header-background',(surfaces[settings.headerSurface]||surfaces.background).value);root.style.setProperty('--layout-sidebar-background',(surfaces[settings.sidebarSurface]||surfaces.sidebar).value)}catch(e){}})();`
 }
 
 function normalizeAppearance(value: Partial<AppearanceSettings>): AppearanceSettings {
@@ -416,6 +438,12 @@ function normalizeAppearance(value: Partial<AppearanceSettings>): AppearanceSett
       ? value.headingFont
       : defaultAppearance.headingFont,
     radius: isKey(radiusPresets, value.radius) ? value.radius : defaultAppearance.radius,
+    headerSurface: isKey(layoutSurfacePresets, value.headerSurface)
+      ? value.headerSurface
+      : defaultAppearance.headerSurface,
+    sidebarSurface: isKey(layoutSurfacePresets, value.sidebarSurface)
+      ? value.sidebarSurface
+      : defaultAppearance.sidebarSurface,
   }
 }
 

@@ -1,18 +1,29 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { translateApiError } from "@workspace/i18n"
+import type { ColumnDef } from "@tanstack/react-table"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import type { Organization } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,31 +41,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+import { listPageCount, sortToApiParams } from "@workspace/core/http/list-api"
+import { useDataTable } from "@workspace/ui/hooks/use-data-table"
+import { getSortingStateParser } from "@workspace/ui/lib/parsers"
+import { parseAsInteger, useQueryState } from "nuqs"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
+import {
+  getSingleSelectValue,
+  getTextFilterValue,
+  useColumnFilterParams,
+} from "../shared/column-filters"
+import { ListTableToolbar } from "../shared/list-table-toolbar"
 import {
   useCreateOrganization,
   useDeleteOrganization,
+  useOrganizationOptions,
   useOrganizations,
+  useOrganizationTree,
   useUpdateOrganization,
 } from "./queries"
 
-const organizationFormSchema = z.object({
-  code: z.string().trim().min(1, "Ma don vi la bat buoc").max(64, "Ma don vi qua dai"),
-  name: z.string().trim().min(1, "Ten don vi la bat buoc").max(255, "Ten don vi qua dai"),
-  parent_id: z.string().trim().optional(),
-  address: z.string().trim().max(500, "Dia chi qua dai").optional(),
-  is_active: z.boolean(),
-})
+const DEFAULT_PAGE_SIZE = 10
 
-type OrganizationFormValues = z.infer<typeof organizationFormSchema>
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+
+function buildOrganizationSchema(t: TranslateFn) {
+  return z.object({
+    code: z
+      .string()
+      .trim()
+      .min(1, t("platform.organizations.validation.code_required"))
+      .max(64, t("platform.organizations.validation.code_too_long")),
+    name: z
+      .string()
+      .trim()
+      .min(1, t("platform.organizations.validation.name_required"))
+      .max(255, t("platform.organizations.validation.name_too_long")),
+    parent_id: z.string().trim().optional(),
+    address: z
+      .string()
+      .trim()
+      .max(500, t("platform.organizations.validation.address_too_long"))
+      .optional(),
+    is_active: z.boolean(),
+  })
+}
+
+type OrganizationFormValues = z.infer<ReturnType<typeof buildOrganizationSchema>>
 
 const organizationDefaultValues: OrganizationFormValues = {
   code: "",
@@ -75,16 +108,25 @@ function toOrganizationFormValues(item: Organization): OrganizationFormValues {
 }
 
 export function OrganizationsPage() {
+  const { t } = useI18n()
   const [viewMode, setViewMode] = useState<"list" | "tree">("list")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null)
-  const organizationsQuery = useOrganizations()
-  const createOrganization = useCreateOrganization()
-  const updateOrganization = useUpdateOrganization()
-  const deleteOrganization = useDeleteOrganization()
-  const orgs = organizationsQuery.data ?? []
-  const loading = organizationsQuery.isLoading
+
+  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
+  const [perPageParam] = useQueryState(
+    "perPage",
+    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
+  )
+  const [sorting] = useQueryState(
+    "sort",
+    getSortingStateParser<Organization>(
+      new Set(["code", "name", "is_active"])
+    ).withDefault([])
+  )
+
+  const organizationSchema = useMemo(() => buildOrganizationSchema(t), [t])
   const {
     control,
     formState: { errors, isSubmitting },
@@ -92,15 +134,14 @@ export function OrganizationsPage() {
     register,
     reset,
   } = useForm<OrganizationFormValues>({
-    resolver: zodResolver(organizationFormSchema),
+    resolver: zodResolver(organizationSchema),
     defaultValues: organizationDefaultValues,
   })
 
-  useEffect(() => {
-    if (organizationsQuery.error) {
-      notify.error("Khong the tai danh sach don vi", translateApiError(organizationsQuery.error))
-    }
-  }, [organizationsQuery.error])
+  const createOrganization = useCreateOrganization()
+  const updateOrganization = useUpdateOrganization()
+  const deleteOrganization = useDeleteOrganization()
+  const organizationTreeQuery = useOrganizationTree()
 
   const openCreate = () => {
     setEditingOrg(null)
@@ -154,12 +195,186 @@ export function OrganizationsPage() {
     }
   }
 
+  const columns = useMemo<ColumnDef<Organization>[]>(
+    () => [
+      {
+        id: "code",
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.organizations.field.code")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.code}</span>
+        ),
+      },
+      {
+        id: "name",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.organizations.field.name")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: {
+          label: t("platform.organizations.field.name"),
+          variant: "text",
+          placeholder: t("platform.organizations.placeholder.search"),
+        },
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.name}</span>
+        ),
+      },
+      {
+        id: "parent",
+        header: () => (
+          <span className="text-xs font-semibold text-foreground/80">
+            {t("platform.organizations.field.parent")}
+          </span>
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.parent_name ?? "-"}
+          </span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "is_active",
+        accessorKey: "is_active",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: {
+          label: t("common.field.status"),
+          variant: "multiSelect",
+          options: [
+            {
+              label: t("platform.organizations.status.active"),
+              value: "true",
+            },
+            {
+              label: t("platform.organizations.status.inactive"),
+              value: "false",
+            },
+          ],
+        },
+        cell: ({ row }) => (
+          <Status variant={row.original.is_active ? "success" : "default"}>
+            <StatusIndicator />
+            <StatusLabel>
+              {row.original.is_active
+                ? t("platform.organizations.status.active")
+                : t("platform.organizations.status.inactive")}
+            </StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right text-xs font-semibold text-foreground/80">
+            {t("common.field.action")}
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-muted-foreground"
+              title={t("common.action.edit")}
+              onClick={() => openEdit(row.original)}
+            >
+              <Edit2 className="size-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-destructive"
+              title={t("common.action.delete")}
+              onClick={() => setDeleteTarget(row.original)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t]
+  )
+
+  const [filterValues] = useColumnFilterParams(columns)
+
+  const listParams = useMemo(
+    () => ({
+      page: pageParam,
+      perPage: perPageParam,
+      q: getTextFilterValue(filterValues.name) || undefined,
+      is_active: getSingleSelectValue(filterValues.is_active),
+      ...sortToApiParams(sorting),
+    }),
+    [filterValues, pageParam, perPageParam, sorting]
+  )
+
+  const organizationsQuery = useOrganizations(listParams)
+  const organizationOptionsQuery = useOrganizationOptions()
+
+  const orgs = organizationsQuery.data?.items ?? []
+  const total = organizationsQuery.data?.total ?? 0
+  const treeOrgs = organizationTreeQuery.data?.items ?? []
+  const orgOptions = organizationOptionsQuery.data?.items ?? []
+  const loading =
+    viewMode === "list"
+      ? organizationsQuery.isLoading
+      : organizationTreeQuery.isLoading
+
+  useEffect(() => {
+    const error =
+      viewMode === "list"
+        ? organizationsQuery.error
+        : organizationTreeQuery.error
+    if (error) {
+      notify.error(
+        t("platform.organizations.load_failed"),
+        translateApiError(error)
+      )
+    }
+  }, [organizationTreeQuery.error, organizationsQuery.error, t, viewMode])
+
+  const pageCount = listPageCount(total, perPageParam)
+
+  const { table } = useDataTable<Organization>({
+    columns,
+    data: orgs,
+    pageCount,
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: DEFAULT_PAGE_SIZE,
+      },
+    },
+  })
+
   const renderTree = (parentId: string | undefined = undefined, depth = 0) => {
-    const children = orgs.filter((org) => org.parent_id === parentId)
+    const children = treeOrgs.filter((org) => org.parent_id === parentId)
     if (children.length === 0) return null
 
     return (
-      <div className={`space-y-2 ${depth > 0 ? "pl-6 border-l border-muted/80 ml-3 mt-2" : ""}`}>
+      <div
+        className={`space-y-2 ${depth > 0 ? "ml-3 mt-2 border-l border-muted/80 pl-6" : ""}`}
+      >
         {children.map((org) => (
           <div key={org.id} className="group">
             <div className="flex items-center justify-between rounded-xl border border-muted/60 bg-muted/10 p-3 transition-all hover:bg-muted/20">
@@ -167,14 +382,28 @@ export function OrganizationsPage() {
                 <Building2 className="size-4 text-primary/70" />
                 <div>
                   <span className="text-sm font-semibold">{org.name}</span>
-                  <span className="ml-2 font-mono text-xs text-muted-foreground">({org.code})</span>
+                  <span className="ml-2 font-mono text-xs text-muted-foreground">
+                    ({org.code})
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(org)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-7"
+                  title={t("common.action.edit")}
+                  onClick={() => openEdit(org)}
+                >
                   <Edit2 className="size-3.5" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteTarget(org)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-7 text-destructive"
+                  title={t("common.action.delete")}
+                  onClick={() => setDeleteTarget(org)}
+                >
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>
@@ -186,125 +415,139 @@ export function OrganizationsPage() {
     )
   }
 
+  const saving =
+    isSubmitting || createOrganization.isPending || updateOrganization.isPending
+
+  const viewModeToggle = (
+    <div className="flex rounded-lg border border-input bg-background p-0.5">
+      <Button
+        variant={viewMode === "list" ? "secondary" : "ghost"}
+        size="sm"
+        className="h-7 rounded-md px-2.5"
+        onClick={() => setViewMode("list")}
+      >
+        <List className="mr-1 size-3.5" />
+        {t("platform.organizations.view.list")}
+      </Button>
+      <Button
+        variant={viewMode === "tree" ? "secondary" : "ghost"}
+        size="sm"
+        className="h-7 rounded-md px-2.5"
+        onClick={() => setViewMode("tree")}
+      >
+        <FolderTree className="mr-1 size-3.5" />
+        {t("platform.organizations.view.tree")}
+      </Button>
+    </div>
+  )
+
+  const pageHeader = (
+    <PageHeader
+      title={t("platform.organizations.title")}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("platform.organizations.count", { count: total })}
+        </Badge>
+      }
+      actions={viewModeToggle}
+    />
+  )
+
+  if (loading && (viewMode === "list" ? orgs.length === 0 : treeOrgs.length === 0)) {
+    return (
+      <section className="flex h-full min-h-0 flex-col gap-4 p-4">
+        {pageHeader}
+        <DataTableSkeleton
+          className="min-h-0 flex-1"
+          columnCount={5}
+          rowCount={10}
+          filterCount={2}
+        />
+      </section>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">Don vi & To chuc</h2>
-          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
-            Tong so: {orgs.length}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex rounded-lg border border-input bg-background p-0.5">
+    <section className="flex h-full min-h-0 flex-col gap-4 p-4">
+      {pageHeader}
+
+      {viewMode === "tree" ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
+          <div className="flex shrink-0 justify-end">
             <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 rounded-md px-2.5"
-              onClick={() => setViewMode("list")}
+              onClick={openCreate}
+              className="h-8 px-3 text-xs font-semibold"
             >
-              <List className="mr-1 size-3.5" /> Danh sach
-            </Button>
-            <Button
-              variant={viewMode === "tree" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 rounded-md px-2.5"
-              onClick={() => setViewMode("tree")}
-            >
-              <FolderTree className="mr-1 size-3.5" /> So do cay
+              <Plus className="mr-1 size-3.5" />
+              {t("platform.organizations.create")}
             </Button>
           </div>
-          <Button onClick={openCreate} className="h-9 gap-1.5 px-4 text-sm font-semibold">
-            <Plus className="size-4" /> Them don vi
-          </Button>
+          <Card className="min-h-0 flex-1 overflow-hidden">
+            <CardContent className="h-full overflow-y-auto p-6">
+              {treeOrgs.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {t("platform.organizations.empty")}
+                </p>
+              ) : (
+                renderTree(undefined)
+              )}
+            </CardContent>
+          </Card>
         </div>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-          Dang tai du lieu don vi...
-        </div>
-      ) : viewMode === "tree" ? (
-        <Card className="rounded-2xl border-muted/50 shadow-sm">
-          <CardContent className="p-6">{renderTree(undefined)}</CardContent>
-        </Card>
       ) : (
-        <Card className="overflow-hidden rounded-2xl border-muted/50 shadow-sm">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[150px]">Ma don vi</TableHead>
-                  <TableHead>Ten don vi</TableHead>
-                  <TableHead>Don vi cap tren</TableHead>
-                  <TableHead>Trang thai</TableHead>
-                  <TableHead className="text-right">Thao tac</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orgs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      Chua co don vi nao duoc tao.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  orgs.map((org) => {
-                    const parent = orgs.find((item) => item.id === org.parent_id)
-                    return (
-                      <TableRow key={org.id}>
-                        <TableCell className="font-mono text-xs">{org.code}</TableCell>
-                        <TableCell className="font-medium">{org.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{parent ? parent.name : "-"}</TableCell>
-                        <TableCell>
-                          <Status variant={org.is_active ? "success" : "default"}>
-                            <StatusIndicator />
-                            <StatusLabel>{org.is_active ? "Hoat dong" : "Tam ngung"}</StatusLabel>
-                          </Status>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(org)}>
-                              <Edit2 className="size-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteTarget(org)}>
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <DataTable layout="panel" table={table} className="min-h-0 flex-1">
+          <ListTableToolbar
+            table={table}
+            onCreate={openCreate}
+            createLabel={t("platform.organizations.create")}
+          />
+        </DataTable>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingOrg ? "Cap nhat don vi" : "Them don vi moi"}</DialogTitle>
-            <DialogDescription>Nhap thong tin cau truc to chuc hoac don vi.</DialogDescription>
+            <DialogTitle>
+              {editingOrg
+                ? t("platform.organizations.edit")
+                : t("platform.organizations.create_title")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("platform.organizations.dialog_description")}
+            </DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={submitOrganization} className="space-y-4 py-2">
+          <form
+            autoComplete="off"
+            onSubmit={submitOrganization}
+            className="space-y-4 py-2"
+          >
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Ma don vi" htmlFor="org_code" error={errors.code?.message}>
+              <FormField
+                label={t("platform.organizations.field.code")}
+                htmlFor="org_code"
+                error={errors.code?.message}
+              >
                 <Input
                   id="org_code"
-                  placeholder="ORG_01"
+                  placeholder={t("platform.organizations.placeholder.code")}
                   aria-invalid={Boolean(errors.code)}
                   disabled={!!editingOrg}
                   spellCheck={false}
                   {...register("code")}
                 />
               </FormField>
-              <FormField label="Ten don vi" htmlFor="org_name" error={errors.name?.message}>
+              <FormField
+                label={t("platform.organizations.field.name")}
+                htmlFor="org_name"
+                error={errors.name?.message}
+              >
                 <Input
                   id="org_name"
-                  placeholder="Van phong dai dien"
+                  placeholder={t("platform.organizations.placeholder.name")}
                   aria-invalid={Boolean(errors.name)}
                   spellCheck={false}
                   {...register("name")}
@@ -312,18 +555,36 @@ export function OrganizationsPage() {
               </FormField>
             </div>
 
-            <FormField label="Don vi cap tren" htmlFor="org_parent_id" error={errors.parent_id?.message}>
+            <FormField
+              label={t("platform.organizations.field.parent")}
+              htmlFor="org_parent_id"
+              error={errors.parent_id?.message}
+            >
               <Controller
                 control={control}
                 name="parent_id"
                 render={({ field }) => (
-                  <Select value={field.value || "none"} onValueChange={(value) => field.onChange(value === "none" ? "" : value)}>
-                    <SelectTrigger id="org_parent_id" aria-invalid={Boolean(errors.parent_id)}>
-                      <SelectValue placeholder="Khong co" />
+                  <Select
+                    value={field.value || "none"}
+                    onValueChange={(value) =>
+                      field.onChange(value === "none" ? "" : value)
+                    }
+                  >
+                    <SelectTrigger
+                      id="org_parent_id"
+                      aria-invalid={Boolean(errors.parent_id)}
+                    >
+                      <SelectValue
+                        placeholder={t(
+                          "platform.organizations.placeholder.parent_none"
+                        )}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Khong co</SelectItem>
-                      {orgs
+                      <SelectItem value="none">
+                        {t("platform.organizations.placeholder.parent_none")}
+                      </SelectItem>
+                      {orgOptions
                         .filter((org) => !editingOrg || org.id !== editingOrg.id)
                         .map((org) => (
                           <SelectItem key={org.id} value={org.id}>
@@ -336,10 +597,14 @@ export function OrganizationsPage() {
               />
             </FormField>
 
-            <FormField label="Dia chi" htmlFor="org_address" error={errors.address?.message}>
+            <FormField
+              label={t("platform.organizations.field.address")}
+              htmlFor="org_address"
+              error={errors.address?.message}
+            >
               <Input
                 id="org_address"
-                placeholder="Dia chi tru so"
+                placeholder={t("platform.organizations.placeholder.address")}
                 aria-invalid={Boolean(errors.address)}
                 spellCheck={false}
                 {...register("address")}
@@ -354,43 +619,64 @@ export function OrganizationsPage() {
                   <Checkbox
                     id="org_is_active"
                     checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
                   />
-                  <label htmlFor="org_is_active" className="cursor-pointer select-none text-sm font-medium">
-                    Don vi dang hoat dong
+                  <label
+                    htmlFor="org_is_active"
+                    className="cursor-pointer select-none text-sm font-medium"
+                  >
+                    {t("platform.organizations.field.is_active")}
                   </label>
                 </div>
               )}
             />
 
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
-                Huy
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleDialogOpenChange(false)}
+              >
+                {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isSubmitting || createOrganization.isPending || updateOrganization.isPending}>
-                {isSubmitting || createOrganization.isPending || updateOrganization.isPending ? "Dang luu..." : "Luu lai"}
+              <Button type="submit" disabled={saving}>
+                {saving
+                  ? t("common.action.saving")
+                  : t("common.action.save")}
               </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xac nhan xoa don vi?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.organizations.delete.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Hanh dong nay se ngung kich hoat don vi <strong>{deleteTarget?.name}</strong>. Cau truc cay cap duoi lien quan cung co the bi anh huong.
+              {t("platform.organizations.delete.description", {
+                name: deleteTarget?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Xoa bo
+            <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("platform.organizations.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </section>
   )
 }

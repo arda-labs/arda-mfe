@@ -6,7 +6,8 @@
     "roles": "Vai trò",
     "permissions": "Quyền",
     "audit": "Nhật ký",
-    "system_settings": "Cài đặt hệ thống"
+    "system_settings": "Cài đặt hệ thống",
+    "groups": "Nhom nguoi dung"
   },
   "finance": {
     "_self": "Tài chính",
@@ -14,6 +15,14 @@
     "transactions": "Giao dịch",
     "approvals": "Phê duyệt",
     "trial_balance": "Bảng cân đối thử"
+  },
+  "hrm": {
+    "_self": "Nhan su",
+    "positions": "Chuc vu",
+    "job_titles": "Chuc danh",
+    "org_units": "Co cau to chuc",
+    "registrations": "Dang ky nhan su",
+    "employees": "Thong tin nhan su"
   },
   "platform": {
     "_self": "Nền tảng",

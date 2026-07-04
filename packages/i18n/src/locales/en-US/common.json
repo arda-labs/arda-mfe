@@ -13,6 +13,10 @@
     "next": "Next",
     "prev": "Prev",
     "review": "Review",
+    "save": "Save",
+    "saving": "Saving...",
+    "edit": "Edit",
+    "export_excel": "Download Excel",
     "sign_in": "Sign in",
     "signing_in": "Signing in...",
     "submit": "Submit",
@@ -52,6 +56,7 @@
     "operation": "Operation",
     "resource": "Resource",
     "status": "Status",
+    "stt": "No.",
     "type": "Type"
   },
   "locale": {

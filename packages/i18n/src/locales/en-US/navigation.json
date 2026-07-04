@@ -3,6 +3,7 @@
   "admin": {
     "_self": "Admin",
     "users": "Users",
+    "groups": "Groups",
     "roles": "Roles",
     "permissions": "Permissions",
     "audit": "Audit",
@@ -14,6 +15,14 @@
     "transactions": "Transactions",
     "approvals": "Approvals",
     "trial_balance": "Trial Balance"
+  },
+  "hrm": {
+    "_self": "HRM",
+    "positions": "Positions",
+    "job_titles": "Job Titles",
+    "org_units": "Organization Structure",
+    "registrations": "Employee Registration",
+    "employees": "Employee Information"
   },
   "platform": {
     "_self": "Platform",

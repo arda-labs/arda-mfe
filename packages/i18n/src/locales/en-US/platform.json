@@ -1,5 +1,513 @@
 {
   "lookup": {
     "not_found": "Lookup category not found"
+  },
+  "area_types": {
+    "title": "Area Types",
+    "count": "{count} types",
+    "create": "Add area type",
+    "edit": "Edit area type",
+    "create_title": "Add area type",
+    "dialog_description": "Manage shared area type lookup values.",
+    "load_failed": "Failed to load area types",
+    "field": {
+      "code": "Type code",
+      "name": "Type name",
+      "sort_order": "Sort order",
+      "status": "Status",
+      "is_active": "Active",
+      "actions": "Actions"
+    },
+    "placeholder": {
+      "search": "Search by code or name...",
+      "filter_all": "All statuses"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "validation": {
+      "code_required": "Area type code is required",
+      "code_too_long": "Area type code is too long",
+      "name_required": "Area type name is required",
+      "name_too_long": "Area type name is too long",
+      "sort_integer": "Sort order must be an integer",
+      "sort_invalid": "Invalid sort order"
+    },
+    "delete": {
+      "title": "Delete this area type?",
+      "description": "Are you sure you want to remove {name} from the catalog?",
+      "confirm": "Delete"
+    },
+    "empty": "No area types yet."
+  },
+  "organizations": {
+    "title": "Organizations",
+    "count": "{count} organizations",
+    "create": "Add organization",
+    "edit": "Edit organization",
+    "create_title": "Add new organization",
+    "dialog_description": "Enter organization or unit structure details.",
+    "load_failed": "Failed to load organizations",
+    "view": {
+      "list": "List",
+      "tree": "Tree view"
+    },
+    "field": {
+      "code": "Code",
+      "name": "Name",
+      "parent": "Parent unit",
+      "address": "Address",
+      "is_active": "Organization is active"
+    },
+    "placeholder": {
+      "code": "ORG_01",
+      "name": "Representative office",
+      "address": "Head office address",
+      "parent_none": "None",
+      "search": "Search by name..."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code is too long",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "address_too_long": "Address is too long"
+    },
+    "delete": {
+      "title": "Delete this organization?",
+      "description": "This action will deactivate {name}. Child units in the tree may also be affected.",
+      "confirm": "Delete"
+    },
+    "empty": "No organizations created yet.",
+    "toast": {
+      "create_success": "Organization created",
+      "update_success": "Organization updated",
+      "delete_success": "Organization deleted",
+      "save_failed": "Failed to save organization",
+      "delete_failed": "Failed to delete organization"
+    }
+  },
+  "provinces": {
+    "title": "Provinces",
+    "count": "{count} provinces",
+    "create": "Add province",
+    "edit": "Edit province",
+    "create_title": "Add province",
+    "dialog_description": "Manage province-level administrative units.",
+    "load_failed": "Failed to load provinces",
+    "field": {
+      "code": "Province code",
+      "name": "Province name",
+      "full_name": "Full name",
+      "unit_type": "Unit type",
+      "country_code": "Country code",
+      "region_code": "Region code",
+      "effective_from": "Effective from",
+      "effective_to": "Effective to",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "placeholder": {
+      "search": "Search by code or name...",
+      "filter_all": "All statuses"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "validation": {
+      "code_required": "Province code is required",
+      "code_too_long": "Province code is too long",
+      "name_required": "Province name is required",
+      "name_too_long": "Province name is too long",
+      "full_name_too_long": "Full name is too long",
+      "unit_type_required": "Unit type is required",
+      "unit_type_too_long": "Unit type is too long",
+      "country_code_required": "Country code is required",
+      "country_code_too_long": "Country code is too long",
+      "region_code_too_long": "Region code is too long"
+    },
+    "empty": "No provinces yet.",
+    "toast": {
+      "create_success": "Province created",
+      "update_success": "Province updated",
+      "save_failed": "Failed to save province"
+    }
+  },
+  "wards": {
+    "title": "Wards",
+    "count": "{count} wards",
+    "create": "Add ward",
+    "edit": "Edit ward",
+    "create_title": "Add ward",
+    "dialog_description": "Manage ward-level administrative units.",
+    "load_failed": "Failed to load wards",
+    "field": {
+      "code": "Ward code",
+      "name": "Ward name",
+      "full_name": "Full name",
+      "parent": "Province",
+      "unit_type": "Unit type",
+      "country_code": "Country code",
+      "region_code": "Region code",
+      "effective_from": "Effective from",
+      "effective_to": "Effective to",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "placeholder": {
+      "search": "Search by code or name...",
+      "filter_all": "All statuses",
+      "parent": "Select province",
+      "parent_all": "All provinces"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "validation": {
+      "code_required": "Ward code is required",
+      "code_too_long": "Ward code is too long",
+      "name_required": "Ward name is required",
+      "name_too_long": "Ward name is too long",
+      "full_name_too_long": "Full name is too long",
+      "parent_required": "Province is required",
+      "unit_type_required": "Unit type is required",
+      "unit_type_too_long": "Unit type is too long",
+      "country_code_required": "Country code is required",
+      "country_code_too_long": "Country code is too long",
+      "region_code_too_long": "Region code is too long"
+    },
+    "empty": "No wards yet.",
+    "toast": {
+      "create_success": "Ward created",
+      "update_success": "Ward updated",
+      "save_failed": "Failed to save ward"
+    }
+  },
+  "areas": {
+    "title": "Areas",
+    "count": "{count} areas",
+    "create": "Add area",
+    "edit": "Edit area",
+    "create_title": "Add area",
+    "dialog_description": "Manage business areas with parent-child hierarchy.",
+    "load_failed": "Failed to load areas",
+    "field": {
+      "code": "Area code",
+      "name": "Area name",
+      "area_type": "Area type",
+      "parent": "Parent area",
+      "admin_unit": "Administrative unit",
+      "status": "Status",
+      "description": "Notes / description",
+      "effective_from": "Effective from (MM/DD/YYYY)",
+      "effective_to": "Effective to (MM/DD/YYYY)"
+    },
+    "placeholder": {
+      "search": "Search by code, name, or description...",
+      "area_type": "Select area type",
+      "parent_none": "None",
+      "admin_unit_none": "Not linked",
+      "description": "Area description...",
+      "all_types": "All area types",
+      "all_status": "All statuses"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "validation": {
+      "code_required": "Area code is required",
+      "code_too_long": "Area code is too long",
+      "name_required": "Area name is required",
+      "name_too_long": "Area name is too long",
+      "area_type_required": "Area type is required",
+      "description_too_long": "Description is too long"
+    },
+    "delete": {
+      "title": "Deactivate this area?",
+      "description": "This will set area {name} to inactive.",
+      "confirm": "Confirm"
+    }
+  },
+  "parameters": {
+    "title": "System parameters",
+    "count": "{count} parameters",
+    "create": "Add parameter",
+    "edit": "Edit parameter",
+    "create_title": "Add parameter",
+    "dialog_description": "Configure dynamic parameters for functional modules.",
+    "load_failed": "Failed to load parameters",
+    "field": {
+      "key": "Parameter (Key)",
+      "value": "Value",
+      "value_type": "Data type",
+      "scope": "Scope",
+      "scope_id": "Scope ID",
+      "description": "Description",
+      "is_secret": "This is a secret parameter"
+    },
+    "placeholder": {
+      "search": "Search by key or description...",
+      "key": "APP_ROUTING_TIMEOUT",
+      "value": "Enter value",
+      "value_json": "{ \"key\": \"value\" }",
+      "description": "Explain the purpose of this parameter...",
+      "scope_id": "{scope} identifier",
+      "org_select": "Select organization...",
+      "org_search": "Search organizations..."
+    },
+    "value_type": {
+      "string": "String",
+      "number": "Number",
+      "boolean": "Boolean",
+      "json": "JSON config",
+      "date": "Date"
+    },
+    "scope_type": {
+      "global": "Global",
+      "tenant": "Tenant",
+      "org": "Organization",
+      "branch": "Branch",
+      "department": "Department"
+    },
+    "secret": {
+      "masked": "************",
+      "empty": "[Secret]"
+    },
+    "boolean": {
+      "true": "TRUE",
+      "false": "FALSE"
+    },
+    "validation": {
+      "key_required": "Parameter key is required",
+      "key_too_long": "Parameter key is too long",
+      "value_required": "Parameter value is required",
+      "scope_id_required": "Scope ID is required",
+      "number_invalid": "Invalid number value",
+      "json_invalid": "Invalid JSON value",
+      "description_too_long": "Description is too long"
+    },
+    "delete": {
+      "title": "Delete this parameter?",
+      "description": "This will permanently delete parameter {key} and cannot be undone.",
+      "confirm": "Delete"
+    },
+    "empty_orgs": "No organizations found."
+  },
+  "lookups": {
+    "title": "System lookups",
+    "count": "{count} categories",
+    "load_categories_failed": "Failed to load lookup categories",
+    "load_values_failed": "Failed to load lookup values",
+    "categories": {
+      "title": "Categories",
+      "create": "Add",
+      "loading": "Loading categories...",
+      "empty": "No categories yet."
+    },
+    "values": {
+      "title": "Values for: {name}",
+      "create": "Add value",
+      "loading": "Loading values...",
+      "select_category": "Select a category on the left to manage values.",
+      "empty": "This category has no values yet.",
+      "count": "{count} values"
+    },
+    "field": {
+      "code": "Code",
+      "name": "Display name",
+      "sort_order": "Sort order",
+      "status": "Status",
+      "scope_type": "Scope",
+      "scope_id": "Scope ID",
+      "description": "Description",
+      "metadata": "Metadata (JSON)",
+      "is_active": "Active"
+    },
+    "placeholder": {
+      "search": "Search by code or name...",
+      "cat_code": "DOC_TYPE",
+      "cat_name": "Document type",
+      "cat_description": "Describe this lookup group...",
+      "scope_id": "Scope identifier",
+      "val_code": "ID_CARD",
+      "val_name": "National ID",
+      "val_metadata": "{ \"icon\": \"card-icon\" }"
+    },
+    "scope_type": {
+      "global": "Global",
+      "tenant": "Tenant",
+      "org": "Organization",
+      "branch": "Branch",
+      "department": "Department"
+    },
+    "status": {
+      "active": "On",
+      "inactive": "Off"
+    },
+    "category": {
+      "create_title": "Add category",
+      "edit": "Edit category",
+      "dialog_description": "Group lookup data for the system."
+    },
+    "value": {
+      "create_title": "Add lookup value",
+      "edit": "Edit value",
+      "dialog_description": "Add detailed options for this lookup category."
+    },
+    "validation": {
+      "code_required": "Category code is required",
+      "code_too_long": "Category code is too long",
+      "name_required": "Category name is required",
+      "name_too_long": "Category name is too long",
+      "scope_id_required": "Scope ID is required",
+      "description_too_long": "Description is too long",
+      "val_code_required": "Value code is required",
+      "val_code_too_long": "Value code is too long",
+      "val_name_required": "Display name is required",
+      "val_name_too_long": "Display name is too long",
+      "sort_integer": "Sort order must be an integer",
+      "sort_invalid": "Sort order cannot be negative",
+      "metadata_invalid": "Invalid metadata JSON"
+    },
+    "delete": {
+      "category_title": "Delete this category?",
+      "category_description": "This will delete category {name} and all its values.",
+      "value_title": "Delete this value?",
+      "value_description": "Are you sure you want to delete value {name} from this category?",
+      "confirm": "Delete"
+    }
+  },
+  "templates": {
+    "title": "System Templates",
+    "count": "{count} templates",
+    "create": "Add template",
+    "edit": "Edit template",
+    "create_title": "Add new template",
+    "dialog_description": "Upload a template file and configure the JSON mapping schema.",
+    "load_failed": "Failed to load templates",
+    "field": {
+      "code": "Template code",
+      "name": "Template name",
+      "description": "Description",
+      "file_type": "File format",
+      "file_url": "File path (Storage / S3)",
+      "file_attachment": "Template file attachment",
+      "mapping_config": "Mapping config (JSON)",
+      "is_active": "Template is active",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "placeholder": {
+      "code": "CONTRACT_TEMPL_V1",
+      "name": "Sample credit contract",
+      "description": "Describe the purpose or scope of this template...",
+      "mapping_config": "{\n  \"mappings\": []\n}",
+      "search": "Search by code or name..."
+    },
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "action": {
+      "view_file": "View template file",
+      "download_file": "Download template file"
+    },
+    "upload": {
+      "uploading": "Uploading to media-service... ({progress}%)",
+      "drag_drop": "Drag and drop a file here or click to browse",
+      "supported_formats": "Supported: .jrxml, .docx, .xlsx, .pdf, .html",
+      "linked": "Linked",
+      "template_file": "Template File",
+      "s3_link": "S3 Link",
+      "unrecognized": "Unrecognized",
+      "success": "Uploaded {name} to media-service successfully",
+      "failed": "File upload failed"
+    },
+    "file_size": {
+      "bytes": "Bytes",
+      "kb": "KB",
+      "mb": "MB"
+    },
+    "validation": {
+      "code_required": "Template code is required",
+      "code_too_long": "Template code is too long",
+      "name_required": "Template name is required",
+      "name_too_long": "Template name is too long",
+      "description_too_long": "Description is too long",
+      "file_type_required": "File format is required",
+      "file_url_required": "Template file is required",
+      "mapping_invalid": "Invalid mapping JSON"
+    },
+    "delete": {
+      "title": "Delete this template?",
+      "description": "This will permanently remove template {name} from the list. The original file on Storage will not be affected.",
+      "confirm": "Delete"
+    }
+  },
+  "credit_institutions": {
+    "title": "Credit Institutions",
+    "count": "{count} institutions",
+    "create": "Add institution",
+    "edit": "Edit credit institution",
+    "create_title": "Add credit institution",
+    "dialog_description": "Manage the shared credit institution catalog for the system.",
+    "load_failed": "Failed to load credit institutions",
+    "field": {
+      "code": "Institution code",
+      "name": "Institution name",
+      "address": "Address",
+      "status": "Status",
+      "effective_from": "Effective from",
+      "short_name": "Short name",
+      "phone": "Phone",
+      "email": "Email",
+      "license_no": "License number",
+      "license_date": "License date",
+      "tax_code": "Tax code",
+      "website": "Website",
+      "note": "Note",
+      "actions": "Actions"
+    },
+    "placeholder": {
+      "code": "BIDV",
+      "name": "Joint stock commercial bank ...",
+      "address": "Head office address",
+      "search": "Search by code, name, tax code, license number...",
+      "note": "Additional information..."
+    },
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "validation": {
+      "code_required": "Institution code is required",
+      "code_too_long": "Institution code is too long",
+      "name_required": "Institution name is required",
+      "name_too_long": "Institution name is too long",
+      "address_required": "Address is required",
+      "address_too_long": "Address is too long",
+      "short_name_too_long": "Short name is too long",
+      "phone_too_long": "Phone number is too long",
+      "email_invalid": "Invalid email address",
+      "license_no_too_long": "License number is too long",
+      "tax_code_too_long": "Tax code is too long",
+      "website_invalid": "Invalid website URL",
+      "note_too_long": "Note is too long"
+    },
+    "delete": {
+      "title": "Delete this credit institution?",
+      "description": "Are you sure you want to remove {name} from the catalog?",
+      "confirm": "Delete"
+    }
   }
 }

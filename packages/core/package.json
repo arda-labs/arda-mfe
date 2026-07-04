@@ -23,7 +23,9 @@
     "./branding": "./src/branding/index.ts",
     "./browser/pkce": "./src/browser/pkce.ts",
     "./http/api-client": "./src/http/api-client.ts",
+    "./http/list-api": "./src/http/list-api.ts",
     "./media/urls": "./src/media/urls.ts",
+    "./page-title": "./src/page-title/index.ts",
     "./query": "./src/query.tsx"
   }
 }

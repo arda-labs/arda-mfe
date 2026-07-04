@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { notify } from "@workspace/notifications/notify"
-import { translateApiError } from "@workspace/i18n"
+import type { ColumnDef } from "@tanstack/react-table"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import type { Area, GeoAdminUnit, LookupValue } from "../api"
+import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { MaskInput } from "@workspace/ui/components/mask-input"
@@ -19,11 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import {
   Dialog,
   DialogContent,
@@ -41,15 +38,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
+import { Edit2, Trash2 } from "lucide-react"
+import { ListPageShell } from "../shared/list-page-shell"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
-import { Edit2, Plus, Search, Trash2 } from "lucide-react"
+  getSingleSelectValue,
+  getTextFilterValue,
+  multiSelectFilterMeta,
+  selectFilterMeta,
+  textSearchMeta,
+  useColumnFilterParams,
+} from "../shared/column-filters"
+import { sortByColumn, useClientListTable } from "../shared/client-list"
+import { ListTableToolbar } from "../shared/list-table-toolbar"
 import {
   useAreaDependencies,
   useAreas,
@@ -58,25 +58,40 @@ import {
   useUpdateArea,
 } from "./queries"
 
-const STATUS_OPTIONS = [
-  { value: "all", label: "Tat ca" },
-  { value: "active", label: "Hoat dong" },
-  { value: "inactive", label: "Ngung hieu luc" },
-] as const
+const DEFAULT_PAGE_SIZE = 10
 
-const areaFormSchema = z.object({
-  code: z.string().trim().min(1, "Ma khu vuc la bat buoc").max(64, "Ma khu vuc qua dai"),
-  name: z.string().trim().min(1, "Ten khu vuc la bat buoc").max(255, "Ten khu vuc qua dai"),
-  area_type_code: z.string().trim().min(1, "Loai khu vuc la bat buoc"),
-  parent_id: z.string().trim().optional(),
-  admin_unit_code: z.string().trim().optional(),
-  description: z.string().trim().max(500, "Mo ta qua dai").optional(),
-  status: z.enum(["active", "inactive"]),
-  effective_from: z.string().trim().optional(),
-  effective_to: z.string().trim().optional(),
-})
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
-type AreaFormValues = z.infer<typeof areaFormSchema>
+function buildAreaSchema(t: TranslateFn) {
+  return z.object({
+    code: z
+      .string()
+      .trim()
+      .min(1, t("platform.areas.validation.code_required"))
+      .max(64, t("platform.areas.validation.code_too_long")),
+    name: z
+      .string()
+      .trim()
+      .min(1, t("platform.areas.validation.name_required"))
+      .max(255, t("platform.areas.validation.name_too_long")),
+    area_type_code: z
+      .string()
+      .trim()
+      .min(1, t("platform.areas.validation.area_type_required")),
+    parent_id: z.string().trim().optional(),
+    admin_unit_code: z.string().trim().optional(),
+    description: z
+      .string()
+      .trim()
+      .max(500, t("platform.areas.validation.description_too_long"))
+      .optional(),
+    status: z.enum(["active", "inactive"]),
+    effective_from: z.string().trim().optional(),
+    effective_to: z.string().trim().optional(),
+  })
+}
+
+type AreaFormValues = z.infer<ReturnType<typeof buildAreaSchema>>
 
 const areaDefaultValues: AreaFormValues = {
   code: "",
@@ -105,28 +120,20 @@ function toAreaFormValues(item: Area): AreaFormValues {
 }
 
 export function AreasPage() {
-  const [query, setQuery] = useState("")
-  const [submittedQuery, setSubmittedQuery] = useState("")
-  const [statusFilter, setStatusFilter] =
-    useState<(typeof STATUS_OPTIONS)[number]["value"]>("all")
-  const [typeFilter, setTypeFilter] = useState("all")
+  const { t } = useI18n()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Area | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Area | null>(null)
-  const areaParams = {
-    status: statusFilter === "all" ? undefined : statusFilter,
-    areaTypeCode: typeFilter === "all" ? undefined : typeFilter,
-    q: submittedQuery || undefined,
-  }
+
   const dependenciesQuery = useAreaDependencies()
-  const areasQuery = useAreas(areaParams)
   const createArea = useCreateArea()
   const updateArea = useUpdateArea()
   const deleteArea = useDeleteArea()
-  const items = areasQuery.data ?? []
+
   const areaTypes = (dependenciesQuery.data?.areaTypes ?? []) as LookupValue[]
   const adminUnits = (dependenciesQuery.data?.adminUnits ?? []) as GeoAdminUnit[]
-  const loading = areasQuery.isLoading || dependenciesQuery.isLoading
+
+  const areaSchema = useMemo(() => buildAreaSchema(t), [t])
   const {
     control,
     formState: { errors, isSubmitting },
@@ -134,16 +141,21 @@ export function AreasPage() {
     register,
     reset,
   } = useForm<AreaFormValues>({
-    resolver: zodResolver(areaFormSchema),
+    resolver: zodResolver(areaSchema),
     defaultValues: areaDefaultValues,
   })
 
   useEffect(() => {
-    const error = dependenciesQuery.error || areasQuery.error
-    if (error) {
-      notify.error("Khong the tai danh sach khu vuc", translateApiError(error))
+    if (dependenciesQuery.error) {
+      notify.error(t("platform.areas.load_failed"), translateApiError(dependenciesQuery.error))
     }
-  }, [dependenciesQuery.error, areasQuery.error])
+  }, [dependenciesQuery.error, t])
+
+  const getAreaTypeLabel = (code: string) =>
+    areaTypes.find((item) => item.code === code)?.name || code
+
+  const getAdminUnitLabel = (code?: string) =>
+    adminUnits.find((item) => item.code === code)?.name || code || "-"
 
   const openCreate = () => {
     setEditingItem(null)
@@ -202,169 +214,221 @@ export function AreasPage() {
     }
   }
 
-  const getAreaTypeLabel = (code: string) =>
-    areaTypes.find((item) => item.code === code)?.name || code
-
-  const getParentLabel = (parentId?: string) =>
-    items.find((item) => item.id === parentId)?.name || "-"
-
-  const getAdminUnitLabel = (code?: string) =>
-    adminUnits.find((item) => item.code === code)?.name || code || "-"
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">Khu vuc</h2>
-          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
-            Tong so: {items.length}
-          </Badge>
-        </div>
-        <Button onClick={openCreate} className="h-9 gap-1.5 px-4 font-semibold">
-          <Plus className="size-4" /> Them khu vuc
-        </Button>
-      </div>
-
-      <Card className="rounded-2xl border-muted/50 shadow-sm">
-        <CardContent className="space-y-4 p-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Tim theo ma, ten hoac mo ta..."
-                className="pl-9"
-              />
+  const columns = useMemo<ColumnDef<Area>[]>(
+    () => [
+      {
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.areas.field.code")} />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.code}</span>
+        ),
+      },
+      {
+        id: "name",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.areas.field.name")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("platform.areas.field.name"),
+          t("platform.areas.placeholder.search")
+        ),
+        cell: ({ row }) => (
+          <div className="space-y-1">
+            <div className="font-medium">{row.original.name}</div>
+            <div className="text-xs text-muted-foreground">
+              {row.original.description || "-"}
             </div>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full md:w-56">
-                <SelectValue placeholder="Loai khu vuc" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tat ca loai khu vuc</SelectItem>
-                {areaTypes.map((item) => (
-                  <SelectItem key={item.id} value={item.code}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as typeof statusFilter)}
+          </div>
+        ),
+      },
+      {
+        id: "area_type_code",
+        accessorKey: "area_type_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.areas.field.area_type")} />
+        ),
+        enableColumnFilter: true,
+        meta: selectFilterMeta(
+          t("platform.areas.field.area_type"),
+          areaTypes.map((item) => ({ label: item.name, value: item.code }))
+        ),
+        cell: ({ row }) => getAreaTypeLabel(row.original.area_type_code),
+      },
+      {
+        id: "parent",
+        header: () => (
+          <span className="text-xs font-semibold text-foreground/80">
+            {t("platform.areas.field.parent")}
+          </span>
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.parent_id || "-"}
+          </span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "admin_unit",
+        header: () => (
+          <span className="text-xs font-semibold text-foreground/80">
+            {t("platform.areas.field.admin_unit")}
+          </span>
+        ),
+        cell: ({ row }) => getAdminUnitLabel(row.original.admin_unit_code),
+        enableSorting: false,
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.areas.field.status")} />
+        ),
+        enableColumnFilter: true,
+        meta: multiSelectFilterMeta(t("platform.areas.field.status"), [
+          { label: t("platform.areas.status.active"), value: "active" },
+          { label: t("platform.areas.status.inactive"), value: "inactive" },
+        ]),
+        cell: ({ row }) => (
+          <Status variant={row.original.status === "active" ? "success" : "default"}>
+            <StatusIndicator />
+            <StatusLabel>
+              {row.original.status === "active"
+                ? t("platform.areas.status.active")
+                : t("platform.areas.status.inactive")}
+            </StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right text-xs font-semibold text-foreground/80">
+            {t("common.field.action")}
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7"
+              title={t("common.action.edit")}
+              onClick={() => openEdit(row.original)}
             >
-              <SelectTrigger className="w-full md:w-52">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={() => setSubmittedQuery(query.trim())}>
-              Tim kiem
+              <Edit2 className="size-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-destructive"
+              title={t("common.action.delete")}
+              onClick={() => setDeleteTarget(row.original)}
+            >
+              <Trash2 className="size-3.5" />
             </Button>
           </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t, areaTypes, adminUnits]
+  )
 
-          {loading ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">
-              Dang tai du lieu khu vuc...
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-xl border border-muted/50">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Ma khu vuc</TableHead>
-                    <TableHead>Ten khu vuc</TableHead>
-                    <TableHead>Loai khu vuc</TableHead>
-                    <TableHead>Khu vuc cha</TableHead>
-                    <TableHead>Don vi hanh chinh</TableHead>
-                    <TableHead>Trang thai</TableHead>
-                    <TableHead className="text-right">Thao tac</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                        Chua co khu vuc nao.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-mono text-xs">{item.code}</TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="font-medium">{item.name}</div>
-                            <div className="text-xs text-muted-foreground">{item.description || "-"}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{getAreaTypeLabel(item.area_type_code)}</TableCell>
-                        <TableCell>{getParentLabel(item.parent_id)}</TableCell>
-                        <TableCell>{getAdminUnitLabel(item.admin_unit_code)}</TableCell>
-                        <TableCell>
-                          <Status variant={item.status === "active" ? "success" : "default"}>
-                            <StatusIndicator />
-                            <StatusLabel>{item.status === "active" ? "Hoat dong" : "Ngung hieu luc"}</StatusLabel>
-                          </Status>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(item)}>
-                              <Edit2 className="size-3.5" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="size-7 text-destructive"
-                              onClick={() => setDeleteTarget(item)}
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+  const [filterValues] = useColumnFilterParams(columns)
 
+  const areaParams = useMemo(
+    () => ({
+      q: getTextFilterValue(filterValues.name) || undefined,
+      status: getSingleSelectValue(filterValues.status),
+      areaTypeCode: getSingleSelectValue(filterValues.area_type_code),
+    }),
+    [filterValues]
+  )
+
+  const areasQuery = useAreas(areaParams)
+  const items = areasQuery.data ?? []
+  const loading = areasQuery.isLoading || dependenciesQuery.isLoading
+
+  useEffect(() => {
+    if (areasQuery.error) {
+      notify.error(t("platform.areas.load_failed"), translateApiError(areasQuery.error))
+    }
+  }, [areasQuery.error, t])
+
+  const { table, total } = useClientListTable({
+    columns,
+    items,
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        name: (a, b) => a.name.localeCompare(b.name),
+        area_type_code: (a, b) => a.area_type_code.localeCompare(b.area_type_code),
+        status: (a, b) => a.status.localeCompare(b.status),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
+  const saving = isSubmitting || createArea.isPending || updateArea.isPending
+
+  const dialogs = (
+    <>
       <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{editingItem ? "Cap nhat khu vuc" : "Them khu vuc"}</DialogTitle>
-            <DialogDescription>Quan ly khu vuc nghiep vu voi phan cap cha con.</DialogDescription>
+            <DialogTitle>
+              {editingItem
+                ? t("platform.areas.edit")
+                : t("platform.areas.create_title")}
+            </DialogTitle>
+            <DialogDescription>{t("platform.areas.dialog_description")}</DialogDescription>
           </DialogHeader>
 
           <form autoComplete="off" onSubmit={submitArea} className="space-y-4 py-2">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField label="Ma khu vuc" htmlFor="area_code" error={errors.code?.message}>
-                <Input id="area_code" aria-invalid={Boolean(errors.code)} disabled={!!editingItem} {...register("code")} />
+              <FormField
+                label={t("platform.areas.field.code")}
+                htmlFor="area_code"
+                error={errors.code?.message}
+              >
+                <Input
+                  id="area_code"
+                  aria-invalid={Boolean(errors.code)}
+                  disabled={!!editingItem}
+                  {...register("code")}
+                />
               </FormField>
-              <FormField label="Ten khu vuc" htmlFor="area_name" error={errors.name?.message}>
+              <FormField
+                label={t("platform.areas.field.name")}
+                htmlFor="area_name"
+                error={errors.name?.message}
+              >
                 <Input id="area_name" aria-invalid={Boolean(errors.name)} {...register("name")} />
               </FormField>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <FormField label="Loai khu vuc" htmlFor="area_type_code" error={errors.area_type_code?.message}>
+              <FormField
+                label={t("platform.areas.field.area_type")}
+                htmlFor="area_type_code"
+                error={errors.area_type_code?.message}
+              >
                 <Controller
                   control={control}
                   name="area_type_code"
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="area_type_code" aria-invalid={Boolean(errors.area_type_code)}>
-                        <SelectValue placeholder="Chon loai khu vuc" />
+                      <SelectTrigger
+                        id="area_type_code"
+                        aria-invalid={Boolean(errors.area_type_code)}
+                      >
+                        <SelectValue placeholder={t("platform.areas.placeholder.area_type")} />
                       </SelectTrigger>
                       <SelectContent>
                         {areaTypes.map((item) => (
@@ -377,17 +441,28 @@ export function AreasPage() {
                   )}
                 />
               </FormField>
-              <FormField label="Khu vuc cha" htmlFor="area_parent_id" error={errors.parent_id?.message}>
+              <FormField
+                label={t("platform.areas.field.parent")}
+                htmlFor="area_parent_id"
+                error={errors.parent_id?.message}
+              >
                 <Controller
                   control={control}
                   name="parent_id"
                   render={({ field }) => (
-                    <Select value={field.value || "none"} onValueChange={(value) => field.onChange(value === "none" ? "" : value)}>
+                    <Select
+                      value={field.value || "none"}
+                      onValueChange={(value) =>
+                        field.onChange(value === "none" ? "" : value)
+                      }
+                    >
                       <SelectTrigger id="area_parent_id" aria-invalid={Boolean(errors.parent_id)}>
-                        <SelectValue placeholder="Khong co" />
+                        <SelectValue placeholder={t("platform.areas.placeholder.parent_none")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Khong co</SelectItem>
+                        <SelectItem value="none">
+                          {t("platform.areas.placeholder.parent_none")}
+                        </SelectItem>
                         {items
                           .filter((item) => !editingItem || item.id !== editingItem.id)
                           .map((item) => (
@@ -400,17 +475,31 @@ export function AreasPage() {
                   )}
                 />
               </FormField>
-              <FormField label="Don vi hanh chinh" htmlFor="area_admin_unit_code" error={errors.admin_unit_code?.message}>
+              <FormField
+                label={t("platform.areas.field.admin_unit")}
+                htmlFor="area_admin_unit_code"
+                error={errors.admin_unit_code?.message}
+              >
                 <Controller
                   control={control}
                   name="admin_unit_code"
                   render={({ field }) => (
-                    <Select value={field.value || "none"} onValueChange={(value) => field.onChange(value === "none" ? "" : value)}>
-                      <SelectTrigger id="area_admin_unit_code" aria-invalid={Boolean(errors.admin_unit_code)}>
-                        <SelectValue placeholder="Khong lien ket" />
+                    <Select
+                      value={field.value || "none"}
+                      onValueChange={(value) =>
+                        field.onChange(value === "none" ? "" : value)
+                      }
+                    >
+                      <SelectTrigger
+                        id="area_admin_unit_code"
+                        aria-invalid={Boolean(errors.admin_unit_code)}
+                      >
+                        <SelectValue placeholder={t("platform.areas.placeholder.admin_unit_none")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Khong lien ket</SelectItem>
+                        <SelectItem value="none">
+                          {t("platform.areas.placeholder.admin_unit_none")}
+                        </SelectItem>
                         {adminUnits.map((item) => (
                           <SelectItem key={item.code} value={item.code}>
                             {item.name}
@@ -424,7 +513,11 @@ export function AreasPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <FormField label="Trang thai" htmlFor="area_status" error={errors.status?.message}>
+              <FormField
+                label={t("platform.areas.field.status")}
+                htmlFor="area_status"
+                error={errors.status?.message}
+              >
                 <Controller
                   control={control}
                   name="status"
@@ -434,14 +527,22 @@ export function AreasPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="active">Hoat dong</SelectItem>
-                        <SelectItem value="inactive">Ngung hieu luc</SelectItem>
+                        <SelectItem value="active">
+                          {t("platform.areas.status.active")}
+                        </SelectItem>
+                        <SelectItem value="inactive">
+                          {t("platform.areas.status.inactive")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
               </FormField>
-              <FormField label="Hieu luc tu (MM/DD/YYYY)" htmlFor="area_effective_from" error={errors.effective_from?.message}>
+              <FormField
+                label={t("platform.areas.field.effective_from")}
+                htmlFor="area_effective_from"
+                error={errors.effective_from?.message}
+              >
                 <Controller
                   control={control}
                   name="effective_from"
@@ -456,7 +557,11 @@ export function AreasPage() {
                   )}
                 />
               </FormField>
-              <FormField label="Hieu luc den (MM/DD/YYYY)" htmlFor="area_effective_to" error={errors.effective_to?.message}>
+              <FormField
+                label={t("platform.areas.field.effective_to")}
+                htmlFor="area_effective_to"
+                error={errors.effective_to?.message}
+              >
                 <Controller
                   control={control}
                   name="effective_to"
@@ -473,21 +578,25 @@ export function AreasPage() {
               </FormField>
             </div>
 
-            <FormField label="Ghi chu / mo ta" htmlFor="area_description" error={errors.description?.message}>
+            <FormField
+              label={t("platform.areas.field.description")}
+              htmlFor="area_description"
+              error={errors.description?.message}
+            >
               <Textarea
                 id="area_description"
                 aria-invalid={Boolean(errors.description)}
-                placeholder="Thong tin mo ta khu vuc..."
+                placeholder={t("platform.areas.placeholder.description")}
                 {...register("description")}
               />
             </FormField>
 
             <div className="flex gap-2 sm:justify-end">
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
-                Huy
+                {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isSubmitting || createArea.isPending || updateArea.isPending}>
-                {isSubmitting || createArea.isPending || updateArea.isPending ? "Dang luu..." : "Luu lai"}
+              <Button type="submit" disabled={saving}>
+                {saving ? t("common.action.saving") : t("common.action.save")}
               </Button>
             </div>
           </form>
@@ -497,22 +606,46 @@ export function AreasPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xac nhan ngung hieu luc khu vuc?</AlertDialogTitle>
+            <AlertDialogTitle>{t("platform.areas.delete.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Hanh dong nay se chuyen khu vuc <strong>{deleteTarget?.name}</strong> sang trang thai ngung hieu luc.
+              {t("platform.areas.delete.description", { name: deleteTarget?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huy</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xac nhan
+              {t("platform.areas.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
+  )
+
+  return (
+    <ListPageShell
+      title={t("platform.areas.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+          {t("platform.areas.count", { count: total })}
+        </Badge>
+      }
+      loading={loading}
+      isEmpty={items.length === 0}
+      skeletonColumns={7}
+      skeletonFilters={3}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={openCreate}
+          createLabel={t("platform.areas.create")}
+        />
+      }
+      dialogs={dialogs}
+    />
   )
 }

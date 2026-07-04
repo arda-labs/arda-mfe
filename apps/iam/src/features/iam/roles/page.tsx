@@ -17,9 +17,9 @@ import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table-toolbar"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 import {
   Dialog,
   DialogContent,
@@ -41,7 +41,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
 import { ShieldCheck, Trash2 } from "lucide-react"
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs"
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -152,7 +152,9 @@ export function RolesPage() {
     {
       id: "code",
       accessorKey: "code",
-      header: t("common.field.code"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.code")} />
+      ),
       enableColumnFilter: true,
       meta: {
         label: t("common.field.code"),
@@ -163,12 +165,25 @@ export function RolesPage() {
     },
     {
       accessorKey: "name",
-      header: t("common.field.name"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.name")} />
+      ),
     },
     {
       id: "status",
       accessorKey: "status",
-      header: t("common.field.status"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.status")} />
+      ),
+      enableColumnFilter: true,
+      meta: {
+        label: t("common.field.status"),
+        variant: "multiSelect",
+        options: [
+          { label: t("admin.users.status.active"), value: "ACTIVE" },
+          { label: t("admin.users.status.disabled"), value: "DISABLED" },
+        ],
+      },
       cell: ({ row }) => (
         <Status variant={row.original.status === "ACTIVE" ? "success" : "default"}>
           <StatusIndicator />
@@ -209,10 +224,15 @@ export function RolesPage() {
   const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
   const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
   const [searchParam] = useQueryState("code", parseAsString)
+  const [statusParam] = useQueryState(
+    "status",
+    parseAsArrayOf(parseAsString, ",").withDefault([])
+  )
   const rolesQuery = useRoles({
     page: pageParam,
     size: pageSizeParam,
     search: searchParam || undefined,
+    status: statusParam.length === 1 ? statusParam[0] : undefined,
   })
   const roles = rolesQuery.data?.roles ?? []
   const total = rolesQuery.data?.total ?? 0
@@ -248,37 +268,8 @@ export function RolesPage() {
     }
   }, [rolePermissionOptions.error, rolesQuery.error])
 
-  if (loading && roles.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <h2 className="font-bold text-foreground text-lg">{t("admin.roles.title")}</h2>
-        </div>
-        <DataTableSkeleton columnCount={5} rowCount={10} filterCount={1} />
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <h2 className="font-bold text-foreground text-lg">{t("admin.roles.title")}</h2>
-        <Badge variant="secondary" className="px-2.5 py-0.5 font-bold text-[10px]">
-          {t("admin.roles.count", { count: total })}
-        </Badge>
-      </div>
-
-      <DataTable table={table}>
-        <DataTableToolbar table={table}>
-          <Button
-            onClick={() => setOpen(true)}
-            className="h-8 px-3 font-semibold text-xs"
-          >
-            {t("admin.roles.create")}
-          </Button>
-        </DataTableToolbar>
-      </DataTable>
-
+  const dialogs = (
+    <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
@@ -374,6 +365,30 @@ export function RolesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
+  )
+
+  return (
+    <ListPageShell
+      title={t("admin.roles.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("admin.roles.count", { count: total })}
+        </Badge>
+      }
+      loading={loading}
+      isEmpty={roles.length === 0}
+      skeletonColumns={5}
+      skeletonFilters={2}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setOpen(true)}
+          createLabel={t("admin.roles.create")}
+        />
+      }
+      dialogs={dialogs}
+    />
   )
 }

@@ -152,7 +152,7 @@ function DraftsTable({ items }: { items: Customer[] }) {
         ),
       },
     ],
-    [],
+    []
   )
   const table = useReactTable({
     data: items,
@@ -179,7 +179,7 @@ function TransactionWorkbench({
       limit: 100,
       node: activeNode === "ALL" ? undefined : activeNode,
     }),
-    [direction, activeNode],
+    [direction, activeNode]
   )
   const queryFilter = useMemo(() => {
     const next = { ...baseFilter }
@@ -194,7 +194,9 @@ function TransactionWorkbench({
   }, [baseFilter, columnFilters])
 
   const workItemsQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
-  const summaryQuery = useWorkItemSummary(baseFilter, { refetchInterval: 15000 })
+  const summaryQuery = useWorkItemSummary(baseFilter, {
+    refetchInterval: 15000,
+  })
   const claimWorkItem = useClaimWorkItem()
   const items = workItemsQuery.data ?? []
   const nodes = summaryQuery.data ?? []
@@ -234,7 +236,7 @@ function TransactionWorkbench({
       }
       notify.error("Không thể nhận task", item.claimBlockedReason)
     },
-    [direction, claimRef],
+    [direction, claimRef]
   )
 
   return (
@@ -302,7 +304,8 @@ function WorkbenchDataTable({
   onOpen: (item: WorkItem) => void
   columnFilters: ColumnFiltersState
   onColumnFiltersChange: (
-    updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState),
+    updater:
+      ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)
   ) => void
 }) {
   const setFilter = useCallback(
@@ -315,16 +318,16 @@ function WorkbenchDataTable({
         return next
       })
     },
-    [onColumnFiltersChange],
+    [onColumnFiltersChange]
   )
   const getFilter = useCallback(
     (id: string) => columnFilters.find((f) => f.id === id)?.value,
-    [columnFilters],
+    [columnFilters]
   )
   const isIncoming = direction === "incoming"
   const columns = useMemo(
     () => workItemColumns(direction, claiming, onOpen),
-    [direction, claiming, onOpen],
+    [direction, claiming, onOpen]
   )
   const table = useReactTable({
     data: items,
@@ -336,7 +339,7 @@ function WorkbenchDataTable({
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Mã / tiêu đề giao dịch"
             value={String(getFilter("keyword") ?? "")}
@@ -389,7 +392,11 @@ function WorkbenchDataTable({
           </Button>
         )}
       </div>
-      <DataTable table={table} defaultDensity="comfortable" className="min-h-0 flex-1 overflow-auto" />
+      <DataTable
+        table={table}
+        defaultDensity="comfortable"
+        className="min-h-0 flex-1 overflow-auto"
+      />
     </div>
   )
 }
@@ -428,21 +435,18 @@ function TransactionSearchPage() {
     getCoreRowModel: getCoreRowModel(),
   })
 
-  const setFilter = useCallback(
-    (id: string, value: unknown) => {
-      setColumnFilters((prev) => {
-        const next = prev.filter((f) => f.id !== id)
-        if (value !== undefined && value !== null && value !== "") {
-          next.push({ id, value })
-        }
-        return next
-      })
-    },
-    [],
-  )
+  const setFilter = useCallback((id: string, value: unknown) => {
+    setColumnFilters((prev) => {
+      const next = prev.filter((f) => f.id !== id)
+      if (value !== undefined && value !== null && value !== "") {
+        next.push({ id, value })
+      }
+      return next
+    })
+  }, [])
   const getFilter = useCallback(
     (id: string) => columnFilters.find((f) => f.id === id)?.value,
-    [columnFilters],
+    [columnFilters]
   )
 
   return (
@@ -455,11 +459,13 @@ function TransactionSearchPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Mã / tiêu đề"
               value={String(getFilter("keyword") ?? "")}
-              onChange={(e) => setFilter("keyword", e.target.value || undefined)}
+              onChange={(e) =>
+                setFilter("keyword", e.target.value || undefined)
+              }
               className="h-8 w-48 pl-8"
             />
           </div>
@@ -507,20 +513,31 @@ function TransactionSearchPage() {
             </Button>
           )}
         </div>
-        <DataTable table={table} defaultDensity="comfortable" className="min-h-0 flex-1 overflow-auto" />
+        <DataTable
+          table={table}
+          defaultDensity="comfortable"
+          className="min-h-0 flex-1 overflow-auto"
+        />
       </div>
     </Page>
   )
 }
 
-function searchColumns(onOpen: (item: WorkItem) => void): ColumnDef<WorkItem>[] {
+function searchColumns(
+  onOpen: (item: WorkItem) => void
+): ColumnDef<WorkItem>[] {
   return [
     {
       id: "info",
       header: "Thông tin giao dịch",
       cell: ({ row }) => (
         <div className="min-w-80">
-          <WorkItemInfo item={row.original} claiming={false} forceOpen onOpen={onOpen} />
+          <WorkItemInfo
+            item={row.original}
+            claiming={false}
+            forceOpen
+            onOpen={onOpen}
+          />
         </div>
       ),
     },
@@ -529,7 +546,9 @@ function searchColumns(onOpen: (item: WorkItem) => void): ColumnDef<WorkItem>[] 
       header: "Trạng thái",
       cell: ({ row }) => (
         <div className="min-w-36">
-          <StatusBadge status={row.original.transactionStatus || row.original.status} />
+          <StatusBadge
+            status={row.original.transactionStatus || row.original.status}
+          />
         </div>
       ),
     },
@@ -537,14 +556,18 @@ function searchColumns(onOpen: (item: WorkItem) => void): ColumnDef<WorkItem>[] 
       id: "due",
       header: "Hạn xử lý",
       cell: ({ row }) => (
-        <div className="min-w-40 tabular-nums">{formatDateTime(row.original.slaDueAt)}</div>
+        <div className="min-w-40 tabular-nums">
+          {formatDateTime(row.original.slaDueAt)}
+        </div>
       ),
     },
     {
       id: "completed",
       header: "Thời gian hoàn thành",
       cell: ({ row }) => (
-        <div className="min-w-40 tabular-nums">{completionTime(row.original)}</div>
+        <div className="min-w-40 tabular-nums">
+          {completionTime(row.original)}
+        </div>
       ),
     },
     {
@@ -552,14 +575,19 @@ function searchColumns(onOpen: (item: WorkItem) => void): ColumnDef<WorkItem>[] 
       header: "Trạng thái SLA",
       cell: ({ row }) => (
         <div className="min-w-40">
-          <SlaStatus dueAt={row.original.slaDueAt} status={row.original.slaStatus} />
+          <SlaStatus
+            dueAt={row.original.slaDueAt}
+            status={row.original.slaStatus}
+          />
         </div>
       ),
     },
     {
       id: "creator",
       header: "Người tạo",
-      cell: ({ row }) => <div className="min-w-40">{row.original.createdBy || "-"}</div>,
+      cell: ({ row }) => (
+        <div className="min-w-40">{row.original.createdBy || "-"}</div>
+      ),
     },
   ]
 }
@@ -694,15 +722,13 @@ function WorkItemTreeNode({
 function workItemColumns(
   direction: WorkbenchDirection,
   claiming: boolean,
-  onOpen: (item: WorkItem) => void,
+  onOpen: (item: WorkItem) => void
 ): ColumnDef<WorkItem>[] {
   const isIncoming = direction === "incoming"
   const cols: ColumnDef<WorkItem>[] = [
     {
       id: "info",
-      header: isIncoming
-        ? "Thông tin giao dịch"
-        : "Thông tin tác vụ giao dịch",
+      header: isIncoming ? "Thông tin giao dịch" : "Thông tin tác vụ giao dịch",
       cell: ({ row }) => (
         <div className="min-w-80">
           <WorkItemInfo
@@ -723,7 +749,10 @@ function workItemColumns(
         header: "Trạng thái SLA",
         cell: ({ row }) => (
           <div className="min-w-40">
-            <SlaStatus dueAt={row.original.slaDueAt} status={row.original.slaStatus} />
+            <SlaStatus
+              dueAt={row.original.slaDueAt}
+              status={row.original.slaStatus}
+            />
           </div>
         ),
       },
@@ -744,7 +773,7 @@ function workItemColumns(
             <AssigneeFlow item={row.original} />
           </div>
         ),
-      },
+      }
     )
   } else {
     cols.push(
@@ -752,14 +781,18 @@ function workItemColumns(
         id: "completed",
         header: "Thời gian hoàn thành",
         cell: ({ row }) => (
-          <div className="min-w-40 tabular-nums">{completionTime(row.original)}</div>
+          <div className="min-w-40 tabular-nums">
+            {completionTime(row.original)}
+          </div>
         ),
       },
       {
         id: "due",
         header: "Hạn xử lý",
         cell: ({ row }) => (
-          <div className="min-w-40 tabular-nums">{formatDateTime(row.original.slaDueAt)}</div>
+          <div className="min-w-40 tabular-nums">
+            {formatDateTime(row.original.slaDueAt)}
+          </div>
         ),
       },
       {
@@ -767,7 +800,10 @@ function workItemColumns(
         header: "Trạng thái SLA",
         cell: ({ row }) => (
           <div className="min-w-40">
-            <SlaStatus dueAt={row.original.slaDueAt} status={row.original.slaStatus} />
+            <SlaStatus
+              dueAt={row.original.slaDueAt}
+              status={row.original.slaStatus}
+            />
           </div>
         ),
       },
@@ -777,7 +813,7 @@ function workItemColumns(
         cell: ({ row }) => (
           <div className="min-w-44">{previousAssignee(row.original)}</div>
         ),
-      },
+      }
     )
   }
   return cols
@@ -790,14 +826,18 @@ function toDateString(value: unknown): string | undefined {
 }
 
 function asAccounting(value: unknown): WorkItemFilter["accounting"] {
-  if (Array.isArray(value) && value[0]) return value[0] as WorkItemFilter["accounting"]
-  if (typeof value === "string" && value) return value as WorkItemFilter["accounting"]
+  if (Array.isArray(value) && value[0])
+    return value[0] as WorkItemFilter["accounting"]
+  if (typeof value === "string" && value)
+    return value as WorkItemFilter["accounting"]
   return "ALL"
 }
 
 function asSlaStatus(value: unknown): WorkItemFilter["slaStatus"] {
-  if (Array.isArray(value) && value[0]) return value[0] as WorkItemFilter["slaStatus"]
-  if (typeof value === "string" && value) return value as WorkItemFilter["slaStatus"]
+  if (Array.isArray(value) && value[0])
+    return value[0] as WorkItemFilter["slaStatus"]
+  if (typeof value === "string" && value)
+    return value as WorkItemFilter["slaStatus"]
   return "ALL"
 }
 
@@ -1074,6 +1114,8 @@ function stepLabel(value: string) {
     "workflow.finance_incoming_approve": "Duyệt giao dịch đến",
     "workflow.finance_outgoing_verify": "Kiểm tra giao dịch đi",
     "workflow.finance_outgoing_approve": "Duyệt giao dịch đi",
+    "workflow.hrm_registration_review": "Kiem tra ho so nhan su",
+    "workflow.hrm_registration_approve": "Phe duyet tiep nhan nhan su",
   }
   return labels[value] ?? value
 }

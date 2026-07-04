@@ -11,7 +11,11 @@ function getPathname() {
 }
 
 export default function Routes() {
-  return <FinanceRoutes />
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <FinanceRoutes />
+    </div>
+  )
 }
 
 function FinanceRoutes() {

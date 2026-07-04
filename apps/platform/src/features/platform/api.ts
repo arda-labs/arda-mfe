@@ -1,9 +1,15 @@
 import { api } from "@workspace/api"
+import {
+  buildListSearchParams,
+  type ListQueryInput,
+  type ListResponse,
+} from "@workspace/core/http/list-api"
 
 export interface Organization {
   id: string
   tenant_id: string
   parent_id?: string
+  parent_name?: string
   code: string
   name: string
   admin_unit_code?: string
@@ -119,13 +125,25 @@ export interface FileTemplate {
   updated_at?: string
 }
 
+export type OrganizationsListParams = ListQueryInput & {
+  is_active?: string
+}
+
 export const platformApi = {
   // Organizations
-  listOrganizations: (tenantId?: string) => {
-    const params = new URLSearchParams()
-    if (tenantId) params.set("tenant_id", tenantId)
-    return api.get<Organization[]>(
-      `/api/platform/organizations?${params.toString()}`
+  listOrganizations: (params: OrganizationsListParams = {}) => {
+    const search = buildListSearchParams({
+      page: params.page ?? 1,
+      perPage: params.perPage ?? 20,
+      sort: params.sort,
+      order: params.order,
+      q: params.q,
+      view: params.view,
+      all: params.all,
+      is_active: params.is_active,
+    })
+    return api.get<ListResponse<Organization>>(
+      `/api/platform/organizations?${search.toString()}`
     )
   },
   getOrganization: (id: string) => {

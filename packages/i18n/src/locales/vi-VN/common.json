@@ -13,6 +13,10 @@
     "next": "Tiếp",
     "prev": "Trước",
     "review": "Xem xét",
+    "save": "Lưu lại",
+    "saving": "Đang lưu...",
+    "edit": "Sửa",
+    "export_excel": "Tải Excel",
     "sign_in": "Đăng nhập",
     "signing_in": "Đang đăng nhập...",
     "submit": "Gửi",
@@ -52,6 +56,7 @@
     "operation": "Hành động",
     "resource": "Tài nguyên",
     "status": "Trạng thái",
+    "stt": "STT",
     "type": "Loại"
   },
   "locale": {

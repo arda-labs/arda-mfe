@@ -5,6 +5,7 @@ import {
   chartPalettes,
   defaultAppearance,
   fontPresets,
+  layoutSurfacePresets,
   radiusPresets,
   readAppearance,
   resetAppearance,
@@ -15,6 +16,7 @@ import type {
   BaseColor,
   ChartPalette,
   FontPreset,
+  LayoutSurface,
   RadiusPreset,
 } from "@workspace/core/appearance"
 import { useTheme } from "@workspace/theme"
@@ -157,6 +159,26 @@ export function AppearancePage() {
           />
         </SettingBlock>
 
+        <div className="grid gap-6 sm:grid-cols-2">
+          <SettingBlock label="Header surface">
+            <Segmented
+              value={settings.headerSurface}
+              values={Object.keys(layoutSurfacePresets) as LayoutSurface[]}
+              getLabel={(key) => layoutSurfacePresets[key].label}
+              onChange={(value) => update("headerSurface", value)}
+            />
+          </SettingBlock>
+
+          <SettingBlock label="Menu surface">
+            <Segmented
+              value={settings.sidebarSurface}
+              values={Object.keys(layoutSurfacePresets) as LayoutSurface[]}
+              getLabel={(key) => layoutSurfacePresets[key].label}
+              onChange={(value) => update("sidebarSurface", value)}
+            />
+          </SettingBlock>
+        </div>
+
         <div className="flex justify-end pt-4 border-t border-muted/50">
           <Button variant="outline" onClick={handleReset} className="rounded-xl px-5 py-4.5 text-xs font-semibold">
             Reset to defaults
@@ -255,6 +277,8 @@ function buildCSSPreview(settings: AppearanceSettings) {
     `--radius: ${radiusPresets[settings.radius].value};`,
     `--font-sans: ${fontPresets[settings.font].stack};`,
     `--font-heading: ${fontPresets[settings.headingFont].stack};`,
+    `--layout-header-background: ${layoutSurfacePresets[settings.headerSurface].value};`,
+    `--layout-sidebar-background: ${layoutSurfacePresets[settings.sidebarSurface].value};`,
     ...charts.colors.map((color, index) => `--chart-${index + 1}: ${color};`),
   ].join("\n")
 }

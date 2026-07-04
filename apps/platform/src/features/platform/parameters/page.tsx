@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { translateApiError } from "@workspace/i18n"
+import type { ColumnDef } from "@tanstack/react-table"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import type { Parameter } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { useDeleteParameter, useParameterDependencies, useParameters, useUpsertParameter } from "./queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@workspace/ui/components/command"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
@@ -34,82 +35,80 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
 import { cn } from "@workspace/ui/lib/utils"
-import { Check, ChevronsUpDown, Edit2, Eye, EyeOff, Key, Plus, Search, Trash2 } from "lucide-react"
+import { Check, ChevronsUpDown, Edit2, Eye, EyeOff, Key, Trash2 } from "lucide-react"
+import { ListPageShell } from "../shared/list-page-shell"
+import { matchTextColumnFilter, textSearchMeta } from "../shared/column-filters"
+import { sortByColumn, useClientListTable } from "../shared/client-list"
+import { ListTableToolbar } from "../shared/list-table-toolbar"
+
+const DEFAULT_PAGE_SIZE = 10
 
 const valueTypeValues = ["string", "number", "boolean", "json", "date"] as const
 const scopeTypeValues = ["global", "tenant", "org", "branch", "department"] as const
 
-const VALUE_TYPES = [
-  { value: "string", label: "Chuoi (String)" },
-  { value: "number", label: "So (Number)" },
-  { value: "boolean", label: "Boolean (Dung/Sai)" },
-  { value: "json", label: "Cau hinh JSON" },
-  { value: "date", label: "Ngay thang (Date)" },
-] as const
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
-const SCOPE_TYPES = [
-  { value: "global", label: "Toan cuc (Global)" },
-  { value: "tenant", label: "Khach hang (Tenant)" },
-  { value: "org", label: "To chuc (Organization)" },
-  { value: "branch", label: "Chi nhanh (Branch)" },
-  { value: "department", label: "Phong ban (Department)" },
-] as const
-
-const parameterFormSchema = z
-  .object({
-    key: z.string().trim().min(1, "Khoa tham so la bat buoc").max(128, "Khoa tham so qua dai"),
-    value: z.string(),
-    value_type: z.enum(valueTypeValues),
-    scope_type: z.enum(scopeTypeValues),
-    scope_id: z.string().trim().optional(),
-    description: z.string().trim().max(500, "Mo ta qua dai").optional(),
-    is_secret: z.boolean(),
-  })
-  .superRefine((values, ctx) => {
-    if (!values.is_secret && !values.value.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Gia tri tham so la bat buoc",
-        path: ["value"],
-      })
-    }
-    if (values.scope_type !== "global" && !values.scope_id?.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Scope ID la bat buoc",
-        path: ["scope_id"],
-      })
-    }
-    if (values.value_type === "number" && values.value.trim() && !Number.isFinite(Number(values.value))) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Gia tri number khong hop le",
-        path: ["value"],
-      })
-    }
-    if (values.value_type === "json" && values.value.trim()) {
-      try {
-        JSON.parse(values.value)
-      } catch {
+function buildParameterSchema(t: TranslateFn) {
+  return z
+    .object({
+      key: z
+        .string()
+        .trim()
+        .min(1, t("platform.parameters.validation.key_required"))
+        .max(128, t("platform.parameters.validation.key_too_long")),
+      value: z.string(),
+      value_type: z.enum(valueTypeValues),
+      scope_type: z.enum(scopeTypeValues),
+      scope_id: z.string().trim().optional(),
+      description: z
+        .string()
+        .trim()
+        .max(500, t("platform.parameters.validation.description_too_long"))
+        .optional(),
+      is_secret: z.boolean(),
+    })
+    .superRefine((values, ctx) => {
+      if (!values.is_secret && !values.value.trim()) {
         ctx.addIssue({
           code: "custom",
-          message: "Gia tri JSON khong hop le",
+          message: t("platform.parameters.validation.value_required"),
           path: ["value"],
         })
       }
-    }
-  })
+      if (values.scope_type !== "global" && !values.scope_id?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          message: t("platform.parameters.validation.scope_id_required"),
+          path: ["scope_id"],
+        })
+      }
+      if (
+        values.value_type === "number" &&
+        values.value.trim() &&
+        !Number.isFinite(Number(values.value))
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message: t("platform.parameters.validation.number_invalid"),
+          path: ["value"],
+        })
+      }
+      if (values.value_type === "json" && values.value.trim()) {
+        try {
+          JSON.parse(values.value)
+        } catch {
+          ctx.addIssue({
+            code: "custom",
+            message: t("platform.parameters.validation.json_invalid"),
+            path: ["value"],
+          })
+        }
+      }
+    })
+}
 
-type ParameterFormValues = z.infer<typeof parameterFormSchema>
+type ParameterFormValues = z.infer<ReturnType<typeof buildParameterSchema>>
 
 const parameterDefaultValues: ParameterFormValues = {
   key: "",
@@ -134,19 +133,23 @@ function toParameterFormValues(item: Parameter): ParameterFormValues {
 }
 
 export function ParametersPage() {
-  const [searchQuery, setSearchQuery] = useState("")
+  const { t } = useI18n()
   const [orgSearchOpen, setOrgSearchOpen] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingParam, setEditingParam] = useState<Parameter | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Parameter | null>(null)
   const [revealedSecrets, setRevealedSecrets] = useState<Record<string, boolean>>({})
+
   const parametersQuery = useParameters()
   const dependenciesQuery = useParameterDependencies()
   const upsertMutation = useUpsertParameter()
   const deleteMutation = useDeleteParameter()
+
   const params = parametersQuery.data ?? []
   const orgs = dependenciesQuery.data?.orgs ?? []
   const loading = parametersQuery.isLoading || dependenciesQuery.isLoading
+
+  const parameterSchema = useMemo(() => buildParameterSchema(t), [t])
   const {
     control,
     formState: { errors, isSubmitting },
@@ -156,7 +159,7 @@ export function ParametersPage() {
     setValue,
     watch,
   } = useForm<ParameterFormValues>({
-    resolver: zodResolver(parameterFormSchema),
+    resolver: zodResolver(parameterSchema),
     defaultValues: parameterDefaultValues,
   })
   const valueType = watch("value_type")
@@ -165,9 +168,16 @@ export function ParametersPage() {
 
   useEffect(() => {
     if (parametersQuery.error) {
-      notify.error("Khong the tai du lieu tham so", translateApiError(parametersQuery.error))
+      notify.error(
+        t("platform.parameters.load_failed"),
+        translateApiError(parametersQuery.error)
+      )
     }
-  }, [parametersQuery.error])
+  }, [parametersQuery.error, t])
+
+  const toggleRevealSecret = (id: string) => {
+    setRevealedSecrets((previous) => ({ ...previous, [id]: !previous[id] }))
+  }
 
   const openCreate = () => {
     setEditingParam(null)
@@ -222,145 +232,190 @@ export function ParametersPage() {
     }
   }
 
-  const toggleRevealSecret = (id: string) => {
-    setRevealedSecrets((previous) => ({ ...previous, [id]: !previous[id] }))
-  }
-
-  const filteredParams = params.filter(
-    (param) =>
-      param.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (param.description && param.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  const columns = useMemo<ColumnDef<Parameter>[]>(
+    () => [
+      {
+        id: "key",
+        accessorKey: "key",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.parameters.field.key")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("platform.parameters.field.key"),
+          t("platform.parameters.placeholder.search")
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs font-semibold text-primary">{row.original.key}</span>
+        ),
+      },
+      {
+        accessorKey: "value",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.parameters.field.value")} />
+        ),
+        cell: ({ row }) => {
+          const param = row.original
+          const isRevealed = revealedSecrets[param.id]
+          if (param.is_secret) {
+            return (
+              <div className="flex max-w-xs items-center gap-2">
+                <Key className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate font-mono text-xs">
+                  {isRevealed
+                    ? param.value || t("platform.parameters.secret.empty")
+                    : t("platform.parameters.secret.masked")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleRevealSecret(param.id)}
+                  className="ml-1 text-muted-foreground hover:text-foreground"
+                >
+                  {isRevealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                </button>
+              </div>
+            )
+          }
+          if (param.value_type === "boolean") {
+            return (
+              <Status variant={param.value === "true" ? "success" : "default"}>
+                <StatusIndicator />
+                <StatusLabel>
+                  {param.value === "true"
+                    ? t("platform.parameters.boolean.true")
+                    : t("platform.parameters.boolean.false")}
+                </StatusLabel>
+              </Status>
+            )
+          }
+          if (param.value_type === "json") {
+            return (
+              <code className="rounded border border-muted/80 bg-muted/30 px-1.5 py-0.5 text-xs">
+                JSON
+              </code>
+            )
+          }
+          return <span className="max-w-xs truncate font-mono text-xs">{param.value}</span>
+        },
+        enableSorting: false,
+      },
+      {
+        accessorKey: "value_type",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.parameters.field.value_type")} />
+        ),
+        cell: ({ row }) => (
+          <Badge variant="outline" className="text-xs font-normal">
+            {t(`platform.parameters.value_type.${row.original.value_type}`)}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "scope_type",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.parameters.field.scope")} />
+        ),
+        cell: ({ row }) => {
+          const param = row.original
+          const scopeLabel = t(`platform.parameters.scope_type.${param.scope_type}`)
+          const scopeDetail =
+            param.scope_id && param.scope_type === "org"
+              ? orgs.find((org) => org.id === param.scope_id)?.name || param.scope_id
+              : param.scope_id
+          return (
+            <Badge variant="secondary" className="text-xs font-semibold">
+              {scopeLabel}
+              {scopeDetail ? ` (${scopeDetail})` : ""}
+            </Badge>
+          )
+        },
+      },
+      {
+        accessorKey: "description",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.parameters.field.description")} />
+        ),
+        cell: ({ row }) => (
+          <span className="max-w-sm truncate text-xs text-muted-foreground">
+            {row.original.description || "-"}
+          </span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right text-xs font-semibold text-foreground/80">
+            {t("common.field.action")}
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7"
+              title={t("common.action.edit")}
+              onClick={() => openEdit(row.original)}
+            >
+              <Edit2 className="size-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-destructive"
+              title={t("common.action.delete")}
+              onClick={() => setDeleteTarget(row.original)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t, orgs, revealedSecrets]
   )
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">Tham so he thong</h2>
-          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
-            Tong so: {filteredParams.length}
-          </Badge>
-        </div>
-        <Button onClick={openCreate} className="h-9 gap-1.5 px-4 text-sm font-semibold">
-          <Plus className="size-4" /> Them tham so
-        </Button>
-      </div>
+  const { table, total } = useClientListTable({
+    columns,
+    items: params,
+    filterBy: {
+      key: (item, value) => matchTextColumnFilter(value, item.key, item.description),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        key: (a, b) => a.key.localeCompare(b.key),
+        value_type: (a, b) => a.value_type.localeCompare(b.value_type),
+        scope_type: (a, b) => a.scope_type.localeCompare(b.scope_type),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
 
-      <div className="flex items-center gap-3 rounded-2xl border border-muted/60 bg-muted/10 p-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Tim kiem theo ten tham so hoac mo ta..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            className="h-10 rounded-xl pl-10"
-          />
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-          Dang tai cau hinh tham so...
-        </div>
-      ) : (
-        <Card className="overflow-hidden rounded-2xl border-muted/50 bg-background shadow-sm">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Tham so (Key)</TableHead>
-                  <TableHead>Gia tri (Value)</TableHead>
-                  <TableHead>Kieu du lieu</TableHead>
-                  <TableHead>Pham vi (Scope)</TableHead>
-                  <TableHead>Mo ta</TableHead>
-                  <TableHead className="text-right">Thao tac</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredParams.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                      Khong tim thay tham so nao.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredParams.map((param) => {
-                    const isRevealed = revealedSecrets[param.id]
-                    return (
-                      <TableRow key={param.id}>
-                        <TableCell className="font-mono text-xs font-semibold text-primary">{param.key}</TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {param.is_secret ? (
-                            <div className="flex items-center gap-2">
-                              <Key className="size-3.5 shrink-0 text-yellow-500" />
-                              <span className="font-mono text-xs">{isRevealed ? param.value || "[Bao mat]" : "************"}</span>
-                              <button
-                                type="button"
-                                onClick={() => toggleRevealSecret(param.id)}
-                                className="ml-1 text-muted-foreground hover:text-foreground"
-                              >
-                                {isRevealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                              </button>
-                            </div>
-                          ) : param.value_type === "boolean" ? (
-                            <Status variant={param.value === "true" ? "success" : "default"}>
-                              <StatusIndicator />
-                              <StatusLabel>{param.value === "true" ? "TRUE" : "FALSE"}</StatusLabel>
-                            </Status>
-                          ) : param.value_type === "json" ? (
-                            <code className="rounded border border-muted/80 bg-muted/30 px-1.5 py-0.5 text-xs">JSON</code>
-                          ) : (
-                            <span className="font-mono text-xs">{param.value}</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs font-normal">
-                            {param.value_type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="text-xs font-semibold capitalize">
-                            {param.scope_type}{" "}
-                            {param.scope_id
-                              ? param.scope_type === "org"
-                                ? `(${orgs.find((org) => org.id === param.scope_id)?.name || param.scope_id})`
-                                : `(${param.scope_id})`
-                              : ""}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-sm truncate text-xs text-muted-foreground">{param.description || "-"}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEdit(param)}>
-                              <Edit2 className="size-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteTarget(param)}>
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-
+  const dialogs = (
+    <>
       <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingParam ? "Cap nhat tham so" : "Them tham so moi"}</DialogTitle>
-            <DialogDescription>Tuy chinh thong tin cau hinh tham so dong cho cac phan he chuc nang.</DialogDescription>
+            <DialogTitle>
+              {editingParam
+                ? t("platform.parameters.edit")
+                : t("platform.parameters.create_title")}
+            </DialogTitle>
+            <DialogDescription>{t("platform.parameters.dialog_description")}</DialogDescription>
           </DialogHeader>
 
           <form autoComplete="off" onSubmit={submitParameter} className="space-y-4 py-2">
-            <FormField label="Khoa tham so (Key)" htmlFor="param_key" error={errors.key?.message}>
+            <FormField
+              label={t("platform.parameters.field.key")}
+              htmlFor="param_key"
+              error={errors.key?.message}
+            >
               <Input
                 id="param_key"
-                placeholder="APP_ROUTING_TIMEOUT"
+                placeholder={t("platform.parameters.placeholder.key")}
                 aria-invalid={Boolean(errors.key)}
                 disabled={!!editingParam}
                 className="font-mono uppercase"
@@ -374,7 +429,11 @@ export function ParametersPage() {
             </FormField>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Kieu du lieu" htmlFor="param_value_type" error={errors.value_type?.message}>
+              <FormField
+                label={t("platform.parameters.field.value_type")}
+                htmlFor="param_value_type"
+                error={errors.value_type?.message}
+              >
                 <Controller
                   control={control}
                   name="value_type"
@@ -390,9 +449,9 @@ export function ParametersPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {VALUE_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
+                        {valueTypeValues.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {t(`platform.parameters.value_type.${type}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -400,7 +459,11 @@ export function ParametersPage() {
                   )}
                 />
               </FormField>
-              <FormField label="Pham vi hieu luc" htmlFor="param_scope_type" error={errors.scope_type?.message}>
+              <FormField
+                label={t("platform.parameters.field.scope")}
+                htmlFor="param_scope_type"
+                error={errors.scope_type?.message}
+              >
                 <Controller
                   control={control}
                   name="scope_type"
@@ -416,9 +479,9 @@ export function ParametersPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {SCOPE_TYPES.map((scope) => (
-                          <SelectItem key={scope.value} value={scope.value}>
-                            {scope.label}
+                        {scopeTypeValues.map((scope) => (
+                          <SelectItem key={scope} value={scope}>
+                            {t(`platform.parameters.scope_type.${scope}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -429,7 +492,11 @@ export function ParametersPage() {
             </div>
 
             {scopeType !== "global" && (
-              <FormField label="Ma dinh danh pham vi (Scope ID)" htmlFor="param_scope_id" error={errors.scope_id?.message}>
+              <FormField
+                label={t("platform.parameters.field.scope_id")}
+                htmlFor="param_scope_id"
+                error={errors.scope_id?.message}
+              >
                 {scopeType === "org" ? (
                   <Controller
                     control={control}
@@ -441,17 +508,19 @@ export function ParametersPage() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={orgSearchOpen}
-                            className="h-10 w-full justify-between rounded-xl text-left font-normal"
+                            className="h-10 w-full justify-between text-left font-normal"
                           >
-                            {field.value ? orgs.find((org) => org.id === field.value)?.name || field.value : "Chon to chuc..."}
+                            {field.value
+                              ? orgs.find((org) => org.id === field.value)?.name || field.value
+                              : t("platform.parameters.placeholder.org_select")}
                             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[450px] rounded-xl p-0" align="start">
-                          <Command className="rounded-xl">
-                            <CommandInput placeholder="Tim kiem to chuc..." />
+                        <PopoverContent className="w-[450px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder={t("platform.parameters.placeholder.org_search")} />
                             <CommandList>
-                              <CommandEmpty>Khong tim thay to chuc nao.</CommandEmpty>
+                              <CommandEmpty>{t("platform.parameters.empty_orgs")}</CommandEmpty>
                               <CommandGroup>
                                 {orgs.map((org) => (
                                   <CommandItem
@@ -465,9 +534,16 @@ export function ParametersPage() {
                                   >
                                     <div className="flex flex-col">
                                       <span className="text-sm font-medium">{org.name}</span>
-                                      <span className="font-mono text-[10px] text-muted-foreground">{org.code}</span>
+                                      <span className="font-mono text-[10px] text-muted-foreground">
+                                        {org.code}
+                                      </span>
                                     </div>
-                                    <Check className={cn("size-4 text-primary", field.value === org.id ? "opacity-100" : "opacity-0")} />
+                                    <Check
+                                      className={cn(
+                                        "size-4 text-primary",
+                                        field.value === org.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
@@ -480,7 +556,7 @@ export function ParametersPage() {
                 ) : (
                   <Input
                     id="param_scope_id"
-                    placeholder={`Ma ${scopeType} can ap dung`}
+                    placeholder={t("platform.parameters.placeholder.scope_id", { scope: scopeType })}
                     aria-invalid={Boolean(errors.scope_id)}
                     autoComplete="off"
                     {...register("scope_id")}
@@ -489,7 +565,11 @@ export function ParametersPage() {
               </FormField>
             )}
 
-            <FormField label="Gia tri tham so (Value)" htmlFor="param_value" error={errors.value?.message}>
+            <FormField
+              label={t("platform.parameters.field.value")}
+              htmlFor="param_value"
+              error={errors.value?.message}
+            >
               {valueType === "boolean" ? (
                 <div className="flex h-10 w-fit items-center rounded-lg border border-input bg-background p-0.5 px-1">
                   <Button
@@ -499,7 +579,7 @@ export function ParametersPage() {
                     className="h-8 rounded-md text-xs"
                     onClick={() => setValue("value", "true", { shouldDirty: true, shouldValidate: true })}
                   >
-                    TRUE
+                    {t("platform.parameters.boolean.true")}
                   </Button>
                   <Button
                     type="button"
@@ -508,13 +588,13 @@ export function ParametersPage() {
                     className="h-8 rounded-md text-xs"
                     onClick={() => setValue("value", "false", { shouldDirty: true, shouldValidate: true })}
                   >
-                    FALSE
+                    {t("platform.parameters.boolean.false")}
                   </Button>
                 </div>
               ) : valueType === "json" ? (
                 <Textarea
                   id="param_value"
-                  placeholder='{ "key": "value" }'
+                  placeholder={t("platform.parameters.placeholder.value_json")}
                   className="font-mono"
                   spellCheck={false}
                   autoComplete="off"
@@ -526,7 +606,7 @@ export function ParametersPage() {
               ) : (
                 <Input
                   id="param_value"
-                  placeholder="Nhap gia tri"
+                  placeholder={t("platform.parameters.placeholder.value")}
                   spellCheck={false}
                   autoComplete="off"
                   aria-invalid={Boolean(errors.value)}
@@ -535,10 +615,14 @@ export function ParametersPage() {
               )}
             </FormField>
 
-            <FormField label="Mo ta tham so" htmlFor="param_description" error={errors.description?.message}>
+            <FormField
+              label={t("platform.parameters.field.description")}
+              htmlFor="param_description"
+              error={errors.description?.message}
+            >
               <Input
                 id="param_description"
-                placeholder="Giai thich muc dich cau hinh tham so..."
+                placeholder={t("platform.parameters.placeholder.description")}
                 spellCheck={false}
                 autoComplete="off"
                 aria-invalid={Boolean(errors.description)}
@@ -557,7 +641,7 @@ export function ParametersPage() {
                     onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                   <label htmlFor="param_is_secret" className="cursor-pointer select-none text-sm font-medium">
-                    Day la tham so bao mat
+                    {t("platform.parameters.field.is_secret")}
                   </label>
                 </div>
               )}
@@ -565,10 +649,12 @@ export function ParametersPage() {
 
             <div className="flex gap-2 sm:justify-end">
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
-                Huy
+                {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting || upsertMutation.isPending}>
-                {isSubmitting ? "Dang luu..." : "Luu lai"}
+                {isSubmitting || upsertMutation.isPending
+                  ? t("common.action.saving")
+                  : t("common.action.save")}
               </Button>
             </div>
           </form>
@@ -578,23 +664,47 @@ export function ParametersPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xac nhan xoa tham so?</AlertDialogTitle>
+            <AlertDialogTitle>{t("platform.parameters.delete.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Hanh dong nay se xoa hoan toan tham so <strong>{deleteTarget?.key}</strong> khoi he thong va khong the khoi phuc.
+              {t("platform.parameters.delete.description", { key: deleteTarget?.key ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huy</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xoa bo
+              {t("platform.parameters.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
+  )
+
+  return (
+    <ListPageShell
+      title={t("platform.parameters.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+          {t("platform.parameters.count", { count: total })}
+        </Badge>
+      }
+      loading={loading}
+      isEmpty={params.length === 0}
+      skeletonColumns={6}
+      skeletonFilters={1}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={openCreate}
+          createLabel={t("platform.parameters.create")}
+        />
+      }
+      dialogs={dialogs}
+    />
   )
 }

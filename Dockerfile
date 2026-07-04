@@ -11,6 +11,7 @@ COPY --from=build /app/apps/shell/dist /usr/share/nginx/html
 COPY --from=build /app/apps/iam/dist /usr/share/nginx/html/mfes/iam
 COPY --from=build /app/apps/platform/dist /usr/share/nginx/html/mfes/platform
 COPY --from=build /app/apps/finance/dist /usr/share/nginx/html/mfes/finance
+COPY --from=build /app/apps/hrm/dist /usr/share/nginx/html/mfes/hrm
 COPY --from=build /app/apps/account/dist /usr/share/nginx/html/mfes/account
 
 EXPOSE 8080

@@ -139,7 +139,11 @@ export interface ClaimWorkItemResponse {
 }
 
 const caseTypesByDirection: Record<WorkbenchDirection, string[]> = {
-  incoming: ["CUSTOMER_REGISTRATION", "FINANCE_INCOMING_TRANSACTION"],
+  incoming: [
+    "CUSTOMER_REGISTRATION",
+    "FINANCE_INCOMING_TRANSACTION",
+    "HRM_EMPLOYEE_REGISTRATION",
+  ],
   outgoing: ["FINANCE_OUTGOING_TRANSACTION"],
 }
 
@@ -167,6 +171,14 @@ export const taskTypesByDirection: Record<
     {
       taskType: "workflow.finance_incoming_approve",
       role: "FINANCE_TXN_CHECKER",
+    },
+    {
+      taskType: "workflow.hrm_registration_review",
+      role: "HRM_REGISTRATION_REVIEWER",
+    },
+    {
+      taskType: "workflow.hrm_registration_approve",
+      role: "HRM_REGISTRATION_APPROVER",
     },
   ],
   outgoing: [
@@ -299,14 +311,34 @@ async function getItems<T>(path: string, key = "items") {
 function toWorkItemSearch(filter: WorkItemFilter) {
   const search = new URLSearchParams()
   setSearch(search, "keyword", filter.keyword)
-  setSearch(search, "direction", filter.direction === "ALL" ? undefined : filter.direction)
+  setSearch(
+    search,
+    "direction",
+    filter.direction === "ALL" ? undefined : filter.direction
+  )
   setSearch(search, "fromDate", filter.fromDate)
   setSearch(search, "toDate", filter.toDate)
-  setSearch(search, "accounting", filter.accounting === "ALL" ? undefined : filter.accounting)
-  setSearch(search, "slaStatus", filter.slaStatus === "ALL" ? undefined : filter.slaStatus)
-  setSearch(search, "transactionStatus", filter.transactionStatus === "ALL" ? undefined : filter.transactionStatus)
+  setSearch(
+    search,
+    "accounting",
+    filter.accounting === "ALL" ? undefined : filter.accounting
+  )
+  setSearch(
+    search,
+    "slaStatus",
+    filter.slaStatus === "ALL" ? undefined : filter.slaStatus
+  )
+  setSearch(
+    search,
+    "transactionStatus",
+    filter.transactionStatus === "ALL" ? undefined : filter.transactionStatus
+  )
   setSearch(search, "node", filter.node === "ALL" ? undefined : filter.node)
-  setSearch(search, "status", filter.status === "ALL" ? undefined : filter.status)
+  setSearch(
+    search,
+    "status",
+    filter.status === "ALL" ? undefined : filter.status
+  )
   setSearch(search, "case_type", filter.caseType)
   setSearch(search, "candidate_role", filter.candidateRole)
   setSearch(search, "assigned_to", filter.assignedTo)
@@ -346,11 +378,13 @@ async function request<T>(
 }
 
 function sortCases(items: Array<WorkflowCase | null | undefined>) {
-  return items.filter(isWorkflowCase).sort(
-    (a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
-  )
+  return items
+    .filter(isWorkflowCase)
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
 }
 
-function isWorkflowCase(item: WorkflowCase | null | undefined): item is WorkflowCase {
+function isWorkflowCase(
+  item: WorkflowCase | null | undefined
+): item is WorkflowCase {
   return Boolean(item?.id && item.caseCode)
 }

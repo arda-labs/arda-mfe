@@ -48,6 +48,7 @@ function lazyRemote(load: () => Promise<RemoteModule>) {
 const IamRoutes = lazyRemote(() => import("iam/Routes"))
 const PlatformRoutes = lazyRemote(() => import("platform/Routes"))
 const FinanceRoutes = lazyRemote(() => import("finance/Routes"))
+const HrmRoutes = lazyRemote(() => import("hrm/Routes"))
 const AccountRoutes = lazyRemote(() => import("account/Routes"))
 
 const routeFallback = <authShare.AuthLoadingScreen fullscreen={false} />
@@ -65,6 +66,7 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
   const isIam =
     pathname === "/iam" ||
     pathname.startsWith("/admin/users") ||
+    pathname.startsWith("/admin/groups") ||
     pathname.startsWith("/admin/roles") ||
     pathname.startsWith("/admin/permissions") ||
     pathname.startsWith("/admin/audit") ||
@@ -81,8 +83,8 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
     pathname.startsWith("/admin/templates") ||
     pathname.startsWith("/admin/calendar") ||
     pathname.startsWith("/admin/cutoff")
-  const isFinance =
-    pathname.startsWith("/finance/")
+  const isFinance = pathname.startsWith("/finance/")
+  const isHrm = pathname === "/hrm" || pathname.startsWith("/hrm/")
   const isCustomerOperation = pathname.startsWith("/customers/")
   const isWorkbench = pathname.startsWith("/workbench/")
   const isWorkflowAdmin = pathname.startsWith("/workflow/")
@@ -108,6 +110,10 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
             <Suspense fallback={routeFallback}>
               <FinanceRoutes />
             </Suspense>
+          ) : isHrm ? (
+            <Suspense fallback={routeFallback}>
+              <HrmRoutes />
+            </Suspense>
           ) : isCustomerOperation ? (
             <CustomersPage pathname={pathname} />
           ) : isWorkbench ? (
@@ -130,15 +136,17 @@ export default function WorkspaceApp({ pathname }: WorkspaceAppProps) {
 function Dashboard() {
   const { branding } = useSystemBranding()
   return (
-    <section className="flex max-w-2xl flex-col gap-4">
+    <div className="overflow-y-auto p-4 md:p-6">
+      <section className="flex max-w-2xl flex-col gap-4">
       <p className="text-sm text-muted-foreground">Shell</p>
       <h1 className="text-3xl font-semibold text-balance">
         {branding.appName} workspace
       </h1>
-      <p className="text-muted-foreground text-pretty">
+      <p className="text-pretty text-muted-foreground">
         Auth, layout, i18n, theme, and notifications now live in the shell.
         Domain pages load as runtime micro frontends.
       </p>
-    </section>
+      </section>
+    </div>
   )
 }

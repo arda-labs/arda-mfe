@@ -28,6 +28,7 @@ import {
 import * as React from "react";
 
 import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback";
+import { injectRowIndexColumn, normalizeSelectColumn } from "@workspace/ui/lib/inject-row-index-column";
 import { getSortingStateParser } from "@workspace/ui/lib/parsers";
 import type { ExtendedColumnSort, QueryKeys } from "@workspace/ui/types/data-table";
 
@@ -63,11 +64,14 @@ interface UseDataTableProps<TData>
   scroll?: boolean;
   shallow?: boolean;
   startTransition?: React.TransitionStartFunction;
+  /** Prepends row index column (STT). Default true. Placed after `select` when present. */
+  showRowIndex?: boolean;
+  rowIndexLabel?: string;
 }
 
 export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const {
-    columns,
+    columns: inputColumns,
     pageCount = -1,
     initialState,
     queryKeys,
@@ -79,6 +83,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     scroll = false,
     shallow = true,
     startTransition,
+    showRowIndex = true,
+    rowIndexLabel = "STT",
     ...tableProps
   } = props;
   const pageKey = queryKeys?.page ?? PAGE_KEY;
@@ -150,9 +156,9 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 
   const columnIds = React.useMemo(() => {
     return new Set(
-      columns.map((column) => column.id).filter(Boolean) as string[],
+      inputColumns.map((column) => column.id).filter(Boolean) as string[],
     );
-  }, [columns]);
+  }, [inputColumns]);
 
   const [sorting, setSorting] = useQueryState(
     sortKey,
@@ -176,8 +182,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const filterableColumns = React.useMemo(() => {
     if (enableAdvancedFilter) return [];
 
-    return columns.filter((column) => column.enableColumnFilter);
-  }, [columns, enableAdvancedFilter]);
+    return inputColumns.filter((column) => column.enableColumnFilter);
+  }, [inputColumns, enableAdvancedFilter]);
 
   const filterParsers = React.useMemo(() => {
     if (enableAdvancedFilter) return {};
@@ -264,6 +270,22 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     },
     [debouncedSetFilterValues, filterableColumns, enableAdvancedFilter],
   );
+
+  const columns = React.useMemo(() => {
+    const normalized = normalizeSelectColumn(inputColumns);
+    if (!showRowIndex) return normalized;
+    return injectRowIndexColumn(normalized, {
+      pageIndex: pagination.pageIndex,
+      pageSize: pagination.pageSize,
+      label: rowIndexLabel,
+    });
+  }, [
+    inputColumns,
+    pagination.pageIndex,
+    pagination.pageSize,
+    rowIndexLabel,
+    showRowIndex,
+  ]);
 
   const table = useReactTable({
     ...tableProps,

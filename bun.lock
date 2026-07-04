@@ -92,6 +92,41 @@
         "vite": "^8",
       },
     },
+    "apps/hrm": {
+      "name": "hrm",
+      "version": "0.0.1",
+      "dependencies": {
+        "@hookform/resolvers": "^5.4.0",
+        "@tanstack/react-query": "^5.101.2",
+        "@workspace/api": "workspace:*",
+        "@workspace/core": "workspace:*",
+        "@workspace/i18n": "workspace:*",
+        "@workspace/media": "workspace:*",
+        "@workspace/notifications": "workspace:*",
+        "@workspace/theme": "workspace:*",
+        "@workspace/ui": "workspace:*",
+        "lucide-react": "^1.22.0",
+        "react": "^19.2.6",
+        "react-dom": "^19.2.6",
+        "react-hook-form": "^7.80.0",
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "@eslint/js": "^10",
+        "@tailwindcss/vite": "^4",
+        "@types/node": "^24",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^6",
+        "eslint": "^10",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "eslint-plugin-react-refresh": "^0.5.2",
+        "globals": "^17",
+        "typescript": "~6",
+        "typescript-eslint": "^8",
+        "vite": "^8",
+      },
+    },
     "apps/iam": {
       "name": "iam",
       "version": "0.0.1",
@@ -351,6 +386,8 @@
         "@radix-ui/react-toggle-group": "^1.1.10",
         "@radix-ui/react-tooltip": "^1.2.7",
         "@tanstack/react-table": "^8.21.3",
+        "@workspace/core": "workspace:*",
+        "@workspace/i18n": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -1022,6 +1059,8 @@
 
     "homedir-polyfill": ["homedir-polyfill@1.0.3", "", { "dependencies": { "parse-passwd": "^1.0.0" } }, "sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA=="],
 
+    "hrm": ["hrm@workspace:apps/hrm"],
+
     "htm": ["htm@3.1.1", "", {}, "sha512-983Vyg8NwUE7JkZ6NmOqpCZ+sh1bKv2iYTlUkzlWmA5JD2acKoxd4KVxbMmxX/85mtfdnDmTFoNKcg5DGAvxNQ=="],
 
     "html-parse-stringify": ["html-parse-stringify@3.0.1", "", { "dependencies": { "void-elements": "3.1.0" } }, "sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg=="],
@@ -1341,6 +1380,8 @@
     "finance/lucide-react": ["lucide-react@1.22.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-c9o3l0PiNcgOQDW4F31BEYHudE7kgxVt3o30qMl36ZPwTxXlGB4QnLilhERvVM4uh/pl5MDyY1/gzZSYcHDtBg=="],
 
     "global-prefix/which": ["which@1.3.1", "", { "dependencies": { "isexe": "^2.0.0" }, "bin": { "which": "./bin/which" } }, "sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ=="],
+
+    "hrm/lucide-react": ["lucide-react@1.22.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-c9o3l0PiNcgOQDW4F31BEYHudE7kgxVt3o30qMl36ZPwTxXlGB4QnLilhERvVM4uh/pl5MDyY1/gzZSYcHDtBg=="],
 
     "iam/lucide-react": ["lucide-react@1.22.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-c9o3l0PiNcgOQDW4F31BEYHudE7kgxVt3o30qMl36ZPwTxXlGB4QnLilhERvVM4uh/pl5MDyY1/gzZSYcHDtBg=="],
 

@@ -14,6 +14,7 @@ import {
   Moon,
   Palette,
   PanelLeftClose,
+  PanelLeftOpen,
   Settings,
   ShieldCheck,
   SlidersHorizontal,
@@ -22,6 +23,12 @@ import {
   Wallet,
 } from "lucide-react"
 import { useSystemBranding } from "@workspace/core/branding"
+import {
+  SHELL_PAGE_HEADER_SLOT_ID,
+  SHELL_PAGE_TITLE_EVENT,
+  type ShellPageTitleEventDetail,
+  type ShellPageTitleState,
+} from "@workspace/core/page-title"
 import { useI18n, type MessageKey } from "@workspace/i18n"
 import type { AuthUser } from "@workspace/auth/store"
 import { hasAnyPermission } from "@workspace/auth/store"
@@ -30,13 +37,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@workspace/ui/components/avatar"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@workspace/ui/components/breadcrumb"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -82,6 +82,12 @@ const navItems: NavNode[] = [
         labelKey: "nav.admin.users",
         icon: Users,
         permissions: ["iam.user.read"],
+      },
+      {
+        href: "/admin/groups",
+        labelKey: "nav.admin.groups",
+        icon: Users,
+        permissions: ["iam.group.read"],
       },
       {
         href: "/admin/roles",
@@ -195,6 +201,48 @@ const navItems: NavNode[] = [
         href: "/finance/trial-balance",
         labelKey: "nav.finance.trial_balance",
         icon: LayoutDashboard,
+      },
+    ],
+  },
+  {
+    labelKey: "nav.hrm",
+    label: "Nhan su",
+    icon: Users,
+    children: [
+      {
+        href: "/hrm/positions",
+        labelKey: "nav.hrm.positions",
+        label: "Chuc vu",
+        icon: Users,
+        permissions: ["hrm.read"],
+      },
+      {
+        href: "/hrm/job-titles",
+        labelKey: "nav.hrm.job_titles",
+        label: "Chuc danh",
+        icon: FileText,
+        permissions: ["hrm.read"],
+      },
+      {
+        href: "/hrm/org-units",
+        labelKey: "nav.hrm.org_units",
+        label: "Co cau to chuc",
+        icon: ListTree,
+        permissions: ["hrm.read"],
+      },
+      {
+        href: "/hrm/registrations",
+        labelKey: "nav.hrm.registrations",
+        label: "Dang ky nhan su",
+        icon: FileText,
+        permissions: ["hrm.read"],
+      },
+      {
+        href: "/hrm/employees",
+        labelKey: "nav.hrm.employees",
+        label: "Thong tin nhan su",
+        icon: Users,
+        permissions: ["hrm.read"],
       },
     ],
   },
@@ -329,8 +377,10 @@ export function ShellLayout({
     "nav.admin": true,
     "nav.workbench": true,
     "nav.finance": true,
+    "nav.hrm": true,
     "nav.workflow": true,
   })
+  const [pageTitle, setPageTitle] = useState<ShellPageTitleState | null>(null)
   const [authHydrated, setAuthHydrated] = useState(() =>
     useAuthStore.persist.hasHydrated()
   )
@@ -345,6 +395,20 @@ export function ShellLayout({
     if (authHydrated) return
     return useAuthStore.persist.onFinishHydration(() => setAuthHydrated(true))
   }, [authHydrated])
+
+  useEffect(() => {
+    function handlePageTitle(event: Event) {
+      const detail = (event as CustomEvent<ShellPageTitleEventDetail>).detail
+      if (detail.cleared) {
+        setPageTitle((current) => (current?.id === detail.id ? null : current))
+        return
+      }
+      setPageTitle(detail)
+    }
+
+    window.addEventListener(SHELL_PAGE_TITLE_EVENT, handlePageTitle)
+    return () => window.removeEventListener(SHELL_PAGE_TITLE_EVENT, handlePageTitle)
+  }, [])
 
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light")
   const ThemeIcon = theme === "dark" ? Sun : Moon
@@ -364,11 +428,11 @@ export function ShellLayout({
     <div className="fixed inset-0 flex min-h-0 overflow-hidden bg-background text-foreground">
       <aside
         className={cn(
-          "flex shrink-0 flex-col border-r bg-muted/30 transition-all duration-200",
+          "flex shrink-0 flex-col border-r border-[color:var(--layout-sidebar-border)] bg-[var(--layout-sidebar-background)] transition-all duration-200",
           sidebarOpen ? "w-64" : "w-14"
         )}
       >
-        <div className="flex h-14 items-center gap-3 border-b px-3">
+        <div className="flex h-[52px] items-center gap-3 border-b border-[color:var(--layout-sidebar-border)] px-3">
           <BrandMark
             name={branding.appName}
             logoUrl={branding.dashboardLogoUrl || branding.loginLogoUrl}
@@ -376,7 +440,7 @@ export function ShellLayout({
           />
           {sidebarOpen && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold leading-none">
+              <p className="truncate text-sm leading-none font-semibold">
                 {branding.appName}
               </p>
               <p className="mt-1 truncate text-xs text-muted-foreground">
@@ -400,20 +464,47 @@ export function ShellLayout({
             />
           ))}
         </nav>
+        <div
+          className={cn(
+            "flex h-[52px] shrink-0 items-center border-t border-[color:var(--layout-sidebar-border)] px-2",
+            sidebarOpen ? "justify-end" : "justify-center"
+          )}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t("common.action.toggle_sidebar")}
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title={t("common.action.toggle_sidebar")}
+            className="size-8"
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="size-4" />
+            ) : (
+              <PanelLeftOpen className="size-4" />
+            )}
+          </Button>
+        </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 items-center justify-between gap-3 border-b bg-background px-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t("common.action.toggle_sidebar")}
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              title={t("common.action.toggle_sidebar")}
-            >
-              <PanelLeftClose className="size-4" />
-            </Button>
-            <AppBreadcrumb pathname={pathname} t={t} />
+        <header className="flex h-[52px] items-center justify-between gap-3 border-b border-[color:var(--layout-header-border)] bg-[var(--layout-header-background)] px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {pageTitle?.hideTitle ? null : (
+              <span
+                className={cn(
+                  "min-w-0 truncate text-sm font-semibold transition-[opacity,transform] duration-150",
+                  pageTitle?.collapsed
+                    ? "translate-y-0 opacity-100"
+                    : "pointer-events-none -translate-y-1 opacity-0"
+                )}
+              >
+                {pageTitle?.title}
+              </span>
+            )}
+            <div
+              id={SHELL_PAGE_HEADER_SLOT_ID}
+              className="min-w-0 flex-1 overflow-hidden"
+            />
           </div>
           <div className="flex items-center gap-2">
             <NotificationBell />
@@ -450,8 +541,10 @@ export function ShellLayout({
             />
           </div>
         </header>
-        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4">
-          {children}
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+            {children}
+          </div>
           <Toaster />
         </main>
       </div>
@@ -584,62 +677,6 @@ function filterNavItems(items: NavNode[], user: AuthUser | null): NavNode[] {
     visible.push({ ...item, children })
   }
   return visible
-}
-
-function AppBreadcrumb({
-  pathname,
-  t,
-}: {
-  pathname: string
-  t: (key: MessageKey) => string
-}) {
-  const items = getBreadcrumbItems(pathname, t)
-  return (
-    <Breadcrumb className="min-w-0">
-      <BreadcrumbList className="flex-nowrap">
-        {items.map((item, index) => [
-          index > 0 ? (
-            <BreadcrumbSeparator key={`${item.label}-${index}-separator`} />
-          ) : null,
-          <BreadcrumbItem key={`${item.label}-${index}`} className="min-w-0">
-            <BreadcrumbPage className="truncate">{item.label}</BreadcrumbPage>
-          </BreadcrumbItem>,
-        ])}
-      </BreadcrumbList>
-    </Breadcrumb>
-  )
-}
-
-function getBreadcrumbItems(
-  pathname: string,
-  t: (key: MessageKey) => string
-): { label: string }[] {
-  if (pathname === "/") return [{ label: t("nav.dashboard") }]
-  const matched = findBreadcrumb(navItems, pathname)
-  return matched.length > 0
-    ? matched.map((item) => ({ label: getNavLabel(item, t) }))
-    : [{ label: t("common.app.name") }]
-}
-
-function findBreadcrumb(
-  items: NavNode[],
-  pathname: string,
-  parents: NavNode[] = []
-): NavNode[] {
-  for (const item of items) {
-    const nextParents = [...parents, item]
-    if (
-      item.href &&
-      (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))
-    ) {
-      return nextParents
-    }
-    if (item.children) {
-      const matched = findBreadcrumb(item.children, pathname, nextParents)
-      if (matched.length) return matched
-    }
-  }
-  return []
 }
 
 function getNavNodeId(item: NavNode) {

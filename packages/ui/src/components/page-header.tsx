@@ -1,36 +1,39 @@
-import type { LucideIcon } from "lucide-react"
-import type { ReactNode } from "react"
+import * as React from "react"
+
+import { cn } from "@workspace/ui/lib/utils"
+
+type PageHeaderProps = {
+  title: string
+  description?: React.ReactNode
+  meta?: React.ReactNode
+  actions?: React.ReactNode
+  className?: string
+}
 
 export function PageHeader({
   title,
   description,
-  icon: Icon,
+  meta,
   actions,
-  badge,
-}: {
-  title: string
-  description?: string
-  icon?: LucideIcon
-  actions?: ReactNode
-  badge?: ReactNode
-}) {
+  className,
+}: PageHeaderProps) {
   return (
-    <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="flex min-w-0 flex-col gap-1">
-        <div className="flex items-center gap-2">
-          {Icon ? <Icon className="size-5 text-muted-foreground" /> : null}
-          <h1 className="text-2xl font-semibold text-balance">{title}</h1>
-          {badge}
+    <div
+      className={cn(
+        "flex shrink-0 flex-wrap items-start justify-between gap-3",
+        className
+      )}
+    >
+      <div className="min-w-0 space-y-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <h1 className="truncate text-xl font-semibold">{title}</h1>
+          {meta}
         </div>
         {description ? (
-          <p className="text-sm text-pretty text-muted-foreground">
-            {description}
-          </p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
-      {actions ? (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
-      ) : null}
-    </header>
+      {actions ? <div className="shrink-0">{actions}</div> : null}
+    </div>
   )
 }

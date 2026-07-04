@@ -1,7 +1,10 @@
+import { createRequestId } from "./list-api"
+
 export interface ApiClientErrorPayload {
   code: string
   message: string
   fields?: Record<string, string>
+  request_id?: string
 }
 
 export class ApiClientError extends Error {
@@ -30,7 +33,9 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
   const inflightGet = new Map<string, Promise<unknown>>()
 
   const request = async <T>(method: string, path: string, body?: unknown, didStepUp = false): Promise<T> => {
-    const headers: Record<string, string> = {}
+    const headers: Record<string, string> = {
+      "X-Request-Id": createRequestId(),
+    }
     const locale = options.getLocale?.()
     if (locale) headers["Accept-Language"] = locale
 
@@ -107,6 +112,10 @@ async function parseApiClientError(res: Response): Promise<ApiClientErrorPayload
         code: String(json.error.code ?? json.error.error ?? fallback.code),
         message: String(json.error.message ?? json.error.error ?? fallback.message),
         fields: json.error.fields as Record<string, string> | undefined,
+        request_id:
+          typeof json.error.request_id === "string"
+            ? json.error.request_id
+            : undefined,
       }
     }
     if (typeof json?.error === "string") {

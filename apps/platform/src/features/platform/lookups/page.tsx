@@ -1,8 +1,9 @@
-import { useEffect, useState, type MouseEvent } from "react"
+import { useEffect, useMemo, useState, type MouseEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { translateApiError } from "@workspace/i18n"
+import type { ColumnDef } from "@tanstack/react-table"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import type { LookupCategory, LookupValue } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import {
@@ -15,10 +16,13 @@ import {
 } from "./queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import {
   Select,
   SelectContent,
@@ -27,14 +31,6 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import {
@@ -48,60 +44,91 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { ChevronRight, Edit2, Plus, Tag, Trash2 } from "lucide-react"
+import {
+  activeStatusMeta,
+  matchBooleanActiveFilter,
+  matchTextColumnFilter,
+  textSearchMeta,
+} from "../shared/column-filters"
+import { sortByColumn, useClientListTable } from "../shared/client-list"
+import { ListTableToolbar } from "../shared/list-table-toolbar"
+
+const DEFAULT_PAGE_SIZE = 10
 
 const scopeTypeValues = ["global", "tenant", "org", "branch", "department"] as const
 
-const SCOPE_TYPES = [
-  { value: "global", label: "Toan cuc (Global)" },
-  { value: "tenant", label: "Khach hang (Tenant)" },
-  { value: "org", label: "To chuc (Organization)" },
-  { value: "branch", label: "Chi nhanh (Branch)" },
-  { value: "department", label: "Phong ban (Department)" },
-] as const
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
-const categoryFormSchema = z
-  .object({
-    code: z.string().trim().min(1, "Ma danh muc la bat buoc").max(64, "Ma danh muc qua dai"),
-    name: z.string().trim().min(1, "Ten danh muc la bat buoc").max(255, "Ten danh muc qua dai"),
-    scope_type: z.enum(scopeTypeValues),
-    scope_id: z.string().trim().optional(),
-    is_system: z.boolean(),
-    description: z.string().trim().max(500, "Mo ta qua dai").optional(),
-  })
-  .superRefine((values, ctx) => {
-    if (values.scope_type !== "global" && !values.scope_id?.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Scope ID la bat buoc",
-        path: ["scope_id"],
-      })
-    }
-  })
-
-const valueFormSchema = z
-  .object({
-    code: z.string().trim().min(1, "Ma gia tri la bat buoc").max(64, "Ma gia tri qua dai"),
-    name: z.string().trim().min(1, "Ten hien thi la bat buoc").max(255, "Ten hien thi qua dai"),
-    sort_order: z.number().int("Thu tu phai la so nguyen").min(0, "Thu tu khong duoc am"),
-    is_active: z.boolean(),
-    metadata: z.string().trim().optional(),
-  })
-  .superRefine((values, ctx) => {
-    if (values.metadata?.trim()) {
-      try {
-        JSON.parse(values.metadata)
-      } catch {
+function buildCategorySchema(t: TranslateFn) {
+  return z
+    .object({
+      code: z
+        .string()
+        .trim()
+        .min(1, t("platform.lookups.validation.code_required"))
+        .max(64, t("platform.lookups.validation.code_too_long")),
+      name: z
+        .string()
+        .trim()
+        .min(1, t("platform.lookups.validation.name_required"))
+        .max(255, t("platform.lookups.validation.name_too_long")),
+      scope_type: z.enum(scopeTypeValues),
+      scope_id: z.string().trim().optional(),
+      is_system: z.boolean(),
+      description: z
+        .string()
+        .trim()
+        .max(500, t("platform.lookups.validation.description_too_long"))
+        .optional(),
+    })
+    .superRefine((values, ctx) => {
+      if (values.scope_type !== "global" && !values.scope_id?.trim()) {
         ctx.addIssue({
           code: "custom",
-          message: "Metadata JSON khong hop le",
-          path: ["metadata"],
+          message: t("platform.lookups.validation.scope_id_required"),
+          path: ["scope_id"],
         })
       }
-    }
-  })
+    })
+}
 
-type CategoryFormValues = z.infer<typeof categoryFormSchema>
-type ValueFormValues = z.infer<typeof valueFormSchema>
+function buildValueSchema(t: TranslateFn) {
+  return z
+    .object({
+      code: z
+        .string()
+        .trim()
+        .min(1, t("platform.lookups.validation.val_code_required"))
+        .max(64, t("platform.lookups.validation.val_code_too_long")),
+      name: z
+        .string()
+        .trim()
+        .min(1, t("platform.lookups.validation.val_name_required"))
+        .max(255, t("platform.lookups.validation.val_name_too_long")),
+      sort_order: z
+        .number()
+        .int(t("platform.lookups.validation.sort_integer"))
+        .min(0, t("platform.lookups.validation.sort_invalid")),
+      is_active: z.boolean(),
+      metadata: z.string().trim().optional(),
+    })
+    .superRefine((values, ctx) => {
+      if (values.metadata?.trim()) {
+        try {
+          JSON.parse(values.metadata)
+        } catch {
+          ctx.addIssue({
+            code: "custom",
+            message: t("platform.lookups.validation.metadata_invalid"),
+            path: ["metadata"],
+          })
+        }
+      }
+    })
+}
+
+type CategoryFormValues = z.infer<ReturnType<typeof buildCategorySchema>>
+type ValueFormValues = z.infer<ReturnType<typeof buildValueSchema>>
 
 const categoryDefaultValues: CategoryFormValues = {
   code: "",
@@ -142,6 +169,7 @@ function toValueFormValues(item: LookupValue): ValueFormValues {
 }
 
 export function LookupsPage() {
+  const { t } = useI18n()
   const [selectedCat, setSelectedCat] = useState<LookupCategory | null>(null)
   const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [editingCat, setEditingCat] = useState<LookupCategory | null>(null)
@@ -149,6 +177,10 @@ export function LookupsPage() {
   const [valDialogOpen, setValDialogOpen] = useState(false)
   const [editingVal, setEditingVal] = useState<LookupValue | null>(null)
   const [deleteValTarget, setDeleteValTarget] = useState<LookupValue | null>(null)
+
+  const categorySchema = useMemo(() => buildCategorySchema(t), [t])
+  const valueSchema = useMemo(() => buildValueSchema(t), [t])
+
   const {
     control: catControl,
     formState: { errors: catErrors, isSubmitting: isCatSubmitting },
@@ -158,7 +190,7 @@ export function LookupsPage() {
     setValue: setCatValue,
     watch: watchCat,
   } = useForm<CategoryFormValues>({
-    resolver: zodResolver(categoryFormSchema),
+    resolver: zodResolver(categorySchema),
     defaultValues: categoryDefaultValues,
   })
   const {
@@ -168,9 +200,10 @@ export function LookupsPage() {
     register: registerVal,
     reset: resetVal,
   } = useForm<ValueFormValues>({
-    resolver: zodResolver(valueFormSchema),
+    resolver: zodResolver(valueSchema),
     defaultValues: valueDefaultValues,
   })
+
   const catScopeType = watchCat("scope_type")
   const categoriesQuery = useLookupCategories()
   const valuesQuery = useLookupValues(selectedCat?.code)
@@ -178,6 +211,7 @@ export function LookupsPage() {
   const deleteCategoryMutation = useDeleteLookupCategory()
   const upsertValueMutation = useUpsertLookupValue(selectedCat?.code)
   const deleteValueMutation = useDeleteLookupValue(selectedCat?.code)
+
   const categories = categoriesQuery.data ?? []
   const values = valuesQuery.data ?? []
   const loadingCats = categoriesQuery.isLoading
@@ -185,9 +219,12 @@ export function LookupsPage() {
 
   useEffect(() => {
     if (categoriesQuery.error) {
-      notify.error("Khong the tai danh muc he thong", translateApiError(categoriesQuery.error))
+      notify.error(
+        t("platform.lookups.load_categories_failed"),
+        translateApiError(categoriesQuery.error)
+      )
     }
-  }, [categoriesQuery.error])
+  }, [categoriesQuery.error, t])
 
   useEffect(() => {
     if (!selectedCat && categories.length > 0) {
@@ -197,9 +234,12 @@ export function LookupsPage() {
 
   useEffect(() => {
     if (valuesQuery.error) {
-      notify.error("Khong the tai danh sach gia tri", translateApiError(valuesQuery.error))
+      notify.error(
+        t("platform.lookups.load_values_failed"),
+        translateApiError(valuesQuery.error)
+      )
     }
-  }, [valuesQuery.error])
+  }, [valuesQuery.error, t])
 
   const openCreateCat = () => {
     setEditingCat(null)
@@ -313,154 +353,169 @@ export function LookupsPage() {
     }
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">Danh muc he thong</h2>
-          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
-            Lookups
+  const columns = useMemo<ColumnDef<LookupValue>[]>(
+    () => [
+      {
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.lookups.field.code")} />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-primary">{row.original.code}</span>
+        ),
+      },
+      {
+        id: "name",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.lookups.field.name")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("platform.lookups.field.name"),
+          t("platform.lookups.placeholder.search")
+        ),
+        cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
+      },
+      {
+        accessorKey: "sort_order",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.lookups.field.sort_order")} />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.sort_order}</span>
+        ),
+      },
+      {
+        id: "is_active",
+        accessorKey: "is_active",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("platform.lookups.field.status")} />
+        ),
+        enableColumnFilter: true,
+        meta: activeStatusMeta(
+          t("platform.lookups.field.status"),
+          t("platform.lookups.status.active"),
+          t("platform.lookups.status.inactive")
+        ),
+        cell: ({ row }) => (
+          <Status variant={row.original.is_active ? "success" : "default"}>
+            <StatusIndicator />
+            <StatusLabel>
+              {row.original.is_active
+                ? t("platform.lookups.status.active")
+                : t("platform.lookups.status.inactive")}
+            </StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right text-xs font-semibold text-foreground/80">
+            {t("common.field.action")}
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7"
+              title={t("common.action.edit")}
+              onClick={() => openEditVal(row.original)}
+            >
+              <Edit2 className="size-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-destructive"
+              title={t("common.action.delete")}
+              onClick={() => setDeleteValTarget(row.original)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t]
+  )
+
+  const { table, total: valuesTotal } = useClientListTable({
+    columns,
+    items: values,
+    filterBy: {
+      name: (item, value) => matchTextColumnFilter(value, item.code, item.name),
+      is_active: (item, value) => matchBooleanActiveFilter(item, value),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        name: (a, b) => a.name.localeCompare(b.name),
+        sort_order: (a, b) => a.sort_order - b.sort_order,
+        is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
+  const valuesPanel = !selectedCat ? (
+    <div className="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-muted/50 text-sm text-muted-foreground">
+      {t("platform.lookups.values.select_category")}
+    </div>
+  ) : loadingValues && values.length === 0 ? (
+    <DataTableSkeleton className="min-h-0 flex-1" columnCount={5} rowCount={8} filterCount={1} />
+  ) : (
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex shrink-0 items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold">
+            {t("platform.lookups.values.title", { name: selectedCat.name })}
+          </p>
+          {selectedCat.description && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{selectedCat.description}</p>
+          )}
+          <Badge variant="secondary" className="mt-1.5 px-2 py-0 text-[10px] font-bold">
+            {t("platform.lookups.values.count", { count: valuesTotal })}
           </Badge>
         </div>
       </div>
+      <DataTable layout="panel" table={table} className="min-h-0 flex-1">
+        <ListTableToolbar
+          table={table}
+          onCreate={openCreateVal}
+          createLabel={t("platform.lookups.values.create")}
+        />
+      </DataTable>
+    </div>
+  )
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Card className="flex h-[600px] flex-col overflow-hidden rounded-2xl border-muted/50 shadow-sm md:col-span-1">
-          <CardContent className="flex h-full flex-col p-0">
-            <div className="flex items-center justify-between border-b border-muted bg-muted/5 p-4">
-              <span className="text-sm font-bold text-foreground">Loai danh muc</span>
-              <Button size="sm" variant="outline" className="h-7 gap-1 px-2 text-xs font-semibold" onClick={openCreateCat}>
-                <Plus className="size-3" /> Them moi
-              </Button>
-            </div>
-
-            <div className="flex-1 divide-y divide-muted/30 overflow-y-auto">
-              {loadingCats ? (
-                <div className="p-8 text-center text-xs text-muted-foreground">Dang tai danh muc...</div>
-              ) : categories.length === 0 ? (
-                <div className="p-8 text-center text-xs text-muted-foreground">Chua co danh muc nao.</div>
-              ) : (
-                categories.map((cat) => {
-                  const isSelected = selectedCat?.id === cat.id
-                  return (
-                    <div
-                      key={cat.id}
-                      onClick={() => setSelectedCat(cat)}
-                      className={`flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-muted/10 ${
-                        isSelected ? "border-r-2 border-primary bg-primary/5" : ""
-                      }`}
-                    >
-                      <div className="max-w-[70%] space-y-1">
-                        <div className="flex items-center gap-1.5 truncate text-sm font-semibold">
-                          <Tag className="size-3.5 shrink-0 text-muted-foreground" />
-                          <span className={isSelected ? "text-primary" : "text-foreground"}>{cat.name}</span>
-                        </div>
-                        <div className="truncate font-mono text-[10px] text-muted-foreground">{cat.code}</div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 opacity-60 hover:opacity-100">
-                        <Button size="icon" variant="ghost" className="size-6" onClick={(event) => openEditCat(cat, event)}>
-                          <Edit2 className="size-3" />
-                        </Button>
-                        {!cat.is_system && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-6 text-destructive"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              setDeleteCatTarget(cat)
-                            }}
-                          >
-                            <Trash2 className="size-3" />
-                          </Button>
-                        )}
-                        <ChevronRight className="ml-1 size-3.5 text-muted-foreground" />
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="flex h-[600px] flex-col overflow-hidden rounded-2xl border-muted/50 shadow-sm md:col-span-2">
-          <CardContent className="flex h-full flex-col p-0">
-            <div className="flex items-center justify-between border-b border-muted bg-muted/5 p-4">
-              <div>
-                <span className="text-sm font-bold text-foreground">
-                  Gia tri cua: <span className="text-primary">{selectedCat ? selectedCat.name : "..."}</span>
-                </span>
-                {selectedCat?.description && <p className="mt-1 text-xs font-normal text-muted-foreground">{selectedCat.description}</p>}
-              </div>
-              <Button size="sm" disabled={!selectedCat} className="h-7 gap-1.5 px-3.5 text-xs font-semibold" onClick={openCreateVal}>
-                <Plus className="size-3.5" /> Them gia tri
-              </Button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {loadingValues ? (
-                <div className="p-8 text-center text-sm text-muted-foreground">Dang tai gia tri...</div>
-              ) : !selectedCat ? (
-                <div className="p-12 text-center text-sm text-muted-foreground">Chon danh muc o ben trai de quan ly gia tri.</div>
-              ) : values.length === 0 ? (
-                <div className="p-12 text-center text-sm text-muted-foreground">Danh muc nay chua co gia tri nao.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-6">Ma</TableHead>
-                      <TableHead>Ten hien thi</TableHead>
-                      <TableHead>Sap xep</TableHead>
-                      <TableHead>Trang thai</TableHead>
-                      <TableHead className="pr-6 text-right">Thao tac</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {values.map((value) => (
-                      <TableRow key={value.id}>
-                        <TableCell className="pl-6 font-mono text-xs text-primary">{value.code}</TableCell>
-                        <TableCell className="font-semibold">{value.name}</TableCell>
-                        <TableCell className="font-mono text-xs">{value.sort_order}</TableCell>
-                        <TableCell>
-                          <Status variant={value.is_active ? "success" : "default"}>
-                            <StatusIndicator />
-                            <StatusLabel>{value.is_active ? "Bat" : "Tat"}</StatusLabel>
-                          </Status>
-                        </TableCell>
-                        <TableCell className="pr-6 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button size="icon" variant="ghost" className="size-7" onClick={() => openEditVal(value)}>
-                              <Edit2 className="size-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleteValTarget(value)}>
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
+  const dialogs = (
+    <>
       <Dialog open={catDialogOpen} onOpenChange={handleCatDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingCat ? "Cap nhat danh muc" : "Them danh muc moi"}</DialogTitle>
-            <DialogDescription>Nhom danh muc phan loai du lieu he thong.</DialogDescription>
+            <DialogTitle>
+              {editingCat
+                ? t("platform.lookups.category.edit")
+                : t("platform.lookups.category.create_title")}
+            </DialogTitle>
+            <DialogDescription>{t("platform.lookups.category.dialog_description")}</DialogDescription>
           </DialogHeader>
 
           <form autoComplete="off" onSubmit={submitCategory} className="space-y-4 py-2">
-            <FormField label="Ma danh muc" htmlFor="cat_code" error={catErrors.code?.message}>
+            <FormField
+              label={t("platform.lookups.field.code")}
+              htmlFor="cat_code"
+              error={catErrors.code?.message}
+            >
               <Input
                 id="cat_code"
-                placeholder="DOC_TYPE"
+                placeholder={t("platform.lookups.placeholder.cat_code")}
                 aria-invalid={Boolean(catErrors.code)}
                 disabled={!!editingCat}
                 className="font-mono uppercase"
@@ -472,17 +527,25 @@ export function LookupsPage() {
                 })}
               />
             </FormField>
-            <FormField label="Ten danh muc" htmlFor="cat_name" error={catErrors.name?.message}>
+            <FormField
+              label={t("platform.lookups.field.name")}
+              htmlFor="cat_name"
+              error={catErrors.name?.message}
+            >
               <Input
                 id="cat_name"
-                placeholder="Loai tai lieu"
+                placeholder={t("platform.lookups.placeholder.cat_name")}
                 aria-invalid={Boolean(catErrors.name)}
                 spellCheck={false}
                 {...registerCat("name")}
               />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Pham vi hieu luc" htmlFor="cat_scope_type" error={catErrors.scope_type?.message}>
+              <FormField
+                label={t("platform.lookups.field.scope_type")}
+                htmlFor="cat_scope_type"
+                error={catErrors.scope_type?.message}
+              >
                 <Controller
                   control={catControl}
                   name="scope_type"
@@ -498,9 +561,9 @@ export function LookupsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {SCOPE_TYPES.map((scope) => (
-                          <SelectItem key={scope.value} value={scope.value}>
-                            {scope.label}
+                        {scopeTypeValues.map((scope) => (
+                          <SelectItem key={scope} value={scope}>
+                            {t(`platform.lookups.scope_type.${scope}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -509,10 +572,14 @@ export function LookupsPage() {
                 />
               </FormField>
               {catScopeType !== "global" && (
-                <FormField label="Ma pham vi" htmlFor="cat_scope_id" error={catErrors.scope_id?.message}>
+                <FormField
+                  label={t("platform.lookups.field.scope_id")}
+                  htmlFor="cat_scope_id"
+                  error={catErrors.scope_id?.message}
+                >
                   <Input
                     id="cat_scope_id"
-                    placeholder="Ma ID hieu luc"
+                    placeholder={t("platform.lookups.placeholder.scope_id")}
                     aria-invalid={Boolean(catErrors.scope_id)}
                     spellCheck={false}
                     {...registerCat("scope_id")}
@@ -520,10 +587,14 @@ export function LookupsPage() {
                 </FormField>
               )}
             </div>
-            <FormField label="Mo ta" htmlFor="cat_description" error={catErrors.description?.message}>
+            <FormField
+              label={t("platform.lookups.field.description")}
+              htmlFor="cat_description"
+              error={catErrors.description?.message}
+            >
               <Input
                 id="cat_description"
-                placeholder="Mo ta cong dung cua nhom danh muc..."
+                placeholder={t("platform.lookups.placeholder.cat_description")}
                 aria-invalid={Boolean(catErrors.description)}
                 spellCheck={false}
                 {...registerCat("description")}
@@ -532,10 +603,12 @@ export function LookupsPage() {
 
             <div className="flex gap-2 sm:justify-end">
               <Button variant="outline" type="button" onClick={() => handleCatDialogOpenChange(false)}>
-                Huy
+                {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={isCatSubmitting || upsertCategoryMutation.isPending}>
-                {isCatSubmitting ? "Dang luu..." : "Luu lai"}
+                {isCatSubmitting || upsertCategoryMutation.isPending
+                  ? t("common.action.saving")
+                  : t("common.action.save")}
               </Button>
             </div>
           </form>
@@ -545,16 +618,24 @@ export function LookupsPage() {
       <Dialog open={valDialogOpen} onOpenChange={handleValDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingVal ? "Cap nhat gia tri" : "Them gia tri danh muc"}</DialogTitle>
-            <DialogDescription>Them cac lua chon chi tiet cho danh muc du lieu.</DialogDescription>
+            <DialogTitle>
+              {editingVal
+                ? t("platform.lookups.value.edit")
+                : t("platform.lookups.value.create_title")}
+            </DialogTitle>
+            <DialogDescription>{t("platform.lookups.value.dialog_description")}</DialogDescription>
           </DialogHeader>
 
           <form autoComplete="off" onSubmit={submitValue} className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Ma gia tri" htmlFor="val_code" error={valErrors.code?.message}>
+              <FormField
+                label={t("platform.lookups.field.code")}
+                htmlFor="val_code"
+                error={valErrors.code?.message}
+              >
                 <Input
                   id="val_code"
-                  placeholder="ID_CARD"
+                  placeholder={t("platform.lookups.placeholder.val_code")}
                   aria-invalid={Boolean(valErrors.code)}
                   disabled={!!editingVal}
                   className="font-mono uppercase"
@@ -566,10 +647,14 @@ export function LookupsPage() {
                   })}
                 />
               </FormField>
-              <FormField label="Ten hien thi" htmlFor="val_name" error={valErrors.name?.message}>
+              <FormField
+                label={t("platform.lookups.field.name")}
+                htmlFor="val_name"
+                error={valErrors.name?.message}
+              >
                 <Input
                   id="val_name"
-                  placeholder="Chung minh nhan dan"
+                  placeholder={t("platform.lookups.placeholder.val_name")}
                   aria-invalid={Boolean(valErrors.name)}
                   spellCheck={false}
                   {...registerVal("name")}
@@ -578,7 +663,11 @@ export function LookupsPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Thu tu sap xep" htmlFor="val_sort" error={valErrors.sort_order?.message}>
+              <FormField
+                label={t("platform.lookups.field.sort_order")}
+                htmlFor="val_sort"
+                error={valErrors.sort_order?.message}
+              >
                 <Input
                   id="val_sort"
                   type="number"
@@ -597,17 +686,21 @@ export function LookupsPage() {
                       onCheckedChange={(checked) => field.onChange(checked === true)}
                     />
                     <label htmlFor="val_active" className="cursor-pointer select-none text-sm font-medium">
-                      Kich hoat su dung
+                      {t("platform.lookups.field.is_active")}
                     </label>
                   </div>
                 )}
               />
             </div>
 
-            <FormField label="Metadata cau hinh (JSON)" htmlFor="val_meta" error={valErrors.metadata?.message}>
+            <FormField
+              label={t("platform.lookups.field.metadata")}
+              htmlFor="val_meta"
+              error={valErrors.metadata?.message}
+            >
               <Textarea
                 id="val_meta"
-                placeholder='{ "icon": "card-icon" }'
+                placeholder={t("platform.lookups.placeholder.val_metadata")}
                 className="font-mono"
                 spellCheck={false}
                 aria-invalid={Boolean(valErrors.metadata)}
@@ -617,10 +710,12 @@ export function LookupsPage() {
 
             <div className="flex gap-2 sm:justify-end">
               <Button variant="outline" type="button" onClick={() => handleValDialogOpenChange(false)}>
-                Huy
+                {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={isValSubmitting || upsertValueMutation.isPending}>
-                {isValSubmitting ? "Dang luu..." : "Luu lai"}
+                {isValSubmitting || upsertValueMutation.isPending
+                  ? t("common.action.saving")
+                  : t("common.action.save")}
               </Button>
             </div>
           </form>
@@ -630,19 +725,21 @@ export function LookupsPage() {
       <AlertDialog open={!!deleteCatTarget} onOpenChange={() => setDeleteCatTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xac nhan xoa danh muc?</AlertDialogTitle>
+            <AlertDialogTitle>{t("platform.lookups.delete.category_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Hanh dong nay se xoa danh muc <strong>{deleteCatTarget?.name}</strong> cung toan bo cac gia tri con truc thuoc.
+              {t("platform.lookups.delete.category_description", {
+                name: deleteCatTarget?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huy</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCatDelete}
               disabled={deleteCategoryMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xoa bo
+              {t("platform.lookups.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -651,23 +748,123 @@ export function LookupsPage() {
       <AlertDialog open={!!deleteValTarget} onOpenChange={() => setDeleteValTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xac nhan xoa gia tri?</AlertDialogTitle>
+            <AlertDialogTitle>{t("platform.lookups.delete.value_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Ban chac chan muon xoa gia tri <strong>{deleteValTarget?.name}</strong> khoi danh muc nay?
+              {t("platform.lookups.delete.value_description", {
+                name: deleteValTarget?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huy</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleValDelete}
               disabled={deleteValueMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xoa bo
+              {t("platform.lookups.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
+  )
+
+  return (
+    <section className="flex h-full min-h-0 flex-col gap-4 p-4">
+      <PageHeader
+        title={t("platform.lookups.title")}
+        meta={
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+            {t("platform.lookups.count", { count: categories.length })}
+          </Badge>
+        }
+      />
+
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-muted/50 md:col-span-1">
+          <div className="flex shrink-0 items-center justify-between border-b border-muted bg-muted/5 p-4">
+            <span className="text-sm font-bold">{t("platform.lookups.categories.title")}</span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1 px-2 text-xs font-semibold"
+              onClick={openCreateCat}
+            >
+              <Plus className="size-3" />
+              {t("platform.lookups.categories.create")}
+            </Button>
+          </div>
+
+          <div className="min-h-0 flex-1 divide-y divide-muted/30 overflow-y-auto">
+            {loadingCats ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                {t("platform.lookups.categories.loading")}
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                {t("platform.lookups.categories.empty")}
+              </div>
+            ) : (
+              categories.map((cat) => {
+                const isSelected = selectedCat?.id === cat.id
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => setSelectedCat(cat)}
+                    className={`flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-muted/10 ${
+                      isSelected ? "border-r-2 border-primary bg-primary/5" : ""
+                    }`}
+                  >
+                    <div className="max-w-[70%] space-y-1">
+                      <div className="flex items-center gap-1.5 truncate text-sm font-semibold">
+                        <Tag className="size-3.5 shrink-0 text-muted-foreground" />
+                        <span className={isSelected ? "text-primary" : "text-foreground"}>
+                          {cat.name}
+                        </span>
+                      </div>
+                      <div className="truncate font-mono text-[10px] text-muted-foreground">
+                        {cat.code}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 opacity-60 hover:opacity-100">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-6"
+                        title={t("common.action.edit")}
+                        onClick={(event) => openEditCat(cat, event)}
+                      >
+                        <Edit2 className="size-3" />
+                      </Button>
+                      {!cat.is_system && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6 text-destructive"
+                          title={t("common.action.delete")}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setDeleteCatTarget(cat)
+                          }}
+                        >
+                          <Trash2 className="size-3" />
+                        </Button>
+                      )}
+                      <ChevronRight className="ml-1 size-3.5 text-muted-foreground" />
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-col md:col-span-2">{valuesPanel}</div>
+      </div>
+
+      {dialogs}
+    </section>
   )
 }

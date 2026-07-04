@@ -21,7 +21,9 @@ export function useParameterDependencies() {
   return useQuery({
     queryKey: parameterKeys.dependencies(),
     queryFn: async () => ({
-      orgs: await platformApi.listOrganizations().catch(() => []),
+      orgs: (await platformApi.listOrganizations({ view: "options" }).catch(() => ({
+        items: [],
+      }))).items,
     }),
   })
 }

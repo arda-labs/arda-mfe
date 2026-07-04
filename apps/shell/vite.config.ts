@@ -11,6 +11,7 @@ const backend = {
   workflow: "http://localhost:8093",
   crm: "http://localhost:8094",
   notification: "http://localhost:8095",
+  hrm: "http://localhost:8097",
 }
 
 const sharedDependencies = {
@@ -70,6 +71,16 @@ export default defineConfig(({ command }) => ({
               : "/mfes/finance/remoteEntry.js"),
           shareScope: "default",
         },
+        hrm: {
+          type: "module",
+          name: "hrm",
+          entry:
+            process.env.HRM_REMOTE_ENTRY ??
+            (command === "serve"
+              ? "http://localhost:5105/remoteEntry.js"
+              : "/mfes/hrm/remoteEntry.js"),
+          shareScope: "default",
+        },
         account: {
           type: "module",
           name: "account",
@@ -104,6 +115,7 @@ export default defineConfig(({ command }) => ({
       "/api/media": { target: backend.media, changeOrigin: true },
       "/api/workflow": { target: backend.workflow, changeOrigin: true },
       "/api/crm": { target: backend.crm, changeOrigin: true },
+      "/api/hrm": { target: backend.hrm, changeOrigin: true },
       "/api/notifications": { target: backend.notification, changeOrigin: true },
     },
   },

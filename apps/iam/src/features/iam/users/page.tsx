@@ -44,9 +44,9 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
-import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table-toolbar"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Check, X, Trash2, KeyRound, ShieldCheck, MonitorCog, SearchCheck, Pencil, MoreHorizontal } from "lucide-react"
 import type { IdentityConsistencyIssue } from "@/features/iam"
@@ -356,7 +356,9 @@ export function UsersPage() {
     {
       id: "username",
       accessorKey: "username",
-      header: t("admin.users.field.username"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.users.field.username")} />
+      ),
       enableColumnFilter: true,
       meta: {
         label: t("admin.users.field.username"),
@@ -366,12 +368,16 @@ export function UsersPage() {
     },
     {
       accessorKey: "email",
-      header: t("common.field.email"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.email")} />
+      ),
     },
     {
       id: "status",
       accessorKey: "status",
-      header: t("common.field.status"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.status")} />
+      ),
       enableColumnFilter: true,
       meta: {
         label: t("common.field.status"),
@@ -393,12 +399,16 @@ export function UsersPage() {
     },
     {
       accessorKey: "roles",
-      header: t("admin.roles.title"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("admin.roles.title")} />
+      ),
       cell: ({ row }) => row.original.roles.join(", ") || "-",
     },
     {
       accessorKey: "createdAt",
-      header: t("common.field.created"),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label={t("common.field.created")} />
+      ),
       cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
@@ -534,49 +544,8 @@ export function UsersPage() {
     }
   }, [roleOptions.error, sessionsQuery.error, t, usersQuery.error])
 
-  if (loading && users.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-foreground">{t("admin.users.title")}</h2>
-        </div>
-        <DataTableSkeleton columnCount={7} rowCount={10} filterCount={2} />
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      {/* Title & Count Badge */}
-      <div className="flex items-center gap-3">
-        <h2 className="text-lg font-bold text-foreground">{t("admin.users.title")}</h2>
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
-          {t("admin.users.count", { count: total })}
-        </Badge>
-      </div>
-
-      {/* Dice UI DataTable Layout */}
-      <DataTable table={table}>
-        <DataTableToolbar table={table}>
-          <Button
-            variant="outline"
-            onClick={handleAuditIdentity}
-            disabled={auditIdentityConsistency.isPending}
-            className="h-8 px-3 text-xs font-semibold cursor-pointer"
-          >
-            <SearchCheck className="mr-2 size-3.5" />
-            {t("admin.users.action.audit_identity")}
-          </Button>
-          <Button
-            onClick={() => setCreateOpen(true)}
-            className="h-8 px-3 text-xs font-semibold cursor-pointer"
-          >
-            {t("admin.users.create")}
-          </Button>
-        </DataTableToolbar>
-      </DataTable>
-
-      {/* Create Dialog */}
+  const dialogs = (
+    <>
       <Dialog open={createOpen} onOpenChange={handleCreateOpenChange}>
         <DialogContent className="overflow-hidden">
           <DialogHeader>
@@ -876,6 +845,40 @@ export function UsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
+  )
+
+  return (
+    <ListPageShell
+      title={t("admin.users.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("admin.users.count", { count: total })}
+        </Badge>
+      }
+      loading={loading}
+      isEmpty={users.length === 0}
+      skeletonColumns={7}
+      skeletonFilters={2}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setCreateOpen(true)}
+          createLabel={t("admin.users.create")}
+        >
+          <Button
+            variant="outline"
+            onClick={handleAuditIdentity}
+            disabled={auditIdentityConsistency.isPending}
+            className="h-8 px-3 text-xs font-semibold"
+          >
+            <SearchCheck className="mr-2 size-3.5" />
+            {t("admin.users.action.audit_identity")}
+          </Button>
+        </ListTableToolbar>
+      }
+      dialogs={dialogs}
+    />
   )
 }

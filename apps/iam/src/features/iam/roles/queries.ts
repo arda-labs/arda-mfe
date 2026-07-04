@@ -4,12 +4,12 @@ import { permissionKeys } from "@/features/iam/permissions/queries"
 
 export const roleKeys = {
   all: ["iam", "roles"] as const,
-  list: (params: { page: number; size: number; search?: string }) =>
+  list: (params: { page: number; size: number; search?: string; status?: string }) =>
     [...roleKeys.all, "list", params] as const,
   permissions: (roleId: string) => [...roleKeys.all, "permissions", roleId] as const,
 }
 
-export function useRoles(params: { page: number; size: number; search?: string }) {
+export function useRoles(params: { page: number; size: number; search?: string; status?: string }) {
   return useQuery({
     queryKey: roleKeys.list(params),
     queryFn: () => adminApi.listRoles(params),

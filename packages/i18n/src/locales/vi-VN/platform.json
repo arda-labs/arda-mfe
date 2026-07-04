@@ -1,5 +1,513 @@
 {
   "lookup": {
     "not_found": "Không tìm thấy danh mục"
+  },
+  "area_types": {
+    "title": "Loại khu vực",
+    "count": "{count} loại",
+    "create": "Thêm loại khu vực",
+    "edit": "Cập nhật loại khu vực",
+    "create_title": "Thêm loại khu vực",
+    "dialog_description": "Quản lý danh mục loại khu vực dùng chung.",
+    "load_failed": "Không thể tải danh sách loại khu vực",
+    "field": {
+      "code": "Mã loại",
+      "name": "Tên loại",
+      "sort_order": "Thứ tự",
+      "status": "Trạng thái",
+      "is_active": "Đang hoạt động",
+      "actions": "Thao tác"
+    },
+    "placeholder": {
+      "search": "Tìm theo mã hoặc tên...",
+      "filter_all": "Tất cả trạng thái"
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Ngưng hiệu lực"
+    },
+    "validation": {
+      "code_required": "Mã loại khu vực là bắt buộc",
+      "code_too_long": "Mã loại khu vực quá dài",
+      "name_required": "Tên loại khu vực là bắt buộc",
+      "name_too_long": "Tên loại khu vực quá dài",
+      "sort_integer": "Thứ tự phải là số nguyên",
+      "sort_invalid": "Thứ tự không hợp lệ"
+    },
+    "delete": {
+      "title": "Xác nhận xóa loại khu vực?",
+      "description": "Bạn chắc chắn muốn xóa {name} khỏi danh mục?",
+      "confirm": "Xóa bỏ"
+    },
+    "empty": "Chưa có loại khu vực nào."
+  },
+  "organizations": {
+    "title": "Đơn vị & Tổ chức",
+    "count": "{count} đơn vị",
+    "create": "Thêm đơn vị",
+    "edit": "Cập nhật đơn vị",
+    "create_title": "Thêm đơn vị mới",
+    "dialog_description": "Nhập thông tin cấu trúc tổ chức hoặc đơn vị.",
+    "load_failed": "Không thể tải danh sách đơn vị",
+    "view": {
+      "list": "Danh sách",
+      "tree": "Sơ đồ cây"
+    },
+    "field": {
+      "code": "Mã đơn vị",
+      "name": "Tên đơn vị",
+      "parent": "Đơn vị cấp trên",
+      "address": "Địa chỉ",
+      "is_active": "Đơn vị đang hoạt động"
+    },
+    "placeholder": {
+      "code": "ORG_01",
+      "name": "Văn phòng đại diện",
+      "address": "Địa chỉ trụ sở",
+      "parent_none": "Không có",
+      "search": "Tìm theo tên đơn vị..."
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Tạm ngưng"
+    },
+    "validation": {
+      "code_required": "Mã đơn vị là bắt buộc",
+      "code_too_long": "Mã đơn vị quá dài",
+      "name_required": "Tên đơn vị là bắt buộc",
+      "name_too_long": "Tên đơn vị quá dài",
+      "address_too_long": "Địa chỉ quá dài"
+    },
+    "delete": {
+      "title": "Xác nhận xóa đơn vị?",
+      "description": "Hành động này sẽ ngưng kích hoạt đơn vị {name}. Cấu trúc cây cấp dưới liên quan cũng có thể bị ảnh hưởng.",
+      "confirm": "Xóa bỏ"
+    },
+    "empty": "Chưa có đơn vị nào được tạo.",
+    "toast": {
+      "create_success": "Thêm đơn vị thành công",
+      "update_success": "Cập nhật đơn vị thành công",
+      "delete_success": "Xóa đơn vị thành công",
+      "save_failed": "Lưu đơn vị thất bại",
+      "delete_failed": "Xóa đơn vị thất bại"
+    }
+  },
+  "provinces": {
+    "title": "Tỉnh thành",
+    "count": "{count} tỉnh thành",
+    "create": "Thêm tỉnh thành",
+    "edit": "Cập nhật tỉnh thành",
+    "create_title": "Thêm tỉnh thành",
+    "dialog_description": "Quản lý đơn vị địa giới hành chính cấp tỉnh/thành.",
+    "load_failed": "Không thể tải danh sách tỉnh thành",
+    "field": {
+      "code": "Mã tỉnh thành",
+      "name": "Tên tỉnh thành",
+      "full_name": "Tên đầy đủ",
+      "unit_type": "Loại đơn vị",
+      "country_code": "Mã quốc gia",
+      "region_code": "Mã vùng",
+      "effective_from": "Hiệu lực từ",
+      "effective_to": "Hiệu lực đến",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "placeholder": {
+      "search": "Tìm theo mã, tên...",
+      "filter_all": "Tất cả trạng thái"
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Tạm ngưng"
+    },
+    "validation": {
+      "code_required": "Mã tỉnh thành là bắt buộc",
+      "code_too_long": "Mã tỉnh thành quá dài",
+      "name_required": "Tên tỉnh thành là bắt buộc",
+      "name_too_long": "Tên tỉnh thành quá dài",
+      "full_name_too_long": "Tên đầy đủ quá dài",
+      "unit_type_required": "Loại đơn vị là bắt buộc",
+      "unit_type_too_long": "Loại đơn vị quá dài",
+      "country_code_required": "Mã quốc gia là bắt buộc",
+      "country_code_too_long": "Mã quốc gia quá dài",
+      "region_code_too_long": "Mã vùng quá dài"
+    },
+    "empty": "Chưa có tỉnh thành nào.",
+    "toast": {
+      "create_success": "Thêm tỉnh thành thành công",
+      "update_success": "Cập nhật tỉnh thành thành công",
+      "save_failed": "Lưu tỉnh thành thất bại"
+    }
+  },
+  "wards": {
+    "title": "Phường xã",
+    "count": "{count} phường xã",
+    "create": "Thêm phường xã",
+    "edit": "Cập nhật phường xã",
+    "create_title": "Thêm phường xã",
+    "dialog_description": "Quản lý đơn vị địa giới hành chính cấp phường/xã.",
+    "load_failed": "Không thể tải danh sách phường xã",
+    "field": {
+      "code": "Mã phường xã",
+      "name": "Tên phường xã",
+      "full_name": "Tên đầy đủ",
+      "parent": "Tỉnh thành",
+      "unit_type": "Loại đơn vị",
+      "country_code": "Mã quốc gia",
+      "region_code": "Mã vùng",
+      "effective_from": "Hiệu lực từ",
+      "effective_to": "Hiệu lực đến",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "placeholder": {
+      "search": "Tìm theo mã, tên...",
+      "filter_all": "Tất cả trạng thái",
+      "parent": "Chọn tỉnh thành",
+      "parent_all": "Tất cả tỉnh thành"
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Tạm ngưng"
+    },
+    "validation": {
+      "code_required": "Mã phường xã là bắt buộc",
+      "code_too_long": "Mã phường xã quá dài",
+      "name_required": "Tên phường xã là bắt buộc",
+      "name_too_long": "Tên phường xã quá dài",
+      "full_name_too_long": "Tên đầy đủ quá dài",
+      "parent_required": "Tỉnh thành là bắt buộc",
+      "unit_type_required": "Loại đơn vị là bắt buộc",
+      "unit_type_too_long": "Loại đơn vị quá dài",
+      "country_code_required": "Mã quốc gia là bắt buộc",
+      "country_code_too_long": "Mã quốc gia quá dài",
+      "region_code_too_long": "Mã vùng quá dài"
+    },
+    "empty": "Chưa có phường xã nào.",
+    "toast": {
+      "create_success": "Thêm phường xã thành công",
+      "update_success": "Cập nhật phường xã thành công",
+      "save_failed": "Lưu phường xã thất bại"
+    }
+  },
+  "areas": {
+    "title": "Khu vực",
+    "count": "{count} khu vực",
+    "create": "Thêm khu vực",
+    "edit": "Cập nhật khu vực",
+    "create_title": "Thêm khu vực",
+    "dialog_description": "Quản lý khu vực nghiệp vụ với phân cấp cha con.",
+    "load_failed": "Không thể tải danh sách khu vực",
+    "field": {
+      "code": "Mã khu vực",
+      "name": "Tên khu vực",
+      "area_type": "Loại khu vực",
+      "parent": "Khu vực cha",
+      "admin_unit": "Đơn vị hành chính",
+      "status": "Trạng thái",
+      "description": "Ghi chú / mô tả",
+      "effective_from": "Hiệu lực từ (MM/DD/YYYY)",
+      "effective_to": "Hiệu lực đến (MM/DD/YYYY)"
+    },
+    "placeholder": {
+      "search": "Tìm theo mã, tên hoặc mô tả...",
+      "area_type": "Chọn loại khu vực",
+      "parent_none": "Không có",
+      "admin_unit_none": "Không liên kết",
+      "description": "Thông tin mô tả khu vực...",
+      "all_types": "Tất cả loại khu vực",
+      "all_status": "Tất cả trạng thái"
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Ngưng hiệu lực"
+    },
+    "validation": {
+      "code_required": "Mã khu vực là bắt buộc",
+      "code_too_long": "Mã khu vực quá dài",
+      "name_required": "Tên khu vực là bắt buộc",
+      "name_too_long": "Tên khu vực quá dài",
+      "area_type_required": "Loại khu vực là bắt buộc",
+      "description_too_long": "Mô tả quá dài"
+    },
+    "delete": {
+      "title": "Xác nhận ngưng hiệu lực khu vực?",
+      "description": "Hành động này sẽ chuyển khu vực {name} sang trạng thái ngưng hiệu lực.",
+      "confirm": "Xác nhận"
+    }
+  },
+  "parameters": {
+    "title": "Tham số hệ thống",
+    "count": "{count} tham số",
+    "create": "Thêm tham số",
+    "edit": "Cập nhật tham số",
+    "create_title": "Thêm tham số mới",
+    "dialog_description": "Tùy chỉnh thông tin cấu hình tham số động cho các phân hệ chức năng.",
+    "load_failed": "Không thể tải dữ liệu tham số",
+    "field": {
+      "key": "Tham số (Key)",
+      "value": "Giá trị (Value)",
+      "value_type": "Kiểu dữ liệu",
+      "scope": "Phạm vi (Scope)",
+      "scope_id": "Mã định danh phạm vi (Scope ID)",
+      "description": "Mô tả tham số",
+      "is_secret": "Đây là tham số bảo mật"
+    },
+    "placeholder": {
+      "search": "Tìm kiếm theo tên tham số hoặc mô tả...",
+      "key": "APP_ROUTING_TIMEOUT",
+      "value": "Nhập giá trị",
+      "value_json": "{ \"key\": \"value\" }",
+      "description": "Giải thích mục đích cấu hình tham số...",
+      "scope_id": "Mã {scope} cần áp dụng",
+      "org_select": "Chọn tổ chức...",
+      "org_search": "Tìm kiếm tổ chức..."
+    },
+    "value_type": {
+      "string": "Chuỗi (String)",
+      "number": "Số (Number)",
+      "boolean": "Boolean (Đúng/Sai)",
+      "json": "Cấu hình JSON",
+      "date": "Ngày tháng (Date)"
+    },
+    "scope_type": {
+      "global": "Toàn cục (Global)",
+      "tenant": "Khách hàng (Tenant)",
+      "org": "Tổ chức (Organization)",
+      "branch": "Chi nhánh (Branch)",
+      "department": "Phòng ban (Department)"
+    },
+    "secret": {
+      "masked": "************",
+      "empty": "[Bảo mật]"
+    },
+    "boolean": {
+      "true": "TRUE",
+      "false": "FALSE"
+    },
+    "validation": {
+      "key_required": "Khóa tham số là bắt buộc",
+      "key_too_long": "Khóa tham số quá dài",
+      "value_required": "Giá trị tham số là bắt buộc",
+      "scope_id_required": "Scope ID là bắt buộc",
+      "number_invalid": "Giá trị number không hợp lệ",
+      "json_invalid": "Giá trị JSON không hợp lệ",
+      "description_too_long": "Mô tả quá dài"
+    },
+    "delete": {
+      "title": "Xác nhận xóa tham số?",
+      "description": "Hành động này sẽ xóa hoàn toàn tham số {key} khỏi hệ thống và không thể khôi phục.",
+      "confirm": "Xóa bỏ"
+    },
+    "empty_orgs": "Không tìm thấy tổ chức nào."
+  },
+  "lookups": {
+    "title": "Danh mục hệ thống",
+    "count": "{count} danh mục",
+    "load_categories_failed": "Không thể tải danh mục hệ thống",
+    "load_values_failed": "Không thể tải danh sách giá trị",
+    "categories": {
+      "title": "Loại danh mục",
+      "create": "Thêm mới",
+      "loading": "Đang tải danh mục...",
+      "empty": "Chưa có danh mục nào."
+    },
+    "values": {
+      "title": "Giá trị của: {name}",
+      "create": "Thêm giá trị",
+      "loading": "Đang tải giá trị...",
+      "select_category": "Chọn danh mục ở bên trái để quản lý giá trị.",
+      "empty": "Danh mục này chưa có giá trị nào.",
+      "count": "{count} giá trị"
+    },
+    "field": {
+      "code": "Mã",
+      "name": "Tên hiển thị",
+      "sort_order": "Sắp xếp",
+      "status": "Trạng thái",
+      "scope_type": "Phạm vi hiệu lực",
+      "scope_id": "Mã phạm vi",
+      "description": "Mô tả",
+      "metadata": "Metadata cấu hình (JSON)",
+      "is_active": "Kích hoạt sử dụng"
+    },
+    "placeholder": {
+      "search": "Tìm theo mã hoặc tên...",
+      "cat_code": "DOC_TYPE",
+      "cat_name": "Loại tài liệu",
+      "cat_description": "Mô tả công dụng của nhóm danh mục...",
+      "scope_id": "Mã ID hiệu lực",
+      "val_code": "ID_CARD",
+      "val_name": "Chứng minh nhân dân",
+      "val_metadata": "{ \"icon\": \"card-icon\" }"
+    },
+    "scope_type": {
+      "global": "Toàn cục (Global)",
+      "tenant": "Khách hàng (Tenant)",
+      "org": "Tổ chức (Organization)",
+      "branch": "Chi nhánh (Branch)",
+      "department": "Phòng ban (Department)"
+    },
+    "status": {
+      "active": "Bật",
+      "inactive": "Tắt"
+    },
+    "category": {
+      "create_title": "Thêm danh mục mới",
+      "edit": "Cập nhật danh mục",
+      "dialog_description": "Nhóm danh mục phân loại dữ liệu hệ thống."
+    },
+    "value": {
+      "create_title": "Thêm giá trị danh mục",
+      "edit": "Cập nhật giá trị",
+      "dialog_description": "Thêm các lựa chọn chi tiết cho danh mục dữ liệu."
+    },
+    "validation": {
+      "code_required": "Mã danh mục là bắt buộc",
+      "code_too_long": "Mã danh mục quá dài",
+      "name_required": "Tên danh mục là bắt buộc",
+      "name_too_long": "Tên danh mục quá dài",
+      "scope_id_required": "Scope ID là bắt buộc",
+      "description_too_long": "Mô tả quá dài",
+      "val_code_required": "Mã giá trị là bắt buộc",
+      "val_code_too_long": "Mã giá trị quá dài",
+      "val_name_required": "Tên hiển thị là bắt buộc",
+      "val_name_too_long": "Tên hiển thị quá dài",
+      "sort_integer": "Thứ tự phải là số nguyên",
+      "sort_invalid": "Thứ tự không được âm",
+      "metadata_invalid": "Metadata JSON không hợp lệ"
+    },
+    "delete": {
+      "category_title": "Xác nhận xóa danh mục?",
+      "category_description": "Hành động này sẽ xóa danh mục {name} cùng toàn bộ các giá trị con trực thuộc.",
+      "value_title": "Xác nhận xóa giá trị?",
+      "value_description": "Bạn chắc chắn muốn xóa giá trị {name} khỏi danh mục này?",
+      "confirm": "Xóa bỏ"
+    }
+  },
+  "templates": {
+    "title": "Mẫu biểu hệ thống",
+    "count": "{count} mẫu biểu",
+    "create": "Thêm mẫu biểu",
+    "edit": "Cập nhật mẫu biểu",
+    "create_title": "Thêm mẫu biểu mới",
+    "dialog_description": "Tải file biểu mẫu và cấu hình sơ đồ dữ liệu mapping JSON chi tiết.",
+    "load_failed": "Không thể tải danh sách mẫu biểu",
+    "field": {
+      "code": "Mã mẫu biểu",
+      "name": "Tên mẫu biểu",
+      "description": "Mô tả mẫu biểu",
+      "file_type": "Định dạng file",
+      "file_url": "Đường dẫn file (Storage / S3)",
+      "file_attachment": "Tệp biểu mẫu đính kèm",
+      "mapping_config": "Cấu hình Mapping (JSON)",
+      "is_active": "Mẫu biểu đang hoạt động",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "placeholder": {
+      "code": "CONTRACT_TEMPL_V1",
+      "name": "Hợp đồng tín dụng mẫu",
+      "description": "Mô tả công dụng hoặc phạm vi của mẫu biểu...",
+      "mapping_config": "{\n  \"mappings\": []\n}",
+      "search": "Tìm theo mã, tên mẫu biểu..."
+    },
+    "status": {
+      "all": "Tất cả",
+      "active": "Hoạt động",
+      "inactive": "Tạm ngưng"
+    },
+    "action": {
+      "view_file": "Xem tệp tin mẫu",
+      "download_file": "Tải xuống tệp tin mẫu"
+    },
+    "upload": {
+      "uploading": "Đang tải file lên media-service... ({progress}%)",
+      "drag_drop": "Kéo thả file vào đây hoặc click để chọn file",
+      "supported_formats": "Hỗ trợ: .jrxml, .docx, .xlsx, .pdf, .html",
+      "linked": "Đã liên kết",
+      "template_file": "Template File",
+      "s3_link": "S3 Link",
+      "unrecognized": "Chưa nhận diện",
+      "success": "Đã tải file {name} lên media-service thành công",
+      "failed": "Tải file thất bại"
+    },
+    "file_size": {
+      "bytes": "Bytes",
+      "kb": "KB",
+      "mb": "MB"
+    },
+    "validation": {
+      "code_required": "Mã mẫu biểu là bắt buộc",
+      "code_too_long": "Mã mẫu biểu quá dài",
+      "name_required": "Tên mẫu biểu là bắt buộc",
+      "name_too_long": "Tên mẫu biểu quá dài",
+      "description_too_long": "Mô tả quá dài",
+      "file_type_required": "Định dạng file là bắt buộc",
+      "file_url_required": "Tệp biểu mẫu là bắt buộc",
+      "mapping_invalid": "Mapping JSON không hợp lệ"
+    },
+    "delete": {
+      "title": "Xác nhận xóa mẫu biểu?",
+      "description": "Hành động này sẽ xóa vĩnh viễn cấu hình mẫu biểu {name} khỏi danh sách quản lý. Đường dẫn file gốc trên Storage không bị ảnh hưởng.",
+      "confirm": "Xóa bỏ"
+    }
+  },
+  "credit_institutions": {
+    "title": "Tổ chức tín dụng",
+    "count": "{count} tổ chức",
+    "create": "Thêm tổ chức",
+    "edit": "Cập nhật tổ chức tín dụng",
+    "create_title": "Thêm tổ chức tín dụng",
+    "dialog_description": "Quản lý danh mục tổ chức tín dụng dùng chung cho hệ thống.",
+    "load_failed": "Không thể tải danh sách tổ chức tín dụng",
+    "field": {
+      "code": "Mã tổ chức",
+      "name": "Tên tổ chức",
+      "address": "Địa chỉ",
+      "status": "Trạng thái",
+      "effective_from": "Hiệu lực",
+      "short_name": "Tên viết tắt",
+      "phone": "Số điện thoại",
+      "email": "Email",
+      "license_no": "Số giấy phép",
+      "license_date": "Ngày cấp",
+      "tax_code": "Mã số thuế",
+      "website": "Website",
+      "note": "Ghi chú",
+      "actions": "Thao tác"
+    },
+    "placeholder": {
+      "code": "BIDV",
+      "name": "Ngân hàng thương mại cổ phần ...",
+      "address": "Địa chỉ trụ sở",
+      "search": "Tìm theo mã, tên, MST, số giấy phép...",
+      "note": "Thông tin bổ sung..."
+    },
+    "status": {
+      "all": "Tất cả",
+      "active": "Hoạt động",
+      "inactive": "Ngưng hiệu lực"
+    },
+    "validation": {
+      "code_required": "Mã tổ chức là bắt buộc",
+      "code_too_long": "Mã tổ chức quá dài",
+      "name_required": "Tên tổ chức là bắt buộc",
+      "name_too_long": "Tên tổ chức quá dài",
+      "address_required": "Địa chỉ là bắt buộc",
+      "address_too_long": "Địa chỉ quá dài",
+      "short_name_too_long": "Tên viết tắt quá dài",
+      "phone_too_long": "Số điện thoại quá dài",
+      "email_invalid": "Email không hợp lệ",
+      "license_no_too_long": "Số giấy phép quá dài",
+      "tax_code_too_long": "Mã số thuế quá dài",
+      "website_invalid": "Website không hợp lệ",
+      "note_too_long": "Ghi chú quá dài"
+    },
+    "delete": {
+      "title": "Xác nhận xóa tổ chức tín dụng?",
+      "description": "Bạn chắc chắn muốn xóa {name} khỏi danh mục?",
+      "confirm": "Xóa bỏ"
+    }
   }
 }

@@ -12,12 +12,15 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { getColumnPinningStyle } from "@workspace/ui/lib/data-table";
+import { utilityTableColumnClassName } from "@workspace/ui/lib/inject-row-index-column";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;
   actionBar?: React.ReactNode;
   defaultDensity?: DataTableDensity;
+  /** `panel` — toolbar + pagination fixed; only table body scrolls. */
+  layout?: "default" | "panel";
 }
 
 export type DataTableDensity = "compact" | "comfortable" | "spacious";
@@ -68,11 +71,13 @@ export function DataTable<TData>({
   children,
   className,
   defaultDensity = "compact",
+  layout = "default",
   ...props
 }: DataTableProps<TData>) {
   const [density, setDensity] =
     React.useState<DataTableDensity>(defaultDensity);
   const densityClass = densityStyles[density];
+  const isPanel = layout === "panel";
 
   return (
     <DataTableDensityContext.Provider
@@ -82,76 +87,104 @@ export function DataTable<TData>({
       )}
     >
       <div
-        className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
+        className={cn(
+          "flex w-full flex-col gap-2.5",
+          isPanel ? "min-h-0 flex-1" : "overflow-auto",
+          className,
+        )}
         {...props}
       >
         {children}
-        <div className="overflow-hidden rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      className={densityClass.head}
-                      style={{
-                        ...getColumnPinningStyle({ column: header.column }),
-                      }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
+        <div
+          className={cn(
+            "flex flex-col overflow-hidden rounded-md border bg-background",
+            isPanel ? "min-h-0 flex-1" : "",
+          )}
+        >
+          <div className={cn(isPanel && "min-h-0 flex-1 overflow-auto")}>
+            <Table className="table-fixed">
+              <TableHeader
+                className={cn(
+                  isPanel && "sticky top-0 z-10 bg-muted/50 shadow-[0_1px_0_0_hsl(var(--border))]",
+                )}
+              >
+                {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
+                    key={headerGroup.id}
+                    className={cn(
+                      isPanel && "border-b-0 hover:bg-transparent",
+                    )}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={densityClass.cell}
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        className={cn(
+                          densityClass.head,
+                          utilityTableColumnClassName(header.column.id),
+                          isPanel &&
+                            "bg-muted/50 font-semibold text-foreground/80",
+                        )}
                         style={{
-                          ...getColumnPinningStyle({ column: cell.column }),
+                          ...getColumnPinningStyle({ column: header.column }),
                         }}
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={table.getAllColumns().length}
-                    className={densityClass.empty}
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex flex-col gap-2.5">
-          <DataTablePagination table={table} />
-          {actionBar &&
-            table.getFilteredSelectedRowModel().rows.length > 0 &&
-            actionBar}
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            densityClass.cell,
+                            utilityTableColumnClassName(cell.column.id),
+                          )}
+                          style={{
+                            ...getColumnPinningStyle({ column: cell.column }),
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={table.getAllColumns().length}
+                      className={densityClass.empty}
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="shrink-0 border-t bg-background px-3 py-2">
+            <DataTablePagination table={table} className="p-0" />
+            {actionBar &&
+              table.getFilteredSelectedRowModel().rows.length > 0 &&
+              actionBar}
+          </div>
         </div>
       </div>
     </DataTableDensityContext.Provider>
