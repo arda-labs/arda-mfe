@@ -11,13 +11,23 @@ export class ApiClientError extends Error {
   code: string
   status: number
   fields?: Record<string, string>
+  // BE `error.request_id` — trace correlation cho dev debug. Parse ở
+  // parseApiClientError, lưu vào đây để dialog lỗi hiển thị + copy.
+  requestId?: string
 
-  constructor(code: string, message: string, status: number, fields?: Record<string, string>) {
+  constructor(
+    code: string,
+    message: string,
+    status: number,
+    fields?: Record<string, string>,
+    requestId?: string,
+  ) {
     super(message)
     this.name = "ApiClientError"
     this.code = code
     this.status = status
     this.fields = fields
+    this.requestId = requestId
   }
 }
 
@@ -69,7 +79,7 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
           return request<T>(method, path, body, true)
         }
       }
-      throw new ApiClientError(payload.code, payload.message, res.status, payload.fields)
+      throw new ApiClientError(payload.code, payload.message, res.status, payload.fields, payload.request_id)
     }
 
     return res.json()

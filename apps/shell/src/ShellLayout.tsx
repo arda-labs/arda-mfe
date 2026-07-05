@@ -57,6 +57,7 @@ import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { useAuthStore } from "../../../packages/auth/src/index"
 import {
+  GlobalErrorDialog,
   NotificationBell,
   useNotificationStream,
 } from "../../../packages/notifications/src/index"
@@ -546,6 +547,7 @@ export function ShellLayout({
             {children}
           </div>
           <Toaster />
+          <GlobalErrorDialog />
         </main>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ApiClientError } from "@workspace/core/http/api-client"
-import { ensureRecentAuth } from "@workspace/api"
+import { ensureRecentAuth } from "@workspace/auth"
 import { useListQuery } from "@workspace/core/query/list-query"
 import { adminApi } from "@/features/iam"
 import { roleKeys } from "@/features/iam/roles/queries"

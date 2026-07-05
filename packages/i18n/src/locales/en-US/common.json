@@ -25,7 +25,10 @@
     "logout": "Logout",
     "select_all": "Select all",
     "select_row": "Select row",
-    "retry": "Try again"
+    "retry": "Try again",
+    "close": "Close",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "confirm": {
     "delete_title": "Confirm delete",
@@ -48,7 +51,8 @@
       "title": "404",
       "body": "Page not found"
     },
-    "page_load_title": "Could not load this page"
+    "page_load_title": "Could not load this page",
+    "trace_id": "Trace ID"
   },
   "field": {
     "action": "Actions",

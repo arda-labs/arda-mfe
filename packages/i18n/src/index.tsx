@@ -88,8 +88,13 @@ export function translateApiError(
   const locale = getCurrentLocale()
   const fallback = translate(fallbackKey, locale)
 
-  if (input instanceof ApiErrorLike) {
-    return translate(input.code, locale) || input.message || fallback
+  if (input instanceof Error) {
+    const code = (input as { code?: unknown }).code
+    if (typeof code === "string" && code) {
+      const translated = translate(code, locale)
+      if (translated && translated !== code) return translated
+    }
+    return translate(input.message, locale) || input.message || fallback
   }
   if (input && typeof input === "object" && "code" in input) {
     const code = String((input as { code?: unknown }).code ?? "")
@@ -101,24 +106,6 @@ export function translateApiError(
   return fallback
 }
 
-export class ApiErrorLike extends Error {
-  code: string
-  status: number
-  fields?: Record<string, string>
-
-  constructor(
-    code: string,
-    message: string,
-    status: number,
-    fields?: Record<string, string>
-  ) {
-    super(message)
-    this.name = "ApiError"
-    this.code = code
-    this.status = status
-    this.fields = fields
-  }
-}
 
 function translate(
   key: string,
