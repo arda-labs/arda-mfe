@@ -25,9 +25,9 @@ export const remoteSharedDeps = {
   "@workspace/auth/": { singleton: true },
   "@workspace/notifications": { singleton: true },
   "@workspace/notifications/": { singleton: true },
-  // ponytail: react-toastify v11 không expose `toast` qua MF virtual share
-  // (MISSING_EXPORT). Để vendor thường; singleton @workspace/notifications
-  // đã đủ share toast store — nâng react-toastify MF share khi plugin hết bug.
+  // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
+  // ToastContainer từ cùng instance — thiếu share = toast remote không hiện UI shell.
+  "react-toastify": { singleton: true },
 } as const
 
 // Port cố định từng remote. app shell hardcode entry URL theo các port này,
