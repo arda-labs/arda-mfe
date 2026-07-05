@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "bun run --filter './apps/*' --filter './packages/*' build",
+    "build": "bun run --filter './apps/*' build",
     "clear:dev-ports": "bun ./scripts/clear-dev-ports.mjs",
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
