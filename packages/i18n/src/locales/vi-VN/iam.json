@@ -1,0 +1,20 @@
+{
+  "session": {
+    "limit_reached": "Đã đạt giới hạn phiên đăng nhập. Hãy đăng xuất thiết bị khác rồi thử lại."
+  },
+  "user": {
+    "not_found": "Không tìm thấy người dùng"
+  },
+  "role": {
+    "not_found": "Không tìm thấy vai trò"
+  },
+  "permission": {
+    "not_found": "Không tìm thấy quyền"
+  },
+  "superadmin": {
+    "last_active": "Không thể gỡ superadmin hoạt động cuối cùng",
+    "system_user_protected": "Tài khoản superadmin hệ thống được bảo vệ",
+    "role_protected": "Vai trò superadmin hệ thống được bảo vệ",
+    "permission_protected": "Quyền superadmin hệ thống được bảo vệ"
+  }
+}

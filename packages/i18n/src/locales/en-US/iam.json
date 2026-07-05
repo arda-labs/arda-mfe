@@ -1,0 +1,20 @@
+{
+  "session": {
+    "limit_reached": "Maximum concurrent sessions reached. Sign out on another device and try again."
+  },
+  "user": {
+    "not_found": "User not found"
+  },
+  "role": {
+    "not_found": "Role not found"
+  },
+  "permission": {
+    "not_found": "Permission not found"
+  },
+  "superadmin": {
+    "last_active": "Cannot remove the last active superadmin",
+    "system_user_protected": "System superadmin user is protected",
+    "role_protected": "System superadmin role is protected",
+    "permission_protected": "System superadmin permission is protected"
+  }
+}

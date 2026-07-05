@@ -145,7 +145,7 @@ function normalizeKey(key: string) {
   if (firstDot < 0) return key
   const namespace = key.slice(0, firstDot)
   const rest = key.slice(firstDot + 1)
-  if (namespace === "iam") return key
+  if (namespace === "iam") return `iam:${rest}`
   return `${namespace}:${rest}`
 }
 

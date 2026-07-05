@@ -3,6 +3,7 @@ import enAuth from "./locales/en-US/auth.json"
 import enCommon from "./locales/en-US/common.json"
 import enCrm from "./locales/en-US/crm.json"
 import enFinance from "./locales/en-US/finance.json"
+import enIam from "./locales/en-US/iam.json"
 import enNavigation from "./locales/en-US/navigation.json"
 import enNotifications from "./locales/en-US/notifications.json"
 import enPlatform from "./locales/en-US/platform.json"
@@ -14,6 +15,7 @@ import viAuth from "./locales/vi-VN/auth.json"
 import viCommon from "./locales/vi-VN/common.json"
 import viCrm from "./locales/vi-VN/crm.json"
 import viFinance from "./locales/vi-VN/finance.json"
+import viIam from "./locales/vi-VN/iam.json"
 import viNavigation from "./locales/vi-VN/navigation.json"
 import viNotifications from "./locales/vi-VN/notifications.json"
 import viPlatform from "./locales/vi-VN/platform.json"
@@ -28,6 +30,7 @@ export const resources = {
     common: viCommon,
     crm: viCrm,
     finance: viFinance,
+    iam: viIam,
     navigation: viNavigation,
     notifications: viNotifications,
     platform: viPlatform,
@@ -41,6 +44,7 @@ export const resources = {
     common: enCommon,
     crm: enCrm,
     finance: enFinance,
+    iam: enIam,
     navigation: enNavigation,
     notifications: enNotifications,
     platform: enPlatform,

@@ -1,4 +1,7 @@
 {
   "required": "Trường này là bắt buộc",
-  "invalid_email": "Email không hợp lệ"
+  "invalid_email": "Email không hợp lệ",
+  "invalid_json": "Nội dung JSON không hợp lệ",
+  "invalid_input": "Yêu cầu không hợp lệ",
+  "range": "Giá trị nằm ngoài phạm vi cho phép"
 }

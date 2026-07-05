@@ -1,4 +1,7 @@
 {
   "required": "This field is required",
-  "invalid_email": "Invalid email"
+  "invalid_email": "Invalid email",
+  "invalid_json": "Request body is not valid JSON",
+  "invalid_input": "Request is invalid",
+  "range": "Value is out of allowed range"
 }
