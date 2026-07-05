@@ -16,6 +16,7 @@
     "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-table": "^8.21.3",
     "@workspace/api": "workspace:*",
+    "@workspace/auth": "workspace:*",
     "@workspace/core": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/notifications": "workspace:*",

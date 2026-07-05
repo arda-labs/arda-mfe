@@ -3,48 +3,33 @@ import { federation } from "@module-federation/vite"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
+import { remoteSharedDeps, remotePorts } from "../../federation.shared"
 
-const sharedDependencies = {
-  react: { singleton: true },
-  "react-dom": { singleton: true },
-  "react-dom/client": { singleton: true },
-  "react/jsx-runtime": { singleton: true },
-  "react/jsx-dev-runtime": { singleton: true },
-  "@tanstack/react-query": { singleton: true },
-  nuqs: { singleton: true },
-  "nuqs/adapters/react": { singleton: true },
-  "@workspace/i18n": { singleton: true },
-  "@workspace/i18n/": { singleton: true },
-  "@workspace/theme": { singleton: true },
-  "@workspace/auth": { singleton: true },
-  "@workspace/auth/": { singleton: true },
-  "@workspace/notifications": { singleton: true },
-  "@workspace/notifications/": { singleton: true },
-}
+const name = "account"
+const port = remotePorts[name]
 
 export default defineConfig(({ command }) => ({
-  base: command === "serve" ? "/" : "/mfes/account/",
+  base: command === "serve" ? "/" : `/mfes/${name}/`,
   plugins: [
     react(),
     tailwindcss(),
     federation({
-      name: "account",
+      name,
       filename: "remoteEntry.js",
       dts: false,
       shareStrategy: "loaded-first",
-      exposes: {
-        "./Routes": "./src/Routes.tsx",
-      },
-      shared: sharedDependencies,
+      exposes: { "./Routes": "./src/Routes.tsx" },
+      shared: { ...remoteSharedDeps },
     }),
   ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
+  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
   server: {
+    port,
+    // strictPort: port cố định match shell entry — lệch port = shell
+    // timeout/rettry → cảm giác "load lần đầu rất lâu".
+    strictPort: true,
     cors: true,
-    origin: "http://localhost:5104",
+    origin: `http://localhost:${port}`,
+    host: "0.0.0.0",
   },
 }))

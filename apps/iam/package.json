@@ -15,6 +15,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@workspace/core": "workspace:*",
     "@workspace/api": "workspace:*",
+    "@workspace/auth": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",

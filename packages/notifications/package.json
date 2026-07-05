@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@workspace/api": "workspace:*",
+    "@workspace/i18n": "workspace:*",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^1.22.0",
     "react": "^19.2.6",

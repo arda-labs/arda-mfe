@@ -25,7 +25,10 @@
     "logout": "Đăng xuất",
     "select_all": "Chọn tất cả",
     "select_row": "Chọn dòng",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "close": "Đóng",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép"
   },
   "confirm": {
     "delete_title": "Xác nhận xóa",
@@ -48,7 +51,8 @@
       "title": "404",
       "body": "Không tìm thấy trang"
     },
-    "page_load_title": "Không tải được trang"
+    "page_load_title": "Không tải được trang",
+    "trace_id": "Mã truy vết"
   },
   "field": {
     "action": "Thao tác",

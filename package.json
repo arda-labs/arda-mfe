@@ -4,12 +4,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "bun run --filter iam build && bun run --filter platform build && bun run --filter finance build && bun run --filter hrm build && bun run --filter account build && bun run --filter workflow build && bun run --filter crm build && bun run --filter shell build",
+    "build": "bun run --filter './apps/*' --filter './packages/*' build",
     "clear:dev-ports": "bun ./scripts/clear-dev-ports.mjs",
-    "dev": "bun run clear:dev-ports && bun run --filter iam --filter platform --filter finance --filter hrm --filter account --filter workflow --filter crm --filter shell --parallel dev",
-    "lint": "bun run --filter @workspace/core lint && bun run --filter @workspace/i18n lint && bun run --filter @workspace/auth lint && bun run --filter @workspace/api lint && bun run --filter @workspace/media lint && bun run --filter @workspace/notifications lint && bun run --filter @workspace/theme lint && bun run --filter @workspace/ui lint && bun run --filter iam lint && bun run --filter platform lint && bun run --filter finance lint && bun run --filter hrm lint && bun run --filter account lint && bun run --filter workflow lint && bun run --filter crm lint && bun run --filter shell lint",
+    "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
+    "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
     "format": "bun run --workspaces --parallel format",
-    "typecheck": "bun run --filter @workspace/core typecheck && bun run --filter @workspace/i18n typecheck && bun run --filter @workspace/auth typecheck && bun run --filter @workspace/api typecheck && bun run --filter @workspace/media typecheck && bun run --filter @workspace/notifications typecheck && bun run --filter @workspace/theme typecheck && bun run --filter @workspace/ui typecheck && bun run --filter iam typecheck && bun run --filter platform typecheck && bun run --filter finance typecheck && bun run --filter hrm typecheck && bun run --filter account typecheck && bun run --filter workflow typecheck && bun run --filter crm typecheck && bun run --filter shell typecheck"
+    "typecheck": "bun run --filter './apps/*' --filter './packages/*' typecheck"
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.101.2",

@@ -1,8 +1,11 @@
 import { createApiClient } from "@workspace/core/http/api-client"
-import { ApiErrorLike, getCurrentLocale } from "@workspace/i18n"
+import { getCurrentLocale } from "@workspace/i18n"
 import { ensureRecentAuth } from "@workspace/auth/ensure-recent-auth"
 import { useAuthStore } from "@workspace/auth/store"
 
+// Composition root: createApiClient (thuần, core) + auth + i18n → instance
+// `api` configured. ApiClientError đã có code/status/fields/requestId;
+// catch dùng `instanceof ApiClientError`, không cần bọc lớp nào khác.
 export const api = createApiClient({
   getLocale: getCurrentLocale,
   onUnauthorized: () => {
@@ -15,22 +18,3 @@ export const api = createApiClient({
 })
 
 export { ensureRecentAuth }
-
-export function toApiError(input: unknown) {
-  if (
-    input &&
-    typeof input === "object" &&
-    "code" in input &&
-    "status" in input &&
-    "message" in input
-  ) {
-    const err = input as {
-      code: string
-      status: number
-      message: string
-      fields?: Record<string, string>
-    }
-    return new ApiErrorLike(err.code, err.message, err.status, err.fields)
-  }
-  return input
-}
