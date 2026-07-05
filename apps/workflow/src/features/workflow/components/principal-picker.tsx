@@ -79,14 +79,14 @@ export function PrincipalPicker({
 
   const usersQuery = useQuery({
     queryKey: ["workflow", "principal-picker", "users", page, search] as const,
-    queryFn: () => listIamUsers({ page, size: PAGE_SIZE, search: search || undefined }),
+    queryFn: () => listIamUsers({ page, perPage: PAGE_SIZE, q: search || undefined }),
     enabled: open && principalType === "USER",
     placeholderData: keepPreviousData,
   })
 
   const groupsQuery = useQuery({
     queryKey: ["workflow", "principal-picker", "groups", page, search] as const,
-    queryFn: () => listIamGroups({ page, size: PAGE_SIZE, search: search || undefined }),
+    queryFn: () => listIamGroups({ page, perPage: PAGE_SIZE, q: search || undefined }),
     enabled: open && principalType === "GROUP",
     placeholderData: keepPreviousData,
   })

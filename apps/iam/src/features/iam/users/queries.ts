@@ -7,22 +7,22 @@ export const userKeys = {
   all: ["iam", "users"] as const,
   list: (params: {
     page: number
-    size: number
-    search?: string
+    perPage: number
+    q?: string
     status?: string
-    sortField?: string
-    sortOrder?: string
+    sort?: string
+    order?: string
   }) => [...userKeys.all, "list", params] as const,
   sessions: (userId: string) => [...userKeys.all, "sessions", userId] as const,
 }
 
 export function useUsers(params: {
   page: number
-  size: number
-  search?: string
+  perPage: number
+  q?: string
   status?: string
-  sortField?: string
-  sortOrder?: string
+  sort?: string
+  order?: string
 }) {
   return useListQuery({
     queryKey: userKeys.list(params),
@@ -32,8 +32,8 @@ export function useUsers(params: {
 
 export function useRoleOptions(enabled: boolean) {
   return useQuery({
-    queryKey: roleKeys.list({ page: 1, size: 100 }),
-    queryFn: () => adminApi.listRoles({ page: 1, size: 100 }),
+    queryKey: roleKeys.list({ page: 1, perPage: 100 }),
+    queryFn: () => adminApi.listRoles({ page: 1, perPage: 100 }),
     enabled,
   })
 }

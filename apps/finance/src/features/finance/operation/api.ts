@@ -204,7 +204,7 @@ export const financeOperationApi = {
     view: OperationView
   ): Promise<OperationResult<FinanceOperationCase>> {
     const p = new URLSearchParams()
-    p.set("size", "100")
+    p.set("per_page", "100")
 
     try {
       const data = await api.get<

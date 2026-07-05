@@ -184,7 +184,7 @@ export function PermissionsPage() {
   const [moduleParam] = useQueryState("module", parseAsString)
   const permissionsQuery = usePermissions({
     page: pageParam,
-    size: pageSizeParam,
+    perPage: pageSizeParam,
     module: moduleParam || undefined,
   })
   const perms = permissionsQuery.data?.items ?? []

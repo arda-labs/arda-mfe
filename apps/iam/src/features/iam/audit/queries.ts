@@ -9,7 +9,7 @@ export const auditKeys = {
     subject?: string
     result?: string
     page: number
-    size: number
+    perPage: number
     sort?: string
   }) => [...auditKeys.all, "list", params] as const,
   stats: (from: string, to: string) => [...auditKeys.all, "stats", from, to] as const,
@@ -21,7 +21,7 @@ export function useAuditEvents(params: {
   subject?: string
   result?: string
   page: number
-  size: number
+  perPage: number
   sort?: string
 }) {
   return useListQuery({

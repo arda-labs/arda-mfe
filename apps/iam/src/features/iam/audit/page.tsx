@@ -158,7 +158,7 @@ export function AuditPage() {
     result: resultParam.length === 1 ? resultParam[0] : undefined,
     subject: subjectParam || undefined,
     page: pageParam,
-    size: pageSizeParam,
+    perPage: pageSizeParam,
     sort,
   })
   const range = useMemo(() => {

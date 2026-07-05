@@ -79,7 +79,6 @@ export const financeApi = {
     api.post("/api/finance/accounts", data),
   listTransactions: (params?: {
     page?: number
-    size?: number
     perPage?: number
     status?: string
     from?: string
@@ -87,7 +86,7 @@ export const financeApi = {
   }) => {
     const p = buildListSearchParams({
       page: params?.page,
-      perPage: params?.perPage ?? params?.size,
+      perPage: params?.perPage,
       status: params?.status,
       from: params?.from,
       to: params?.to,

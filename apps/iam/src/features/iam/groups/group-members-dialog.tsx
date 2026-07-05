@@ -94,8 +94,8 @@ export function GroupMembersDialog({
   const membersQuery = useGroupMembers(groupId)
   const pickerQuery = useGroupMemberPicker(view === "add", {
     page: addPagination.pageIndex + 1,
-    size: addPagination.pageSize,
-    search: view === "add" ? search || undefined : undefined,
+    perPage: addPagination.pageSize,
+    q: view === "add" ? search || undefined : undefined,
   })
   const applyMembers = useApplyGroupMembers()
 

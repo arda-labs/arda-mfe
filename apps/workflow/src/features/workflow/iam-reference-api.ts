@@ -30,13 +30,13 @@ async function fetchJson<T>(path: string): Promise<T> {
 
 export function listIamUsers(params: {
   page: number
-  size: number
-  search?: string
+  perPage: number
+  q?: string
 }) {
   const query = buildListSearchParams({
     page: params.page,
-    perPage: params.size,
-    q: params.search,
+    perPage: params.perPage,
+    q: params.q,
   })
   return fetchJson<ListResponse<IamPrincipalUser>>(
     `/api/admin/users?${query.toString()}`
@@ -48,13 +48,13 @@ export function listIamUsers(params: {
 
 export function listIamGroups(params: {
   page: number
-  size: number
-  search?: string
+  perPage: number
+  q?: string
 }) {
   const query = buildListSearchParams({
     page: params.page,
-    perPage: params.size,
-    q: params.search,
+    perPage: params.perPage,
+    q: params.q,
   })
   return fetchJson<ListResponse<IamPrincipalGroup>>(
     `/api/admin/groups?${query.toString()}`

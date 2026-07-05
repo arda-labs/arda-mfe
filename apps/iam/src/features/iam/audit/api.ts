@@ -73,13 +73,12 @@ export const auditApi = {
     from?: string
     to?: string
     page?: number
-    size?: number
     perPage?: number
     sort?: string
   }) => {
     const p = buildListSearchParams({
       page: params?.page,
-      perPage: params?.perPage ?? params?.size,
+      perPage: params?.perPage,
       sort: params?.sort,
     })
     if (params?.event_type) params.event_type.forEach((et) => p.append("event_type", et))

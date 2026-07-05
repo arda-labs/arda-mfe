@@ -231,8 +231,8 @@ export function RolesPage() {
   )
   const rolesQuery = useRoles({
     page: pageParam,
-    size: pageSizeParam,
-    search: searchParam || undefined,
+    perPage: pageSizeParam,
+    q: searchParam || undefined,
     status: statusParam.length === 1 ? statusParam[0] : undefined,
   })
   const roles = rolesQuery.data?.items ?? []

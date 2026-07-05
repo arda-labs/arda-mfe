@@ -4,11 +4,11 @@ import { adminApi } from "@/features/iam"
 
 export const permissionKeys = {
   all: ["iam", "permissions"] as const,
-  list: (params: { page: number; size: number; module?: string }) =>
+  list: (params: { page: number; perPage: number; module?: string }) =>
     [...permissionKeys.all, "list", params] as const,
 }
 
-export function usePermissions(params: { page: number; size: number; module?: string }) {
+export function usePermissions(params: { page: number; perPage: number; module?: string }) {
   return useListQuery({
     queryKey: permissionKeys.list(params),
     queryFn: () => adminApi.listPermissions(params),

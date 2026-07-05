@@ -148,12 +148,10 @@ const normalizePermission = (permission: PermissionApiItem): Permission => ({
 
 type AdminListInput = {
   page?: number
-  size?: number
   perPage?: number
-  search?: string
   q?: string
-  sortField?: string
-  sortOrder?: string
+  sort?: string
+  order?: "asc" | "desc" | string
   status?: string
   tenantId?: string
   module?: string
@@ -161,16 +159,16 @@ type AdminListInput = {
 
 function buildAdminListQuery(params?: AdminListInput): URLSearchParams {
   const order =
-    params?.sortOrder === "desc"
+    params?.order?.toLowerCase() === "desc"
       ? "desc"
-      : params?.sortOrder
+      : params?.order
         ? "asc"
         : undefined
   return buildListSearchParams({
     page: params?.page,
-    perPage: params?.perPage ?? params?.size,
-    q: params?.q ?? params?.search,
-    sort: params?.sortField,
+    perPage: params?.perPage,
+    q: params?.q,
+    sort: params?.sort,
     order,
     status: params?.status,
     tenantId: params?.tenantId,

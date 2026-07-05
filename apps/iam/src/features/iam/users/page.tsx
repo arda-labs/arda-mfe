@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { FormField } from "@workspace/ui/components/form-field"
+import { sortToApiParams } from "@workspace/core/http/list-api"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import type { Role, User } from "@/features/iam"
 import {
@@ -498,22 +499,22 @@ export function UsersPage() {
   const [searchParam] = useQueryState("username", parseAsString)
   const [statusParam] = useQueryState("status", parseAsArrayOf(parseAsString, ",").withDefault([]))
   const [sortParam] = useQueryState("sort", parseAsString)
-  const [sortField, sortOrder] = useMemo(() => {
-    if (!sortParam) return [undefined, undefined] as const
+  const sortApi = useMemo(() => {
+    if (!sortParam) return {}
     try {
-      const [sort] = JSON.parse(sortParam) as Array<{ id: string; desc: boolean }>
-      return [sort?.id, sort ? (sort.desc ? "DESC" : "ASC") : undefined] as const
+      const sorting = JSON.parse(sortParam) as Array<{ id: string; desc: boolean }>
+      return sortToApiParams(sorting)
     } catch {
-      return [undefined, undefined] as const
+      return {}
     }
   }, [sortParam])
   const usersQuery = useUsers({
     page: pageParam,
-    size: pageSizeParam,
-    search: searchParam || undefined,
+    perPage: pageSizeParam,
+    q: searchParam || undefined,
     status: statusParam.length === 1 ? statusParam[0] : undefined,
-    sortField,
-    sortOrder,
+    sort: sortApi.sort,
+    order: sortApi.order,
   })
   const users = usersQuery.data?.items ?? []
   const total = usersQuery.data?.total ?? 0
