@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react"
+import { usePathname } from "@workspace/core/routing"
 
 const UsersPage = lazy(() =>
   import("@/features/iam/users/page").then((m) => ({ default: m.UsersPage }))
@@ -23,11 +24,6 @@ const SystemSettingsPage = lazy(() =>
   }))
 )
 
-function getPathname() {
-  if (typeof window === "undefined") return "/admin/users"
-  return window.location.pathname
-}
-
 export default function Routes() {
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -39,7 +35,7 @@ export default function Routes() {
 }
 
 function IamRoutes() {
-  const pathname = getPathname()
+  const pathname = usePathname("/admin/users")
 
   if (pathname.startsWith("/admin/groups")) return <GroupsPage />
   if (pathname.startsWith("/admin/roles")) return <RolesPage />

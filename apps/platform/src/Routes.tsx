@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react"
+import { usePathname } from "@workspace/core/routing"
 
 const AreaTypesPage = lazy(() =>
   import("@/features/platform/area-types/page").then((m) => ({
@@ -50,11 +51,6 @@ const WardsPage = lazy(() =>
   import("@/features/platform/wards/page").then((m) => ({ default: m.WardsPage }))
 )
 
-function getPathname() {
-  if (typeof window === "undefined") return "/admin/organizations"
-  return window.location.pathname
-}
-
 export default function Routes() {
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -66,7 +62,7 @@ export default function Routes() {
 }
 
 function PlatformRoutes() {
-  const pathname = getPathname()
+  const pathname = usePathname("/admin/organizations")
 
   if (pathname.startsWith("/admin/parameters")) return <ParametersPage />
   if (pathname.startsWith("/admin/provinces")) return <ProvincesPage />
