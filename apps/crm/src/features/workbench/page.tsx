@@ -1050,12 +1050,6 @@ function caseCodeHref(direction: WorkbenchDirection, caseCode: string) {
   return `${path}?caseCode=${encodeURIComponent(caseCode)}`
 }
 
-function customerTypeLabel(item: { customerType: string }) {
-  return item.customerType === "BUSINESS"
-    ? "Khách hàng doanh nghiệp"
-    : "Khách hàng cá nhân"
-}
-
 function stepLabel(value: string) {
   const labels: Record<string, string> = {
     submitted: "Đã gửi",

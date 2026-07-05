@@ -1,14 +1,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useEffect, useMemo, useState } from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Check, ChevronsUpDown, Search } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
+  DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogOverlay,
-  DialogPortal,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
@@ -144,14 +142,8 @@ export function PrincipalPicker({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogPortal>
-          <DialogOverlay className="fixed inset-0 z-[260] bg-black/45" />
-          <DialogPrimitive.Content
-            className={cn(
-              "fixed top-[50%] left-[50%] z-[260] flex max-h-[85vh] w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-hidden border bg-background p-0 shadow-dialog sm:rounded-lg"
-            )}
-          >
-            <DialogHeader className="border-b px-6 py-4">
+        <DialogContent className="z-[260] flex max-h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
+          <DialogHeader className="border-b px-6 py-4">
               <DialogTitle>
                 {principalType === "USER" ? "Chọn người dùng" : "Chọn nhóm"}
               </DialogTitle>
@@ -298,8 +290,7 @@ export function PrincipalPicker({
                 </Button>
               </div>
             </div>
-          </DialogPrimitive.Content>
-        </DialogPortal>
+        </DialogContent>
       </Dialog>
     </label>
   )

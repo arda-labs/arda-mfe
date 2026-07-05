@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import type { UseFormReturn } from "react-hook-form"
+import type { FieldPath, UseFormReturn } from "react-hook-form"
 import { usePlatformOrganizations } from "./geo-queries"
 import { SearchSelectField } from "./search-select-field"
 
@@ -14,6 +14,7 @@ export function OrgUnitField<T extends OrgUnitFormValues>({
   form: UseFormReturn<T>
   disabled?: boolean
 }) {
+  const orgUnitPath = "orgUnit" as FieldPath<T>
   const orgsQuery = usePlatformOrganizations()
   const options = useMemo(
     () =>
@@ -27,7 +28,7 @@ export function OrgUnitField<T extends OrgUnitFormValues>({
   return (
     <SearchSelectField
       control={form.control}
-      name={"orgUnit" as keyof T & string}
+      name={orgUnitPath}
       label="Đơn vị"
       placeholder="Chọn đơn vị"
       options={options}

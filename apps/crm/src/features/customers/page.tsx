@@ -1454,7 +1454,7 @@ function EmptyState({ text }: { text: string }) {
   )
 }
 
-function optionsFor(name: keyof CustomerFormValues) {
+function optionsFor(_name: keyof CustomerFormValues) {
   return selectOptions.generic
 }
 
@@ -1788,11 +1788,6 @@ function workflowKey(value: string | number | null | undefined) {
   if (value == null) return null
   const text = String(value).trim()
   return text || null
-}
-
-function numberParam(params: URLSearchParams, key: string) {
-  const value = Number(params.get(key))
-  return Number.isFinite(value) && value > 0 ? value : null
 }
 
 function roleParam(value: string | null): WorkflowTaskRole {

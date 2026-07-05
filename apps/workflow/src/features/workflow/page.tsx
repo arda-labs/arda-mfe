@@ -1068,55 +1068,6 @@ function ProcessDefinitionsTable({
   )
 }
 
-function MonitoringTable({
-  cases,
-  caseTypes,
-  onSelect,
-}: {
-  cases: WorkflowCase[]
-  caseTypes: WorkflowCaseType[]
-  onSelect: (item: WorkflowCase) => void
-}) {
-  if (!cases.length) return <EmptyState text="Chưa có hồ sơ quy trình đang theo dõi." />
-  const names = new Map(caseTypes.map((item) => [item.caseType, item.operationName]))
-
-  return (
-    <DataShell>
-      <Table>
-        <TableHeader className="bg-muted/50">
-          <TableRow>
-            <TableHead>Mã hồ sơ</TableHead>
-            <TableHead>Nghiệp vụ</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead>Bước hiện tại</TableHead>
-            <TableHead>Process instance</TableHead>
-            <TableHead>SLA</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {cases.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-mono text-xs">{item.caseCode}</TableCell>
-              <TableCell className="font-medium">{names.get(item.caseType) ?? item.caseType}</TableCell>
-              <TableCell><StatusBadge status={item.status} /></TableCell>
-              <TableCell>{item.currentStep || "-"}</TableCell>
-              <TableCell className="font-mono text-xs">{item.processInstanceKey ?? "Chưa start"}</TableCell>
-              <TableCell>{item.slaDueAt ? formatDateTime(item.slaDueAt) : "Chưa có"}</TableCell>
-              <TableCell className="text-right">
-                <Button type="button" size="sm" variant="outline" onClick={() => onSelect(item)}>
-                  <Eye className="size-4" />
-                  Mở
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </DataShell>
-  )
-}
-
 function MonitoringDetail({ item }: { item: WorkflowCase }) {
   const domainHref = workflowDomainHref(item)
   const runtimeQuery = useProcessInstanceRuntime(item.processInstanceKey)

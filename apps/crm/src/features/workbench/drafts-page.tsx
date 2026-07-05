@@ -197,7 +197,7 @@ export function DraftWorkbenchPage() {
     columns,
     data: items,
     pageCount: Math.max(1, Math.ceil(items.length / 25)),
-    initialState: { pagination: { pageSize: 25 } },
+    initialState: { pagination: { pageSize: 25, pageIndex: 0 } },
   })
 
   const hasActiveFilter =
