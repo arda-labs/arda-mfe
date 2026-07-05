@@ -12,6 +12,7 @@ import {
   useGroupMembers,
 } from "@/features/iam/groups/queries"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { listPageCount } from "@workspace/core/http/list-api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -148,8 +149,8 @@ export function GroupMembersDialog({
 
   const availableUsers = useMemo(
     () =>
-      (pickerQuery.data?.users ?? []).filter((user) => !draftMemberIds.has(user.id)),
-    [draftMemberIds, pickerQuery.data?.users]
+      (pickerQuery.data?.items ?? []).filter((user) => !draftMemberIds.has(user.id)),
+    [draftMemberIds, pickerQuery.data?.items]
   )
 
   const removeFromDraft = useCallback((userIds: string[]) => {
@@ -392,7 +393,10 @@ export function GroupMembersDialog({
     getPaginationRowModel: getPaginationRowModel(),
   })
 
-  const addPageCount = Math.max(1, pickerQuery.data?.totalPages ?? 1)
+  const addPageCount = listPageCount(
+    pickerQuery.data?.total ?? 0,
+    pickerQuery.data?.per_page ?? addPagination.pageSize
+  )
 
   const addTable = useReactTable({
     data: availableUsers,

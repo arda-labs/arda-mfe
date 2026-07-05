@@ -1,4 +1,8 @@
 import { api } from "@workspace/api"
+import {
+  buildListSearchParams,
+  type ListResponse,
+} from "@workspace/core/http/list-api"
 
 export interface User {
   id: string
@@ -142,47 +146,52 @@ const normalizePermission = (permission: PermissionApiItem): Permission => ({
   operation: permission.operation ?? permission.Operation ?? "",
 })
 
+type AdminListInput = {
+  page?: number
+  size?: number
+  perPage?: number
+  search?: string
+  q?: string
+  sortField?: string
+  sortOrder?: string
+  status?: string
+  tenantId?: string
+  module?: string
+}
+
+function buildAdminListQuery(params?: AdminListInput): URLSearchParams {
+  const order =
+    params?.sortOrder === "desc"
+      ? "desc"
+      : params?.sortOrder
+        ? "asc"
+        : undefined
+  return buildListSearchParams({
+    page: params?.page,
+    perPage: params?.perPage ?? params?.size,
+    q: params?.q ?? params?.search,
+    sort: params?.sortField,
+    order,
+    status: params?.status,
+    tenantId: params?.tenantId,
+    module: params?.module,
+  })
+}
+
 export const adminApi = {
   // Users
-  listUsers: (params?: {
-    page?: number
-    size?: number
-    search?: string
-    status?: string
-    tenantId?: string
-    sortField?: string
-    sortOrder?: string
-  }) => {
-    const p = new URLSearchParams()
-    if (params?.page) p.set("page", String(params.page))
-    if (params?.size) p.set("size", String(params.size))
-    if (params?.search) p.set("search", params.search)
-    if (params?.status) p.set("status", params.status)
-    if (params?.tenantId) p.set("tenantId", params.tenantId)
-    if (params?.sortField) p.set("sortField", params.sortField)
-    if (params?.sortOrder) p.set("sortOrder", params.sortOrder)
-    return api
-      .get<{
-        items?: UserApiItem[]
-        users: UserApiItem[]
-        total: number
-        page: number
-        per_page?: number
-        size: number
-        totalPages: number
-      }>(`/api/admin/users?${p.toString()}`)
-      .then((res) => {
-        const rows = res.items ?? res.users ?? []
-        return {
-          ...res,
-          items: rows,
-          users: rows.map((user) => ({
-            ...user,
-            roles: user.roles ?? [],
-          })),
-        }
-      })
-  },
+  listUsers: (params?: AdminListInput) =>
+    api
+      .get<ListResponse<UserApiItem>>(
+        `/api/admin/users?${buildAdminListQuery(params).toString()}`
+      )
+      .then((res) => ({
+        ...res,
+        items: res.items.map((user) => ({
+          ...user,
+          roles: user.roles ?? [],
+        })),
+      })),
   getUser: (id: string) => api.get<any>(`/api/admin/users/${id}`),
   createUser: (data: {
     username: string
@@ -229,34 +238,15 @@ export const adminApi = {
     ),
 
   // Groups
-  listGroups: (params?: {
-    page?: number
-    size?: number
-    search?: string
-    status?: string
-    tenantId?: string
-  }) => {
-    const p = new URLSearchParams()
-    if (params?.page) p.set("page", String(params.page))
-    if (params?.size) p.set("size", String(params.size))
-    if (params?.search) p.set("search", params.search)
-    if (params?.status) p.set("status", params.status)
-    if (params?.tenantId) p.set("tenantId", params.tenantId)
-    return api
-      .get<{
-        items?: GroupApiItem[]
-        groups: GroupApiItem[]
-        total: number
-        page?: number
-        per_page?: number
-        size?: number
-        totalPages?: number
-      }>(`/api/admin/groups?${p.toString()}`)
-      .then((res) => {
-        const rows = res.items ?? res.groups ?? []
-        return { ...res, items: rows, groups: rows.map(normalizeGroup) }
-      })
-  },
+  listGroups: (params?: AdminListInput) =>
+    api
+      .get<ListResponse<GroupApiItem>>(
+        `/api/admin/groups?${buildAdminListQuery(params).toString()}`
+      )
+      .then((res) => ({
+        ...res,
+        items: res.items.map(normalizeGroup),
+      })),
   getGroup: (id: string) =>
     api
       .get<{ group: GroupApiItem }>(`/api/admin/groups/${id}`)
@@ -280,19 +270,13 @@ export const adminApi = {
   deleteGroup: (id: string) => api.delete(`/api/admin/groups/${id}`),
   listGroupMembers: (id: string) =>
     api
-      .get<{ items?: UserApiItem[]; members: UserApiItem[] }>(
-        `/api/admin/groups/${id}/members`
-      )
-      .then((res) => {
-        const rows = res.items ?? res.members ?? []
-        return {
-          items: rows,
-          members: rows.map((user) => ({
-            ...user,
-            roles: user.roles ?? [],
-          })),
-        }
-      }),
+      .get<{ items: UserApiItem[] }>(`/api/admin/groups/${id}/members`)
+      .then((res) => ({
+        items: (res.items ?? []).map((user) => ({
+          ...user,
+          roles: user.roles ?? [],
+        })),
+      })),
   addGroupMember: (groupId: string, userId: string) =>
     api.post(`/api/admin/groups/${groupId}/members`, { user_id: userId }),
   removeGroupMember: (groupId: string, userId: string) =>
@@ -307,27 +291,15 @@ export const adminApi = {
     api.delete(`/api/admin/groups/${groupId}/roles/${roleId}`),
 
   // Roles
-  listRoles: (params?: { page?: number; size?: number; search?: string; status?: string }) => {
-    const p = new URLSearchParams()
-    if (params?.page) p.set("page", String(params.page))
-    if (params?.size) p.set("size", String(params.size))
-    if (params?.search) p.set("search", params.search)
-    if (params?.status) p.set("status", params.status)
-    return api
-      .get<{
-        items?: RoleApiItem[]
-        roles: RoleApiItem[]
-        total: number
-        page?: number
-        per_page?: number
-        size?: number
-        totalPages?: number
-      }>(`/api/admin/roles?${p.toString()}`)
-      .then((res) => {
-        const rows = res.items ?? res.roles ?? []
-        return { ...res, items: rows, roles: rows.map(normalizeRole) }
-      })
-  },
+  listRoles: (params?: AdminListInput) =>
+    api
+      .get<ListResponse<RoleApiItem>>(
+        `/api/admin/roles?${buildAdminListQuery(params).toString()}`
+      )
+      .then((res) => ({
+        ...res,
+        items: res.items.map(normalizeRole),
+      })),
   getRole: (id: string) =>
     api
       .get<{ role: RoleApiItem; permissions: PermissionApiItem[] }>(
@@ -358,30 +330,15 @@ export const adminApi = {
     api.delete(`/api/admin/roles/${roleId}/permissions/${permissionId}`),
 
   // Permissions
-  listPermissions: (params?: {
-    page?: number
-    size?: number
-    module?: string
-  }) => {
-    const p = new URLSearchParams()
-    if (params?.page) p.set("page", String(params.page))
-    if (params?.size) p.set("size", String(params.size))
-    if (params?.module) p.set("module", params.module)
-    return api
-      .get<{
-        items?: PermissionApiItem[]
-        permissions: PermissionApiItem[]
-        total: number
-        page?: number
-        per_page?: number
-        size?: number
-        totalPages?: number
-      }>(`/api/admin/permissions?${p.toString()}`)
-      .then((res) => {
-        const rows = res.items ?? res.permissions ?? []
-        return { ...res, items: rows, permissions: rows.map(normalizePermission) }
-      })
-  },
+  listPermissions: (params?: AdminListInput) =>
+    api
+      .get<ListResponse<PermissionApiItem>>(
+        `/api/admin/permissions?${buildAdminListQuery(params).toString()}`
+      )
+      .then((res) => ({
+        ...res,
+        items: res.items.map(normalizePermission),
+      })),
   createPermission: (data: {
     code: string
     name: string

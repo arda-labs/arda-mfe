@@ -168,7 +168,7 @@ export function AuditPage() {
   }, [])
   const statsQuery = useAuditStats(range.from, range.to)
   const verifyQuery = useAuditChainVerification(range.from, range.to, showVerify)
-  const events = auditQuery.data?.events ?? []
+  const events = auditQuery.data?.items ?? []
   const total = auditQuery.data?.total ?? 0
   const stats = statsQuery.data
   const verifyResult = verifyQuery.data

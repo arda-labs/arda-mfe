@@ -235,7 +235,7 @@ export function RolesPage() {
     search: searchParam || undefined,
     status: statusParam.length === 1 ? statusParam[0] : undefined,
   })
-  const roles = rolesQuery.data?.roles ?? []
+  const roles = rolesQuery.data?.items ?? []
   const total = rolesQuery.data?.total ?? 0
   const pageGate = pageGateFromQueries(rolesQuery)
   const { fetching } = listQueryShellState(rolesQuery)

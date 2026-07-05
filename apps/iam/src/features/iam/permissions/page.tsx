@@ -187,7 +187,7 @@ export function PermissionsPage() {
     size: pageSizeParam,
     module: moduleParam || undefined,
   })
-  const perms = permissionsQuery.data?.permissions ?? []
+  const perms = permissionsQuery.data?.items ?? []
   const total = permissionsQuery.data?.total ?? 0
   const pageGate = pageGateFromQueries(permissionsQuery)
   const { fetching } = listQueryShellState(permissionsQuery)

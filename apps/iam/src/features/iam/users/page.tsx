@@ -172,7 +172,7 @@ export function UsersPage() {
   const revokeUserSessions = useRevokeUserSessions()
   const roleOptions = useRoleOptions(roleTarget !== null)
   const sessionsQuery = useUserSessions(sessionTarget?.id)
-  const availableRoles = roleOptions.data?.roles ?? []
+  const availableRoles = roleOptions.data?.items ?? []
   const rolesLoading = roleOptions.isLoading
   const sessions = sessionsQuery.data?.sessions ?? []
   const sessionsLoading = sessionsQuery.isLoading
@@ -515,7 +515,7 @@ export function UsersPage() {
     sortField,
     sortOrder,
   })
-  const users = usersQuery.data?.users ?? []
+  const users = usersQuery.data?.items ?? []
   const total = usersQuery.data?.total ?? 0
   const pageGate = pageGateFromQueries(usersQuery)
   const { fetching } = listQueryShellState(usersQuery)

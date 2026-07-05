@@ -92,8 +92,8 @@ export function PrincipalPicker({
   })
 
   const activeQuery = principalType === "USER" ? usersQuery : groupsQuery
-  const users = usersQuery.data?.users ?? []
-  const groups = groupsQuery.data?.groups ?? []
+  const users = usersQuery.data?.items ?? []
+  const groups = groupsQuery.data?.items ?? []
   const totalPages = Math.max(1, activeQuery.data?.totalPages ?? 1)
 
   useEffect(() => {

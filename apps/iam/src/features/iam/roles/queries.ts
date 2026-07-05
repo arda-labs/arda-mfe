@@ -26,7 +26,7 @@ export function useRolePermissionOptions(roleId?: string) {
         adminApi.listPermissions({ page: 1, size: 100 }),
         adminApi.listRolePermissions(roleId),
       ])
-      return { permissions: all.permissions, rolePermissions: assigned.permissions }
+      return { permissions: all.items, rolePermissions: assigned.permissions }
     },
     enabled: Boolean(roleId),
   })

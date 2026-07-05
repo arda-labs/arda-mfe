@@ -1,4 +1,8 @@
 import { api } from "@workspace/api"
+import {
+  buildListSearchParams,
+  type ListResponse,
+} from "@workspace/core/http/list-api"
 
 export interface AuditEvent {
   id: string
@@ -70,21 +74,24 @@ export const auditApi = {
     to?: string
     page?: number
     size?: number
+    perPage?: number
     sort?: string
   }) => {
-    const p = new URLSearchParams()
-    if (params?.event_type) params.event_type.forEach(et => p.append("event_type", et))
+    const p = buildListSearchParams({
+      page: params?.page,
+      perPage: params?.perPage ?? params?.size,
+      sort: params?.sort,
+    })
+    if (params?.event_type) params.event_type.forEach((et) => p.append("event_type", et))
     if (params?.subject) p.set("subject", params.subject)
     if (params?.result) p.set("result", params.result)
     if (params?.from) p.set("from", params.from)
     if (params?.to) p.set("to", params.to)
-    if (params?.page) p.set("page", String(params.page))
-    if (params?.size) p.set("size", String(params.size))
-    if (params?.sort) p.set("sort", params.sort)
-    return api.get<{events: AuditEventApiItem[]; total: number; page: number; size: number; totalPages: number}>(`/api/admin/audit?${p.toString()}`)
+    return api
+      .get<ListResponse<AuditEventApiItem>>(`/api/admin/audit?${p.toString()}`)
       .then((res) => ({
         ...res,
-        events: res.events.map(normalizeAuditEvent),
+        items: res.items.map(normalizeAuditEvent),
       }))
   },
 

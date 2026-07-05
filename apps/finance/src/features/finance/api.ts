@@ -1,4 +1,8 @@
 import { api } from "@workspace/api"
+import {
+  buildListSearchParams,
+  type ListResponse,
+} from "@workspace/core/http/list-api"
 
 export interface Account {
   id: string
@@ -73,16 +77,22 @@ export const financeApi = {
   getAccount: (id: string) => api.get(`/api/finance/accounts/${id}`),
   createAccount: (data: { code: string; name: string; type: string; normalBalance: string; currency?: string; parentId?: string }) =>
     api.post("/api/finance/accounts", data),
-  listTransactions: (params?: { page?: number; size?: number; status?: string; from?: string; to?: string }) => {
-    const p = new URLSearchParams()
-    if (params?.page) p.set("page", String(params.page))
-    if (params?.size) p.set("size", String(params.size))
-    if (params?.status) p.set("status", params.status)
-    if (params?.from) p.set("from", params.from)
-    if (params?.to) p.set("to", params.to)
-    return api.get<{ transactions: Transaction[]; total: number; page: number; size: number; totalPages: number }>(
-      `/api/finance/transactions?${p.toString()}`
-    )
+  listTransactions: (params?: {
+    page?: number
+    size?: number
+    perPage?: number
+    status?: string
+    from?: string
+    to?: string
+  }) => {
+    const p = buildListSearchParams({
+      page: params?.page,
+      perPage: params?.perPage ?? params?.size,
+      status: params?.status,
+      from: params?.from,
+      to: params?.to,
+    })
+    return api.get<ListResponse<Transaction>>(`/api/finance/transactions?${p.toString()}`)
   },
   getTransaction: (id: string) => api.get<Transaction>(`/api/finance/transactions/${id}`),
   createTransaction: (data: { txnType: string; txnDate?: string; description?: string; idempotencyKey?: string; entries: { accountId: string; type: string; amount: string; currency?: string }[] }) =>

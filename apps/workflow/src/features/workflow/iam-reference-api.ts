@@ -1,3 +1,9 @@
+import {
+  buildListSearchParams,
+  listPageCount,
+  type ListResponse,
+} from "@workspace/core/http/list-api"
+
 export type IamPrincipalUser = {
   id: string
   username: string
@@ -11,22 +17,6 @@ export type IamPrincipalGroup = {
   code: string
   name: string
   status: string
-}
-
-type UsersResponse = {
-  users: IamPrincipalUser[]
-  total: number
-  totalPages?: number
-  page: number
-  size: number
-}
-
-type GroupsResponse = {
-  groups: IamPrincipalGroup[]
-  total: number
-  totalPages?: number
-  page: number
-  size: number
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -43,12 +33,17 @@ export function listIamUsers(params: {
   size: number
   search?: string
 }) {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    size: String(params.size),
+  const query = buildListSearchParams({
+    page: params.page,
+    perPage: params.size,
+    q: params.search,
   })
-  if (params.search) query.set("search", params.search)
-  return fetchJson<UsersResponse>(`/api/admin/users?${query.toString()}`)
+  return fetchJson<ListResponse<IamPrincipalUser>>(
+    `/api/admin/users?${query.toString()}`
+  ).then((res) => ({
+    ...res,
+    totalPages: listPageCount(res.total, res.per_page),
+  }))
 }
 
 export function listIamGroups(params: {
@@ -56,10 +51,15 @@ export function listIamGroups(params: {
   size: number
   search?: string
 }) {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    size: String(params.size),
+  const query = buildListSearchParams({
+    page: params.page,
+    perPage: params.size,
+    q: params.search,
   })
-  if (params.search) query.set("search", params.search)
-  return fetchJson<GroupsResponse>(`/api/admin/groups?${query.toString()}`)
+  return fetchJson<ListResponse<IamPrincipalGroup>>(
+    `/api/admin/groups?${query.toString()}`
+  ).then((res) => ({
+    ...res,
+    totalPages: listPageCount(res.total, res.per_page),
+  }))
 }

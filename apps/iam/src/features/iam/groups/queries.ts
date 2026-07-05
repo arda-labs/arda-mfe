@@ -74,7 +74,7 @@ export function useGroupMembers(groupId?: string) {
     queryFn: async () => {
       if (!groupId) return []
       const res = await adminApi.listGroupMembers(groupId)
-      return res.members
+      return res.items
     },
     enabled: Boolean(groupId),
   })
