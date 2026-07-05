@@ -18,6 +18,7 @@ const sharedDependencies = {
   "@workspace/theme": { singleton: true },
   "@workspace/notifications": { singleton: true },
   "@workspace/notifications/": { singleton: true },
+  "react-toastify": { singleton: true },
 }
 
 export default defineConfig(({ command }) => ({

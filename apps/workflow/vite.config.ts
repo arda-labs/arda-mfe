@@ -45,7 +45,9 @@ export default defineConfig(({ command }) => ({
     cors: true,
     origin: "http://localhost:5106",
     proxy: {
-      "/api/workflow": { target: "http://localhost:8093", changeOrigin: true },
+      "/api/workflow": { target: "http://localhost:8082", changeOrigin: true },
+      "/api/auth": { target: "http://localhost:8082", changeOrigin: true },
+      "/api/admin": { target: "http://localhost:8082", changeOrigin: true },
     },
   },
 }))

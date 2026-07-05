@@ -84,8 +84,8 @@ export interface WorkItem {
   canOpen?: boolean
   canReassign?: boolean
   claimBlockedReason?: string
-  jobKey?: number
-  processInstanceKey?: number
+  jobKey?: string
+  processInstanceKey?: string
   bpmnProcessId?: string
   bpmnVersion?: number
   slaDueAt?: string
@@ -141,10 +141,16 @@ export interface ClaimWorkItemResponse {
 const caseTypesByDirection: Record<WorkbenchDirection, string[]> = {
   incoming: [
     "CUSTOMER_REGISTRATION",
+    "CUSTOMER_ADJUSTMENT",
     "FINANCE_INCOMING_TRANSACTION",
     "HRM_EMPLOYEE_REGISTRATION",
   ],
-  outgoing: ["FINANCE_OUTGOING_TRANSACTION"],
+  outgoing: [
+    "CUSTOMER_REGISTRATION",
+    "CUSTOMER_ADJUSTMENT",
+    "FINANCE_OUTGOING_TRANSACTION",
+    "HRM_EMPLOYEE_REGISTRATION",
+  ],
 }
 
 export const taskTypesByDirection: Record<
@@ -269,8 +275,8 @@ export const workbenchApi = {
   },
 
   completeTask(input: {
-    jobKey: number
-    processInstanceKey: number
+    jobKey: string
+    processInstanceKey: string
     elementId: string
     variables: Record<string, unknown>
   }) {

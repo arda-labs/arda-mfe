@@ -45,5 +45,19 @@
     "security": "Security",
     "profile": "Profile",
     "appearance": "Appearance"
+  },
+  "workbench": {
+    "_self": "Workbench",
+    "my_tasks": "My tasks",
+    "drafts": "Unsubmitted drafts",
+    "incoming_transactions": "Incoming transactions",
+    "outgoing_transactions": "Outgoing transactions",
+    "transaction_search": "Transaction search"
+  },
+  "customer_members": {
+    "_self": "Member customers",
+    "registrations": "Customer registration",
+    "profiles": "Customer profiles",
+    "risk_cases": "Risk customers"
   }
 }

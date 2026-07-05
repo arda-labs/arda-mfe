@@ -1,4 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { ApiClientError } from "@workspace/core/http/api-client"
+import { ensureRecentAuth } from "@workspace/api"
 import { useListQuery } from "@workspace/core/query/list-query"
 import { adminApi } from "@/features/iam"
 import { roleKeys } from "@/features/iam/roles/queries"
@@ -64,20 +66,67 @@ export function useDeleteGroup() {
   })
 }
 
-export function useGroupMemberOptions(groupId?: string) {
+export function useGroupMembers(groupId?: string) {
   return useQuery({
     queryKey: groupId
       ? groupKeys.members(groupId)
       : ([...groupKeys.all, "members"] as const),
     queryFn: async () => {
-      if (!groupId) return { users: [], members: [] }
-      const [users, members] = await Promise.all([
-        adminApi.listUsers({ page: 1, size: 100 }),
-        adminApi.listGroupMembers(groupId),
-      ])
-      return { users: users.users, members: members.members }
+      if (!groupId) return []
+      const res = await adminApi.listGroupMembers(groupId)
+      return res.members
     },
     enabled: Boolean(groupId),
+  })
+}
+
+export function useGroupMemberPicker(
+  enabled: boolean,
+  params: { page: number; size: number; search?: string }
+) {
+  return useQuery({
+    queryKey: [...groupKeys.all, "member-picker", params] as const,
+    queryFn: () => adminApi.listUsers(params),
+    enabled,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useApplyGroupMembers() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      groupId,
+      toAdd,
+      toRemove,
+    }: {
+      groupId: string
+      toAdd: string[]
+      toRemove: string[]
+    }) => {
+      if (toAdd.length === 0 && toRemove.length === 0) return
+      const verified = await ensureRecentAuth()
+      if (!verified) {
+        throw new ApiClientError(
+          "recent_auth_required",
+          "recent_auth_required",
+          403
+        )
+      }
+      for (const userId of toRemove) {
+        await adminApi.removeGroupMember(groupId, userId)
+      }
+      for (const userId of toAdd) {
+        await adminApi.addGroupMember(groupId, userId)
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      queryClient.invalidateQueries({
+        queryKey: groupKeys.members(variables.groupId),
+      })
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
   })
 }
 
@@ -106,20 +155,25 @@ export function useSetGroupMember() {
   })
 }
 
-export function useGroupRoleOptions(groupId?: string) {
+export function useGroupRoles(groupId?: string) {
   return useQuery({
     queryKey: groupId
       ? groupKeys.roles(groupId)
       : ([...groupKeys.all, "roles"] as const),
     queryFn: async () => {
-      if (!groupId) return { roles: [], groupRoles: [] }
-      const [roles, groupRoles] = await Promise.all([
-        adminApi.listRoles({ page: 1, size: 100 }),
-        adminApi.listGroupRoles(groupId),
-      ])
-      return { roles: roles.roles, groupRoles: groupRoles.roles }
+      if (!groupId) return []
+      const res = await adminApi.listGroupRoles(groupId)
+      return res.roles
     },
     enabled: Boolean(groupId),
+  })
+}
+
+export function useGroupRolePicker(search?: string) {
+  return useQuery({
+    queryKey: [...groupKeys.all, "role-picker", search ?? ""] as const,
+    queryFn: () => adminApi.listRoles({ page: 1, size: 500, search }),
+    placeholderData: keepPreviousData,
   })
 }
 

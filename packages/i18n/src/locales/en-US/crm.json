@@ -1,0 +1,104 @@
+{
+  "customers": {
+    "registrations": {
+      "title": "Customer registration",
+      "description": "Capture member customer data, save drafts, or submit for BPM approval.",
+      "submitted_banner": "Submitted and waiting for checker review. Open Workbench → Incoming transactions and filter My work items.",
+      "submitted_open_workbench": "Open incoming transactions",
+      "toast_submit_success": "Registration submitted",
+      "toast_submit_next_checker": "Case is in BPM. Checkers process it under Workbench → Incoming transactions.",
+      "toast_submit_next_maker": "Track progress under Workbench → Incoming transactions."
+    },
+    "profiles": {
+      "title": "Customer profiles",
+      "description": "Search active customer records in CRM."
+    },
+    "risk": {
+      "title": "Risk customers",
+      "description": "Monitor customers with elevated risk classification."
+    },
+    "adjustments": {
+      "title": "Customer adjustment",
+      "description": "Save changes in an amendment session and submit for BPM approval before applying to an ACTIVE profile.",
+      "start": "Start adjustment",
+      "pending_banner": "Adjustment is pending approval. Checkers should process it from the workbench.",
+      "resubmit_banner": "Amendment needs updates. Save changes and resubmit before completing the BPM task.",
+      "save": "Save changes",
+      "submit": "Submit for approval",
+      "cancel_draft": "Cancel draft",
+      "action": "Adjust"
+    },
+    "search_placeholder": "Search by code, name, mobile, or identity number",
+    "empty": "No customer records yet."
+  },
+  "workbench": {
+    "drafts": {
+      "title": "Unsubmitted drafts",
+      "description": "Drafts across customer registration, finance transactions, and HR onboarding — not yet submitted to BPM. After submit, track under Outgoing.",
+      "count": "{count} drafts",
+      "load_failed": "Failed to load drafts",
+      "partial_load": "Some sources failed to load: {sources}. The list may be incomplete.",
+      "search_placeholder": "Code, title, counterparty…",
+      "filter_domain": "Operation",
+      "filter_domain_all": "All operations",
+      "filter_status": "Status",
+      "filter_status_all": "All statuses",
+      "filter_status_draft": "Draft",
+      "filter_status_needs_changes": "Needs changes",
+      "clear_filters": "Clear filters",
+      "col_code": "Reference",
+      "col_title": "Title",
+      "col_domain": "Operation",
+      "col_status": "Status",
+      "col_updated": "Updated",
+      "col_actions": "Actions",
+      "open": "Open",
+      "delete": "Discard draft",
+      "delete_cancel": "Cancel",
+      "delete_confirm_title": "Discard draft?",
+      "delete_confirm_description": "Draft {code} will be cancelled and cannot be restored.",
+      "create": "Create",
+      "create_crm_customer_registration": "Customer registration",
+      "create_finance_incoming": "Incoming transaction",
+      "create_finance_outgoing": "Outgoing transaction",
+      "create_hrm_employee_registration": "Employee registration",
+      "domain_crm_customer_registration": "Customer registration",
+      "domain_finance_incoming": "Incoming transaction",
+      "domain_finance_outgoing": "Outgoing transaction",
+      "domain_hrm_employee_registration": "Employee registration",
+      "source_crm": "CRM",
+      "source_finance_incoming": "Incoming finance",
+      "source_finance_outgoing": "Outgoing finance",
+      "source_hrm": "HRM",
+      "empty": "No drafts yet. Choose Create to get started.",
+      "empty_filtered": "No drafts match the current filters.",
+      "status_draft": "Draft",
+      "status_needs_changes": "Needs changes"
+    },
+    "my_tasks": {
+      "title": "My tasks",
+      "description": "Incoming work across registration, adjustment, and other operations."
+    },
+    "incoming": {
+      "title": "Incoming transactions",
+      "description": "Open tasks (READY/CLAIMED) for registration, adjustments, incoming finance, and HRM."
+    },
+    "outgoing": {
+      "title": "Outgoing transactions",
+      "description": "Cases you submitted and are awaiting approval, plus outgoing finance work."
+    },
+    "search": {
+      "title": "Transaction search",
+      "description": "Search all cases by date and status, including completed and rejected."
+    },
+    "business_type": "Operation type",
+    "claim_error": "Cannot claim task",
+    "keyword_placeholder": "Code / title",
+    "search_keyword_placeholder": "Code / title"
+  },
+  "actions": {
+    "refresh": "Refresh",
+    "search": "Search",
+    "open": "Open"
+  }
+}

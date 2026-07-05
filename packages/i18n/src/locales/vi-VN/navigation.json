@@ -45,5 +45,19 @@
     "security": "Bảo mật",
     "profile": "Hồ sơ",
     "appearance": "Giao diện"
+  },
+  "workbench": {
+    "_self": "Công việc",
+    "my_tasks": "Chờ tôi xử lý",
+    "drafts": "Nháp chưa trình duyệt",
+    "incoming_transactions": "Giao dịch đến",
+    "outgoing_transactions": "Giao dịch đi",
+    "transaction_search": "Tìm kiếm giao dịch"
+  },
+  "customer_members": {
+    "_self": "Khách hàng hội viên",
+    "registrations": "Đăng ký khách hàng",
+    "profiles": "Hồ sơ khách hàng",
+    "risk_cases": "Khách hàng rủi ro"
   }
 }

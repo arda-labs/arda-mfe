@@ -1,0 +1,104 @@
+{
+  "customers": {
+    "registrations": {
+      "title": "Đăng ký khách hàng",
+      "description": "Nhập thông tin khách hàng hội viên, lưu nháp hoặc trình duyệt theo BPM.",
+      "submitted_banner": "Hồ sơ đã trình duyệt và đang chờ kiểm soát (KS). Maker theo dõi tại Workbench → Giao dịch đi; checker xử lý tại Giao dịch đến.",
+      "submitted_open_workbench": "Mở Giao dịch đi",
+      "toast_submit_success": "Đã trình duyệt hồ sơ",
+      "toast_submit_next_checker": "Hồ sơ vào BPM. Checker (KS_QHKH) xử lý tại Workbench → Giao dịch đến.",
+      "toast_submit_next_maker": "Theo dõi tại Workbench → Giao dịch đến."
+    },
+    "profiles": {
+      "title": "Hồ sơ khách hàng",
+      "description": "Tra cứu hồ sơ khách hàng đã ghi nhận trên CRM."
+    },
+    "risk": {
+      "title": "Khách hàng rủi ro",
+      "description": "Theo dõi khách hàng có phân loại rủi ro."
+    },
+    "adjustments": {
+      "title": "Điều chỉnh khách hàng",
+      "description": "Lưu thay đổi vào phiên điều chỉnh, trình duyệt qua BPM trước khi áp dụng lên hồ sơ ACTIVE.",
+      "start": "Bắt đầu điều chỉnh",
+      "pending_banner": "Hồ sơ đang chờ duyệt điều chỉnh. Chỉ checker xử lý từ workbench.",
+      "resubmit_banner": "Phiên điều chỉnh cần bổ sung. Lưu thay đổi rồi trình duyệt lại trước khi hoàn tất task BPM.",
+      "save": "Lưu thay đổi",
+      "submit": "Trình duyệt",
+      "cancel_draft": "Hủy nháp",
+      "action": "Điều chỉnh"
+    },
+    "search_placeholder": "Tìm theo mã, tên, số di động, CCCD/CMND",
+    "empty": "Chưa có dữ liệu khách hàng."
+  },
+  "workbench": {
+    "drafts": {
+      "title": "Nháp chưa trình duyệt",
+      "description": "Tổng hợp nháp từ đăng ký khách hàng, giao dịch kế toán và đăng ký nhân sự — chưa Trình duyệt BPM. Sau khi trình duyệt, theo dõi tại Giao dịch đi.",
+      "count": "{count} nháp",
+      "load_failed": "Không tải được danh sách nháp",
+      "partial_load": "Một số nguồn không tải được: {sources}. Danh sách có thể chưa đầy đủ.",
+      "search_placeholder": "Mã hồ sơ, tiêu đề, đối tác…",
+      "filter_domain": "Nghiệp vụ",
+      "filter_domain_all": "Tất cả nghiệp vụ",
+      "filter_status": "Trạng thái",
+      "filter_status_all": "Tất cả trạng thái",
+      "filter_status_draft": "Nháp",
+      "filter_status_needs_changes": "Cần bổ sung",
+      "clear_filters": "Xóa bộ lọc",
+      "col_code": "Mã hồ sơ",
+      "col_title": "Tiêu đề",
+      "col_domain": "Nghiệp vụ",
+      "col_status": "Trạng thái",
+      "col_updated": "Cập nhật",
+      "col_actions": "Thao tác",
+      "open": "Mở",
+      "delete": "Hủy nháp",
+      "delete_cancel": "Không",
+      "delete_confirm_title": "Hủy hồ sơ nháp?",
+      "delete_confirm_description": "Hồ sơ {code} sẽ bị hủy và không thể khôi phục.",
+      "create": "Tạo mới",
+      "create_crm_customer_registration": "Đăng ký khách hàng",
+      "create_finance_incoming": "Giao dịch đến",
+      "create_finance_outgoing": "Giao dịch đi",
+      "create_hrm_employee_registration": "Đăng ký nhân sự",
+      "domain_crm_customer_registration": "Đăng ký KH",
+      "domain_finance_incoming": "Giao dịch đến",
+      "domain_finance_outgoing": "Giao dịch đi",
+      "domain_hrm_employee_registration": "Đăng ký nhân sự",
+      "source_crm": "CRM",
+      "source_finance_incoming": "Giao dịch đến",
+      "source_finance_outgoing": "Giao dịch đi",
+      "source_hrm": "HRM",
+      "empty": "Chưa có nháp nào. Chọn Tạo mới để bắt đầu.",
+      "empty_filtered": "Không có nháp khớp bộ lọc.",
+      "status_draft": "Nháp",
+      "status_needs_changes": "Cần bổ sung"
+    },
+    "my_tasks": {
+      "title": "Chờ tôi xử lý",
+      "description": "Tổng hợp việc đến từ đăng ký, điều chỉnh khách hàng và các nghiệp vụ khác."
+    },
+    "incoming": {
+      "title": "Giao dịch đến",
+      "description": "Việc cần xử lý ngay: task đang mở (READY/CLAIMED) cho đăng ký KH, điều chỉnh, giao dịch đến và HRM."
+    },
+    "outgoing": {
+      "title": "Giao dịch đi",
+      "description": "Hồ sơ bạn đã trình duyệt đang chờ KS/BPM, và giao dịch đi kế toán cần xử lý."
+    },
+    "search": {
+      "title": "Tìm kiếm giao dịch",
+      "description": "Tra cứu mọi giao dịch theo ngày và trạng thái — gồm đã hoàn tất, từ chối hoặc đang xử lý."
+    },
+    "business_type": "Loại nghiệp vụ",
+    "claim_error": "Không thể nhận task",
+    "keyword_placeholder": "Mã / tiêu đề giao dịch",
+    "search_keyword_placeholder": "Mã / tiêu đề"
+  },
+  "actions": {
+    "refresh": "Làm mới",
+    "search": "Tìm",
+    "open": "Mở"
+  }
+}

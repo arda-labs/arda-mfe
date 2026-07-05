@@ -29,6 +29,9 @@ const sharedDependencies = {
   "@workspace/auth": { singleton: true },
   "@workspace/auth/store": { singleton: true },
   "@workspace/auth/step-up-channel": { singleton: true },
+  "@workspace/notifications": { singleton: true },
+  "@workspace/notifications/": { singleton: true },
+  "react-toastify": { singleton: true },
 }
 
 // https://vite.dev/config/
@@ -131,12 +134,12 @@ export default defineConfig(({ command }) => ({
       "/api/admin": { target: backend.authGateway, changeOrigin: true },
       "/api/platform": { target: backend.authGateway, changeOrigin: true },
       "/api/identity": { target: backend.authGateway, changeOrigin: true },
-      "/api/finance": { target: backend.finance, changeOrigin: true },
-      "/api/media": { target: backend.media, changeOrigin: true },
-      "/api/workflow": { target: backend.workflow, changeOrigin: true },
-      "/api/crm": { target: backend.crm, changeOrigin: true },
-      "/api/hrm": { target: backend.hrm, changeOrigin: true },
-      "/api/notifications": { target: backend.notification, changeOrigin: true },
+      "/api/finance": { target: backend.authGateway, changeOrigin: true },
+      "/api/media": { target: backend.authGateway, changeOrigin: true },
+      "/api/workflow": { target: backend.authGateway, changeOrigin: true },
+      "/api/crm": { target: backend.authGateway, changeOrigin: true },
+      "/api/hrm": { target: backend.authGateway, changeOrigin: true },
+      "/api/notifications": { target: backend.authGateway, changeOrigin: true },
     },
   },
 }))

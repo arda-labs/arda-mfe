@@ -3,10 +3,12 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { getMediaContentUrl } from "@workspace/media"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { Check, FileText, Plus, RotateCcw, Save, Search, Send, Upload, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { PageTitle } from "@workspace/ui/components/page-title"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import {
@@ -31,7 +33,13 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
-import type { Customer, CustomerType, WorkflowTaskRole } from "./api"
+import {
+  customerApi,
+  type Customer,
+  type CustomerPayload,
+  type CustomerType,
+  type WorkflowTaskRole,
+} from "./api"
 import {
   useCompleteWorkflowTask,
   useCustomer,
@@ -40,13 +48,22 @@ import {
   useCustomers,
   useSaveCustomer,
   useSubmitCustomer,
+  useCancelCustomer,
   useUploadCustomerAvatar,
+  useCurrentAmendment,
+  useStartAdjustment,
+  useUpdateAmendment,
+  useSubmitAmendment,
+  useCancelAmendment,
 } from "./queries"
+import { GeoLocationFields } from "./geo-location-fields"
+import { OrgUnitField } from "./org-unit-field"
 
-type CustomerRoute = "registrations" | "profiles" | "risk"
+type CustomerRoute = "registrations" | "profiles" | "risk" | "adjustments"
 
 const customerSchema = z.object({
-  id: z.string().trim().min(1, "Mã khách hàng là bắt buộc"),
+  id: z.string().trim().optional(),
+  customerCode: z.string().trim().optional(),
   customerType: z.enum(["PERSONAL", "BUSINESS"]),
   avatarFileId: z.string().trim(),
   orgUnit: z.string().trim(),
@@ -118,6 +135,7 @@ type RelationshipFormValues = z.infer<typeof relationshipSchema>
 
 const defaultValues: CustomerFormValues = {
   id: "",
+  customerCode: "",
   customerType: "PERSONAL",
   avatarFileId: "",
   orgUnit: "",
@@ -180,9 +198,6 @@ const selectOptions = {
     { value: "PERSONAL", label: "Khách hàng cá nhân" },
     { value: "BUSINESS", label: "Doanh nghiệp" },
   ],
-  province: [{ value: "none", label: "-- Chọn Tỉnh, Thành phố --" }],
-  ward: [{ value: "none", label: "-- Chọn Phường/Xã --" }],
-  area: [{ value: "none", label: "-- Chọn khu vực --" }],
   generic: [{ value: "none", label: "-- Chọn --" }],
   relation: [
     { value: "SPOUSE", label: "Vợ/Chồng" },
@@ -196,15 +211,13 @@ const selectOptions = {
   ],
 }
 
-const generalFields: Array<
+const generalFieldsPrimary: Array<
+  [keyof CustomerFormValues, string, "input" | "select" | "textarea"]
+> = [["name", "Tên khách hàng(*)", "input"]]
+
+const generalFieldsRest: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "textarea"]
 > = [
-  ["id", "Mã khách hàng(*)", "input"],
-  ["orgUnit", "Đơn vị", "input"],
-  ["name", "Tên khách hàng(*)", "input"],
-  ["provinceCode", "Mã tỉnh", "select"],
-  ["wardCode", "Mã phường xã", "select"],
-  ["areaCode", "Mã khu vực", "select"],
   ["permanentAddress", "Địa chỉ thường trú", "textarea"],
   ["currentAddress", "Địa chỉ hiện tại", "textarea"],
   ["mobile", "Số di động", "input"],
@@ -271,11 +284,26 @@ const businessFields: Array<
 ]
 
 export function CustomersPage({ pathname }: { pathname: string }) {
+  const { t } = useI18n()
   const route = routeFromPath(pathname)
   if (route === "profiles")
-    return <CustomerTable title="Hồ sơ khách hàng" mode="profiles" />
+    return (
+      <CustomerTable
+        title={t("crm.customers.profiles.title")}
+        description={t("crm.customers.profiles.description")}
+        mode="profiles"
+      />
+    )
   if (route === "risk")
-    return <CustomerTable title="Khách hàng rủi ro" mode="risk" />
+    return (
+      <CustomerTable
+        title={t("crm.customers.risk.title")}
+        description={t("crm.customers.risk.description")}
+        mode="risk"
+      />
+    )
+  if (route === "adjustments")
+    return <CustomerAdjustmentPage initialCustomerId={customerIdFromSearch()} />
   return <CustomerRegistrationPage initialCustomerId={customerIdFromSearch()} />
 }
 
@@ -284,10 +312,12 @@ function CustomerRegistrationPage({
 }: {
   initialCustomerId?: string | null
 }) {
+  const { t } = useI18n()
   const [savedCustomer, setSavedCustomer] = useState<Customer | null>(null)
   const taskContext = taskContextFromSearch()
   const saveCustomer = useSaveCustomer()
   const submitCustomer = useSubmitCustomer()
+  const cancelCustomer = useCancelCustomer()
   const completeTask = useCompleteWorkflowTask(taskContext.role)
   const uploadAvatar = useUploadCustomerAvatar()
   const customerQuery = useCustomer(initialCustomerId ?? null)
@@ -297,7 +327,13 @@ function CustomerRegistrationPage({
   })
   const customerType = form.watch("customerType")
   const isPersonal = customerType === "PERSONAL"
-  const canAddRelationship = isPersonal && savedCustomer?.status === "APPROVED"
+  const canAddRelationship = isPersonal && savedCustomer?.status === "ACTIVE"
+  const canSubmitDraft = savedCustomer?.status === "DRAFT"
+  const isSubmitted = savedCustomer?.status === "SUBMITTED"
+  const isActive = savedCustomer?.status === "ACTIVE"
+  const canCancelDraft =
+    savedCustomer?.status === "DRAFT" || savedCustomer?.status === "NEEDS_CHANGES"
+  const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
 
   useEffect(() => {
     if (!customerQuery.data) return
@@ -306,35 +342,54 @@ function CustomerRegistrationPage({
   }, [customerQuery.data, form])
 
   async function save(values: CustomerFormValues, submit = false) {
-    const saved = await saveCustomer.mutateAsync(toPayload(values))
+    const wasNew = !savedCustomer?.id
+    const saved = await saveCustomer.mutateAsync({
+      payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
+      quiet: submit,
+    })
     setSavedCustomer(saved)
+    form.reset(toFormValues(saved))
+    if (wasNew && saved.id) {
+      const params = new URLSearchParams(window.location.search)
+      params.set("customerId", saved.id)
+      navigateTo(`/customers/registrations?${params.toString()}`)
+    }
     if (submit) {
       const submitted = await submitCustomer.mutateAsync(saved.id)
       setSavedCustomer(submitted)
+      form.reset(toFormValues(submitted))
+      navigateTo("/workbench/outgoing-transactions")
     }
   }
 
-  function completeCurrentTask(decision: string) {
-    if (!taskContext.taskKey || !taskContext.processInstanceKey || !taskContext.elementId) {
-      notify.error("Thiếu ngữ cảnh task BPM")
-      return
-    }
+  function handleInvalidSave() {
+    notify.error(
+      "Không lưu được",
+      "Vui lòng kiểm tra các trường bắt buộc (Tên khách hàng, Email hợp lệ...)."
+    )
+  }
+
+  async function completeCurrentTask(decision: string) {
+    const resolved = await resolveWorkflowJobKey(taskContext, savedCustomer?.status)
+    if (!resolved) return
     const variables =
-      taskContext.role === "CUSTOMER_RISK_CHECKER"
+      resolved.role === "CUSTOMER_RISK_CHECKER"
         ? { riskDecision: decision }
-        : { reviewDecision: decision }
+        : resolved.role === "CUSTOMER_MAKER"
+          ? { revisionSubmitted: true }
+          : { reviewDecision: decision }
     completeTask.mutate({
-      jobKey: taskContext.taskKey,
-      processInstanceKey: taskContext.processInstanceKey,
-      elementId: taskContext.elementId,
+      jobKey: resolved.jobKey,
+      processInstanceKey: resolved.processInstanceKey,
+      elementId: resolved.elementId,
       variables,
     })
   }
 
   async function uploadAvatarFile(file: File) {
-    const customerId = form.getValues("id").trim()
+    const customerId = savedCustomer?.id ?? form.getValues("id")?.trim()
     if (!customerId) {
-      notify.error("Nhập Mã khách hàng trước khi upload ảnh đại diện")
+      notify.error("Lưu nháp hồ sơ trước khi upload ảnh đại diện")
       return
     }
     if (!file.type.startsWith("image/")) {
@@ -350,14 +405,354 @@ function CustomerRegistrationPage({
   }
 
   return (
+    <section className="flex h-full min-h-0 flex-col overflow-hidden">
+      <form
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={form.handleSubmit((values) => save(values), handleInvalidSave)}
+      >
+        <Tabs defaultValue="general" className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+            <div className="px-4 pt-4">
+              <PageTitle
+                title={t("crm.customers.registrations.title")}
+                description={t("crm.customers.registrations.description")}
+                meta={
+                  savedCustomer ? (
+                    <Badge className="shrink-0" variant="secondary">
+                      {savedCustomer.status}
+                    </Badge>
+                  ) : null
+                }
+              />
+            </div>
+            <div className="sticky top-0 z-10 border-b bg-background px-4 pb-3">
+              <CustomerRegistrationTabsList
+                isPersonal={isPersonal}
+                canAddRelationship={canAddRelationship}
+              />
+            </div>
+            <div className="space-y-4 p-4">
+              {awaitingMakerResubmit ? (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Hồ sơ cần bổ sung. Lưu thay đổi rồi dùng nút <strong>Gửi lại</strong> trong
+                  panel việc BPM (không dùng Trình duyệt).
+                </div>
+              ) : null}
+              {isSubmitted ? (
+                <RegistrationSubmittedBanner
+                  customer={savedCustomer}
+                  onOpenWorkbench={() =>
+                    navigateTo("/workbench/outgoing-transactions")
+                  }
+                  t={t}
+                />
+              ) : null}
+              {isActive ? (
+                <div className="flex flex-col gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950 sm:flex-row sm:items-center sm:justify-between">
+                  <p>
+                    Hồ sơ đã kích hoạt (ACTIVE). Tra cứu tại{" "}
+                    <strong>Khách hàng → Hồ sơ khách hàng</strong>.
+                    {hasTaskContext(taskContext)
+                      ? " Case BPM có thể còn bước hậu kỳ — bỏ qua panel duyệt bên dưới."
+                      : ""}
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => navigateTo("/customers/profiles")}
+                  >
+                    Mở hồ sơ khách hàng
+                  </Button>
+                </div>
+              ) : null}
+              {customerQuery.isFetching ? (
+                <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
+                  Đang tải hồ sơ...
+                </div>
+              ) : null}
+              <RegistrationMetaBar customer={savedCustomer} />
+              {!isActive ? (
+                <CurrentTaskPanel
+                  context={taskContext}
+                  completing={completeTask.isPending}
+                  onComplete={completeCurrentTask}
+                />
+              ) : null}
+              <TabsContent value="general" className="mt-0 space-y-4">
+                <Panel title="Thông tin chung">
+                  <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
+                    <div className="space-y-3">
+                      <FormField label="Loại khách hàng">
+                        <Controller
+                          control={form.control}
+                          name="customerType"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value}
+                              onValueChange={(value) =>
+                                field.onChange(value as CustomerType)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {selectOptions.customerType.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </FormField>
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        <OrgUnitField form={form} />
+                        <FieldGrid fields={generalFieldsPrimary} form={form} bare />
+                        <GeoLocationFields form={form} />
+                        <FieldGrid fields={generalFieldsRest} form={form} bare />
+                      </div>
+                    </div>
+                    <AvatarUploader
+                      fileId={form.watch("avatarFileId")}
+                      uploading={uploadAvatar.isPending}
+                      onClear={() =>
+                        form.setValue("avatarFileId", "", { shouldDirty: true })
+                      }
+                      onUpload={uploadAvatarFile}
+                    />
+                  </div>
+                </Panel>
+                {isPersonal ? (
+                  <>
+                    <Panel title="Thông tin định danh">
+                      <FieldGrid fields={personalFields} form={form} />
+                    </Panel>
+                    <Panel title="Thông tin mở rộng">
+                      <FieldGrid fields={extendedFields} form={form} />
+                    </Panel>
+                  </>
+                ) : (
+                  <Panel title="Thông tin doanh nghiệp">
+                    <FieldGrid fields={businessFields} form={form} />
+                  </Panel>
+                )}
+              </TabsContent>
+              {isPersonal ? (
+                <TabsContent value="relationships" className="mt-0">
+                  {savedCustomer ? (
+                    <RelationshipsPanel customer={savedCustomer} />
+                  ) : (
+                    <EmptyState text="Lưu và hoàn thành hồ sơ khách hàng trước khi khai báo người có liên quan." />
+                  )}
+                </TabsContent>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex h-[52px] shrink-0 items-center border-t bg-background px-4">
+            <div className="flex w-full flex-wrap justify-end gap-2">
+              <Button
+                className="h-8"
+                type="submit"
+                disabled={
+                  isSubmitted ||
+                  isActive ||
+                  form.formState.isSubmitting ||
+                  saveCustomer.isPending
+                }
+              >
+                <Save className="size-4" />
+                Lưu nháp
+              </Button>
+              <Button
+                className="h-8"
+                type="button"
+                variant="secondary"
+                disabled={
+                  isSubmitted ||
+                  isActive ||
+                  !savedCustomer?.id ||
+                  form.formState.isSubmitting ||
+                  saveCustomer.isPending ||
+                  submitCustomer.isPending ||
+                  !canSubmitDraft
+                }
+                onClick={form.handleSubmit(
+                  (values) => save(values, true),
+                  handleInvalidSave
+                )}
+              >
+                <Send className="size-4" />
+                Trình duyệt
+              </Button>
+              <Button
+                className="h-8"
+                type="button"
+                variant="outline"
+                disabled={
+                  !savedCustomer?.id ||
+                  cancelCustomer.isPending ||
+                  !canCancelDraft
+                }
+                onClick={() => {
+                  if (!savedCustomer?.id) return
+                  cancelCustomer.mutate(savedCustomer.id, {
+                    onSuccess: () => {
+                      navigateTo("/workbench/drafts")
+                    },
+                  })
+                }}
+              >
+                <X className="size-4" />
+                {t("crm.customers.adjustments.cancel_draft")}
+              </Button>
+            </div>
+          </div>
+        </Tabs>
+      </form>
+    </section>
+  )
+}
+
+function CustomerRegistrationTabsList({
+  isPersonal,
+  canAddRelationship,
+}: {
+  isPersonal: boolean
+  canAddRelationship: boolean
+}) {
+  return (
+    <TabsList className="flex h-auto flex-wrap justify-start">
+      <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
+      {isPersonal ? (
+        <TabsTrigger value="relationships" disabled={!canAddRelationship}>
+          Người có liên quan
+        </TabsTrigger>
+      ) : null}
+    </TabsList>
+  )
+}
+
+function CustomerAdjustmentPage({
+  initialCustomerId,
+}: {
+  initialCustomerId?: string | null
+}) {
+  const { t } = useI18n()
+  const customerId = initialCustomerId?.trim() || ""
+  const taskContext = taskContextFromSearch()
+  const customerQuery = useCustomer(customerId || null)
+  const amendmentQuery = useCurrentAmendment(customerId || null)
+  const startAdjustment = useStartAdjustment()
+  const updateAmendment = useUpdateAmendment(customerId)
+  const submitAmendment = useSubmitAmendment(customerId)
+  const cancelAmendment = useCancelAmendment(customerId)
+  const completeTask = useCompleteWorkflowTask(taskContext.role)
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerSchema),
+    defaultValues,
+  })
+  const customer = customerQuery.data ?? null
+  const amendment = amendmentQuery.data ?? null
+  const customerType = form.watch("customerType")
+  const isPersonal = customerType === "PERSONAL"
+  const readOnly = amendment?.status === "PENDING"
+  const canEdit = amendment?.status === "DRAFT"
+  const canSubmit = canEdit && Boolean(amendment?.id)
+  const canCancelDraft = canEdit && Boolean(amendment?.id)
+  const canStart =
+    Boolean(customerId) &&
+    customer?.status === "ACTIVE" &&
+    !amendment &&
+    !amendmentQuery.isFetching
+  const awaitingAmendmentResubmit =
+    amendment?.status === "DRAFT" && hasTaskContext(taskContext)
+
+  useEffect(() => {
+    if (!customer) return
+    form.reset(toFormValues(customer))
+  }, [customer, form])
+
+  async function saveAdjustment(values: CustomerFormValues) {
+    if (!amendment?.id) return
+    const afterSnapshot = toAmendmentSnapshot(values)
+    await updateAmendment.mutateAsync({
+      amendmentId: amendment.id,
+      payload: {
+        afterSnapshot,
+        changedFields: computeChangedFields(customer, afterSnapshot),
+      },
+    })
+  }
+
+  async function completeCurrentTask(decision: string) {
+    const resolved = await resolveWorkflowJobKey(taskContext, customer?.status)
+    if (!resolved) return
+    const variables =
+      resolved.role === "CUSTOMER_RISK_CHECKER"
+        ? { riskDecision: decision }
+        : resolved.role === "CUSTOMER_MAKER"
+          ? { revisionSubmitted: true }
+          : { reviewDecision: decision }
+    completeTask.mutate({
+      jobKey: resolved.jobKey,
+      processInstanceKey: resolved.processInstanceKey,
+      elementId: resolved.elementId,
+      variables,
+    })
+  }
+
+  if (!customerId) {
+    return (
+      <section className="space-y-4">
+        <Header
+          title={t("crm.customers.adjustments.title")}
+          description={t("crm.customers.adjustments.description")}
+        />
+        <EmptyState text="Thiếu customerId trên URL." />
+      </section>
+    )
+  }
+
+  return (
     <section className="space-y-4">
       <Header
-        title="Đăng ký khách hàng"
-        description="Nhập thông tin khách hàng hội viên, lưu nháp hoặc trình duyệt theo BPM."
+        title={t("crm.customers.adjustments.title")}
+        description={t("crm.customers.adjustments.description")}
       />
-      {customerQuery.isFetching ? (
+      {customerQuery.isFetching || amendmentQuery.isFetching ? (
         <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-          Đang tải hồ sơ {initialCustomerId}...
+          Đang tải hồ sơ...
+        </div>
+      ) : null}
+      {customer ? <RegistrationMetaBar customer={customer} /> : null}
+      {amendment ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
+          <span>
+            Phiên điều chỉnh:{" "}
+            <span className="font-mono font-medium">{amendment.id}</span>
+          </span>
+          <StatusBadge status={amendment.status} />
+          {amendment.changedFields?.length ? (
+            <span className="text-muted-foreground">
+              Trường đổi: {amendment.changedFields.join(", ")}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      {awaitingAmendmentResubmit ? (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {t("crm.customers.adjustments.resubmit_banner")}
+        </div>
+      ) : null}
+      {readOnly ? (
+        <div className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+          {t("crm.customers.adjustments.pending_banner")}
         </div>
       ) : null}
       <CurrentTaskPanel
@@ -365,112 +760,94 @@ function CustomerRegistrationPage({
         completing={completeTask.isPending}
         onComplete={completeCurrentTask}
       />
-      <form
-        className="space-y-4"
-        onSubmit={form.handleSubmit((values) => save(values))}
-      >
-        <Tabs defaultValue="general" className="space-y-4">
-          <TabsList className="flex h-auto flex-wrap justify-start">
-            <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
-            {isPersonal ? (
-              <TabsTrigger value="relationships" disabled={!canAddRelationship}>
-                Người có liên quan
-              </TabsTrigger>
-            ) : null}
-          </TabsList>
-          <TabsContent value="general" className="space-y-4">
-            <Panel title="Thông tin chung">
-              <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
-                <div className="space-y-3">
-                  <FormField label="Loại khách hàng">
-                    <Controller
-                      control={form.control}
-                      name="customerType"
-                      render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={(value) =>
-                            field.onChange(value as CustomerType)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectOptions.customerType.map((option) => (
-                              <SelectItem
-                                key={option.value}
-                                value={option.value}
-                              >
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </FormField>
-                  <FieldGrid fields={generalFields} form={form} />
-                </div>
-                <AvatarUploader
-                  fileId={form.watch("avatarFileId")}
-                  uploading={uploadAvatar.isPending}
-                  onClear={() =>
-                    form.setValue("avatarFileId", "", { shouldDirty: true })
-                  }
-                  onUpload={uploadAvatarFile}
-                />
-              </div>
-            </Panel>
-            {isPersonal ? (
-              <>
-                <Panel title="Thông tin định danh">
-                  <FieldGrid fields={personalFields} form={form} />
-                </Panel>
-                <Panel title="Thông tin mở rộng">
-                  <FieldGrid fields={extendedFields} form={form} />
-                </Panel>
-              </>
-            ) : (
-              <Panel title="Thông tin doanh nghiệp">
-                <FieldGrid fields={businessFields} form={form} />
-              </Panel>
-            )}
-          </TabsContent>
-          {isPersonal ? (
-            <TabsContent value="relationships">
-              {savedCustomer ? (
-                <RelationshipsPanel customer={savedCustomer} />
-              ) : (
-                <EmptyState text="Lưu và hoàn thành hồ sơ khách hàng trước khi khai báo người có liên quan." />
-              )}
-            </TabsContent>
-          ) : null}
-        </Tabs>
-        <div className="flex flex-wrap justify-end gap-2">
-          {savedCustomer ? <StatusBadge status={savedCustomer.status} /> : null}
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting || saveCustomer.isPending}
-          >
-            <Save className="size-4" />
-            Lưu nháp
-          </Button>
+      {canStart ? (
+        <div className="flex justify-end">
           <Button
             type="button"
-            variant="secondary"
-            disabled={
-              form.formState.isSubmitting ||
-              saveCustomer.isPending ||
-              submitCustomer.isPending
-            }
-            onClick={form.handleSubmit((values) => save(values, true))}
+            disabled={startAdjustment.isPending}
+            onClick={() => startAdjustment.mutate(customerId)}
           >
-            <Send className="size-4" />
-            Trình duyệt
+            <Plus className="size-4" />
+            {t("crm.customers.adjustments.start")}
           </Button>
         </div>
-      </form>
+      ) : null}
+      {amendment ? (
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit((values) => saveAdjustment(values))}
+        >
+          <Tabs defaultValue="general" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general" className="space-y-4">
+              <Panel title="Thông tin chung">
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  <FormField label="Loại khách hàng">
+                    <Input value={customerTypeLabel(customerType)} readOnly />
+                  </FormField>
+                  <OrgUnitField form={form} disabled={readOnly} />
+                  <FieldGrid fields={generalFieldsPrimary} form={form} bare />
+                  <GeoLocationFields form={form} />
+                  <FieldGrid fields={generalFieldsRest} form={form} bare />
+                </div>
+              </Panel>
+              {isPersonal ? (
+                <>
+                  <Panel title="Thông tin định danh">
+                    <FieldGrid fields={personalFields} form={form} />
+                  </Panel>
+                  <Panel title="Thông tin mở rộng">
+                    <FieldGrid fields={extendedFields} form={form} />
+                  </Panel>
+                </>
+              ) : (
+                <Panel title="Thông tin doanh nghiệp">
+                  <FieldGrid fields={businessFields} form={form} />
+                </Panel>
+              )}
+            </TabsContent>
+          </Tabs>
+          <fieldset disabled={readOnly} className="space-y-0">
+            <div className="flex flex-wrap justify-end gap-2">
+              {customer ? <StatusBadge status={customer.status} /> : null}
+              <Button
+                type="submit"
+                disabled={!canEdit || updateAmendment.isPending}
+              >
+                <Save className="size-4" />
+                {t("crm.customers.adjustments.save")}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={!canSubmit || submitAmendment.isPending}
+                onClick={form.handleSubmit(async (values) => {
+                  await saveAdjustment(values)
+                  if (!amendment?.id) return
+                  await submitAmendment.mutateAsync(amendment.id)
+                })}
+              >
+                <Send className="size-4" />
+                {t("crm.customers.adjustments.submit")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!canCancelDraft || cancelAmendment.isPending}
+                onClick={() => {
+                  if (!amendment?.id) return
+                  cancelAmendment.mutate(amendment.id)
+                }}
+              >
+                <X className="size-4" />
+                {t("crm.customers.adjustments.cancel_draft")}
+              </Button>
+            </div>
+          </fieldset>
+        </form>
+      ) : null}
     </section>
   )
 }
@@ -544,14 +921,16 @@ function CurrentTaskPanel({
 function FieldGrid({
   fields,
   form,
+  bare = false,
 }: {
   fields: Array<
     [keyof CustomerFormValues, string, "input" | "select" | "textarea" | "date"]
   >
   form: ReturnType<typeof useForm<CustomerFormValues>>
+  bare?: boolean
 }) {
-  return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+  const content = (
+    <>
       {fields.map(([name, label, type]) => (
         <FormField
           key={name}
@@ -592,8 +971,12 @@ function FieldGrid({
           )}
         </FormField>
       ))}
-    </div>
+    </>
   )
+
+  if (bare) return content
+
+  return <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{content}</div>
 }
 
 function AvatarUploader({
@@ -657,7 +1040,7 @@ function AvatarUploader({
 
 function RelationshipsPanel({ customer }: { customer: Customer }) {
   const relationshipsQuery = useCustomerRelationships(customer.id)
-  const approvedCustomersQuery = useCustomers({ status: "APPROVED" })
+  const approvedCustomersQuery = useCustomers({ status: "ACTIVE" })
   const createRelationship = useCreateCustomerRelationship(customer.id)
   const candidates = (approvedCustomersQuery.data ?? []).filter(
     (item) => item.id !== customer.id
@@ -711,7 +1094,7 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
                   <SelectItem value="none">-- Chọn khách hàng --</SelectItem>
                   {candidates.map((item) => (
                     <SelectItem key={item.id} value={item.id}>
-                      {item.id} - {item.name}
+                      {item.customerCode || item.id} - {item.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -798,8 +1181,8 @@ function RelationshipsPanel({ customer }: { customer: Customer }) {
           {(relationshipsQuery.data ?? []).map((item, index) => (
             <TableRow key={item.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell className="font-mono text-xs">
-                {item.relatedCustomerId}
+                <TableCell className="font-mono text-xs">
+                {item.relatedCustomerCode || item.relatedCustomerId}
               </TableCell>
               <TableCell>{item.relatedCustomerName || "-"}</TableCell>
               <TableCell className="max-w-64 truncate">
@@ -852,30 +1235,26 @@ function RelationSelect({
 
 function CustomerTable({
   title,
+  description,
   mode,
 }: {
   title: string
+  description: string
   mode: "profiles" | "risk"
 }) {
+  const { t } = useI18n()
   const [query, setQuery] = useState("")
   const [submittedQuery, setSubmittedQuery] = useState("")
   const customersQuery = useCustomers({
     q: submittedQuery || undefined,
     riskOnly: mode === "risk",
-    status: "APPROVED",
+    status: "ACTIVE",
   })
   const items = customersQuery.data ?? []
 
   return (
     <section className="space-y-4">
-      <Header
-        title={title}
-        description={
-          mode === "risk"
-            ? "Theo dõi khách hàng có phân loại rủi ro."
-            : "Tra cứu hồ sơ khách hàng đã ghi nhận trên CRM."
-        }
-      />
+      <Header title={title} description={description} />
       <form
         className="flex flex-col gap-2 sm:flex-row"
         onSubmit={(event) => {
@@ -889,12 +1268,12 @@ function CustomerTable({
             className="pl-9"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Tìm theo mã, tên, số di động, CCCD/CMND"
+            placeholder={t("crm.customers.search_placeholder")}
           />
         </div>
         <Button type="submit">
           <Search className="size-4" />
-          Tìm
+          {t("crm.actions.search")}
         </Button>
       </form>
       <div className="overflow-hidden rounded-md border">
@@ -917,6 +1296,7 @@ function CustomerTable({
               <TableHead>Số di động</TableHead>
               <TableHead>CCCD/CMND</TableHead>
               <TableHead>Địa chỉ</TableHead>
+              {mode === "profiles" ? <TableHead>Thao tác</TableHead> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -928,7 +1308,9 @@ function CustomerTable({
                   </TableCell>
                 ) : null}
                 <TableCell>{index + 1}</TableCell>
-                <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  {item.customerCode || item.id}
+                </TableCell>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 {mode === "profiles" ? (
                   <TableCell>{item.segment || "-"}</TableCell>
@@ -944,18 +1326,78 @@ function CustomerTable({
                 <TableCell className="max-w-72 truncate">
                   {item.address || "-"}
                 </TableCell>
+                {mode === "profiles" ? (
+                  <TableCell>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        navigateTo(
+                          `/customers/adjustments?customerId=${encodeURIComponent(item.id)}`
+                        )
+                      }
+                    >
+                      {t("crm.customers.adjustments.action")}
+                    </Button>
+                  </TableCell>
+                ) : null}
               </TableRow>
             ))}
             {!items.length ? (
               <EmptyTable
-                colSpan={mode === "profiles" ? 10 : 8}
-                text="Chưa có dữ liệu khách hàng."
+                colSpan={mode === "profiles" ? 11 : 8}
+                text={t("crm.customers.empty")}
               />
             ) : null}
           </TableBody>
         </Table>
       </div>
     </section>
+  )
+}
+
+function RegistrationSubmittedBanner({
+  customer,
+  onOpenWorkbench,
+  t,
+}: {
+  customer: Customer | null
+  onOpenWorkbench: () => void
+  t: ReturnType<typeof useI18n>["t"]
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-1">
+        <p>{t("crm.customers.registrations.submitted_banner")}</p>
+        {customer?.workflowCaseId ? (
+          <p className="font-mono text-xs text-sky-800">
+            Case BPM: {customer.workflowCaseId}
+          </p>
+        ) : null}
+      </div>
+      <Button className="h-8 shrink-0" type="button" variant="secondary" onClick={onOpenWorkbench}>
+        {t("crm.customers.registrations.submitted_open_workbench")}
+      </Button>
+    </div>
+  )
+}
+
+function RegistrationMetaBar({ customer }: { customer: Customer | null }) {
+  if (!customer?.customerCode) return null
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
+      <span>
+        Mã hồ sơ:{" "}
+        <span className="font-mono font-medium">{customer.customerCode}</span>
+      </span>
+      {customer.workflowCaseId ? (
+        <span className="text-muted-foreground">
+          Case BPM:{" "}
+          <span className="font-mono">{customer.workflowCaseId}</span>
+        </span>
+      ) : null}
+    </div>
   )
 }
 
@@ -987,7 +1429,7 @@ function Header({
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const variant = status === "APPROVED" ? "default" : "secondary"
+  const variant = status === "ACTIVE" || status === "APPROVED" ? "default" : "secondary"
   return <Badge variant={variant}>{status}</Badge>
 }
 
@@ -1013,13 +1455,14 @@ function EmptyState({ text }: { text: string }) {
 }
 
 function optionsFor(name: keyof CustomerFormValues) {
-  if (name === "provinceCode") return selectOptions.province
-  if (name === "wardCode") return selectOptions.ward
-  if (name === "areaCode") return selectOptions.area
   return selectOptions.generic
 }
 
-function toPayload(values: CustomerFormValues) {
+function toPayload(
+  values: CustomerFormValues,
+  existingId?: string,
+  existingStatus?: Customer["status"]
+) {
   const generalInfo = pick(values, [
     "orgUnit",
     "avatarFileId",
@@ -1086,12 +1529,11 @@ function toPayload(values: CustomerFormValues) {
         ])
       : {}
 
-  return {
-    id: values.id.trim(),
+  const payload: CustomerPayload = {
     customerType: values.customerType,
     name: values.name.trim(),
     email: values.email.trim(),
-    status: "DRAFT" as const,
+    status: existingStatus ?? "DRAFT",
     mobile: values.mobile.trim(),
     identityNo:
       values.customerType === "PERSONAL"
@@ -1106,6 +1548,9 @@ function toPayload(values: CustomerFormValues) {
     businessInfo,
     extendedInfo,
   }
+  const id = (existingId ?? values.id ?? "").trim()
+  if (id) payload.id = id
+  return payload
 }
 
 function toFormValues(customer: Customer): CustomerFormValues {
@@ -1116,6 +1561,7 @@ function toFormValues(customer: Customer): CustomerFormValues {
   return {
     ...defaultValues,
     id: customer.id,
+    customerCode: customer.customerCode,
     customerType: customer.customerType,
     avatarFileId: stringValue(general.avatarFileId),
     orgUnit: stringValue(general.orgUnit),
@@ -1202,10 +1648,109 @@ type CustomerTaskContext = {
   customerId: string | null
   caseId: string | null
   caseCode: string | null
-  taskKey: number | null
-  processInstanceKey: number | null
+  taskKey: string | null
+  processInstanceKey: string | null
   elementId: string | null
   role: WorkflowTaskRole
+}
+
+function effectiveBpmnElementId(
+  role: WorkflowTaskRole,
+  elementId: string | null,
+  customerStatus?: Customer["status"]
+) {
+  if (role === "CUSTOMER_MAKER") {
+    if (
+      customerStatus === "NEEDS_CHANGES" ||
+      elementId === "Activity_CheckerReview" ||
+      !elementId
+    ) {
+      return "Activity_MakerRevise"
+    }
+  }
+  return elementId
+}
+
+function syncTaskContextSearch(updates: {
+  taskKey?: string
+  elementId?: string
+  role?: WorkflowTaskRole | string
+}) {
+  const params = new URLSearchParams(window.location.search)
+  if (updates.taskKey) params.set("taskKey", updates.taskKey)
+  if (updates.elementId) params.set("elementId", updates.elementId)
+  if (updates.role) params.set("role", updates.role)
+  navigateTo(`${window.location.pathname}?${params.toString()}`)
+}
+
+async function resolveWorkflowJobKey(
+  context: CustomerTaskContext,
+  customerStatus?: Customer["status"]
+): Promise<{
+  jobKey: string
+  processInstanceKey: string
+  elementId: string
+  role: WorkflowTaskRole
+} | null> {
+  if (!context.processInstanceKey) {
+    notify.error(
+      "Thiếu ngữ cảnh task BPM",
+      "Không có processInstanceKey — mở lại việc từ workbench."
+    )
+    return null
+  }
+  const elementId = effectiveBpmnElementId(
+    context.role,
+    context.elementId,
+    customerStatus
+  )
+  if (!elementId) {
+    notify.error("Thiếu ngữ cảnh task BPM", "Không xác định được bước BPM (elementId).")
+    return null
+  }
+  if (context.taskKey) {
+    return {
+      jobKey: context.taskKey,
+      processInstanceKey: context.processInstanceKey,
+      elementId,
+      role: context.role,
+    }
+  }
+  try {
+    const task = await customerApi.claimWorkflowTask({
+      role: context.role,
+      processInstanceKey: context.processInstanceKey,
+      caseId: context.caseId,
+      elementId,
+    })
+    const jobKey = workflowKey(task.jobKey)
+    if (!jobKey) {
+      notify.error(
+        "Thiếu ngữ cảnh task BPM",
+        "Không lấy được task key từ Zeebe — kiểm tra workflow-service và Zeebe."
+      )
+      return null
+    }
+    const processInstanceKey =
+      workflowKey(task.processInstanceKey) || context.processInstanceKey
+    syncTaskContextSearch({
+      taskKey: jobKey,
+      elementId: task.elementId || elementId,
+      role: task.candidateRole || context.role,
+    })
+    return {
+      jobKey,
+      processInstanceKey,
+      elementId: task.elementId || elementId,
+      role: roleParam(task.candidateRole || context.role),
+    }
+  } catch (error) {
+    notify.error(
+      "Thiếu ngữ cảnh task BPM",
+      error instanceof Error ? error.message : "Không claim được task từ workflow."
+    )
+    return null
+  }
 }
 
 function taskContextFromSearch(): CustomerTaskContext {
@@ -1214,8 +1759,8 @@ function taskContextFromSearch(): CustomerTaskContext {
     customerId: params.get("customerId"),
     caseId: params.get("caseId"),
     caseCode: params.get("caseCode"),
-    taskKey: numberParam(params, "taskKey"),
-    processInstanceKey: numberParam(params, "processInstanceKey"),
+    taskKey: stringParam(params, "taskKey"),
+    processInstanceKey: stringParam(params, "processInstanceKey"),
     elementId: params.get("elementId"),
     role: roleParam(params.get("role")),
   }
@@ -1232,6 +1777,17 @@ function ContextField({ label, value }: { label: string; value?: string | null }
       <p className="break-words font-mono text-xs">{value || "-"}</p>
     </div>
   )
+}
+
+function stringParam(params: URLSearchParams, key: string) {
+  const value = params.get(key)?.trim()
+  return value || null
+}
+
+function workflowKey(value: string | number | null | undefined) {
+  if (value == null) return null
+  const text = String(value).trim()
+  return text || null
 }
 
 function numberParam(params: URLSearchParams, key: string) {
@@ -1251,6 +1807,45 @@ function customerIdFromSearch() {
 function routeFromPath(pathname: string): CustomerRoute {
   if (pathname.startsWith("/customers/profiles")) return "profiles"
   if (pathname.startsWith("/customers/risk-cases")) return "risk"
+  if (pathname.startsWith("/customers/adjustments")) return "adjustments"
   return "registrations"
+}
+
+function navigateTo(path: string) {
+  window.history.pushState({}, "", path)
+  window.dispatchEvent(new PopStateEvent("popstate"))
+}
+
+function toAmendmentSnapshot(values: CustomerFormValues): Record<string, unknown> {
+  const payload = toPayload(values, values.id, "ACTIVE")
+  return {
+    name: payload.name,
+    email: payload.email,
+    mobile: payload.mobile,
+    identityNo: payload.identityNo,
+    address: payload.address,
+    customerType: payload.customerType,
+    personalInfo: payload.personalInfo,
+    businessInfo: payload.businessInfo,
+    extendedInfo: payload.extendedInfo,
+    generalInfo: payload.generalInfo,
+  }
+}
+
+function computeChangedFields(
+  customer: Customer | null,
+  afterSnapshot: Record<string, unknown>
+): string[] {
+  if (!customer) return []
+  const fields: string[] = []
+  const compare = (key: string, before: string, after: unknown) => {
+    if (String(after ?? "").trim() !== before.trim()) fields.push(key)
+  }
+  compare("name", customer.name, afterSnapshot.name)
+  compare("email", customer.email, afterSnapshot.email)
+  compare("mobile", customer.mobile, afterSnapshot.mobile)
+  compare("identityNo", customer.identityNo, afterSnapshot.identityNo)
+  compare("address", customer.address, afterSnapshot.address)
+  return fields
 }
 

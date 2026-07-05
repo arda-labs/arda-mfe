@@ -1,4 +1,5 @@
 import { api } from "@workspace/api"
+import type { ListResponse } from "@workspace/core/http/list-api"
 
 export type Status = "active" | "inactive"
 
@@ -97,12 +98,18 @@ export const hrmApi = {
   listEmployeeRegistrations: () =>
     api.get<EmployeeRegistration[]>("/api/hrm/employee-registrations"),
   createEmployeeRegistration: (payload: {
-    registration_code: string
+    registration_code?: string
     payload: Record<string, unknown>
   }) => api.post<EmployeeRegistration>("/api/hrm/employee-registrations", payload),
+  updateEmployeeRegistration: (id: string, payload: Record<string, unknown>) =>
+    api.put<EmployeeRegistration>(`/api/hrm/employee-registrations/${id}`, {
+      payload,
+    }),
   submitEmployeeRegistration: (id: string) =>
     api.post<EmployeeRegistration>(`/api/hrm/employee-registrations/${id}/submit`),
 
   listOrganizations: () =>
-    api.get<PlatformOrganization[]>("/api/platform/organizations"),
+    api.get<ListResponse<PlatformOrganization>>(
+      "/api/platform/organizations?all=1&is_active=true"
+    ),
 }

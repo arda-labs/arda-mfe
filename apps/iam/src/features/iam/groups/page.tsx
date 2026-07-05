@@ -1,19 +1,17 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { Group, Role, User } from "@/features/iam"
+import type { Group } from "@/features/iam"
 import {
   useCreateGroup,
   useDeleteGroup,
-  useGroupMemberOptions,
-  useGroupRoleOptions,
   useGroups,
-  useSetGroupMember,
-  useSetGroupRole,
   useUpdateGroup,
 } from "@/features/iam/groups/queries"
+import { GroupMembersDialog } from "@/features/iam/groups/group-members-dialog"
+import { GroupRolesDialog } from "@/features/iam/groups/group-roles-dialog"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -118,16 +116,6 @@ export function GroupsPage() {
   const createGroup = useCreateGroup()
   const updateGroup = useUpdateGroup()
   const deleteGroup = useDeleteGroup()
-  const setGroupMember = useSetGroupMember()
-  const setGroupRole = useSetGroupRole()
-  const memberOptions = useGroupMemberOptions(memberTarget?.id)
-  const roleOptions = useGroupRoleOptions(roleTarget?.id)
-  const busyMemberID = setGroupMember.isPending
-    ? setGroupMember.variables?.userId
-    : null
-  const busyRoleID = setGroupRole.isPending
-    ? setGroupRole.variables?.roleId
-    : null
 
   const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
   const [pageSizeParam] = useQueryState(
@@ -181,63 +169,26 @@ export function GroupsPage() {
     try {
       if (editTarget) {
         await updateGroup.mutateAsync({ id: editTarget.id, data: payload })
-        notify.success("Da cap nhat nhom")
+        notify.success(t("admin.groups.update_success"))
       } else {
         await createGroup.mutateAsync({ code: values.code.trim(), ...payload })
-        notify.success("Da tao nhom")
+        notify.success(t("admin.groups.create_success"))
       }
       closeForm(false)
     } catch (err) {
-      notify.error("Khong luu duoc nhom", translateApiError(err))
+      notify.error(t("admin.groups.save_failed"), translateApiError(err))
     }
   })
 
   const handleDelete = async (group: Group) => {
     try {
       await deleteGroup.mutateAsync(group.id)
-      notify.success("Da xoa nhom")
+      notify.success(t("admin.groups.delete_success"))
       setDeleteTarget(null)
     } catch (err) {
-      notify.error("Khong xoa duoc nhom", translateApiError(err))
+      notify.error(t("admin.groups.delete_failed"), translateApiError(err))
     }
   }
-
-  const toggleMember = async (user: User, assigned: boolean) => {
-    if (!memberTarget) return
-    try {
-      await setGroupMember.mutateAsync({
-        groupId: memberTarget.id,
-        userId: user.id,
-        assigned,
-      })
-      notify.success("Da cap nhat thanh vien")
-    } catch (err) {
-      notify.error("Khong cap nhat duoc thanh vien", translateApiError(err))
-    }
-  }
-
-  const toggleRole = async (role: Role, assigned: boolean) => {
-    if (!roleTarget) return
-    try {
-      await setGroupRole.mutateAsync({
-        groupId: roleTarget.id,
-        roleId: role.id,
-        assigned,
-      })
-      notify.success("Da cap nhat vai tro")
-    } catch (err) {
-      notify.error("Khong cap nhat duoc vai tro", translateApiError(err))
-    }
-  }
-
-  const memberIDs = useMemo(
-    () => new Set((memberOptions.data?.members ?? []).map((user) => user.id)),
-    [memberOptions.data?.members]
-  )
-  const groupRoleIDs = useMemo(
-    () => new Set((roleOptions.data?.groupRoles ?? []).map((role) => role.id)),
-    [roleOptions.data?.groupRoles]
-  )
 
   const columns = useMemo<ColumnDef<Group>[]>(
     () => [
@@ -313,13 +264,19 @@ export function GroupsPage() {
       {
         accessorKey: "memberCount",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Members" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.groups.field.members")}
+          />
         ),
       },
       {
         accessorKey: "roleCount",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Roles" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.groups.field.roles")}
+          />
         ),
       },
       {
@@ -343,7 +300,7 @@ export function GroupsPage() {
                 size="icon"
                 className="size-7 text-muted-foreground"
                 onClick={() => setMemberTarget(group)}
-                title="Members"
+                title={t("admin.groups.action.members")}
               >
                 <Users className="size-3.5" />
               </Button>
@@ -352,7 +309,7 @@ export function GroupsPage() {
                 size="icon"
                 className="size-7 text-muted-foreground"
                 onClick={() => setRoleTarget(group)}
-                title="Roles"
+                title={t("admin.groups.action.roles")}
               >
                 <ShieldCheck className="size-3.5" />
               </Button>
@@ -397,26 +354,15 @@ export function GroupsPage() {
     },
   })
 
-  useEffect(() => {
-    if (memberOptions.error)
-      notify.error(
-        "Khong tai duoc thanh vien nhom",
-        translateApiError(memberOptions.error)
-      )
-    if (roleOptions.error)
-      notify.error(
-        "Khong tai duoc vai tro nhom",
-        translateApiError(roleOptions.error)
-      )
-  }, [memberOptions.error, roleOptions.error])
-
   const dialogs = (
     <>
       <Dialog open={open} onOpenChange={closeForm}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editTarget ? "Edit Group" : "Create Group"}
+              {editTarget
+                ? t("admin.groups.edit")
+                : t("admin.groups.create")}
             </DialogTitle>
           </DialogHeader>
           <form className="space-y-3" onSubmit={submit}>
@@ -439,7 +385,10 @@ export function GroupsPage() {
                 {...register("name")}
               />
             </FormField>
-            <FormField label="Description" error={errors.description?.message}>
+            <FormField
+              label={t("admin.groups.field.description")}
+              error={errors.description?.message}
+            >
               <Textarea
                 aria-invalid={Boolean(errors.description)}
                 {...register("description")}
@@ -459,7 +408,10 @@ export function GroupsPage() {
                 })}
               />
             </FormField>
-            <FormField label="Tenant" error={errors.tenantId?.message}>
+            <FormField
+              label={t("admin.groups.field.tenant")}
+              error={errors.tenantId?.message}
+            >
               <Input
                 aria-invalid={Boolean(errors.tenantId)}
                 {...register("tenantId")}
@@ -472,105 +424,23 @@ export function GroupsPage() {
                 isSubmitting || createGroup.isPending || updateGroup.isPending
               }
             >
-              {editTarget ? "Save changes" : "Create"}
+              {editTarget ? t("common.action.save") : t("common.action.create")}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <GroupMembersDialog
+        group={memberTarget}
         open={memberTarget !== null}
         onOpenChange={(nextOpen) => !nextOpen && setMemberTarget(null)}
-      >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              Members of {memberTarget?.name || memberTarget?.code || ""}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[65vh] space-y-2 overflow-auto pr-1">
-            {memberOptions.isLoading ? (
-              <div className="text-sm text-muted-foreground">
-                Loading members...
-              </div>
-            ) : (memberOptions.data?.users ?? []).length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                No users available.
-              </div>
-            ) : (
-              (memberOptions.data?.users ?? []).map((user) => {
-                const assigned = memberIDs.has(user.id)
-                return (
-                  <label
-                    key={user.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted/50"
-                  >
-                    <Checkbox
-                      checked={assigned}
-                      disabled={busyMemberID === user.id}
-                      onCheckedChange={() => toggleMember(user, assigned)}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-medium">
-                        {user.name || user.username || user.email}
-                      </span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {user.email}
-                      </span>
-                    </span>
-                  </label>
-                )
-              })
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      />
 
-      <Dialog
+      <GroupRolesDialog
+        group={roleTarget}
         open={roleTarget !== null}
         onOpenChange={(nextOpen) => !nextOpen && setRoleTarget(null)}
-      >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              Roles of {roleTarget?.name || roleTarget?.code || ""}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[65vh] space-y-2 overflow-auto pr-1">
-            {roleOptions.isLoading ? (
-              <div className="text-sm text-muted-foreground">
-                Loading roles...
-              </div>
-            ) : (roleOptions.data?.roles ?? []).length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                No roles available.
-              </div>
-            ) : (
-              (roleOptions.data?.roles ?? []).map((role) => {
-                const assigned = groupRoleIDs.has(role.id)
-                return (
-                  <label
-                    key={role.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted/50"
-                  >
-                    <Checkbox
-                      checked={assigned}
-                      disabled={busyRoleID === role.id}
-                      onCheckedChange={() => toggleRole(role, assigned)}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-medium">{role.name}</span>
-                      <span className="block truncate font-mono text-xs text-muted-foreground">
-                        {role.code}
-                      </span>
-                    </span>
-                  </label>
-                )
-              })
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      />
 
       <AlertDialog
         open={deleteTarget !== null}
@@ -604,22 +474,23 @@ export function GroupsPage() {
 
   return (
     <ListPageShell
-      title="Groups"
+      title={t("admin.groups.title")}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
-          {total} groups
+          {t("admin.groups.count", { count: total })}
         </Badge>
       }
       criticalPending={pageGate.criticalPending}
       criticalError={pageGate.criticalError}
       onRetry={pageGate.onRetry}
+      loadErrorTitle={t("admin.groups.load_failed")}
       fetching={fetching}
       table={table}
       toolbar={
         <ListTableToolbar
           table={table}
           onCreate={openCreate}
-          createLabel="Create Group"
+          createLabel={t("admin.groups.create")}
         />
       }
       dialogs={dialogs}

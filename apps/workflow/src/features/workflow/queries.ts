@@ -17,6 +17,8 @@ export const workflowKeys = {
   processDefinitions: () => [...workflowKeys.all, "process-definitions"] as const,
   processDefinitionXml: (id: string) =>
     [...workflowKeys.processDefinitions(), id, "xml"] as const,
+  processRuntime: (processInstanceKey: string) =>
+    [...workflowKeys.all, "process-runtime", processInstanceKey] as const,
 }
 
 export function useWorkflowCaseTypes() {
@@ -30,6 +32,37 @@ export function useWorkflowCases() {
   return useQuery({
     queryKey: workflowKeys.cases(),
     queryFn: workflowApi.listCases,
+  })
+}
+
+export function useProcessInstanceRuntime(processInstanceKey?: string | number) {
+  const key = processInstanceKey ? String(processInstanceKey) : ""
+  return useQuery({
+    queryKey: workflowKeys.processRuntime(key),
+    queryFn: () => workflowApi.getProcessInstanceRuntime(key),
+    enabled: Boolean(key),
+  })
+}
+
+export function useRetryWorkflowJob() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { jobKey: string; retries?: number }) =>
+      workflowApi.retryWorkflowJob(input.jobKey, input.retries),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workflowKeys.all })
+    },
+  })
+}
+
+export function useRetryProcessServiceJobs() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (processInstanceKey: string) =>
+      workflowApi.retryProcessServiceJobs(processInstanceKey),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workflowKeys.all })
+    },
   })
 }
 

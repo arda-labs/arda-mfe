@@ -3,15 +3,26 @@ export type StepUpRequest = {
 }
 
 let openStepUp: ((request: StepUpRequest) => void) | undefined
+let stepUpInflight: Promise<boolean> | null = null
 
 export function requestStepUp() {
-  return new Promise<boolean>((resolve) => {
+  if (stepUpInflight) return stepUpInflight
+
+  stepUpInflight = new Promise<boolean>((resolve) => {
     if (!openStepUp) {
       resolve(false)
       return
     }
-    openStepUp({ resolve })
+    openStepUp({
+      resolve: (verified) => {
+        resolve(verified)
+      },
+    })
+  }).finally(() => {
+    stepUpInflight = null
   })
+
+  return stepUpInflight
 }
 
 export function setStepUpHandler(handler: (request: StepUpRequest) => void) {

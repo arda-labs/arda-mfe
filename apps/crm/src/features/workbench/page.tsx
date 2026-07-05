@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Clock3,
   Eye,
-  FileText,
   RefreshCw,
   Search,
   XCircle,
@@ -28,9 +27,10 @@ import { PageSubmenu } from "@workspace/ui/components/page-submenu"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { useAsRef } from "@workspace/ui/hooks/use-as-ref"
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import type { Customer } from "../customers/api"
-import { useCustomerDrafts } from "../customers/queries"
+import { DraftWorkbenchPage } from "./drafts-page"
+import { navigateTo } from "./nav"
 import {
   type WorkbenchDirection,
   type WorkbenchSearchDirection,
@@ -46,128 +46,49 @@ const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 
 const directionMeta = {
   incoming: {
-    title: "Giao dịch đến",
-    description:
-      "Hàng việc xử lý giao dịch đến, ưu tiên theo bước hiện tại và SLA.",
+    titleKey: "crm.workbench.incoming.title",
+    descriptionKey: "crm.workbench.incoming.description",
     icon: ArrowDownToLine,
   },
   outgoing: {
-    title: "Giao dịch đi",
-    description:
-      "Hàng việc xử lý giao dịch đi, ưu tiên theo bước hiện tại và SLA.",
+    titleKey: "crm.workbench.outgoing.title",
+    descriptionKey: "crm.workbench.outgoing.description",
     icon: ArrowUpFromLine,
   },
 } satisfies Record<
   WorkbenchDirection,
   {
-    title: string
-    description: string
+    titleKey: string
+    descriptionKey: string
     icon: typeof ArrowDownToLine
   }
 >
 
 export function WorkbenchPage({ pathname }: { pathname: string }) {
+  useEffect(() => {
+    if (pathname.startsWith("/workbench/my-tasks")) {
+      navigateTo("/workbench/incoming-transactions")
+    }
+  }, [pathname])
+
   const route = routeFromPath(pathname)
+  if (pathname.startsWith("/workbench/my-tasks")) return null
   if (route === "incoming") return <TransactionWorkbench direction="incoming" />
   if (route === "outgoing") return <TransactionWorkbench direction="outgoing" />
   if (route === "search") return <TransactionSearchPage />
   return <DraftWorkbenchPage />
 }
 
-function DraftWorkbenchPage() {
-  const draftsQuery = useCustomerDrafts()
-  const items = draftsQuery.data ?? []
-
-  return (
-    <Page variant="scroll">
-      <PageHeader
-        title="Hồ sơ nhập"
-        icon={FileText}
-        description="Các bản nháp chưa submit vào BPMN. Khi trình duyệt thành công, hồ sơ sẽ thành case workflow."
-        actions={
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={draftsQuery.isFetching}
-            onClick={() => void draftsQuery.refetch()}
-          >
-            <RefreshCw className="size-4" />
-            Tải lại
-          </Button>
-        }
-      />
-      <DraftsTable items={items} />
-    </Page>
-  )
-}
-
-function DraftsTable({ items }: { items: Customer[] }) {
-  const columns = useMemo<ColumnDef<Customer>[]>(
-    () => [
-      {
-        accessorKey: "id",
-        header: "Mã",
-        cell: ({ row }) => (
-          <span className="font-mono text-xs">{row.original.id}</span>
-        ),
-      },
-      {
-        accessorKey: "name",
-        header: "Tiêu đề",
-        cell: ({ row }) => (
-          <span className="font-medium">{row.original.name}</span>
-        ),
-      },
-      {
-        id: "type",
-        header: "Nghiệp vụ",
-        cell: ({ row }) => customerTypeLabel(row.original),
-      },
-      {
-        accessorKey: "status",
-        header: "Trạng thái",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-      {
-        accessorKey: "updatedAt",
-        header: "Cập nhật",
-        cell: ({ row }) => formatDateTime(row.original.updatedAt),
-      },
-      {
-        id: "actions",
-        header: "Thao tác",
-        cell: ({ row }) => (
-          <Button
-            type="button"
-            size="sm"
-            onClick={() =>
-              navigateTo(
-                `/customers/registrations?customerId=${encodeURIComponent(row.original.id)}`
-              )
-            }
-          >
-            <Eye className="size-4" />
-            Mở
-          </Button>
-        ),
-      },
-    ],
-    []
-  )
-  const table = useReactTable({
-    data: items,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    initialState: { pagination: { pageSize: 25 } },
-  })
-  return <DataTable table={table} defaultDensity="comfortable" />
-}
-
 function TransactionWorkbench({
   direction,
+  title,
+  description,
 }: {
   direction: WorkbenchDirection
+  title?: string
+  description?: string
 }) {
+  const { t } = useI18n()
   const meta = directionMeta[direction]
   const Icon = meta.icon
   const [activeNode, setActiveNode] = useState("ALL")
@@ -177,7 +98,7 @@ function TransactionWorkbench({
     () => ({
       direction: apiDirection(direction),
       limit: 100,
-      node: activeNode === "ALL" ? undefined : activeNode,
+      node: workItemSummaryNode(activeNode) ? undefined : activeNode,
     }),
     [direction, activeNode]
   )
@@ -198,7 +119,10 @@ function TransactionWorkbench({
     refetchInterval: 15000,
   })
   const claimWorkItem = useClaimWorkItem()
-  const items = workItemsQuery.data ?? []
+  const items = useMemo(
+    () => filterWorkItemsByNode(workItemsQuery.data ?? [], activeNode),
+    [workItemsQuery.data, activeNode]
+  )
   const nodes = summaryQuery.data ?? []
   const [treeCollapsed, setTreeCollapsed] = useState(() =>
     readStoredBoolean(WORKBENCH_TREE_COLLAPSED_KEY, false)
@@ -217,7 +141,7 @@ function TransactionWorkbench({
         return
       }
       if (item.assignedTo && !item.canOpen) {
-        notify.error("Không thể nhận task", item.claimBlockedReason)
+        notify.error(t("crm.workbench.claim_error"), item.claimBlockedReason)
         return
       }
       if (item.canClaim) {
@@ -234,7 +158,7 @@ function TransactionWorkbench({
         navigateTo(workItemHref(item, direction))
         return
       }
-      notify.error("Không thể nhận task", item.claimBlockedReason)
+      notify.error(t("crm.workbench.claim_error"), item.claimBlockedReason)
     },
     [direction, claimRef]
   )
@@ -242,9 +166,9 @@ function TransactionWorkbench({
   return (
     <Page variant="fixed">
       <PageHeader
-        title={meta.title}
+        title={title ?? t(meta.titleKey)}
         icon={Icon}
-        description={meta.description}
+        description={description ?? t(meta.descriptionKey)}
         actions={
           <Button
             type="button"
@@ -262,7 +186,7 @@ function TransactionWorkbench({
       />
       <div className="grid min-h-0 flex-1 rounded-md border md:grid-cols-[auto_minmax(0,1fr)]">
         <PageSubmenu
-          title="Loại nghiệp vụ"
+          title={t("crm.workbench.business_type")}
           icon={Icon}
           collapsed={treeCollapsed}
           onCollapsedChange={setTreeCollapsed}
@@ -308,6 +232,7 @@ function WorkbenchDataTable({
       ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)
   ) => void
 }) {
+  const { t } = useI18n()
   const setFilter = useCallback(
     (id: string, value: unknown) => {
       onColumnFiltersChange((prev) => {
@@ -341,7 +266,7 @@ function WorkbenchDataTable({
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Mã / tiêu đề giao dịch"
+            placeholder={t("crm.workbench.keyword_placeholder")}
             value={String(getFilter("keyword") ?? "")}
             onChange={(e) => setFilter("keyword", e.target.value || undefined)}
             className="h-8 w-56 pl-8"
@@ -402,6 +327,7 @@ function WorkbenchDataTable({
 }
 
 function TransactionSearchPage() {
+  const { t } = useI18n()
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const queryFilter = useMemo<WorkItemFilter>(() => {
@@ -452,16 +378,16 @@ function TransactionSearchPage() {
   return (
     <Page variant="fixed">
       <PageHeader
-        title="Tìm kiếm giao dịch"
+        title={t("crm.workbench.search.title")}
         icon={Search}
-        description="Tra cứu giao dịch theo ngày, trạng thái xử lý và trạng thái SLA."
+        description={t("crm.workbench.search.description")}
       />
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Mã / tiêu đề"
+              placeholder={t("crm.workbench.search_keyword_placeholder")}
               value={String(getFilter("keyword") ?? "")}
               onChange={(e) =>
                 setFilter("keyword", e.target.value || undefined)
@@ -1067,23 +993,53 @@ function routeFromPath(pathname: string): WorkbenchRoute {
 }
 
 function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
-  if (item.caseType === "CUSTOMER_REGISTRATION" && item.primaryObjectId) {
+  if (
+    (item.caseType === "CUSTOMER_REGISTRATION" ||
+      item.caseType === "CUSTOMER_ADJUSTMENT") &&
+    item.primaryObjectId
+  ) {
     const search = new URLSearchParams({
       customerId: item.primaryObjectId,
       caseId: item.caseId,
       caseCode: item.caseCode,
-      taskKey: String(item.jobKey ?? ""),
       processInstanceKey: String(item.processInstanceKey ?? ""),
-      elementId: item.stepCode,
+      elementId:
+        item.candidateRole === "CUSTOMER_MAKER"
+          ? "Activity_MakerRevise"
+          : item.stepCode,
       role: item.candidateRole ?? "",
     })
-    return `/customers/registrations?${search.toString()}`
+    if (item.jobKey) {
+      search.set("taskKey", String(item.jobKey))
+    }
+    const path =
+      item.caseType === "CUSTOMER_ADJUSTMENT"
+        ? "/customers/adjustments"
+        : "/customers/registrations"
+    return `${path}?${search.toString()}`
   }
   return caseCodeHref(direction, item.caseCode)
 }
 
 function apiDirection(direction: WorkbenchDirection): WorkbenchSearchDirection {
   return direction === "outgoing" ? "OUTGOING" : "INCOMING"
+}
+
+function workItemSummaryNode(node: string) {
+  return node === "ALL" || node === "MINE" || node === "SLA_BREACHED"
+}
+
+function filterWorkItemsByNode(items: WorkItem[], node: string) {
+  if (!node || node === "ALL") return items
+  if (node === "MINE") {
+    return items.filter((item) => Boolean(item.assignedTo))
+  }
+  if (node === "SLA_BREACHED") {
+    return items.filter((item) => item.slaStatus === "BREACHED")
+  }
+  return items.filter(
+    (item) => item.stepCode === node || item.currentStep === node
+  )
 }
 
 function caseCodeHref(direction: WorkbenchDirection, caseCode: string) {
@@ -1094,7 +1050,7 @@ function caseCodeHref(direction: WorkbenchDirection, caseCode: string) {
   return `${path}?caseCode=${encodeURIComponent(caseCode)}`
 }
 
-function customerTypeLabel(item: Customer) {
+function customerTypeLabel(item: { customerType: string }) {
   return item.customerType === "BUSINESS"
     ? "Khách hàng doanh nghiệp"
     : "Khách hàng cá nhân"
@@ -1143,7 +1099,3 @@ function writeStoredBoolean(key: string, value: boolean) {
   localStorage.setItem(key, String(value))
 }
 
-function navigateTo(path: string) {
-  window.history.pushState({}, "", path)
-  window.dispatchEvent(new PopStateEvent("popstate"))
-}

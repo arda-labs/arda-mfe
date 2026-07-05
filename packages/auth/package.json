@@ -29,6 +29,7 @@
     "./oauth": "./src/oauth.ts",
     "./auth-guard": "./src/auth-guard.tsx",
     "./step-up-channel": "./src/step-up-channel.ts",
+    "./ensure-recent-auth": "./src/ensure-recent-auth.ts",
     "./step-up": "./src/step-up.tsx",
     "./pages": "./src/pages.tsx"
   }

@@ -15,6 +15,8 @@ function Toaster({ ...props }: ToasterProps) {
       pauseOnFocusLoss
       pauseOnHover
       theme="colored"
+      className="!z-[200]"
+      toastClassName="!z-[200]"
       {...props}
     />
   )

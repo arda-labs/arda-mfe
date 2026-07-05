@@ -35,6 +35,7 @@
     "session_expired": "Session expired",
     "unknown": "Something went wrong",
     "api_failed": "API request failed",
+    "recent_auth_required": "Additional verification is required for this sensitive action",
     "internal": "Internal server error",
     "bad_gateway": "Upstream service error",
     "bad_gateway_page": {

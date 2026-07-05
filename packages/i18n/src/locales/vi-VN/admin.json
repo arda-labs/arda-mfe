@@ -8,6 +8,89 @@
     "count": "{count} vai trò",
     "create": "Tạo vai trò"
   },
+  "groups": {
+    "title": "Nhóm",
+    "count": "{count} nhóm",
+    "create": "Tạo nhóm",
+    "edit": "Sửa nhóm",
+    "load_failed": "Không tải được danh sách nhóm",
+    "create_success": "Đã tạo nhóm",
+    "update_success": "Đã cập nhật nhóm",
+    "save_failed": "Không lưu được nhóm",
+    "delete_success": "Đã xóa nhóm",
+    "delete_failed": "Không xóa được nhóm",
+    "field": {
+      "description": "Mô tả",
+      "tenant": "Tenant",
+      "members": "Thành viên",
+      "roles": "Vai trò"
+    },
+    "action": {
+      "members": "Quản lý thành viên",
+      "roles": "Quản lý vai trò"
+    },
+    "members": {
+      "title": "Thành viên nhóm {group}",
+      "description": "Tìm và gán người dùng vào nhóm. Danh sách hỗ trợ tìm kiếm và phân trang.",
+      "description_manage": "Quản lý thành viên hiện có trong nhóm. Thêm hoặc gỡ rồi bấm Lưu để áp dụng.",
+      "search": "Tìm người dùng...",
+      "search_current": "Tìm trong danh sách thành viên...",
+      "loading": "Đang tải người dùng...",
+      "empty": "Không có người dùng phù hợp.",
+      "empty_assigned": "Nhóm chưa có thành viên.",
+      "empty_search": "Không có thành viên phù hợp với từ khóa.",
+      "assigned_count": "{count} thành viên",
+      "unsaved": "Chưa lưu",
+      "discard_confirm": "Bạn có thay đổi chưa lưu. Đóng và bỏ các thay đổi?",
+      "save_success": "Đã lưu thành viên nhóm",
+      "save_failed": "Không lưu được thành viên nhóm",
+      "update_success": "Đã cập nhật thành viên",
+      "update_failed": "Không cập nhật được thành viên",
+      "add_button": "Thêm thành viên",
+      "remove_row": "Gỡ khỏi danh sách",
+      "remove_selected": "Gỡ đã chọn ({count})",
+      "select_for_remove": "Chọn {user} để gỡ",
+      "column": {
+        "member": "Thành viên",
+        "select": "Chọn"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "assigned": "Đã gán"
+      },
+      "add_member": "Thêm {user} vào nhóm",
+      "remove_member": "Gỡ {user} khỏi nhóm",
+      "add_dialog": {
+        "title": "Thêm thành viên",
+        "description": "Chọn người dùng chưa có trong nhóm, sau đó bấm Thêm vào nhóm.",
+        "search": "Tìm người dùng chưa trong nhóm...",
+        "empty": "Không còn người dùng nào để thêm trên trang này.",
+        "confirm": "Thêm vào nhóm ({count})",
+        "column": {
+          "select": "Chọn"
+        }
+      }
+    },
+    "roles": {
+      "title": "Vai trò nhóm {group}",
+      "description": "Gán vai trò theo từng phân hệ. Vai trò được nhóm theo tiền tố mã.",
+      "search": "Tìm vai trò...",
+      "loading": "Đang tải vai trò...",
+      "empty": "Không có vai trò phù hợp.",
+      "empty_assigned": "Nhóm chưa được gán vai trò.",
+      "assigned_count": "{assigned}/{total} vai trò",
+      "update_success": "Đã cập nhật vai trò",
+      "update_failed": "Không cập nhật được vai trò",
+      "module_other": "Khác",
+      "module_count": "{assigned}/{total}",
+      "filter": {
+        "all": "Tất cả",
+        "assigned": "Đã gán"
+      },
+      "add_role": "Gán vai trò {role}",
+      "remove_role": "Gỡ vai trò {role}"
+    }
+  },
   "permissions": {
     "title": "Quyền",
     "count": "{count} quyền",

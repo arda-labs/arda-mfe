@@ -60,6 +60,7 @@ import {
   useOrgUnits,
   usePositions,
   useSubmitEmployeeRegistration,
+  useUpdateEmployeeRegistration,
   useUpdateJobTitle,
   useUpdateOrgUnit,
   useUpdatePosition,
@@ -95,7 +96,6 @@ const orgUnitSchema = z.object({
 })
 
 const registrationSchema = z.object({
-  registration_code: z.string().trim().min(1, "Mã hồ sơ là bắt buộc"),
   employee_code: z.string().trim().optional(),
   employee_type: z.string().trim().min(1, "Loại nhân viên là bắt buộc"),
   avatar_file_id: z.string().trim().optional(),
@@ -186,7 +186,6 @@ const orgUnitDefaults: OrgUnitValues = {
 }
 
 const registrationDefaults: RegistrationValues = {
-  registration_code: nextRegistrationCode(),
   employee_code: "",
   employee_type: "EMPLOYEE",
   avatar_file_id: "",
@@ -432,7 +431,7 @@ export function OrgUnitsPage() {
     defaultValues: orgUnitDefaults,
   })
   const items = orgUnits.data ?? []
-  const orgs = organizations.data ?? []
+  const orgs = organizations.data?.items ?? []
 
   const orgName = (id: string) => {
     const org = orgs.find((item) => item.id === id)
@@ -571,29 +570,30 @@ export function RegistrationsPage() {
   const orgUnits = useOrgUnits()
   const positions = usePositions()
   const createRegistration = useCreateEmployeeRegistration()
+  const updateRegistration = useUpdateEmployeeRegistration()
   const submitRegistration = useSubmitEmployeeRegistration()
   const uploadAvatar = useUploadEmployeeAvatar()
   const form = useForm<RegistrationValues>({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { ...registrationDefaults, registration_code: nextRegistrationCode() },
+    defaultValues: registrationDefaults,
   })
   const avatarFileId = useWatch({ control: form.control, name: "avatar_file_id" })
 
   const resetDraft = () => {
     setSavedRegistration(null)
-    form.reset({ ...registrationDefaults, registration_code: nextRegistrationCode() })
+    form.reset(registrationDefaults)
   }
 
   async function save(values: RegistrationValues, submitNow = false) {
+    const payload = toRegistrationPayload(values)
     let current = savedRegistration
     if (!current) {
-      current = await createRegistration.mutateAsync({
-        registration_code: values.registration_code.trim(),
-        payload: toRegistrationPayload(values),
-      })
-      setSavedRegistration(current)
-      form.reset(values)
+      current = await createRegistration.mutateAsync({ payload })
+    } else if (current.status === "draft") {
+      current = await updateRegistration.mutateAsync({ id: current.id, payload })
     }
+    setSavedRegistration(current)
+    form.reset(values)
     if (submitNow && current.status === "draft") {
       const submitted = await submitRegistration.mutateAsync(current.id)
       setSavedRegistration(submitted)
@@ -601,9 +601,8 @@ export function RegistrationsPage() {
   }
 
   async function uploadAvatarFile(file: File) {
-    const registrationCode = form.getValues("registration_code").trim()
-    if (!registrationCode) {
-      notify.error("Nhập mã hồ sơ trước khi upload ảnh đại diện")
+    if (!savedRegistration?.id) {
+      notify.error("Lưu nháp hồ sơ trước khi upload ảnh đại diện")
       return
     }
     if (!file.type.startsWith("image/")) {
@@ -614,6 +613,7 @@ export function RegistrationsPage() {
       notify.error("Ảnh đại diện tối đa 5MB")
       return
     }
+    const registrationCode = savedRegistration.registration_code
     const result = await uploadAvatar.mutateAsync({ file, registrationCode })
     form.setValue("avatar_file_id", result.public_id, { shouldDirty: true })
   }
@@ -622,6 +622,7 @@ export function RegistrationsPage() {
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={form.handleSubmit((values) => save(values))}>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter:stable]">
+          <RegistrationMetaBar registration={savedRegistration} />
           <Tabs defaultValue="general" className="space-y-4">
             <CollapsingPageTitle
               title="Đăng ký nhân sự"
@@ -681,9 +682,10 @@ export function RegistrationsPage() {
               className="h-8"
               type="submit"
               disabled={
-                Boolean(savedRegistration) ||
                 form.formState.isSubmitting ||
-                createRegistration.isPending
+                createRegistration.isPending ||
+                updateRegistration.isPending ||
+                (savedRegistration !== null && savedRegistration.status !== "draft")
               }
             >
               Lưu nháp
@@ -693,15 +695,17 @@ export function RegistrationsPage() {
               type="button"
               variant="secondary"
               disabled={
-                (savedRegistration?.status !== undefined && savedRegistration.status !== "draft") ||
+                !savedRegistration?.id ||
+                savedRegistration.status !== "draft" ||
                 form.formState.isSubmitting ||
                 createRegistration.isPending ||
+                updateRegistration.isPending ||
                 submitRegistration.isPending
               }
               onClick={form.handleSubmit((values) => save(values, true))}
             >
               <Send className="size-4" />
-              {savedRegistration ? "Gửi BPM" : "Trình duyệt"}
+              Trình duyệt
             </Button>
           </div>
         </div>
@@ -748,9 +752,6 @@ function RegistrationGeneralPanel({
       <h2 className="text-sm font-semibold">Thông tin chung</h2>
       <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <FormField label="Mã hồ sơ BPM (*)" error={form.formState.errors.registration_code?.message}>
-            <Input {...form.register("registration_code")} />
-          </FormField>
           <FormField label="Mã nhân viên">
             <Input {...form.register("employee_code")} />
           </FormField>
@@ -1106,6 +1107,24 @@ function InlineRowActions({ onDelete }: { onDelete: () => void }) {
   )
 }
 
+function RegistrationMetaBar({ registration }: { registration: EmployeeRegistration | null }) {
+  if (!registration?.registration_code) return null
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
+      <span>
+        Mã hồ sơ:{" "}
+        <span className="font-mono font-medium">{registration.registration_code}</span>
+      </span>
+      {registration.workflow_case_id ? (
+        <span className="text-muted-foreground">
+          Case BPM:{" "}
+          <span className="font-mono">{registration.workflow_case_id}</span>
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
 function toRegistrationPayload(values: RegistrationValues): Record<string, unknown> {
   return {
     employee_code: textOrUndefined(values.employee_code),
@@ -1145,13 +1164,6 @@ function compactRows<T extends Record<string, unknown>>(rows: T[]) {
 function textOrUndefined(value: string | undefined) {
   const text = value?.trim()
   return text || undefined
-}
-
-function nextRegistrationCode() {
-  const now = new Date()
-  const date = now.toISOString().slice(0, 10).replaceAll("-", "")
-  const time = now.toTimeString().slice(0, 8).replaceAll(":", "")
-  return `HRM-${date}-${time}`
 }
 
 function registrationStatusLabel(status: string) {

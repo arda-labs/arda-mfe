@@ -35,6 +35,7 @@
     "session_expired": "Phiên đăng nhập đã hết hạn",
     "unknown": "Đã có lỗi xảy ra",
     "api_failed": "Yêu cầu API thất bại",
+    "recent_auth_required": "Cần xác minh lại để thực hiện thao tác nhạy cảm",
     "internal": "Lỗi hệ thống",
     "bad_gateway": "Dịch vụ phụ trợ đang lỗi",
     "bad_gateway_page": {

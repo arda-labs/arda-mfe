@@ -8,6 +8,89 @@
     "count": "{count} roles",
     "create": "Create Role"
   },
+  "groups": {
+    "title": "Groups",
+    "count": "{count} groups",
+    "create": "Create Group",
+    "edit": "Edit Group",
+    "load_failed": "Failed to load groups",
+    "create_success": "Group created",
+    "update_success": "Group updated",
+    "save_failed": "Failed to save group",
+    "delete_success": "Group deleted",
+    "delete_failed": "Failed to delete group",
+    "field": {
+      "description": "Description",
+      "tenant": "Tenant",
+      "members": "Members",
+      "roles": "Roles"
+    },
+    "action": {
+      "members": "Manage members",
+      "roles": "Manage roles"
+    },
+    "members": {
+      "title": "Members of {group}",
+      "description": "Search and assign users to this group with pagination.",
+      "description_manage": "Manage current group members. Add or remove, then click Save to apply.",
+      "search": "Search users...",
+      "search_current": "Search current members...",
+      "loading": "Loading users...",
+      "empty": "No matching users.",
+      "empty_assigned": "This group has no members yet.",
+      "empty_search": "No members match your search.",
+      "assigned_count": "{count} members",
+      "unsaved": "Unsaved",
+      "discard_confirm": "You have unsaved changes. Close and discard them?",
+      "save_success": "Group members saved",
+      "save_failed": "Failed to save group members",
+      "update_success": "Members updated",
+      "update_failed": "Failed to update members",
+      "add_button": "Add members",
+      "remove_row": "Remove from list",
+      "remove_selected": "Remove selected ({count})",
+      "select_for_remove": "Select {user} for removal",
+      "column": {
+        "member": "Member",
+        "select": "Select"
+      },
+      "filter": {
+        "all": "All",
+        "assigned": "Assigned"
+      },
+      "add_member": "Add {user} to group",
+      "remove_member": "Remove {user} from group",
+      "add_dialog": {
+        "title": "Add members",
+        "description": "Select users who are not in the group yet, then add them to the list.",
+        "search": "Search users not in group...",
+        "empty": "No more users to add on this page.",
+        "confirm": "Add to group ({count})",
+        "column": {
+          "select": "Select"
+        }
+      }
+    },
+    "roles": {
+      "title": "Roles for {group}",
+      "description": "Assign roles by module. Roles are grouped by code prefix.",
+      "search": "Search roles...",
+      "loading": "Loading roles...",
+      "empty": "No matching roles.",
+      "empty_assigned": "This group has no roles yet.",
+      "assigned_count": "{assigned}/{total} roles",
+      "update_success": "Roles updated",
+      "update_failed": "Failed to update roles",
+      "module_other": "Other",
+      "module_count": "{assigned}/{total}",
+      "filter": {
+        "all": "All",
+        "assigned": "Assigned"
+      },
+      "add_role": "Assign role {role}",
+      "remove_role": "Remove role {role}"
+    }
+  },
   "permissions": {
     "title": "Permissions",
     "count": "{count} permissions",

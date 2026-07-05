@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   AlertCircle,
   Check,
@@ -67,6 +67,8 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
 import { workflowApi } from "./api"
 import { BpmnDefinitionViewerDialog, BpmnViewerPanel } from "./components/bpmn-monitor"
+import { ProcessInstanceOperate } from "./components/process-instance-operate"
+import { PrincipalPicker } from "./components/principal-picker"
 import type {
   DescriptionTemplate,
   ProcessRole,
@@ -103,6 +105,7 @@ import {
   useSlaPolicies,
   useUpdateProcessDefinition,
   useUpdateProcessConfig,
+  useProcessInstanceRuntime,
   useWorkflowCases,
   useWorkflowCaseTypes,
 } from "./queries"
@@ -512,10 +515,14 @@ function ProcessMonitoringPage() {
             />
           </TabsContent>
           <TabsContent value="instances">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
-              <MonitoringTable cases={cases} caseTypes={caseTypes} onSelect={selectCase} />
-              {selected ? <MonitoringDetail item={selected} /> : null}
-            </div>
+            <ProcessInstanceOperate
+              cases={cases}
+              caseTypes={caseTypes}
+              selected={selected}
+              bpmnXml={selectedCaseDefinition ? selectedXml : ""}
+              bpmnLoading={selectedCaseDefinition ? selectedXmlQuery.isLoading : false}
+              onSelect={selectCase}
+            />
           </TabsContent>
           <TabsContent value="diagram">
             <div className="grid gap-4 xl:grid-cols-[24rem_minmax(0,1fr)]">
@@ -1112,6 +1119,11 @@ function MonitoringTable({
 
 function MonitoringDetail({ item }: { item: WorkflowCase }) {
   const domainHref = workflowDomainHref(item)
+  const runtimeQuery = useProcessInstanceRuntime(item.processInstanceKey)
+  const runtime = runtimeQuery.data
+  const pendingJobs = runtime?.pendingJobs ?? []
+  const timeline = runtime?.timeline ?? []
+
   return (
     <aside className="space-y-3 rounded-lg border p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -1128,12 +1140,93 @@ function MonitoringDetail({ item }: { item: WorkflowCase }) {
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Field label="Trạng thái" value={item.status} />
-        <Field label="Bước" value={item.currentStep || "-"} />
+        <Field label="Bước DB" value={item.currentStep || "-"} />
         <Field label="Assignee" value={item.assignedTo || "Chưa nhận"} />
         <Field label="Candidate role" value={item.candidateRole || "-"} />
-        <Field label="BPMN" value={item.bpmnProcessId || "-"} />
-        <Field label="Version" value={String(item.bpmnVersion ?? "-")} />
+        <Field label="Process instance" value={item.processInstanceKey ? String(item.processInstanceKey) : "-"} />
+        <Field label="Zeebe" value={runtime?.zeebeStatus ?? (runtimeQuery.isLoading ? "Đang kiểm tra..." : "-")} />
       </div>
+
+      {item.processInstanceKey ? (
+        <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium">Runtime Zeebe</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => runtimeQuery.refetch()}
+              disabled={runtimeQuery.isFetching}
+            >
+              <RefreshCw className="size-4" />
+              Quét lại
+            </Button>
+          </div>
+          {runtimeQuery.isLoading ? <p className="text-sm text-muted-foreground">Đang quét job trên Zeebe...</p> : null}
+          {runtimeQuery.isError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="size-4" />
+              <AlertTitle>Không tải được runtime</AlertTitle>
+              <AlertDescription>
+                {runtimeQuery.error instanceof Error ? runtimeQuery.error.message : "Lỗi không xác định"}
+              </AlertDescription>
+            </Alert>
+          ) : null}
+          {runtime ? (
+            <>
+              <Alert>
+                <AlertCircle className="size-4" />
+                <AlertTitle>Gợi ý xử lý</AlertTitle>
+                <AlertDescription className="space-y-2">
+                  <p>{runtime.hint}</p>
+                  <p className="text-xs text-muted-foreground">{runtime.workerNote}</p>
+                </AlertDescription>
+              </Alert>
+              {runtime.activeWorkTask ? (
+                <div className="text-sm">
+                  <p className="font-medium">Work task trong DB</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {runtime.activeWorkTask.stepCode} · {runtime.activeWorkTask.taskType ?? "-"} · job{" "}
+                    {runtime.activeWorkTask.jobKey ?? "chưa bind"}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Chưa có work task active có job_key trong DB.</p>
+              )}
+              {pendingJobs.length ? (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Job đang chờ trên Zeebe</p>
+                  {pendingJobs.map((job) => (
+                    <div key={job.jobKey} className="rounded border bg-background px-2 py-1 font-mono text-xs">
+                      {job.jobType} · {job.elementId} · job {job.jobKey}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Không tìm thấy job pending cho process này
+                  {runtime.pendingJobsError ? ` (${runtime.pendingJobsError})` : ""}.
+                </p>
+              )}
+              {timeline.length ? (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Timeline case</p>
+                  <div className="max-h-40 space-y-1 overflow-y-auto text-xs text-muted-foreground">
+                    {timeline.map((event) => (
+                      <p key={event.id}>
+                        {formatDateTime(event.createdAt)} · {event.eventType}
+                        {event.note ? ` · ${event.note}` : ""}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </>
+          ) : null}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Case chưa có process instance — workflow chưa start trên Zeebe.</p>
+      )}
     </aside>
   )
 }
@@ -1790,6 +1883,25 @@ function RoleMembershipDialog({
     effectiveTo: toDateInputValue(item?.effectiveTo),
     status: item?.status ?? "ACTIVE",
   })
+
+  useEffect(() => {
+    if (!open) return
+    setForm({
+      roleCode: item?.roleCode ?? "",
+      principalType: item?.principalType ?? "USER",
+      principalId: item?.principalId ?? "",
+      tenantId: item?.tenantId ?? "",
+      orgId: item?.orgId ?? "",
+      branchId: item?.branchId ?? "",
+      productCode: item?.productCode ?? "",
+      minAmount: item?.minAmount ? String(item.minAmount) : "",
+      maxAmount: item?.maxAmount ? String(item.maxAmount) : "",
+      effectiveFrom: toDateInputValue(item?.effectiveFrom) || todayDateInput(),
+      effectiveTo: toDateInputValue(item?.effectiveTo),
+      status: item?.status ?? "ACTIVE",
+    })
+  }, [item, open])
+
   const canSave = form.roleCode && form.principalType && form.principalId
 
   async function save() {
@@ -1810,8 +1922,20 @@ function RoleMembershipDialog({
   return (
     <ConfigDialog title={item ? "Sửa thành viên role" : "Thêm thành viên role"} open={open} onOpenChange={onOpenChange}>
       <SearchSelect label="Role" value={form.roleCode} options={roleOptions} onChange={(roleCode) => setForm({ ...form, roleCode })} />
-      <SelectInput label="Loại principal" value={form.principalType} options={principalTypeOptions} onChange={(principalType) => setForm({ ...form, principalType })} />
-      <TextInput label="User/group id" value={form.principalId} onChange={(principalId) => setForm({ ...form, principalId })} />
+      <SelectInput
+        label="Loại principal"
+        value={form.principalType}
+        options={principalTypeOptions}
+        onChange={(principalType) =>
+          setForm({ ...form, principalType, principalId: "" })
+        }
+      />
+      <PrincipalPicker
+        label={form.principalType === "USER" ? "Người dùng" : "Nhóm"}
+        principalType={form.principalType === "GROUP" ? "GROUP" : "USER"}
+        value={form.principalId}
+        onChange={(principalId) => setForm({ ...form, principalId })}
+      />
       <div className="grid gap-3 md:grid-cols-2">
         <TextInput label="Tenant" value={form.tenantId} onChange={(tenantId) => setForm({ ...form, tenantId })} />
         <TextInput label="Đơn vị" value={form.orgId} onChange={(orgId) => setForm({ ...form, orgId })} />

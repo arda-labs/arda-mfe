@@ -181,6 +181,20 @@ export function useCreateEmployeeRegistration() {
   })
 }
 
+export function useUpdateEmployeeRegistration() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) =>
+      hrmApi.updateEmployeeRegistration(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: hrmKeys.registrations() })
+      notify.success("Da luu dang ky nhan su")
+    },
+    onError: (error) =>
+      notify.error("Luu dang ky nhan su that bai", translateApiError(error)),
+  })
+}
+
 export function useSubmitEmployeeRegistration() {
   const queryClient = useQueryClient()
   return useMutation({

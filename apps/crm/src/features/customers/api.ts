@@ -5,11 +5,39 @@ export type CustomerStatus =
   | "NEEDS_CHANGES"
   | "REJECTED"
   | "APPROVED"
+  | "ACTIVE"
+  | "PENDING_AMENDMENT"
+  | "CANCELLED"
   | "CREATED"
   | "UPDATED"
 
+export type AmendmentStatus = "DRAFT" | "PENDING" | "APPLIED" | "REJECTED"
+
+export interface CustomerAmendment {
+  id: string
+  customerId: string
+  workflowCaseId?: string
+  status: AmendmentStatus
+  beforeSnapshot?: Record<string, unknown>
+  afterSnapshot?: Record<string, unknown>
+  changedFields?: string[]
+  appliedAt?: string
+  appliedBy?: string
+  rejectedAt?: string
+  rejectedBy?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AmendmentUpsertPayload {
+  afterSnapshot: Record<string, unknown>
+  changedFields: string[]
+}
+
 export interface Customer {
   id: string
+  customerCode: string
+  workflowCaseId?: string
   customerType: CustomerType
   name: string
   email: string
@@ -29,7 +57,7 @@ export interface Customer {
 }
 
 export interface CustomerPayload {
-  id: string
+  id?: string
   customerType: CustomerType
   name: string
   email: string
@@ -50,6 +78,7 @@ export interface CustomerRelationship {
   id: string
   customerId: string
   relatedCustomerId: string
+  relatedCustomerCode?: string
   relatedCustomerName: string
   relatedCustomerAddress: string
   relationType: string
@@ -79,10 +108,10 @@ export type WorkflowTaskRole =
   "CUSTOMER_CHECKER" | "CUSTOMER_RISK_CHECKER" | "CUSTOMER_MAKER"
 
 export interface WorkflowTask {
-  jobKey: number
+  jobKey: string
   type: string
   elementId: string
-  processInstanceKey: number
+  processInstanceKey: string
   caseId: string
   caseCode: string
   customerId: string
@@ -102,6 +131,15 @@ export const customerApi = {
     })
   },
   save(payload: CustomerPayload) {
+    if (payload.id) {
+      return request<Customer>(
+        `/api/crm/customers/${encodeURIComponent(payload.id)}`,
+        {
+          method: "PUT",
+          body: payload,
+        }
+      )
+    }
     return request<Customer>("/api/crm/customers", {
       method: "POST",
       body: payload,
@@ -110,6 +148,12 @@ export const customerApi = {
   submit(id: string) {
     return request<Customer>(
       `/api/crm/customers/${encodeURIComponent(id)}/submit`,
+      { method: "POST" }
+    )
+  },
+  cancel(id: string) {
+    return request<Customer>(
+      `/api/crm/customers/${encodeURIComponent(id)}/cancel`,
       { method: "POST" }
     )
   },
@@ -130,14 +174,26 @@ export const customerApi = {
   listTasks(role: WorkflowTaskRole) {
     return getItems<WorkflowTask>("/api/workflow/tasks", { role, limit: 10 })
   },
+  claimWorkflowTask(input: {
+    role: WorkflowTaskRole
+    taskType?: string
+    processInstanceKey?: string
+    caseId?: string | null
+    elementId?: string | null
+  }) {
+    return request<WorkflowTask>("/api/workflow/tasks/claim", {
+      method: "POST",
+      body: input,
+    })
+  },
   completeTask(input: {
-    jobKey: number
-    processInstanceKey: number
+    jobKey: string
+    processInstanceKey: string
     elementId: string
     variables: Record<string, unknown>
   }) {
     return request<{ status: string }>(
-      `/api/workflow/tasks/${encodeURIComponent(String(input.jobKey))}/complete`,
+      `/api/workflow/tasks/${encodeURIComponent(input.jobKey)}/complete`,
       {
         method: "POST",
         body: {
@@ -146,6 +202,40 @@ export const customerApi = {
           variables: input.variables,
         },
       }
+    )
+  },
+  getCurrentAmendment(customerId: string) {
+    return request<CustomerAmendment | null>(
+      `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments`,
+      { method: "GET" }
+    )
+  },
+  startAdjustment(customerId: string) {
+    return request<CustomerAmendment>(
+      `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments`,
+      { method: "POST" }
+    )
+  },
+  updateAmendment(
+    customerId: string,
+    amendmentId: string,
+    payload: AmendmentUpsertPayload
+  ) {
+    return request<CustomerAmendment>(
+      `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments/${encodeURIComponent(amendmentId)}`,
+      { method: "PUT", body: payload }
+    )
+  },
+  submitAmendment(customerId: string, amendmentId: string) {
+    return request<CustomerAmendment>(
+      `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments/${encodeURIComponent(amendmentId)}/submit`,
+      { method: "POST" }
+    )
+  },
+  cancelAmendment(customerId: string, amendmentId: string) {
+    return request<{ status: string }>(
+      `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments/${encodeURIComponent(amendmentId)}/cancel`,
+      { method: "POST" }
     )
   },
 }

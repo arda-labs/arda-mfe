@@ -33,6 +33,52 @@ export interface WorkflowCase {
   updatedAt: string
 }
 
+export interface ProcessInstancePendingJob {
+  jobKey: string
+  jobType: string
+  elementId: string
+  processInstanceKey: string
+  caseId?: string
+  retries: number
+  state: string
+  errorMessage?: string
+}
+
+export interface ProcessInstanceIncident {
+  jobKey: string
+  jobType: string
+  elementId: string
+  retries: number
+  errorMessage: string
+  createdAt: string
+}
+
+export interface ProcessInstanceRuntime {
+  processInstanceKey: string
+  zeebeStatus: "ok" | "unreachable" | string
+  activeElementId?: string
+  case?: WorkflowCase | null
+  activeWorkTask?: {
+    id: string
+    taskType?: string
+    stepCode: string
+    jobKey?: string
+    status: string
+    candidateRole?: string
+  } | null
+  pendingJobs: ProcessInstancePendingJob[]
+  incidents: ProcessInstanceIncident[]
+  pendingJobsError?: string
+  timeline?: Array<{
+    id: number
+    eventType: string
+    note?: string
+    createdAt: string
+  }>
+  hint: string
+  workerNote: string
+}
+
 export interface SlaPolicy {
   id: string
   code: string
@@ -460,6 +506,23 @@ export const workflowApi = {
       mockCases
     )
   },
+  getProcessInstanceRuntime(processInstanceKey: string | number) {
+    return request<ProcessInstanceRuntime>(
+      `/api/workflow/process-instances/${encodeURIComponent(String(processInstanceKey))}/runtime`
+    )
+  },
+  retryWorkflowJob(jobKey: string, retries = 3) {
+    return request<{ status: string; jobKey: string; retries: number }>(
+      `/api/workflow/jobs/${encodeURIComponent(jobKey)}/retry`,
+      { method: "POST", body: { retries } }
+    )
+  },
+  retryProcessServiceJobs(processInstanceKey: string | number) {
+    return request<{ status: string; retried: string[]; message?: string }>(
+      `/api/workflow/process-instances/${encodeURIComponent(String(processInstanceKey))}/retry-service-jobs`,
+      { method: "POST" }
+    )
+  },
   async listSlaPolicies() {
     return getArrayOrMock<SlaPolicy>(
       "/api/workflow/sla-policies",
@@ -683,13 +746,14 @@ async function getArrayOrMock<T>(
 
 async function request<T>(
   path: string,
-  options: { method: "POST" | "PUT" | "DELETE"; body?: unknown }
+  options?: { method?: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown }
 ) {
+  const method = options?.method ?? "GET"
   const response = await fetch(path, {
-    method: options.method,
+    method,
     credentials: "include",
-    headers: options.body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    headers: options?.body === undefined ? undefined : { "Content-Type": "application/json" },
+    body: options?.body === undefined ? undefined : JSON.stringify(options.body),
   })
   if (!response.ok) {
     const message = await response.text().catch(() => "")
