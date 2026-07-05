@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react"
 import type { Group, Role } from "@/features/iam"
 import {
   useGroupRolePicker,
@@ -78,14 +78,24 @@ export function GroupRolesDialog({
     () => new Set((groupRolesQuery.data ?? []).map((role) => role.id)),
     [groupRolesQuery.data]
   )
+  const [optimisticAssigned, applyOptimisticAssigned] = useOptimistic(
+    assignedRoleIDs,
+    (current, update: { roleId: string; assigned: boolean }) => {
+      const next = new Set(current)
+      if (update.assigned) next.add(update.roleId)
+      else next.delete(update.roleId)
+      return next
+    }
+  )
+  const [, startRoleTransition] = useTransition()
 
   const visibleRoles = useMemo(() => {
     const roles = rolePickerQuery.data?.items ?? []
     if (filter === "assigned") {
-      return roles.filter((role) => assignedRoleIDs.has(role.id))
+      return roles.filter((role) => optimisticAssigned.has(role.id))
     }
     return roles
-  }, [assignedRoleIDs, filter, rolePickerQuery.data?.roles])
+  }, [optimisticAssigned, filter, rolePickerQuery.data?.items])
 
   const rolesByModule = useMemo(() => {
     const groups = new Map<string, Role[]>()
@@ -98,21 +108,24 @@ export function GroupRolesDialog({
     )
   }, [visibleRoles])
 
-  const toggleRole = async (role: Role, assigned: boolean) => {
+  const toggleRole = (role: Role, assigned: boolean) => {
     if (!groupId) return
-    try {
-      await setGroupRole.mutateAsync({
-        groupId,
-        roleId: role.id,
-        assigned,
-      })
-      notify.success(t("admin.groups.roles.update_success"))
-    } catch (err) {
-      notify.error(
-        t("admin.groups.roles.update_failed"),
-        translateApiError(err)
-      )
-    }
+    startRoleTransition(async () => {
+      applyOptimisticAssigned({ roleId: role.id, assigned: !assigned })
+      try {
+        await setGroupRole.mutateAsync({
+          groupId,
+          roleId: role.id,
+          assigned,
+        })
+        notify.success(t("admin.groups.roles.update_success"))
+      } catch (err) {
+        notify.error(
+          t("admin.groups.roles.update_failed"),
+          translateApiError(err)
+        )
+      }
+    })
   }
 
   const loading = groupRolesQuery.isLoading || rolePickerQuery.isLoading
@@ -190,7 +203,7 @@ export function GroupRolesDialog({
             <div className="space-y-5">
               {rolesByModule.map(([module, roles]) => {
                 const assignedInModule = roles.filter((role) =>
-                  assignedRoleIDs.has(role.id)
+                  optimisticAssigned.has(role.id)
                 ).length
                 return (
                   <section key={module} className="space-y-2">
@@ -218,7 +231,7 @@ export function GroupRolesDialog({
                         </TableHeader>
                         <TableBody>
                           {roles.map((role) => {
-                            const assigned = assignedRoleIDs.has(role.id)
+                            const assigned = optimisticAssigned.has(role.id)
                             return (
                               <TableRow key={role.id}>
                                 <TableCell className="w-10">

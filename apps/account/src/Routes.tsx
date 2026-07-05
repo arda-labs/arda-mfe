@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import { AppearancePage } from "@/features/settings/appearance/page"
 import { DevicesPage } from "@/features/settings/devices/page"
 import { SettingsLayout } from "@/features/settings/layout"
@@ -6,30 +5,14 @@ import { ProfilePage as AccountProfilePage } from "@/features/settings/profile/p
 import { SecurityPage } from "@/features/settings/security/page"
 import { SessionsPage } from "@/features/settings/sessions/page"
 import { ProfilePage as PublicProfilePage } from "@/features/profile/page"
-
-function navigate(pathname: string) {
-  window.history.pushState({}, "", pathname)
-  window.dispatchEvent(new PopStateEvent("popstate"))
-}
-
-function usePathname() {
-  const [pathname, setPathname] = useState(window.location.pathname)
-
-  useEffect(() => {
-    const syncPathname = () => setPathname(window.location.pathname)
-    window.addEventListener("popstate", syncPathname)
-    return () => window.removeEventListener("popstate", syncPathname)
-  }, [])
-
-  return pathname
-}
+import { navigateTo, usePathname } from "@workspace/core/routing"
 
 export default function Routes() {
   return <AccountRoutes />
 }
 
 function AccountRoutes() {
-  const pathname = usePathname()
+  const pathname = usePathname("/my-account/profile")
 
   if (pathname.startsWith("/in/")) return <PublicProfilePage />
   if (pathname.startsWith("/settings/appearance")) return <AppearancePage />
@@ -40,7 +23,7 @@ function AccountRoutes() {
   if (pathname.startsWith("/my-account/devices")) page = <DevicesPage />
 
   return (
-    <SettingsLayout pathname={pathname} navigate={navigate}>
+    <SettingsLayout pathname={pathname} navigate={navigateTo}>
       {page}
     </SettingsLayout>
   )

@@ -1,0 +1,223 @@
+import { z } from "zod"
+
+export const customerSchema = z.object({
+  id: z.string().trim().optional(),
+  customerCode: z.string().trim().optional(),
+  customerType: z.enum(["PERSONAL", "BUSINESS"]),
+  avatarFileId: z.string().trim(),
+  orgUnit: z.string().trim(),
+  name: z.string().trim().min(1, "Tên khách hàng là bắt buộc"),
+  provinceCode: z.string().trim(),
+  wardCode: z.string().trim(),
+  areaCode: z.string().trim(),
+  permanentAddress: z.string().trim(),
+  currentAddress: z.string().trim(),
+  mobile: z.string().trim(),
+  fixedPhone: z.string().trim(),
+  email: z.string().trim().email("Email không hợp lệ").or(z.literal("")),
+  taxCode: z.string().trim(),
+  fax: z.string().trim(),
+  economicType: z.string().trim(),
+  economicSector: z.string().trim(),
+  bankAccount: z.string().trim(),
+  bankName: z.string().trim(),
+  gender: z.string().trim(),
+  dateOfBirth: z.string().trim(),
+  ethnicity: z.string().trim(),
+  maritalStatus: z.string().trim(),
+  birthPlace: z.string().trim(),
+  occupation: z.string().trim(),
+  educationLevel: z.string().trim(),
+  cultureLevel: z.string().trim(),
+  identityType: z.string().trim(),
+  identityNo: z.string().trim(),
+  oldIdentityNo: z.string().trim(),
+  identityIssueDate: z.string().trim(),
+  identityExpiryDate: z.string().trim(),
+  identityIssuePlace: z.string().trim(),
+  segment: z.string().trim(),
+  riskLevel: z.string().trim(),
+  rank: z.string().trim(),
+  memberCardNo: z.string().trim(),
+  memberCardIssueDate: z.string().trim(),
+  memberCardIssuePlace: z.string().trim(),
+  extendedOccupation: z.string().trim(),
+  jobTitle: z.string().trim(),
+  workDuration: z.string().trim(),
+  laborContractType: z.string().trim(),
+  workplace: z.string().trim(),
+  workplaceAddress: z.string().trim(),
+  note: z.string().trim(),
+  shortName: z.string().trim(),
+  businessRegistrationNo: z.string().trim(),
+  businessIssueDate: z.string().trim(),
+  issuingAuthority: z.string().trim(),
+  establishedDate: z.string().trim(),
+  website: z.string().trim(),
+  representative: z.string().trim(),
+  representativeTitle: z.string().trim(),
+  representativeIdentityNo: z.string().trim(),
+  businessLine: z.string().trim(),
+})
+
+export type CustomerFormValues = z.infer<typeof customerSchema>
+
+export const relationshipSchema = z.object({
+  relatedCustomerId: z.string().trim().min(1, "Mã khách hàng là bắt buộc"),
+  relationType: z.string().trim().min(1, "Loại quan hệ là bắt buộc"),
+  relationCode: z.string().trim().min(1, "Mã quan hệ là bắt buộc"),
+  reciprocalRelationCode: z.string().trim().min(1, "Mã QH đối ứng là bắt buộc"),
+  status: z.string().trim().min(1, "Trạng thái quan hệ là bắt buộc"),
+})
+
+export type RelationshipFormValues = z.infer<typeof relationshipSchema>
+
+export const defaultValues: CustomerFormValues = {
+  id: "",
+  customerCode: "",
+  customerType: "PERSONAL",
+  avatarFileId: "",
+  orgUnit: "",
+  name: "",
+  provinceCode: "",
+  wardCode: "",
+  areaCode: "",
+  permanentAddress: "",
+  currentAddress: "",
+  mobile: "",
+  fixedPhone: "",
+  email: "",
+  taxCode: "",
+  fax: "",
+  economicType: "",
+  economicSector: "",
+  bankAccount: "",
+  bankName: "",
+  gender: "Nam",
+  dateOfBirth: "",
+  ethnicity: "Kinh",
+  maritalStatus: "Đã lập gia đình",
+  birthPlace: "",
+  occupation: "",
+  educationLevel: "",
+  cultureLevel: "",
+  identityType: "Căn cước công dân",
+  identityNo: "",
+  oldIdentityNo: "",
+  identityIssueDate: "",
+  identityExpiryDate: "",
+  identityIssuePlace: "",
+  segment: "",
+  riskLevel: "",
+  rank: "",
+  memberCardNo: "",
+  memberCardIssueDate: "",
+  memberCardIssuePlace: "",
+  extendedOccupation: "",
+  jobTitle: "",
+  workDuration: "",
+  laborContractType: "",
+  workplace: "",
+  workplaceAddress: "",
+  note: "",
+  shortName: "",
+  businessRegistrationNo: "",
+  businessIssueDate: "",
+  issuingAuthority: "",
+  establishedDate: "",
+  website: "",
+  representative: "",
+  representativeTitle: "",
+  representativeIdentityNo: "",
+  businessLine: "",
+}
+
+export const selectOptions = {
+  customerType: [
+    { value: "PERSONAL", label: "Khách hàng cá nhân" },
+    { value: "BUSINESS", label: "Doanh nghiệp" },
+  ],
+  generic: [{ value: "none", label: "-- Chọn --" }],
+  relation: [
+    { value: "SPOUSE", label: "Vợ/Chồng" },
+    { value: "PARENT", label: "Cha/Mẹ" },
+    { value: "CHILD", label: "Con" },
+    { value: "GUARANTOR", label: "Người bảo lãnh" },
+  ],
+  status: [
+    { value: "ACTIVE", label: "Hoạt động" },
+    { value: "INACTIVE", label: "Ngừng hiệu lực" },
+  ],
+}
+
+export const generalFieldsPrimary: Array<
+  [keyof CustomerFormValues, string, "input" | "select" | "textarea"]
+> = [["name", "Tên khách hàng(*)", "input"]]
+
+export const generalFieldsRest: Array<
+  [keyof CustomerFormValues, string, "input" | "select" | "textarea"]
+> = [
+  ["permanentAddress", "Địa chỉ thường trú", "textarea"],
+  ["currentAddress", "Địa chỉ hiện tại", "textarea"],
+  ["mobile", "Số di động", "input"],
+  ["fixedPhone", "Số cố định", "input"],
+  ["email", "Email", "input"],
+  ["taxCode", "Mã số thuế", "input"],
+  ["fax", "Fax", "input"],
+  ["economicType", "Loại hình kinh tế", "select"],
+  ["economicSector", "Ngành kinh tế", "select"],
+  ["bankAccount", "Số tài khoản", "input"],
+  ["bankName", "Tại ngân hàng", "input"],
+]
+
+export const personalFields: Array<
+  [keyof CustomerFormValues, string, "input" | "select" | "date"]
+> = [
+  ["gender", "Giới tính", "select"],
+  ["dateOfBirth", "Ngày sinh", "date"],
+  ["ethnicity", "Dân tộc", "input"],
+  ["maritalStatus", "Tình trạng hôn nhân", "input"],
+  ["birthPlace", "Nơi sinh", "input"],
+  ["occupation", "Nghề nghiệp", "select"],
+  ["educationLevel", "Trình độ học vấn", "select"],
+  ["cultureLevel", "Trình độ văn hóa", "select"],
+  ["identityType", "Loại định danh", "input"],
+  ["identityNo", "CCCD/CMND", "input"],
+  ["oldIdentityNo", "Số định danh cũ", "input"],
+  ["identityIssueDate", "Ngày cấp", "date"],
+  ["identityExpiryDate", "Ngày hết hiệu lực", "date"],
+  ["identityIssuePlace", "Nơi cấp", "input"],
+]
+
+export const extendedFields: Array<
+  [keyof CustomerFormValues, string, "input" | "select" | "date" | "textarea"]
+> = [
+  ["segment", "Phân khúc KH", "select"],
+  ["riskLevel", "Phân loại rủi ro", "select"],
+  ["rank", "Hạng khách hàng", "select"],
+  ["memberCardNo", "Số thẻ hội viên", "input"],
+  ["memberCardIssueDate", "Ngày cấp thẻ", "date"],
+  ["memberCardIssuePlace", "Nơi cấp thẻ", "input"],
+  ["extendedOccupation", "Nghề nghiệp", "input"],
+  ["jobTitle", "Chức vụ nơi công tác", "input"],
+  ["workDuration", "Thời gian công tác", "select"],
+  ["laborContractType", "Loại HĐLĐ", "input"],
+  ["workplace", "Nơi công tác", "input"],
+  ["workplaceAddress", "Địa chỉ công tác", "input"],
+  ["note", "Ghi chú", "textarea"],
+]
+
+export const businessFields: Array<
+  [keyof CustomerFormValues, string, "input" | "date"]
+> = [
+  ["shortName", "Tên tắt doanh nghiệp", "input"],
+  ["businessRegistrationNo", "Số đăng ký kinh doanh", "input"],
+  ["businessIssueDate", "Ngày cấp", "date"],
+  ["issuingAuthority", "Cơ quan ban hành", "input"],
+  ["establishedDate", "Ngày thành lập", "date"],
+  ["website", "Website", "input"],
+  ["representative", "Người đại diện", "input"],
+  ["representativeTitle", "Chức vụ nơi công tác", "input"],
+  ["representativeIdentityNo", "CCCD/CMND", "input"],
+  ["businessLine", "Ngành kinh doanh", "input"],
+]

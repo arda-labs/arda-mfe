@@ -4,39 +4,60 @@ Bun + Vite micro frontend workspace for Arda.
 
 ## Apps
 
-- `apps/shell` owns layout, auth, top-level navigation, customer placeholders, and workflow admin screens.
-- `apps/iam` exposes the IAM remote at `remoteEntry.js`.
-- `apps/platform` exposes the Platform remote at `remoteEntry.js`.
-- `apps/finance` exposes the Finance remote at `remoteEntry.js`.
-- `apps/account` exposes the Account remote at `remoteEntry.js`.
-- `packages/ui` contains shared shadcn/ui components.
-- `packages/api`, `auth`, `core`, `i18n`, `media`, `notifications`, and `theme` contain shared app contracts and client helpers.
+| App | Port | Role |
+| --- | --- | --- |
+| `shell` | 5000 | Layout, auth, navigation, lazy remote loading |
+| `iam` | 5101 | IAM admin remote |
+| `platform` | 5102 | Platform master data remote |
+| `finance` | 5103 | Finance operations remote |
+| `account` | 5104 | Profile & account settings remote |
+| `hrm` | 5105 | HRM remote |
+| `workflow` | 5106 | Workflow / BPMN admin remote |
+| `crm` | 5107 | CRM & workbench remote |
 
-## Current Business Areas
+## Packages
 
-Shell navigation includes:
+| Package | Purpose |
+| --- | --- |
+| `@workspace/ui` | Shared shadcn/ui components |
+| `@workspace/api` | HTTP client |
+| `@workspace/auth` | Session, step-up, auth store |
+| `@workspace/core` | List API, query helpers, routing hooks |
+| `@workspace/i18n` | Locales, `translateApiError` |
+| `@workspace/notifications` | Toast / notify |
+| `@workspace/theme` | Theme tokens |
+| `@workspace/media` | Media URL helpers |
 
-- Customer member operations: registrations, profiles, risk cases. These are placeholders until the CRM/customer MFE owns the screens.
-- Finance operations: incoming transactions, outgoing transactions, transaction search, and accounting configuration.
-- Workflow administration: case types, process configs, SLA policies, description templates, roles, and monitoring.
+## Structure conventions
 
-Finance operation screens live in `apps/finance/src/features/finance/operation`.
+Feature folders follow a consistent layout. See [docs/conventions/mfe-structure.md](../docs/conventions/mfe-structure.md).
 
-Workflow admin screens live in `apps/shell/src/features/workflow`. The BPMN viewer/modeler module is split into `apps/shell/src/features/workflow/components/bpmn-monitor.tsx`.
+```text
+apps/<remote>/src/features/<domain>/
+  api.ts
+  <entity>/
+    queries.ts
+    page.tsx
+```
 
-## Workflow UI Notes
+**Rules of thumb**
 
-The shell workflow area is Arda-owned UX for Zeebe 8.5. It does not depend on Camunda Tasklist, Operate, or Optimize for product operation.
+- `Routes.tsx` only — remotes expose `./Routes` via Module Federation.
+- `page.tsx` target ≤ 400 lines; split into `components/` when larger.
+- Heavy dependencies (BPMN, large forms): `lazy()` at tab/dialog open.
+- Server state via TanStack Query; no mirroring lists in Zustand.
 
-Implemented UI pieces:
+## Business areas
 
-- Case type catalog.
-- Process configuration.
-- SLA policy editor with task rows.
-- Description template builder with subsystem and token preview.
-- Process role, role catalog, membership, assignment rule, and delegation management.
-- Process monitoring list/detail.
-- BPMN import/update/deploy and fullscreen modeler dialog using `bpmn-js`.
+- **IAM** — users, groups, roles, permissions, audit, system settings
+- **Platform** — orgs, areas, lookups, templates, geo reference data
+- **Finance** — accounts, transactions, approvals, trial balance, accounting config
+- **HRM** — positions, job titles, org units, registrations, employees
+- **Account** — profile, security, sessions, devices, appearance
+- **Workflow** — case types, process config, SLA, templates, roles, BPMN monitoring (Zeebe 8.5)
+- **CRM** — customers, workbench (transaction ops, drafts)
+
+Workflow admin lives in `apps/workflow` (not shell). BPMN viewer/modeler: `apps/workflow/src/features/workflow/components/bpmn-monitor.tsx`.
 
 ## Commands
 
@@ -49,24 +70,24 @@ bun run typecheck
 bun run format
 ```
 
-## Dev Ports
+Build order: remotes first, shell last (`bun run build`).
 
-| App | Port |
-| --- | --- |
-| `apps/shell` | `5000` |
-| `apps/iam` | `5101` |
-| `apps/platform` | `5102` |
-| `apps/finance` | `5103` |
-| `apps/account` | `5104` |
+## Adding UI components
 
-## Adding Components
-
-Run shadcn from the target app:
+Run shadcn from the workspace root target:
 
 ```bash
 bunx --bun shadcn@latest add button -c apps/shell
 ```
 
+Import from the shared package:
+
 ```tsx
 import { Button } from "@workspace/ui/components/button"
 ```
+
+## Skills & rules
+
+- Cursor rule: `.cursor/rules/frontend-mfe.mdc`
+- Feature page template: skill `arda-feature-page`
+- New remote: skill `arda-mfe-remote`

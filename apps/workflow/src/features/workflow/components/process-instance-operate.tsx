@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/notifications/notify"
 import type { WorkflowCase, WorkflowCaseType } from "../api"
-import { BpmnViewerPanel } from "./bpmn-monitor"
+import { BpmnViewerPanel } from "./bpmn-monitor-lazy"
 import {
   useProcessInstanceRuntime,
   useRetryProcessServiceJobs,
