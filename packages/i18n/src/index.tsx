@@ -100,9 +100,6 @@ export function translateApiError(
     const code = String((input as { code?: unknown }).code ?? "")
     return translate(code, locale) || fallback
   }
-  if (input instanceof Error) {
-    return translate(input.message, locale) || input.message || fallback
-  }
   return fallback
 }
 
