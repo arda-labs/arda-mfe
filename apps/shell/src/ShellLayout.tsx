@@ -60,7 +60,7 @@ import {
   GlobalErrorDialog,
   NotificationBell,
   useNotificationStream,
-} from "../../../packages/notifications/src/index"
+} from "@workspace/notifications"
 import { useTheme } from "../../../packages/theme/src/index"
 
 type NavNode = {
