@@ -1,3 +1,9 @@
+import {
+  buildListSearchParams,
+  listPageCount,
+  type ListResponse,
+} from "@workspace/core/http/list-api"
+
 export type IamPrincipalUser = {
   id: string
   username: string
@@ -6,27 +12,25 @@ export type IamPrincipalUser = {
   status: string
 }
 
+type IamUserApiItem = Partial<IamPrincipalUser> & {
+  // wire uses snake_case for some admin fields; user list keeps id/username/email/name/status
+}
+
+function normalizeIamUser(item: IamUserApiItem): IamPrincipalUser {
+  return {
+    id: item.id ?? "",
+    username: item.username ?? "",
+    email: item.email ?? "",
+    name: item.name ?? "",
+    status: item.status ?? "",
+  }
+}
+
 export type IamPrincipalGroup = {
   id: string
   code: string
   name: string
   status: string
-}
-
-type UsersResponse = {
-  users: IamPrincipalUser[]
-  total: number
-  totalPages?: number
-  page: number
-  size: number
-}
-
-type GroupsResponse = {
-  groups: IamPrincipalGroup[]
-  total: number
-  totalPages?: number
-  page: number
-  size: number
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -40,26 +44,37 @@ async function fetchJson<T>(path: string): Promise<T> {
 
 export function listIamUsers(params: {
   page: number
-  size: number
-  search?: string
+  perPage: number
+  q?: string
 }) {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    size: String(params.size),
+  const query = buildListSearchParams({
+    page: params.page,
+    perPage: params.perPage,
+    q: params.q,
   })
-  if (params.search) query.set("search", params.search)
-  return fetchJson<UsersResponse>(`/api/admin/users?${query.toString()}`)
+  return fetchJson<ListResponse<IamUserApiItem>>(
+    `/api/admin/users?${query.toString()}`
+  ).then((res) => ({
+    ...res,
+    items: res.items.map(normalizeIamUser),
+    totalPages: listPageCount(res.total, res.per_page),
+  }))
 }
 
 export function listIamGroups(params: {
   page: number
-  size: number
-  search?: string
+  perPage: number
+  q?: string
 }) {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    size: String(params.size),
+  const query = buildListSearchParams({
+    page: params.page,
+    perPage: params.perPage,
+    q: params.q,
   })
-  if (params.search) query.set("search", params.search)
-  return fetchJson<GroupsResponse>(`/api/admin/groups?${query.toString()}`)
+  return fetchJson<ListResponse<IamPrincipalGroup>>(
+    `/api/admin/groups?${query.toString()}`
+  ).then((res) => ({
+    ...res,
+    totalPages: listPageCount(res.total, res.per_page),
+  }))
 }

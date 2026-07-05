@@ -10,8 +10,8 @@ export const groupKeys = {
   all: ["iam", "groups"] as const,
   list: (params: {
     page: number
-    size: number
-    search?: string
+    perPage: number
+    q?: string
     status?: string
   }) => [...groupKeys.all, "list", params] as const,
   members: (groupId: string) => [...groupKeys.all, "members", groupId] as const,
@@ -20,8 +20,8 @@ export const groupKeys = {
 
 export function useGroups(params: {
   page: number
-  size: number
-  search?: string
+  perPage: number
+  q?: string
   status?: string
 }) {
   return useListQuery({
@@ -74,7 +74,7 @@ export function useGroupMembers(groupId?: string) {
     queryFn: async () => {
       if (!groupId) return []
       const res = await adminApi.listGroupMembers(groupId)
-      return res.members
+      return res.items
     },
     enabled: Boolean(groupId),
   })
@@ -82,7 +82,7 @@ export function useGroupMembers(groupId?: string) {
 
 export function useGroupMemberPicker(
   enabled: boolean,
-  params: { page: number; size: number; search?: string }
+  params: { page: number; perPage: number; q?: string }
 ) {
   return useQuery({
     queryKey: [...groupKeys.all, "member-picker", params] as const,
@@ -169,10 +169,10 @@ export function useGroupRoles(groupId?: string) {
   })
 }
 
-export function useGroupRolePicker(search?: string) {
+export function useGroupRolePicker(q?: string) {
   return useQuery({
-    queryKey: [...groupKeys.all, "role-picker", search ?? ""] as const,
-    queryFn: () => adminApi.listRoles({ page: 1, size: 500, search }),
+    queryKey: [...groupKeys.all, "role-picker", q ?? ""] as const,
+    queryFn: () => adminApi.listRoles({ page: 1, perPage: 500, q }),
     placeholderData: keepPreviousData,
   })
 }

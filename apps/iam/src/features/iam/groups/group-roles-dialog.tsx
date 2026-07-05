@@ -80,7 +80,7 @@ export function GroupRolesDialog({
   )
 
   const visibleRoles = useMemo(() => {
-    const roles = rolePickerQuery.data?.roles ?? []
+    const roles = rolePickerQuery.data?.items ?? []
     if (filter === "assigned") {
       return roles.filter((role) => assignedRoleIDs.has(role.id))
     }

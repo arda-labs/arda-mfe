@@ -129,11 +129,11 @@ export function GroupsPage() {
   )
   const groupsQuery = useGroups({
     page: pageParam,
-    size: pageSizeParam,
-    search: searchParam || undefined,
+    perPage: pageSizeParam,
+    q: searchParam || undefined,
     status: statusParam.length === 1 ? statusParam[0] : undefined,
   })
-  const groups = groupsQuery.data?.groups ?? []
+  const groups = groupsQuery.data?.items ?? []
   const total = groupsQuery.data?.total ?? 0
   const pageGate = pageGateFromQueries(groupsQuery)
   const { fetching } = listQueryShellState(groupsQuery)

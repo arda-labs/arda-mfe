@@ -231,11 +231,11 @@ export function RolesPage() {
   )
   const rolesQuery = useRoles({
     page: pageParam,
-    size: pageSizeParam,
-    search: searchParam || undefined,
+    perPage: pageSizeParam,
+    q: searchParam || undefined,
     status: statusParam.length === 1 ? statusParam[0] : undefined,
   })
-  const roles = rolesQuery.data?.roles ?? []
+  const roles = rolesQuery.data?.items ?? []
   const total = rolesQuery.data?.total ?? 0
   const pageGate = pageGateFromQueries(rolesQuery)
   const { fetching } = listQueryShellState(rolesQuery)

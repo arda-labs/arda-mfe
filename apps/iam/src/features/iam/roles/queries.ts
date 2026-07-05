@@ -5,12 +5,12 @@ import { permissionKeys } from "@/features/iam/permissions/queries"
 
 export const roleKeys = {
   all: ["iam", "roles"] as const,
-  list: (params: { page: number; size: number; search?: string; status?: string }) =>
+  list: (params: { page: number; perPage: number; q?: string; status?: string }) =>
     [...roleKeys.all, "list", params] as const,
   permissions: (roleId: string) => [...roleKeys.all, "permissions", roleId] as const,
 }
 
-export function useRoles(params: { page: number; size: number; search?: string; status?: string }) {
+export function useRoles(params: { page: number; perPage: number; q?: string; status?: string }) {
   return useListQuery({
     queryKey: roleKeys.list(params),
     queryFn: () => adminApi.listRoles(params),
@@ -23,10 +23,10 @@ export function useRolePermissionOptions(roleId?: string) {
     queryFn: async () => {
       if (!roleId) return { permissions: [], rolePermissions: [] }
       const [all, assigned] = await Promise.all([
-        adminApi.listPermissions({ page: 1, size: 100 }),
+        adminApi.listPermissions({ page: 1, perPage: 100 }),
         adminApi.listRolePermissions(roleId),
       ])
-      return { permissions: all.permissions, rolePermissions: assigned.permissions }
+      return { permissions: all.items, rolePermissions: assigned.permissions }
     },
     enabled: Boolean(roleId),
   })

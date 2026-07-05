@@ -108,13 +108,13 @@ export function TransactionsPage() {
     "perPage",
     parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
   )
-  const transactionsQuery = useTransactions({ page: pageParam, size: perPageParam })
+  const transactionsQuery = useTransactions({ page: pageParam, perPage: perPageParam })
   const pageGate = pageGateFromQueries(transactionsQuery)
   const { fetching } = listQueryShellState(transactionsQuery)
   const data = transactionsQuery.data
   const isTransactionsError = transactionsQuery.isError
   const createTransaction = useCreateTransaction()
-  const txns = data?.transactions ?? []
+  const txns = data?.items ?? []
   const total = data?.total ?? 0
   const pageCount = listPageCount(total, perPageParam)
   const {

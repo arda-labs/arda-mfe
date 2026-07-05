@@ -14,7 +14,7 @@ export type NotificationItem = {
 }
 
 export type NotificationListResponse = {
-  notifications: NotificationItem[]
+  items: NotificationItem[]
 }
 
 export type UnreadCountResponse = {

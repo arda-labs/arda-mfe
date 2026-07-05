@@ -1,4 +1,8 @@
 import { api } from "@workspace/api"
+import {
+  buildListSearchParams,
+  type ListResponse,
+} from "@workspace/core/http/list-api"
 
 export interface AuditEvent {
   id: string
@@ -16,6 +20,11 @@ export interface AuditEvent {
 }
 
 type AuditEventApiItem = Partial<AuditEvent> & {
+  event_type?: string
+  client_ip?: string
+  user_agent?: string
+  request_id?: string
+  service_name?: string
   ID?: string
   EventType?: string
   Subject?: string
@@ -48,16 +57,16 @@ export interface ChainVerification {
 
 const normalizeAuditEvent = (event: AuditEventApiItem): AuditEvent => ({
   id: event.id ?? event.ID ?? "",
-  eventType: event.eventType ?? event.EventType ?? "",
+  eventType: event.event_type ?? event.eventType ?? event.EventType ?? "",
   subject: event.subject ?? event.Subject ?? "",
   action: event.action ?? event.Action ?? "",
   resource: event.resource ?? event.Resource ?? "",
   result: event.result ?? event.Result ?? "",
   details: event.details ?? event.Details ?? {},
-  clientIp: event.clientIp ?? event.ClientIP ?? "",
-  userAgent: event.userAgent ?? event.UserAgent ?? "",
-  requestId: event.requestId ?? event.RequestID ?? "",
-  serviceName: event.serviceName ?? event.ServiceName ?? "",
+  clientIp: event.client_ip ?? event.clientIp ?? event.ClientIP ?? "",
+  userAgent: event.user_agent ?? event.userAgent ?? event.UserAgent ?? "",
+  requestId: event.request_id ?? event.requestId ?? event.RequestID ?? "",
+  serviceName: event.service_name ?? event.serviceName ?? event.ServiceName ?? "",
   timestamp: event.timestamp ?? event.Timestamp ?? "",
 })
 
@@ -69,22 +78,24 @@ export const auditApi = {
     from?: string
     to?: string
     page?: number
-    size?: number
+    perPage?: number
     sort?: string
   }) => {
-    const p = new URLSearchParams()
-    if (params?.event_type) params.event_type.forEach(et => p.append("event_type", et))
+    const p = buildListSearchParams({
+      page: params?.page,
+      perPage: params?.perPage,
+      sort: params?.sort,
+    })
+    if (params?.event_type) params.event_type.forEach((et) => p.append("event_type", et))
     if (params?.subject) p.set("subject", params.subject)
     if (params?.result) p.set("result", params.result)
     if (params?.from) p.set("from", params.from)
     if (params?.to) p.set("to", params.to)
-    if (params?.page) p.set("page", String(params.page))
-    if (params?.size) p.set("size", String(params.size))
-    if (params?.sort) p.set("sort", params.sort)
-    return api.get<{events: AuditEventApiItem[]; total: number; page: number; size: number; totalPages: number}>(`/api/admin/audit?${p.toString()}`)
+    return api
+      .get<ListResponse<AuditEventApiItem>>(`/api/admin/audit?${p.toString()}`)
       .then((res) => ({
         ...res,
-        events: res.events.map(normalizeAuditEvent),
+        items: res.items.map(normalizeAuditEvent),
       }))
   },
 

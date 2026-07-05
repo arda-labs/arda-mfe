@@ -79,21 +79,21 @@ export function PrincipalPicker({
 
   const usersQuery = useQuery({
     queryKey: ["workflow", "principal-picker", "users", page, search] as const,
-    queryFn: () => listIamUsers({ page, size: PAGE_SIZE, search: search || undefined }),
+    queryFn: () => listIamUsers({ page, perPage: PAGE_SIZE, q: search || undefined }),
     enabled: open && principalType === "USER",
     placeholderData: keepPreviousData,
   })
 
   const groupsQuery = useQuery({
     queryKey: ["workflow", "principal-picker", "groups", page, search] as const,
-    queryFn: () => listIamGroups({ page, size: PAGE_SIZE, search: search || undefined }),
+    queryFn: () => listIamGroups({ page, perPage: PAGE_SIZE, q: search || undefined }),
     enabled: open && principalType === "GROUP",
     placeholderData: keepPreviousData,
   })
 
   const activeQuery = principalType === "USER" ? usersQuery : groupsQuery
-  const users = usersQuery.data?.users ?? []
-  const groups = groupsQuery.data?.groups ?? []
+  const users = usersQuery.data?.items ?? []
+  const groups = groupsQuery.data?.items ?? []
   const totalPages = Math.max(1, activeQuery.data?.totalPages ?? 1)
 
   useEffect(() => {

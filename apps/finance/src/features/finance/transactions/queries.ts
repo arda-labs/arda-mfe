@@ -5,7 +5,7 @@ import { financeApi } from "@/features/finance/api"
 
 interface TransactionListParams {
   page: number
-  size: number
+  perPage: number
 }
 
 export const transactionKeys = {
