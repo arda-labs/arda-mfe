@@ -20,6 +20,11 @@ export interface AuditEvent {
 }
 
 type AuditEventApiItem = Partial<AuditEvent> & {
+  event_type?: string
+  client_ip?: string
+  user_agent?: string
+  request_id?: string
+  service_name?: string
   ID?: string
   EventType?: string
   Subject?: string
@@ -52,16 +57,16 @@ export interface ChainVerification {
 
 const normalizeAuditEvent = (event: AuditEventApiItem): AuditEvent => ({
   id: event.id ?? event.ID ?? "",
-  eventType: event.eventType ?? event.EventType ?? "",
+  eventType: event.event_type ?? event.eventType ?? event.EventType ?? "",
   subject: event.subject ?? event.Subject ?? "",
   action: event.action ?? event.Action ?? "",
   resource: event.resource ?? event.Resource ?? "",
   result: event.result ?? event.Result ?? "",
   details: event.details ?? event.Details ?? {},
-  clientIp: event.clientIp ?? event.ClientIP ?? "",
-  userAgent: event.userAgent ?? event.UserAgent ?? "",
-  requestId: event.requestId ?? event.RequestID ?? "",
-  serviceName: event.serviceName ?? event.ServiceName ?? "",
+  clientIp: event.client_ip ?? event.clientIp ?? event.ClientIP ?? "",
+  userAgent: event.user_agent ?? event.userAgent ?? event.UserAgent ?? "",
+  requestId: event.request_id ?? event.requestId ?? event.RequestID ?? "",
+  serviceName: event.service_name ?? event.serviceName ?? event.ServiceName ?? "",
   timestamp: event.timestamp ?? event.Timestamp ?? "",
 })
 

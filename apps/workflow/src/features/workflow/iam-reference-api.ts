@@ -12,6 +12,20 @@ export type IamPrincipalUser = {
   status: string
 }
 
+type IamUserApiItem = Partial<IamPrincipalUser> & {
+  // wire uses snake_case for some admin fields; user list keeps id/username/email/name/status
+}
+
+function normalizeIamUser(item: IamUserApiItem): IamPrincipalUser {
+  return {
+    id: item.id ?? "",
+    username: item.username ?? "",
+    email: item.email ?? "",
+    name: item.name ?? "",
+    status: item.status ?? "",
+  }
+}
+
 export type IamPrincipalGroup = {
   id: string
   code: string
@@ -38,10 +52,11 @@ export function listIamUsers(params: {
     perPage: params.perPage,
     q: params.q,
   })
-  return fetchJson<ListResponse<IamPrincipalUser>>(
+  return fetchJson<ListResponse<IamUserApiItem>>(
     `/api/admin/users?${query.toString()}`
   ).then((res) => ({
     ...res,
+    items: res.items.map(normalizeIamUser),
     totalPages: listPageCount(res.total, res.per_page),
   }))
 }
