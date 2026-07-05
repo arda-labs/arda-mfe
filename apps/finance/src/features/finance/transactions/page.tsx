@@ -114,7 +114,7 @@ export function TransactionsPage() {
   const data = transactionsQuery.data
   const isTransactionsError = transactionsQuery.isError
   const createTransaction = useCreateTransaction()
-  const txns = data?.transactions ?? []
+  const txns = data?.items ?? data?.transactions ?? []
   const total = data?.total ?? 0
   const pageCount = listPageCount(total, perPageParam)
   const {

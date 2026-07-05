@@ -163,19 +163,25 @@ export const adminApi = {
     if (params?.sortOrder) p.set("sortOrder", params.sortOrder)
     return api
       .get<{
+        items?: UserApiItem[]
         users: UserApiItem[]
         total: number
         page: number
+        per_page?: number
         size: number
         totalPages: number
       }>(`/api/admin/users?${p.toString()}`)
-      .then((res) => ({
-        ...res,
-        users: res.users.map((user) => ({
-          ...user,
-          roles: user.roles ?? [],
-        })),
-      }))
+      .then((res) => {
+        const rows = res.items ?? res.users ?? []
+        return {
+          ...res,
+          items: rows,
+          users: rows.map((user) => ({
+            ...user,
+            roles: user.roles ?? [],
+          })),
+        }
+      })
   },
   getUser: (id: string) => api.get<any>(`/api/admin/users/${id}`),
   createUser: (data: {
@@ -238,13 +244,18 @@ export const adminApi = {
     if (params?.tenantId) p.set("tenantId", params.tenantId)
     return api
       .get<{
+        items?: GroupApiItem[]
         groups: GroupApiItem[]
         total: number
         page?: number
+        per_page?: number
         size?: number
         totalPages?: number
       }>(`/api/admin/groups?${p.toString()}`)
-      .then((res) => ({ ...res, groups: res.groups.map(normalizeGroup) }))
+      .then((res) => {
+        const rows = res.items ?? res.groups ?? []
+        return { ...res, items: rows, groups: rows.map(normalizeGroup) }
+      })
   },
   getGroup: (id: string) =>
     api
@@ -269,13 +280,19 @@ export const adminApi = {
   deleteGroup: (id: string) => api.delete(`/api/admin/groups/${id}`),
   listGroupMembers: (id: string) =>
     api
-      .get<{ members: UserApiItem[] }>(`/api/admin/groups/${id}/members`)
-      .then((res) => ({
-        members: res.members.map((user) => ({
-          ...user,
-          roles: user.roles ?? [],
-        })),
-      })),
+      .get<{ items?: UserApiItem[]; members: UserApiItem[] }>(
+        `/api/admin/groups/${id}/members`
+      )
+      .then((res) => {
+        const rows = res.items ?? res.members ?? []
+        return {
+          items: rows,
+          members: rows.map((user) => ({
+            ...user,
+            roles: user.roles ?? [],
+          })),
+        }
+      }),
   addGroupMember: (groupId: string, userId: string) =>
     api.post(`/api/admin/groups/${groupId}/members`, { user_id: userId }),
   removeGroupMember: (groupId: string, userId: string) =>
@@ -298,16 +315,18 @@ export const adminApi = {
     if (params?.status) p.set("status", params.status)
     return api
       .get<{
+        items?: RoleApiItem[]
         roles: RoleApiItem[]
         total: number
         page?: number
+        per_page?: number
         size?: number
         totalPages?: number
       }>(`/api/admin/roles?${p.toString()}`)
-      .then((res) => ({
-        ...res,
-        roles: res.roles.map(normalizeRole),
-      }))
+      .then((res) => {
+        const rows = res.items ?? res.roles ?? []
+        return { ...res, items: rows, roles: rows.map(normalizeRole) }
+      })
   },
   getRole: (id: string) =>
     api
@@ -350,16 +369,18 @@ export const adminApi = {
     if (params?.module) p.set("module", params.module)
     return api
       .get<{
+        items?: PermissionApiItem[]
         permissions: PermissionApiItem[]
         total: number
         page?: number
+        per_page?: number
         size?: number
         totalPages?: number
       }>(`/api/admin/permissions?${p.toString()}`)
-      .then((res) => ({
-        ...res,
-        permissions: res.permissions.map(normalizePermission),
-      }))
+      .then((res) => {
+        const rows = res.items ?? res.permissions ?? []
+        return { ...res, items: rows, permissions: rows.map(normalizePermission) }
+      })
   },
   createPermission: (data: {
     code: string

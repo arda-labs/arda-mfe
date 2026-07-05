@@ -67,7 +67,8 @@ function withParams(path: string, params: Record<string, string | undefined>) {
 }
 
 export const hrmApi = {
-  listPositions: () => api.get<Position[]>("/api/hrm/positions"),
+  listPositions: async () =>
+    (await api.get<ListResponse<Position>>("/api/hrm/positions?all=1")).items,
   createPosition: (payload: Partial<Position>) =>
     api.post<Position>("/api/hrm/positions", payload),
   updatePosition: (id: string, payload: Partial<Position>) =>
@@ -75,7 +76,8 @@ export const hrmApi = {
   deletePosition: (id: string) =>
     api.delete<{ ok: boolean }>(`/api/hrm/positions/${id}`),
 
-  listJobTitles: () => api.get<JobTitle[]>("/api/hrm/job-titles"),
+  listJobTitles: async () =>
+    (await api.get<ListResponse<JobTitle>>("/api/hrm/job-titles?all=1")).items,
   createJobTitle: (payload: Partial<JobTitle>) =>
     api.post<JobTitle>("/api/hrm/job-titles", payload),
   updateJobTitle: (id: string, payload: Partial<JobTitle>) =>
@@ -83,10 +85,12 @@ export const hrmApi = {
   deleteJobTitle: (id: string) =>
     api.delete<{ ok: boolean }>(`/api/hrm/job-titles/${id}`),
 
-  listOrgUnits: (organizationId?: string) =>
-    api.get<OrgUnit[]>(
-      withParams("/api/hrm/org-units", { organization_id: organizationId })
-    ),
+  listOrgUnits: async (organizationId?: string) =>
+    (
+      await api.get<ListResponse<OrgUnit>>(
+        withParams("/api/hrm/org-units", { organization_id: organizationId, all: "1" })
+      )
+    ).items,
   createOrgUnit: (payload: Partial<OrgUnit>) =>
     api.post<OrgUnit>("/api/hrm/org-units", payload),
   updateOrgUnit: (id: string, payload: Partial<OrgUnit>) =>
@@ -94,9 +98,14 @@ export const hrmApi = {
   deleteOrgUnit: (id: string) =>
     api.delete<{ ok: boolean }>(`/api/hrm/org-units/${id}`),
 
-  listEmployees: () => api.get<Employee[]>("/api/hrm/employees"),
-  listEmployeeRegistrations: () =>
-    api.get<EmployeeRegistration[]>("/api/hrm/employee-registrations"),
+  listEmployees: async () =>
+    (await api.get<ListResponse<Employee>>("/api/hrm/employees?all=1")).items,
+  listEmployeeRegistrations: async () =>
+    (
+      await api.get<ListResponse<EmployeeRegistration>>(
+        "/api/hrm/employee-registrations?all=1"
+      )
+    ).items,
   createEmployeeRegistration: (payload: {
     registration_code?: string
     payload: Record<string, unknown>
