@@ -1,4 +1,11 @@
+export type ResponseMeta = {
+  request_id: string
+  trace_id?: string
+  timestamp: string
+}
+
 export type ListResponse<T> = {
+  meta?: ResponseMeta
   items: T[]
   page: number
   per_page: number
