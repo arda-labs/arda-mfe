@@ -7,11 +7,9 @@ const uiHeader = `import type { ChangeEvent, ReactNode } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
-import { Check, FileText, Plus, RotateCcw, Save, Search, Send, Upload, X } from "lucide-react"
+import { FileText } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { PageTitle } from "@workspace/ui/components/page-title"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import {
@@ -36,7 +34,6 @@ import { GeoLocationFields } from "../geo-location-fields"
 import { OrgUnitField } from "../org-unit-field"
 import {
   businessFields,
-  defaultValues,
   extendedFields,
   generalFieldsPrimary,
   generalFieldsRest,
@@ -56,11 +53,9 @@ writeFileSync(
 const headers = {
   "components/customer-table.tsx": `import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
 import { Search } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
-import { PageTitle } from "@workspace/ui/components/page-title"
 import {
   Table,
   TableBody,
@@ -69,17 +64,16 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import type { Customer } from "../api"
-import { useCustomers } from "../queries"
 import { navigateTo } from "@workspace/core/routing"
+import { useCustomers } from "../queries"
 import { customerTypeLabel } from "../shared/form-utils"
-import { EmptyTable, StatusBadge } from "../shared/ui"
+import { EmptyTable, Header, StatusBadge } from "../shared/ui"
 
 `,
-  "components/relationships-panel.tsx": `import { useForm } from "react-hook-form"
+  "components/relationships-panel.tsx": `import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { notify } from "@workspace/notifications/notify"
 import { Plus } from "lucide-react"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -99,71 +93,83 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import type { Customer } from "../api"
-import { useCreateCustomerRelationship, useCustomerRelationships } from "../queries"
+import {
+  useCreateCustomerRelationship,
+  useCustomerRelationships,
+  useCustomers,
+} from "../queries"
 import {
   relationshipSchema,
   selectOptions,
   type RelationshipFormValues,
 } from "../shared/schemas"
 import { relationLabel } from "../shared/form-utils"
-import { EmptyTable, Panel, StatusBadge } from "../shared/ui"
+import { EmptyTable, Panel } from "../shared/ui"
 
 `,
-  "components/task-panel.tsx": `import { useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
-import { Badge } from "@workspace/ui/components/badge"
+  "components/task-panel.tsx": `import { Check, RotateCcw, Send, X } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import type { Customer } from "../api"
-import { useCompleteWorkflowTask } from "../queries"
 import type { CustomerTaskContext } from "../shared/task-context"
-import {
-  ContextField,
-  effectiveBpmnElementId,
-  hasTaskContext,
-  syncTaskContextSearch,
-} from "../shared/task-context"
-import { Panel } from "../shared/ui"
+import { ContextField, Panel } from "../shared/ui"
 
 `,
-  "components/registration-tabs-list.tsx": `import { useI18n } from "@workspace/i18n"
-import { cn } from "@workspace/ui/lib/utils"
+  "components/registration-tabs-list.tsx": `import { cn } from "@workspace/ui/lib/utils"
 import { TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
 `,
   "pages/registration-page.tsx": `import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { FileText, Plus, RotateCcw, Save, Send } from "lucide-react"
+import { Plus, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { PageTitle } from "@workspace/ui/components/page-title"
+import { FormField } from "@workspace/ui/components/form-field"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
-import type { Customer } from "../api"
+import type { Customer, CustomerType } from "../api"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { CurrentTaskPanel } from "../components/task-panel"
 import { RelationshipsPanel } from "../components/relationships-panel"
+import { GeoLocationFields } from "../geo-location-fields"
+import { OrgUnitField } from "../org-unit-field"
 import {
   useCancelCustomer,
+  useCompleteWorkflowTask,
   useCustomer,
   useSaveCustomer,
   useSubmitCustomer,
   useUploadCustomerAvatar,
 } from "../queries"
 import {
+  businessFields,
   customerSchema,
   defaultValues,
+  extendedFields,
+  generalFieldsPrimary,
+  generalFieldsRest,
+  personalFields,
+  selectOptions,
   type CustomerFormValues,
 } from "../shared/schemas"
 import { toFormValues, toPayload } from "../shared/form-utils"
 import {
+  hasTaskContext,
+  resolveWorkflowJobKey,
   taskContextFromSearch,
 } from "../shared/task-context"
 import {
   AvatarUploader,
+  EmptyState,
   FieldGrid,
-  Header,
   Panel,
   RegistrationMetaBar,
   RegistrationSubmittedBanner,
@@ -175,16 +181,19 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { RotateCcw, Save, Send } from "lucide-react"
+import { Plus, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { PageTitle } from "@workspace/ui/components/page-title"
-import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
+import { FormField } from "@workspace/ui/components/form-field"
+import { Input } from "@workspace/ui/components/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import type { Customer } from "../api"
-import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { CurrentTaskPanel } from "../components/task-panel"
+import { GeoLocationFields } from "../geo-location-fields"
+import { OrgUnitField } from "../org-unit-field"
 import {
   useCancelAmendment,
+  useCompleteWorkflowTask,
   useCurrentAmendment,
   useCustomer,
   useStartAdjustment,
@@ -192,22 +201,32 @@ import {
   useUpdateAmendment,
 } from "../queries"
 import {
+  businessFields,
   customerSchema,
   defaultValues,
+  extendedFields,
+  generalFieldsPrimary,
+  generalFieldsRest,
+  personalFields,
   type CustomerFormValues,
 } from "../shared/schemas"
 import {
   computeChangedFields,
+  customerTypeLabel,
   toAmendmentSnapshot,
   toFormValues,
 } from "../shared/form-utils"
-import { taskContextFromSearch } from "../shared/task-context"
 import {
-  AvatarUploader,
+  hasTaskContext,
+  resolveWorkflowJobKey,
+  taskContextFromSearch,
+} from "../shared/task-context"
+import {
+  EmptyState,
   FieldGrid,
-  Header,
   Panel,
   RegistrationMetaBar,
+  StatusBadge,
 } from "../shared/ui"
 
 `,
@@ -215,17 +234,11 @@ import {
 
 for (const [file, header] of Object.entries(headers)) {
   const path = join(dir, file)
-  const body = readFileSync(path, "utf8")
-  writeFileSync(path, header + body)
+  writeFileSync(path, header + readFileSync(path, "utf8"))
 }
 
-// Export relationshipSchema from schemas - add to schemas file
-const schemas = readFileSync(join(dir, "shared/schemas.ts"), "utf8")
-if (!schemas.includes("export const relationshipSchema")) {
-  writeFileSync(
-    join(dir, "shared/schemas.ts"),
-    schemas.replace("const relationshipSchema", "export const relationshipSchema")
-  )
-}
+// RelationSelect lives inside relationships-panel in backup but we extracted RelationSelect separately in ui - check
+// relationships extract included RelationSelect at 1209-1234 - it's in relationships-panel file not ui
+// Fix relationships header - import RelationSelect from same file (it's in the extracted body)
 
-console.log("crm prepend done")
+console.log("prepend done")

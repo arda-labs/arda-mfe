@@ -1,15 +1,15 @@
 import { lazy, Suspense } from "react"
 import { useI18n } from "@workspace/i18n"
-import { CustomerTable } from "./shared/customer-module"
+import { CustomerTable } from "./components/customer-table"
 import { customerIdFromSearch, routeFromPath } from "./routes"
 
 const CustomerRegistrationPage = lazy(() =>
-  import("./shared/customer-module").then((m) => ({
+  import("./pages/registration-page").then((m) => ({
     default: m.CustomerRegistrationPage,
   }))
 )
 const CustomerAdjustmentPage = lazy(() =>
-  import("./shared/customer-module").then((m) => ({
+  import("./pages/adjustment-page").then((m) => ({
     default: m.CustomerAdjustmentPage,
   }))
 )

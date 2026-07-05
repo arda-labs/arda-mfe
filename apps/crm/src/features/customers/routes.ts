@@ -7,6 +7,4 @@ export function routeFromPath(pathname: string): CustomerRoute {
   return "registrations"
 }
 
-export function customerIdFromSearch() {
-  return new URLSearchParams(window.location.search).get("customerId")
-}
+export { customerIdFromSearch } from "./shared/task-context"
