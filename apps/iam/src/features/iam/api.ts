@@ -49,6 +49,34 @@ export interface AdminUserSession {
   expiresAt?: string
 }
 
+type AdminUserSessionApiItem = Partial<AdminUserSession> & {
+  device_id?: string
+  device_name?: string
+  device_type?: string
+  ip_address?: string
+  user_agent?: string
+  created_at?: string
+  last_seen_at?: string
+  expires_at?: string
+}
+
+const normalizeAdminUserSession = (
+  session: AdminUserSessionApiItem
+): AdminUserSession => ({
+  id: session.id ?? "",
+  deviceId: session.device_id ?? session.deviceId,
+  deviceName: session.device_name ?? session.deviceName,
+  deviceType: session.device_type ?? session.deviceType,
+  browser: session.browser,
+  os: session.os,
+  ipAddress: session.ip_address ?? session.ipAddress,
+  userAgent: session.user_agent ?? session.userAgent,
+  status: session.status,
+  createdAt: session.created_at ?? session.createdAt,
+  lastSeenAt: session.last_seen_at ?? session.lastSeenAt,
+  expiresAt: session.expires_at ?? session.expiresAt,
+})
+
 type UserApiItem = Partial<User> & {
   first_name?: string
   last_name?: string
@@ -343,9 +371,13 @@ export const adminApi = {
       "/api/admin/identity/consistency"
     ),
   listUserSessions: (id: string) =>
-    api.get<{ sessions: AdminUserSession[] }>(
-      `/api/admin/users/${id}/sessions`
-    ),
+    api
+      .get<{ sessions: AdminUserSessionApiItem[] }>(
+        `/api/admin/users/${id}/sessions`
+      )
+      .then((res) => ({
+        sessions: (res.sessions ?? []).map(normalizeAdminUserSession),
+      })),
   revokeUserSessions: (id: string, reason = "admin_revoked") =>
     api.delete<{ status: string; count: number }>(
       `/api/admin/users/${id}/sessions?reason=${encodeURIComponent(reason)}`
