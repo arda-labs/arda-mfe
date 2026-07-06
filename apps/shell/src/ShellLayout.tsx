@@ -29,9 +29,9 @@ import {
   type ShellPageTitleEventDetail,
   type ShellPageTitleState,
 } from "@workspace/core/page-title"
-import { useI18n, type MessageKey } from "@workspace/i18n"
-import type { AuthUser } from "@workspace/auth/store"
-import { hasAnyPermission } from "@workspace/auth/store"
+import { useI18n, type MessageKey } from "../../../packages/i18n/src/index"
+import type { AuthUser } from "../../../packages/auth/src/store"
+import { hasAnyPermission } from "../../../packages/auth/src/store"
 import {
   Avatar,
   AvatarFallback,

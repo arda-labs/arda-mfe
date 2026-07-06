@@ -1,33 +1,8 @@
 import { useSystemBranding } from "@workspace/core/branding"
 import { lazy, Suspense, type ComponentType } from "react"
 import * as authShare from "../../../packages/auth/src/index"
-import * as authStoreShare from "../../../packages/auth/src/store"
-import * as stepUpChannelShare from "../../../packages/auth/src/step-up-channel"
-import * as notificationsShare from "../../../packages/notifications/src/index"
-import * as themeShare from "../../../packages/theme/src/index"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
 import { ShellLayout } from "./ShellLayout"
-
-const mfCache = ((
-  globalThis as typeof globalThis & {
-    __mf_module_cache__?: {
-      share: Record<string, unknown>
-      remote: Record<string, unknown>
-    }
-  }
-).__mf_module_cache__ ??= { share: {}, remote: {} })
-
-// ponytail: Workspace-only seeding keeps auth routes light; remove when federation exposes local singletons lazily.
-mfCache.share["default:@workspace/auth"] ??= authShare
-mfCache.share["@workspace/auth"] ??= authShare
-mfCache.share["default:@workspace/auth/store"] ??= authStoreShare
-mfCache.share["@workspace/auth/store"] ??= authStoreShare
-mfCache.share["default:@workspace/auth/step-up-channel"] ??= stepUpChannelShare
-mfCache.share["@workspace/auth/step-up-channel"] ??= stepUpChannelShare
-mfCache.share["default:@workspace/theme"] ??= themeShare
-mfCache.share["@workspace/theme"] ??= themeShare
-mfCache.share["default:@workspace/notifications"] ??= notificationsShare
-mfCache.share["@workspace/notifications"] ??= notificationsShare
 
 type RemoteModule = {
   default?: ComponentType

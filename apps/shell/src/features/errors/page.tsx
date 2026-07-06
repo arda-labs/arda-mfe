@@ -1,4 +1,4 @@
-import { useI18n } from "@workspace/i18n"
+import { useI18n } from "../../../../../packages/i18n/src/index"
 import { Button } from "@workspace/ui/components/button"
 import { AlertTriangle } from "lucide-react"
 
