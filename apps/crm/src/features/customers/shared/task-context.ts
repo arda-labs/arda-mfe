@@ -21,11 +21,16 @@ export function effectiveBpmnElementId(
     if (
       customerStatus === "NEEDS_CHANGES" ||
       elementId === "Activity_CheckerReview" ||
+      elementId === "UT_CheckerReview" ||
       !elementId
     ) {
-      return "Activity_MakerRevise"
+      return elementId === "UT_MakerRevise" || elementId === "Activity_MakerRevise"
+        ? elementId
+        : "UT_MakerRevise"
     }
   }
+  if (elementId === "Activity_CheckerReview") return "UT_CheckerReview"
+  if (elementId === "Activity_MakerRevise") return "UT_MakerRevise"
   return elementId
 }
 
