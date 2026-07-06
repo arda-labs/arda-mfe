@@ -37,6 +37,7 @@
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
         "react-hook-form": "^7.80.0",
+        "react-toastify": "^11.1.0",
         "zod": "^4.4.3",
       },
       "devDependencies": {
@@ -151,6 +152,7 @@
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
         "react-hook-form": "^7.80.0",
+        "react-toastify": "^11.1.0",
         "zod": "^4.4.3",
       },
       "devDependencies": {
@@ -188,6 +190,7 @@
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
         "react-hook-form": "^7.80.0",
+        "react-toastify": "^11.1.0",
         "zod": "^4.4.3",
       },
       "devDependencies": {
@@ -308,6 +311,7 @@
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
         "react-hook-form": "^7.80.0",
+        "react-toastify": "^11.1.0",
         "zeebe-bpmn-moddle": "^1.16.0",
         "zod": "^4.4.3",
       },

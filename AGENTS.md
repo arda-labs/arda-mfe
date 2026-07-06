@@ -12,10 +12,11 @@ Cursor Cloud VM. Standard commands are in `README.md` / `package.json`
 - `bun run lint` exits non-zero: the `workflow` app has pre-existing
   `react-refresh/only-export-components` errors in
   `apps/workflow/src/features/workflow/shared/admin-ui.tsx`.
-- `bun run build` exits non-zero: the `iam` remote fails with
-  `MISSING_EXPORT "toast" ... react-toastify` from the Module Federation shared
-  virtual module (`crm`/`finance`/`platform` build fine). Development mode
-  (`bun run dev`) works.
+- `bun run build` exits non-zero: the `workflow` app has pre-existing
+  `react-refresh/only-export-components` lint errors in
+  `apps/workflow/src/features/workflow/shared/admin-ui.tsx` (build itself succeeds
+  once `react-toastify` is a direct dep on every remote that pulls in
+  `@workspace/auth` / `@workspace/notifications`).
 
 ### Auth backend is not reachable — how to actually render the UI
 The app has no mock-auth mode. On load, `AuthGuard` calls `GET /api/auth/me` and,
