@@ -3,6 +3,7 @@ import { lazy, Suspense, type ComponentType } from "react"
 import * as authShare from "../../../packages/auth/src/index"
 import * as authStoreShare from "../../../packages/auth/src/store"
 import * as stepUpChannelShare from "../../../packages/auth/src/step-up-channel"
+import * as notificationsShare from "../../../packages/notifications/src/index"
 import * as themeShare from "../../../packages/theme/src/index"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
 import { ShellLayout } from "./ShellLayout"
@@ -25,6 +26,8 @@ mfCache.share["default:@workspace/auth/step-up-channel"] ??= stepUpChannelShare
 mfCache.share["@workspace/auth/step-up-channel"] ??= stepUpChannelShare
 mfCache.share["default:@workspace/theme"] ??= themeShare
 mfCache.share["@workspace/theme"] ??= themeShare
+mfCache.share["default:@workspace/notifications"] ??= notificationsShare
+mfCache.share["@workspace/notifications"] ??= notificationsShare
 
 type RemoteModule = {
   default?: ComponentType
