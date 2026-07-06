@@ -54,6 +54,7 @@ import {
   FieldGrid,
   Panel,
   RegistrationMetaBar,
+  RegistrationFlowBar,
   RegistrationSubmittedBanner,
 } from "../shared/ui"
 
@@ -108,7 +109,7 @@ export function CustomerRegistrationPage({
       const submitted = await submitCustomer.mutateAsync(saved.id)
       setSavedCustomer(submitted)
       form.reset(toFormValues(submitted))
-      navigateTo("/workbench/outgoing-transactions")
+      navigateTo(registrationOutgoingHref(submitted))
     }
   }
 
@@ -192,7 +193,7 @@ export function CustomerRegistrationPage({
                 <RegistrationSubmittedBanner
                   customer={savedCustomer}
                   onOpenWorkbench={() =>
-                    navigateTo("/workbench/outgoing-transactions")
+                    navigateTo(registrationOutgoingHref(savedCustomer))
                   }
                   t={t}
                 />
@@ -222,6 +223,7 @@ export function CustomerRegistrationPage({
                 </div>
               ) : null}
               <RegistrationMetaBar customer={savedCustomer} />
+              <RegistrationFlowBar customer={savedCustomer} />
               {!isActive ? (
                 <CurrentTaskPanel
                   context={taskContext}
@@ -367,4 +369,10 @@ export function CustomerRegistrationPage({
       </form>
     </section>
   )
+}
+
+function registrationOutgoingHref(customer: Customer | null) {
+  const code = customer?.customerCode?.trim()
+  if (!code) return "/workbench/outgoing-transactions"
+  return `/workbench/outgoing-transactions?caseCode=${encodeURIComponent(code)}`
 }

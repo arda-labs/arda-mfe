@@ -2,7 +2,7 @@ import type { ChangeEvent, ReactNode } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
-import { FileText, Upload } from "lucide-react"
+import { CheckCircle2, Circle, Clock3, FileText, Upload } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -167,6 +167,73 @@ export function RegistrationSubmittedBanner({
       <Button className="h-8 shrink-0" type="button" variant="secondary" onClick={onOpenWorkbench}>
         {t("crm.customers.registrations.submitted_open_workbench")}
       </Button>
+    </div>
+  )
+}
+
+export function RegistrationFlowBar({ customer }: { customer: Customer | null }) {
+  const status = customer?.status ?? "NEW"
+  const steps = [
+    {
+      key: "DRAFT",
+      label: "1. Luu nhap",
+      hint: customer?.customerCode ? customer.customerCode : "Chua co ma ho so",
+      done: Boolean(customer?.id),
+      active: status === "NEW" || status === "DRAFT" || status === "NEEDS_CHANGES",
+    },
+    {
+      key: "SUBMITTED",
+      label: "2. Trinh duyet",
+      hint: "Day ho so sang BPM",
+      done: status === "SUBMITTED" || status === "ACTIVE" || status === "REJECTED",
+      active: status === "SUBMITTED",
+    },
+    {
+      key: "REVIEW",
+      label: "3. Checker xu ly",
+      hint: "Workbench giao dich den",
+      done: status === "ACTIVE" || status === "REJECTED",
+      active: status === "SUBMITTED",
+    },
+    {
+      key: "DONE",
+      label: "4. Ket qua",
+      hint:
+        status === "ACTIVE"
+          ? "Da kich hoat"
+          : status === "REJECTED"
+            ? "Da tu choi"
+            : "Cho quyet dinh",
+      done: status === "ACTIVE" || status === "REJECTED",
+      active: status === "ACTIVE" || status === "REJECTED",
+    },
+  ]
+
+  return (
+    <div className="grid gap-2 rounded-md border bg-background p-3 text-sm md:grid-cols-4">
+      {steps.map((step) => {
+        const Icon = step.done ? CheckCircle2 : step.active ? Clock3 : Circle
+        return (
+          <div
+            key={step.key}
+            className="flex min-w-0 items-start gap-2 rounded-sm px-2 py-1.5"
+          >
+            <Icon
+              className={
+                step.done
+                  ? "mt-0.5 size-4 shrink-0 text-emerald-600"
+                  : step.active
+                    ? "mt-0.5 size-4 shrink-0 text-sky-600"
+                    : "mt-0.5 size-4 shrink-0 text-muted-foreground"
+              }
+            />
+            <div className="min-w-0">
+              <p className="truncate font-medium">{step.label}</p>
+              <p className="truncate text-xs text-muted-foreground">{step.hint}</p>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

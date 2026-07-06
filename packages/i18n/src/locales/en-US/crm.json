@@ -4,7 +4,7 @@
       "title": "Customer registration",
       "description": "Capture member customer data, save drafts, or submit for BPM approval.",
       "submitted_banner": "Submitted and waiting for checker review. Open Workbench → Incoming transactions and filter My work items.",
-      "submitted_open_workbench": "Open incoming transactions",
+      "submitted_open_workbench": "Open outgoing transactions",
       "toast_submit_success": "Registration submitted",
       "toast_submit_next_checker": "Case is in BPM. Checkers process it under Workbench → Incoming transactions.",
       "toast_submit_next_maker": "Track progress under Workbench → Incoming transactions."
