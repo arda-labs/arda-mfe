@@ -21,7 +21,7 @@ const shellWorkspaceAliases = {
     packagesRoot,
     "notifications/src/index.ts"
   ),
-  "@workspace/theme": path.resolve(packagesRoot, "theme/src/index.ts"),
+  "@workspace/theme": path.resolve(packagesRoot, "theme/src/index.tsx"),
 }
 
 const backend = {
