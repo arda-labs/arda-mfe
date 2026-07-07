@@ -2,7 +2,7 @@ import type { ChangeEvent, ReactNode } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
-import { CheckCircle2, Circle, Clock3, FileText, Upload } from "lucide-react"
+import { FileText, Upload } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -171,69 +171,36 @@ export function RegistrationSubmittedBanner({
   )
 }
 
-export function RegistrationFlowBar({ customer }: { customer: Customer | null }) {
-  const status = customer?.status ?? "NEW"
-  const steps = [
-    {
-      key: "DRAFT",
-      label: "1. Luu nhap",
-      hint: customer?.customerCode ? customer.customerCode : "Chua co ma ho so",
-      done: Boolean(customer?.id),
-      active: status === "NEW" || status === "DRAFT" || status === "NEEDS_CHANGES",
-    },
-    {
-      key: "SUBMITTED",
-      label: "2. Trinh duyet",
-      hint: "Day ho so sang BPM",
-      done: status === "SUBMITTED" || status === "ACTIVE" || status === "REJECTED",
-      active: status === "SUBMITTED",
-    },
-    {
-      key: "REVIEW",
-      label: "3. Checker xu ly",
-      hint: "Workbench giao dich den",
-      done: status === "ACTIVE" || status === "REJECTED",
-      active: status === "SUBMITTED",
-    },
-    {
-      key: "DONE",
-      label: "4. Ket qua",
-      hint:
-        status === "ACTIVE"
-          ? "Da kich hoat"
-          : status === "REJECTED"
-            ? "Da tu choi"
-            : "Cho quyet dinh",
-      done: status === "ACTIVE" || status === "REJECTED",
-      active: status === "ACTIVE" || status === "REJECTED",
-    },
-  ]
+export function RegistrationStatusBar({ customer }: { customer: Customer | null }) {
+  const status = customer?.status
+  if (!status) return null
+
+  const config: Record<string, { label: string; classes: string }> = {
+    DRAFT: { label: "Nháp", classes: "border-amber-200 bg-amber-50 text-amber-700" },
+    NEEDS_CHANGES: { label: "Cần bổ sung", classes: "border-orange-200 bg-orange-50 text-orange-700" },
+    SUBMITTED: { label: "Đã trình duyệt", classes: "border-sky-200 bg-sky-50 text-sky-700" },
+    ACTIVE: { label: "Đã kích hoạt", classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+    REJECTED: { label: "Bị từ chối", classes: "border-red-200 bg-red-50 text-red-700" },
+  }
+
+  const c = config[status] ?? { label: status, classes: "border-muted bg-muted/30 text-muted-foreground" }
 
   return (
-    <div className="grid gap-2 rounded-md border bg-background p-3 text-sm md:grid-cols-4">
-      {steps.map((step) => {
-        const Icon = step.done ? CheckCircle2 : step.active ? Clock3 : Circle
-        return (
-          <div
-            key={step.key}
-            className="flex min-w-0 items-start gap-2 rounded-sm px-2 py-1.5"
-          >
-            <Icon
-              className={
-                step.done
-                  ? "mt-0.5 size-4 shrink-0 text-emerald-600"
-                  : step.active
-                    ? "mt-0.5 size-4 shrink-0 text-sky-600"
-                    : "mt-0.5 size-4 shrink-0 text-muted-foreground"
-              }
-            />
-            <div className="min-w-0">
-              <p className="truncate font-medium">{step.label}</p>
-              <p className="truncate text-xs text-muted-foreground">{step.hint}</p>
-            </div>
-          </div>
-        )
-      })}
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border bg-background px-3 py-2 text-xs">
+      <span className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-medium ${c.classes}`}>
+        {c.label}
+      </span>
+      {customer.customerCode ? (
+        <span className="text-muted-foreground">
+          Mã hồ sơ:{" "}
+          <span className="font-mono font-semibold text-foreground">{customer.customerCode}</span>
+        </span>
+      ) : null}
+      {customer.workflowCaseId ? (
+        <span className="text-muted-foreground">
+          Case: <span className="font-mono">{customer.workflowCaseId}</span>
+        </span>
+      ) : null}
     </div>
   )
 }

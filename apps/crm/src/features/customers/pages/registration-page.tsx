@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
 import type { Customer, CustomerType } from "../api"
+import { customerApi } from "../api"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { CurrentTaskPanel } from "../components/task-panel"
 import { RelationshipsPanel } from "../components/relationships-panel"
@@ -46,16 +47,14 @@ import { toFormValues, toPayload } from "../shared/form-utils"
 import {
   hasTaskContext,
   resolveWorkflowJobKey,
+  syncTaskContextSearch,
   taskContextFromSearch,
 } from "../shared/task-context"
 import {
   AvatarUploader,
-  EmptyState,
   FieldGrid,
   Panel,
-  RegistrationMetaBar,
-  RegistrationFlowBar,
-  RegistrationSubmittedBanner,
+  RegistrationStatusBar,
 } from "../shared/ui"
 
 export function CustomerRegistrationPage({
@@ -78,13 +77,15 @@ export function CustomerRegistrationPage({
   })
   const customerType = form.watch("customerType")
   const isPersonal = customerType === "PERSONAL"
-  const canAddRelationship = isPersonal && savedCustomer?.status === "ACTIVE"
-  const canSubmitDraft = savedCustomer?.status === "DRAFT"
+  const canAddRelationship = isPersonal && !!savedCustomer?.id
   const isSubmitted = savedCustomer?.status === "SUBMITTED"
   const isActive = savedCustomer?.status === "ACTIVE"
   const canCancelDraft =
     savedCustomer?.status === "DRAFT" || savedCustomer?.status === "NEEDS_CHANGES"
   const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
+  const needsChangesNoContext = awaitingMakerResubmit && !hasTaskContext(taskContext)
+  const isReadonly = isSubmitted || isActive
+  const isSubmitting = form.formState.isSubmitting || saveCustomer.isPending || submitCustomer.isPending || completeTask.isPending
 
   useEffect(() => {
     if (!customerQuery.data) return
@@ -92,30 +93,80 @@ export function CustomerRegistrationPage({
     setSavedCustomer(customerQuery.data)
   }, [customerQuery.data, form])
 
-  async function save(values: CustomerFormValues, submit = false) {
-    const wasNew = !savedCustomer?.id
+  // Tự động claim task khi NEEDS_CHANGES mà thiếu task context
+  useEffect(() => {
+    if (!needsChangesNoContext || !savedCustomer?.workflowCaseId) return
+    customerApi
+      .claimWorkflowTask({
+        role: "CUSTOMER_MAKER",
+        processInstanceKey: savedCustomer.workflowCaseId,
+        caseId: savedCustomer.workflowCaseId,
+      })
+      .then((task) => {
+        syncTaskContextSearch({
+          taskKey: task.jobKey,
+          elementId: task.elementId,
+          role: task.candidateRole,
+        })
+      })
+      .catch(() => {
+        /* silent — banner hướng dẫn vẫn hiển thị */
+      })
+  }, [needsChangesNoContext, savedCustomer?.workflowCaseId])
+
+  const refreshCustomer = useCallback(
+    (customer: Customer) => {
+      setSavedCustomer(customer)
+      form.reset(toFormValues(customer))
+    },
+    [form]
+  )
+
+  async function saveAndSubmit(values: CustomerFormValues) {
     const saved = await saveCustomer.mutateAsync({
       payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
-      quiet: submit,
+      quiet: true,
     })
-    setSavedCustomer(saved)
-    form.reset(toFormValues(saved))
-    if (wasNew && saved.id) {
-      const params = new URLSearchParams(window.location.search)
+    if (!saved.id) return
+    refreshCustomer(saved)
+
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has("customerId")) {
       params.set("customerId", saved.id)
       navigateTo(`/customers/registrations?${params.toString()}`)
     }
-    if (submit) {
-      const submitted = await submitCustomer.mutateAsync(saved.id)
-      setSavedCustomer(submitted)
-      form.reset(toFormValues(submitted))
-      navigateTo(registrationOutgoingHref(submitted))
-    }
+
+    const submitted = await submitCustomer.mutateAsync(saved.id)
+    refreshCustomer(submitted)
+    notify.success("Đã gửi trình duyệt", "Hồ sơ đang chờ checker xử lý.")
+    navigateTo(registrationOutgoingHref(submitted))
   }
 
-  function handleInvalidSave() {
+  async function saveAndCompleteTask(values: CustomerFormValues, decision: string) {
+    const saved = await saveCustomer.mutateAsync({
+      payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
+      quiet: true,
+    })
+    refreshCustomer(saved)
+
+    const resolved = await resolveWorkflowJobKey(taskContext, saved.status)
+    if (!resolved) return
+    completeTask.mutate({
+      jobKey: resolved.jobKey,
+      processInstanceKey: resolved.processInstanceKey,
+      elementId: resolved.elementId,
+      variables: {
+        revisionSubmitted: true,
+        ...(decision === "APPROVE"
+          ? { reviewDecision: "APPROVE" }
+          : { reviewDecision: decision }),
+      },
+    })
+  }
+
+  function handleInvalid() {
     notify.error(
-      "Không lưu được",
+      "Chưa gửi được",
       "Vui lòng kiểm tra các trường bắt buộc (Tên khách hàng, Email hợp lệ...)."
     )
   }
@@ -126,9 +177,7 @@ export function CustomerRegistrationPage({
     const variables =
       resolved.role === "CUSTOMER_RISK_CHECKER"
         ? { riskDecision: decision }
-        : resolved.role === "CUSTOMER_MAKER"
-          ? { revisionSubmitted: true }
-          : { reviewDecision: decision }
+        : { reviewDecision: decision }
     completeTask.mutate({
       jobKey: resolved.jobKey,
       processInstanceKey: resolved.processInstanceKey,
@@ -140,7 +189,7 @@ export function CustomerRegistrationPage({
   async function uploadAvatarFile(file: File) {
     const customerId = savedCustomer?.id ?? form.getValues("id")?.trim()
     if (!customerId) {
-      notify.error("Lưu nháp hồ sơ trước khi upload ảnh đại diện")
+      notify.error("Lưu hồ sơ trước khi upload ảnh đại diện")
       return
     }
     if (!file.type.startsWith("image/")) {
@@ -159,10 +208,10 @@ export function CustomerRegistrationPage({
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form
         className="flex min-h-0 flex-1 flex-col"
-        onSubmit={form.handleSubmit((values) => save(values), handleInvalidSave)}
+        onSubmit={form.handleSubmit((values) => saveAndSubmit(values), handleInvalid)}
       >
         <Tabs defaultValue="general" className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-gutter-stable">
             <div className="px-4 pt-4">
               <PageTitle
                 title={t("crm.customers.registrations.title")}
@@ -183,47 +232,21 @@ export function CustomerRegistrationPage({
               />
             </div>
             <div className="space-y-4 p-4">
-              {awaitingMakerResubmit ? (
-                <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  Hồ sơ cần bổ sung. Lưu thay đổi rồi dùng nút <strong>Gửi lại</strong> trong
-                  panel việc BPM (không dùng Trình duyệt).
-                </div>
-              ) : null}
-              {isSubmitted ? (
-                <RegistrationSubmittedBanner
-                  customer={savedCustomer}
-                  onOpenWorkbench={() =>
-                    navigateTo(registrationOutgoingHref(savedCustomer))
-                  }
-                  t={t}
-                />
-              ) : null}
-              {isActive ? (
-                <div className="flex flex-col gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950 sm:flex-row sm:items-center sm:justify-between">
-                  <p>
-                    Hồ sơ đã kích hoạt (ACTIVE). Tra cứu tại{" "}
-                    <strong>Khách hàng → Hồ sơ khách hàng</strong>.
-                    {hasTaskContext(taskContext)
-                      ? " Case BPM có thể còn bước hậu kỳ — bỏ qua panel duyệt bên dưới."
-                      : ""}
-                  </p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => navigateTo("/customers/profiles")}
-                  >
-                    Mở hồ sơ khách hàng
-                  </Button>
-                </div>
-              ) : null}
               {customerQuery.isFetching ? (
                 <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
                   Đang tải hồ sơ...
                 </div>
               ) : null}
-              <RegistrationMetaBar customer={savedCustomer} />
-              <RegistrationFlowBar customer={savedCustomer} />
+              <RegistrationStatusBar customer={savedCustomer} />
+              {needsChangesNoContext ? (
+                <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                  <p className="font-medium">Hồ sơ cần bổ sung thông tin</p>
+                  <p className="mt-1">
+                    Quản lý yêu cầu bổ sung. Mở từ{" "}
+                    <strong>Workbench → Giao dịch đến</strong> để xem chi tiết.
+                  </p>
+                </div>
+              ) : null}
               {!isActive ? (
                 <CurrentTaskPanel
                   context={taskContext}
@@ -300,74 +323,103 @@ export function CustomerRegistrationPage({
                   {savedCustomer ? (
                     <RelationshipsPanel customer={savedCustomer} />
                   ) : (
-                    <EmptyState text="Lưu và hoàn thành hồ sơ khách hàng trước khi khai báo người có liên quan." />
+                    <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
+                      Gửi hồ sơ khách hàng trước khi khai báo người có liên quan.
+                    </div>
                   )}
                 </TabsContent>
               ) : null}
             </div>
           </div>
-          <div className="flex h-[52px] shrink-0 items-center border-t bg-background px-4">
-            <div className="flex w-full flex-wrap justify-end gap-2">
-              <Button
-                className="h-8"
-                type="submit"
-                disabled={
-                  isSubmitted ||
-                  isActive ||
-                  form.formState.isSubmitting ||
-                  saveCustomer.isPending
+          <FooterActions
+            isReadonly={isReadonly}
+            isSubmitting={isSubmitting}
+            canCancelDraft={canCancelDraft}
+            awaitingMakerResubmit={awaitingMakerResubmit && hasTaskContext(taskContext)}
+            hasFormValues={form.formState.isDirty || !savedCustomer?.id}
+            onCancel={() => {
+              if (!savedCustomer?.id) return
+              cancelCustomer.mutate(savedCustomer.id, {
+                onSuccess: () => navigateTo("/workbench/drafts"),
+              })
+            }}
+            onSaveDraft={form.handleSubmit(
+              async (values) => {
+                const saved = await saveCustomer.mutateAsync({
+                  payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
+                })
+                refreshCustomer(saved)
+                const params = new URLSearchParams(window.location.search)
+                if (!params.has("customerId")) {
+                  params.set("customerId", saved.id)
+                  navigateTo(`/customers/registrations?${params.toString()}`)
                 }
-              >
-                <Save className="size-4" />
-                Lưu nháp
-              </Button>
-              <Button
-                className="h-8"
-                type="button"
-                variant="secondary"
-                disabled={
-                  isSubmitted ||
-                  isActive ||
-                  !savedCustomer?.id ||
-                  form.formState.isSubmitting ||
-                  saveCustomer.isPending ||
-                  submitCustomer.isPending ||
-                  !canSubmitDraft
-                }
-                onClick={form.handleSubmit(
-                  (values) => save(values, true),
-                  handleInvalidSave
-                )}
-              >
-                <Send className="size-4" />
-                Trình duyệt
-              </Button>
-              <Button
-                className="h-8"
-                type="button"
-                variant="outline"
-                disabled={
-                  !savedCustomer?.id ||
-                  cancelCustomer.isPending ||
-                  !canCancelDraft
-                }
-                onClick={() => {
-                  if (!savedCustomer?.id) return
-                  cancelCustomer.mutate(savedCustomer.id, {
-                    onSuccess: () => {
-                      navigateTo("/workbench/drafts")
-                    },
-                  })
-                }}
-              >
-                <X className="size-4" />
-                {t("crm.customers.adjustments.cancel_draft")}
-              </Button>
-            </div>
-          </div>
+              },
+              handleInvalid
+            )}
+            onSaveAndSubmit={form.handleSubmit(saveAndSubmit, handleInvalid)}
+            onSaveAndRevise={form.handleSubmit(
+              (values) => saveAndCompleteTask(values, "APPROVE"),
+              handleInvalid
+            )}
+          />
         </Tabs>
       </form>
     </section>
+  )
+}
+
+function FooterActions({
+  isReadonly,
+  isSubmitting,
+  canCancelDraft,
+  awaitingMakerResubmit,
+  hasFormValues,
+  onCancel,
+  onSaveDraft,
+  onSaveAndSubmit,
+  onSaveAndRevise,
+}: {
+  isReadonly: boolean
+  isSubmitting: boolean
+  canCancelDraft: boolean
+  awaitingMakerResubmit: boolean
+  hasFormValues: boolean
+  onCancel: () => void
+  onSaveDraft: () => void
+  onSaveAndSubmit: () => void
+  onSaveAndRevise: () => void
+}) {
+  if (isReadonly) return null
+
+  return (
+    <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
+      <div className="flex w-full flex-wrap justify-end gap-2">
+        {awaitingMakerResubmit ? (
+          <>
+            <Button className="h-8" type="button" disabled={isSubmitting} onClick={onSaveAndRevise}>
+              <Send className="size-4" />
+              Lưu và gửi lại
+            </Button>
+            <Button className="h-8" type="button" variant="secondary" disabled={isSubmitting} onClick={onSaveDraft}>
+              <Save className="size-4" />
+              Lưu
+            </Button>
+          </>
+        ) : (
+          <Button className="h-8" type="button" disabled={isSubmitting} onClick={onSaveAndSubmit}>
+            <Send className="size-4" />
+            Gửi trình duyệt
+          </Button>
+        )}
+        {canCancelDraft ? (
+          <Button className="h-8" type="button" variant="outline" disabled={isSubmitting} onClick={onCancel}>
+            <X className="size-4" />
+            Hủy hồ sơ
+          </Button>
+        ) : null}
+      </div>
+    </div>
   )
 }
 

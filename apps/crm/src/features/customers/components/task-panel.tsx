@@ -1,4 +1,4 @@
-import { Check, RotateCcw, Send, X } from "lucide-react"
+import { Check, RotateCcw, X } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import type { CustomerTaskContext } from "../shared/task-context"
 import { hasTaskContext } from "../shared/task-context"
@@ -15,7 +15,8 @@ export function CurrentTaskPanel({
 }) {
   if (!hasTaskContext(context)) return null
 
-  const makerTask = context.role === "CUSTOMER_MAKER"
+  const checkerTask = context.role !== "CUSTOMER_MAKER"
+  if (!checkerTask) return null
   return (
     <Panel title="Việc BPM hiện tại">
       <div className="grid gap-3 text-sm md:grid-cols-5">
@@ -26,45 +27,32 @@ export function CurrentTaskPanel({
         <ContextField label="Customer" value={context.customerId} />
       </div>
       <div className="flex flex-wrap justify-end gap-2">
-        {makerTask ? (
-          <Button
-            type="button"
-            disabled={completing}
-            onClick={() => onComplete("APPROVE")}
-          >
-            <Send className="size-4" />
-            Gửi lại
-          </Button>
-        ) : (
-          <>
-            <Button
-              type="button"
-              disabled={completing}
-              onClick={() => onComplete("APPROVE")}
-            >
-              <Check className="size-4" />
-              Duyệt
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={completing}
-              onClick={() => onComplete("REQUEST_CHANGES")}
-            >
-              <RotateCcw className="size-4" />
-              Bổ sung
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={completing}
-              onClick={() => onComplete("REJECT")}
-            >
-              <X className="size-4" />
-              Từ chối
-            </Button>
-          </>
-        )}
+        <Button
+          type="button"
+          disabled={completing}
+          onClick={() => onComplete("APPROVE")}
+        >
+          <Check className="size-4" />
+          Duyệt
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={completing}
+          onClick={() => onComplete("REQUEST_CHANGES")}
+        >
+          <RotateCcw className="size-4" />
+          Bổ sung
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={completing}
+          onClick={() => onComplete("REJECT")}
+        >
+          <X className="size-4" />
+          Từ chối
+        </Button>
       </div>
     </Panel>
   )
