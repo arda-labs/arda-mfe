@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
 import type { LucideIcon } from "lucide-react"
 import { BadgeCheck, Camera, Copy, Mail, ShieldCheck, Upload, User2 } from "lucide-react"
-import { useAuthStore } from "@workspace/auth"
+import { useAuthStore } from "@workspace/auth/store"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"

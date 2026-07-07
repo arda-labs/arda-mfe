@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { Check, Copy, ExternalLink, Laptop, Monitor, Shield, User } from "lucide-react"
-import { useAuthStore } from "@workspace/auth"
+import { useAuthStore } from "@workspace/auth/store"
 import { useI18n, type MessageKey } from "@workspace/i18n"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"

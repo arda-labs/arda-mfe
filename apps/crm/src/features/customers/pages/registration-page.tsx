@@ -336,7 +336,6 @@ export function CustomerRegistrationPage({
             isSubmitting={isSubmitting}
             canCancelDraft={canCancelDraft}
             awaitingMakerResubmit={awaitingMakerResubmit && hasTaskContext(taskContext)}
-            hasFormValues={form.formState.isDirty || !savedCustomer?.id}
             onCancel={() => {
               if (!savedCustomer?.id) return
               cancelCustomer.mutate(savedCustomer.id, {
@@ -374,7 +373,6 @@ function FooterActions({
   isSubmitting,
   canCancelDraft,
   awaitingMakerResubmit,
-  hasFormValues,
   onCancel,
   onSaveDraft,
   onSaveAndSubmit,
@@ -384,7 +382,6 @@ function FooterActions({
   isSubmitting: boolean
   canCancelDraft: boolean
   awaitingMakerResubmit: boolean
-  hasFormValues: boolean
   onCancel: () => void
   onSaveDraft: () => void
   onSaveAndSubmit: () => void

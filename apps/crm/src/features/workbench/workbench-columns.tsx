@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { Badge } from "@workspace/ui/components/badge"
 import type { WorkItem, WorkbenchDirection } from "./api"
 import { WorkItemCard } from "./work-item-card"
 import { SlaStatus, StatusBadge, TimeProgress } from "./sla-utils"

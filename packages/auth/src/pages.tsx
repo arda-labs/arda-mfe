@@ -29,7 +29,7 @@ import {
   Sun,
   User,
 } from "lucide-react"
-import { toast } from "react-toastify"
+import { toast } from "@workspace/notifications/toast"
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useTheme } from "../../theme/src/index"
 import { AuthLoadingScreen } from "./loading-screen"

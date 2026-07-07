@@ -1,4 +1,4 @@
-import { toast } from "react-toastify"
+import { toast } from "./toast"
 
 function messageWithDescription(message: string, description?: string) {
   return description ? `${message}\n${description}` : message

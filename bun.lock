@@ -351,6 +351,7 @@
       "dependencies": {
         "@workspace/core": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/notifications": "workspace:*",
         "@workspace/ui": "workspace:*",
         "lucide-react": "^0.511.0",
         "react": "^19.2.6",
