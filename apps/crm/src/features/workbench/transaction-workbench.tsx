@@ -126,8 +126,8 @@ function TransactionWorkbenchInner({
   )
 
   const columns = useMemo(
-    () => workItemColumns(direction, claiming, openItem),
-    [direction, claiming, openItem]
+    () => workItemColumns(direction, openItem),
+    [direction, openItem]
   )
 
   const table = useReactTable({
@@ -183,6 +183,7 @@ function TransactionWorkbenchInner({
             filters={filters}
             onChange={setFilters}
             presets={direction === "incoming" ? ["accounting"] : ["slaStatus"]}
+            resultCount={items.length}
           />
           <DataTable
             table={table}
@@ -245,6 +246,7 @@ export function TransactionSearchPage() {
           onChange={setFilters}
           presets={["transactionStatus", "slaStatus"]}
           keywordPlaceholder={t("crm.workbench.search_keyword_placeholder")}
+          resultCount={items.length}
         />
         <DataTable
           table={table}

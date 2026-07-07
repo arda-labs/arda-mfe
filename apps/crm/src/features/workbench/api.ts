@@ -73,12 +73,16 @@ export interface WorkItem {
   primaryObjectId?: string
   domainService?: string
   assignedTo?: string
+  assignedToName?: string
+  assignedToAvatar?: string
   assignedAt?: string
   claimExpiresAt?: string
   candidateRole?: string
   candidateGroupId?: string
   candidateOrgUnitId?: string
   createdBy?: string
+  createdByName?: string
+  createdByAvatar?: string
   claimable?: boolean
   canClaim?: boolean
   canOpen?: boolean

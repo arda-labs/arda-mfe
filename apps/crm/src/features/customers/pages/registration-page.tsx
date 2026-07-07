@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
@@ -86,82 +86,115 @@ export function CustomerRegistrationPage({
   const needsChangesNoContext = awaitingMakerResubmit && !hasTaskContext(taskContext)
   const isReadonly = isSubmitted || isActive
   const isSubmitting = form.formState.isSubmitting || saveCustomer.isPending || submitCustomer.isPending || completeTask.isPending
+  const submittingRef = useRef(false)
 
-  useEffect(() => {
-    if (!customerQuery.data) return
-    form.reset(toFormValues(customerQuery.data))
-    setSavedCustomer(customerQuery.data)
-  }, [customerQuery.data, form])
+  // ── Auto-save draft ──────────────────────────────
+  const draftKey = useMemo(() => {
+    const cid = initialCustomerId ?? savedCustomer?.id
+    return cid ? `crm_customer_draft:${cid}` : null
+  }, [initialCustomerId, savedCustomer?.id])
 
-  // Tự động claim task khi NEEDS_CHANGES mà thiếu task context
+  // Khôi phục draft từ localStorage hoặc từ API
   useEffect(() => {
-    if (!needsChangesNoContext || !savedCustomer?.workflowCaseId) return
-    customerApi
-      .claimWorkflowTask({
-        role: "CUSTOMER_MAKER",
-        processInstanceKey: savedCustomer.workflowCaseId,
-        caseId: savedCustomer.workflowCaseId,
-      })
-      .then((task) => {
-        syncTaskContextSearch({
-          taskKey: task.jobKey,
-          elementId: task.elementId,
-          role: task.candidateRole,
-        })
-      })
-      .catch(() => {
-        /* silent — banner hướng dẫn vẫn hiển thị */
-      })
-  }, [needsChangesNoContext, savedCustomer?.workflowCaseId])
+    if (customerQuery.data) {
+      form.reset(toFormValues(customerQuery.data))
+      setSavedCustomer(customerQuery.data)
+      // Xoá localStorage draft nếu có
+      if (draftKey) localStorage.removeItem(draftKey)
+      return
+    }
+    // Nếu chưa có customerId: khôi phục localStorage
+    if (initialCustomerId) return // đang loading từ API
+    const raw = localStorage.getItem("crm_customer_draft:new")
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as Partial<CustomerFormValues>
+        form.reset({ ...defaultValues, ...parsed })
+      } catch { /* ignore */ }
+    }
+  }, [customerQuery.data, form, initialCustomerId, draftKey])
+
+  // Auto-save khi form thay đổi (debounced)
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoSaveDraft = useCallback(
+    (values: CustomerFormValues) => {
+      const cid = savedCustomer?.id
+      // Luôn lưu localStorage
+      const storageKey = cid ? `crm_customer_draft:${cid}` : "crm_customer_draft:new"
+      localStorage.setItem(storageKey, JSON.stringify(values))
+    },
+    [savedCustomer?.id]
+  )
+  // Watch form để auto-save (debounced 2s)
+  const formValues = form.watch()
+  useEffect(() => {
+    if (isReadonly) return
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveDraft(formValues)
+    }, 2000)
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    }
+  }, [formValues, autoSaveDraft, isReadonly])
 
   const refreshCustomer = useCallback(
     (customer: Customer) => {
       setSavedCustomer(customer)
       form.reset(toFormValues(customer))
+      // Xoá draft localStorage sau khi lưu thành công lên server
+      localStorage.removeItem(`crm_customer_draft:${customer.id}`)
+      localStorage.removeItem("crm_customer_draft:new")
     },
     [form]
   )
 
   async function saveAndSubmit(values: CustomerFormValues) {
-    const saved = await saveCustomer.mutateAsync({
-      payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
-      quiet: true,
-    })
-    if (!saved.id) return
-    refreshCustomer(saved)
+    if (submittingRef.current) return
+    submittingRef.current = true
+    try {
+      const saved = await saveCustomer.mutateAsync({
+        payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
+        quiet: true,
+      })
+      if (!saved.id) return
+      refreshCustomer(saved)
 
-    const params = new URLSearchParams(window.location.search)
-    if (!params.has("customerId")) {
-      params.set("customerId", saved.id)
-      navigateTo(`/customers/registrations?${params.toString()}`)
+      const params = new URLSearchParams(window.location.search)
+      if (!params.has("customerId")) {
+        params.set("customerId", saved.id)
+        navigateTo(`/customers/registrations?${params.toString()}`)
+      }
+
+      const submitted = await submitCustomer.mutateAsync(saved.id)
+      refreshCustomer(submitted)
+      navigateTo(registrationOutgoingHref(submitted))
+    } finally {
+      submittingRef.current = false
     }
-
-    const submitted = await submitCustomer.mutateAsync(saved.id)
-    refreshCustomer(submitted)
-    notify.success("Đã gửi trình duyệt", "Hồ sơ đang chờ checker xử lý.")
-    navigateTo(registrationOutgoingHref(submitted))
   }
 
-  async function saveAndCompleteTask(values: CustomerFormValues, decision: string) {
-    const saved = await saveCustomer.mutateAsync({
-      payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
-      quiet: true,
-    })
-    refreshCustomer(saved)
+  async function saveAndCompleteTask(values: CustomerFormValues, _decision: string) {
+    if (submittingRef.current) return
+    submittingRef.current = true
+    try {
+      const saved = await saveCustomer.mutateAsync({
+        payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
+        quiet: true,
+      })
+      refreshCustomer(saved)
 
-    const resolved = await resolveWorkflowJobKey(taskContext, saved.status)
-    if (!resolved) return
-    completeTask.mutate({
-      jobKey: resolved.jobKey,
-      processInstanceKey: resolved.processInstanceKey,
-      elementId: resolved.elementId,
-      variables: {
-        revisionSubmitted: true,
-        ...(decision === "APPROVE"
-          ? { reviewDecision: "APPROVE" }
-          : { reviewDecision: decision }),
-      },
-    })
+      const resolved = await resolveWorkflowJobKey(taskContext, saved.status)
+      if (!resolved) return
+      completeTask.mutate({
+        jobKey: resolved.jobKey,
+        processInstanceKey: resolved.processInstanceKey,
+        elementId: resolved.elementId,
+        variables: { revisionSubmitted: true },
+      })
+    } finally {
+      submittingRef.current = false
+    }
   }
 
   function handleInvalid() {
