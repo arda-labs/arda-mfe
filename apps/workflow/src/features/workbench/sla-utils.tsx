@@ -251,8 +251,12 @@ export function slaInfo(
 
 function durationLabel(ms: number) {
   const minutes = Math.max(1, Math.ceil(ms / 60000))
-  if (minutes < 60) return `${minutes} phút`
-  const hours = Math.ceil(minutes / 60)
-  if (hours < 24) return `${hours} giờ`
-  return `${Math.ceil(hours / 24)} ngày`
+  const days = Math.floor(minutes / 1440)
+  const hours = Math.floor((minutes % 1440) / 60)
+  const mins = minutes % 60
+  const parts: string[] = []
+  if (days) parts.push(`${days} ngày`)
+  if (hours) parts.push(`${hours} giờ`)
+  if (mins || parts.length === 0) parts.push(`${mins || minutes} phút`)
+  return parts.join(" ")
 }

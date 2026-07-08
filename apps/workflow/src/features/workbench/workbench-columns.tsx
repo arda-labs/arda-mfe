@@ -41,7 +41,7 @@ export function workItemColumns(
         id: "progress",
         header: "Tiến độ",
         cell: ({ row }) => (
-          <div className="min-w-56">
+          <div className="min-w-44">
             <TimeProgress item={row.original} />
           </div>
         ),
