@@ -38,6 +38,7 @@ export function WorkItemCard({
         </span>
       ) : null}
       <div className="min-w-0 flex-1 space-y-1.5">
+        <CodeBadge code={item.caseCode} />
         <p className="truncate text-sm font-medium text-foreground group-hover:text-accent-foreground">
           {item.title}
         </p>
@@ -46,7 +47,6 @@ export function WorkItemCard({
             {item.description || item.summary}
           </p>
         ) : null}
-        <CodeBadge code={item.caseCode} />
       </div>
     </div>
   )
