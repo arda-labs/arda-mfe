@@ -16,7 +16,7 @@ export function workItemColumns(
       id: "info",
       header: isIncoming ? "Thông tin giao dịch" : "Thông tin tác vụ giao dịch",
       cell: ({ row }) => (
-        <div className="min-w-80">
+        <div className="min-w-[26rem] max-w-[44rem]">
           <WorkItemCard item={row.original} claiming={claiming} onOpen={onOpen} />
         </div>
       ),
@@ -108,7 +108,7 @@ export function searchColumns(
       id: "info",
       header: "Thông tin giao dịch",
       cell: ({ row }) => (
-        <div className="min-w-80">
+        <div className="min-w-[26rem] max-w-[44rem]">
           <WorkItemCard item={row.original} claiming={false} onOpen={onOpen} />
         </div>
       ),

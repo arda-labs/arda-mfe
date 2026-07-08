@@ -42,7 +42,7 @@ export function WorkItemCard({
           {item.title}
         </p>
         {item.description || item.summary ? (
-          <p className="line-clamp-1 text-xs text-muted-foreground">
+          <p className="line-clamp-2 whitespace-normal break-words text-xs leading-5 text-muted-foreground">
             {item.description || item.summary}
           </p>
         ) : null}
