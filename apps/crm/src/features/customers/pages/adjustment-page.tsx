@@ -49,6 +49,16 @@ import {
   StatusBadge,
 } from "../shared/ui"
 
+function goBack() {
+  const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")
+  if (returnUrl) {
+    window.history.replaceState({}, "", returnUrl)
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  } else {
+    window.history.back()
+  }
+}
+
 export function CustomerAdjustmentPage({
   initialCustomerId,
 }: {
@@ -137,7 +147,7 @@ export function CustomerAdjustmentPage({
           title={t("crm.customers.adjustments.title")}
           description={t("crm.customers.adjustments.description")}
         />
-        <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+        <Button variant="ghost" size="sm" onClick={goBack}>
           <ArrowLeft className="size-4" />
           Quay lại
         </Button>

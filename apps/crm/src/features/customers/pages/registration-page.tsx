@@ -55,6 +55,15 @@ import {
   RegistrationStatusBar,
 } from "../shared/ui"
 
+function goBack() {
+  const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")
+  if (returnUrl) {
+    navigateTo(returnUrl)
+  } else {
+    window.history.back()
+  }
+}
+
 export function CustomerRegistrationPage({
   initialCustomerId,
 }: {
@@ -255,7 +264,7 @@ export function CustomerRegistrationPage({
                   ) : null
                 }
                 actions={
-                  <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+                  <Button variant="ghost" size="sm" onClick={goBack}>
                     <ArrowLeft className="size-4" />
                     Quay lại
                   </Button>

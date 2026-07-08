@@ -278,6 +278,7 @@ function filterWorkItemsByNode(items: WorkItem[], node: string) {
 }
 
 function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
+  const returnUrl = window.location.pathname + window.location.search
   if (
     (item.caseType === "CUSTOMER_REGISTRATION" ||
       item.caseType === "CUSTOMER_ADJUSTMENT") &&
@@ -293,6 +294,7 @@ function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
           ? "Activity_MakerRevise"
           : item.stepCode,
       role: item.candidateRole ?? "",
+      returnUrl,
     })
     if (item.jobKey) {
       search.set("taskKey", String(item.jobKey))
@@ -303,7 +305,7 @@ function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
         : "/customers/registrations"
     return `${path}?${search.toString()}`
   }
-  return caseCodeHref(direction, item.caseCode)
+  return caseCodeHref(direction, item.caseCode) + `&returnUrl=${encodeURIComponent(returnUrl)}`
 }
 
 function caseCodeHref(direction: WorkbenchDirection, caseCode: string) {
