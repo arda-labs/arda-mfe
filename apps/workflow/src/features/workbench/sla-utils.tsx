@@ -11,6 +11,7 @@ export function SlaStatus({
   status?: SlaStatusValue
 }) {
   const sla = slaInfo(dueAt, status)
+  const [detailPrimary, detailSecondary] = splitSlaDetail(sla.detail)
   return (
     <div className="space-y-1">
       <span
@@ -29,11 +30,19 @@ export function SlaStatus({
       </span>
       {sla.detail && (
         <p className="text-[11px] text-muted-foreground tabular-nums leading-tight">
-          {sla.detail}
+          <span>{detailPrimary}</span>
+          {detailSecondary ? (
+            <span className="mt-0.5 block">{detailSecondary}</span>
+          ) : null}
         </p>
       )}
     </div>
   )
+}
+
+function splitSlaDetail(detail: string) {
+  const [primary, secondary] = detail.split(" · ")
+  return [primary, secondary] as const
 }
 
 type BadgeVariant = "default" | "secondary" | "outline" | "destructive"
