@@ -292,19 +292,14 @@ export function CustomerRegistrationPage({
           <PageTitle
             title={pageTitle}
             description={pageDescription}
-            actions={
-              <Button variant="ghost" size="sm" onClick={goBack}>
-                <ArrowLeft className="size-4" />
-                Quay lại
-              </Button>
-            }
           />
         </div>
-        <div className="p-4">
+        <div className="min-h-0 flex-1 p-4">
           <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
             Đang tải hồ sơ...
           </div>
         </div>
+        <FooterBackButton onBack={goBack} />
       </section>
     )
   }
@@ -330,12 +325,6 @@ export function CustomerRegistrationPage({
                       {savedCustomer.status}
                     </Badge>
                   ) : null
-                }
-                actions={
-                  <Button variant="ghost" size="sm" onClick={goBack}>
-                    <ArrowLeft className="size-4" />
-                    Quay lại
-                  </Button>
                 }
               />
             </div>
@@ -522,12 +511,10 @@ function FooterActions({
   onSaveAndRevise: () => void
   onBack: () => void
 }) {
-  if (isReadonly && !canCompleteTask) return null
-
   return (
     <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
       <div className="flex w-full flex-wrap justify-end gap-2">
-        {canCompleteTask ? (
+        {isReadonly && !canCompleteTask ? null : canCompleteTask ? (
           <>
             <Button
               className="h-8"
@@ -547,10 +534,6 @@ function FooterActions({
             >
               <X className="size-4" />
               Từ chối
-            </Button>
-            <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
-              <ArrowLeft className="size-4" />
-              Quay lại
             </Button>
           </>
         ) : awaitingMakerResubmit || canEditTask ? (
@@ -598,13 +581,22 @@ function FooterActions({
             Hủy hồ sơ
           </Button>
         ) : null}
-        {awaitingMakerResubmit || canEditTask ? (
-          <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
-            <ArrowLeft className="size-4" />
-            Quay lại
-          </Button>
-        ) : null}
+        <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+          <ArrowLeft className="size-4" />
+          Quay lại
+        </Button>
       </div>
+    </div>
+  )
+}
+
+function FooterBackButton({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="flex h-13 shrink-0 items-center justify-end border-t bg-background px-4">
+      <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+        <ArrowLeft className="size-4" />
+        Quay lại
+      </Button>
     </div>
   )
 }
