@@ -215,12 +215,13 @@ export function CustomerRegistrationPage({
 
       const resolved = await resolveWorkflowJobKey(taskContext, saved.status)
       if (!resolved) return
-      completeTask.mutate({
+      await completeTask.mutateAsync({
         jobKey: resolved.jobKey,
         processInstanceKey: resolved.processInstanceKey,
         elementId: resolved.elementId,
         variables: { revisionSubmitted: true },
       })
+      navigateTo(registrationIncomingHref(saved))
     } finally {
       submittingRef.current = false
     }
@@ -243,12 +244,15 @@ export function CustomerRegistrationPage({
       resolved.role === "CUSTOMER_RISK_CHECKER"
         ? { riskDecision: decision }
         : { reviewDecision: decision }
-    completeTask.mutate({
-      jobKey: resolved.jobKey,
-      processInstanceKey: resolved.processInstanceKey,
-      elementId: resolved.elementId,
-      variables,
-    })
+    completeTask.mutate(
+      {
+        jobKey: resolved.jobKey,
+        processInstanceKey: resolved.processInstanceKey,
+        elementId: resolved.elementId,
+        variables,
+      },
+      { onSuccess: () => navigateTo(registrationIncomingHref(savedCustomer)) }
+    )
   }
 
   async function uploadAvatarFile(file: File) {
