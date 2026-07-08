@@ -44,8 +44,12 @@ export function completionTime(item: {
 }
 
 export function previousAssignee(item: {
+  previousAssignedTo?: string
+  previousAssignedToName?: string
   variables?: Record<string, unknown>
 }) {
+  if (item.previousAssignedToName) return item.previousAssignedToName
+  if (item.previousAssignedTo) return item.previousAssignedTo
   const variables = item.variables ?? {}
   const value = variables.previousAssignee ?? variables.previousAssignedTo
   return typeof value === "string" && value ? value : "Chưa có"

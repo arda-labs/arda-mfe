@@ -183,7 +183,11 @@ function AssigneeFlow({ item }: { item: WorkItem }) {
   return (
     <div className="space-y-1 text-xs">
       <div className="flex items-center gap-1.5">
-        {previousAssigneeDisplay(previousAssignee(item))}
+        {previousAssigneeDisplay({
+          id: item.previousAssignedTo,
+          name: previousAssignee(item),
+          avatar: item.previousAssignedToAvatar,
+        })}
         <span className="text-muted-foreground">→</span>
         {assigneeDisplay({ id: item.assignedTo, name: item.assignedToName, avatar: item.assignedToAvatar })}
       </div>
@@ -217,7 +221,8 @@ function getMediaUrl(id: string): string {
   return getMediaContentUrl(id)
 }
 
-function previousAssigneeDisplay(name: string) {
+function previousAssigneeDisplay(info: { id?: string | null; name?: string | null; avatar?: string | null }) {
+  const name = info.name || ""
   if (name === "Chưa có" || !name) {
     return <span className="text-muted-foreground">—</span>
   }
@@ -225,8 +230,12 @@ function previousAssigneeDisplay(name: string) {
   const initial = display.charAt(0).toUpperCase()
   return (
     <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-      <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-muted text-[8px] font-medium">
-        {initial}
+      <span className="flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[8px] font-medium">
+        {info.avatar ? (
+          <img src={getMediaUrl(info.avatar)} alt="" className="size-full object-cover" />
+        ) : (
+          initial
+        )}
       </span>
       <span className="truncate max-w-20">{display}</span>
     </span>

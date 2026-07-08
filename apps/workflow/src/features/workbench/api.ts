@@ -75,6 +75,9 @@ export interface WorkItem {
   assignedTo?: string
   assignedToName?: string
   assignedToAvatar?: string
+  previousAssignedTo?: string
+  previousAssignedToName?: string
+  previousAssignedToAvatar?: string
   assignedAt?: string
   claimExpiresAt?: string
   candidateRole?: string
