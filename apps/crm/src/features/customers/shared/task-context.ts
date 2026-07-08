@@ -1,6 +1,13 @@
+import { useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { notify } from "@workspace/notifications/notify"
 import { navigateTo } from "@workspace/core/routing"
-import { customerApi, type Customer, type WorkflowTaskRole } from "../api"
+import {
+  customerApi,
+  type Customer,
+  type WorkflowTaskRole,
+  type WorkflowWorkItem,
+} from "../api"
 
 export type CustomerTaskContext = {
   customerId: string | null
@@ -40,6 +47,7 @@ export function syncTaskContextSearch(updates: {
   role?: WorkflowTaskRole | string
 }) {
   const params = new URLSearchParams(window.location.search)
+  if (params.has("workItemId")) return
   if (updates.taskKey) params.set("taskKey", updates.taskKey)
   if (updates.elementId) params.set("elementId", updates.elementId)
   if (updates.role) params.set("role", updates.role)
@@ -127,6 +135,36 @@ export function taskContextFromSearch(): CustomerTaskContext {
     elementId: params.get("elementId"),
     role: roleParam(params.get("role")),
   }
+}
+
+export function useCustomerTaskContext() {
+  const workItemId = workItemIdFromSearch()
+  const fallback = useMemo(() => taskContextFromSearch(), [])
+  const workItemQuery = useQuery({
+    queryKey: ["crm", "workflow-work-item", workItemId ?? ""],
+    queryFn: () => customerApi.getWorkflowWorkItem(workItemId ?? ""),
+    enabled: Boolean(workItemId),
+  })
+  const context = workItemQuery.data
+    ? taskContextFromWorkItem(workItemQuery.data)
+    : fallback
+  return { context, isLoading: workItemQuery.isLoading }
+}
+
+function taskContextFromWorkItem(item: WorkflowWorkItem): CustomerTaskContext {
+  return {
+    customerId: item.primaryObjectId ?? null,
+    caseId: item.caseId,
+    caseCode: item.caseCode,
+    taskKey: workflowKey(item.jobKey),
+    processInstanceKey: workflowKey(item.processInstanceKey),
+    elementId: item.stepCode ?? null,
+    role: roleParam(item.candidateRole ?? null),
+  }
+}
+
+function workItemIdFromSearch() {
+  return stringParam(new URLSearchParams(window.location.search), "workItemId")
 }
 
 export function hasTaskContext(context: CustomerTaskContext) {

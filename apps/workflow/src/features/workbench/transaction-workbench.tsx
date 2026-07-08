@@ -284,25 +284,14 @@ function workItemHref(
   if (
     (item.caseType === "CUSTOMER_REGISTRATION" ||
       item.caseType === "CUSTOMER_ADJUSTMENT") &&
-    item.primaryObjectId
+    item.id
   ) {
     const search = new URLSearchParams({
-      customerId: item.primaryObjectId,
-      caseId: item.caseId,
-      caseCode: item.caseCode,
-      processInstanceKey: String(item.processInstanceKey ?? ""),
-      elementId:
-        item.candidateRole === "CUSTOMER_MAKER"
-          ? "Activity_MakerRevise"
-          : item.stepCode,
-      role: item.candidateRole ?? "",
+      workItemId: item.id,
       returnUrl,
     })
     if (viewOnly) {
       search.set("mode", "view")
-    }
-    if (item.jobKey) {
-      search.set("taskKey", String(item.jobKey))
     }
     const path =
       item.caseType === "CUSTOMER_ADJUSTMENT"

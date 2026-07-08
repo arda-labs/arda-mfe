@@ -46,7 +46,7 @@ import {
   hasTaskContext,
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
-  taskContextFromSearch,
+  useCustomerTaskContext,
 } from "../shared/task-context"
 import {
   AvatarUploader,
@@ -71,14 +71,16 @@ export function CustomerRegistrationPage({
 }) {
   const { t } = useI18n()
   const [savedCustomer, setSavedCustomer] = useState<Customer | null>(null)
-  const taskContext = taskContextFromSearch()
+  const { context: taskContext, isLoading: taskContextLoading } =
+    useCustomerTaskContext()
+  const customerId = taskContext.customerId ?? initialCustomerId ?? null
   const saveCustomer = useSaveCustomer()
   const submitCustomer = useSubmitCustomer()
   const cancelCustomer = useCancelCustomer()
   const completeTask = useCompleteWorkflowTask(taskContext.role)
   const viewOnly = isViewOnlyTaskContext()
   const uploadAvatar = useUploadCustomerAvatar()
-  const customerQuery = useCustomer(initialCustomerId ?? null)
+  const customerQuery = useCustomer(customerId)
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues,
@@ -112,9 +114,9 @@ export function CustomerRegistrationPage({
 
   // ── Auto-save draft ──────────────────────────────
   const draftKey = useMemo(() => {
-    const cid = initialCustomerId ?? savedCustomer?.id
+    const cid = customerId ?? savedCustomer?.id
     return cid ? `crm_customer_draft:${cid}` : null
-  }, [initialCustomerId, savedCustomer?.id])
+  }, [customerId, savedCustomer?.id])
 
   // Khôi phục draft từ localStorage hoặc từ API
   useEffect(() => {
@@ -126,7 +128,7 @@ export function CustomerRegistrationPage({
       return
     }
     // Nếu chưa có customerId: khôi phục localStorage
-    if (initialCustomerId) return // đang loading từ API
+    if (taskContextLoading || customerId) return
     const raw = localStorage.getItem("crm_customer_draft:new")
     if (raw) {
       try {
@@ -136,7 +138,7 @@ export function CustomerRegistrationPage({
         /* ignore */
       }
     }
-  }, [customerQuery.data, form, initialCustomerId, draftKey])
+  }, [customerQuery.data, form, customerId, draftKey, taskContextLoading])
 
   // Auto-save khi form thay đổi (debounced)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)

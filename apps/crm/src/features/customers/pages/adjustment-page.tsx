@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { ArrowLeft, Check, Plus, RotateCcw, Save, Send, X } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -43,7 +44,8 @@ import {
   hasTaskContext,
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
-  taskContextFromSearch,
+  type CustomerTaskContext,
+  useCustomerTaskContext,
 } from "../shared/task-context"
 import {
   EmptyState,
@@ -70,8 +72,9 @@ export function CustomerAdjustmentPage({
   initialCustomerId?: string | null
 }) {
   const { t } = useI18n()
-  const customerId = initialCustomerId?.trim() || ""
-  const taskContext = taskContextFromSearch()
+  const { context: taskContext, isLoading: taskContextLoading } =
+    useCustomerTaskContext()
+  const customerId = (taskContext.customerId ?? initialCustomerId)?.trim() || ""
   const customerQuery = useCustomer(customerId || null)
   const amendmentQuery = useCurrentAmendment(customerId || null)
   const startAdjustment = useStartAdjustment()
@@ -135,12 +138,27 @@ export function CustomerAdjustmentPage({
         : resolved.role === "CUSTOMER_MAKER"
           ? { revisionSubmitted: true }
           : { reviewDecision: decision }
-    completeTask.mutate({
+    await completeTask.mutateAsync({
       jobKey: resolved.jobKey,
       processInstanceKey: resolved.processInstanceKey,
       elementId: resolved.elementId,
       variables,
     })
+    navigateTo(adjustmentIncomingHref(taskContext))
+  }
+
+  if (taskContextLoading) {
+    return (
+      <section className="space-y-4">
+        <Header
+          title={t("crm.customers.adjustments.title")}
+          description={t("crm.customers.adjustments.description")}
+        />
+        <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
+          Đang tải ngữ cảnh giao dịch...
+        </div>
+      </section>
+    )
   }
 
   if (!customerId) {
@@ -301,6 +319,11 @@ export function CustomerAdjustmentPage({
                         await saveAdjustment(values)
                         if (!amendment?.id) return
                         await submitAmendment.mutateAsync(amendment.id)
+                        if (canEditTask) {
+                          await completeCurrentTask("APPROVE")
+                        } else {
+                          navigateTo(adjustmentIncomingHref(taskContext))
+                        }
                       })}
                     >
                       <Send className="size-4" />
@@ -327,4 +350,10 @@ export function CustomerAdjustmentPage({
       ) : null}
     </section>
   )
+}
+
+function adjustmentIncomingHref(context: CustomerTaskContext) {
+  const code = context.caseCode?.trim()
+  if (!code) return "/workbench/incoming-transactions"
+  return `/workbench/incoming-transactions?caseCode=${encodeURIComponent(code)}`
 }
