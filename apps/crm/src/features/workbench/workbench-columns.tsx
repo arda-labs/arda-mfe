@@ -7,6 +7,7 @@ import { getMediaContentUrl } from "@workspace/core/media/urls"
 
 export function workItemColumns(
   direction: WorkbenchDirection,
+  claiming: boolean,
   onOpen: (item: WorkItem) => void
 ): ColumnDef<WorkItem>[] {
   const isIncoming = direction === "incoming"
@@ -16,7 +17,7 @@ export function workItemColumns(
       header: isIncoming ? "Thông tin giao dịch" : "Thông tin tác vụ giao dịch",
       cell: ({ row }) => (
         <div className="min-w-80">
-          <WorkItemCard item={row.original} onOpen={onOpen} />
+          <WorkItemCard item={row.original} claiming={claiming} onOpen={onOpen} />
         </div>
       ),
     },
@@ -108,7 +109,7 @@ export function searchColumns(
       header: "Thông tin giao dịch",
       cell: ({ row }) => (
         <div className="min-w-80">
-          <WorkItemCard item={row.original} onOpen={onOpen} />
+          <WorkItemCard item={row.original} claiming={false} onOpen={onOpen} />
         </div>
       ),
     },

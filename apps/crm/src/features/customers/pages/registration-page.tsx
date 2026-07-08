@@ -18,7 +18,6 @@ import {
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
 import type { Customer, CustomerType } from "../api"
-import { customerApi } from "../api"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { CurrentTaskPanel } from "../components/task-panel"
 import { RelationshipsPanel } from "../components/relationships-panel"
@@ -47,7 +46,6 @@ import { toFormValues, toPayload } from "../shared/form-utils"
 import {
   hasTaskContext,
   resolveWorkflowJobKey,
-  syncTaskContextSearch,
   taskContextFromSearch,
 } from "../shared/task-context"
 import {

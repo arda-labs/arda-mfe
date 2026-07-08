@@ -126,8 +126,8 @@ function TransactionWorkbenchInner({
   )
 
   const columns = useMemo(
-    () => workItemColumns(direction, openItem),
-    [direction, openItem]
+    () => workItemColumns(direction, claiming, openItem),
+    [direction, claiming, openItem]
   )
 
   const table = useReactTable({

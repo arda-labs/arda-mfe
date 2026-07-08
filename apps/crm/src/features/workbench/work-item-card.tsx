@@ -2,6 +2,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   FileText,
+  Loader2,
   Users,
 } from "lucide-react"
 import { getMediaContentUrl } from "@workspace/core/media/urls"
@@ -42,7 +43,7 @@ export function WorkItemCard({
   claiming: boolean
   onOpen: (item: WorkItem) => void
 }) {
-  const canAct = onOpen != null
+  const canAct = onOpen != null && !claiming
   const priority = (item.priority ?? "").toUpperCase()
   const hasPriority = priority in priorityColors
   const CaseIcon = caseTypeIcons[item.caseType] ?? FileText
@@ -51,8 +52,9 @@ export function WorkItemCard({
   return (
     <div
       className={cn(
-        "flex min-w-0 items-start gap-3 rounded-md px-2 py-2 -mx-2",
-        canAct && "cursor-pointer hover:bg-accent/50 transition-colors"
+        "relative flex min-w-0 items-start gap-3 rounded-md px-2 py-2 -mx-2",
+        canAct && "cursor-pointer hover:bg-accent/50 transition-colors",
+        claiming && "pointer-events-none opacity-60"
       )}
       onClick={() => {
         if (canAct) onOpen(item)
@@ -66,6 +68,11 @@ export function WorkItemCard({
         }
       }}
     >
+      {claiming && (
+        <span className="absolute left-0 top-0 z-10 flex size-full items-center justify-center rounded-md bg-background/50">
+          <Loader2 className="size-4 animate-spin text-muted-foreground" />
+        </span>
+      )}
       {/* Priority dot */}
       {hasPriority ? (
         <span className={cn("mt-2.5 size-2 shrink-0 rounded-full", priorityColors[priority])} />

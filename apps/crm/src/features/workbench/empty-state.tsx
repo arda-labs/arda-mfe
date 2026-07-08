@@ -1,12 +1,10 @@
 import { cn } from "@workspace/ui/lib/utils"
 
 export function EmptyState({
-  icon,
   title,
   description,
   className,
 }: {
-  icon?: string
   title: string
   description?: string
   className?: string

@@ -202,15 +202,6 @@ function formatDate(value?: string) {
   return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
-function TimePoint({ label, value }: { label: string; value?: string }) {
-  return (
-    <div>
-      <p className="text-muted-foreground leading-none">{label}</p>
-      <p className="font-medium text-foreground">{formatDateTime(value)}</p>
-    </div>
-  )
-}
-
 export function slaInfo(
   dueAt?: string,
   status?: SlaStatusValue
