@@ -71,8 +71,12 @@ export function CustomerRegistrationPage({
 }) {
   const { t } = useI18n()
   const [savedCustomer, setSavedCustomer] = useState<Customer | null>(null)
-  const { context: taskContext, isLoading: taskContextLoading } =
-    useCustomerTaskContext()
+  const {
+    context: taskContext,
+    hasWorkItemId,
+    isError: taskContextError,
+    isLoading: taskContextLoading,
+  } = useCustomerTaskContext()
   const customerId = taskContext.customerId ?? initialCustomerId ?? null
   const saveCustomer = useSaveCustomer()
   const submitCustomer = useSubmitCustomer()
@@ -114,7 +118,9 @@ export function CustomerRegistrationPage({
     ? "Cập nhật thông tin khách hàng theo yêu cầu của quy trình."
     : t("crm.customers.registrations.description")
   const loadingInitialCustomer =
-    taskContextLoading || (Boolean(customerId) && customerQuery.isFetching && !savedCustomer)
+    taskContextLoading ||
+    (hasWorkItemId && !customerId && !taskContextError) ||
+    (Boolean(customerId) && customerQuery.isFetching && !savedCustomer)
   const isSubmitting =
     form.formState.isSubmitting ||
     saveCustomer.isPending ||
@@ -138,7 +144,7 @@ export function CustomerRegistrationPage({
       return
     }
     // Nếu chưa có customerId: khôi phục localStorage
-    if (taskContextLoading || customerId) return
+    if (taskContextLoading || hasWorkItemId || customerId) return
     const raw = localStorage.getItem("crm_customer_draft:new")
     if (raw) {
       try {
@@ -148,7 +154,7 @@ export function CustomerRegistrationPage({
         /* ignore */
       }
     }
-  }, [customerQuery.data, form, customerId, draftKey, taskContextLoading])
+  }, [customerQuery.data, form, customerId, draftKey, hasWorkItemId, taskContextLoading])
 
   // Auto-save khi form thay đổi (debounced)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -285,7 +291,7 @@ export function CustomerRegistrationPage({
     form.setValue("avatarFileId", result.public_id, { shouldDirty: true })
   }
 
-  if (loadingInitialCustomer) {
+  if (loadingInitialCustomer || taskContextError) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
         <div className="px-4 pt-4">
@@ -296,7 +302,9 @@ export function CustomerRegistrationPage({
         </div>
         <div className="min-h-0 flex-1 p-4">
           <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-            Đang tải hồ sơ...
+            {taskContextError
+              ? "Khong tai duoc thong tin task. Vui long quay lai Giao dich den va mo lai ho so."
+              : "Dang tai ho so..."}
           </div>
         </div>
         <FooterBackButton onBack={goBack} />

@@ -148,7 +148,12 @@ export function useCustomerTaskContext() {
   const context = workItemQuery.data
     ? taskContextFromWorkItem(workItemQuery.data)
     : fallback
-  return { context, isLoading: workItemQuery.isLoading }
+  return {
+    context,
+    hasWorkItemId: Boolean(workItemId),
+    isError: workItemQuery.isError,
+    isLoading: workItemQuery.isLoading,
+  }
 }
 
 function taskContextFromWorkItem(item: WorkflowWorkItem): CustomerTaskContext {
