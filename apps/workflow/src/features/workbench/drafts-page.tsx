@@ -116,14 +116,14 @@ export function DraftWorkbenchPage() {
     () => [
       {
         accessorKey: "code",
-        header: t("crm.workbench.drafts.col_code"),
+        header: t("workflow.workbench.drafts.col_code"),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.code}</span>
         ),
       },
       {
         accessorKey: "title",
-        header: t("crm.workbench.drafts.col_title"),
+        header: t("workflow.workbench.drafts.col_title"),
         cell: ({ row }) => (
           <div className="min-w-0">
             <p className="truncate font-medium">{row.original.title}</p>
@@ -137,21 +137,21 @@ export function DraftWorkbenchPage() {
       },
       {
         id: "domain",
-        header: t("crm.workbench.drafts.col_domain"),
+        header: t("workflow.workbench.drafts.col_domain"),
         cell: ({ row }) => (
           <Badge variant="outline">{domainLabel(row.original.domain, t)}</Badge>
         ),
       },
       {
         id: "status",
-        header: t("crm.workbench.drafts.col_status"),
+        header: t("workflow.workbench.drafts.col_status"),
         cell: ({ row }) => (
           <DraftStatus status={row.original.displayStatus} t={t} />
         ),
       },
       {
         accessorKey: "updatedAt",
-        header: t("crm.workbench.drafts.col_updated"),
+        header: t("workflow.workbench.drafts.col_updated"),
         cell: ({ row }) => (
           <span className="tabular-nums text-muted-foreground">
             {formatDateTime(row.original.updatedAt)}
@@ -160,7 +160,7 @@ export function DraftWorkbenchPage() {
       },
       {
         id: "actions",
-        header: t("crm.workbench.drafts.col_actions"),
+        header: t("workflow.workbench.drafts.col_actions"),
         cell: ({ row }) => (
           <div className="flex justify-end gap-1">
             <Button
@@ -168,7 +168,7 @@ export function DraftWorkbenchPage() {
               size="icon"
               variant="ghost"
               className="size-7"
-              title={t("crm.workbench.drafts.open")}
+              title={t("workflow.workbench.drafts.open")}
               onClick={() => openDraft(row.original)}
             >
               <Eye className="size-4" />
@@ -179,7 +179,7 @@ export function DraftWorkbenchPage() {
                 size="icon"
                 variant="ghost"
                 className="size-7 text-destructive hover:text-destructive"
-                title={t("crm.workbench.drafts.delete")}
+                title={t("workflow.workbench.drafts.delete")}
                 disabled={cancelDraft.isPending}
                 onClick={() => setDeleteTarget(row.original)}
               >
@@ -208,10 +208,10 @@ export function DraftWorkbenchPage() {
   return (
     <>
       <ListPageShell
-        title={t("crm.workbench.drafts.title")}
+        title={t("workflow.workbench.drafts.title")}
         meta={
           <Badge variant="secondary">
-            {t("crm.workbench.drafts.count", { count: items.length })}
+            {t("workflow.workbench.drafts.count", { count: items.length })}
           </Badge>
         }
         actions={
@@ -220,7 +220,7 @@ export function DraftWorkbenchPage() {
               <DropdownMenuTrigger asChild>
                 <Button type="button" variant="default">
                   <Plus className="size-4" />
-                  {t("crm.workbench.drafts.create")}
+                  {t("workflow.workbench.drafts.create")}
                   <ChevronDown className="size-4 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
@@ -230,7 +230,7 @@ export function DraftWorkbenchPage() {
                     key={action.domain}
                     onClick={() => navigateTo(action.href)}
                   >
-                    {t(`crm.workbench.drafts.create_${action.domain}`)}
+                    {t(`workflow.workbench.drafts.create_${action.domain}`)}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -249,21 +249,21 @@ export function DraftWorkbenchPage() {
         criticalPending={pageGate.criticalPending}
         criticalError={pageGate.criticalError}
         onRetry={pageGate.onRetry}
-        loadErrorTitle={t("crm.workbench.drafts.load_failed")}
+        loadErrorTitle={t("workflow.workbench.drafts.load_failed")}
         fetching={fetching}
         table={table}
         header={
           <div className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">
-              {t("crm.workbench.drafts.description")}
+              {t("workflow.workbench.drafts.description")}
             </p>
             {partialLoadFailed ? (
               <Alert>
                 <AlertDescription>
-                  {t("crm.workbench.drafts.partial_load", {
+                  {t("workflow.workbench.drafts.partial_load", {
                     sources: Object.keys(sourceErrors)
                       .map((source) =>
-                        t(`crm.workbench.drafts.source_${source}`)
+                        t(`workflow.workbench.drafts.source_${source}`)
                       )
                       .join(", "),
                   })}
@@ -282,14 +282,14 @@ export function DraftWorkbenchPage() {
                 <Input
                   className="h-8 pl-9"
                   value={filter.q}
-                  placeholder={t("crm.workbench.drafts.search_placeholder")}
+                  placeholder={t("workflow.workbench.drafts.search_placeholder")}
                   onChange={(event) =>
                     setFilter((prev) => ({ ...prev, q: event.target.value }))
                   }
                 />
               </div>
               <SelectPopover
-                label={t("crm.workbench.drafts.filter_domain")}
+                label={t("workflow.workbench.drafts.filter_domain")}
                 value={filter.domain === "ALL" ? "" : filter.domain}
                 onChange={(value) =>
                   setFilter((prev) => ({
@@ -299,33 +299,33 @@ export function DraftWorkbenchPage() {
                 }
                 options={[
                   {
-                    label: t("crm.workbench.drafts.filter_domain_all"),
+                    label: t("workflow.workbench.drafts.filter_domain_all"),
                     value: "",
                   },
                   {
                     label: t(
-                      "crm.workbench.drafts.domain_crm_customer_registration"
+                      "workflow.workbench.drafts.domain_crm_customer_registration"
                     ),
                     value: "crm_customer_registration",
                   },
                   {
-                    label: t("crm.workbench.drafts.domain_finance_incoming"),
+                    label: t("workflow.workbench.drafts.domain_finance_incoming"),
                     value: "finance_incoming",
                   },
                   {
-                    label: t("crm.workbench.drafts.domain_finance_outgoing"),
+                    label: t("workflow.workbench.drafts.domain_finance_outgoing"),
                     value: "finance_outgoing",
                   },
                   {
                     label: t(
-                      "crm.workbench.drafts.domain_hrm_employee_registration"
+                      "workflow.workbench.drafts.domain_hrm_employee_registration"
                     ),
                     value: "hrm_employee_registration",
                   },
                 ]}
               />
               <SelectPopover
-                label={t("crm.workbench.drafts.filter_status")}
+                label={t("workflow.workbench.drafts.filter_status")}
                 value={filter.status === "ALL" ? "" : filter.status}
                 onChange={(value) =>
                   setFilter((prev) => ({
@@ -335,15 +335,15 @@ export function DraftWorkbenchPage() {
                 }
                 options={[
                   {
-                    label: t("crm.workbench.drafts.filter_status_all"),
+                    label: t("workflow.workbench.drafts.filter_status_all"),
                     value: "",
                   },
                   {
-                    label: t("crm.workbench.drafts.filter_status_draft"),
+                    label: t("workflow.workbench.drafts.filter_status_draft"),
                     value: "DRAFT",
                   },
                   {
-                    label: t("crm.workbench.drafts.filter_status_needs_changes"),
+                    label: t("workflow.workbench.drafts.filter_status_needs_changes"),
                     value: "NEEDS_CHANGES",
                   },
                 ]}
@@ -364,7 +364,7 @@ export function DraftWorkbenchPage() {
                   }}
                 >
                   <XCircle className="size-3.5" />
-                  {t("crm.workbench.drafts.clear_filters")}
+                  {t("workflow.workbench.drafts.clear_filters")}
                 </Button>
               ) : null}
             </form>
@@ -380,10 +380,10 @@ export function DraftWorkbenchPage() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  {t("crm.workbench.drafts.delete_confirm_title")}
+                  {t("workflow.workbench.drafts.delete_confirm_title")}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  {t("crm.workbench.drafts.delete_confirm_description", {
+                  {t("workflow.workbench.drafts.delete_confirm_description", {
                     code:
                       deleteTarget?.code || deleteTarget?.title || deleteTarget?.id || "",
                   })}
@@ -391,7 +391,7 @@ export function DraftWorkbenchPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={cancelDraft.isPending}>
-                  {t("crm.workbench.drafts.delete_cancel")}
+                  {t("workflow.workbench.drafts.delete_cancel")}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-white hover:bg-destructive/90"
@@ -405,7 +405,7 @@ export function DraftWorkbenchPage() {
                     )
                   }}
                 >
-                  {t("crm.workbench.drafts.delete")}
+                  {t("workflow.workbench.drafts.delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -427,8 +427,8 @@ function DraftStatus({
   const variant = status === "NEEDS_CHANGES" ? "warning" : "default"
   const label =
     status === "NEEDS_CHANGES"
-      ? t("crm.workbench.drafts.status_needs_changes")
-      : t("crm.workbench.drafts.status_draft")
+      ? t("workflow.workbench.drafts.status_needs_changes")
+      : t("workflow.workbench.drafts.status_draft")
   return (
     <Status variant={variant}>
       <StatusIndicator />
@@ -441,7 +441,7 @@ function domainLabel(
   domain: PlatformDraftDomain,
   t: ReturnType<typeof useI18n>["t"]
 ) {
-  return t(`crm.workbench.drafts.domain_${domain}`)
+  return t(`workflow.workbench.drafts.domain_${domain}`)
 }
 
 function formatDateTime(value?: string) {

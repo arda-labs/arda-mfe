@@ -10,6 +10,7 @@ import enPlatform from "./locales/en-US/platform.json"
 import enProfile from "./locales/en-US/profile.json"
 import enUser from "./locales/en-US/user.json"
 import enValidation from "./locales/en-US/validation.json"
+import enWorkflow from "./locales/en-US/workflow.json"
 import viAdmin from "./locales/vi-VN/admin.json"
 import viAuth from "./locales/vi-VN/auth.json"
 import viCommon from "./locales/vi-VN/common.json"
@@ -22,6 +23,7 @@ import viPlatform from "./locales/vi-VN/platform.json"
 import viProfile from "./locales/vi-VN/profile.json"
 import viUser from "./locales/vi-VN/user.json"
 import viValidation from "./locales/vi-VN/validation.json"
+import viWorkflow from "./locales/vi-VN/workflow.json"
 
 export const resources = {
   "vi-VN": {
@@ -37,6 +39,7 @@ export const resources = {
     profile: viProfile,
     user: viUser,
     validation: viValidation,
+    workflow: viWorkflow,
   },
   "en-US": {
     admin: enAdmin,
@@ -51,6 +54,7 @@ export const resources = {
     profile: enProfile,
     user: enUser,
     validation: enValidation,
+    workflow: enWorkflow,
   },
 } as const
 

@@ -49,7 +49,7 @@ export function WorkbenchToolbar({
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder={keywordPlaceholder ?? t("crm.workbench.keyword_placeholder")}
+            placeholder={keywordPlaceholder ?? t("workflow.workbench.keyword_placeholder")}
             value={filters.keyword ?? ""}
             onChange={(e) => setFilter("keyword", e.target.value || null)}
             className="h-8 w-56 pl-8"

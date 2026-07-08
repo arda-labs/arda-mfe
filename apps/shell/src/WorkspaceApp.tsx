@@ -86,13 +86,10 @@ function resolveWorkspaceRoute(pathname: string): WorkspaceRoute {
 
   if (pathname.startsWith("/finance/")) return "finance"
   if (pathname === "/hrm" || pathname.startsWith("/hrm/")) return "hrm"
-  if (
-    pathname.startsWith("/customers/") ||
-    pathname.startsWith("/workbench/")
-  ) {
+  if (pathname.startsWith("/customers/")) {
     return "crm"
   }
-  if (pathname.startsWith("/workflow/")) return "workflow"
+  if (pathname.startsWith("/workflow/") || pathname.startsWith("/workbench/")) return "workflow"
   if (
     pathname === "/my-account" ||
     pathname.startsWith("/my-account/") ||

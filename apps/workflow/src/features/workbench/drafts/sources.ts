@@ -1,5 +1,5 @@
 import { api } from "@workspace/api"
-import type { Customer, CustomerStatus } from "../../customers/api"
+import { customerDraftApi, type Customer, type CustomerStatus } from "./customer-client"
 import type {
   PlatformDraft,
   PlatformDraftDomain,
@@ -127,13 +127,11 @@ async function fetchCrmDrafts(): Promise<PlatformDraft[]> {
   const statuses: CustomerStatus[] = ["DRAFT", "NEEDS_CHANGES"]
   const groups = await Promise.all(
     statuses.map((status) =>
-      api.get<Customer[] | { items?: Customer[] }>(
-        withQuery("/api/crm/customers", { status })
-      )
+      customerDraftApi.list(status)
     )
   )
   return groups
-    .flatMap((data) => normalizeItems(data, "items"))
+    .flat()
     .map(crmDraft)
 }
 

@@ -24,12 +24,12 @@ const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 
 const directionMeta = {
   incoming: {
-    titleKey: "crm.workbench.incoming.title",
-    descriptionKey: "crm.workbench.incoming.description",
+    titleKey: "workflow.workbench.incoming.title",
+    descriptionKey: "workflow.workbench.incoming.description",
   },
   outgoing: {
-    titleKey: "crm.workbench.outgoing.title",
-    descriptionKey: "crm.workbench.outgoing.description",
+    titleKey: "workflow.workbench.outgoing.title",
+    descriptionKey: "workflow.workbench.outgoing.description",
   },
 }
 
@@ -103,7 +103,7 @@ function TransactionWorkbenchInner({
         return
       }
       if (item.assignedTo && !item.canOpen) {
-        notify.error(t("crm.workbench.claim_error"), item.claimBlockedReason)
+        notify.error(t("workflow.workbench.claim_error"), item.claimBlockedReason)
         return
       }
       if (item.canClaim) {
@@ -120,7 +120,7 @@ function TransactionWorkbenchInner({
         navigateTo(workItemHref(item, direction))
         return
       }
-      notify.error(t("crm.workbench.claim_error"), item.claimBlockedReason)
+      notify.error(t("workflow.workbench.claim_error"), item.claimBlockedReason)
     },
     [direction, claimRef, t]
   )
@@ -166,7 +166,7 @@ function TransactionWorkbenchInner({
       />
       <div className="grid min-h-0 flex-1 rounded-md border md:grid-cols-[auto_minmax(0,1fr)]">
         <PageSubmenu
-          title={t("crm.workbench.business_type")}
+          title={t("workflow.workbench.business_type")}
           collapsed={treeCollapsed}
           onCollapsedChange={setTreeCollapsed}
           meta={`${items.length} việc`}
@@ -235,15 +235,15 @@ export function TransactionSearchPage() {
   return (
     <Page variant="fixed">
       <PageHeader
-        title={t("crm.workbench.search.title")}
-        description={t("crm.workbench.search.description")}
+        title={t("workflow.workbench.search.title")}
+        description={t("workflow.workbench.search.description")}
       />
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <WorkbenchToolbar
           filters={filters}
           onChange={setFilters}
           presets={["transactionStatus", "slaStatus"]}
-          keywordPlaceholder={t("crm.workbench.search_keyword_placeholder")}
+          keywordPlaceholder={t("workflow.workbench.search_keyword_placeholder")}
           resultCount={items.length}
         />
         <DataTable

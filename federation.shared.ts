@@ -20,6 +20,8 @@ export const remoteSharedDeps = {
   "nuqs/adapters/react": { singleton: true },
   "@workspace/i18n": { singleton: true },
   "@workspace/i18n/": { singleton: true },
+  "@workspace/api": { singleton: true },
+  "@workspace/api/": { singleton: true },
   "@workspace/theme": { singleton: true },
   "@workspace/auth": { singleton: true },
   "@workspace/auth/": { singleton: true },

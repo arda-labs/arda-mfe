@@ -33,6 +33,9 @@ export default defineConfig(({ command }) => ({
     host: "0.0.0.0",
     proxy: {
       "/api/workflow": { target: "http://localhost:8082", changeOrigin: true },
+      "/api/crm": { target: "http://localhost:8094", changeOrigin: true },
+      "/api/finance": { target: "http://localhost:8082", changeOrigin: true },
+      "/api/hrm": { target: "http://localhost:8082", changeOrigin: true },
       "/api/auth": { target: "http://localhost:8082", changeOrigin: true },
       "/api/admin": { target: "http://localhost:8082", changeOrigin: true },
     },

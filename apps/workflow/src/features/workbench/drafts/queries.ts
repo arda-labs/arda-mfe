@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { notify } from "@workspace/notifications/notify"
-import { customerApi } from "../../customers/api"
+import { customerDraftApi } from "./customer-client"
 import { fetchPlatformDrafts } from "./sources"
 import type { PlatformDraftDomain } from "./types"
 
@@ -28,7 +28,7 @@ export function useCancelPlatformDraft() {
       if (domain !== "crm_customer_registration") {
         throw new Error("Chưa hỗ trợ hủy nháp cho nghiệp vụ này")
       }
-      return customerApi.cancel(id)
+      return customerDraftApi.cancel(id)
     },
     onSuccess: () => {
       notify.success("Đã hủy hồ sơ nháp")

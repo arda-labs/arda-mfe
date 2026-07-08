@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { uploadFile } from "@workspace/media"
 import { notify } from "@workspace/notifications/notify"
-import { platformDraftKeys } from "../workbench/drafts/queries"
 import {
   customerApi,
   type CustomerStatus,
@@ -11,6 +10,10 @@ import {
   type AmendmentUpsertPayload,
   type WorkflowTaskRole,
 } from "./api"
+
+const platformDraftKeys = {
+  all: ["workbench", "platform-drafts"] as const,
+}
 
 function mutationErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : undefined
