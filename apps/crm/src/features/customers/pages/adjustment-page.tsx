@@ -220,7 +220,11 @@ export function CustomerAdjustmentPage({
           <Button
             type="button"
             disabled={startAdjustment.isPending}
-            onClick={() => startAdjustment.mutate(customerId)}
+            onClick={() =>
+              startAdjustment.mutate(customerId, {
+                onSuccess: () => navigateTo(adjustmentIncomingHref(taskContext)),
+              })
+            }
           >
             <Plus className="size-4" />
             {t("crm.customers.adjustments.start")}
