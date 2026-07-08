@@ -133,6 +133,10 @@ export function hasTaskContext(context: CustomerTaskContext) {
   return Boolean(context.caseId || context.taskKey || context.elementId)
 }
 
+export function isViewOnlyTaskContext() {
+  return new URLSearchParams(window.location.search).get("mode") === "view"
+}
+
 export function stringParam(params: URLSearchParams, key: string) {
   const value = params.get(key)?.trim()
   return value || null

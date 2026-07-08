@@ -1,8 +1,8 @@
 export function stepLabel(value: string) {
   const labels: Record<string, string> = {
-    submitted: "Đã gửi",
-    Activity_CheckerReview: "Kiểm soát hồ sơ khách hàng",
-    Activity_MakerRevise: "Maker bổ sung hồ sơ",
+    submitted: "Đã khởi tạo",
+    Activity_CheckerReview: "Phê duyệt hồ sơ khách hàng",
+    Activity_MakerRevise: "Chỉnh sửa hồ sơ",
     Activity_RiskReview: "Rà soát rủi ro khách hàng",
     Activity_ApproveCustomer: "Kích hoạt hồ sơ khách hàng",
     "classify-account": "Phân loại tài khoản",
@@ -12,6 +12,8 @@ export function stepLabel(value: string) {
     "workflow.finance_incoming_approve": "Duyệt giao dịch đến",
     "workflow.finance_outgoing_verify": "Kiểm tra giao dịch đi",
     "workflow.finance_outgoing_approve": "Duyệt giao dịch đi",
+    "workflow.customer_checker_review": "Phê duyệt hồ sơ khách hàng",
+    "workflow.customer_maker_revise": "Chỉnh sửa hồ sơ",
     "workflow.hrm_registration_review": "Kiểm tra hồ sơ nhân sự",
     "workflow.hrm_registration_approve": "Phê duyệt tiếp nhận nhân sự",
   }

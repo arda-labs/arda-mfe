@@ -215,17 +215,15 @@ export function TransactionSearchPage() {
   const searchQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
   const items = searchQuery.data ?? []
 
-  const openItem = useCallback(
-    (item: WorkItem) => {
-      navigateTo(
-        workItemHref(
-          item,
-          item.direction === "OUTGOING" ? "outgoing" : "incoming"
-        )
+  const openItem = useCallback((item: WorkItem) => {
+    navigateTo(
+      workItemHref(
+        item,
+        item.direction === "OUTGOING" ? "outgoing" : "incoming",
+        true
       )
-    },
-    []
-  )
+    )
+  }, [])
 
   const columns = useMemo(() => searchColumns(openItem), [openItem])
   const table = useReactTable({
@@ -277,7 +275,11 @@ function filterWorkItemsByNode(items: WorkItem[], node: string) {
   )
 }
 
-function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
+function workItemHref(
+  item: WorkItem,
+  direction: WorkbenchDirection,
+  viewOnly = direction === "outgoing"
+) {
   const returnUrl = window.location.pathname + window.location.search
   if (
     (item.caseType === "CUSTOMER_REGISTRATION" ||
@@ -296,6 +298,9 @@ function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
       role: item.candidateRole ?? "",
       returnUrl,
     })
+    if (viewOnly) {
+      search.set("mode", "view")
+    }
     if (item.jobKey) {
       search.set("taskKey", String(item.jobKey))
     }
@@ -305,7 +310,11 @@ function workItemHref(item: WorkItem, direction: WorkbenchDirection) {
         : "/customers/registrations"
     return `${path}?${search.toString()}`
   }
-  return caseCodeHref(direction, item.caseCode) + `&returnUrl=${encodeURIComponent(returnUrl)}`
+  return (
+    caseCodeHref(direction, item.caseCode) +
+    `&returnUrl=${encodeURIComponent(returnUrl)}` +
+    (viewOnly ? "&mode=view" : "")
+  )
 }
 
 function caseCodeHref(direction: WorkbenchDirection, caseCode: string) {

@@ -275,11 +275,3 @@ export function EmptyState({ text }: { text: string }) {
     </div>
   )
 }
-export function ContextField({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div>
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="break-words font-mono text-xs">{value || "-"}</p>
-    </div>
-  )
-}

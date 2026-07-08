@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { ArrowLeft, Save, Send, X } from "lucide-react"
+import { ArrowLeft, Check, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -19,7 +19,6 @@ import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
 import type { Customer, CustomerType } from "../api"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
-import { CurrentTaskPanel } from "../components/task-panel"
 import { RelationshipsPanel } from "../components/relationships-panel"
 import { GeoLocationFields } from "../geo-location-fields"
 import { OrgUnitField } from "../org-unit-field"
@@ -45,6 +44,7 @@ import {
 import { toFormValues, toPayload } from "../shared/form-utils"
 import {
   hasTaskContext,
+  isViewOnlyTaskContext,
   resolveWorkflowJobKey,
   taskContextFromSearch,
 } from "../shared/task-context"
@@ -76,6 +76,7 @@ export function CustomerRegistrationPage({
   const submitCustomer = useSubmitCustomer()
   const cancelCustomer = useCancelCustomer()
   const completeTask = useCompleteWorkflowTask(taskContext.role)
+  const viewOnly = isViewOnlyTaskContext()
   const uploadAvatar = useUploadCustomerAvatar()
   const customerQuery = useCustomer(initialCustomerId ?? null)
   const form = useForm<CustomerFormValues>({
@@ -88,11 +89,25 @@ export function CustomerRegistrationPage({
   const isSubmitted = savedCustomer?.status === "SUBMITTED"
   const isActive = savedCustomer?.status === "ACTIVE"
   const canCancelDraft =
-    savedCustomer?.status === "DRAFT" || savedCustomer?.status === "NEEDS_CHANGES"
+    savedCustomer?.status === "DRAFT" ||
+    savedCustomer?.status === "NEEDS_CHANGES"
   const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
-  const needsChangesNoContext = awaitingMakerResubmit && !hasTaskContext(taskContext)
-  const isReadonly = isSubmitted || isActive
-  const isSubmitting = form.formState.isSubmitting || saveCustomer.isPending || submitCustomer.isPending || completeTask.isPending
+  const needsChangesNoContext =
+    awaitingMakerResubmit && !hasTaskContext(taskContext)
+  const isReadonly = viewOnly || isSubmitted || isActive
+  const canCompleteTask =
+    !viewOnly &&
+    hasTaskContext(taskContext) &&
+    taskContext.role !== "CUSTOMER_MAKER"
+  const canEditTask =
+    !viewOnly &&
+    hasTaskContext(taskContext) &&
+    taskContext.role === "CUSTOMER_MAKER"
+  const isSubmitting =
+    form.formState.isSubmitting ||
+    saveCustomer.isPending ||
+    submitCustomer.isPending ||
+    completeTask.isPending
   const submittingRef = useRef(false)
 
   // ── Auto-save draft ──────────────────────────────
@@ -117,7 +132,9 @@ export function CustomerRegistrationPage({
       try {
         const parsed = JSON.parse(raw) as Partial<CustomerFormValues>
         form.reset({ ...defaultValues, ...parsed })
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }, [customerQuery.data, form, initialCustomerId, draftKey])
 
@@ -127,7 +144,9 @@ export function CustomerRegistrationPage({
     (values: CustomerFormValues) => {
       const cid = savedCustomer?.id
       // Luôn lưu localStorage
-      const storageKey = cid ? `crm_customer_draft:${cid}` : "crm_customer_draft:new"
+      const storageKey = cid
+        ? `crm_customer_draft:${cid}`
+        : "crm_customer_draft:new"
       localStorage.setItem(storageKey, JSON.stringify(values))
     },
     [savedCustomer?.id]
@@ -181,7 +200,10 @@ export function CustomerRegistrationPage({
     }
   }
 
-  async function saveAndCompleteTask(values: CustomerFormValues, _decision: string) {
+  async function saveAndCompleteTask(
+    values: CustomerFormValues,
+    _decision: string
+  ) {
     if (submittingRef.current) return
     submittingRef.current = true
     try {
@@ -212,7 +234,10 @@ export function CustomerRegistrationPage({
   }
 
   async function completeCurrentTask(decision: string) {
-    const resolved = await resolveWorkflowJobKey(taskContext, savedCustomer?.status)
+    const resolved = await resolveWorkflowJobKey(
+      taskContext,
+      savedCustomer?.status
+    )
     if (!resolved) return
     const variables =
       resolved.role === "CUSTOMER_RISK_CHECKER"
@@ -248,10 +273,13 @@ export function CustomerRegistrationPage({
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form
         className="flex min-h-0 flex-1 flex-col"
-        onSubmit={form.handleSubmit((values) => saveAndSubmit(values), handleInvalid)}
+        onSubmit={form.handleSubmit(
+          (values) => saveAndSubmit(values),
+          handleInvalid
+        )}
       >
         <Tabs defaultValue="general" className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-gutter-stable">
+          <div className="scrollbar-gutter-stable min-h-0 flex-1 overflow-y-auto">
             <div className="px-4 pt-4">
               <PageTitle
                 title={t("crm.customers.registrations.title")}
@@ -286,83 +314,88 @@ export function CustomerRegistrationPage({
               <RegistrationStatusBar customer={savedCustomer} />
               {needsChangesNoContext ? (
                 <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-                  <p className="font-medium">Hồ sơ cần bổ sung thông tin</p>
+                  <p className="font-medium">Hồ sơ cần chỉnh sửa thông tin</p>
                   <p className="mt-1">
-                    Quản lý yêu cầu bổ sung. Mở từ{" "}
+                    Quản lý yêu cầu chỉnh sửa. Mở từ{" "}
                     <strong>Workbench → Giao dịch đến</strong> để xem chi tiết.
                   </p>
                 </div>
               ) : null}
-              {!isActive ? (
-                <CurrentTaskPanel
-                  context={taskContext}
-                  completing={completeTask.isPending}
-                  onComplete={completeCurrentTask}
-                />
-              ) : null}
               <TabsContent value="general" className="mt-0 space-y-4">
-                <Panel title="Thông tin chung">
-                  <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
-                    <div className="space-y-3">
-                      <FormField label="Loại khách hàng">
-                        <Controller
-                          control={form.control}
-                          name="customerType"
-                          render={({ field }) => (
-                            <Select
-                              value={field.value}
-                              onValueChange={(value) =>
-                                field.onChange(value as CustomerType)
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {selectOptions.customerType.map((option) => (
-                                  <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </FormField>
-                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        <OrgUnitField form={form} />
-                        <FieldGrid fields={generalFieldsPrimary} form={form} bare />
-                        <GeoLocationFields form={form} />
-                        <FieldGrid fields={generalFieldsRest} form={form} bare />
+                <fieldset disabled={isReadonly} className="space-y-4">
+                  <Panel title="Thông tin chung">
+                    <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
+                      <div className="space-y-3">
+                        <FormField label="Loại khách hàng">
+                          <Controller
+                            control={form.control}
+                            name="customerType"
+                            render={({ field }) => (
+                              <Select
+                                value={field.value}
+                                onValueChange={(value) =>
+                                  field.onChange(value as CustomerType)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {selectOptions.customerType.map((option) => (
+                                    <SelectItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </FormField>
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          <OrgUnitField form={form} />
+                          <FieldGrid
+                            fields={generalFieldsPrimary}
+                            form={form}
+                            bare
+                          />
+                          <GeoLocationFields form={form} />
+                          <FieldGrid
+                            fields={generalFieldsRest}
+                            form={form}
+                            bare
+                          />
+                        </div>
                       </div>
+                      <AvatarUploader
+                        fileId={form.watch("avatarFileId")}
+                        uploading={uploadAvatar.isPending}
+                        onClear={() =>
+                          form.setValue("avatarFileId", "", {
+                            shouldDirty: true,
+                          })
+                        }
+                        onUpload={uploadAvatarFile}
+                      />
                     </div>
-                    <AvatarUploader
-                      fileId={form.watch("avatarFileId")}
-                      uploading={uploadAvatar.isPending}
-                      onClear={() =>
-                        form.setValue("avatarFileId", "", { shouldDirty: true })
-                      }
-                      onUpload={uploadAvatarFile}
-                    />
-                  </div>
-                </Panel>
-                {isPersonal ? (
-                  <>
-                    <Panel title="Thông tin định danh">
-                      <FieldGrid fields={personalFields} form={form} />
-                    </Panel>
-                    <Panel title="Thông tin mở rộng">
-                      <FieldGrid fields={extendedFields} form={form} />
-                    </Panel>
-                  </>
-                ) : (
-                  <Panel title="Thông tin doanh nghiệp">
-                    <FieldGrid fields={businessFields} form={form} />
                   </Panel>
-                )}
+                  {isPersonal ? (
+                    <>
+                      <Panel title="Thông tin định danh">
+                        <FieldGrid fields={personalFields} form={form} />
+                      </Panel>
+                      <Panel title="Thông tin mở rộng">
+                        <FieldGrid fields={extendedFields} form={form} />
+                      </Panel>
+                    </>
+                  ) : (
+                    <Panel title="Thông tin doanh nghiệp">
+                      <FieldGrid fields={businessFields} form={form} />
+                    </Panel>
+                  )}
+                </fieldset>
               </TabsContent>
               {isPersonal ? (
                 <TabsContent value="relationships" className="mt-0">
@@ -370,7 +403,8 @@ export function CustomerRegistrationPage({
                     <RelationshipsPanel customer={savedCustomer} />
                   ) : (
                     <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
-                      Gửi hồ sơ khách hàng trước khi khai báo người có liên quan.
+                      Gửi hồ sơ khách hàng trước khi khai báo người có liên
+                      quan.
                     </div>
                   )}
                 </TabsContent>
@@ -381,27 +415,33 @@ export function CustomerRegistrationPage({
             isReadonly={isReadonly}
             isSubmitting={isSubmitting}
             canCancelDraft={canCancelDraft}
-            awaitingMakerResubmit={awaitingMakerResubmit && hasTaskContext(taskContext)}
+            canCompleteTask={canCompleteTask}
+            canEditTask={canEditTask}
+            awaitingMakerResubmit={
+              awaitingMakerResubmit && hasTaskContext(taskContext)
+            }
+            onCompleteTask={completeCurrentTask}
             onCancel={() => {
               if (!savedCustomer?.id) return
               cancelCustomer.mutate(savedCustomer.id, {
                 onSuccess: () => navigateTo("/workbench/drafts"),
               })
             }}
-            onSaveDraft={form.handleSubmit(
-              async (values) => {
-                const saved = await saveCustomer.mutateAsync({
-                  payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
-                })
-                refreshCustomer(saved)
-                const params = new URLSearchParams(window.location.search)
-                if (!params.has("customerId")) {
-                  params.set("customerId", saved.id)
-                  navigateTo(`/customers/registrations?${params.toString()}`)
-                }
-              },
-              handleInvalid
-            )}
+            onSaveDraft={form.handleSubmit(async (values) => {
+              const saved = await saveCustomer.mutateAsync({
+                payload: toPayload(
+                  values,
+                  savedCustomer?.id,
+                  savedCustomer?.status
+                ),
+              })
+              refreshCustomer(saved)
+              const params = new URLSearchParams(window.location.search)
+              if (!params.has("customerId")) {
+                params.set("customerId", saved.id)
+                navigateTo(`/customers/registrations?${params.toString()}`)
+              }
+            }, handleInvalid)}
             onSaveAndSubmit={form.handleSubmit(saveAndSubmit, handleInvalid)}
             onSaveAndRevise={form.handleSubmit(
               (values) => saveAndCompleteTask(values, "APPROVE"),
@@ -418,7 +458,10 @@ function FooterActions({
   isReadonly,
   isSubmitting,
   canCancelDraft,
+  canCompleteTask,
+  canEditTask,
   awaitingMakerResubmit,
+  onCompleteTask,
   onCancel,
   onSaveDraft,
   onSaveAndSubmit,
@@ -427,36 +470,93 @@ function FooterActions({
   isReadonly: boolean
   isSubmitting: boolean
   canCancelDraft: boolean
+  canCompleteTask: boolean
+  canEditTask: boolean
   awaitingMakerResubmit: boolean
+  onCompleteTask: (decision: string) => void
   onCancel: () => void
   onSaveDraft: () => void
   onSaveAndSubmit: () => void
   onSaveAndRevise: () => void
 }) {
-  if (isReadonly) return null
+  if (isReadonly && !canCompleteTask) return null
 
   return (
     <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
       <div className="flex w-full flex-wrap justify-end gap-2">
-        {awaitingMakerResubmit ? (
+        {canCompleteTask ? (
           <>
-            <Button className="h-8" type="button" disabled={isSubmitting} onClick={onSaveAndRevise}>
-              <Send className="size-4" />
-              Lưu và gửi lại
+            <Button
+              className="h-8"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => onCompleteTask("APPROVE")}
+            >
+              <Check className="size-4" />
+              Phê duyệt
             </Button>
-            <Button className="h-8" type="button" variant="secondary" disabled={isSubmitting} onClick={onSaveDraft}>
+            <Button
+              className="h-8"
+              type="button"
+              variant="outline"
+              disabled={isSubmitting}
+              onClick={() => onCompleteTask("REQUEST_CHANGES")}
+            >
+              <RotateCcw className="size-4" />
+              Yêu cầu chỉnh sửa
+            </Button>
+            <Button
+              className="h-8"
+              type="button"
+              variant="destructive"
+              disabled={isSubmitting}
+              onClick={() => onCompleteTask("REJECT")}
+            >
+              <X className="size-4" />
+              Từ chối
+            </Button>
+          </>
+        ) : awaitingMakerResubmit || canEditTask ? (
+          <>
+            <Button
+              className="h-8"
+              type="button"
+              disabled={isSubmitting}
+              onClick={onSaveAndRevise}
+            >
+              <Send className="size-4" />
+              Gửi phê duyệt
+            </Button>
+            <Button
+              className="h-8"
+              type="button"
+              variant="secondary"
+              disabled={isSubmitting}
+              onClick={onSaveDraft}
+            >
               <Save className="size-4" />
-              Lưu
+              Lưu chỉnh sửa
             </Button>
           </>
         ) : (
-          <Button className="h-8" type="button" disabled={isSubmitting} onClick={onSaveAndSubmit}>
+          <Button
+            className="h-8"
+            type="button"
+            disabled={isSubmitting}
+            onClick={onSaveAndSubmit}
+          >
             <Send className="size-4" />
-            Gửi trình duyệt
+            Gửi phê duyệt
           </Button>
         )}
         {canCancelDraft ? (
-          <Button className="h-8" type="button" variant="outline" disabled={isSubmitting} onClick={onCancel}>
+          <Button
+            className="h-8"
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={onCancel}
+          >
             <X className="size-4" />
             Hủy hồ sơ
           </Button>

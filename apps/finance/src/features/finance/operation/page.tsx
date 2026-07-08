@@ -328,7 +328,9 @@ function FinanceOperationPage({ operation }: { operation: FinanceOperation }) {
               </div>
             )}
           </div>
-          {selected ? <CaseDetailShell item={selected} /> : null}
+          {selected ? (
+            <CaseDetailShell item={selected} readOnly={operation === "outgoing"} />
+          ) : null}
         </div>
       )}
     </FinanceOperationFrame>
@@ -489,11 +491,10 @@ function CaseTable({
                 ) : (
                   <a
                     className="inline-flex h-8 items-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-muted"
-                    href={
-                      item.operation === "incoming"
-                        ? "/workbench/incoming-transactions"
-                        : "/workbench/outgoing-transactions"
-                    }
+                    href={`${item.operation === "incoming"
+                      ? "/workbench/incoming-transactions"
+                      : "/workbench/outgoing-transactions"
+                    }?caseCode=${encodeURIComponent(item.caseCode)}&mode=view`}
                   >
                     <Eye className="size-4" />
                     Mở
@@ -508,7 +509,13 @@ function CaseTable({
   )
 }
 
-function CaseDetailShell({ item }: { item: FinanceOperationCase }) {
+function CaseDetailShell({
+  item,
+  readOnly = false,
+}: {
+  item: FinanceOperationCase
+  readOnly?: boolean
+}) {
   const domainTabs =
     item.operation === "incoming"
       ? [
@@ -548,6 +555,7 @@ function CaseDetailShell({ item }: { item: FinanceOperationCase }) {
             value={formatMoney(item.amount, item.currency)}
           />
         </div>
+        {!readOnly ? (
         <div className="flex flex-wrap gap-2 pt-1">
           <Button size="sm" type="button">
             {item.quickAction}
@@ -559,6 +567,7 @@ function CaseDetailShell({ item }: { item: FinanceOperationCase }) {
             Tạm treo
           </Button>
         </div>
+        ) : null}
       </div>
       <Tabs defaultValue={domainTabs[0]}>
         <TabsList className="flex h-auto flex-wrap justify-start">

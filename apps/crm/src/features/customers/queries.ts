@@ -105,8 +105,8 @@ export function useSaveCustomer() {
             error: "Lưu hồ sơ khách hàng thất bại",
             description: (customer) =>
               customer.customerCode
-                ? `Mã hồ sơ: ${customer.customerCode}. Tiếp theo: bổ sung hồ sơ rồi bấm Trình duyệt.`
-                : "Tiếp theo: bổ sung hồ sơ rồi bấm Trình duyệt.",
+                ? `Mã hồ sơ: ${customer.customerCode}. Tiếp theo: chỉnh sửa hồ sơ rồi gửi phê duyệt.`
+                : "Tiếp theo: chỉnh sửa hồ sơ rồi gửi phê duyệt.",
           })
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
       return result
@@ -200,13 +200,10 @@ export function useCompleteWorkflowTask(role: WorkflowTaskRole) {
       elementId: string
       variables: Record<string, unknown>
     }) => {
-      const result = await runMutation(
-        () => customerApi.completeTask(input),
-        {
-          success: "Đã hoàn tất task quy trình",
-          error: "Hoàn tất task thất bại",
-        }
-      )
+      const result = await runMutation(() => customerApi.completeTask(input), {
+        success: "Đã hoàn tất task quy trình",
+        error: "Hoàn tất task thất bại",
+      })
       queryClient.invalidateQueries({ queryKey: customerKeys.tasks(role) })
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
       return result
@@ -233,7 +230,9 @@ export function useStartAdjustment() {
           error: "Mở điều chỉnh thất bại",
         }
       )
-      queryClient.invalidateQueries({ queryKey: customerKeys.amendment(customerId) })
+      queryClient.invalidateQueries({
+        queryKey: customerKeys.amendment(customerId),
+      })
       return result
     },
   })
@@ -258,7 +257,9 @@ export function useUpdateAmendment(customerId: string) {
           error: "Lưu điều chỉnh thất bại",
         }
       )
-      queryClient.invalidateQueries({ queryKey: customerKeys.amendment(customerId) })
+      queryClient.invalidateQueries({
+        queryKey: customerKeys.amendment(customerId),
+      })
       return result
     },
   })
@@ -276,7 +277,9 @@ export function useSubmitAmendment(customerId: string) {
         }
       )
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
-      queryClient.invalidateQueries({ queryKey: customerKeys.amendment(customerId) })
+      queryClient.invalidateQueries({
+        queryKey: customerKeys.amendment(customerId),
+      })
       queryClient.invalidateQueries({ queryKey: ["workflow"] })
       return result
     },
@@ -294,7 +297,9 @@ export function useCancelAmendment(customerId: string) {
           error: "Hủy điều chỉnh thất bại",
         }
       )
-      queryClient.invalidateQueries({ queryKey: customerKeys.amendment(customerId) })
+      queryClient.invalidateQueries({
+        queryKey: customerKeys.amendment(customerId),
+      })
       return result
     },
   })

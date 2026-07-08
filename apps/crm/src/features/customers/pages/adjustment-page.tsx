@@ -2,12 +2,16 @@ import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useI18n } from "@workspace/i18n"
-import { ArrowLeft, Plus, Save, Send, X } from "lucide-react"
+import { ArrowLeft, Check, Plus, RotateCcw, Save, Send, X } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { CurrentTaskPanel } from "../components/task-panel"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { GeoLocationFields } from "../geo-location-fields"
 import { OrgUnitField } from "../org-unit-field"
 import {
@@ -37,6 +41,7 @@ import {
 } from "../shared/form-utils"
 import {
   hasTaskContext,
+  isViewOnlyTaskContext,
   resolveWorkflowJobKey,
   taskContextFromSearch,
 } from "../shared/task-context"
@@ -74,6 +79,7 @@ export function CustomerAdjustmentPage({
   const submitAmendment = useSubmitAmendment(customerId)
   const cancelAmendment = useCancelAmendment(customerId)
   const completeTask = useCompleteWorkflowTask(taskContext.role)
+  const viewOnly = isViewOnlyTaskContext()
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues,
@@ -82,17 +88,26 @@ export function CustomerAdjustmentPage({
   const amendment = amendmentQuery.data ?? null
   const customerType = form.watch("customerType")
   const isPersonal = customerType === "PERSONAL"
-  const readOnly = amendment?.status === "PENDING"
+  const readOnly = viewOnly || amendment?.status === "PENDING"
   const canEdit = amendment?.status === "DRAFT"
   const canSubmit = canEdit && Boolean(amendment?.id)
   const canCancelDraft = canEdit && Boolean(amendment?.id)
   const canStart =
+    !viewOnly &&
     Boolean(customerId) &&
     customer?.status === "ACTIVE" &&
     !amendment &&
     !amendmentQuery.isFetching
   const awaitingAmendmentResubmit =
     amendment?.status === "DRAFT" && hasTaskContext(taskContext)
+  const canCompleteTask =
+    !viewOnly &&
+    hasTaskContext(taskContext) &&
+    taskContext.role !== "CUSTOMER_MAKER"
+  const canEditTask =
+    !viewOnly &&
+    hasTaskContext(taskContext) &&
+    taskContext.role === "CUSTOMER_MAKER"
 
   useEffect(() => {
     if (!customer) return
@@ -182,11 +197,6 @@ export function CustomerAdjustmentPage({
           {t("crm.customers.adjustments.pending_banner")}
         </div>
       ) : null}
-      <CurrentTaskPanel
-        context={taskContext}
-        completing={completeTask.isPending}
-        onComplete={completeCurrentTask}
-      />
       {canStart ? (
         <div className="flex justify-end">
           <Button
@@ -204,75 +214,115 @@ export function CustomerAdjustmentPage({
           className="space-y-4"
           onSubmit={form.handleSubmit((values) => saveAdjustment(values))}
         >
-          <Tabs defaultValue="general" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
-            </TabsList>
-            <TabsContent value="general" className="space-y-4">
-              <Panel title="Thông tin chung">
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  <FormField label="Loại khách hàng">
-                    <Input value={customerTypeLabel(customerType)} readOnly />
-                  </FormField>
-                  <OrgUnitField form={form} disabled={readOnly} />
-                  <FieldGrid fields={generalFieldsPrimary} form={form} bare />
-                  <GeoLocationFields form={form} />
-                  <FieldGrid fields={generalFieldsRest} form={form} bare />
-                </div>
-              </Panel>
-              {isPersonal ? (
-                <>
-                  <Panel title="Thông tin định danh">
-                    <FieldGrid fields={personalFields} form={form} />
-                  </Panel>
-                  <Panel title="Thông tin mở rộng">
-                    <FieldGrid fields={extendedFields} form={form} />
-                  </Panel>
-                </>
-              ) : (
-                <Panel title="Thông tin doanh nghiệp">
-                  <FieldGrid fields={businessFields} form={form} />
+          <fieldset disabled={readOnly} className="space-y-4">
+            <Tabs defaultValue="general" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
+              </TabsList>
+              <TabsContent value="general" className="space-y-4">
+                <Panel title="Thông tin chung">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <FormField label="Loại khách hàng">
+                      <Input value={customerTypeLabel(customerType)} readOnly />
+                    </FormField>
+                    <OrgUnitField form={form} disabled={readOnly} />
+                    <FieldGrid fields={generalFieldsPrimary} form={form} bare />
+                    <GeoLocationFields form={form} />
+                    <FieldGrid fields={generalFieldsRest} form={form} bare />
+                  </div>
                 </Panel>
-              )}
-            </TabsContent>
-          </Tabs>
-          <fieldset disabled={readOnly} className="space-y-0">
-            <div className="flex flex-wrap justify-end gap-2">
-              {customer ? <StatusBadge status={customer.status} /> : null}
-              <Button
-                type="submit"
-                disabled={!canEdit || updateAmendment.isPending}
-              >
-                <Save className="size-4" />
-                {t("crm.customers.adjustments.save")}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={!canSubmit || submitAmendment.isPending}
-                onClick={form.handleSubmit(async (values) => {
-                  await saveAdjustment(values)
-                  if (!amendment?.id) return
-                  await submitAmendment.mutateAsync(amendment.id)
-                })}
-              >
-                <Send className="size-4" />
-                {t("crm.customers.adjustments.submit")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!canCancelDraft || cancelAmendment.isPending}
-                onClick={() => {
-                  if (!amendment?.id) return
-                  cancelAmendment.mutate(amendment.id)
-                }}
-              >
-                <X className="size-4" />
-                {t("crm.customers.adjustments.cancel_draft")}
-              </Button>
-            </div>
+                {isPersonal ? (
+                  <>
+                    <Panel title="Thông tin định danh">
+                      <FieldGrid fields={personalFields} form={form} />
+                    </Panel>
+                    <Panel title="Thông tin mở rộng">
+                      <FieldGrid fields={extendedFields} form={form} />
+                    </Panel>
+                  </>
+                ) : (
+                  <Panel title="Thông tin doanh nghiệp">
+                    <FieldGrid fields={businessFields} form={form} />
+                  </Panel>
+                )}
+              </TabsContent>
+            </Tabs>
           </fieldset>
+          {!viewOnly ? (
+            <fieldset
+              disabled={readOnly && !canCompleteTask}
+              className="space-y-0"
+            >
+              <div className="flex flex-wrap justify-end gap-2">
+                {customer ? <StatusBadge status={customer.status} /> : null}
+                {canCompleteTask ? (
+                  <>
+                    <Button
+                      type="button"
+                      disabled={completeTask.isPending}
+                      onClick={() => completeCurrentTask("APPROVE")}
+                    >
+                      <Check className="size-4" />
+                      Phê duyệt
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={completeTask.isPending}
+                      onClick={() => completeCurrentTask("REQUEST_CHANGES")}
+                    >
+                      <RotateCcw className="size-4" />
+                      Yêu cầu chỉnh sửa
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={completeTask.isPending}
+                      onClick={() => completeCurrentTask("REJECT")}
+                    >
+                      <X className="size-4" />
+                      Từ chối
+                    </Button>
+                  </>
+                ) : canEditTask || canEdit ? (
+                  <>
+                    <Button
+                      type="submit"
+                      disabled={!canEdit || updateAmendment.isPending}
+                    >
+                      <Save className="size-4" />
+                      Lưu chỉnh sửa
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={!canSubmit || submitAmendment.isPending}
+                      onClick={form.handleSubmit(async (values) => {
+                        await saveAdjustment(values)
+                        if (!amendment?.id) return
+                        await submitAmendment.mutateAsync(amendment.id)
+                      })}
+                    >
+                      <Send className="size-4" />
+                      Gửi phê duyệt
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!canCancelDraft || cancelAmendment.isPending}
+                      onClick={() => {
+                        if (!amendment?.id) return
+                        cancelAmendment.mutate(amendment.id)
+                      }}
+                    >
+                      <X className="size-4" />
+                      {t("crm.customers.adjustments.cancel_draft")}
+                    </Button>
+                  </>
+                ) : null}
+              </div>
+            </fieldset>
+          ) : null}
         </form>
       ) : null}
     </section>
