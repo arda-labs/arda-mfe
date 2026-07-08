@@ -214,6 +214,7 @@ export function useCompleteWorkflowTask(role: WorkflowTaskRole) {
       })
       queryClient.invalidateQueries({ queryKey: customerKeys.tasks(role) })
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
+      queryClient.invalidateQueries({ queryKey: ["workflow"] })
       return result
     },
   })

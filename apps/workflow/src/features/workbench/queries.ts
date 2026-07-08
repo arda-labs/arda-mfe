@@ -37,6 +37,8 @@ export function useWorkItems(
   return useQuery({
     queryKey: workbenchKeys.workItems(filter),
     queryFn: () => workbenchApi.listWorkItems(filter),
+    refetchOnMount: "always",
+    staleTime: 0,
     ...options,
   })
 }
@@ -48,6 +50,8 @@ export function useWorkItemSummary(
   return useQuery({
     queryKey: workbenchKeys.workItemSummary(filter),
     queryFn: () => workbenchApi.listWorkItemSummary(filter),
+    refetchOnMount: "always",
+    staleTime: 0,
     ...options,
   })
 }
