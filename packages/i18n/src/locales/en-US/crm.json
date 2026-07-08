@@ -2,10 +2,10 @@
   "customers": {
     "registrations": {
       "title": "Customer registration",
-      "description": "Capture member customer data, save drafts, or submit for BPM approval.",
-      "submitted_banner": "Submitted and waiting for checker review. Open Workbench → Incoming transactions and filter My work items.",
+      "description": "Capture member customer data, save drafts, or complete the maker step for BPM checker review.",
+      "submitted_banner": "Maker step completed and waiting for checker review. Open Workbench → Incoming transactions and filter My work items.",
       "submitted_open_workbench": "Open outgoing transactions",
-      "toast_submit_success": "Registration submitted",
+      "toast_submit_success": "Registration completed",
       "toast_submit_next_checker": "Case is in BPM. Checkers process it under Workbench → Incoming transactions.",
       "toast_submit_next_maker": "Track progress under Workbench → Incoming transactions."
     },
@@ -19,12 +19,12 @@
     },
     "adjustments": {
       "title": "Customer adjustment",
-      "description": "Save changes in an amendment session and submit for BPM approval before applying to an ACTIVE profile.",
+      "description": "Save changes in an amendment session and complete the maker step before checker review applies it to an ACTIVE profile.",
       "start": "Start adjustment",
       "pending_banner": "Adjustment is pending approval. Checkers should process it from the workbench.",
-      "resubmit_banner": "Amendment needs updates. Save changes and resubmit before completing the BPM task.",
+      "resubmit_banner": "Amendment needs updates. Save changes, then complete the maker step for checker review.",
       "save": "Save changes",
-      "submit": "Submit for approval",
+      "submit": "Complete",
       "cancel_draft": "Cancel draft",
       "action": "Adjust"
     },
@@ -33,8 +33,8 @@
   },
   "workbench": {
     "drafts": {
-      "title": "Unsubmitted drafts",
-      "description": "Drafts across customer registration, finance transactions, and HR onboarding — not yet submitted to BPM. After submit, track under Outgoing.",
+      "title": "Incomplete drafts",
+      "description": "Drafts across customer registration, finance transactions, and HR onboarding — not yet completed by maker. After completion, track under Outgoing.",
       "count": "{count} drafts",
       "load_failed": "Failed to load drafts",
       "partial_load": "Some sources failed to load: {sources}. The list may be incomplete.",
@@ -85,7 +85,7 @@
     },
     "outgoing": {
       "title": "Outgoing transactions",
-      "description": "Cases you submitted and are awaiting approval, plus outgoing finance work."
+      "description": "Cases you completed and are awaiting approval, plus outgoing finance work."
     },
     "search": {
       "title": "Transaction search",

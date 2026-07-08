@@ -105,8 +105,8 @@ export function useSaveCustomer() {
             error: "Lưu hồ sơ khách hàng thất bại",
             description: (customer) =>
               customer.customerCode
-                ? `Mã hồ sơ: ${customer.customerCode}. Tiếp theo: chỉnh sửa hồ sơ rồi gửi phê duyệt.`
-                : "Tiếp theo: chỉnh sửa hồ sơ rồi gửi phê duyệt.",
+                ? `Mã hồ sơ: ${customer.customerCode}. Tiếp theo: chỉnh sửa hồ sơ rồi bấm Hoàn thành.`
+                : "Tiếp theo: chỉnh sửa hồ sơ rồi bấm Hoàn thành.",
           })
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
       return result
@@ -119,8 +119,8 @@ export function useSubmitCustomer() {
   return useMutation({
     mutationFn: async (id: string) => {
       const result = await runMutation(() => customerApi.submit(id), {
-        success: "Đã trình duyệt hồ sơ khách hàng",
-        error: "Trình duyệt hồ sơ thất bại",
+        success: "Đã hoàn thành hồ sơ khách hàng",
+        error: "Hoàn thành hồ sơ thất bại",
         description: (customer) => {
           const caseHint = customer.workflowCaseId
             ? `Case BPM: ${customer.workflowCaseId}. `
@@ -272,8 +272,8 @@ export function useSubmitAmendment(customerId: string) {
       const result = await runMutation(
         () => customerApi.submitAmendment(customerId, amendmentId),
         {
-          success: "Đã trình duyệt điều chỉnh",
-          error: "Trình duyệt điều chỉnh thất bại",
+          success: "Đã hoàn thành điều chỉnh",
+          error: "Hoàn thành điều chỉnh thất bại",
         }
       )
       queryClient.invalidateQueries({ queryKey: customerKeys.all })

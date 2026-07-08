@@ -525,7 +525,7 @@ function FooterActions({
               onClick={onSaveAndRevise}
             >
               <Send className="size-4" />
-              Gửi phê duyệt
+              Hoàn thành
             </Button>
             <Button
               className="h-8"
@@ -546,7 +546,7 @@ function FooterActions({
             onClick={onSaveAndSubmit}
           >
             <Send className="size-4" />
-            Gửi phê duyệt
+            Hoàn thành
           </Button>
         )}
         {canCancelDraft ? (

@@ -304,7 +304,7 @@ export function CustomerAdjustmentPage({
                       })}
                     >
                       <Send className="size-4" />
-                      Gửi phê duyệt
+                      Hoàn thành
                     </Button>
                     <Button
                       type="button"

@@ -49,7 +49,7 @@
   "workbench": {
     "_self": "Công việc",
     "my_tasks": "Chờ tôi xử lý",
-    "drafts": "Nháp chưa trình duyệt",
+    "drafts": "Nháp chưa hoàn thành",
     "incoming_transactions": "Giao dịch đến",
     "outgoing_transactions": "Giao dịch đi",
     "transaction_search": "Tìm kiếm giao dịch"

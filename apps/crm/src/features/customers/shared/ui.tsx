@@ -178,7 +178,7 @@ export function RegistrationStatusBar({ customer }: { customer: Customer | null 
   const config: Record<string, { label: string; classes: string }> = {
     DRAFT: { label: "Nháp", classes: "border-amber-200 bg-amber-50 text-amber-700" },
     NEEDS_CHANGES: { label: "Cần bổ sung", classes: "border-orange-200 bg-orange-50 text-orange-700" },
-    SUBMITTED: { label: "Đã trình duyệt", classes: "border-sky-200 bg-sky-50 text-sky-700" },
+    SUBMITTED: { label: "Đã hoàn thành", classes: "border-sky-200 bg-sky-50 text-sky-700" },
     ACTIVE: { label: "Đã kích hoạt", classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
     REJECTED: { label: "Bị từ chối", classes: "border-red-200 bg-red-50 text-red-700" },
   }

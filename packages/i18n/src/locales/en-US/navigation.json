@@ -49,7 +49,7 @@
   "workbench": {
     "_self": "Workbench",
     "my_tasks": "My tasks",
-    "drafts": "Unsubmitted drafts",
+    "drafts": "Incomplete drafts",
     "incoming_transactions": "Incoming transactions",
     "outgoing_transactions": "Outgoing transactions",
     "transaction_search": "Transaction search"
