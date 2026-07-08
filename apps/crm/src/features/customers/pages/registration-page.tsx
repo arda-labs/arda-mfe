@@ -105,6 +105,16 @@ export function CustomerRegistrationPage({
     !viewOnly &&
     hasTaskContext(taskContext) &&
     taskContext.role !== "CUSTOMER_MAKER"
+  const pageTitle = canEditTask
+    ? "Chỉnh sửa hồ sơ khách hàng"
+    : canCompleteTask
+      ? "Phê duyệt hồ sơ khách hàng"
+      : t("crm.customers.registrations.title")
+  const pageDescription = canEditTask
+    ? "Cập nhật thông tin khách hàng theo yêu cầu của quy trình."
+    : t("crm.customers.registrations.description")
+  const loadingInitialCustomer =
+    taskContextLoading || (Boolean(customerId) && customerQuery.isFetching && !savedCustomer)
   const isSubmitting =
     form.formState.isSubmitting ||
     saveCustomer.isPending ||
@@ -275,6 +285,30 @@ export function CustomerRegistrationPage({
     form.setValue("avatarFileId", result.public_id, { shouldDirty: true })
   }
 
+  if (loadingInitialCustomer) {
+    return (
+      <section className="flex h-full min-h-0 flex-col overflow-hidden">
+        <div className="px-4 pt-4">
+          <PageTitle
+            title={pageTitle}
+            description={pageDescription}
+            actions={
+              <Button variant="ghost" size="sm" onClick={goBack}>
+                <ArrowLeft className="size-4" />
+                Quay lại
+              </Button>
+            }
+          />
+        </div>
+        <div className="p-4">
+          <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
+            Đang tải hồ sơ...
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form
@@ -288,8 +322,8 @@ export function CustomerRegistrationPage({
           <div className="scrollbar-gutter-stable min-h-0 flex-1 overflow-y-auto">
             <div className="px-4 pt-4">
               <PageTitle
-                title={t("crm.customers.registrations.title")}
-                description={t("crm.customers.registrations.description")}
+                title={pageTitle}
+                description={pageDescription}
                 meta={
                   savedCustomer ? (
                     <Badge className="shrink-0" variant="secondary">
