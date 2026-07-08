@@ -67,6 +67,8 @@ export function useCustomer(id: string | null) {
     queryKey: customerKeys.detail(id ?? ""),
     queryFn: () => customerApi.get(id ?? ""),
     enabled: Boolean(id),
+    refetchOnMount: "always",
+    staleTime: 0,
   })
 }
 
@@ -112,6 +114,9 @@ export function useSaveCustomer() {
                 : "Tiếp theo: chỉnh sửa hồ sơ rồi bấm Hoàn thành.",
           })
       queryClient.invalidateQueries({ queryKey: customerKeys.all })
+      if (result.id) {
+        queryClient.setQueryData(customerKeys.detail(result.id), result)
+      }
       return result
     },
   })
