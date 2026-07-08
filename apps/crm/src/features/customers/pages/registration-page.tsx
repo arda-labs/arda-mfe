@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { ArrowLeft, Check, RotateCcw, Save, Send, X } from "lucide-react"
+import { ArrowLeft, Check, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -88,21 +88,21 @@ export function CustomerRegistrationPage({
   const canAddRelationship = isPersonal && !!savedCustomer?.id
   const isSubmitted = savedCustomer?.status === "SUBMITTED"
   const isActive = savedCustomer?.status === "ACTIVE"
+  const canEditTask =
+    !viewOnly &&
+    hasTaskContext(taskContext) &&
+    taskContext.role === "CUSTOMER_MAKER"
   const canCancelDraft =
     savedCustomer?.status === "DRAFT" ||
     savedCustomer?.status === "NEEDS_CHANGES"
   const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
   const needsChangesNoContext =
     awaitingMakerResubmit && !hasTaskContext(taskContext)
-  const isReadonly = viewOnly || isSubmitted || isActive
+  const isReadonly = viewOnly || isActive || (isSubmitted && !canEditTask)
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
     taskContext.role !== "CUSTOMER_MAKER"
-  const canEditTask =
-    !viewOnly &&
-    hasTaskContext(taskContext) &&
-    taskContext.role === "CUSTOMER_MAKER"
   const isSubmitting =
     form.formState.isSubmitting ||
     saveCustomer.isPending ||
@@ -194,7 +194,7 @@ export function CustomerRegistrationPage({
 
       const submitted = await submitCustomer.mutateAsync(saved.id)
       refreshCustomer(submitted)
-      navigateTo(registrationOutgoingHref(submitted))
+      navigateTo(registrationIncomingHref(submitted))
     } finally {
       submittingRef.current = false
     }
@@ -427,6 +427,7 @@ export function CustomerRegistrationPage({
                 onSuccess: () => navigateTo("/workbench/drafts"),
               })
             }}
+            onBack={goBack}
             onSaveDraft={form.handleSubmit(async (values) => {
               const saved = await saveCustomer.mutateAsync({
                 payload: toPayload(
@@ -466,6 +467,7 @@ function FooterActions({
   onSaveDraft,
   onSaveAndSubmit,
   onSaveAndRevise,
+  onBack,
 }: {
   isReadonly: boolean
   isSubmitting: boolean
@@ -478,6 +480,7 @@ function FooterActions({
   onSaveDraft: () => void
   onSaveAndSubmit: () => void
   onSaveAndRevise: () => void
+  onBack: () => void
 }) {
   if (isReadonly && !canCompleteTask) return null
 
@@ -502,18 +505,12 @@ function FooterActions({
               disabled={isSubmitting}
               onClick={() => onCompleteTask("REQUEST_CHANGES")}
             >
-              <RotateCcw className="size-4" />
-              Yêu cầu chỉnh sửa
-            </Button>
-            <Button
-              className="h-8"
-              type="button"
-              variant="destructive"
-              disabled={isSubmitting}
-              onClick={() => onCompleteTask("REJECT")}
-            >
               <X className="size-4" />
               Từ chối
+            </Button>
+            <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+              <ArrowLeft className="size-4" />
+              Quay lại
             </Button>
           </>
         ) : awaitingMakerResubmit || canEditTask ? (
@@ -535,7 +532,7 @@ function FooterActions({
               onClick={onSaveDraft}
             >
               <Save className="size-4" />
-              Lưu chỉnh sửa
+              Lưu nháp
             </Button>
           </>
         ) : (
@@ -546,7 +543,7 @@ function FooterActions({
             onClick={onSaveAndSubmit}
           >
             <Send className="size-4" />
-            Hoàn thành
+            Khởi tạo
           </Button>
         )}
         {canCancelDraft ? (
@@ -561,13 +558,19 @@ function FooterActions({
             Hủy hồ sơ
           </Button>
         ) : null}
+        {awaitingMakerResubmit || canEditTask ? (
+          <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+            <ArrowLeft className="size-4" />
+            Quay lại
+          </Button>
+        ) : null}
       </div>
     </div>
   )
 }
 
-function registrationOutgoingHref(customer: Customer | null) {
+function registrationIncomingHref(customer: Customer | null) {
   const code = customer?.customerCode?.trim()
-  if (!code) return "/workbench/outgoing-transactions"
-  return `/workbench/outgoing-transactions?caseCode=${encodeURIComponent(code)}`
+  if (!code) return "/workbench/incoming-transactions"
+  return `/workbench/incoming-transactions?caseCode=${encodeURIComponent(code)}`
 }

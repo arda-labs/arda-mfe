@@ -119,13 +119,13 @@ export function useSubmitCustomer() {
   return useMutation({
     mutationFn: async (id: string) => {
       const result = await runMutation(() => customerApi.submit(id), {
-        success: "Đã hoàn thành hồ sơ khách hàng",
-        error: "Hoàn thành hồ sơ thất bại",
+        success: "Đã khởi tạo hồ sơ khách hàng",
+        error: "Khởi tạo hồ sơ thất bại",
         description: (customer) => {
           const caseHint = customer.workflowCaseId
             ? `Case BPM: ${customer.workflowCaseId}. `
             : ""
-          return `${caseHint}Theo dõi tại Workbench → Giao dịch đi. Checker xử lý tại Giao dịch đến.`
+          return `${caseHint}Maker chỉnh sửa tại Workbench → Giao dịch đến.`
         },
       })
       queryClient.invalidateQueries({ queryKey: customerKeys.all })

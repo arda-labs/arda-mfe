@@ -2,11 +2,11 @@
   "customers": {
     "registrations": {
       "title": "Đăng ký khách hàng",
-      "description": "Nhập thông tin khách hàng hội viên, lưu nháp hoặc hoàn thành để chuyển checker theo BPM.",
-      "submitted_banner": "Hồ sơ đã hoàn thành bước maker và đang chờ kiểm soát (KS). Maker theo dõi tại Workbench → Giao dịch đi; checker xử lý tại Giao dịch đến.",
-      "submitted_open_workbench": "Mở Giao dịch đi",
-      "toast_submit_success": "Đã hoàn thành hồ sơ",
-      "toast_submit_next_checker": "Hồ sơ vào BPM. Checker (KS_QHKH) xử lý tại Workbench → Giao dịch đến.",
+      "description": "Nhập thông tin khách hàng hội viên, lưu nháp hoặc khởi tạo BPM để maker chỉnh sửa.",
+      "submitted_banner": "Hồ sơ đã vào BPM. Maker xử lý bước chỉnh sửa tại Workbench → Giao dịch đến.",
+      "submitted_open_workbench": "Mở Giao dịch đến",
+      "toast_submit_success": "Đã khởi tạo hồ sơ",
+      "toast_submit_next_checker": "Hồ sơ vào BPM. Maker xử lý bước chỉnh sửa tại Workbench → Giao dịch đến.",
       "toast_submit_next_maker": "Theo dõi tại Workbench → Giao dịch đến."
     },
     "profiles": {
@@ -85,7 +85,7 @@
     },
     "outgoing": {
       "title": "Giao dịch đi",
-      "description": "Hồ sơ bạn đã hoàn thành đang chờ KS/BPM, và giao dịch đi kế toán cần xử lý."
+      "description": "Hồ sơ bạn đã hoàn thành bước maker đang chờ KS/BPM, và giao dịch đi kế toán cần xử lý."
     },
     "search": {
       "title": "Tìm kiếm giao dịch",

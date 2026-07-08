@@ -2,11 +2,11 @@
   "customers": {
     "registrations": {
       "title": "Customer registration",
-      "description": "Capture member customer data, save drafts, or complete the maker step for BPM checker review.",
-      "submitted_banner": "Maker step completed and waiting for checker review. Open Workbench → Incoming transactions and filter My work items.",
-      "submitted_open_workbench": "Open outgoing transactions",
-      "toast_submit_success": "Registration completed",
-      "toast_submit_next_checker": "Case is in BPM. Checkers process it under Workbench → Incoming transactions.",
+      "description": "Capture member customer data, save drafts, or start BPM for maker editing.",
+      "submitted_banner": "Case is in BPM. Makers process the edit step under Workbench → Incoming transactions.",
+      "submitted_open_workbench": "Open incoming transactions",
+      "toast_submit_success": "Registration started",
+      "toast_submit_next_checker": "Case is in BPM. Makers process the edit step under Workbench → Incoming transactions.",
       "toast_submit_next_maker": "Track progress under Workbench → Incoming transactions."
     },
     "profiles": {
@@ -85,7 +85,7 @@
     },
     "outgoing": {
       "title": "Outgoing transactions",
-      "description": "Cases you completed and are awaiting approval, plus outgoing finance work."
+      "description": "Cases where you completed the maker step and are awaiting approval, plus outgoing finance work."
     },
     "search": {
       "title": "Transaction search",
