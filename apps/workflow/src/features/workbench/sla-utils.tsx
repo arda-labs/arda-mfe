@@ -136,23 +136,12 @@ export function TimeProgress({ item }: { item: { status?: string; slaStatus?: Sl
           <p className="text-[9px] text-muted-foreground/60 mt-0.5">Bắt đầu</p>
         </div>
 
-        {/* SLA badge giữa */}
-        {sla ? (
+        {/* SLA duration */}
+        {item.createdAt && item.slaDueAt ? (
           <div className="shrink-0 text-center">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium leading-none",
-                sla.className
-              )}
-            >
-              <span className={cn("size-1.5 rounded-full", sla.dotColor)} />
-              {sla.label}
+            <span className="inline-flex items-center rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px] font-medium leading-none tabular-nums text-foreground">
+              {slaDurationLabel(item.createdAt, item.slaDueAt)}
             </span>
-            {sla.detail && (
-              <p className="mt-0.5 text-[9px] text-muted-foreground tabular-nums leading-tight">
-                {sla.detail}
-              </p>
-            )}
           </div>
         ) : (
           <div className="shrink-0 text-center">
@@ -200,6 +189,13 @@ function formatDate(value?: string) {
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
   return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+}
+
+function slaDurationLabel(createdAt: string, slaDueAt: string) {
+  const start = new Date(createdAt).getTime()
+  const end = new Date(slaDueAt).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return "-"
+  return durationLabel(Math.max(0, end - start))
 }
 
 export function slaInfo(
