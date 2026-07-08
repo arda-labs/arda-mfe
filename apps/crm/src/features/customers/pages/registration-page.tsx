@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { Save, Send, X } from "lucide-react"
+import { ArrowLeft, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -253,6 +253,12 @@ export function CustomerRegistrationPage({
                       {savedCustomer.status}
                     </Badge>
                   ) : null
+                }
+                actions={
+                  <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+                    <ArrowLeft className="size-4" />
+                    Quay lại
+                  </Button>
                 }
               />
             </div>

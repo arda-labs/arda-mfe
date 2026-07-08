@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useI18n } from "@workspace/i18n"
-import { Plus, Save, Send, X } from "lucide-react"
+import { ArrowLeft, Plus, Save, Send, X } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -132,10 +132,16 @@ export function CustomerAdjustmentPage({
 
   return (
     <section className="space-y-4">
-      <Header
-        title={t("crm.customers.adjustments.title")}
-        description={t("crm.customers.adjustments.description")}
-      />
+      <header className="flex items-start justify-between gap-3">
+        <Header
+          title={t("crm.customers.adjustments.title")}
+          description={t("crm.customers.adjustments.description")}
+        />
+        <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+          <ArrowLeft className="size-4" />
+          Quay lại
+        </Button>
+      </header>
       {customerQuery.isFetching || amendmentQuery.isFetching ? (
         <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
           Đang tải hồ sơ...
