@@ -19,6 +19,10 @@ import { WorkItemTree } from "./workbench-tree"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
 import { workItemColumns, searchColumns } from "./workbench-columns"
 import { navigateTo } from "./nav"
+import {
+  useWorkbenchBurstRefetch,
+  workbenchExpectCaseCode,
+} from "./burst-refetch"
 
 const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 
@@ -84,8 +88,11 @@ function TransactionWorkbenchInner({
     return next
   }, [baseFilter, filters])
 
-  const workItemsQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
-  const summaryQuery = useWorkItemSummary(baseFilter, { refetchInterval: 15000 })
+  const expectCaseCode = workbenchExpectCaseCode()
+  const refetchInterval = useWorkbenchBurstRefetch(expectCaseCode)
+
+  const workItemsQuery = useWorkItems(queryFilter, { refetchInterval })
+  const summaryQuery = useWorkItemSummary(baseFilter, { refetchInterval })
   const claimWorkItem = useClaimWorkItem()
 
   const items = useMemo(
@@ -212,7 +219,9 @@ export function TransactionSearchPage() {
     return next
   }, [filters])
 
-  const searchQuery = useWorkItems(queryFilter, { refetchInterval: 15000 })
+  const expectCaseCode = workbenchExpectCaseCode()
+  const refetchInterval = useWorkbenchBurstRefetch(expectCaseCode)
+  const searchQuery = useWorkItems(queryFilter, { refetchInterval })
   const items = searchQuery.data ?? []
 
   const openItem = useCallback((item: WorkItem) => {

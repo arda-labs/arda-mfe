@@ -38,16 +38,36 @@ TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 const TabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  const localRef = React.useRef<HTMLDivElement | null>(null)
+
+  React.useImperativeHandle(ref, () => localRef.current as HTMLDivElement)
+
+  React.useLayoutEffect(() => {
+    const node = localRef.current
+    if (!node) return
+    // Radix focuses the active panel on tab change; without preventScroll the
+    // browser scrolls the panel into view and jumps sticky page chrome.
+    const nativeFocus = node.focus.bind(node)
+    node.focus = ((options?: FocusOptions) => {
+      nativeFocus({ ...options, preventScroll: true })
+    }) as HTMLElement["focus"]
+    return () => {
+      node.focus = nativeFocus
+    }
+  }, [])
+
+  return (
+    <TabsPrimitive.Content
+      ref={localRef}
+      className={cn(
+        "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 TabsContent.displayName = TabsPrimitive.Content.displayName
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }

@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { notify } from "@workspace/notifications/notify"
 import { navigateTo } from "@workspace/core/routing"
@@ -124,22 +124,21 @@ export async function resolveWorkflowJobKey(
   }
 }
 
-export function taskContextFromSearch(): CustomerTaskContext {
-  const params = new URLSearchParams(window.location.search)
-  return {
-    customerId: params.get("customerId"),
-    caseId: params.get("caseId"),
-    caseCode: params.get("caseCode"),
-    taskKey: stringParam(params, "taskKey"),
-    processInstanceKey: stringParam(params, "processInstanceKey"),
-    elementId: params.get("elementId"),
-    role: roleParam(params.get("role")),
-  }
-}
-
 export function useCustomerTaskContext() {
-  const workItemId = workItemIdFromSearch()
-  const fallback = useMemo(() => taskContextFromSearch(), [])
+  const [search, setSearch] = useState(() =>
+    typeof window === "undefined" ? "" : window.location.search
+  )
+  useEffect(() => {
+    const sync = () => setSearch(window.location.search)
+    window.addEventListener("popstate", sync)
+    return () => window.removeEventListener("popstate", sync)
+  }, [])
+
+  const workItemId = stringParam(new URLSearchParams(search), "workItemId")
+  const fallback = useMemo(
+    () => taskContextFromSearchParams(new URLSearchParams(search)),
+    [search]
+  )
   const workItemQuery = useQuery({
     queryKey: ["crm", "workflow-work-item", workItemId ?? ""],
     queryFn: () => customerApi.getWorkflowWorkItem(workItemId ?? ""),
@@ -168,10 +167,6 @@ function taskContextFromWorkItem(item: WorkflowWorkItem): CustomerTaskContext {
   }
 }
 
-function workItemIdFromSearch() {
-  return stringParam(new URLSearchParams(window.location.search), "workItemId")
-}
-
 export function hasTaskContext(context: CustomerTaskContext) {
   return Boolean(context.caseId || context.taskKey || context.elementId)
 }
@@ -198,4 +193,22 @@ export function roleParam(value: string | null): WorkflowTaskRole {
 
 export function customerIdFromSearch() {
   return taskContextFromSearch().customerId
+}
+
+export function taskContextFromSearchParams(
+  params: URLSearchParams
+): CustomerTaskContext {
+  return {
+    customerId: params.get("customerId"),
+    caseId: params.get("caseId"),
+    caseCode: params.get("caseCode"),
+    taskKey: stringParam(params, "taskKey"),
+    processInstanceKey: stringParam(params, "processInstanceKey"),
+    elementId: params.get("elementId"),
+    role: roleParam(params.get("role")),
+  }
+}
+
+export function taskContextFromSearch(): CustomerTaskContext {
+  return taskContextFromSearchParams(new URLSearchParams(window.location.search))
 }

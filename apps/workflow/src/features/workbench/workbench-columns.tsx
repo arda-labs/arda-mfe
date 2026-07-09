@@ -15,8 +15,11 @@ export function workItemColumns(
     {
       id: "info",
       header: isIncoming ? "Thông tin giao dịch" : "Thông tin tác vụ giao dịch",
+      size: 420,
+      minSize: 280,
+      maxSize: 560,
       cell: ({ row }) => (
-        <div className="min-w-[26rem] max-w-[44rem]">
+        <div className="w-full min-w-0 max-w-md whitespace-normal">
           <WorkItemCard item={row.original} claiming={claiming} onOpen={onOpen} />
         </div>
       ),
@@ -107,8 +110,11 @@ export function searchColumns(
     {
       id: "info",
       header: "Thông tin giao dịch",
+      size: 420,
+      minSize: 280,
+      maxSize: 560,
       cell: ({ row }) => (
-        <div className="min-w-[26rem] max-w-[44rem]">
+        <div className="w-full min-w-0 max-w-md whitespace-normal">
           <WorkItemCard item={row.original} claiming={false} onOpen={onOpen} />
         </div>
       ),

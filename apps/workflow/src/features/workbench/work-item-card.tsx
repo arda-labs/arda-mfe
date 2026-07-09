@@ -37,13 +37,13 @@ export function WorkItemCard({
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
         </span>
       ) : null}
-      <div className="min-w-0 flex-1 space-y-1.5">
+      <div className="min-w-0 flex-1 space-y-1.5 overflow-hidden">
         <CodeBadge code={item.caseCode} />
-        <p className="truncate text-sm font-medium text-foreground group-hover:text-accent-foreground">
+        <p className="line-clamp-2 text-pretty text-sm font-medium text-foreground group-hover:text-accent-foreground">
           {item.title}
         </p>
         {item.description || item.summary ? (
-          <p className="line-clamp-2 whitespace-normal break-words text-xs leading-5 text-muted-foreground">
+          <p className="line-clamp-3 w-full min-w-0 whitespace-normal break-words text-pretty text-xs leading-5 text-muted-foreground">
             {item.description || item.summary}
           </p>
         ) : null}

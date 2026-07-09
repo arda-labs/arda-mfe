@@ -7,7 +7,7 @@ const CustomersPage = lazy(() =>
 
 export default function Routes() {
   return (
-    <div className="h-full min-h-0">
+    <div className="flex h-full min-h-0 flex-col">
       <Suspense fallback={null}>
         <CrmRoutes />
       </Suspense>

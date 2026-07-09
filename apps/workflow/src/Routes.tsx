@@ -12,7 +12,7 @@ export default function Routes() {
   const pathname = usePathname("/workflow/case-types")
 
   return (
-    <div className="h-full min-h-0">
+    <div className="flex h-full min-h-0 flex-col">
       <Suspense fallback={null}>
         {pathname.startsWith("/workbench/") ? (
           <WorkbenchPage pathname={pathname} />

@@ -14,7 +14,7 @@ export function Page({
     return (
       <section
         className={cn(
-          "flex h-full min-h-[calc(100dvh-7.5rem)] flex-col gap-3",
+          "flex h-full min-h-0 flex-col gap-3 overflow-hidden p-4",
           className,
         )}
       >
@@ -23,6 +23,6 @@ export function Page({
     )
   }
   return (
-    <div className={cn("flex flex-col gap-4", className)}>{children}</div>
+    <div className={cn("flex flex-col gap-4 p-4", className)}>{children}</div>
   )
 }

@@ -90,13 +90,12 @@ export function RegistrationsPage() {
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={form.handleSubmit((values) => save(values))}>
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter:stable]">
-          <RegistrationMetaBar registration={savedRegistration} />
-          <Tabs defaultValue="general" className="space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+          <div className="space-y-4 p-4 pb-3">
+            <RegistrationMetaBar registration={savedRegistration} />
             <CollapsingPageTitle
               title="Đăng ký nhân sự"
               description="Nhập hồ sơ nhân sự và trình duyệt theo quy trình BPM HRM_EMPLOYEE_REGISTRATION."
-              collapsedContent={<RegistrationTabsList compact />}
               meta={
                 <>
                   {savedRegistration ? (
@@ -119,30 +118,35 @@ export function RegistrationsPage() {
                   </Button>
                 ) : null
               }
-            >
+            />
+          </div>
+          <Tabs defaultValue="general" className="flex flex-col">
+            <div className="sticky top-0 z-10 border-b bg-background px-4 py-2">
               <RegistrationTabsList />
-            </CollapsingPageTitle>
-            <TabsContent value="general" className="mt-0 space-y-4">
-              <RegistrationGeneralPanel
-                avatarFileId={avatarFileId ?? ""}
-                form={form}
-                orgUnits={orgUnits.data ?? []}
-                uploadingAvatar={uploadAvatar.isPending}
-                onClearAvatar={() => form.setValue("avatar_file_id", "", { shouldDirty: true })}
-                onUploadAvatar={uploadAvatarFile}
-              />
-              <AssignmentsTable form={form} orgUnits={orgUnits.data ?? []} positions={positions.data ?? []} />
-              <EducationsTable form={form} />
-            </TabsContent>
-            <TabsContent value="family" className="mt-0">
-              <FamilyTable form={form} />
-            </TabsContent>
-            <TabsContent value="delegation" className="mt-0">
-              <DelegationsTable form={form} />
-            </TabsContent>
-            <TabsContent value="attachments" className="mt-0">
-              <AttachmentsTable form={form} />
-            </TabsContent>
+            </div>
+            <div className="space-y-4 p-4">
+              <TabsContent value="general" className="mt-0 space-y-4">
+                <RegistrationGeneralPanel
+                  avatarFileId={avatarFileId ?? ""}
+                  form={form}
+                  orgUnits={orgUnits.data ?? []}
+                  uploadingAvatar={uploadAvatar.isPending}
+                  onClearAvatar={() => form.setValue("avatar_file_id", "", { shouldDirty: true })}
+                  onUploadAvatar={uploadAvatarFile}
+                />
+                <AssignmentsTable form={form} orgUnits={orgUnits.data ?? []} positions={positions.data ?? []} />
+                <EducationsTable form={form} />
+              </TabsContent>
+              <TabsContent value="family" className="mt-0">
+                <FamilyTable form={form} />
+              </TabsContent>
+              <TabsContent value="delegation" className="mt-0">
+                <DelegationsTable form={form} />
+              </TabsContent>
+              <TabsContent value="attachments" className="mt-0">
+                <AttachmentsTable form={form} />
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
         <div className="flex h-[52px] shrink-0 items-center border-t bg-background px-4">

@@ -493,7 +493,7 @@ export function ShellLayout({
             {pageTitle?.hideTitle ? null : (
               <span
                 className={cn(
-                  "min-w-0 truncate text-sm font-semibold transition-[opacity,transform] duration-150",
+                  "min-w-0 truncate text-base font-semibold transition-[opacity,transform] duration-150",
                   pageTitle?.collapsed
                     ? "translate-y-0 opacity-100"
                     : "pointer-events-none -translate-y-1 opacity-0"
@@ -504,7 +504,7 @@ export function ShellLayout({
             )}
             <div
               id={SHELL_PAGE_HEADER_SLOT_ID}
-              className="min-w-0 flex-1 overflow-hidden"
+              className="min-w-0 flex-1 overflow-hidden empty:hidden"
             />
           </div>
           <div className="flex items-center gap-2">

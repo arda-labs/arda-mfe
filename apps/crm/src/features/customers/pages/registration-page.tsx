@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
 import type { Customer, CustomerType } from "../api"
+import { customerApi } from "../api"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { RelationshipsPanel } from "../components/relationships-panel"
 import { GeoLocationFields } from "../geo-location-fields"
@@ -47,6 +48,7 @@ import {
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
   useCustomerTaskContext,
+  workflowKey,
 } from "../shared/task-context"
 import {
   AvatarUploader,
@@ -212,7 +214,7 @@ export function CustomerRegistrationPage({
 
       const submitted = await submitCustomer.mutateAsync(saved.id)
       refreshCustomer(submitted)
-      navigateTo(registrationIncomingHref(submitted))
+      navigateTo(await registrationMakerEditHref(submitted))
     } finally {
       submittingRef.current = false
     }
@@ -294,14 +296,9 @@ export function CustomerRegistrationPage({
   if (loadingInitialCustomer || taskContextError) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
-        <div className="px-4 pt-4">
-          <PageTitle
-            title={pageTitle}
-            description={pageDescription}
-          />
-        </div>
-        <div className="min-h-0 flex-1 p-4">
-          <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter:stable]">
+          <PageTitle title={pageTitle} description={pageDescription} />
+          <div className="mt-4 rounded-md border px-4 py-3 text-sm text-muted-foreground">
             {taskContextError
               ? "Khong tai duoc thong tin task. Vui long quay lai Giao dich den va mo lai ho so."
               : "Dang tai ho so..."}
@@ -321,9 +318,9 @@ export function CustomerRegistrationPage({
           handleInvalid
         )}
       >
-        <Tabs defaultValue="general" className="flex min-h-0 flex-1 flex-col">
-          <div className="scrollbar-gutter-stable min-h-0 flex-1 overflow-y-auto">
-            <div className="px-4 pt-4">
+        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+          <Tabs defaultValue="general" className="flex flex-col">
+            <div className="space-y-4 p-4 pb-3">
               <PageTitle
                 title={pageTitle}
                 description={pageDescription}
@@ -336,157 +333,156 @@ export function CustomerRegistrationPage({
                 }
               />
             </div>
-            <div className="sticky top-0 z-10 border-b bg-background px-4 pb-3">
+            <div className="sticky top-0 z-10 border-b bg-background px-4 py-2">
               <CustomerRegistrationTabsList
                 isPersonal={isPersonal}
                 canAddRelationship={canAddRelationship}
               />
             </div>
             <div className="space-y-4 p-4">
-              {customerQuery.isFetching ? (
-                <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-                  Đang tải hồ sơ...
-                </div>
-              ) : null}
-              <RegistrationStatusBar customer={savedCustomer} />
-              {needsChangesNoContext ? (
-                <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-                  <p className="font-medium">Hồ sơ cần chỉnh sửa thông tin</p>
-                  <p className="mt-1">
-                    Quản lý yêu cầu chỉnh sửa. Mở từ{" "}
-                    <strong>Workbench → Giao dịch đến</strong> để xem chi tiết.
-                  </p>
-                </div>
-              ) : null}
-              <TabsContent value="general" className="mt-0 space-y-4">
-                <fieldset disabled={isReadonly} className="space-y-4">
-                  <Panel title="Thông tin chung">
-                    <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
-                      <div className="space-y-3">
-                        <FormField label="Loại khách hàng">
-                          <Controller
-                            control={form.control}
-                            name="customerType"
-                            render={({ field }) => (
-                              <Select
-                                value={field.value}
-                                onValueChange={(value) =>
-                                  field.onChange(value as CustomerType)
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {selectOptions.customerType.map((option) => (
-                                    <SelectItem
-                                      key={option.value}
-                                      value={option.value}
-                                    >
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
-                          />
-                        </FormField>
-                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                          <OrgUnitField form={form} />
-                          <FieldGrid
-                            fields={generalFieldsPrimary}
-                            form={form}
-                            bare
-                          />
-                          <GeoLocationFields form={form} />
-                          <FieldGrid
-                            fields={generalFieldsRest}
-                            form={form}
-                            bare
-                          />
-                        </div>
+            {customerQuery.isFetching ? (
+              <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
+                Đang tải hồ sơ...
+              </div>
+            ) : null}
+            <RegistrationStatusBar customer={savedCustomer} />
+            {needsChangesNoContext ? (
+              <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                <p className="font-medium">Hồ sơ cần chỉnh sửa thông tin</p>
+                <p className="mt-1">
+                  Quản lý yêu cầu chỉnh sửa. Mở từ{" "}
+                  <strong>Workbench → Giao dịch đến</strong> để xem chi tiết.
+                </p>
+              </div>
+            ) : null}
+            <TabsContent value="general" className="mt-0 space-y-4">
+              <fieldset disabled={isReadonly} className="space-y-4">
+                <Panel title="Thông tin chung">
+                  <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
+                    <div className="space-y-3">
+                      <FormField label="Loại khách hàng">
+                        <Controller
+                          control={form.control}
+                          name="customerType"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value}
+                              onValueChange={(value) =>
+                                field.onChange(value as CustomerType)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {selectOptions.customerType.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </FormField>
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        <OrgUnitField form={form} />
+                        <FieldGrid
+                          fields={generalFieldsPrimary}
+                          form={form}
+                          bare
+                        />
+                        <GeoLocationFields form={form} />
+                        <FieldGrid
+                          fields={generalFieldsRest}
+                          form={form}
+                          bare
+                        />
                       </div>
-                      <AvatarUploader
-                        fileId={form.watch("avatarFileId")}
-                        uploading={uploadAvatar.isPending}
-                        onClear={() =>
-                          form.setValue("avatarFileId", "", {
-                            shouldDirty: true,
-                          })
-                        }
-                        onUpload={uploadAvatarFile}
-                      />
                     </div>
-                  </Panel>
-                  {isPersonal ? (
-                    <>
-                      <Panel title="Thông tin định danh">
-                        <FieldGrid fields={personalFields} form={form} />
-                      </Panel>
-                      <Panel title="Thông tin mở rộng">
-                        <FieldGrid fields={extendedFields} form={form} />
-                      </Panel>
-                    </>
-                  ) : (
-                    <Panel title="Thông tin doanh nghiệp">
-                      <FieldGrid fields={businessFields} form={form} />
+                    <AvatarUploader
+                      fileId={form.watch("avatarFileId")}
+                      uploading={uploadAvatar.isPending}
+                      onClear={() =>
+                        form.setValue("avatarFileId", "", {
+                          shouldDirty: true,
+                        })
+                      }
+                      onUpload={uploadAvatarFile}
+                    />
+                  </div>
+                </Panel>
+                {isPersonal ? (
+                  <>
+                    <Panel title="Thông tin định danh">
+                      <FieldGrid fields={personalFields} form={form} />
                     </Panel>
-                  )}
-                </fieldset>
+                    <Panel title="Thông tin mở rộng">
+                      <FieldGrid fields={extendedFields} form={form} />
+                    </Panel>
+                  </>
+                ) : (
+                  <Panel title="Thông tin doanh nghiệp">
+                    <FieldGrid fields={businessFields} form={form} />
+                  </Panel>
+                )}
+              </fieldset>
+            </TabsContent>
+            {isPersonal ? (
+              <TabsContent value="relationships" className="mt-0">
+                {savedCustomer ? (
+                  <RelationshipsPanel customer={savedCustomer} />
+                ) : (
+                  <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
+                    Gửi hồ sơ khách hàng trước khi khai báo người có liên quan.
+                  </div>
+                )}
               </TabsContent>
-              {isPersonal ? (
-                <TabsContent value="relationships" className="mt-0">
-                  {savedCustomer ? (
-                    <RelationshipsPanel customer={savedCustomer} />
-                  ) : (
-                    <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
-                      Gửi hồ sơ khách hàng trước khi khai báo người có liên
-                      quan.
-                    </div>
-                  )}
-                </TabsContent>
-              ) : null}
+            ) : null}
             </div>
-          </div>
-          <FooterActions
-            isReadonly={isReadonly}
-            isSubmitting={isSubmitting}
-            canCancelDraft={canCancelDraft}
-            canCompleteTask={canCompleteTask}
-            canEditTask={canEditTask}
-            awaitingMakerResubmit={
-              awaitingMakerResubmit && hasTaskContext(taskContext)
+          </Tabs>
+        </div>
+        <FooterActions
+          isReadonly={isReadonly}
+          isSubmitting={isSubmitting}
+          canCancelDraft={canCancelDraft}
+          canCompleteTask={canCompleteTask}
+          canEditTask={canEditTask}
+          awaitingMakerResubmit={
+            awaitingMakerResubmit && hasTaskContext(taskContext)
+          }
+          onCompleteTask={completeCurrentTask}
+          onCancel={() => {
+            if (!savedCustomer?.id) return
+            cancelCustomer.mutate(savedCustomer.id, {
+              onSuccess: () => navigateTo("/workbench/drafts"),
+            })
+          }}
+          onBack={goBack}
+          onSaveDraft={form.handleSubmit(async (values) => {
+            const saved = await saveCustomer.mutateAsync({
+              payload: toPayload(
+                values,
+                savedCustomer?.id,
+                savedCustomer?.status
+              ),
+            })
+            refreshCustomer(saved)
+            const params = new URLSearchParams(window.location.search)
+            if (!params.has("customerId")) {
+              params.set("customerId", saved.id)
+              navigateTo(`/customers/registrations?${params.toString()}`)
             }
-            onCompleteTask={completeCurrentTask}
-            onCancel={() => {
-              if (!savedCustomer?.id) return
-              cancelCustomer.mutate(savedCustomer.id, {
-                onSuccess: () => navigateTo("/workbench/drafts"),
-              })
-            }}
-            onBack={goBack}
-            onSaveDraft={form.handleSubmit(async (values) => {
-              const saved = await saveCustomer.mutateAsync({
-                payload: toPayload(
-                  values,
-                  savedCustomer?.id,
-                  savedCustomer?.status
-                ),
-              })
-              refreshCustomer(saved)
-              const params = new URLSearchParams(window.location.search)
-              if (!params.has("customerId")) {
-                params.set("customerId", saved.id)
-                navigateTo(`/customers/registrations?${params.toString()}`)
-              }
-            }, handleInvalid)}
-            onSaveAndSubmit={form.handleSubmit(saveAndSubmit, handleInvalid)}
-            onSaveAndRevise={form.handleSubmit(
-              (values) => saveAndCompleteTask(values, "APPROVE"),
-              handleInvalid
-            )}
-          />
-        </Tabs>
+          }, handleInvalid)}
+          onSaveAndSubmit={form.handleSubmit(saveAndSubmit, handleInvalid)}
+          onSaveAndRevise={form.handleSubmit(
+            (values) => saveAndCompleteTask(values, "APPROVE"),
+            handleInvalid
+          )}
+        />
       </form>
     </section>
   )
@@ -613,4 +609,29 @@ function registrationIncomingHref(customer: Customer | null) {
   const code = customer?.customerCode?.trim()
   if (!code) return "/workbench/incoming-transactions"
   return `/workbench/incoming-transactions?caseCode=${encodeURIComponent(code)}`
+}
+
+/** After khởi tạo: open maker edit screen directly (skip workbench click). */
+async function registrationMakerEditHref(customer: Customer) {
+  const caseId = customer.workflowCaseId?.trim()
+  if (!caseId) return registrationIncomingHref(customer)
+
+  try {
+    const wfCase = await customerApi.getWorkflowCase(caseId)
+    const processInstanceKey = workflowKey(wfCase.processInstanceKey)
+    if (!processInstanceKey) return registrationIncomingHref(customer)
+
+    const params = new URLSearchParams({
+      customerId: customer.id,
+      caseId,
+      caseCode: wfCase.caseCode || customer.customerCode,
+      processInstanceKey,
+      elementId: "UT_MakerRevise",
+      role: "CUSTOMER_MAKER",
+      returnUrl: "/workbench/incoming-transactions",
+    })
+    return `/customers/registrations?${params.toString()}`
+  } catch {
+    return registrationIncomingHref(customer)
+  }
 }

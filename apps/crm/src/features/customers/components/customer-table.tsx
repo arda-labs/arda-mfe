@@ -36,7 +36,7 @@ export function CustomerTable({
   const items = customersQuery.data ?? []
 
   return (
-    <section className="space-y-4">
+    <section className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4">
       <Header title={title} description={description} />
       <form
         className="flex flex-col gap-2 sm:flex-row"

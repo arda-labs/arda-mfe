@@ -132,6 +132,17 @@ export interface WorkflowWorkItem {
   candidateRole?: string
 }
 
+export interface WorkflowCase {
+  id: string
+  caseCode: string
+  caseType: string
+  primaryObjectId?: string
+  processInstanceKey?: string | number
+  currentStep?: string
+  candidateRole?: string
+  status: string
+}
+
 export const customerApi = {
   list(params: CustomerListParams = {}) {
     return getItems<Customer>("/api/crm/customers", params)
@@ -200,6 +211,12 @@ export const customerApi = {
   getWorkflowWorkItem(id: string) {
     return request<WorkflowWorkItem>(
       `/api/workflow/work-items/${encodeURIComponent(id)}`,
+      { method: "GET" }
+    )
+  },
+  getWorkflowCase(id: string) {
+    return request<WorkflowCase>(
+      `/api/workflow/cases/${encodeURIComponent(id)}`,
       { method: "GET" }
     )
   },

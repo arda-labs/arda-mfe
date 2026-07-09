@@ -324,11 +324,9 @@ async function getItems<T>(path: string, key = "items") {
 function toWorkItemSearch(filter: WorkItemFilter) {
   const search = new URLSearchParams()
   setSearch(search, "keyword", filter.keyword)
-  setSearch(
-    search,
-    "direction",
-    filter.direction === "ALL" ? undefined : filter.direction
-  )
+  // Keep direction=ALL — omitting it makes the API default to INCOMING
+  // and permission-filter the list, so search looks empty.
+  setSearch(search, "direction", filter.direction)
   setSearch(search, "fromDate", filter.fromDate)
   setSearch(search, "toDate", filter.toDate)
   setSearch(

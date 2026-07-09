@@ -1,14 +1,24 @@
+import { cn } from "@workspace/ui/lib/utils"
 import { TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
 export function CustomerRegistrationTabsList({
   isPersonal,
   canAddRelationship,
+  compact = false,
 }: {
   isPersonal: boolean
   canAddRelationship: boolean
+  compact?: boolean
 }) {
   return (
-    <TabsList className="flex h-auto flex-wrap justify-start">
+    <TabsList
+      className={cn(
+        "flex h-auto justify-start",
+        compact
+          ? "max-w-full flex-nowrap overflow-x-auto scrollbar-none"
+          : "flex-wrap"
+      )}
+    >
       <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
       {isPersonal ? (
         <TabsTrigger value="relationships" disabled={!canAddRelationship}>
@@ -17,4 +27,4 @@ export function CustomerRegistrationTabsList({
       ) : null}
     </TabsList>
   )
-}
+}
