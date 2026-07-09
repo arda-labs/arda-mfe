@@ -2,7 +2,6 @@ import { useEffect } from "react"
 import { i18n } from "@workspace/i18n"
 import { notificationsApi } from "./api"
 import { maybeShowBrowserNotification } from "./browser-notification"
-import { useInboxToastStore } from "./inbox-toast-store"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem, UnreadCountResponse } from "./types"
 
@@ -131,12 +130,7 @@ function pushToast(notification: NotificationItem) {
     notification.params
   )
   if (!title && !body) return
-
-  useInboxToastStore.getState().push({
-    notification,
-    title: title || "Thông báo",
-    body: body || undefined,
-  })
+  // In-app: bell badge only. OS banner via Web Push / Notification API.
   maybeShowBrowserNotification(notification, title || "Thông báo", body || "")
 }
 

@@ -11,12 +11,14 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { cn } from "@workspace/ui/lib/utils"
 import { notificationsApi } from "./api"
 import {
-  browserNotificationsSupported,
   getBrowserNotificationPermission,
   isBrowserNotificationPreferred,
-  requestBrowserNotificationPermission,
-  setBrowserNotificationPreferred,
 } from "./browser-notification"
+import {
+  disableWebPush,
+  enableWebPush,
+  webPushSupported,
+} from "./web-push"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem } from "./types"
 
@@ -56,18 +58,20 @@ export function NotificationBell() {
   }
 
   const handleEnableBrowser = async () => {
-    const result = await requestBrowserNotificationPermission()
-    setBrowserPermission(result)
+    const result = await enableWebPush()
+    setBrowserPermission(
+      result === "granted" || result === "denied" ? result : getBrowserNotificationPermission()
+    )
     setBrowserPreferred(isBrowserNotificationPreferred())
   }
 
   const handleDisableBrowser = () => {
-    setBrowserNotificationPreferred(false)
+    void disableWebPush()
     setBrowserPreferred(false)
   }
 
   const showBrowserPrompt =
-    browserNotificationsSupported() &&
+    webPushSupported() &&
     browserPermission !== "denied" &&
     !(browserPermission === "granted" && browserPreferred)
 
@@ -105,7 +109,7 @@ export function NotificationBell() {
         {showBrowserPrompt ? (
           <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
             <p className="min-w-0 flex-1 text-xs text-muted-foreground">
-              Nhận thông báo hệ thống khi đang ở tab khác
+              Bật thông báo Chrome (kể cả khi đóng tab)
             </p>
             <Button
               type="button"

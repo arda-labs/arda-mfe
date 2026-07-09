@@ -17,4 +17,14 @@ export const notificationsApi = {
     ),
   markAllRead: () =>
     api.post<{ ok: boolean }>("/api/notifications/read-all"),
+  pushPublicKey: () =>
+    api.get<{ publicKey: string }>("/api/notifications/push/vapid-public-key"),
+  subscribePush: (input: {
+    endpoint: string
+    keys: { p256dh: string; auth: string }
+  }) => api.post<{ ok: boolean }>("/api/notifications/push/subscribe", input),
+  unsubscribePush: (endpoint: string) =>
+    api.post<{ ok: boolean }>("/api/notifications/push/unsubscribe", {
+      endpoint,
+    }),
 }

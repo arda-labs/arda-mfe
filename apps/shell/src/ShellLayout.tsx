@@ -59,7 +59,6 @@ import { useAuthStore } from "../../../packages/auth/src/index"
 import {
   GlobalErrorDialog,
   NotificationBell,
-  InboxToastHost,
   useNotificationStream,
 } from "../../../packages/notifications/src/index"
 import { useTheme } from "../../../packages/theme/src/index"
@@ -548,7 +547,6 @@ export function ShellLayout({
             {children}
           </div>
           <Toaster />
-          <InboxToastHost />
           <GlobalErrorDialog />
         </main>
       </div>

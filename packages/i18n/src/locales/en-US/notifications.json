@@ -5,9 +5,9 @@
   "mark_all_read": "Mark all as read",
   "browser": {
     "enable": "Enable Chrome notifications",
-    "enabled": "System notifications enabled",
+    "enabled": "Web Push enabled (Chrome)",
     "denied": "Chrome blocked notifications — allow them in site settings",
-    "unsupported": "This browser does not support system notifications"
+    "unsupported": "This browser does not support Web Push"
   },
   "crm": {
     "customer": {

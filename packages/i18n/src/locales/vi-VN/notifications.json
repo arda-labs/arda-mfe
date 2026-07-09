@@ -5,9 +5,9 @@
   "mark_all_read": "Đã đọc hết",
   "browser": {
     "enable": "Bật thông báo Chrome",
-    "enabled": "Đã bật thông báo hệ thống",
+    "enabled": "Đã bật Web Push (Chrome)",
     "denied": "Chrome đã chặn thông báo — mở Site settings để cho phép",
-    "unsupported": "Trình duyệt không hỗ trợ thông báo hệ thống"
+    "unsupported": "Trình duyệt không hỗ trợ Web Push"
   },
   "crm": {
     "customer": {

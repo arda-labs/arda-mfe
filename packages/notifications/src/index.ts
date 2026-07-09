@@ -1,5 +1,4 @@
 export { NotificationBell } from "./notification-bell"
-export { InboxToastHost } from "./inbox-toast-host"
 export { notify } from "./notify"
 export { useNotificationStream } from "./use-notification-stream"
 export { useNotificationsStore } from "./store"
@@ -9,6 +8,11 @@ export {
   requestBrowserNotificationPermission,
   showBrowserNotification,
 } from "./browser-notification"
+export {
+  disableWebPush,
+  enableWebPush,
+  webPushSupported,
+} from "./web-push"
 export { GlobalErrorDialog } from "./global-error-dialog"
 export { showErrorDialog, useErrorDialogStore } from "./error-dialog-store"
 export type { ErrorDialogState } from "./error-dialog-store"
