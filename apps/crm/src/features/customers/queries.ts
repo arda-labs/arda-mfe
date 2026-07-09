@@ -220,6 +220,14 @@ export function useCompleteWorkflowTask(role: WorkflowTaskRole) {
   })
 }
 
+export function useCaseTimeline(caseId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["workflow", "case-timeline", caseId ?? ""],
+    queryFn: () => customerApi.getWorkflowCaseTimeline(caseId ?? ""),
+    enabled: Boolean(caseId),
+  })
+}
+
 export function useCurrentAmendment(customerId: string | null) {
   return useQuery({
     queryKey: customerKeys.amendment(customerId ?? ""),

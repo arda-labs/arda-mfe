@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Bell, CheckCheck } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -10,14 +10,33 @@ import {
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { cn } from "@workspace/ui/lib/utils"
 import { notificationsApi } from "./api"
+import {
+  browserNotificationsSupported,
+  getBrowserNotificationPermission,
+  isBrowserNotificationPreferred,
+  requestBrowserNotificationPermission,
+  setBrowserNotificationPreferred,
+} from "./browser-notification"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem } from "./types"
 
 export function NotificationBell() {
   const { t } = useTranslation("notifications")
   const [open, setOpen] = useState(false)
+  const [browserPermission, setBrowserPermission] = useState(
+    getBrowserNotificationPermission
+  )
+  const [browserPreferred, setBrowserPreferred] = useState(
+    isBrowserNotificationPreferred
+  )
   const { notifications, unreadCount, setNotifications, markAllRead } =
     useNotificationsStore()
+
+  useEffect(() => {
+    if (!open) return
+    setBrowserPermission(getBrowserNotificationPermission())
+    setBrowserPreferred(isBrowserNotificationPreferred())
+  }, [open])
 
   const loadNotifications = () => {
     notificationsApi
@@ -35,6 +54,22 @@ export function NotificationBell() {
     markAllRead()
     notificationsApi.markAllRead().catch(loadNotifications)
   }
+
+  const handleEnableBrowser = async () => {
+    const result = await requestBrowserNotificationPermission()
+    setBrowserPermission(result)
+    setBrowserPreferred(isBrowserNotificationPreferred())
+  }
+
+  const handleDisableBrowser = () => {
+    setBrowserNotificationPreferred(false)
+    setBrowserPreferred(false)
+  }
+
+  const showBrowserPrompt =
+    browserNotificationsSupported() &&
+    browserPermission !== "denied" &&
+    !(browserPermission === "granted" && browserPreferred)
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -67,6 +102,41 @@ export function NotificationBell() {
             {t("mark_all_read")}
           </Button>
         </div>
+        {showBrowserPrompt ? (
+          <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+            <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+              Nhận thông báo hệ thống khi đang ở tab khác
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 shrink-0 text-xs"
+              onClick={() => void handleEnableBrowser()}
+            >
+              {t("browser.enable")}
+            </Button>
+          </div>
+        ) : null}
+        {browserPermission === "granted" && browserPreferred ? (
+          <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+            <p className="text-xs text-muted-foreground">{t("browser.enabled")}</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 shrink-0 text-xs"
+              onClick={handleDisableBrowser}
+            >
+              Tắt
+            </Button>
+          </div>
+        ) : null}
+        {browserPermission === "denied" ? (
+          <div className="border-b px-3 py-2 text-xs text-muted-foreground">
+            {t("browser.denied")}
+          </div>
+        ) : null}
         {notifications.length === 0 ? (
           <div className="px-3 py-8 text-center text-sm text-muted-foreground">
             {t("empty")}
@@ -96,14 +166,15 @@ function NotificationRow({
   notification: NotificationItem
   close: () => void
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation("notifications")
   const markRead = useNotificationsStore((state) => state.markRead)
   const unread = !notification.readAt
+  const params = notification.params ?? {}
   const title = notification.titleKey
-    ? t(notification.titleKey, notification.params)
+    ? t(notification.titleKey, params)
     : notification.title
   const body = notification.bodyKey
-    ? t(notification.bodyKey, notification.params)
+    ? t(notification.bodyKey, params)
     : notification.body
 
   const handleClick = () => {
@@ -133,9 +204,7 @@ function NotificationRow({
         )}
       />
       <span className="min-w-0 flex-1 space-y-1">
-        <span className="block truncate font-medium">
-          {title}
-        </span>
+        <span className="block truncate font-medium">{title}</span>
         {body && (
           <span className="line-clamp-2 block text-xs text-muted-foreground">
             {body}

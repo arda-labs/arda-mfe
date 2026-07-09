@@ -158,3 +158,4 @@ function isSupportedLocale(value: unknown): value is Locale {
 }
 
 export type { Locale }
+export { i18n }

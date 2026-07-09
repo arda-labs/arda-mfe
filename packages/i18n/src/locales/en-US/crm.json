@@ -7,7 +7,10 @@
       "submitted_open_workbench": "Open incoming transactions",
       "toast_submit_success": "Registration started",
       "toast_submit_next_checker": "Case is in BPM. Makers process the edit step under Workbench → Incoming transactions.",
-      "toast_submit_next_maker": "Track progress under Workbench → Incoming transactions."
+      "toast_submit_next_maker": "Track progress under Workbench → Incoming transactions.",
+      "needs_changes_banner_title": "Registration needs changes",
+      "needs_changes_banner_fallback": "Checker requested changes. Open from Workbench → Incoming to continue.",
+      "needs_changes_reason_label": "Reason from checker"
     },
     "profiles": {
       "title": "Customer profiles",

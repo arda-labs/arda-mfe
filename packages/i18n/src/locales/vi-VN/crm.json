@@ -7,7 +7,10 @@
       "submitted_open_workbench": "Mở Giao dịch đến",
       "toast_submit_success": "Đã khởi tạo hồ sơ",
       "toast_submit_next_checker": "Hồ sơ vào BPM. Maker xử lý bước chỉnh sửa tại Workbench → Giao dịch đến.",
-      "toast_submit_next_maker": "Theo dõi tại Workbench → Giao dịch đến."
+      "toast_submit_next_maker": "Theo dõi tại Workbench → Giao dịch đến.",
+      "needs_changes_banner_title": "Hồ sơ cần chỉnh sửa thông tin",
+      "needs_changes_banner_fallback": "Quản lý yêu cầu chỉnh sửa. Mở từ Workbench → Giao dịch đến để xử lý.",
+      "needs_changes_reason_label": "Lý do từ kiểm soát"
     },
     "profiles": {
       "title": "Hồ sơ khách hàng",

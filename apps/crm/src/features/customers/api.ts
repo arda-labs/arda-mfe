@@ -143,6 +143,15 @@ export interface WorkflowCase {
   status: string
 }
 
+export interface WorkflowTimelineEvent {
+  id: number
+  caseId: string
+  eventType: string
+  note: string
+  actor?: string | null
+  createdAt: string
+}
+
 export const customerApi = {
   list(params: CustomerListParams = {}) {
     return getItems<Customer>("/api/crm/customers", params)
@@ -219,6 +228,12 @@ export const customerApi = {
       `/api/workflow/cases/${encodeURIComponent(id)}`,
       { method: "GET" }
     )
+  },
+  getWorkflowCaseTimeline(id: string) {
+    return request<{ items?: WorkflowTimelineEvent[] } | WorkflowTimelineEvent[]>(
+      `/api/workflow/cases/${encodeURIComponent(id)}/timeline`,
+      { method: "GET" }
+    ).then((res) => (Array.isArray(res) ? res : (res.items ?? [])))
   },
   completeTask(input: {
     jobKey: string

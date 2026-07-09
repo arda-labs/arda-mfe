@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { ArrowLeft, Check, Save, Send, X } from "lucide-react"
+import { ArrowLeft, Check, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -19,12 +19,17 @@ import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
 import type { Customer, CustomerType } from "../api"
 import { customerApi } from "../api"
+import {
+  CheckerDecisionDialog,
+  type CheckerDecision,
+} from "../components/checker-decision-dialog"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { RelationshipsPanel } from "../components/relationships-panel"
 import { GeoLocationFields } from "../geo-location-fields"
 import { OrgUnitField } from "../org-unit-field"
 import {
   useCancelCustomer,
+  useCaseTimeline,
   useCompleteWorkflowTask,
   useCustomer,
   useSaveCustomer,
@@ -84,6 +89,10 @@ export function CustomerRegistrationPage({
   const submitCustomer = useSubmitCustomer()
   const cancelCustomer = useCancelCustomer()
   const completeTask = useCompleteWorkflowTask(taskContext.role)
+  const [checkerDecision, setCheckerDecision] = useState<Exclude<
+    CheckerDecision,
+    "APPROVE"
+  > | null>(null)
   const viewOnly = isViewOnlyTaskContext()
   const uploadAvatar = useUploadCustomerAvatar()
   const customerQuery = useCustomer(customerId)
@@ -104,8 +113,20 @@ export function CustomerRegistrationPage({
     savedCustomer?.status === "DRAFT" ||
     savedCustomer?.status === "NEEDS_CHANGES"
   const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
-  const needsChangesNoContext =
-    awaitingMakerResubmit && !hasTaskContext(taskContext)
+  const caseTimeline = useCaseTimeline(
+    awaitingMakerResubmit
+      ? (taskContext.caseId ?? savedCustomer?.workflowCaseId ?? null)
+      : null
+  )
+  const latestRequestChangesNote = useMemo(() => {
+    const events = caseTimeline.data ?? []
+    for (let i = events.length - 1; i >= 0; i -= 1) {
+      if (events[i]?.eventType === "CHECKER_REQUEST_CHANGES" && events[i]?.note) {
+        return events[i].note
+      }
+    }
+    return ""
+  }, [caseTimeline.data])
   const isReadonly = viewOnly || isActive || (isSubmitted && !canEditTask)
   const canCompleteTask =
     !viewOnly &&
@@ -254,7 +275,10 @@ export function CustomerRegistrationPage({
     )
   }
 
-  async function completeCurrentTask(decision: string) {
+  async function completeCurrentTask(
+    decision: CheckerDecision,
+    comment?: string
+  ) {
     const resolved = await resolveWorkflowJobKey(
       taskContext,
       savedCustomer?.status
@@ -262,8 +286,11 @@ export function CustomerRegistrationPage({
     if (!resolved) return
     const variables =
       resolved.role === "CUSTOMER_RISK_CHECKER"
-        ? { riskDecision: decision }
-        : { reviewDecision: decision }
+        ? { riskDecision: decision, ...(comment ? { reviewComment: comment } : {}) }
+        : {
+            reviewDecision: decision,
+            ...(comment ? { reviewComment: comment } : {}),
+          }
     completeTask.mutate(
       {
         jobKey: resolved.jobKey,
@@ -271,8 +298,17 @@ export function CustomerRegistrationPage({
         elementId: resolved.elementId,
         variables,
       },
-      { onSuccess: () => navigateTo(registrationIncomingHref(savedCustomer)) }
+      {
+        onSuccess: () => {
+          setCheckerDecision(null)
+          navigateTo(registrationIncomingHref(savedCustomer))
+        },
+      }
     )
+  }
+
+  function requestCheckerDecision(decision: Exclude<CheckerDecision, "APPROVE">) {
+    setCheckerDecision(decision)
   }
 
   async function uploadAvatarFile(file: File) {
@@ -346,13 +382,26 @@ export function CustomerRegistrationPage({
               </div>
             ) : null}
             <RegistrationStatusBar customer={savedCustomer} />
-            {needsChangesNoContext ? (
+            {awaitingMakerResubmit ? (
               <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-                <p className="font-medium">Hồ sơ cần chỉnh sửa thông tin</p>
-                <p className="mt-1">
-                  Quản lý yêu cầu chỉnh sửa. Mở từ{" "}
-                  <strong>Workbench → Giao dịch đến</strong> để xem chi tiết.
+                <p className="font-medium">
+                  {t("crm.customers.registrations.needs_changes_banner_title")}
                 </p>
+                {latestRequestChangesNote ? (
+                  <p className="mt-1">
+                    <span className="font-medium">
+                      {t("crm.customers.registrations.needs_changes_reason_label")}
+                      :{" "}
+                    </span>
+                    {latestRequestChangesNote}
+                  </p>
+                ) : (
+                  <p className="mt-1">
+                    {t(
+                      "crm.customers.registrations.needs_changes_banner_fallback"
+                    )}
+                  </p>
+                )}
               </div>
             ) : null}
             <TabsContent value="general" className="mt-0 space-y-4">
@@ -454,7 +503,9 @@ export function CustomerRegistrationPage({
           awaitingMakerResubmit={
             awaitingMakerResubmit && hasTaskContext(taskContext)
           }
-          onCompleteTask={completeCurrentTask}
+          onApprove={() => completeCurrentTask("APPROVE")}
+          onRequestChanges={() => requestCheckerDecision("REQUEST_CHANGES")}
+          onReject={() => requestCheckerDecision("REJECT")}
           onCancel={() => {
             if (!savedCustomer?.id) return
             cancelCustomer.mutate(savedCustomer.id, {
@@ -484,6 +535,18 @@ export function CustomerRegistrationPage({
           )}
         />
       </form>
+      <CheckerDecisionDialog
+        decision={checkerDecision}
+        open={checkerDecision != null}
+        submitting={completeTask.isPending}
+        onOpenChange={(open) => {
+          if (!open) setCheckerDecision(null)
+        }}
+        onConfirm={(comment) => {
+          if (!checkerDecision) return
+          void completeCurrentTask(checkerDecision, comment)
+        }}
+      />
     </section>
   )
 }
@@ -495,7 +558,9 @@ function FooterActions({
   canCompleteTask,
   canEditTask,
   awaitingMakerResubmit,
-  onCompleteTask,
+  onApprove,
+  onRequestChanges,
+  onReject,
   onCancel,
   onSaveDraft,
   onSaveAndSubmit,
@@ -508,7 +573,9 @@ function FooterActions({
   canCompleteTask: boolean
   canEditTask: boolean
   awaitingMakerResubmit: boolean
-  onCompleteTask: (decision: string) => void
+  onApprove: () => void
+  onRequestChanges: () => void
+  onReject: () => void
   onCancel: () => void
   onSaveDraft: () => void
   onSaveAndSubmit: () => void
@@ -524,7 +591,7 @@ function FooterActions({
               className="h-8"
               type="button"
               disabled={isSubmitting}
-              onClick={() => onCompleteTask("APPROVE")}
+              onClick={onApprove}
             >
               <Check className="size-4" />
               Phê duyệt
@@ -534,7 +601,17 @@ function FooterActions({
               type="button"
               variant="outline"
               disabled={isSubmitting}
-              onClick={() => onCompleteTask("REQUEST_CHANGES")}
+              onClick={onRequestChanges}
+            >
+              <RotateCcw className="size-4" />
+              Yêu cầu chỉnh sửa
+            </Button>
+            <Button
+              className="h-8"
+              type="button"
+              variant="destructive"
+              disabled={isSubmitting}
+              onClick={onReject}
             >
               <X className="size-4" />
               Từ chối

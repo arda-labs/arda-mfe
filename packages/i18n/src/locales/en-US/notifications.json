@@ -2,5 +2,27 @@
   "title": "Notifications",
   "open": "Open notifications",
   "empty": "No notifications",
-  "mark_all_read": "Mark all as read"
+  "mark_all_read": "Mark all as read",
+  "browser": {
+    "enable": "Enable Chrome notifications",
+    "enabled": "System notifications enabled",
+    "denied": "Chrome blocked notifications — allow them in site settings",
+    "unsupported": "This browser does not support system notifications"
+  },
+  "crm": {
+    "customer": {
+      "request_changes": {
+        "title": "Customer registration needs changes",
+        "body": "{caseCode}: {comment}"
+      },
+      "rejected": {
+        "title": "Customer registration rejected",
+        "body": "{caseCode}: {comment}"
+      },
+      "approved": {
+        "title": "Customer registration approved",
+        "body": "{caseCode} is now active."
+      }
+    }
+  }
 }

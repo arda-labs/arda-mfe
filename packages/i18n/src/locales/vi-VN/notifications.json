@@ -2,5 +2,27 @@
   "title": "Thông báo",
   "open": "Mở thông báo",
   "empty": "Không có thông báo",
-  "mark_all_read": "Đã đọc hết"
+  "mark_all_read": "Đã đọc hết",
+  "browser": {
+    "enable": "Bật thông báo Chrome",
+    "enabled": "Đã bật thông báo hệ thống",
+    "denied": "Chrome đã chặn thông báo — mở Site settings để cho phép",
+    "unsupported": "Trình duyệt không hỗ trợ thông báo hệ thống"
+  },
+  "crm": {
+    "customer": {
+      "request_changes": {
+        "title": "Hồ sơ cần chỉnh sửa",
+        "body": "{caseCode}: {comment}"
+      },
+      "rejected": {
+        "title": "Đăng ký khách hàng bị từ chối",
+        "body": "{caseCode}: {comment}"
+      },
+      "approved": {
+        "title": "Đăng ký khách hàng đã được duyệt",
+        "body": "{caseCode} đã kích hoạt."
+      }
+    }
+  }
 }
