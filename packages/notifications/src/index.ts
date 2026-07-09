@@ -1,4 +1,5 @@
 export { NotificationBell } from "./notification-bell"
+export { InboxToastHost } from "./inbox-toast-host"
 export { notify } from "./notify"
 export { useNotificationStream } from "./use-notification-stream"
 export { useNotificationsStore } from "./store"

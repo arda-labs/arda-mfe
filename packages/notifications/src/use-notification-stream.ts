@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { i18n } from "@workspace/i18n"
 import { notificationsApi } from "./api"
 import { maybeShowBrowserNotification } from "./browser-notification"
-import { notify } from "./notify"
+import { useInboxToastStore } from "./inbox-toast-store"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem, UnreadCountResponse } from "./types"
 
@@ -132,16 +132,11 @@ function pushToast(notification: NotificationItem) {
   )
   if (!title && !body) return
 
-  const toastFn =
-    notification.type === "error"
-      ? notify.error
-      : notification.type === "warning"
-        ? notify.warning
-        : notification.type === "success"
-          ? notify.success
-          : notify.info
-
-  toastFn(title || "Thông báo", body || undefined)
+  useInboxToastStore.getState().push({
+    notification,
+    title: title || "Thông báo",
+    body: body || undefined,
+  })
   maybeShowBrowserNotification(notification, title || "Thông báo", body || "")
 }
 
