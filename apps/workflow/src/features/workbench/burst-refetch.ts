@@ -31,7 +31,7 @@ export function workbenchExpectCaseCode() {
   return new URLSearchParams(window.location.search).get("caseCode")?.trim() || null
 }
 
-export function workbenchScopeFromSearch(search: string) {
+export function workbenchScopeFromSearch(search: string): "POOL" | "MINE" {
   const scope = new URLSearchParams(search).get("scope")?.toUpperCase()
   return scope === "MINE" ? "MINE" : "POOL"
 }
