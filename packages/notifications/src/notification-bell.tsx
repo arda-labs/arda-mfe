@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { cn } from "@workspace/ui/lib/utils"
 import { notificationsApi } from "./api"
 import {
@@ -146,17 +145,15 @@ export function NotificationBell() {
             {t("empty")}
           </div>
         ) : (
-          <ScrollArea className="max-h-96">
-            <div className="p-1">
-              {notifications.map((notification) => (
-                <NotificationRow
-                  key={notification.id}
-                  notification={notification}
-                  close={() => setOpen(false)}
-                />
-              ))}
-            </div>
-          </ScrollArea>
+          <div className="max-h-80 overflow-y-auto overscroll-contain p-1">
+            {notifications.map((notification) => (
+              <NotificationRow
+                key={notification.id}
+                notification={notification}
+                close={() => setOpen(false)}
+              />
+            ))}
+          </div>
         )}
       </PopoverContent>
     </Popover>

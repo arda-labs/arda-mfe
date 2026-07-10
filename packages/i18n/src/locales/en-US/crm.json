@@ -3,6 +3,14 @@
     "registrations": {
       "title": "Customer registration",
       "description": "Capture member customer data, save drafts, or start BPM for maker editing.",
+      "outgoing_tracking_description": "Tracking view under Outgoing transactions. Checkers open the case from Incoming transactions to approve it.",
+      "status": {
+        "draft": "Draft",
+        "needs_changes": "Needs changes",
+        "awaiting_approval": "Awaiting approval",
+        "active": "Active",
+        "rejected": "Rejected"
+      },
       "submitted_banner": "Case is in BPM. Makers process the edit step under Workbench → Incoming transactions.",
       "submitted_open_workbench": "Open incoming transactions",
       "toast_submit_success": "Registration started",

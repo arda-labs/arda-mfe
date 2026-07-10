@@ -55,6 +55,7 @@ import {
   useCustomerTaskContext,
   workflowKey,
 } from "../shared/task-context"
+import { waitForWorkflowStepChange } from "../shared/workflow-transition"
 import {
   AvatarUploader,
   FieldGrid,
@@ -137,9 +138,11 @@ export function CustomerRegistrationPage({
     : canCompleteTask
       ? "Phê duyệt hồ sơ khách hàng"
       : t("crm.customers.registrations.title")
-  const pageDescription = canEditTask
-    ? "Cập nhật thông tin khách hàng theo yêu cầu của quy trình."
-    : t("crm.customers.registrations.description")
+  const pageDescription = viewOnly
+    ? t("crm.customers.registrations.outgoing_tracking_description")
+    : canEditTask
+      ? "Cập nhật thông tin khách hàng theo yêu cầu của quy trình."
+      : t("crm.customers.registrations.description")
   const loadingInitialCustomer =
     taskContextLoading ||
     (hasWorkItemId && !customerId && !taskContextError) ||
@@ -241,10 +244,7 @@ export function CustomerRegistrationPage({
     }
   }
 
-  async function saveAndCompleteTask(
-    values: CustomerFormValues,
-    _decision: string
-  ) {
+  async function saveAndCompleteTask(values: CustomerFormValues) {
     if (submittingRef.current) return
     submittingRef.current = true
     try {
@@ -261,6 +261,11 @@ export function CustomerRegistrationPage({
         processInstanceKey: resolved.processInstanceKey,
         elementId: resolved.elementId,
         variables: { revisionSubmitted: true },
+      })
+      await waitForWorkflowStepChange({
+        caseId: taskContext.caseId ?? saved.workflowCaseId,
+        completedElementId: resolved.elementId,
+        loadCase: customerApi.getWorkflowCase,
       })
       navigateTo(registrationOutgoingHref(saved))
     } finally {
@@ -530,7 +535,7 @@ export function CustomerRegistrationPage({
           }, handleInvalid)}
           onSaveAndSubmit={form.handleSubmit(saveAndSubmit, handleInvalid)}
           onSaveAndRevise={form.handleSubmit(
-            (values) => saveAndCompleteTask(values, "APPROVE"),
+            saveAndCompleteTask,
             handleInvalid
           )}
         />

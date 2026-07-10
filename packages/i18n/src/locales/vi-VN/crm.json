@@ -3,6 +3,14 @@
     "registrations": {
       "title": "Đăng ký khách hàng",
       "description": "Nhập thông tin khách hàng hội viên, lưu nháp hoặc khởi tạo BPM để maker chỉnh sửa.",
+      "outgoing_tracking_description": "Bản theo dõi tại Giao dịch đi. Người kiểm soát mở hồ sơ từ Giao dịch đến để phê duyệt.",
+      "status": {
+        "draft": "Nháp",
+        "needs_changes": "Cần bổ sung",
+        "awaiting_approval": "Chờ phê duyệt",
+        "active": "Đã kích hoạt",
+        "rejected": "Bị từ chối"
+      },
       "submitted_banner": "Hồ sơ đã vào BPM. Maker xử lý bước chỉnh sửa tại Workbench → Giao dịch đến.",
       "submitted_open_workbench": "Mở Giao dịch đến",
       "toast_submit_success": "Đã khởi tạo hồ sơ",
