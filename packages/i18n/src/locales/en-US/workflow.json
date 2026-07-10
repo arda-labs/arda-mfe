@@ -49,7 +49,9 @@
     },
     "incoming": {
       "title": "Incoming transactions",
-      "description": "Open tasks (READY/CLAIMED) for registration, adjustments, incoming finance, and HRM."
+      "description": "Open tasks (READY/CLAIMED) for registration, adjustments, incoming finance, and HRM.",
+      "pool": "Processing queue",
+      "mine": "My work"
     },
     "outgoing": {
       "title": "Outgoing transactions",

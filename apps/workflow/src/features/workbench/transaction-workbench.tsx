@@ -22,6 +22,7 @@ import { navigateTo } from "./nav"
 import {
   useWorkbenchBurstRefetch,
   workbenchExpectCaseCode,
+  workbenchScopeFromSearch,
 } from "./burst-refetch"
 
 const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
@@ -66,14 +67,18 @@ function TransactionWorkbenchInner({
   const meta = directionMeta[direction]
   const [activeNode, setActiveNode] = useState("ALL")
   const [filters, setFilters] = useState<FilterState>({})
+  const [scope, setScope] = useState(() =>
+    workbenchScopeFromSearch(window.location.search)
+  )
 
   const baseFilter: WorkItemFilter = useMemo(
     () => ({
       direction: direction === "outgoing" ? "OUTGOING" : "INCOMING",
+      scope: direction === "incoming" ? scope : undefined,
       limit: 100,
       node: workItemSummaryNode(activeNode) ? undefined : activeNode,
     }),
-    [direction, activeNode]
+    [direction, activeNode, scope]
   )
 
   const queryFilter = useMemo(() => {
@@ -171,6 +176,24 @@ function TransactionWorkbenchInner({
           </Button>
         }
       />
+      {direction === "incoming" ? (
+        <div className="flex gap-2 px-3 pt-3">
+          <Button
+            type="button"
+            variant={scope === "POOL" ? "default" : "outline"}
+            onClick={() => setWorkbenchScope("POOL", setScope)}
+          >
+            {t("workflow.workbench.incoming.pool")}
+          </Button>
+          <Button
+            type="button"
+            variant={scope === "MINE" ? "default" : "outline"}
+            onClick={() => setWorkbenchScope("MINE", setScope)}
+          >
+            {t("workflow.workbench.incoming.mine")}
+          </Button>
+        </div>
+      ) : null}
       <div className="grid min-h-0 flex-1 rounded-md border md:grid-cols-[auto_minmax(0,1fr)]">
         <PageSubmenu
           title={t("workflow.workbench.business_type")}
@@ -334,4 +357,14 @@ function readStoredBoolean(key: string, fallback: boolean) {
 function writeStoredBoolean(key: string, value: boolean) {
   if (typeof localStorage === "undefined") return
   localStorage.setItem(key, String(value))
+}
+
+function setWorkbenchScope(
+  scope: "POOL" | "MINE",
+  setScope: (scope: "POOL" | "MINE") => void
+) {
+  const params = new URLSearchParams(window.location.search)
+  params.set("scope", scope.toLowerCase())
+  setScope(scope)
+  navigateTo(`${window.location.pathname}?${params.toString()}`)
 }
