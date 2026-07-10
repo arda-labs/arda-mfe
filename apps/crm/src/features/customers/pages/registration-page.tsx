@@ -262,7 +262,7 @@ export function CustomerRegistrationPage({
         elementId: resolved.elementId,
         variables: { revisionSubmitted: true },
       })
-      navigateTo(registrationIncomingHref(saved))
+      navigateTo(registrationOutgoingHref(saved))
     } finally {
       submittingRef.current = false
     }
@@ -683,9 +683,21 @@ function FooterBackButton({ onBack }: { onBack: () => void }) {
 }
 
 function registrationIncomingHref(customer: Customer | null) {
+  return registrationWorkbenchHref(customer, "incoming")
+}
+
+function registrationOutgoingHref(customer: Customer | null) {
+  return registrationWorkbenchHref(customer, "outgoing")
+}
+
+function registrationWorkbenchHref(
+  customer: Customer | null,
+  direction: "incoming" | "outgoing"
+) {
+  const path = `/workbench/${direction}-transactions`
   const code = customer?.customerCode?.trim()
-  if (!code) return "/workbench/incoming-transactions"
-  return `/workbench/incoming-transactions?caseCode=${encodeURIComponent(code)}`
+  if (!code) return path
+  return `${path}?caseCode=${encodeURIComponent(code)}`
 }
 
 /** After khởi tạo: open maker edit screen directly (skip workbench click). */
