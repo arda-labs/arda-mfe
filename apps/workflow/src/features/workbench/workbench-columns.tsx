@@ -185,9 +185,9 @@ export function searchColumns(
   ]
 }
 
-function AssigneeFlow({ item }: { item: WorkItem }) {
+export function AssigneeFlow({ item }: { item: WorkItem }) {
   return (
-    <div className="space-y-1 text-xs">
+    <div className="text-xs">
       <div className="flex items-center gap-1.5">
         {previousAssigneeDisplay({
           id: item.previousAssignedTo,
@@ -197,9 +197,6 @@ function AssigneeFlow({ item }: { item: WorkItem }) {
         <span className="text-muted-foreground">→</span>
         {assigneeDisplay({ id: item.assignedTo, name: item.assignedToName, avatar: item.assignedToAvatar })}
       </div>
-      <p className="text-muted-foreground">
-        {item.candidateRole || "Chưa gán vai trò"}
-      </p>
     </div>
   )
 }
