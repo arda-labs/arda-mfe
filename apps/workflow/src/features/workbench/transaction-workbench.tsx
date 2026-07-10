@@ -14,6 +14,7 @@ import { useClaimWorkItem, useWorkItemSummary, useWorkItems } from "./queries"
 import { WorkItemTree } from "./workbench-tree"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
 import { workItemColumns, searchColumns } from "./workbench-columns"
+import { transactionListTableLayout } from "./workbench-table-layout"
 import { navigateTo } from "./nav"
 import {
   useWorkbenchBurstRefetch,
@@ -169,7 +170,7 @@ function TransactionWorkbenchInner({
           </Button>
         }
       />
-      <div className="grid min-h-0 flex-1 rounded-md border md:grid-cols-[auto_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 overflow-hidden rounded-md border md:grid-cols-[auto_minmax(0,1fr)]">
         <PageSubmenu
           title={t("workflow.workbench.business_type")}
           collapsed={treeCollapsed}
@@ -183,7 +184,7 @@ function TransactionWorkbenchInner({
             onSelect={setActiveNode}
           />
         </PageSubmenu>
-        <div className="flex min-h-0 flex-col gap-3 p-3">
+        <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden p-3">
           <WorkbenchToolbar
             filters={filters}
             onChange={setFilters}
@@ -193,7 +194,7 @@ function TransactionWorkbenchInner({
           <DataTable
             table={table}
             defaultDensity="comfortable"
-            className="min-h-0 flex-1 overflow-auto"
+            {...transactionListTableLayout}
           />
         </div>
       </div>
