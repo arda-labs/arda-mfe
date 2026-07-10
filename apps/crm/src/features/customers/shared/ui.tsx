@@ -24,6 +24,7 @@ import {
   type CustomerFormValues,
 } from "./schemas"
 import { optionsFor } from "./form-utils"
+import { registrationStatusLabelKey } from "./registration-status"
 
 export function FieldGrid({
   fields,
@@ -172,23 +173,25 @@ export function RegistrationSubmittedBanner({
 }
 
 export function RegistrationStatusBar({ customer }: { customer: Customer | null }) {
+  const { t } = useI18n()
   const status = customer?.status
   if (!status) return null
 
-  const config: Record<string, { label: string; classes: string }> = {
-    DRAFT: { label: "Nháp", classes: "border-amber-200 bg-amber-50 text-amber-700" },
-    NEEDS_CHANGES: { label: "Cần bổ sung", classes: "border-orange-200 bg-orange-50 text-orange-700" },
-    SUBMITTED: { label: "Đã hoàn thành", classes: "border-sky-200 bg-sky-50 text-sky-700" },
-    ACTIVE: { label: "Đã kích hoạt", classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-    REJECTED: { label: "Bị từ chối", classes: "border-red-200 bg-red-50 text-red-700" },
+  const config: Record<string, { classes: string }> = {
+    DRAFT: { classes: "border-amber-200 bg-amber-50 text-amber-700" },
+    NEEDS_CHANGES: { classes: "border-orange-200 bg-orange-50 text-orange-700" },
+    SUBMITTED: { classes: "border-sky-200 bg-sky-50 text-sky-700" },
+    ACTIVE: { classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+    REJECTED: { classes: "border-red-200 bg-red-50 text-red-700" },
   }
 
-  const c = config[status] ?? { label: status, classes: "border-muted bg-muted/30 text-muted-foreground" }
+  const c = config[status] ?? { classes: "border-muted bg-muted/30 text-muted-foreground" }
+  const labelKey = registrationStatusLabelKey(status)
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border bg-background px-3 py-2 text-xs">
       <span className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-medium ${c.classes}`}>
-        {c.label}
+        {labelKey ? t(labelKey) : status}
       </span>
       {customer.customerCode ? (
         <span className="text-muted-foreground">
