@@ -1,28 +1,27 @@
-@keyframes workflow-routing-shimmer {
+@keyframes workflow-routing-wave {
   from {
-    background-position: 200% 0;
+    background-position: 180% 0;
   }
 
   to {
-    background-position: -200% 0;
+    background-position: -20% 0;
   }
 }
 
-.workflow-routing-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    hsl(var(--background) / 0.12) 42%,
-    hsl(var(--background) / 0.52) 50%,
-    hsl(var(--background) / 0.12) 58%,
-    transparent 100%
+.workflow-routing-row > td {
+  background-image: repeating-linear-gradient(
+    135deg,
+    hsl(var(--muted) / 0.6) 0,
+    hsl(var(--muted) / 0.6) 12px,
+    hsl(var(--background) / 0.4) 12px,
+    hsl(var(--background) / 0.4) 24px
   );
   background-size: 200% 100%;
-  animation: workflow-routing-shimmer 1.8s ease-in-out infinite;
+  animation: workflow-routing-wave 2.4s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .workflow-routing-shimmer {
+  .workflow-routing-row > td {
     animation: none;
   }
 }

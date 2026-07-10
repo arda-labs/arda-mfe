@@ -15,6 +15,7 @@ import { WorkItemTree } from "./workbench-tree"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
 import { workItemColumns, searchColumns } from "./workbench-columns"
 import { transactionListTableLayout } from "./workbench-table-layout"
+import { workItemRowClassName } from "./work-item-state"
 import { navigateTo } from "./nav"
 import {
   useWorkbenchBurstRefetch,
@@ -194,6 +195,7 @@ function TransactionWorkbenchInner({
           <DataTable
             table={table}
             defaultDensity="comfortable"
+            rowClassName={({ original }) => workItemRowClassName(original)}
             {...transactionListTableLayout}
           />
         </div>

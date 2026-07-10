@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { workItemInteraction } from "../src/features/workbench/work-item-state"
+import {
+  workItemInteraction,
+  workItemRowClassName,
+} from "../src/features/workbench/work-item-state"
 
 describe("workItemInteraction", () => {
   test("keeps routing rows visible but non-interactive", () => {
@@ -9,6 +12,9 @@ describe("workItemInteraction", () => {
         false
       )
     ).toEqual({ canAct: false, isRouting: true })
+    expect(workItemRowClassName({ status: "ROUTING" })).toBe(
+      "workflow-routing-row"
+    )
   })
 
   test("allows only ready or claimed rows with an API permission to open", () => {
@@ -18,5 +24,6 @@ describe("workItemInteraction", () => {
         false
       )
     ).toEqual({ canAct: true, isRouting: false })
+    expect(workItemRowClassName({ status: "READY" })).toBeUndefined()
   })
 })

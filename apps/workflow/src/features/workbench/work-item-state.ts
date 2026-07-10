@@ -15,3 +15,7 @@ export function workItemInteraction(
     isRouting,
   }
 }
+
+export function workItemRowClassName(item: Pick<WorkItem, "status">) {
+  return item.status === "ROUTING" ? "workflow-routing-row" : undefined
+}

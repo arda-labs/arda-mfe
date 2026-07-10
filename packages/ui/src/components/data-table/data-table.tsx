@@ -1,8 +1,8 @@
-import { flexRender, type Row } from "@tanstack/react-table";
-import type { Table as TanstackTable } from "@tanstack/react-table";
-import * as React from "react";
+import { flexRender, type Row } from "@tanstack/react-table"
+import type { Table as TanstackTable } from "@tanstack/react-table"
+import * as React from "react"
 
-import { DataTablePagination } from "@workspace/ui/components/data-table/data-table-pagination";
+import { DataTablePagination } from "@workspace/ui/components/data-table/data-table-pagination"
 import {
   Table,
   TableBody,
@@ -10,32 +10,34 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table";
-import { getColumnPinningStyle } from "@workspace/ui/lib/data-table";
-import { utilityTableColumnClassName } from "@workspace/ui/lib/inject-row-index-column";
-import { cn } from "@workspace/ui/lib/utils";
+} from "@workspace/ui/components/table"
+import { getColumnPinningStyle } from "@workspace/ui/lib/data-table"
+import { utilityTableColumnClassName } from "@workspace/ui/lib/inject-row-index-column"
+import { cn } from "@workspace/ui/lib/utils"
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
-  table: TanstackTable<TData>;
-  actionBar?: React.ReactNode;
-  defaultDensity?: DataTableDensity;
+  table: TanstackTable<TData>
+  actionBar?: React.ReactNode
+  defaultDensity?: DataTableDensity
   /** `panel` — toolbar + pagination fixed; only table body scrolls. */
-  layout?: "default" | "panel";
+  layout?: "default" | "panel"
   /** Double-click row to open detail (skipped on buttons/links/checkboxes). */
-  onRowDoubleClick?: (row: Row<TData>) => void;
+  onRowDoubleClick?: (row: Row<TData>) => void
   /** Dim rows while a background list refetch is in progress. */
-  fetching?: boolean;
+  fetching?: boolean
+  /** Adds a semantic class to a row without coupling the table to domain data. */
+  rowClassName?: (row: Row<TData>) => string | undefined
 }
 
-export type DataTableDensity = "compact" | "comfortable" | "spacious";
+export type DataTableDensity = "compact" | "comfortable" | "spacious"
 
 interface DataTableDensityContextValue {
-  density: DataTableDensity;
-  setDensity: (density: DataTableDensity) => void;
+  density: DataTableDensity
+  setDensity: (density: DataTableDensity) => void
 }
 
 const DataTableDensityContext =
-  React.createContext<DataTableDensityContextValue | null>(null);
+  React.createContext<DataTableDensityContextValue | null>(null)
 
 const densityStyles: Record<
   DataTableDensity,
@@ -56,17 +58,17 @@ const densityStyles: Record<
     cell: "p-4 text-sm",
     empty: "h-24 p-4 text-center text-sm",
   },
-};
+}
 
 export function useDataTableDensity() {
-  const context = React.useContext(DataTableDensityContext);
+  const context = React.useContext(DataTableDensityContext)
 
   return (
     context ?? {
       density: "compact" as const,
       setDensity: () => {},
     }
-  );
+  )
 }
 
 export function DataTable<TData>({
@@ -78,23 +80,23 @@ export function DataTable<TData>({
   layout = "default",
   onRowDoubleClick,
   fetching = false,
+  rowClassName,
   ...props
 }: DataTableProps<TData>) {
-  const [density, setDensity] =
-    React.useState<DataTableDensity>(defaultDensity);
-  const densityClass = densityStyles[density];
-  const isPanel = layout === "panel";
-  const headerScrollRef = React.useRef<HTMLDivElement>(null);
-  const tableWidth = Math.max(table.getTotalSize(), 0);
+  const [density, setDensity] = React.useState<DataTableDensity>(defaultDensity)
+  const densityClass = densityStyles[density]
+  const isPanel = layout === "panel"
+  const headerScrollRef = React.useRef<HTMLDivElement>(null)
+  const tableWidth = Math.max(table.getTotalSize(), 0)
 
   const syncHeaderScroll = React.useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
       if (headerScrollRef.current) {
-        headerScrollRef.current.scrollLeft = event.currentTarget.scrollLeft;
+        headerScrollRef.current.scrollLeft = event.currentTarget.scrollLeft
       }
     },
-    [],
-  );
+    []
+  )
 
   const colGroup = (
     <colgroup>
@@ -102,7 +104,7 @@ export function DataTable<TData>({
         <col key={column.id} style={{ width: column.getSize() }} />
       ))}
     </colgroup>
-  );
+  )
 
   const headerRows = table.getHeaderGroups().map((headerGroup) => (
     <TableRow
@@ -116,24 +118,21 @@ export function DataTable<TData>({
           className={cn(
             densityClass.head,
             utilityTableColumnClassName(header.column.id),
-            isPanel && "bg-muted/60",
+            isPanel && "bg-muted/60"
           )}
           style={getColumnPinningStyle({ column: header.column })}
         >
           {header.isPlaceholder
             ? null
-            : flexRender(
-                header.column.columnDef.header,
-                header.getContext(),
-              )}
+            : flexRender(header.column.columnDef.header, header.getContext())}
         </TableHead>
       ))}
     </TableRow>
-  ));
+  ))
 
   const bodyRows = table.getRowModel().rows.length ? (
     table.getRowModel().rows.map((row) => {
-      const isStriped = row.index % 2 === 1;
+      const isStriped = row.index % 2 === 1
 
       return (
         <TableRow
@@ -143,19 +142,20 @@ export function DataTable<TData>({
             isStriped && "bg-table-row-stripe hover:bg-muted/70",
             !isStriped && "hover:bg-muted/40",
             onRowDoubleClick && "cursor-default",
+            rowClassName?.(row)
           )}
           onDoubleClick={
             onRowDoubleClick
               ? (event) => {
-                  const target = event.target as HTMLElement;
+                  const target = event.target as HTMLElement
                   if (
                     target.closest(
-                      "button, a, [role='checkbox'], input, select, textarea",
+                      "button, a, [role='checkbox'], input, select, textarea"
                     )
                   ) {
-                    return;
+                    return
                   }
-                  onRowDoubleClick(row);
+                  onRowDoubleClick(row)
                 }
               : undefined
           }
@@ -166,7 +166,7 @@ export function DataTable<TData>({
               className={cn(
                 densityClass.cell,
                 utilityTableColumnClassName(cell.column.id),
-                isStriped && "bg-table-row-stripe",
+                isStriped && "bg-table-row-stripe"
               )}
               style={{
                 ...getColumnPinningStyle({ column: cell.column }),
@@ -179,7 +179,7 @@ export function DataTable<TData>({
             </TableCell>
           ))}
         </TableRow>
-      );
+      )
     })
   ) : (
     <TableRow>
@@ -190,22 +190,21 @@ export function DataTable<TData>({
         No results.
       </TableCell>
     </TableRow>
-  );
+  )
 
-  const tableClassName = cn("w-full table-fixed border-separate border-spacing-0");
+  const tableClassName = cn(
+    "w-full table-fixed border-separate border-spacing-0"
+  )
 
   return (
     <DataTableDensityContext.Provider
-      value={React.useMemo(
-        () => ({ density, setDensity }),
-        [density],
-      )}
+      value={React.useMemo(() => ({ density, setDensity }), [density])}
     >
       <div
         className={cn(
           "flex w-full flex-col gap-2.5",
           isPanel ? "min-h-0 flex-1" : "overflow-auto",
-          className,
+          className
         )}
         {...props}
       >
@@ -214,21 +213,23 @@ export function DataTable<TData>({
           className={cn(
             "flex flex-col overflow-hidden rounded-md border bg-background transition-opacity",
             isPanel ? "min-h-0 flex-1" : "",
-            fetching && "opacity-60",
+            fetching && "opacity-60"
           )}
         >
           {isPanel ? (
             <>
               <div
                 ref={headerScrollRef}
-                className="shrink-0 overflow-x-auto overflow-y-hidden border-b bg-muted/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="shrink-0 [scrollbar-width:none] overflow-x-auto overflow-y-hidden border-b bg-muted/60 [&::-webkit-scrollbar]:hidden"
               >
                 <table
                   className={tableClassName}
                   style={{ width: tableWidth, minWidth: "100%" }}
                 >
                   {colGroup}
-                  <TableHeader className="[&_tr]:border-b-0">{headerRows}</TableHeader>
+                  <TableHeader className="[&_tr]:border-b-0">
+                    {headerRows}
+                  </TableHeader>
                 </table>
               </div>
               <div
@@ -246,7 +247,10 @@ export function DataTable<TData>({
             </>
           ) : (
             <div className="overflow-x-auto">
-              <Table className={tableClassName} containerClassName="overflow-visible">
+              <Table
+                className={tableClassName}
+                containerClassName="overflow-visible"
+              >
                 <TableHeader>{headerRows}</TableHeader>
                 <TableBody>{bodyRows}</TableBody>
               </Table>
@@ -261,5 +265,5 @@ export function DataTable<TData>({
         </div>
       </div>
     </DataTableDensityContext.Provider>
-  );
+  )
 }

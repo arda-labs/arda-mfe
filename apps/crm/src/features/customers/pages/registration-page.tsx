@@ -55,6 +55,7 @@ import {
   useCustomerTaskContext,
   workflowKey,
 } from "../shared/task-context"
+import { postTaskWorkbenchHref } from "../shared/workbench-return"
 import { waitForWorkflowStepChange } from "../shared/workflow-transition"
 import {
   AvatarUploader,
@@ -122,7 +123,10 @@ export function CustomerRegistrationPage({
   const latestRequestChangesNote = useMemo(() => {
     const events = caseTimeline.data ?? []
     for (let i = events.length - 1; i >= 0; i -= 1) {
-      if (events[i]?.eventType === "CHECKER_REQUEST_CHANGES" && events[i]?.note) {
+      if (
+        events[i]?.eventType === "CHECKER_REQUEST_CHANGES" &&
+        events[i]?.note
+      ) {
         return events[i].note
       }
     }
@@ -180,7 +184,14 @@ export function CustomerRegistrationPage({
         /* ignore */
       }
     }
-  }, [customerQuery.data, form, customerId, draftKey, hasWorkItemId, taskContextLoading])
+  }, [
+    customerQuery.data,
+    form,
+    customerId,
+    draftKey,
+    hasWorkItemId,
+    taskContextLoading,
+  ])
 
   // Auto-save khi form thay đổi (debounced)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -267,7 +278,7 @@ export function CustomerRegistrationPage({
         completedElementId: resolved.elementId,
         loadCase: customerApi.getWorkflowCase,
       })
-      navigateTo(registrationOutgoingHref(saved))
+      navigateTo(postTaskWorkbenchHref())
     } finally {
       submittingRef.current = false
     }
@@ -291,7 +302,10 @@ export function CustomerRegistrationPage({
     if (!resolved) return
     const variables =
       resolved.role === "CUSTOMER_RISK_CHECKER"
-        ? { riskDecision: decision, ...(comment ? { reviewComment: comment } : {}) }
+        ? {
+            riskDecision: decision,
+            ...(comment ? { reviewComment: comment } : {}),
+          }
         : {
             reviewDecision: decision,
             ...(comment ? { reviewComment: comment } : {}),
@@ -306,13 +320,15 @@ export function CustomerRegistrationPage({
       {
         onSuccess: () => {
           setCheckerDecision(null)
-          navigateTo(registrationIncomingHref(savedCustomer))
+          navigateTo(postTaskWorkbenchHref())
         },
       }
     )
   }
 
-  function requestCheckerDecision(decision: Exclude<CheckerDecision, "APPROVE">) {
+  function requestCheckerDecision(
+    decision: Exclude<CheckerDecision, "APPROVE">
+  ) {
     setCheckerDecision(decision)
   }
 
@@ -381,121 +397,126 @@ export function CustomerRegistrationPage({
               />
             </div>
             <div className="space-y-4 p-4">
-            {customerQuery.isFetching ? (
-              <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-                Đang tải hồ sơ...
-              </div>
-            ) : null}
-            <RegistrationStatusBar customer={savedCustomer} />
-            {awaitingMakerResubmit ? (
-              <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-                <p className="font-medium">
-                  {t("crm.customers.registrations.needs_changes_banner_title")}
-                </p>
-                {latestRequestChangesNote ? (
-                  <p className="mt-1">
-                    <span className="font-medium">
-                      {t("crm.customers.registrations.needs_changes_reason_label")}
-                      :{" "}
-                    </span>
-                    {latestRequestChangesNote}
-                  </p>
-                ) : (
-                  <p className="mt-1">
+              {customerQuery.isFetching ? (
+                <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
+                  Đang tải hồ sơ...
+                </div>
+              ) : null}
+              <RegistrationStatusBar customer={savedCustomer} />
+              {awaitingMakerResubmit ? (
+                <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                  <p className="font-medium">
                     {t(
-                      "crm.customers.registrations.needs_changes_banner_fallback"
+                      "crm.customers.registrations.needs_changes_banner_title"
                     )}
                   </p>
-                )}
-              </div>
-            ) : null}
-            <TabsContent value="general" className="mt-0 space-y-4">
-              <fieldset disabled={isReadonly} className="space-y-4">
-                <Panel title="Thông tin chung">
-                  <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
-                    <div className="space-y-3">
-                      <FormField label="Loại khách hàng">
-                        <Controller
-                          control={form.control}
-                          name="customerType"
-                          render={({ field }) => (
-                            <Select
-                              value={field.value}
-                              onValueChange={(value) =>
-                                field.onChange(value as CustomerType)
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {selectOptions.customerType.map((option) => (
-                                  <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </FormField>
-                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        <OrgUnitField form={form} />
-                        <FieldGrid
-                          fields={generalFieldsPrimary}
-                          form={form}
-                          bare
-                        />
-                        <GeoLocationFields form={form} />
-                        <FieldGrid
-                          fields={generalFieldsRest}
-                          form={form}
-                          bare
-                        />
+                  {latestRequestChangesNote ? (
+                    <p className="mt-1">
+                      <span className="font-medium">
+                        {t(
+                          "crm.customers.registrations.needs_changes_reason_label"
+                        )}
+                        :{" "}
+                      </span>
+                      {latestRequestChangesNote}
+                    </p>
+                  ) : (
+                    <p className="mt-1">
+                      {t(
+                        "crm.customers.registrations.needs_changes_banner_fallback"
+                      )}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+              <TabsContent value="general" className="mt-0 space-y-4">
+                <fieldset disabled={isReadonly} className="space-y-4">
+                  <Panel title="Thông tin chung">
+                    <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
+                      <div className="space-y-3">
+                        <FormField label="Loại khách hàng">
+                          <Controller
+                            control={form.control}
+                            name="customerType"
+                            render={({ field }) => (
+                              <Select
+                                value={field.value}
+                                onValueChange={(value) =>
+                                  field.onChange(value as CustomerType)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {selectOptions.customerType.map((option) => (
+                                    <SelectItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </FormField>
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          <OrgUnitField form={form} />
+                          <FieldGrid
+                            fields={generalFieldsPrimary}
+                            form={form}
+                            bare
+                          />
+                          <GeoLocationFields form={form} />
+                          <FieldGrid
+                            fields={generalFieldsRest}
+                            form={form}
+                            bare
+                          />
+                        </div>
                       </div>
+                      <AvatarUploader
+                        fileId={form.watch("avatarFileId")}
+                        uploading={uploadAvatar.isPending}
+                        onClear={() =>
+                          form.setValue("avatarFileId", "", {
+                            shouldDirty: true,
+                          })
+                        }
+                        onUpload={uploadAvatarFile}
+                      />
                     </div>
-                    <AvatarUploader
-                      fileId={form.watch("avatarFileId")}
-                      uploading={uploadAvatar.isPending}
-                      onClear={() =>
-                        form.setValue("avatarFileId", "", {
-                          shouldDirty: true,
-                        })
-                      }
-                      onUpload={uploadAvatarFile}
-                    />
-                  </div>
-                </Panel>
-                {isPersonal ? (
-                  <>
-                    <Panel title="Thông tin định danh">
-                      <FieldGrid fields={personalFields} form={form} />
-                    </Panel>
-                    <Panel title="Thông tin mở rộng">
-                      <FieldGrid fields={extendedFields} form={form} />
-                    </Panel>
-                  </>
-                ) : (
-                  <Panel title="Thông tin doanh nghiệp">
-                    <FieldGrid fields={businessFields} form={form} />
                   </Panel>
-                )}
-              </fieldset>
-            </TabsContent>
-            {isPersonal ? (
-              <TabsContent value="relationships" className="mt-0">
-                {savedCustomer ? (
-                  <RelationshipsPanel customer={savedCustomer} />
-                ) : (
-                  <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
-                    Gửi hồ sơ khách hàng trước khi khai báo người có liên quan.
-                  </div>
-                )}
+                  {isPersonal ? (
+                    <>
+                      <Panel title="Thông tin định danh">
+                        <FieldGrid fields={personalFields} form={form} />
+                      </Panel>
+                      <Panel title="Thông tin mở rộng">
+                        <FieldGrid fields={extendedFields} form={form} />
+                      </Panel>
+                    </>
+                  ) : (
+                    <Panel title="Thông tin doanh nghiệp">
+                      <FieldGrid fields={businessFields} form={form} />
+                    </Panel>
+                  )}
+                </fieldset>
               </TabsContent>
-            ) : null}
+              {isPersonal ? (
+                <TabsContent value="relationships" className="mt-0">
+                  {savedCustomer ? (
+                    <RelationshipsPanel customer={savedCustomer} />
+                  ) : (
+                    <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
+                      Gửi hồ sơ khách hàng trước khi khai báo người có liên
+                      quan.
+                    </div>
+                  )}
+                </TabsContent>
+              ) : null}
             </div>
           </Tabs>
         </div>
@@ -689,10 +710,6 @@ function FooterBackButton({ onBack }: { onBack: () => void }) {
 
 function registrationIncomingHref(customer: Customer | null) {
   return registrationWorkbenchHref(customer, "incoming")
-}
-
-function registrationOutgoingHref(customer: Customer | null) {
-  return registrationWorkbenchHref(customer, "outgoing")
 }
 
 function registrationWorkbenchHref(

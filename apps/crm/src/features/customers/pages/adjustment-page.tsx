@@ -3,21 +3,18 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
-import {
-  ArrowLeft,
-  Check,
-  Plus,
-  RotateCcw,
-  Save,
-  Send,
-  X,
-} from "lucide-react"
+import { ArrowLeft, Check, Plus, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { PageTitle } from "@workspace/ui/components/page-title"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
 import { GeoLocationFields } from "../geo-location-fields"
 import { OrgUnitField } from "../org-unit-field"
@@ -53,6 +50,7 @@ import {
   type CustomerTaskContext,
   useCustomerTaskContext,
 } from "../shared/task-context"
+import { postTaskWorkbenchHref } from "../shared/workbench-return"
 import {
   EmptyState,
   FieldGrid,
@@ -76,7 +74,7 @@ function AdjustmentTabsList({ compact = false }: { compact?: boolean }) {
       className={cn(
         "flex h-auto justify-start",
         compact
-          ? "max-w-full flex-nowrap overflow-x-auto scrollbar-none"
+          ? "scrollbar-none max-w-full flex-nowrap overflow-x-auto"
           : "flex-wrap"
       )}
     >
@@ -177,7 +175,7 @@ export function CustomerAdjustmentPage({
       elementId: resolved.elementId,
       variables,
     })
-    navigateTo(adjustmentIncomingHref(taskContext))
+    navigateTo(postTaskWorkbenchHref())
   }
 
   if (taskContextLoading) {
@@ -241,7 +239,9 @@ export function CustomerAdjustmentPage({
                 <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
                   <span>
                     Phiên điều chỉnh:{" "}
-                    <span className="font-mono font-medium">{amendment.id}</span>
+                    <span className="font-mono font-medium">
+                      {amendment.id}
+                    </span>
                   </span>
                   <StatusBadge status={amendment.status} />
                   {amendment.changedFields?.length ? (
@@ -296,7 +296,11 @@ export function CustomerAdjustmentPage({
                           bare
                         />
                         <GeoLocationFields form={form} />
-                        <FieldGrid fields={generalFieldsRest} form={form} bare />
+                        <FieldGrid
+                          fields={generalFieldsRest}
+                          form={form}
+                          bare
+                        />
                       </div>
                     </Panel>
                     {isPersonal ? (

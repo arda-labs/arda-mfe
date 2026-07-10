@@ -1,6 +1,5 @@
 import { Loader2 } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
-import { useI18n } from "@workspace/i18n"
 import type { WorkItem } from "./api"
 import { workItemInteraction } from "./work-item-state"
 import "./work-item-card.css"
@@ -14,7 +13,6 @@ export function WorkItemCard({
   claiming: boolean
   onOpen: (item: WorkItem) => void
 }) {
-  const { t } = useI18n()
   const { canAct, isRouting } = workItemInteraction(item, claiming)
 
   return (
@@ -22,7 +20,7 @@ export function WorkItemCard({
       className={cn(
         "relative -mx-2 flex min-w-0 items-start gap-3 rounded-md px-2 py-2",
         canAct && "cursor-pointer transition-colors hover:bg-accent/50",
-        isRouting && "cursor-default overflow-hidden bg-muted/30 opacity-75",
+        isRouting && "cursor-default opacity-75",
         claiming && "pointer-events-none opacity-60"
       )}
       onClick={() => {
@@ -42,22 +40,12 @@ export function WorkItemCard({
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
         </span>
       ) : null}
-      {isRouting ? (
-        <span
-          aria-hidden="true"
-          className="workflow-routing-shimmer pointer-events-none absolute inset-0"
-        />
-      ) : null}
       <div className="relative z-10 min-w-0 flex-1 space-y-1.5 overflow-hidden">
         <CodeBadge code={item.caseCode} />
         <p className="line-clamp-2 text-sm font-medium text-pretty text-foreground group-hover:text-accent-foreground">
           {item.title}
         </p>
-        {isRouting ? (
-          <p className="text-xs font-medium text-muted-foreground">
-            {t("workflow.workbench.incoming.routing")}
-          </p>
-        ) : item.description || item.summary ? (
+        {item.description || item.summary ? (
           <p className="line-clamp-3 w-full min-w-0 text-xs leading-5 text-pretty break-words whitespace-normal text-muted-foreground">
             {item.description || item.summary}
           </p>
