@@ -1,12 +1,22 @@
 import { describe, expect, test } from "bun:test"
-import { workbenchScopeFromSearch } from "../src/features/workbench/burst-refetch"
+import { workItemInteraction } from "../src/features/workbench/work-item-state"
 
-describe("workbenchScopeFromSearch", () => {
-  test("defaults incoming workbench to the candidate pool", () => {
-    expect(workbenchScopeFromSearch("")).toBe("POOL")
+describe("workItemInteraction", () => {
+  test("keeps routing rows visible but non-interactive", () => {
+    expect(
+      workItemInteraction(
+        { status: "ROUTING", canClaim: false, canOpen: false },
+        false
+      )
+    ).toEqual({ canAct: false, isRouting: true })
   })
 
-  test("reads the My work scope from the URL", () => {
-    expect(workbenchScopeFromSearch("?scope=mine")).toBe("MINE")
+  test("allows only ready or claimed rows with an API permission to open", () => {
+    expect(
+      workItemInteraction(
+        { status: "READY", canClaim: true, canOpen: false },
+        false
+      )
+    ).toEqual({ canAct: true, isRouting: false })
   })
 })

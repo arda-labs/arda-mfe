@@ -49,9 +49,8 @@
     },
     "incoming": {
       "title": "Giao dịch đến",
-      "description": "Việc cần xử lý ngay: task đang mở (READY/CLAIMED) cho đăng ký KH, điều chỉnh, giao dịch đến và HRM.",
-      "pool": "Hàng chờ xử lý",
-      "mine": "Việc của tôi"
+      "description": "Danh sách việc chung. Task đang định tuyến sẽ hiển thị trước và tự mở khi sẵn sàng nhận.",
+      "routing": "Đang chuẩn bị tác vụ..."
     },
     "outgoing": {
       "title": "Giao dịch đi",

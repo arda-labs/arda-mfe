@@ -49,9 +49,8 @@
     },
     "incoming": {
       "title": "Incoming transactions",
-      "description": "Open tasks (READY/CLAIMED) for registration, adjustments, incoming finance, and HRM.",
-      "pool": "Processing queue",
-      "mine": "My work"
+      "description": "One shared list. Routing tasks appear first and become available automatically when ready.",
+      "routing": "Preparing task..."
     },
     "outgoing": {
       "title": "Outgoing transactions",

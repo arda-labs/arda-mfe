@@ -28,12 +28,9 @@ export function useWorkbenchBurstRefetch(expectCaseCode?: string | null) {
 
 export function workbenchExpectCaseCode() {
   if (typeof window === "undefined") return null
-  return new URLSearchParams(window.location.search).get("caseCode")?.trim() || null
-}
-
-export function workbenchScopeFromSearch(search: string): "POOL" | "MINE" {
-  const scope = new URLSearchParams(search).get("scope")?.toUpperCase()
-  return scope === "MINE" ? "MINE" : "POOL"
+  return (
+    new URLSearchParams(window.location.search).get("caseCode")?.trim() || null
+  )
 }
 
 export function workbenchHref(

@@ -1,0 +1,28 @@
+@keyframes workflow-routing-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.workflow-routing-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--background) / 0.12) 42%,
+    hsl(var(--background) / 0.52) 50%,
+    hsl(var(--background) / 0.12) 58%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: workflow-routing-shimmer 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workflow-routing-shimmer {
+    animation: none;
+  }
+}

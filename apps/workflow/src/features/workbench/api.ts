@@ -116,7 +116,6 @@ export interface WorkItemFilter {
   caseType?: string
   candidateRole?: string
   assignedTo?: string
-  scope?: "POOL" | "MINE"
   priority?: string
   dueBefore?: string
   limit?: number
@@ -354,7 +353,6 @@ function toWorkItemSearch(filter: WorkItemFilter) {
   setSearch(search, "case_type", filter.caseType)
   setSearch(search, "candidate_role", filter.candidateRole)
   setSearch(search, "assigned_to", filter.assignedTo)
-  setSearch(search, "scope", filter.scope)
   setSearch(search, "priority", filter.priority)
   setSearch(search, "due_before", filter.dueBefore)
   setSearch(search, "limit", filter.limit)
