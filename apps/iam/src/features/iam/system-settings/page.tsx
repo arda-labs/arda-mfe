@@ -21,6 +21,7 @@ import {
 } from "@workspace/ui/components/card"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
+import { PageTitle } from "@workspace/ui/components/page-title"
 import { Label } from "@workspace/ui/components/label"
 import { Switch } from "@workspace/ui/components/switch"
 import {
@@ -242,47 +243,44 @@ export function SystemSettingsPage() {
   }
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-foreground">
-              Cài đặt hệ thống
-            </h2>
-            <Badge variant="secondary">Toàn cục</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Cấu hình hiển thị login, mật khẩu, phiên đăng nhập và giới hạn bảo
-            mật.
-          </p>
+    <section className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+        <div className="space-y-4 p-4 pb-3">
+          <PageTitle
+            title="Cài đặt hệ thống"
+            description="Cấu hình hiển thị login, mật khẩu, phiên đăng nhập và giới hạn bảo mật."
+            meta={<Badge variant="secondary">Toàn cục</Badge>}
+          />
         </div>
-        <Button
-          onClick={saveSettings}
-          disabled={loading || saving}
-          className="gap-2"
-        >
-          <Save className="size-4" />
-          {saving ? "Đang lưu..." : "Lưu cấu hình"}
-        </Button>
-      </div>
 
-      <Tabs defaultValue="display" className="space-y-4">
-        <TabsList className="grid h-auto w-full grid-cols-3 md:w-fit">
-          <TabsTrigger value="display" className="gap-2">
-            <Settings2 className="size-4" />
-            Hiển thị
-          </TabsTrigger>
-          <TabsTrigger value="password" className="gap-2">
-            <KeyRound className="size-4" />
-            Mật khẩu
-          </TabsTrigger>
-          <TabsTrigger value="login" className="gap-2">
-            <MonitorSmartphone className="size-4" />
-            Đăng nhập
-          </TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="display" className="flex flex-col">
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-background px-4 py-2">
+            <TabsList className="grid h-auto min-w-0 flex-1 grid-cols-3 md:w-fit md:flex-none">
+              <TabsTrigger value="display" className="gap-2">
+                <Settings2 className="size-4" />
+                Hiển thị
+              </TabsTrigger>
+              <TabsTrigger value="password" className="gap-2">
+                <KeyRound className="size-4" />
+                Mật khẩu
+              </TabsTrigger>
+              <TabsTrigger value="login" className="gap-2">
+                <MonitorSmartphone className="size-4" />
+                Đăng nhập
+              </TabsTrigger>
+            </TabsList>
+            <Button
+              onClick={saveSettings}
+              disabled={loading || saving}
+              className="shrink-0 gap-2"
+            >
+              <Save className="size-4" />
+              {saving ? "Đang lưu..." : "Lưu cấu hình"}
+            </Button>
+          </div>
 
-        <TabsContent value="display" className="space-y-4">
+          <div className="space-y-4 p-4">
+            <TabsContent value="display" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
@@ -540,9 +538,11 @@ export function SystemSettingsPage() {
               />
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+            </TabsContent>
+          </div>
+        </Tabs>
+      </div>
+    </section>
   )
 }
 
