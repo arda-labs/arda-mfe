@@ -588,10 +588,10 @@ function SidebarNode({
   const isExpanded = openGroups[nodeId] ?? hasActiveChild
   const open = sidebarOpen && isExpanded
   const itemClassName = cn(
-    "flex h-9 w-full items-center gap-3 rounded-md px-3 text-sm transition-colors",
+    "relative flex h-9 w-full items-center gap-3 rounded-md px-3 text-sm transition-colors before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:transition-colors",
     isActive || hasActiveChild
-      ? "bg-primary/10 font-medium text-primary"
-      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+      ? "bg-primary/10 font-medium text-primary before:bg-primary"
+      : "text-muted-foreground before:bg-transparent hover:bg-muted/80 hover:text-foreground"
   )
   const style = sidebarOpen
     ? { paddingLeft: `${0.75 + depth * 0.9}rem` }
@@ -611,6 +611,7 @@ function SidebarNode({
           className={itemClassName}
           style={style}
           title={!sidebarOpen ? label : undefined}
+          aria-expanded={open}
         >
           <item.icon className="size-4 shrink-0" />
           {sidebarOpen && (
@@ -655,6 +656,7 @@ function SidebarNode({
       className={itemClassName}
       style={style}
       title={!sidebarOpen ? label : undefined}
+      aria-current={isActive ? "page" : undefined}
     >
       <item.icon className="size-4 shrink-0" />
       {sidebarOpen && <span className="truncate">{label}</span>}
@@ -798,9 +800,9 @@ function UserMenu({
               </span>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: "active", label: "Active", color: "bg-green-500" },
-                  { value: "away", label: "Away", color: "bg-amber-500" },
-                  { value: "busy", label: "Busy", color: "bg-red-500" },
+                  { value: "active", label: "Active", color: "bg-success" },
+                  { value: "away", label: "Away", color: "bg-warning" },
+                  { value: "busy", label: "Busy", color: "bg-destructive" },
                 ].map((status) => (
                   <button
                     key={status.value}

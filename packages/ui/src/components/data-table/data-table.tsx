@@ -118,7 +118,7 @@ export function DataTable<TData>({
           className={cn(
             densityClass.head,
             utilityTableColumnClassName(header.column.id),
-            isPanel && "bg-muted/60"
+            isPanel && "bg-muted/80 text-foreground/90"
           )}
           style={getColumnPinningStyle({ column: header.column })}
         >
@@ -139,8 +139,8 @@ export function DataTable<TData>({
           key={row.id}
           data-state={row.getIsSelected() && "selected"}
           className={cn(
-            isStriped && "bg-table-row-stripe hover:bg-muted/70",
-            !isStriped && "hover:bg-muted/40",
+            isStriped && "bg-table-row-stripe hover:bg-accent/65",
+            !isStriped && "hover:bg-accent/45",
             onRowDoubleClick && "cursor-default",
             rowClassName?.(row)
           )}
@@ -211,7 +211,7 @@ export function DataTable<TData>({
         {children}
         <div
           className={cn(
-            "flex flex-col overflow-hidden rounded-md border bg-background transition-opacity",
+            "flex flex-col overflow-hidden rounded-lg border bg-card shadow-card transition-opacity",
             isPanel ? "min-h-0 flex-1" : "",
             fetching && "opacity-60"
           )}
@@ -220,7 +220,7 @@ export function DataTable<TData>({
             <>
               <div
                 ref={headerScrollRef}
-                className="shrink-0 [scrollbar-width:none] overflow-x-auto overflow-y-hidden border-b bg-muted/60 [&::-webkit-scrollbar]:hidden"
+                className="shrink-0 border-b bg-muted/80 [scrollbar-width:none] overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
               >
                 <table
                   className={tableClassName}
@@ -256,7 +256,7 @@ export function DataTable<TData>({
               </Table>
             </div>
           )}
-          <div className="shrink-0 border-t bg-background px-3 py-2">
+          <div className="shrink-0 border-t bg-muted/35 px-3 py-2">
             <DataTablePagination table={table} className="p-0" />
             {actionBar &&
               table.getFilteredSelectedRowModel().rows.length > 0 &&

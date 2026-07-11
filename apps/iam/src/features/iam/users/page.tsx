@@ -803,7 +803,7 @@ export function UsersPage() {
             <DialogTitle>{t("admin.users.identity.audit_title")}</DialogTitle>
           </DialogHeader>
           {identityIssues?.length === 0 ? (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-700">
+            <div className="rounded-lg border border-success/20 bg-success/10 p-3 text-sm text-success">
               {t("admin.users.identity.audit_empty")}
             </div>
           ) : (

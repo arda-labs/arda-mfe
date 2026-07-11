@@ -31,7 +31,8 @@ export function ListTableToolbar<TData>({
       ) : null}
       <Button
         type="button"
-        className="h-8 border-[#217346] bg-[#217346] px-3 text-xs font-semibold text-white hover:border-[#1a5c38] hover:bg-[#1a5c38] hover:text-white"
+        variant="outline"
+        className="h-8 px-3 text-xs font-semibold"
         onClick={() => {
           // Placeholder — export wiring comes later.
         }}

@@ -23,18 +23,18 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex shrink-0 flex-wrap items-start justify-between gap-3",
+        "relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-l-2 border-brand-accent/80 pl-3",
         className
       )}
     >
       <div className="min-w-0 space-y-1">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {Icon ? (
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-accent/10 text-brand-accent">
               <Icon className="size-4" />
             </div>
           ) : null}
-          <h1 className="truncate text-xl font-semibold">{title}</h1>
+          <h1 className="truncate text-xl font-semibold tracking-[-0.01em]">{title}</h1>
           {meta}
         </div>
         {description ? (
