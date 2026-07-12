@@ -2,7 +2,7 @@ import type { ChangeEvent, ReactNode } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
-import { FileText, Upload } from "lucide-react"
+import { ArrowLeft, Check, FileText, RotateCcw, Save, Send, Upload, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -275,6 +275,203 @@ export function EmptyState({ text }: { text: string }) {
   return (
     <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
       {text}
+    </div>
+  )
+}
+
+export function FooterBackButton({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="flex h-13 shrink-0 items-center justify-end border-t bg-background px-4">
+      <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+        <ArrowLeft className="size-4" />
+        Quay lại
+      </Button>
+    </div>
+  )
+}
+
+export function FooterActions({
+  isReadonly,
+  isSubmitting,
+  canCancelDraft,
+  canCompleteTask,
+  canEditTask,
+  awaitingMakerResubmit = false,
+  canEdit = false,
+  canSubmit,
+  onApprove,
+  onRequestChanges,
+  onReject,
+  onCancel,
+  onBack,
+  onSaveDraft,
+  onSaveAndSubmit,
+  onSaveAndRevise,
+  onSaveAndComplete,
+  onCancelDraft,
+  onCompleteTask,
+}: {
+  isReadonly: boolean
+  isSubmitting: boolean
+  canCancelDraft: boolean
+  canCompleteTask: boolean
+  canEditTask: boolean
+  awaitingMakerResubmit?: boolean
+  canEdit?: boolean
+  canSubmit?: boolean
+  onApprove?: () => void
+  onRequestChanges?: () => void
+  onReject?: () => void
+  onCancel?: () => void
+  onBack: () => void
+  onSaveDraft: () => void
+  onSaveAndSubmit?: () => void
+  onSaveAndRevise?: () => void
+  onSaveAndComplete?: () => void
+  onCancelDraft?: () => void
+  onCompleteTask?: (decision: string) => void
+}) {
+  const showMakerActions =
+    (canEditTask || awaitingMakerResubmit || canEdit) && !canCompleteTask
+  const showCheckerActions = canCompleteTask && !isReadonly
+
+  return (
+    <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
+      <div className="flex w-full flex-wrap justify-end gap-2">
+        {showCheckerActions && (onApprove || onCompleteTask) ? (
+          onCompleteTask ? (
+            <>
+              <Button
+                className="h-8"
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => onCompleteTask("APPROVE")}
+              >
+                <Check className="size-4" />
+                Phê duyệt
+              </Button>
+              <Button
+                className="h-8"
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={() => onCompleteTask("REQUEST_CHANGES")}
+              >
+                <RotateCcw className="size-4" />
+                Yêu cầu chỉnh sửa
+              </Button>
+              <Button
+                className="h-8"
+                type="button"
+                variant="destructive"
+                disabled={isSubmitting}
+                onClick={() => onCompleteTask("REJECT")}
+              >
+                <X className="size-4" />
+                Từ chối
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                className="h-8"
+                type="button"
+                disabled={isSubmitting}
+                onClick={onApprove}
+              >
+                <Check className="size-4" />
+                Phê duyệt
+              </Button>
+              <Button
+                className="h-8"
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={onRequestChanges}
+              >
+                <RotateCcw className="size-4" />
+                Yêu cầu chỉnh sửa
+              </Button>
+              <Button
+                className="h-8"
+                type="button"
+                variant="destructive"
+                disabled={isSubmitting}
+                onClick={onReject}
+              >
+                <X className="size-4" />
+                Từ chối
+              </Button>
+            </>
+          )
+        ) : null}
+
+        {!isReadonly && !showCheckerActions ? (
+          showMakerActions ? (
+            <>
+              <Button
+                className="h-8"
+                type="button"
+                disabled={isSubmitting || (canSubmit != null && !canSubmit)}
+                onClick={onSaveAndRevise ?? onSaveAndComplete}
+              >
+                <Send className="size-4" />
+                Hoàn thành
+              </Button>
+              <Button
+                className="h-8"
+                type="button"
+                variant="secondary"
+                disabled={isSubmitting}
+                onClick={onSaveDraft}
+              >
+                <Save className="size-4" />
+                Lưu nháp
+              </Button>
+              {canCancelDraft && onCancelDraft ? (
+                <Button
+                  className="h-8"
+                  type="button"
+                  variant="outline"
+                  disabled={isSubmitting}
+                  onClick={onCancelDraft}
+                >
+                  <X className="size-4" />
+                  Hủy nháp
+                </Button>
+              ) : null}
+            </>
+          ) : onSaveAndSubmit ? (
+            <Button
+              className="h-8"
+              type="button"
+              disabled={isSubmitting}
+              onClick={onSaveAndSubmit}
+            >
+              <Send className="size-4" />
+              Khởi tạo
+            </Button>
+          ) : null
+        ) : null}
+
+        {canCancelDraft && onCancel ? (
+          <Button
+            className="h-8"
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={onCancel}
+          >
+            <X className="size-4" />
+            Hủy hồ sơ
+          </Button>
+        ) : null}
+
+        <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+          <ArrowLeft className="size-4" />
+          Quay lại
+        </Button>
+      </div>
     </div>
   )
 }

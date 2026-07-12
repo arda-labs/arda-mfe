@@ -32,8 +32,22 @@ export async function runMutation<T>(
   }
 }
 
-export function optionsFor(_name: keyof CustomerFormValues) {
-  return selectOptions.generic
+export function optionsFor(name: keyof CustomerFormValues) {
+  const map: Partial<Record<keyof CustomerFormValues, { value: string; label: string }[]>> = {
+    gender: selectOptions.gender,
+    maritalStatus: selectOptions.maritalStatus,
+    occupation: selectOptions.occupation,
+    educationLevel: selectOptions.educationLevel,
+    cultureLevel: selectOptions.cultureLevel,
+    economicType: selectOptions.economicType,
+    economicSector: selectOptions.economicSector,
+    segment: selectOptions.segment,
+    riskLevel: selectOptions.riskLevel,
+    rank: selectOptions.rank,
+    identityType: selectOptions.identityType,
+    workDuration: selectOptions.workDuration,
+  }
+  return map[name] ?? selectOptions.generic
 }
 
 export function toPayload(

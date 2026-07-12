@@ -35,10 +35,11 @@ export const platformReferenceApi = {
     const suffix = q.size ? `?${q.toString()}` : ""
     return api.get<GeoAdminUnit[]>(`/api/platform/geo/admin-units${suffix}`)
   },
-  listAreas(params?: { status?: string; q?: string }) {
+  listAreas(params?: { status?: string; q?: string; adminUnitCode?: string }) {
     const q = new URLSearchParams()
     if (params?.status) q.set("status", params.status)
     if (params?.q) q.set("q", params.q)
+    if (params?.adminUnitCode) q.set("admin_unit_code", params.adminUnitCode)
     const suffix = q.size ? `?${q.toString()}` : ""
     return api.get<PlatformArea[]>(`/api/platform/areas${suffix}`)
   },

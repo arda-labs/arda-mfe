@@ -148,6 +148,80 @@ export const selectOptions = {
     { value: "ACTIVE", label: "Hoạt động" },
     { value: "INACTIVE", label: "Ngừng hiệu lực" },
   ],
+  gender: [
+    { value: "Nam", label: "Nam" },
+    { value: "Nữ", label: "Nữ" },
+    { value: "Khác", label: "Khác" },
+  ],
+  maritalStatus: [
+    { value: "Độc thân", label: "Độc thân" },
+    { value: "Đã lập gia đình", label: "Đã lập gia đình" },
+    { value: "Ly hôn", label: "Ly hôn" },
+    { value: "Góa", label: "Góa" },
+  ],
+  occupation: [
+    { value: "Kinh doanh", label: "Kinh doanh" },
+    { value: "Công chức", label: "Công chức" },
+    { value: "Nhân viên văn phòng", label: "Nhân viên văn phòng" },
+    { value: "Công nhân", label: "Công nhân" },
+    { value: "Nông dân", label: "Nông dân" },
+    { value: "Tự do", label: "Tự do" },
+    { value: "Khác", label: "Khác" },
+  ],
+  educationLevel: [
+    { value: "THPT", label: "THPT" },
+    { value: "Cao đẳng", label: "Cao đẳng" },
+    { value: "Đại học", label: "Đại học" },
+    { value: "Thạc sĩ", label: "Thạc sĩ" },
+    { value: "Tiến sĩ", label: "Tiến sĩ" },
+  ],
+  cultureLevel: [
+    { value: "THCS", label: "THCS" },
+    { value: "THPT", label: "THPT" },
+    { value: "Cao đẳng", label: "Cao đẳng" },
+    { value: "Đại học", label: "Đại học" },
+    { value: "Sau đại học", label: "Sau đại học" },
+  ],
+  economicType: [
+    { value: "DNNN", label: "Doanh nghiệp nhà nước" },
+    { value: "TNHH", label: "TNHH" },
+    { value: "Cổ phần", label: "Cổ phần" },
+    { value: "Tư nhân", label: "Tư nhân" },
+    { value: "Liên doanh", label: "Liên doanh" },
+  ],
+  economicSector: [
+    { value: "Nông nghiệp", label: "Nông nghiệp" },
+    { value: "Công nghiệp", label: "Công nghiệp" },
+    { value: "Dịch vụ", label: "Dịch vụ" },
+    { value: "Xây dựng", label: "Xây dựng" },
+    { value: "CNTT", label: "CNTT" },
+  ],
+  segment: [
+    { value: "VIP", label: "VIP" },
+    { value: "Thường", label: "Thường" },
+    { value: "Tiềm năng", label: "Tiềm năng" },
+  ],
+  riskLevel: [
+    { value: "Thấp", label: "Thấp" },
+    { value: "Trung bình", label: "Trung bình" },
+    { value: "Cao", label: "Cao" },
+  ],
+  rank: [
+    { value: "Hạng 1", label: "Hạng 1" },
+    { value: "Hạng 2", label: "Hạng 2" },
+    { value: "Hạng 3", label: "Hạng 3" },
+  ],
+  identityType: [
+    { value: "Căn cước công dân", label: "Căn cước công dân" },
+    { value: "Chứng minh nhân dân", label: "Chứng minh nhân dân" },
+    { value: "Hộ chiếu", label: "Hộ chiếu" },
+  ],
+  workDuration: [
+    { value: "Dưới 1 năm", label: "Dưới 1 năm" },
+    { value: "Từ 1-3 năm", label: "Từ 1-3 năm" },
+    { value: "Từ 3-5 năm", label: "Từ 3-5 năm" },
+    { value: "Trên 5 năm", label: "Trên 5 năm" },
+  ],
 }
 
 export const generalFieldsPrimary: Array<

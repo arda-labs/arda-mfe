@@ -40,7 +40,23 @@
       "action": "Điều chỉnh"
     },
     "search_placeholder": "Tìm theo mã, tên, số di động, CCCD/CMND",
+    "columns": {
+      "customer_code": "Mã khách hàng",
+      "customer_name": "Tên khách hàng",
+      "segment": "Phân khúc khách hàng",
+      "customer_type": "Loại khách hàng",
+      "rank": "Hạng khách hàng",
+      "risk_level": "Phân loại rủi ro",
+      "mobile": "Số di động",
+      "identity_no": "CCCD/CMND",
+      "address": "Địa chỉ"
+    },
     "empty": "Chưa có dữ liệu khách hàng."
+  },
+  "common": {
+    "select": "Chọn",
+    "index": "TT",
+    "actions": "Thao tác"
   },
   "actions": {
     "refresh": "Làm mới",
