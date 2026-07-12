@@ -49,7 +49,7 @@ import {
   workflowKey,
 } from "../shared/task-context"
 import { postTaskWorkbenchHref } from "../shared/workbench-return"
-import { waitForWorkflowStepChange } from "../shared/workflow-transition"
+import { waitForTaskReady, waitForWorkflowStepChange } from "../shared/workflow-transition"
 import {
   AvatarUploader,
   FieldGrid,
@@ -118,6 +118,7 @@ export function CustomerRegistrationPage({
       ? "Cập nhật thông tin khách hàng theo yêu cầu của quy trình."
       : t("crm.customers.registrations.description")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isWaitingForTask, setIsWaitingForTask] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const submittingRef = useRef(false)
 
@@ -288,9 +289,33 @@ export function CustomerRegistrationPage({
         },
       })
       refreshCustomer(submitted)
+
+      // Wait for Zeebe to create the native user task before redirecting
+      setIsWaitingForTask(true)
+      setIsSubmitting(false)
+      const { ready, timedOut } = await waitForTaskReady({
+        caseId: submitted.workflowCaseId,
+        stepCode: "UT_MakerRevise",
+        getReadiness: customerApi.getTaskReadiness.bind(customerApi),
+        timeoutMs: 30_000,
+      })
+      setIsWaitingForTask(false)
+
+      if (!ready) {
+        notify.warning(
+          "Đang xử lý hồ sơ",
+          timedOut
+            ? "Hệ thống đang xử lý, vui lòng vào Giao dịch đến sau vài phút."
+            : "Vui lòng vào Giao dịch đến để tiếp tục chỉnh sửa."
+        )
+        navigateTo(postTaskWorkbenchHref())
+        return
+      }
+
       navigateTo(await registrationMakerEditHref(submitted))
     } finally {
       setIsSubmitting(false)
+      setIsWaitingForTask(false)
       submittingRef.current = false
     }
   }
@@ -325,11 +350,17 @@ export function CustomerRegistrationPage({
         elementId: resolved.elementId,
         variables: { revisionSubmitted: true },
       })
-      await waitForWorkflowStepChange({
+      const { timedOut } = await waitForWorkflowStepChange({
         caseId: taskContext.caseId ?? saved.workflowCaseId,
         completedElementId: resolved.elementId,
         loadCase: customerApi.getWorkflowCase,
       })
+      if (timedOut) {
+        notify.warning(
+          "Đang xử lý quy trình",
+          "Quá trình chuyển bước chưa hoàn tất, nhưng hồ sơ đã được gửi. Vào Giao dịch đến để kiểm tra."
+        )
+      }
       navigateTo(postTaskWorkbenchHref())
     } finally {
       setIsSubmitting(false)
@@ -448,6 +479,24 @@ export function CustomerRegistrationPage({
             {taskContextError
               ? "Khong tai duoc thong tin task. Vui long quay lai Giao dich den va mo lai ho so."
               : "Dang tai ho so..."}
+          </div>
+        </div>
+        <FooterBackButton onBack={goBack} />
+      </section>
+    )
+  }
+
+  if (isWaitingForTask) {
+    return (
+      <section className="flex h-full min-h-0 flex-col overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter:stable]">
+          <PageTitle
+            title="Đang chuẩn bị hồ sơ chỉnh sửa..."
+            description="Hệ thống đang khởi tạo phiên chỉnh sửa. Vui lòng đợi trong giây lát."
+          />
+          <div className="mt-4 flex flex-col items-center rounded-md border px-4 py-10 text-sm text-muted-foreground">
+            <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+            <p>Đang chờ quy trình xử lý...</p>
           </div>
         </div>
         <FooterBackButton onBack={goBack} />

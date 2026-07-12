@@ -264,12 +264,23 @@ function TransactionWorkbenchInner({
             presets={direction === "incoming" ? ["accounting"] : ["slaStatus"]}
             resultCount={items.length}
           />
-          <DataTable
-            table={table}
-            defaultDensity="comfortable"
-            rowClassName={({ original }) => workItemRowClassName(original)}
-            {...transactionListTableLayout}
-          />
+          {items.length === 0 && expectCaseCode && !fetching ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+              <p className="text-sm">Đang xử lý hồ sơ, vui lòng đợi trong giây lát...</p>
+              <Button variant="outline" className="mt-4" onClick={() => void reload()}>
+                <RefreshCw className="size-4" />
+                Làm mới ngay
+              </Button>
+            </div>
+          ) : (
+            <DataTable
+              table={table}
+              defaultDensity="comfortable"
+              rowClassName={({ original }) => workItemRowClassName(original)}
+              {...transactionListTableLayout}
+            />
+          )}
         </div>
       </div>
     </Page>

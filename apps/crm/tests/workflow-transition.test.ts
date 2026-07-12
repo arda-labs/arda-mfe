@@ -16,11 +16,11 @@ describe("waitForWorkflowStepChange", () => {
       timeoutMs: 1_000,
     })
 
-    expect(result).toBe("UT_CheckerReview")
+    expect(result).toEqual({ step: "UT_CheckerReview", timedOut: false })
     expect(index).toBe(3)
   })
 
-  test("returns null when the transition does not appear before timeout", async () => {
+  test("returns timedOut=true when the transition does not appear before timeout", async () => {
     let now = 0
 
     const result = await waitForWorkflowStepChange({
@@ -35,7 +35,7 @@ describe("waitForWorkflowStepChange", () => {
       intervalMs: 500,
     })
 
-    expect(result).toBeNull()
+    expect(result).toEqual({ step: null, timedOut: true })
   })
 
   test("retries a transient case read failure", async () => {
@@ -53,7 +53,7 @@ describe("waitForWorkflowStepChange", () => {
       timeoutMs: 1_000,
     })
 
-    expect(result).toBe("UT_CheckerReview")
+    expect(result).toEqual({ step: "UT_CheckerReview", timedOut: false })
     expect(attempts).toBe(2)
   })
 })

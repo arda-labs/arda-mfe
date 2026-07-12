@@ -229,6 +229,12 @@ export const customerApi = {
       { method: "GET" }
     )
   },
+  getTaskReadiness(caseId: string, stepCode: string) {
+    return request<{ ready: boolean; status: string }>(
+      `/api/workflow/cases/${encodeURIComponent(caseId)}/task-readiness?stepCode=${encodeURIComponent(stepCode)}`,
+      { method: "GET" }
+    )
+  },
   getWorkflowCaseTimeline(id: string) {
     return request<{ items?: WorkflowTimelineEvent[] } | WorkflowTimelineEvent[]>(
       `/api/workflow/cases/${encodeURIComponent(id)}/timeline`,

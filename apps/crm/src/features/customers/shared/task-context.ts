@@ -87,41 +87,53 @@ export async function resolveWorkflowJobKey(
       role: context.role,
     }
   }
-  try {
-    const task = await customerApi.claimWorkflowTask({
-      role: context.role,
-      processInstanceKey: context.processInstanceKey,
-      caseId: context.caseId,
-      elementId,
-    })
-    const jobKey = workflowKey(task.jobKey)
-    if (!jobKey) {
-      notify.error(
-        "Thiếu ngữ cảnh task BPM",
-        "Không lấy được task key từ Zeebe — kiểm tra workflow-service và Zeebe."
-      )
-      return null
+
+  // Retry claim up to 3 times with delay — Zeebe may still be projecting
+  let lastError: unknown
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
-    const processInstanceKey =
-      workflowKey(task.processInstanceKey) || context.processInstanceKey
-    syncTaskContextSearch({
-      taskKey: jobKey,
-      elementId: task.elementId || elementId,
-      role: task.candidateRole || context.role,
-    })
-    return {
-      jobKey,
-      processInstanceKey,
-      elementId: task.elementId || elementId,
-      role: roleParam(task.candidateRole || context.role),
+    try {
+      const task = await customerApi.claimWorkflowTask({
+        role: context.role,
+        processInstanceKey: context.processInstanceKey,
+        caseId: context.caseId,
+        elementId,
+      })
+      const jobKey = workflowKey(task.jobKey)
+      if (!jobKey) {
+        notify.error(
+          "Thiếu ngữ cảnh task BPM",
+          "Không lấy được task key từ Zeebe — kiểm tra workflow-service và Zeebe."
+        )
+        return null
+      }
+      const processInstanceKey =
+        workflowKey(task.processInstanceKey) || context.processInstanceKey
+      syncTaskContextSearch({
+        taskKey: jobKey,
+        elementId: task.elementId || elementId,
+        role: task.candidateRole || context.role,
+      })
+      return {
+        jobKey,
+        processInstanceKey,
+        elementId: task.elementId || elementId,
+        role: roleParam(task.candidateRole || context.role),
+      }
+    } catch (error) {
+      lastError = error
+      // Only show error on last attempt; earlier retries are expected to fail
+      if (attempt === 2) {
+        notify.error(
+          "Thiếu ngữ cảnh task BPM",
+          error instanceof Error ? error.message : "Không claim được task từ workflow."
+        )
+      }
     }
-  } catch (error) {
-    notify.error(
-      "Thiếu ngữ cảnh task BPM",
-      error instanceof Error ? error.message : "Không claim được task từ workflow."
-    )
-    return null
   }
+  return null
 }
 
 export function useCustomerTaskContext() {
