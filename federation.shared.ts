@@ -15,7 +15,6 @@ export const remoteSharedDeps = {
   "react-dom/client": { singleton: true },
   "react/jsx-runtime": { singleton: true },
   "react/jsx-dev-runtime": { singleton: true },
-  "react-router": { singleton: true },
   "react-router-dom": { singleton: true },
   "@workspace/i18n": { singleton: true },
   "@workspace/i18n/": { singleton: true },
