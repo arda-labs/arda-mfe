@@ -8,18 +8,18 @@ import { PageHeader } from "@workspace/ui/components/page-header"
 import { PageSubmenu } from "@workspace/ui/components/page-submenu"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import type { WorkbenchDirection, WorkItem, WorkItemFilter, WorkItemSummaryNode } from "./api"
-import { workbenchApi } from "./api"
+import type { WorkbenchDirection, WorkItem, WorkItemFilter, WorkItemSummaryNode } from "../api"
+import { workbenchApi } from "../api"
 import { WorkItemTree } from "./workbench-tree"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
-import { workItemColumns, searchColumns } from "./workbench-columns"
-import { transactionListTableLayout } from "./workbench-table-layout"
-import { workItemRowClassName } from "./work-item-state"
-import { navigateTo } from "./nav"
+import { workItemColumns, searchColumns } from "../utils/workbench-columns"
+import { transactionListTableLayout } from "../utils/workbench-table-layout"
+import { workItemRowClassName } from "../utils/work-item-state"
+import { navigateTo } from "../utils/nav"
 import {
   useWorkbenchBurstRefetch,
   workbenchExpectCaseCode,
-} from "./burst-refetch"
+} from "../utils/burst-refetch"
 
 const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 

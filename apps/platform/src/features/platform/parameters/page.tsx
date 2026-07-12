@@ -37,10 +37,10 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
 import { Check, ChevronsUpDown, Edit2, Eye, EyeOff, Key, Trash2 } from "lucide-react"
-import { ListPageShell } from "../shared/list-page-shell"
-import { matchTextColumnFilter, textSearchMeta } from "../shared/column-filters"
-import { sortByColumn, useClientListTable } from "../shared/client-list"
-import { ListTableToolbar } from "../shared/list-table-toolbar"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { matchTextColumnFilter, textSearchMeta } from "@workspace/ui/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

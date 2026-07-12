@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
-import type { Session } from "@/features/settings/api/session"
-import { sessionApi } from "@/features/settings/api/session"
+import type { Session } from "@/features/settings/api"
+import { sessionApi } from "@/features/settings/api"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { transactionListTableLayout } from "../src/features/workbench/workbench-table-layout"
+import { transactionListTableLayout } from "../src/features/workbench/utils/workbench-table-layout"
 
 describe("transactionListTableLayout", () => {
   test("keeps the incoming and outgoing pagination footer outside the scroll area", () => {

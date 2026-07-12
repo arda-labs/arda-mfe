@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import type { WorkItem, WorkbenchDirection } from "./api"
-import { WorkItemCard } from "./work-item-card"
+import type { WorkItem, WorkbenchDirection } from "../api"
+import { WorkItemCard } from "../components/work-item-card"
 import { SlaStatus, StatusBadge, TimeProgress } from "./sla-utils"
 import { completionTime, formatDateTime, previousAssignee } from "./step-labels"
 import { getMediaContentUrl } from "@workspace/core/media/urls"

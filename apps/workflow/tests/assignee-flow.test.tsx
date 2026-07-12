@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { renderToStaticMarkup } from "react-dom/server"
-import { AssigneeFlow } from "../src/features/workbench/workbench-columns"
+import { AssigneeFlow } from "../src/features/workbench/utils/workbench-columns"
 
 describe("AssigneeFlow", () => {
   test("shows people without exposing an internal candidate role", () => {

@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Edit2 } from "lucide-react"
-import { ListPageShell } from "../shared/list-page-shell"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
 import {
   activeStatusMeta,
   getSingleSelectValue,
@@ -39,9 +39,9 @@ import {
   selectFilterMeta,
   textSearchMeta,
   useColumnFilterParams,
-} from "../shared/column-filters"
-import { sortByColumn, useClientListTable } from "../shared/client-list"
-import { ListTableToolbar } from "../shared/list-table-toolbar"
+} from "@workspace/ui/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

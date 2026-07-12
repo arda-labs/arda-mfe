@@ -2,9 +2,9 @@ import { useEffect } from "react"
 import {
   createTransactionWorkbench,
   TransactionSearchPage,
-} from "./transaction-workbench"
+} from "./components/transaction-workbench"
 import { DraftWorkbenchPage } from "./drafts-page"
-import { navigateTo } from "./nav"
+import { navigateTo } from "./utils/nav"
 
 type WorkbenchRoute = "drafts" | "incoming" | "outgoing" | "search"
 

@@ -1,7 +1,16 @@
 import { lazy, Suspense } from "react"
 import { useI18n } from "@workspace/i18n"
 import { CustomerTable } from "./components/customer-table"
-import { customerIdFromSearch, routeFromPath } from "./routes"
+import { customerIdFromSearch } from "./utils/task-context"
+
+type CustomerRoute = "registrations" | "profiles" | "risk" | "adjustments"
+
+function routeFromPath(pathname: string): CustomerRoute {
+  if (pathname.startsWith("/customers/profiles")) return "profiles"
+  if (pathname.startsWith("/customers/risk-cases")) return "risk"
+  if (pathname.startsWith("/customers/adjustments")) return "adjustments"
+  return "registrations"
+}
 
 const CustomerRegistrationPage = lazy(() =>
   import("./pages/registration-page").then((m) => ({

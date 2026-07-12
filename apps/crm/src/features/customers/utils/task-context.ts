@@ -7,7 +7,7 @@ import {
   type Customer,
   type WorkflowTaskRole,
   type WorkflowWorkItem,
-} from "../api"
+} from "../../api"
 
 export type CustomerTaskContext = {
   customerId: string | null

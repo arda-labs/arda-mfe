@@ -4,7 +4,7 @@ import {
   platformReferenceApi,
   type GeoAdminUnit,
   type PlatformArea,
-} from "./platform-api"
+} from "../../api"
 import { SearchSelectField, toGeoOptions } from "./search-select-field"
 
 type GeoFormValues = {

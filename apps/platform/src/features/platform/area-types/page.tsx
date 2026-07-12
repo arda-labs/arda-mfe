@@ -33,15 +33,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { ListPageShell } from "../shared/list-page-shell"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
 import {
   activeStatusMeta,
   matchBooleanActiveFilter,
   matchTextColumnFilter,
   textSearchMeta,
-} from "../shared/column-filters"
-import { sortByColumn, useClientListTable } from "../shared/client-list"
-import { ListTableToolbar } from "../shared/list-table-toolbar"
+} from "@workspace/ui/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 
 const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
 

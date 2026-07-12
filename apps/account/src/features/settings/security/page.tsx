@@ -19,7 +19,7 @@ import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { CheckCircle2, Copy, KeyRound, QrCode, ShieldAlert } from "lucide-react"
-import { mfaApi, type MFASecret, type MFAStatus } from "@/features/settings/api/mfa"
+import { mfaApi, type MFASecret, type MFAStatus } from "@/features/settings/api"
 
 export function SecurityPage() {
   const [step, setStep] = useState<"idle" | "generating" | "qr" | "done">("idle")

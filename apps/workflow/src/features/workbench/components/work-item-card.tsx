@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
-import type { WorkItem } from "./api"
-import { workItemInteraction } from "./work-item-state"
+import type { WorkItem } from "../api"
+import { workItemInteraction } from "../utils/work-item-state"
 import "./work-item-card.css"
 
 export function WorkItemCard({

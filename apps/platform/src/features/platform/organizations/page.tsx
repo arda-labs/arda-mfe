@@ -47,7 +47,7 @@ import { listPageCount } from "@workspace/core/http/list-api"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { parseSortingState } from "@workspace/ui/lib/parsers"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
-import { ListTableToolbar } from "../shared/list-table-toolbar"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

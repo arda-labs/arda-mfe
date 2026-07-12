@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import type { FieldPath, UseFormReturn } from "react-hook-form"
-import { platformReferenceApi, type PlatformOrganization } from "./platform-api"
+import { platformReferenceApi, type PlatformOrganization } from "../../api"
 import { SearchSelectField } from "./search-select-field"
 
 type OrgUnitFormValues = {

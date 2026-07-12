@@ -16,17 +16,17 @@ import {
 } from "@workspace/ui/components/select"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
-import type { Customer, CustomerPayload, CustomerType, WorkflowTimelineEvent } from "../api"
-import { customerApi } from "../api"
+import type { Customer, CustomerPayload, CustomerType, WorkflowTimelineEvent } from "../../api"
+import { customerApi } from "../../api"
 import {
   CheckerDecisionDialog,
   type CheckerDecision,
 } from "../components/checker-decision-dialog"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { RelationshipsPanel } from "../components/relationships-panel"
-import { GeoLocationFields } from "../geo-location-fields"
-import { OrgUnitField } from "../org-unit-field"
-import { runMutation } from "../shared/form-utils"
+import { GeoLocationFields } from "../components/geo-location-fields"
+import { OrgUnitField } from "../components/org-unit-field"
+import { runMutation, toFormValues, toPayload } from "../utils/form-utils"
 import {
   businessFields,
   customerSchema,
@@ -37,17 +37,16 @@ import {
   personalFields,
   selectOptions,
   type CustomerFormValues,
-} from "../shared/schemas"
-import { toFormValues, toPayload } from "../shared/form-utils"
+} from "../schemas"
 import {
   hasTaskContext,
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
   useCustomerTaskContext,
   workflowKey,
-} from "../shared/task-context"
-import { postTaskWorkbenchHref } from "../shared/workbench-return"
-import { waitForTaskReady, waitForWorkflowStepChange } from "../shared/workflow-transition"
+} from "../utils/task-context"
+import { postTaskWorkbenchHref } from "../utils/workbench-return"
+import { waitForTaskReady, waitForWorkflowStepChange } from "../utils/workflow-transition"
 import {
   AvatarUploader,
   FieldGrid,
@@ -55,7 +54,7 @@ import {
   FooterBackButton,
   Panel,
   RegistrationStatusBar,
-} from "../shared/ui"
+} from "../components/customer-ui"
 
 function goBack() {
   const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")

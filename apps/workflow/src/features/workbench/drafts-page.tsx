@@ -47,7 +47,7 @@ import type {
   PlatformDraftStatusFilter,
   PlatformDraftsResult,
 } from "./drafts/types"
-import { navigateTo } from "./nav"
+import { navigateTo } from "./utils/nav"
 
 type DraftFilter = {
   q: string

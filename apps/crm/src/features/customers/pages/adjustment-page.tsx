@@ -16,10 +16,16 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
-import { GeoLocationFields } from "../geo-location-fields"
-import { OrgUnitField } from "../org-unit-field"
-import { customerApi, type Customer, type CustomerAmendment } from "../api"
-import { runMutation } from "../shared/form-utils"
+import { GeoLocationFields } from "../components/geo-location-fields"
+import { OrgUnitField } from "../components/org-unit-field"
+import { customerApi, type Customer, type CustomerAmendment } from "../../api"
+import {
+  runMutation,
+  computeChangedFields,
+  customerTypeLabel,
+  toAmendmentSnapshot,
+  toFormValues,
+} from "../utils/form-utils"
 import {
   businessFields,
   customerSchema,
@@ -29,21 +35,15 @@ import {
   generalFieldsRest,
   personalFields,
   type CustomerFormValues,
-} from "../shared/schemas"
-import {
-  computeChangedFields,
-  customerTypeLabel,
-  toAmendmentSnapshot,
-  toFormValues,
-} from "../shared/form-utils"
+} from "../schemas"
 import {
   hasTaskContext,
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
   type CustomerTaskContext,
   useCustomerTaskContext,
-} from "../shared/task-context"
-import { postTaskWorkbenchHref } from "../shared/workbench-return"
+} from "../utils/task-context"
+import { postTaskWorkbenchHref } from "../utils/workbench-return"
 import {
   EmptyState,
   FieldGrid,
@@ -52,7 +52,7 @@ import {
   Panel,
   RegistrationStatusBar,
   StatusBadge,
-} from "../shared/ui"
+} from "../components/customer-ui"
 
 function goBack() {
   const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")

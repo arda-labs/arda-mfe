@@ -19,12 +19,12 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
-import type { Customer } from "../api"
+import type { Customer } from "../../api"
 import {
   type CustomerFormValues,
-} from "./schemas"
-import { optionsFor } from "./form-utils"
-import { registrationStatusLabelKey } from "./registration-status"
+} from "../schemas"
+import { optionsFor } from "../utils/form-utils"
+import { registrationStatusLabelKey } from "../utils/registration-status"
 
 export function FieldGrid({
   fields,

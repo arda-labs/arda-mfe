@@ -1,4 +1,4 @@
-import type { WorkItem } from "./api"
+import type { WorkItem } from "../api"
 
 type WorkItemInteractionInput = Pick<
   WorkItem,

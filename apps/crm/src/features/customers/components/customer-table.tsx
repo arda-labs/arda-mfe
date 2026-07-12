@@ -12,9 +12,9 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { navigateTo } from "@workspace/core/routing"
-import { customerApi, type Customer, type CustomerListParams } from "../api"
-import { customerTypeLabel } from "../shared/form-utils"
-import { EmptyTable, Header } from "../shared/ui"
+import { customerApi, type Customer, type CustomerListParams } from "../../api"
+import { customerTypeLabel } from "../utils/form-utils"
+import { EmptyTable, Header } from "./customer-ui"
 
 export function CustomerTable({
   title,

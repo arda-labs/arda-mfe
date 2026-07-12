@@ -2,7 +2,7 @@ import { useState } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
-import type { WorkItemSummaryNode } from "./api"
+import type { WorkItemSummaryNode } from "../api"
 
 export function WorkItemTree({
   nodes,

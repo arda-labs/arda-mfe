@@ -21,14 +21,14 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { customerApi, type Customer, type CustomerRelationship } from "../api"
-import { runMutation, relationLabel } from "../shared/form-utils"
+import { customerApi, type Customer, type CustomerRelationship } from "../../api"
+import { runMutation, relationLabel } from "../utils/form-utils"
 import {
   relationshipSchema,
   selectOptions,
   type RelationshipFormValues,
-} from "../shared/schemas"
-import { EmptyTable, Panel } from "../shared/ui"
+} from "../schemas"
+import { EmptyTable, Panel } from "./customer-ui"
 
 export function RelationshipsPanel({ customer }: { customer: Customer }) {
   const [relationships, setRelationships] = useState<CustomerRelationship[]>([])

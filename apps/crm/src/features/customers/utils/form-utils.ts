@@ -1,10 +1,10 @@
 import { notify } from "@workspace/notifications/notify"
-import type { Customer, CustomerPayload, CustomerType } from "../api"
+import type { Customer, CustomerPayload, CustomerType } from "../../api"
 import {
   defaultValues,
   selectOptions,
   type CustomerFormValues,
-} from "./schemas"
+} from "../schemas"
 
 function mutationErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : undefined
@@ -268,5 +268,3 @@ export function computeChangedFields(
   compare("address", customer.address, afterSnapshot.address)
   return fields
 }
-
-

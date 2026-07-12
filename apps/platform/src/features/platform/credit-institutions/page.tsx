@@ -40,15 +40,15 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { Edit2, Trash2 } from "lucide-react"
-import { ListPageShell } from "../shared/list-page-shell"
+import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
 import {
   matchSelectFilter,
   matchTextColumnFilter,
   multiSelectFilterMeta,
   textSearchMeta,
-} from "../shared/column-filters"
-import { sortByColumn, useClientListTable } from "../shared/client-list"
-import { ListTableToolbar } from "../shared/list-table-toolbar"
+} from "@workspace/ui/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

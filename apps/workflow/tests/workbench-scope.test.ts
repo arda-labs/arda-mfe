@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import {
   workItemInteraction,
   workItemRowClassName,
-} from "../src/features/workbench/work-item-state"
+} from "../src/features/workbench/utils/work-item-state"
 
 describe("workItemInteraction", () => {
   test("keeps routing rows visible but non-interactive", () => {

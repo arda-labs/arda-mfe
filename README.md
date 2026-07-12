@@ -36,7 +36,6 @@ Feature folders follow a consistent layout. See [docs/conventions/mfe-structure.
 apps/<remote>/src/features/<domain>/
   api.ts
   <entity>/
-    queries.ts
     page.tsx
 ```
 
