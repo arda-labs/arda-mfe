@@ -249,10 +249,11 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 overflow-y-auto">
-      <section className="overflow-hidden rounded-lg border bg-card">
+    <div className="h-full min-h-0 overflow-y-auto">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4 md:px-6">
+      <section className="rounded-lg border bg-card">
         <div
-          className="relative h-52 bg-muted bg-cover bg-center md:h-64"
+          className="relative h-52 overflow-hidden rounded-t-lg bg-muted bg-cover bg-center md:h-64"
           style={coverUrl ? { backgroundImage: `url(${coverUrl})` } : undefined}
         >
           <div className="absolute inset-0 bg-linear-to-b from-black/10 to-black/35" />
@@ -490,6 +491,7 @@ export function ProfilePage() {
           </aside>
         </div>
       )}
+      </div>
     </div>
   )
 }
