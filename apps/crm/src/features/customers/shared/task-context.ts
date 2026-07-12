@@ -89,7 +89,6 @@ export async function resolveWorkflowJobKey(
   }
 
   // Retry claim up to 3 times with delay — Zeebe may still be projecting
-  let lastError: unknown
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) {
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -123,7 +122,6 @@ export async function resolveWorkflowJobKey(
         role: roleParam(task.candidateRole || context.role),
       }
     } catch (error) {
-      lastError = error
       // Only show error on last attempt; earlier retries are expected to fail
       if (attempt === 2) {
         notify.error(
