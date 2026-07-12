@@ -249,7 +249,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 overflow-y-auto">
       <section className="overflow-hidden rounded-lg border bg-card">
         <div
           className="relative h-52 bg-muted bg-cover bg-center md:h-64"
