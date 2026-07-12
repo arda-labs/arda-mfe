@@ -48,7 +48,7 @@ export function SettingsLayout({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-5 overflow-y-auto px-4 py-6 md:px-6">
       <section className="flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <button

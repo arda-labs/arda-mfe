@@ -52,7 +52,7 @@ export function AppearancePage() {
   }
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid h-full gap-8 overflow-y-auto px-4 py-6 md:px-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-8">
         <section className="space-y-4">
           <div>
