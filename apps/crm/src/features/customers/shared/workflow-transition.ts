@@ -23,9 +23,9 @@ export async function waitForWorkflowStepChange({
   intervalMs = DEFAULT_INTERVAL_MS,
   wait = delay,
   now = Date.now,
-}: WaitForWorkflowStepChangeInput) {
+}: WaitForWorkflowStepChangeInput): Promise<{ step: string | null; timedOut: boolean }> {
   const normalizedCaseId = caseId?.trim()
-  if (!normalizedCaseId) return null
+  if (!normalizedCaseId) return { step: null, timedOut: false }
 
   const completedStep = normalizeUserTaskElementId(completedElementId)
   const startedAt = now()
@@ -36,14 +36,14 @@ export async function waitForWorkflowStepChange({
       const currentStep = normalizeUserTaskElementId(
         workflowCase.currentStep ?? ""
       )
-      if (currentStep && currentStep !== completedStep) return currentStep
+      if (currentStep && currentStep !== completedStep) return { step: currentStep, timedOut: false }
     } catch {
       // Completion already succeeded; tolerate transient projection/API reads.
     }
     await wait(intervalMs)
   }
 
-  return null
+  return { step: null, timedOut: true }
 }
 
 function normalizeUserTaskElementId(elementId: string) {
@@ -59,4 +59,45 @@ function normalizeUserTaskElementId(elementId: string) {
 
 function delay(delayMs: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, delayMs))
+}
+
+export type WaitForTaskReadyInput = {
+  caseId: string | null | undefined
+  stepCode: string
+  getReadiness: (caseId: string, stepCode: string) => Promise<{ ready: boolean; status: string }>
+  timeoutMs?: number
+  intervalMs?: number
+  wait?: (delayMs: number) => Promise<void>
+  now?: () => number
+}
+
+/**
+ * Poll until a work item for a given stepCode is ready (or at least exists).
+ * Unlike waitForWorkflowStepChange, this checks BEFORE the task is claimed,
+ * so the caller can block navigation until Zeebe has assigned jobKey.
+ */
+export async function waitForTaskReady({
+  caseId,
+  stepCode,
+  getReadiness,
+  timeoutMs = 30_000,
+  intervalMs = 500,
+  wait = delay,
+  now = Date.now,
+}: WaitForTaskReadyInput): Promise<{ ready: boolean; timedOut: boolean }> {
+  const normalizedCaseId = caseId?.trim()
+  if (!normalizedCaseId) return { ready: false, timedOut: false }
+
+  const startedAt = now()
+  while (now() - startedAt < timeoutMs) {
+    try {
+      const res = await getReadiness(normalizedCaseId, stepCode)
+      if (res.ready) return { ready: true, timedOut: false }
+    } catch {
+      // Transient API error — retry
+    }
+    await wait(intervalMs)
+  }
+
+  return { ready: false, timedOut: true }
 }
