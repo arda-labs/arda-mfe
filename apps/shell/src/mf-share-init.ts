@@ -20,7 +20,7 @@ function seedShare(key: string, value: unknown) {
   mfCache.share[key] ??= value
 }
 
-// Must run before any lazy chunk (WorkspaceApp) evaluates federation loadShare imports.
+// Must run before any lazy chunk (App) evaluates federation loadShare imports.
 seedShare("@workspace/auth", authShare)
 seedShare("@workspace/auth/store", authStoreShare)
 seedShare("@workspace/auth/step-up-channel", stepUpChannelShare)

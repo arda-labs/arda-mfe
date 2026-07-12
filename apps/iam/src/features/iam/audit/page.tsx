@@ -71,8 +71,14 @@ export function AuditPage() {
 
   const pageParam = POS(searchParams.get("page"), 1)
   const pageSizeParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
-  const eventTypesParam = parseArrayParam(searchParams.get("eventType"))
-  const resultParam = parseArrayParam(searchParams.get("result"))
+  const eventTypesParam = useMemo(
+    () => parseArrayParam(searchParams.get("eventType")),
+    [searchParams]
+  )
+  const resultParam = useMemo(
+    () => parseArrayParam(searchParams.get("result")),
+    [searchParams]
+  )
   const subjectParam = searchParams.get("subject") || undefined
   const sortParam = searchParams.get("sort")
 

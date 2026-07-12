@@ -15,7 +15,7 @@ export function usePathname(fallback = "/"): string {
   return pathname
 }
 
-/** Imperative navigation compatible with shell WorkspaceApp. */
+/** Imperative navigation compatible with shell App. */
 export function navigateTo(path: string) {
   window.history.pushState({}, "", path)
   window.dispatchEvent(new PopStateEvent("popstate"))

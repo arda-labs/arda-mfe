@@ -95,7 +95,10 @@ export function RolesPage() {
   const pageParam = POS(searchParams.get("page"), 1)
   const pageSizeParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
   const searchParam = searchParams.get("code")
-  const statusParam = parseArrayParam(searchParams.get("status"))
+  const statusParam = useMemo(
+    () => parseArrayParam(searchParams.get("status")),
+    [searchParams]
+  )
 
   const loadRoles = useCallback(async () => {
     setLoadError(null)
