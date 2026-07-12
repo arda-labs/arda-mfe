@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/notifications/notify"
+import { workflowApi } from "../api"
 import type { WorkflowCase, WorkflowProcessDefinition } from "../api"
 
 type BpmnCanvas = {

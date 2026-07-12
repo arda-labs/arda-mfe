@@ -190,7 +190,6 @@ export function TemplatesPage() {
 
   const submitTemplate = handleSubmit(async (values) => {
     setSaving(true)
-    const isEditing = Boolean(editingTemplate)
     try {
       const payload: Partial<FileTemplate> = {
         code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),

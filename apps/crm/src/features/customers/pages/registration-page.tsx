@@ -18,7 +18,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
-import type { Customer, CustomerType, WorkflowTimelineEvent } from "../api"
+import type { Customer, CustomerPayload, CustomerType, WorkflowTimelineEvent } from "../api"
 import { customerApi } from "../api"
 import {
   CheckerDecisionDialog,

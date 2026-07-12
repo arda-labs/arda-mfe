@@ -14,10 +14,8 @@ import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { PageHeader } from "@workspace/ui/components/page-header"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import {
   Dialog,
@@ -47,10 +45,6 @@ import { listPageCount } from "@workspace/core/http/list-api"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { parseSortingState } from "@workspace/ui/lib/parsers"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
-import {
-  getSingleSelectValue,
-  getTextFilterValue,
-} from "../shared/column-filters"
 import { ListTableToolbar } from "../shared/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
@@ -116,8 +110,9 @@ export function OrganizationsPage() {
   const [treeOrgs, setTreeOrgs] = useState<Organization[]>([])
   const [orgOptions, setOrgOptions] = useState<Organization[]>([])
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<unknown>(null)
+  // ponytail: refreshing/loadError tracked but unused; add loading UI when ready
+  const [_refreshing, setRefreshing] = useState(false)
+  const [_loadError, setLoadError] = useState<unknown>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -128,7 +123,7 @@ export function OrganizationsPage() {
   const organizationSchema = useMemo(() => buildOrganizationSchema(t), [t])
   const {
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     handleSubmit,
     register,
     reset,
@@ -351,8 +346,6 @@ export function OrganizationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [t]
   )
-
-  const loaded = !loading || orgs.length > 0 || treeOrgs.length > 0
 
   const pageCount = listPageCount(total, perPageParam)
 

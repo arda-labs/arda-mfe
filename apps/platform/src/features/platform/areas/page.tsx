@@ -192,7 +192,6 @@ export function AreasPage() {
 
   const submitArea = handleSubmit(async (values) => {
     setSaving(true)
-    const isEditing = Boolean(editingItem)
     try {
       const payload: Partial<Area> = {
         code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),

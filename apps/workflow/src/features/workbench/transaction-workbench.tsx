@@ -8,7 +8,7 @@ import { PageHeader } from "@workspace/ui/components/page-header"
 import { PageSubmenu } from "@workspace/ui/components/page-submenu"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import type { WorkbenchDirection, WorkItem, WorkItemFilter } from "./api"
+import type { WorkbenchDirection, WorkItem, WorkItemFilter, WorkItemSummaryNode } from "./api"
 import { workbenchApi } from "./api"
 import { WorkItemTree } from "./workbench-tree"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
@@ -56,10 +56,9 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
   const baseFilterRef = useRef(baseFilter)
   baseFilterRef.current = baseFilter
   const [items, setItems] = useState<WorkItem[]>([])
-  const [summary, setSummary] = useState<WorkItem[]>([])
+  const [summary, setSummary] = useState<WorkItemSummaryNode[]>([])
   const [fetching, setFetching] = useState(false)
   const [error, setError] = useState<unknown>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
   const mountedRef = useRef(true)
   const loadingRef = useRef(false)
 
@@ -281,7 +280,7 @@ export function TransactionSearchPage() {
   const { t } = useI18n()
   const [filters, setFilters] = useState<FilterState>({})
   const [items, setItems] = useState<WorkItem[]>([])
-  const [fetching, setFetching] = useState(false)
+  const [_fetching, setFetching] = useState(false)
 
   const queryFilter = useMemo<WorkItemFilter>(() => {
     const next: WorkItemFilter = { direction: "ALL", limit: 100 }

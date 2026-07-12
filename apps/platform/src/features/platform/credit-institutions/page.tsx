@@ -215,7 +215,6 @@ export function CreditInstitutionsPage() {
 
   const submitCreditInstitution = handleSubmit(async (values) => {
     setSaving(true)
-    const isEditing = Boolean(editingItem)
     try {
       const payload: Partial<CreditInstitution> = {
         code: values.code.trim().toUpperCase(),

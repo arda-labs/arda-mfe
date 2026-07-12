@@ -63,7 +63,7 @@ import {
 } from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { workflowApi } from "../api"
 import { PrincipalPicker } from "../components/principal-picker"
 import { notify } from "@workspace/notifications/notify"
@@ -642,7 +642,7 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
             </Button>
           </div>
           {runtimeQuery.isLoading ? <p className="text-sm text-muted-foreground">Đang quét job trên Zeebe...</p> : null}
-          {runtimeQuery.isError ? (
+          {runtimeQuery.error ? (
             <Alert variant="destructive">
               <AlertCircle className="size-4" />
               <AlertTitle>Không tải được runtime</AlertTitle>
@@ -922,21 +922,6 @@ export function CaseTypeDialog({
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
-
-  return (
-    <ConfigDialog title={item ? "Sửa loại nghiệp vụ" : "Tạo loại nghiệp vụ"} open={open} onOpenChange={onOpenChange}>
-      <TextInput label="Mã loại nghiệp vụ" value={form.caseType} onChange={(caseType) => setForm({ ...form, caseType })} disabled={Boolean(item)} />
-      <SelectInput label="Nhóm menu" value={form.businessArea} options={businessAreaOptions} onChange={(businessArea) => setForm({ ...form, businessArea })} />
-      <TextInput label="Tên vận hành" value={form.operationName} onChange={(operationName) => setForm({ ...form, operationName })} />
-      <SelectInput label="Owner service" value={form.ownerService} options={ownerServiceOptions} onChange={(ownerService) => setForm({ ...form, ownerService })} />
-      <TextInput label="BPMN process id" value={form.bpmnProcessId} onChange={(bpmnProcessId) => setForm({ ...form, bpmnProcessId })} />
-      <TextInput label="BPMN version" value={form.bpmnVersion} onChange={(bpmnVersion) => setForm({ ...form, bpmnVersion })} />
-      <SearchSelect label="Maker role" value={form.makerRole} options={roleOptions} allowCustom onChange={(makerRole) => setForm({ ...form, makerRole })} />
-      <SearchSelect label="Checker role" value={form.checkerRole} options={roleOptions} allowCustom onChange={(checkerRole) => setForm({ ...form, checkerRole })} />
-      <SelectInput label="Trạng thái" value={form.status} options={configStatusOptions} onChange={(status) => setForm({ ...form, status })} />
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
           checked={form.workflowEnabled}
           onChange={(event) => setForm({ ...form, workflowEnabled: event.target.checked })}
         />
@@ -1028,12 +1013,14 @@ export function SlaPolicyDialog({
   caseTypeOptions,
   roleOptions,
   onOpenChange,
+  onSaved,
 }: {
   item?: SlaPolicy | null
   open: boolean
   caseTypeOptions: SelectOption[]
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -1079,6 +1066,7 @@ export function SlaPolicyDialog({
         await workflowApi.createSlaPolicy(payload)
       }
       onOpenChange(false)
+      onSaved?.()
     } catch (error) {
       notify.error(
         item ? "Cập nhật SLA thất bại" : "Tạo SLA thất bại",
@@ -1238,12 +1226,14 @@ export function DescriptionTemplateDialog({
   caseTypeOptions,
   subsystemOptions,
   onOpenChange,
+  onSaved,
 }: {
   item?: DescriptionTemplate | null
   open: boolean
   caseTypeOptions: SelectOption[]
   subsystemOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -1273,6 +1263,7 @@ export function DescriptionTemplateDialog({
         await workflowApi.createDescriptionTemplate(payload)
       }
       onOpenChange(false)
+      onSaved?.()
     } catch (error) {
       notify.error(
         item ? "Cập nhật cấu trúc diễn giải thất bại" : "Tạo cấu trúc diễn giải thất bại",
@@ -1340,12 +1331,14 @@ export function ProcessRoleDialog({
   caseTypeOptions,
   iamRoleOptions,
   onOpenChange,
+  onSaved,
 }: {
   item?: ProcessRole | null
   open: boolean
   caseTypeOptions: SelectOption[]
   iamRoleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -1366,6 +1359,7 @@ export function ProcessRoleDialog({
         await workflowApi.createProcessRole(form)
       }
       onOpenChange(false)
+      onSaved?.()
     } catch (error) {
       notify.error(
         item ? "Cập nhật vai trò quy trình thất bại" : "Tạo vai trò quy trình thất bại",
@@ -1393,10 +1387,12 @@ export function RoleCatalogDialog({
   item,
   open,
   onOpenChange,
+  onSaved,
 }: {
   item?: WorkflowRoleCatalog | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -1418,6 +1414,7 @@ export function RoleCatalogDialog({
         await workflowApi.createRoleCatalog(form)
       }
       onOpenChange(false)
+      onSaved?.()
     } catch (error) {
       notify.error(
         item ? "Cập nhật role vận hành thất bại" : "Tạo role vận hành thất bại",
@@ -1445,11 +1442,13 @@ export function RoleMembershipDialog({
   open,
   roleOptions,
   onOpenChange,
+  onSaved,
 }: {
   item?: WorkflowRoleMembership | null
   open: boolean
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -1504,6 +1503,7 @@ export function RoleMembershipDialog({
         await workflowApi.createRoleMembership(payload)
       }
       onOpenChange(false)
+      onSaved?.()
     } catch (error) {
       notify.error(
         item ? "Cập nhật thành viên role thất bại" : "Thêm thành viên role thất bại",
@@ -1553,12 +1553,14 @@ export function AssignmentRuleDialog({
   caseTypeOptions,
   roleOptions,
   onOpenChange,
+  onSaved,
 }: {
   item?: WorkflowAssignmentRule | null
   open: boolean
   caseTypeOptions: SelectOption[]
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -1587,6 +1589,7 @@ export function AssignmentRuleDialog({
         await workflowApi.createAssignmentRule(payload)
       }
       onOpenChange(false)
+      onSaved?.()
     } catch (error) {
       notify.error(
         item ? "Cập nhật luật phân công thất bại" : "Tạo luật phân công thất bại",
@@ -1624,11 +1627,13 @@ export function DelegationDialog({
   open,
   roleOptions,
   onOpenChange,
+  onSaved,
 }: {
   item?: WorkflowDelegation | null
   open: boolean
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -1657,6 +1662,7 @@ export function DelegationDialog({
         await workflowApi.createDelegation(payload)
       }
       onOpenChange(false)
+      onSaved?.()
     } catch (error) {
       notify.error(
         item ? "Cập nhật ủy quyền thất bại" : "Tạo ủy quyền thất bại",

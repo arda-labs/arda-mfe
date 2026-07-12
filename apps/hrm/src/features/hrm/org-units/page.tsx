@@ -37,7 +37,7 @@ export function OrgUnitsPage() {
   const [items, setItems] = useState<OrgUnit[]>([])
   const [orgs, setOrgs] = useState<PlatformOrganization[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [_deleting, setDeleting] = useState(false)
   const form = useForm<OrgUnitValues>({
     resolver: zodResolver(orgUnitSchema),
     defaultValues: orgUnitDefaults,

@@ -28,15 +28,22 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { FormField } from "@workspace/ui/components/form-field"
 import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
 import { listPageCount } from "@workspace/core/http/list-api"
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
+import { useSearchParams } from "react-router-dom"
 import { ShieldCheck, Trash2 } from "lucide-react"
+
+const POS = (value: string | null, fallback: number) => {
+  const n = Number.parseInt(value ?? "", 10)
+  return Number.isFinite(n) && n > 0 ? n : fallback
+}
+
+const parseArrayParam = (raw: string | null) =>
+  raw ? raw.split(",").map((item) => item.trim()).filter(Boolean) : []
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -84,10 +91,11 @@ export function RolesPage() {
     defaultValues: roleDefaultValues,
   })
 
-  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
-  const [searchParam] = useQueryState("code", parseAsString)
-  const [statusParam] = useQueryState("status", parseAsArrayOf(parseAsString, ",").withDefault([]))
+  const [searchParams] = useSearchParams()
+  const pageParam = POS(searchParams.get("page"), 1)
+  const pageSizeParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
+  const searchParam = searchParams.get("code")
+  const statusParam = parseArrayParam(searchParams.get("status"))
 
   const loadRoles = useCallback(async () => {
     setLoadError(null)

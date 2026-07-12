@@ -37,7 +37,7 @@ export function PositionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Position | null>(null)
   const [items, setItems] = useState<Position[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [_deleting, setDeleting] = useState(false)
   const form = useForm<PositionValues>({
     resolver: zodResolver(positionSchema),
     defaultValues: positionDefaults,

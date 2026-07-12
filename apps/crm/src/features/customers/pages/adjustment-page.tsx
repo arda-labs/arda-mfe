@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
 import { ArrowLeft, Check, Plus, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -205,7 +204,7 @@ export function CustomerAdjustmentPage({
           : resolved.role === "CUSTOMER_MAKER"
             ? { revisionSubmitted: true }
             : { reviewDecision: decision }
-      await runMutation(() => customerApi.completeTask(resolved), {
+      await runMutation(() => customerApi.completeTask({...resolved, variables}), {
         success: "Đã hoàn tất task quy trình",
         error: "Hoàn tất task thất bại",
       })

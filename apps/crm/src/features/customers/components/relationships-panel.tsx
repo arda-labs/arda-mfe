@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { notify } from "@workspace/notifications/notify"
 import { customerApi, type Customer, type CustomerRelationship } from "../api"
 import { runMutation, relationLabel } from "../shared/form-utils"
 import {

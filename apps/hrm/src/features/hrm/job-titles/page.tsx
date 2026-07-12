@@ -34,7 +34,7 @@ export function JobTitlesPage() {
   const [deleteTarget, setDeleteTarget] = useState<JobTitle | null>(null)
   const [items, setItems] = useState<JobTitle[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [_deleting, setDeleting] = useState(false)
   const form = useForm<JobTitleValues>({
     resolver: zodResolver(jobTitleSchema),
     defaultValues: jobTitleDefaults,

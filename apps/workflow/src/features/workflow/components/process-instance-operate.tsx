@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useState } from "react"
 import { AlertCircle, Eye, RefreshCw, RotateCcw } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
@@ -41,7 +41,7 @@ export function ProcessInstanceOperate({
   const [retryJobPending, setRetryJobPending] = useState<string | null>(null)
   const [retryServicePending, setRetryServicePending] = useState(false)
   const runtimeQuery = useProcessInstanceRuntime(selected?.processInstanceKey)
-  const runtime = runtimeQuery.data
+  const runtime: import("../api").ProcessInstanceRuntime | undefined = runtimeQuery.data ?? undefined
   const pendingJobs = runtime?.pendingJobs ?? []
   const incidents = runtime?.incidents ?? []
   const timeline = runtime?.timeline ?? []

@@ -4,10 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useSearchParams } from "react-router-dom"
 import { z } from "zod"
 import { FormField } from "@workspace/ui/components/form-field"
-import { listPageCount, sortToApiParams } from "@workspace/core/http/list-api"
+import { sortToApiParams } from "@workspace/core/http/list-api"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { adminApi } from "@/features/iam"
-import type { Role, User } from "@/features/iam"
+import type { AdminUserSession, Role, User } from "@/features/iam"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -154,13 +154,13 @@ export function UsersPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
   const hasLoadedRef = useRef(false)
-  const [busyUserId, setBusyUserId] = useState<string | null>(null)
+  const [busyUserId] = useState<string | null>(null)
   const [busyRoleId, setBusyRoleId] = useState<string | null>(null)
 
   // Role dialog session state
   const [availableRoles, setAvailableRoles] = useState<Role[]>([])
   const [rolesLoading, setRolesLoading] = useState(false)
-  const [sessions, setSessions] = useState<unknown[]>([])
+  const [sessions, setSessions] = useState<AdminUserSession[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
 
   const [searchParams] = useSearchParams()
@@ -281,7 +281,7 @@ export function UsersPage() {
 
   const handleCreate = handleCreateSubmit(async (values) => {
     try {
-      await createUser.mutateAsync(values)
+      await adminApi.createUser(values)
       notify.success(t("admin.users.create_success"))
       setCreateOpen(false)
       resetCreateForm(createUserDefaultValues)
@@ -292,7 +292,7 @@ export function UsersPage() {
 
   const handleSetStatus = async (user: User, nextStatus: "ACTIVE" | "DISABLED") => {
     try {
-      await setUserStatus.mutateAsync({ id: user.id, status: nextStatus })
+      await adminApi.updateUser(user.id, { status: nextStatus } as Record<string, unknown>)
       notify.success(
         nextStatus === "ACTIVE"
           ? t("admin.users.enable_success")
@@ -303,13 +303,18 @@ export function UsersPage() {
     }
   }
 
+  const [deleting, setDeleting] = useState(false)
+
   const handleDelete = async (user: User) => {
+    setDeleting(true)
     try {
-      await deleteUser.mutateAsync(user.id)
+      await adminApi.deleteUser(user.id)
       notify.success(t("admin.users.delete_success"))
       setDeleteTarget(null)
     } catch (err) {
       notify.error(t("admin.users.delete_failed"), translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -321,21 +326,18 @@ export function UsersPage() {
   const handleEdit = handleEditSubmit(async (values) => {
     if (!editTarget) return
     try {
-      await updateUser.mutateAsync({
-        id: editTarget.id,
-        data: {
-          username: values.username.trim(),
-          email: values.email.trim(),
-          firstName: values.firstName?.trim() || "",
-          lastName: values.lastName?.trim() || "",
-          nickname: values.nickname?.trim() || "",
-          gender: values.gender?.trim() || "",
-          country: values.country?.trim() || "",
-          address: values.address?.trim() || "",
-          position: values.position?.trim() || "",
-          status: values.status,
-          tenantId: values.tenantId.trim() || "default",
-        },
+      await adminApi.updateUser(editTarget.id, {
+        username: values.username.trim(),
+        email: values.email.trim(),
+        firstName: values.firstName?.trim() || "",
+        lastName: values.lastName?.trim() || "",
+        nickname: values.nickname?.trim() || "",
+        gender: values.gender?.trim() || "",
+        country: values.country?.trim() || "",
+        address: values.address?.trim() || "",
+        position: values.position?.trim() || "",
+        status: values.status,
+        tenantId: values.tenantId.trim() || "default",
       })
       notify.success(t("admin.users.update_success"))
       setEditTarget(null)
@@ -348,7 +350,7 @@ export function UsersPage() {
   const handleResetPassword = async () => {
     if (!resetTarget) return
     try {
-      await resetUserPassword.mutateAsync({ id: resetTarget.id, password: identityPassword })
+      await adminApi.resetUserPassword(resetTarget.id, identityPassword)
       notify.success(t("admin.users.identity.reset_success"))
       setResetTarget(null)
       setIdentityPassword("")
@@ -360,10 +362,7 @@ export function UsersPage() {
   const handleProvisionIdentity = async () => {
     if (!provisionTarget) return
     try {
-      const res = await provisionUserIdentity.mutateAsync({
-        id: provisionTarget.id,
-        temporaryPassword: identityPassword,
-      })
+      const res = await adminApi.provisionUserIdentity(provisionTarget.id, identityPassword)
       notify.success(t("admin.users.identity.provision_success"), res.kratosIdentityId)
       setProvisionTarget(null)
       setIdentityPassword("")
@@ -374,7 +373,7 @@ export function UsersPage() {
 
   const handleAuditIdentity = async () => {
     try {
-      const res = await auditIdentityConsistency.mutateAsync()
+      const res = await adminApi.auditIdentityConsistency()
       setIdentityIssues(res.issues ?? [])
       setIdentityAuditOpen(true)
       if (res.ok) {
@@ -394,7 +393,7 @@ export function UsersPage() {
   const revokeSessions = async () => {
     if (!sessionTarget) return
     try {
-      const res = await revokeUserSessions.mutateAsync(sessionTarget.id)
+      const res = await adminApi.revokeUserSessions(sessionTarget.id)
       notify.success(t("admin.users.sessions.revoke_success"), `${res.count}`)
     } catch (err) {
       notify.error(t("admin.users.sessions.revoke_failed"), translateApiError(err))
@@ -496,7 +495,7 @@ export function UsersPage() {
                   variant="ghost"
                   size="icon"
                   className="size-8 text-muted-foreground hover:text-foreground"
-                  disabled={busyUserID === u.id}
+                  disabled={busyUserId === u.id}
                 >
                   <MoreHorizontal className="size-4" />
                   <span className="sr-only">{t("admin.users.action.open_actions")}</span>
@@ -561,37 +560,10 @@ export function UsersPage() {
         )
       }
     }
-  ], [t, formatDate, busyUserID])
+  ], [t, formatDate, busyUserId])
 
-  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
-  const [searchParam] = useQueryState("username", parseAsString)
-  const [statusParam] = useQueryState("status", parseAsArrayOf(parseAsString, ",").withDefault([]))
-  const [sortParam] = useQueryState("sort", parseAsString)
-  const sortApi = useMemo(() => {
-    if (!sortParam) return {}
-    try {
-      const sorting = JSON.parse(sortParam) as Array<{ id: string; desc: boolean }>
-      return sortToApiParams(sorting)
-    } catch {
-      return {}
-    }
-  }, [sortParam])
-  const usersQuery = useUsers({
-    page: pageParam,
-    perPage: pageSizeParam,
-    q: searchParam || undefined,
-    status: statusParam.length === 1 ? statusParam[0] : undefined,
-    sort: sortApi.sort,
-    order: sortApi.order,
-  })
-  const users = usersQuery.data?.items ?? []
-  const total = usersQuery.data?.total ?? 0
-  const pageGate = pageGateFromQueries(usersQuery)
-  const { fetching } = listQueryShellState(usersQuery)
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
-  // Dice UI useDataTable hook binds state to nuqs query state automatically
   const { table } = useDataTable<User>({
     columns,
     data: users,
@@ -603,15 +575,6 @@ export function UsersPage() {
       }
     }
   })
-
-  useEffect(() => {
-    if (roleOptions.error) {
-      notify.error("Không tải được danh sách vai trò", translateApiError(roleOptions.error))
-    }
-    if (sessionsQuery.error) {
-      notify.error(t("admin.users.sessions.load_failed"), translateApiError(sessionsQuery.error))
-    }
-  }, [roleOptions.error, sessionsQuery.error, t])
 
   const dialogs = (
     <>
@@ -661,7 +624,7 @@ export function UsersPage() {
             </FormField>
           </DialogBody>
           <DialogFooter>
-            <Button className="w-full" type="submit" disabled={isCreating || createUser.isPending}>
+            <Button className="w-full" type="submit" disabled={isCreating}>
               {t("common.action.create")}
             </Button>
           </DialogFooter>
@@ -731,7 +694,7 @@ export function UsersPage() {
               </FormField>
             </DialogBody>
             <DialogFooter>
-              <Button className="w-full" type="submit" disabled={isUpdatingUser || busyUserID === editTarget?.id}>
+              <Button className="w-full" type="submit" disabled={isUpdatingUser || busyUserId === editTarget?.id}>
                 {t("admin.users.action.save_changes")}
               </Button>
             </DialogFooter>
@@ -761,7 +724,7 @@ export function UsersPage() {
                   >
                     <Checkbox
                       checked={assigned}
-                      disabled={busyRoleID === role.id}
+                      disabled={busyRoleId === role.id}
                       onCheckedChange={() => toggleRole(role, assigned)}
                     />
                     <span className="min-w-0 flex-1">
@@ -796,7 +759,7 @@ export function UsersPage() {
                 onChange={(e) => setIdentityPassword(e.target.value)}
               />
             </FormField>
-            <Button className="w-full" onClick={handleResetPassword} disabled={!identityPassword || busyUserID === resetTarget?.id}>
+            <Button className="w-full" onClick={handleResetPassword} disabled={!identityPassword || busyUserId === resetTarget?.id}>
               {t("admin.users.action.reset_password")}
             </Button>
           </div>
@@ -821,7 +784,7 @@ export function UsersPage() {
                 onChange={(e) => setIdentityPassword(e.target.value)}
               />
             </FormField>
-            <Button className="w-full" onClick={handleProvisionIdentity} disabled={!identityPassword || busyUserID === provisionTarget?.id}>
+            <Button className="w-full" onClick={handleProvisionIdentity} disabled={!identityPassword || busyUserId === provisionTarget?.id}>
               {t("admin.users.action.provision_identity")}
             </Button>
           </div>
@@ -839,7 +802,7 @@ export function UsersPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="flex justify-end">
-              <Button variant="outline" onClick={revokeSessions} disabled={!sessionTarget || busyUserID === sessionTarget?.id}>
+              <Button variant="outline" onClick={revokeSessions} disabled={!sessionTarget || busyUserId === sessionTarget?.id}>
                 {t("admin.users.action.revoke_sessions")}
               </Button>
             </div>
@@ -906,7 +869,7 @@ export function UsersPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteUser.isPending}
+              disabled={deleting}
               onClick={() => deleteTarget && handleDelete(deleteTarget)}
             >
               {t("common.action.delete")}
@@ -925,11 +888,11 @@ export function UsersPage() {
           {t("admin.users.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadUsers}
       loadErrorTitle={t("admin.users.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar
@@ -940,7 +903,7 @@ export function UsersPage() {
           <Button
             variant="outline"
             onClick={handleAuditIdentity}
-            disabled={auditIdentityConsistency.isPending}
+            disabled={false}
             className="h-8 px-3 text-xs font-semibold"
           >
             <SearchCheck className="mr-2 size-3.5" />
