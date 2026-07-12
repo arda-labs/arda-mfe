@@ -179,7 +179,7 @@ export function LookupsPage() {
   const [catDeletePending, setCatDeletePending] = useState(false)
   const [valDeletePending, setValDeletePending] = useState(false)
   const categoriesLoadedRef = useRef(false)
-  const selectedCatCodeRef = useRef<string | undefined>()
+  const selectedCatCodeRef = useRef<string | undefined>(undefined)
 
   const loadCategories = useCallback(async () => {
     setLoadingCats(true)
