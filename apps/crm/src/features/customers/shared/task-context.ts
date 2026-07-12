@@ -212,7 +212,12 @@ export function workflowKey(value: string | number | null | undefined) {
 }
 
 export function roleParam(value: string | null): WorkflowTaskRole {
-  if (value === "CUSTOMER_RISK_CHECKER" || value === "CUSTOMER_MAKER") return value
+  if (value === "CUSTOMER_RISK_CHECKER" || value === "CUSTOMER_MAKER" || value === "CUSTOMER_CHECKER") {
+    return value
+  }
+  if (value && value.trim()) {
+    console.warn(`[roleParam] Unknown role "${value}", falling back to CUSTOMER_CHECKER`)
+  }
   return "CUSTOMER_CHECKER"
 }
 

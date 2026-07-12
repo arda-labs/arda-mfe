@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
-import { ArrowLeft, Check, Plus, RotateCcw, Save, Send, X } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -47,6 +47,8 @@ import { postTaskWorkbenchHref } from "../shared/workbench-return"
 import {
   EmptyState,
   FieldGrid,
+  FooterActions,
+  FooterBackButton,
   Panel,
   RegistrationStatusBar,
   StatusBadge,
@@ -421,7 +423,7 @@ export function CustomerAdjustmentPage({
           </Tabs>
         </div>
         <FooterActions
-          viewOnly={viewOnly}
+          isReadonly={readOnly}
           isSubmitting={isSubmitting}
           canEdit={canEdit}
           canSubmit={canSubmit}
@@ -438,123 +440,6 @@ export function CustomerAdjustmentPage({
         />
       </form>
     </section>
-  )
-}
-
-function FooterActions({
-  viewOnly,
-  isSubmitting,
-  canEdit,
-  canSubmit,
-  canCancelDraft,
-  canCompleteTask,
-  canEditTask,
-  onBack,
-  onCompleteTask,
-  onSaveDraft,
-  onSaveAndComplete,
-  onCancelDraft,
-}: {
-  viewOnly: boolean
-  isSubmitting: boolean
-  canEdit: boolean
-  canSubmit: boolean
-  canCancelDraft: boolean
-  canCompleteTask: boolean
-  canEditTask: boolean
-  onBack: () => void
-  onCompleteTask: (decision: string) => void
-  onSaveDraft: () => void
-  onSaveAndComplete: () => void
-  onCancelDraft: () => void
-}) {
-  return (
-    <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
-      <div className="flex w-full flex-wrap justify-end gap-2">
-        {viewOnly ? null : canCompleteTask ? (
-          <>
-            <Button
-              className="h-8"
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => onCompleteTask("APPROVE")}
-            >
-              <Check className="size-4" />
-              Phê duyệt
-            </Button>
-            <Button
-              className="h-8"
-              type="button"
-              variant="outline"
-              disabled={isSubmitting}
-              onClick={() => onCompleteTask("REQUEST_CHANGES")}
-            >
-              <RotateCcw className="size-4" />
-              Yêu cầu chỉnh sửa
-            </Button>
-            <Button
-              className="h-8"
-              type="button"
-              variant="destructive"
-              disabled={isSubmitting}
-              onClick={() => onCompleteTask("REJECT")}
-            >
-              <X className="size-4" />
-              Từ chối
-            </Button>
-          </>
-        ) : canEditTask || canEdit ? (
-          <>
-            <Button
-              className="h-8"
-              type="button"
-              disabled={!canSubmit || isSubmitting}
-              onClick={onSaveAndComplete}
-            >
-              <Send className="size-4" />
-              Hoàn thành
-            </Button>
-            <Button
-              className="h-8"
-              type="button"
-              variant="secondary"
-              disabled={!canEdit || isSubmitting}
-              onClick={onSaveDraft}
-            >
-              <Save className="size-4" />
-              Lưu chỉnh sửa
-            </Button>
-            {canCancelDraft ? (
-              <Button
-                className="h-8"
-                type="button"
-                variant="outline"
-                disabled={isSubmitting}
-                onClick={onCancelDraft}
-              >
-                <X className="size-4" />
-                Hủy nháp
-              </Button>
-            ) : null}
-          </>
-        ) : null}
-        <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
-          <ArrowLeft className="size-4" />
-          Quay lại
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function FooterBackButton({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="flex h-13 shrink-0 items-center justify-end border-t bg-background px-4">
-      <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
-        <ArrowLeft className="size-4" />
-        Quay lại
-      </Button>
-    </div>
   )
 }
 

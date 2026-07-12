@@ -102,6 +102,8 @@ export type CustomerListParams = {
   status?: CustomerStatus
   riskOnly?: boolean
   q?: string
+  page?: number
+  limit?: number
 }
 
 export type WorkflowTaskRole =

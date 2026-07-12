@@ -168,7 +168,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
           />
         </FormField>
         <FormField
-          label="Trạng thái quan he(*)"
+          label="Trạng thái quan hệ(*)"
           error={form.formState.errors.status?.message}
         >
           <Controller
@@ -209,7 +209,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
             <TableHead>Địa chỉ</TableHead>
             <TableHead>Tên quan hệ</TableHead>
             <TableHead>Tên quan hệ đối ứng</TableHead>
-            <TableHead>Trạng thái quan he</TableHead>
+            <TableHead>Trạng thái quan hệ</TableHead>
           </TableRow>
         </TableHeader>
         {relationshipsLoading ? (

@@ -5,9 +5,7 @@ import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { uploadFile } from "@workspace/media"
-import { ArrowLeft, Check, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import {
   Select,
@@ -53,6 +51,8 @@ import { waitForTaskReady, waitForWorkflowStepChange } from "../shared/workflow-
 import {
   AvatarUploader,
   FieldGrid,
+  FooterActions,
+  FooterBackButton,
   Panel,
   RegistrationStatusBar,
 } from "../shared/ui"
@@ -693,137 +693,6 @@ export function CustomerRegistrationPage({
         }}
       />
     </section>
-  )
-}
-
-function FooterActions({
-  isReadonly,
-  isSubmitting,
-  canCancelDraft,
-  canCompleteTask,
-  canEditTask,
-  awaitingMakerResubmit,
-  onApprove,
-  onRequestChanges,
-  onReject,
-  onCancel,
-  onSaveDraft,
-  onSaveAndSubmit,
-  onSaveAndRevise,
-  onBack,
-}: {
-  isReadonly: boolean
-  isSubmitting: boolean
-  canCancelDraft: boolean
-  canCompleteTask: boolean
-  canEditTask: boolean
-  awaitingMakerResubmit: boolean
-  onApprove: () => void
-  onRequestChanges: () => void
-  onReject: () => void
-  onCancel: () => void
-  onSaveDraft: () => void
-  onSaveAndSubmit: () => void
-  onSaveAndRevise: () => void
-  onBack: () => void
-}) {
-  return (
-    <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
-      <div className="flex w-full flex-wrap justify-end gap-2">
-        {isReadonly && !canCompleteTask ? null : canCompleteTask ? (
-          <>
-            <Button
-              className="h-8"
-              type="button"
-              disabled={isSubmitting}
-              onClick={onApprove}
-            >
-              <Check className="size-4" />
-              Phê duyệt
-            </Button>
-            <Button
-              className="h-8"
-              type="button"
-              variant="outline"
-              disabled={isSubmitting}
-              onClick={onRequestChanges}
-            >
-              <RotateCcw className="size-4" />
-              Yêu cầu chỉnh sửa
-            </Button>
-            <Button
-              className="h-8"
-              type="button"
-              variant="destructive"
-              disabled={isSubmitting}
-              onClick={onReject}
-            >
-              <X className="size-4" />
-              Từ chối
-            </Button>
-          </>
-        ) : awaitingMakerResubmit || canEditTask ? (
-          <>
-            <Button
-              className="h-8"
-              type="button"
-              disabled={isSubmitting}
-              onClick={onSaveAndRevise}
-            >
-              <Send className="size-4" />
-              Hoàn thành
-            </Button>
-            <Button
-              className="h-8"
-              type="button"
-              variant="secondary"
-              disabled={isSubmitting}
-              onClick={onSaveDraft}
-            >
-              <Save className="size-4" />
-              Lưu nháp
-            </Button>
-          </>
-        ) : (
-          <Button
-            className="h-8"
-            type="button"
-            disabled={isSubmitting}
-            onClick={onSaveAndSubmit}
-          >
-            <Send className="size-4" />
-            Khởi tạo
-          </Button>
-        )}
-        {canCancelDraft ? (
-          <Button
-            className="h-8"
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-            onClick={onCancel}
-          >
-            <X className="size-4" />
-            Hủy hồ sơ
-          </Button>
-        ) : null}
-        <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
-          <ArrowLeft className="size-4" />
-          Quay lại
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function FooterBackButton({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="flex h-13 shrink-0 items-center justify-end border-t bg-background px-4">
-      <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
-        <ArrowLeft className="size-4" />
-        Quay lại
-      </Button>
-    </div>
   )
 }
 

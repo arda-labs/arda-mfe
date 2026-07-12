@@ -77,9 +77,9 @@ export function GeoLocationFields<T extends GeoFormValues>({
     let cancelled = false
     setAreasLoading(true)
     platformReferenceApi
-      .listAreas({ status: "active" })
-      .then((all) => {
-        if (!cancelled) setAreas(all.filter((a) => a.admin_unit_code === wardCode))
+      .listAreas({ status: "active", adminUnitCode: wardCode })
+      .then((data) => {
+        if (!cancelled) setAreas(data)
       })
       .finally(() => {
         if (!cancelled) setAreasLoading(false)

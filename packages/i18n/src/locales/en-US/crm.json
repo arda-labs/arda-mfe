@@ -40,7 +40,23 @@
       "action": "Adjust"
     },
     "search_placeholder": "Search by code, name, mobile, or identity number",
+    "columns": {
+      "customer_code": "Customer Code",
+      "customer_name": "Customer Name",
+      "segment": "Customer Segment",
+      "customer_type": "Customer Type",
+      "rank": "Customer Rank",
+      "risk_level": "Risk Level",
+      "mobile": "Mobile",
+      "identity_no": "ID Number",
+      "address": "Address"
+    },
     "empty": "No customer records yet."
+  },
+  "common": {
+    "select": "Select",
+    "index": "#",
+    "actions": "Actions"
   },
   "actions": {
     "refresh": "Refresh",

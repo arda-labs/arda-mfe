@@ -85,23 +85,23 @@ export function CustomerTable({
         <Table>
           <TableHeader>
             <TableRow>
-              {mode === "profiles" ? <TableHead>Chọn</TableHead> : null}
-              <TableHead>TT</TableHead>
-              <TableHead>Mã khách hàng</TableHead>
-              <TableHead>Tên khách hàng</TableHead>
+              {mode === "profiles" ? <TableHead>{t("crm.common.select")}</TableHead> : null}
+              <TableHead>{t("crm.common.index")}</TableHead>
+              <TableHead>{t("crm.customers.columns.customer_code")}</TableHead>
+              <TableHead>{t("crm.customers.columns.customer_name")}</TableHead>
               {mode === "profiles" ? (
-                <TableHead>Phân khúc khách hàng</TableHead>
+                <TableHead>{t("crm.customers.columns.segment")}</TableHead>
               ) : null}
-              <TableHead>Loại khách hàng</TableHead>
+              <TableHead>{t("crm.customers.columns.customer_type")}</TableHead>
               {mode === "profiles" ? (
-                <TableHead>Hạng khách hàng</TableHead>
+                <TableHead>{t("crm.customers.columns.rank")}</TableHead>
               ) : (
-                <TableHead>Phân loại rủi ro</TableHead>
+                <TableHead>{t("crm.customers.columns.risk_level")}</TableHead>
               )}
-              <TableHead>Số di động</TableHead>
-              <TableHead>CCCD/CMND</TableHead>
-              <TableHead>Địa chỉ</TableHead>
-              {mode === "profiles" ? <TableHead>Thao tác</TableHead> : null}
+              <TableHead>{t("crm.customers.columns.mobile")}</TableHead>
+              <TableHead>{t("crm.customers.columns.identity_no")}</TableHead>
+              <TableHead>{t("crm.customers.columns.address")}</TableHead>
+              {mode === "profiles" ? <TableHead>{t("crm.common.actions")}</TableHead> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
