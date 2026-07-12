@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -6,7 +6,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { AlertTriangle, CheckCircle2, Clock, SlidersHorizontal } from "lucide-react"
-import { useCalendarStatus, useEvaluateDate } from "../calendar/queries"
+import { platformApi, type SystemDate } from "../api"
 
 interface CutoffDisplay {
   id: string
@@ -27,29 +27,41 @@ export function CutoffPage() {
   const [simType, setSimType] = useState("TRANSFER")
   const [simTime, setSimTime] = useState("")
   const [simResult, setSimResult] = useState<string | null>(null)
-  const statusQuery = useCalendarStatus("HEAD_OFFICE")
-  const evaluateDateMutation = useEvaluateDate()
-  const status = statusQuery.data ?? null
-  const loading = statusQuery.isLoading
+  const [status, setStatus] = useState<SystemDate | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [simPending, setSimPending] = useState(false)
+
+  const loadStatus = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await platformApi.getCalendarStatus("HEAD_OFFICE")
+      setStatus(result)
+    } catch (err) {
+      notify.error("Khong the tai thong tin ngay he thong", translateApiError(err))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    if (statusQuery.error) {
-      notify.error("Khong the tai thong tin ngay he thong", translateApiError(statusQuery.error))
-    }
-  }, [statusQuery.error])
+    void loadStatus()
+  }, [loadStatus])
 
   const handleSimulate = async () => {
     setSimResult(null)
+    setSimPending(true)
     try {
       let timeParam: string | undefined
       if (simTime) {
         const today = new Date().toISOString().split("T")[0]
         timeParam = new Date(`${today}T${simTime}:00Z`).toISOString()
       }
-      const res = await evaluateDateMutation.mutateAsync({ channel: simChannel, type: simType, time: timeParam })
+      const res = await platformApi.evaluateDate(simChannel, simType, timeParam)
       setSimResult(res.accountingDate)
-    } catch {
-      // Mutation hook owns the toast.
+    } catch (err) {
+      notify.error("Kiem tra hach toan that bai", translateApiError(err))
+    } finally {
+      setSimPending(false)
     }
   }
 
@@ -163,9 +175,9 @@ export function CutoffPage() {
               onClick={handleSimulate}
               className="mt-2 w-full"
               variant="outline"
-              disabled={evaluateDateMutation.isPending}
+              disabled={simPending}
             >
-              {evaluateDateMutation.isPending ? <Spinner className="size-4" /> : "Kiem tra ngay hach toan"}
+              {simPending ? <Spinner className="size-4" /> : "Kiem tra ngay hach toan"}
             </Button>
 
             {simResult && (

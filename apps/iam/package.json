@@ -20,12 +20,11 @@
     "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
-    "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-table": "^8.21.3",
     "lucide-react": "^1.22.0",
-    "nuqs": "^2.9.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-router-dom": "^7.18.1",
     "react-hook-form": "^7.80.0",
     "react-toastify": "^11.1.0",
     "zod": "^4.4.3"

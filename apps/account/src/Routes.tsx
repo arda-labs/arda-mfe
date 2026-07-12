@@ -1,3 +1,4 @@
+import { useLocation, useNavigate } from "react-router-dom"
 import { AppearancePage } from "@/features/settings/appearance/page"
 import { DevicesPage } from "@/features/settings/devices/page"
 import { SettingsLayout } from "@/features/settings/layout"
@@ -5,14 +6,11 @@ import { ProfilePage as AccountProfilePage } from "@/features/settings/profile/p
 import { SecurityPage } from "@/features/settings/security/page"
 import { SessionsPage } from "@/features/settings/sessions/page"
 import { ProfilePage as PublicProfilePage } from "@/features/profile/page"
-import { navigateTo, usePathname } from "@workspace/core/routing"
 
-export default function Routes() {
-  return <AccountRoutes />
-}
-
-function AccountRoutes() {
-  const pathname = usePathname("/my-account/profile")
+export default function RemoteRoutes() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { pathname } = location
 
   if (pathname.startsWith("/in/")) return <PublicProfilePage />
   if (pathname.startsWith("/settings/appearance")) return <AppearancePage />
@@ -23,7 +21,7 @@ function AccountRoutes() {
   if (pathname.startsWith("/my-account/devices")) page = <DevicesPage />
 
   return (
-    <SettingsLayout pathname={pathname} navigate={navigateTo}>
+    <SettingsLayout pathname={pathname} navigate={navigate}>
       {page}
     </SettingsLayout>
   )

@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
-import type { Parameter } from "../api"
-import { useDeleteParameter, useParameterDependencies, useParameters, useUpsertParameter } from "./queries"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
+import type { Organization, Parameter } from "../api"
+import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -139,16 +139,36 @@ export function ParametersPage() {
   const [editingParam, setEditingParam] = useState<Parameter | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Parameter | null>(null)
   const [revealedSecrets, setRevealedSecrets] = useState<Record<string, boolean>>({})
+  const [params, setParams] = useState<Parameter[]>([])
+  const [orgs, setOrgs] = useState<Organization[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  const parametersQuery = useParameters()
-  const dependenciesQuery = useParameterDependencies()
-  const upsertMutation = useUpsertParameter()
-  const deleteMutation = useDeleteParameter()
+  const loadParameters = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      const [paramsResult, orgsResult] = await Promise.all([
+        platformApi.listParameters(),
+        platformApi.listOrganizations({ view: "options" }).catch(() => ({ items: [] as Organization[] })),
+      ])
+      setParams(paramsResult)
+      setOrgs(orgsResult.items)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
 
-  const params = parametersQuery.data ?? []
-  const orgs = dependenciesQuery.data?.orgs ?? []
-  const pageGate = pageGateFromQueries(parametersQuery, dependenciesQuery)
-  const { fetching } = listQueryShellState(parametersQuery)
+  useEffect(() => {
+    void loadParameters(true)
+  }, [loadParameters])
 
   const parameterSchema = useMemo(() => buildParameterSchema(t), [t])
   const {
@@ -193,6 +213,7 @@ export function ParametersPage() {
   }
 
   const submitParameter = handleSubmit(async (values) => {
+    setSaving(true)
     try {
       const payload: Partial<Parameter> = {
         key: values.key.trim().toUpperCase().replace(/\s+/g, "_"),
@@ -206,21 +227,30 @@ export function ParametersPage() {
       if (editingParam) {
         payload.id = editingParam.id
       }
-      await upsertMutation.mutateAsync(payload)
+      await platformApi.upsertParameter(payload)
+      notify.success("Luu tham so he thong thanh cong")
       setDialogOpen(false)
       reset(parameterDefaultValues)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadParameters()
+    } catch (err) {
+      notify.error("Luu tham so that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await deleteMutation.mutateAsync(deleteTarget.id)
+      await platformApi.deleteParameter(deleteTarget.id)
+      notify.success("Xoa tham so thanh cong")
       setDeleteTarget(null)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadParameters()
+    } catch (err) {
+      notify.error("Xoa tham so that bai", translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -643,8 +673,8 @@ export function ParametersPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isSubmitting || upsertMutation.isPending}>
-                {isSubmitting || upsertMutation.isPending
+              <Button type="submit" disabled={isSubmitting || saving}>
+                {isSubmitting || saving
                   ? t("common.action.saving")
                   : t("common.action.save")}
               </Button>
@@ -665,7 +695,7 @@ export function ParametersPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.parameters.delete.confirm")}
@@ -684,11 +714,11 @@ export function ParametersPage() {
           {t("platform.parameters.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadParameters}
       loadErrorTitle={t("platform.parameters.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import type { GeoAdminUnit } from "../api"
+import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -41,7 +42,6 @@ import {
 } from "../shared/column-filters"
 import { sortByColumn, useClientListTable } from "../shared/client-list"
 import { ListTableToolbar } from "../shared/list-table-toolbar"
-import { useUpsertWard, useWardProvinces, useWards } from "./queries"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -117,14 +117,35 @@ export function WardsPage() {
   const { t } = useI18n()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<GeoAdminUnit | null>(null)
+  const [items, setItems] = useState<GeoAdminUnit[]>([])
+  const [provinces, setProvinces] = useState<GeoAdminUnit[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
 
-  const provincesQuery = useWardProvinces()
-  const wardsQuery = useWards("all")
-  const upsertWard = useUpsertWard(Boolean(editingItem))
-  const provinces = provincesQuery.data ?? []
-  const items = wardsQuery.data ?? []
-  const pageGate = pageGateFromQueries(wardsQuery, provincesQuery)
-  const { fetching } = listQueryShellState(wardsQuery)
+  const loadWards = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      const [provincesResult, wardsResult] = await Promise.all([
+        platformApi.listGeoAdminUnits(undefined, 1),
+        platformApi.listGeoAdminUnits(undefined, 2),
+      ])
+      setProvinces(provincesResult)
+      setItems(wardsResult)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadWards(true)
+  }, [loadWards])
 
   const provinceNameByCode = useMemo(
     () => Object.fromEntries(provinces.map((province) => [province.code, province.name])),
@@ -158,8 +179,10 @@ export function WardsPage() {
   }
 
   const submitWard = handleSubmit(async (values) => {
+    setSaving(true)
+    const isEditing = Boolean(editingItem)
     try {
-      await upsertWard.mutateAsync({
+      await platformApi.upsertGeoAdminUnit({
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         full_name: values.full_name?.trim() || undefined,
@@ -172,10 +195,14 @@ export function WardsPage() {
         effective_to: values.effective_to || undefined,
         is_active: true,
       })
+      notify.success(isEditing ? "Cap nhat phuong xa thanh cong" : "Them phuong xa thanh cong")
       setDialogOpen(false)
       reset(wardDefaultValues)
-    } catch {
-      // Mutation hook already shows the save error toast.
+      await loadWards()
+    } catch (err) {
+      notify.error("Luu phuong xa that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
@@ -480,8 +507,8 @@ export function WardsPage() {
             <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
               {t("common.action.cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting || upsertWard.isPending}>
-              {isSubmitting || upsertWard.isPending ? t("common.action.saving") : t("common.action.save")}
+            <Button type="submit" disabled={isSubmitting || saving}>
+              {isSubmitting || saving ? t("common.action.saving") : t("common.action.save")}
             </Button>
           </div>
         </form>
@@ -497,11 +524,11 @@ export function WardsPage() {
           {t("platform.wards.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadWards}
       loadErrorTitle={t("platform.wards.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

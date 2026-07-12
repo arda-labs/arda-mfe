@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import type { Area, GeoAdminUnit, LookupValue } from "../api"
+import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -41,22 +42,14 @@ import {
 import { Edit2, Trash2 } from "lucide-react"
 import { ListPageShell } from "../shared/list-page-shell"
 import {
-  getSingleSelectValue,
-  getTextFilterValue,
+  matchSelectFilter,
+  matchTextColumnFilter,
   multiSelectFilterMeta,
   selectFilterMeta,
   textSearchMeta,
-  useColumnFilterParams,
 } from "../shared/column-filters"
 import { sortByColumn, useClientListTable } from "../shared/client-list"
 import { ListTableToolbar } from "../shared/list-table-toolbar"
-import {
-  useAreaDependencies,
-  useAreas,
-  useCreateArea,
-  useDeleteArea,
-  useUpdateArea,
-} from "./queries"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -124,14 +117,40 @@ export function AreasPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Area | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Area | null>(null)
+  const [items, setItems] = useState<Area[]>([])
+  const [areaTypes, setAreaTypes] = useState<LookupValue[]>([])
+  const [adminUnits, setAdminUnits] = useState<GeoAdminUnit[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  const dependenciesQuery = useAreaDependencies()
-  const createArea = useCreateArea()
-  const updateArea = useUpdateArea()
-  const deleteArea = useDeleteArea()
+  const loadAreas = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      const [areasResult, areaTypesResult, provinces, wards] = await Promise.all([
+        platformApi.listAreas(),
+        platformApi.listLookupValues("AREA_TYPE").catch(() => [] as LookupValue[]),
+        platformApi.listGeoAdminUnits(undefined, 1).catch(() => [] as GeoAdminUnit[]),
+        platformApi.listGeoAdminUnits(undefined, 2).catch(() => [] as GeoAdminUnit[]),
+      ])
+      setItems(areasResult)
+      setAreaTypes(areaTypesResult)
+      setAdminUnits([...provinces, ...wards])
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
 
-  const areaTypes = (dependenciesQuery.data?.areaTypes ?? []) as LookupValue[]
-  const adminUnits = (dependenciesQuery.data?.adminUnits ?? []) as GeoAdminUnit[]
+  useEffect(() => {
+    void loadAreas(true)
+  }, [loadAreas])
 
   const areaSchema = useMemo(() => buildAreaSchema(t), [t])
   const {
@@ -172,6 +191,8 @@ export function AreasPage() {
   }
 
   const submitArea = handleSubmit(async (values) => {
+    setSaving(true)
+    const isEditing = Boolean(editingItem)
     try {
       const payload: Partial<Area> = {
         code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),
@@ -186,25 +207,35 @@ export function AreasPage() {
       }
 
       if (editingItem) {
-        await updateArea.mutateAsync({ id: editingItem.id, payload })
+        await platformApi.updateArea(editingItem.id, payload)
+        notify.success("Cap nhat khu vuc thanh cong")
       } else {
-        await createArea.mutateAsync(payload)
+        await platformApi.createArea(payload)
+        notify.success("Them khu vuc thanh cong")
       }
 
       setDialogOpen(false)
       reset(areaDefaultValues)
-    } catch {
-      // Mutation hooks already show the save error toast.
+      await loadAreas()
+    } catch (err) {
+      notify.error("Luu khu vuc that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await deleteArea.mutateAsync(deleteTarget.id)
+      await platformApi.deleteArea(deleteTarget.id)
+      notify.success("Ngung hieu luc khu vuc thanh cong")
       setDeleteTarget(null)
-    } catch {
-      // Mutation hook already shows the delete error toast.
+      await loadAreas()
+    } catch (err) {
+      notify.error("Cap nhat trang thai khu vuc that bai", translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -335,25 +366,14 @@ export function AreasPage() {
     [t, areaTypes, adminUnits]
   )
 
-  const [filterValues] = useColumnFilterParams(columns)
-
-  const areaParams = useMemo(
-    () => ({
-      q: getTextFilterValue(filterValues.name) || undefined,
-      status: getSingleSelectValue(filterValues.status),
-      areaTypeCode: getSingleSelectValue(filterValues.area_type_code),
-    }),
-    [filterValues]
-  )
-
-  const areasQuery = useAreas(areaParams)
-  const items = areasQuery.data ?? []
-  const pageGate = pageGateFromQueries(areasQuery, dependenciesQuery)
-  const { fetching } = listQueryShellState(areasQuery)
-
   const { table, total } = useClientListTable({
     columns,
     items,
+    filterBy: {
+      name: (item, value) => matchTextColumnFilter(value, item.code, item.name),
+      area_type_code: (item, value) => matchSelectFilter(item.area_type_code, value),
+      status: (item, value) => matchSelectFilter(item.status, value),
+    },
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
@@ -363,8 +383,6 @@ export function AreasPage() {
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })
-
-  const saving = isSubmitting || createArea.isPending || updateArea.isPending
 
   const dialogs = (
     <>
@@ -584,8 +602,8 @@ export function AreasPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? t("common.action.saving") : t("common.action.save")}
+              <Button type="submit" disabled={isSubmitting || saving}>
+                {isSubmitting || saving ? t("common.action.saving") : t("common.action.save")}
               </Button>
             </div>
           </form>
@@ -604,6 +622,7 @@ export function AreasPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.areas.delete.confirm")}
@@ -622,11 +641,11 @@ export function AreasPage() {
           {t("platform.areas.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadAreas}
       loadErrorTitle={t("platform.areas.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

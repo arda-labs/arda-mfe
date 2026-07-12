@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react"
+import { api } from "@workspace/api"
+import { uploadAvatar, uploadCover } from "@workspace/media"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useAuthStore } from "@workspace/auth/store"
-import { useI18n } from "@workspace/i18n"
+import { useAuthStore, type AuthUser } from "@workspace/auth/store"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -13,7 +15,6 @@ import { MaskInput } from "@workspace/ui/components/mask-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { notify } from "@workspace/notifications/notify"
-import { useUpdateProfile, useUploadAvatar, useUploadCover } from "./queries"
 import {
   BadgeCheck,
   BriefcaseBusiness,
@@ -73,9 +74,9 @@ export function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [coverUrl, setCoverUrl] = useState(currentUser?.coverImage || "")
-  const updateProfileMutation = useUpdateProfile()
-  const uploadAvatarMutation = useUploadAvatar()
-  const uploadCoverMutation = useUploadCover()
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
 
   const profileDefaultValues: ProfileFormValues = {
     name: currentUser?.name || username,
@@ -138,12 +139,15 @@ export function ProfilePage() {
       return
     }
 
+    setUploadingAvatar(true)
     try {
-      const result = await uploadAvatarMutation.mutateAsync({ file, userId: user.userId || user.sub })
+      const result = await uploadAvatar(file, user.userId || user.sub)
       updateUser({ picture: result.url, avatarFileId: result.public_id })
-    } catch {
-      // Toast is handled by the mutation hook.
+      notify.success(t("profile.avatar.upload_success"))
+    } catch (reason) {
+      notify.error(translateApiError(reason, "profile.avatar.upload_failed"))
     } finally {
+      setUploadingAvatar(false)
       if (avatarInputRef.current) avatarInputRef.current.value = ""
     }
   }
@@ -160,13 +164,16 @@ export function ProfilePage() {
       return
     }
 
+    setUploadingCover(true)
     try {
-      const result = await uploadCoverMutation.mutateAsync({ file, userId: user.userId || user.sub })
+      const result = await uploadCover(file, user.userId || user.sub)
       setCoverUrl(result.url)
       updateUser({ coverImage: result.url, coverFileId: result.public_id })
-    } catch {
-      // Toast is handled by the mutation hook.
+      notify.success("Cover image updated")
+    } catch (reason) {
+      notify.error(translateApiError(reason, "Failed to upload cover image"))
     } finally {
+      setUploadingCover(false)
       if (coverInputRef.current) coverInputRef.current.value = ""
     }
   }
@@ -182,24 +189,28 @@ export function ProfilePage() {
         ? `${values.lastName} ${values.firstName}`
         : values.name
 
+    setSavingProfile(true)
     try {
-      const updated = await updateProfileMutation.mutateAsync({
-        name: finalDisplayName,
-        nickname: values.nickname,
-        first_name: values.firstName,
-        last_name: values.lastName,
-        phone_number: values.phoneNumber,
-        birthdate: values.birthdate,
-        gender: values.gender,
-        address: values.address,
-        country: values.country,
-        headline: values.headline,
-        department: values.department,
-        employee_id: values.employeeId,
-        approval_level: values.approvalLevel,
-        daily_limit: values.dailyLimit,
-        bio: values.bio,
-      })
+      const updated = await api.put<Partial<AuthUser>>(
+        "/api/iam/me/profile",
+        {
+          name: finalDisplayName,
+          nickname: values.nickname,
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone_number: values.phoneNumber,
+          birthdate: values.birthdate,
+          gender: values.gender,
+          address: values.address,
+          country: values.country,
+          headline: values.headline,
+          department: values.department,
+          employee_id: values.employeeId,
+          approval_level: values.approvalLevel,
+          daily_limit: values.dailyLimit,
+          bio: values.bio,
+        }
+      )
       updateUser({
         name: finalDisplayName,
         displayName: finalDisplayName,
@@ -218,9 +229,12 @@ export function ProfilePage() {
         dailyLimit: updated.dailyLimit,
         bio: updated.bio,
       })
+      notify.success(t("profile.update_success"))
       setIsEditing(false)
-    } catch {
-      // Toast is handled by the mutation hook.
+    } catch (reason) {
+      notify.error(translateApiError(reason, "Error updating profile"))
+    } finally {
+      setSavingProfile(false)
     }
   })
 
@@ -255,12 +269,12 @@ export function ProfilePage() {
                 type="button"
                 size="sm"
                 variant="secondary"
-                disabled={uploadCoverMutation.isPending}
+                disabled={uploadingCover}
                 onClick={() => coverInputRef.current?.click()}
                 className="gap-2"
               >
                 <Camera className="size-4" />
-                {uploadCoverMutation.isPending ? t("profile.cover.uploading") : t("profile.cover.upload")}
+                {uploadingCover ? t("profile.cover.uploading") : t("profile.cover.upload")}
               </Button>
             </div>
           )}
@@ -288,10 +302,10 @@ export function ProfilePage() {
                     <button
                       type="button"
                       onClick={() => avatarInputRef.current?.click()}
-                      disabled={uploadAvatarMutation.isPending}
+                      disabled={uploadingAvatar}
                       className="absolute bottom-1 right-1 rounded-full bg-primary p-2 text-primary-foreground shadow-sm hover:bg-primary/90"
                     >
-                      {uploadAvatarMutation.isPending ? (
+                      {uploadingAvatar ? (
                         <span className="block size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
                       ) : (
                         <Camera className="size-4" />
@@ -345,7 +359,7 @@ export function ProfilePage() {
                     <X className="size-4" />
                     {t("common.action.cancel")}
                   </Button>
-                  <Button type="submit" form="profile-edit-form" disabled={isSavingProfile || updateProfileMutation.isPending} className="gap-2">
+                  <Button type="submit" form="profile-edit-form" disabled={isSavingProfile || savingProfile} className="gap-2">
                     <Check className="size-4" />
                     {t("profile.save_changes")}
                   </Button>

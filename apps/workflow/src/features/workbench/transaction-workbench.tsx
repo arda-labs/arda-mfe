@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RefreshCw } from "lucide-react"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { Button } from "@workspace/ui/components/button"
@@ -6,11 +6,10 @@ import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { Page } from "@workspace/ui/components/page"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { PageSubmenu } from "@workspace/ui/components/page-submenu"
-import { useAsRef } from "@workspace/ui/hooks/use-as-ref"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import type { WorkbenchDirection, WorkItem, WorkItemFilter } from "./api"
-import { useClaimWorkItem, useWorkItemSummary, useWorkItems } from "./queries"
+import { workbenchApi } from "./api"
 import { WorkItemTree } from "./workbench-tree"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
 import { workItemColumns, searchColumns } from "./workbench-columns"
@@ -51,6 +50,50 @@ export function createTransactionWorkbench(
   }
 }
 
+function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
+  const filterRef = useRef(filter)
+  filterRef.current = filter
+  const baseFilterRef = useRef(baseFilter)
+  baseFilterRef.current = baseFilter
+  const [items, setItems] = useState<WorkItem[]>([])
+  const [summary, setSummary] = useState<WorkItem[]>([])
+  const [fetching, setFetching] = useState(false)
+  const [error, setError] = useState<unknown>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const mountedRef = useRef(true)
+  const loadingRef = useRef(false)
+
+  const reload = useCallback(async () => {
+    if (loadingRef.current) return // no overlap
+    loadingRef.current = true
+    setFetching(true)
+    setError(null)
+    try {
+      const [wi, sm] = await Promise.all([
+        workbenchApi.listWorkItems(filterRef.current),
+        workbenchApi.listWorkItemSummary(baseFilterRef.current),
+      ])
+      if (mountedRef.current) {
+        setItems(wi)
+        setSummary(sm)
+      }
+    } catch (reason) {
+      if (mountedRef.current) setError(reason)
+    } finally {
+      if (mountedRef.current) setFetching(false)
+      loadingRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    mountedRef.current = true
+    void reload()
+    return () => { mountedRef.current = false }
+  }, [reload])
+
+  return { items, summary, fetching, error, reload }
+}
+
 function TransactionWorkbenchInner({
   direction,
   title,
@@ -85,23 +128,48 @@ function TransactionWorkbenchInner({
     return next
   }, [baseFilter, filters])
 
-  const expectCaseCode = workbenchExpectCaseCode()
-  const refetchInterval = useWorkbenchBurstRefetch(expectCaseCode)
-
-  const workItemsQuery = useWorkItems(queryFilter, { refetchInterval })
-  const summaryQuery = useWorkItemSummary(baseFilter, { refetchInterval })
-  const claimWorkItem = useClaimWorkItem()
+  const { items: allItems, summary: summaryData, fetching, reload } = useWorkbenchData(queryFilter, baseFilter)
+  const [claimPending, setClaimPending] = useState(false)
 
   const items = useMemo(
-    () => filterWorkItemsByNode(workItemsQuery.data ?? [], activeNode),
-    [workItemsQuery.data, activeNode]
+    () => filterWorkItemsByNode(allItems, activeNode),
+    [allItems, activeNode]
   )
 
-  const claiming = direction === "incoming" && claimWorkItem.isPending
-  const claimRef = useAsRef(claimWorkItem)
+  // Burst polling: own effect that awaits reload(), schedules next, pauses when hidden
+  const expectCaseCode = workbenchExpectCaseCode()
+  const refetchInterval = useWorkbenchBurstRefetch(expectCaseCode)
+  const reloadRef = useRef(reload)
+  reloadRef.current = reload
+  const filterStable = JSON.stringify(queryFilter)
+
+  useEffect(() => {
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout>
+
+    async function poll() {
+      if (document.hidden) {
+        timer = setTimeout(poll, 500)
+        return
+      }
+      await reloadRef.current()
+      if (!cancelled) {
+        timer = setTimeout(poll, refetchInterval)
+      }
+    }
+
+    // start poll loop after initial load completes
+    timer = setTimeout(poll, refetchInterval)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+    // reset poll when filter changes
+  }, [filterStable, refetchInterval])
 
   const openItem = useCallback(
-    (item: WorkItem) => {
+    async (item: WorkItem) => {
       if (direction !== "incoming") {
         navigateTo(workItemHref(item, direction))
         return
@@ -114,13 +182,19 @@ function TransactionWorkbenchInner({
         return
       }
       if (item.canClaim) {
-        claimRef.current.mutate(
-          { workItemId: item.id },
-          {
-            onSuccess: ({ workItem }) =>
-              navigateTo(workItemHref(workItem, direction)),
-          }
-        )
+        setClaimPending(true)
+        try {
+          const { workItem } = await workbenchApi.claimWorkItem({ workItemId: item.id })
+          await reload()
+          navigateTo(workItemHref(workItem, direction))
+        } catch (error) {
+          notify.error(
+            t("workflow.workbench.claim_error"),
+            error instanceof Error ? error.message : undefined
+          )
+        } finally {
+          setClaimPending(false)
+        }
         return
       }
       if (item.canOpen) {
@@ -129,8 +203,10 @@ function TransactionWorkbenchInner({
       }
       notify.error(t("workflow.workbench.claim_error"), item.claimBlockedReason)
     },
-    [direction, claimRef, t]
+    [direction, reload, t]
   )
+
+  const claiming = direction === "incoming" && claimPending
 
   const columns = useMemo(
     () => workItemColumns(direction, claiming, openItem),
@@ -160,11 +236,8 @@ function TransactionWorkbenchInner({
           <Button
             type="button"
             variant="secondary"
-            disabled={workItemsQuery.isFetching}
-            onClick={() => {
-              void workItemsQuery.refetch()
-              void summaryQuery.refetch()
-            }}
+            disabled={fetching}
+            onClick={() => void reload()}
           >
             <RefreshCw className="size-4" />
             Làm mới
@@ -180,7 +253,7 @@ function TransactionWorkbenchInner({
           embedded
         >
           <WorkItemTree
-            nodes={summaryQuery.data ?? []}
+            nodes={summaryData as any[]}
             activeNode={activeNode}
             onSelect={setActiveNode}
           />
@@ -207,6 +280,8 @@ function TransactionWorkbenchInner({
 export function TransactionSearchPage() {
   const { t } = useI18n()
   const [filters, setFilters] = useState<FilterState>({})
+  const [items, setItems] = useState<WorkItem[]>([])
+  const [fetching, setFetching] = useState(false)
 
   const queryFilter = useMemo<WorkItemFilter>(() => {
     const next: WorkItemFilter = { direction: "ALL", limit: 100 }
@@ -222,8 +297,45 @@ export function TransactionSearchPage() {
 
   const expectCaseCode = workbenchExpectCaseCode()
   const refetchInterval = useWorkbenchBurstRefetch(expectCaseCode)
-  const searchQuery = useWorkItems(queryFilter, { refetchInterval })
-  const items = searchQuery.data ?? []
+  const filterRef = useRef(queryFilter)
+  filterRef.current = queryFilter
+
+  const load = useCallback(async () => {
+    setFetching(true)
+    try {
+      const data = await workbenchApi.listWorkItems(filterRef.current)
+      setItems(data)
+    } finally {
+      setFetching(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  // Polling
+  const loadRef = useRef(load)
+  loadRef.current = load
+  useEffect(() => {
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout>
+    async function poll() {
+      if (document.hidden) {
+        timer = setTimeout(poll, 500)
+        return
+      }
+      await loadRef.current()
+      if (!cancelled) {
+        timer = setTimeout(poll, refetchInterval)
+      }
+    }
+    timer = setTimeout(poll, refetchInterval)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [refetchInterval])
 
   const openItem = useCallback((item: WorkItem) => {
     navigateTo(

@@ -9,7 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.101.2",
     "react": "^19.2.6"
   },
   "devDependencies": {
@@ -26,8 +25,6 @@
     "./http/list-api": "./src/http/list-api.ts",
     "./media/urls": "./src/media/urls.ts",
     "./page-title": "./src/page-title/index.ts",
-    "./query": "./src/query.tsx",
-    "./query/list-query": "./src/query/list-query.ts",
     "./routing": "./src/routing/index.ts"
   }
 }

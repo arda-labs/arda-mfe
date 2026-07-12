@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
-import type { SlaPolicy } from "../api"
-import { useSlaPolicies, useWorkflowCaseTypes } from "../queries"
+import type { SlaPolicy, WorkflowCaseType } from "../api"
+import { workflowApi } from "../api"
 import {
   caseTypeOptionsFromCaseTypes,
   LoadingBlock,
@@ -12,28 +12,41 @@ import {
 } from "../shared/admin-ui"
 
 export function SlaPoliciesPage() {
-  const { data, isLoading } = useSlaPolicies()
-  const caseTypesQuery = useWorkflowCaseTypes()
-  const items = data?.data ?? []
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypesQuery.data?.data ?? [])
+  const [slaResult, setSlaResult] = useState<{ data: SlaPolicy[]; source: "api" | "mock" }>({ data: [], source: "mock" })
+  const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
+  const [loading, setLoading] = useState(true)
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [sl, ct] = await Promise.all([workflowApi.listSlaPolicies(), workflowApi.listCaseTypes()])
+      setSlaResult(sl)
+      setCaseTypes(ct.data)
+    } finally { setLoading(false) }
+  }, [])
+  useEffect(() => { void load() }, [load])
+
+  const items = slaResult.data
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const roleOptions = uniqueOptions(items.map((item) => item.escalationRole), [])
   const [editing, setEditing] = useState<SlaPolicy | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  function onSaved() { void load() }
 
   return (
     <WorkflowFrame
       title="Cấu hình SLA"
       description="Định nghĩa thời hạn xử lý, ngưỡng cảnh báo và role escalations cho từng nghiệp vụ."
-      source={data?.source}
+      source={slaResult.source}
       action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>Tạo SLA</Button>}
     >
-      {isLoading ? <LoadingBlock /> : <SlaTable items={items} onEdit={setEditing} />}
+      {loading ? <LoadingBlock /> : <SlaTable items={items} onEdit={setEditing} />}
       {createOpen ? (
         <SlaPolicyDialog
           open
           caseTypeOptions={caseTypeOptions}
           roleOptions={roleOptions}
           onOpenChange={setCreateOpen}
+          onSaved={onSaved}
         />
       ) : null}
       {editing ? (
@@ -43,6 +56,7 @@ export function SlaPoliciesPage() {
           caseTypeOptions={caseTypeOptions}
           roleOptions={roleOptions}
           onOpenChange={(open) => !open && setEditing(null)}
+          onSaved={onSaved}
         />
       ) : null}
     </WorkflowFrame>

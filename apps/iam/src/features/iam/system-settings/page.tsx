@@ -1,15 +1,21 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   cacheBranding,
   defaultBranding,
   isSafeBrandImageUrl,
 } from "@workspace/core/branding"
+import { api } from "@workspace/api"
 import { notify } from "@workspace/notifications/notify"
-import {
-  type Parameter,
-  useSaveSystemSettings,
-  useSystemParameters,
-} from "@/features/iam/system-settings/queries"
+
+type Parameter = {
+  id: string
+  key: string
+  value: string
+  value_type: "string" | "number" | "boolean" | "json" | "date"
+  scope_type: "global" | "tenant" | "org" | "branch" | "department"
+  description?: string
+  is_secret: boolean
+}
 import { Badge } from "@workspace/ui/components/badge"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
@@ -182,17 +188,26 @@ const fields: Record<keyof SystemSettings, { key: string }> = {
 
 export function SystemSettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>(defaults)
-  const parametersQuery = useSystemParameters()
-  const saveSettingsMutation = useSaveSystemSettings()
-  const parametersByKey = useMemo(
-    () =>
-      Object.fromEntries(
-        (parametersQuery.data ?? []).map((param) => [param.key, param])
-      ) as Record<string, Parameter>,
-    [parametersQuery.data]
-  )
-  const loading = parametersQuery.isLoading
-  const saving = saveSettingsMutation.isPending
+  const [parameters, setParameters] = useState<Parameter[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const loadParameters = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await api.get<Parameter[]>("/api/platform/parameters")
+      setParameters(data)
+      setSettings(readSettingsFromList(data))
+    } catch {
+      notify.error("Không thể tải cấu hình hệ thống")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadParameters()
+  }, [loadParameters])
 
   const passwordRuleCount = useMemo(
     () =>
@@ -206,18 +221,6 @@ export function SystemSettingsPage() {
     [settings]
   )
 
-  useEffect(() => {
-    if (parametersQuery.data) {
-      setSettings(readSettings(parametersByKey))
-    }
-  }, [parametersByKey, parametersQuery.data])
-
-  useEffect(() => {
-    if (parametersQuery.error) {
-      notify.error("Không thể tải cấu hình hệ thống")
-    }
-  }, [parametersQuery.error])
-
   async function saveSettings() {
     const validationError = validateSettings(settings)
     if (validationError) {
@@ -225,8 +228,13 @@ export function SystemSettingsPage() {
       return
     }
 
+    const parametersByKey = Object.fromEntries(
+      parameters.map((param) => [param.key, param])
+    ) as Record<string, Parameter>
+
+    setSaving(true)
     try {
-      await saveSettingsMutation.mutateAsync({
+      await api.post<Parameter>("/api/platform/parameters", {
         id: parametersByKey[SYSTEM_SETTINGS_KEY]?.id,
         key: SYSTEM_SETTINGS_KEY,
         value: JSON.stringify(settings),
@@ -237,8 +245,11 @@ export function SystemSettingsPage() {
       })
       cacheBranding(settings)
       notify.success("Đã lưu cấu hình hệ thống")
+      await loadParameters()
     } catch {
       notify.error("Lưu cấu hình thất bại")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -663,6 +674,13 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="font-medium">{value}</span>
     </div>
   )
+}
+
+function readSettingsFromList(list: Parameter[]): SystemSettings {
+  const parametersByKey = Object.fromEntries(
+    list.map((param) => [param.key, param])
+  ) as Record<string, Parameter>
+  return readSettings(parametersByKey)
 }
 
 function readSettings(

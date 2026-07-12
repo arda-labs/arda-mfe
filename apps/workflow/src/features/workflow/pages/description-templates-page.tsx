@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
-import type { DescriptionTemplate } from "../api"
-import { useDescriptionTemplates, useWorkflowCaseTypes } from "../queries"
+import type { DescriptionTemplate, WorkflowCaseType } from "../api"
+import { workflowApi } from "../api"
 import {
   businessSubsystemOptions,
   caseTypeOptionsFromCaseTypes,
@@ -12,21 +12,33 @@ import {
 } from "../shared/admin-ui"
 
 export function DescriptionTemplatesPage() {
-  const { data, isLoading } = useDescriptionTemplates()
-  const caseTypesQuery = useWorkflowCaseTypes()
-  const items = data?.data ?? []
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypesQuery.data?.data ?? [])
+  const [dtResult, setDtResult] = useState<{ data: DescriptionTemplate[]; source: "api" | "mock" }>({ data: [], source: "mock" })
+  const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
+  const [loading, setLoading] = useState(true)
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [dt, ct] = await Promise.all([workflowApi.listDescriptionTemplates(), workflowApi.listCaseTypes()])
+      setDtResult(dt)
+      setCaseTypes(ct.data)
+    } finally { setLoading(false) }
+  }, [])
+  useEffect(() => { void load() }, [load])
+
+  const items = dtResult.data
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const [editing, setEditing] = useState<DescriptionTemplate | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  function onSaved() { void load() }
 
   return (
     <WorkflowFrame
       title="Cấu trúc diễn giải"
       description="Chuẩn hóa cách sinh tiêu đề, mô tả và dòng timeline để các danh sách dễ quét."
-      source={data?.source}
+      source={dtResult.source}
       action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>Tạo cấu trúc</Button>}
     >
-      {isLoading ? (
+      {loading ? (
         <LoadingBlock />
       ) : (
         <DescriptionTemplateTable items={items} onEdit={setEditing} />
@@ -37,6 +49,7 @@ export function DescriptionTemplatesPage() {
           caseTypeOptions={caseTypeOptions}
           subsystemOptions={businessSubsystemOptions}
           onOpenChange={setCreateOpen}
+          onSaved={onSaved}
         />
       ) : null}
       {editing ? (
@@ -46,6 +59,7 @@ export function DescriptionTemplatesPage() {
           caseTypeOptions={caseTypeOptions}
           subsystemOptions={businessSubsystemOptions}
           onOpenChange={(open) => !open && setEditing(null)}
+          onSaved={onSaved}
         />
       ) : null}
     </WorkflowFrame>

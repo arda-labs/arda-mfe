@@ -1,5 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Check, ChevronsUpDown, Search } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -77,24 +76,57 @@ export function PrincipalPicker({
     setDisplayLabel("")
   }, [principalType])
 
-  const usersQuery = useQuery({
-    queryKey: ["workflow", "principal-picker", "users", page, search] as const,
-    queryFn: () => listIamUsers({ page, perPage: PAGE_SIZE, q: search || undefined }),
-    enabled: open && principalType === "USER",
-    placeholderData: keepPreviousData,
-  })
+  const [users, setUsers] = useState<IamPrincipalUser[]>([])
+  const [groups, setGroups] = useState<IamPrincipalGroup[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(false)
+  const hasDataRef = useRef(false)
 
-  const groupsQuery = useQuery({
-    queryKey: ["workflow", "principal-picker", "groups", page, search] as const,
-    queryFn: () => listIamGroups({ page, perPage: PAGE_SIZE, q: search || undefined }),
-    enabled: open && principalType === "GROUP",
-    placeholderData: keepPreviousData,
-  })
+  const loadUsers = useCallback(async () => {
+    if (!open || principalType !== "USER") return
+    if (hasDataRef.current) setFetching(true)
+    else setLoading(true)
+    try {
+      const result = await listIamUsers({
+        page,
+        perPage: PAGE_SIZE,
+        q: search || undefined,
+      })
+      setUsers(result.items ?? [])
+      setTotalPages(Math.max(1, result.totalPages ?? 1))
+    } finally {
+      hasDataRef.current = true
+      setLoading(false)
+      setFetching(false)
+    }
+  }, [open, principalType, page, search])
 
-  const activeQuery = principalType === "USER" ? usersQuery : groupsQuery
-  const users = usersQuery.data?.items ?? []
-  const groups = groupsQuery.data?.items ?? []
-  const totalPages = Math.max(1, activeQuery.data?.totalPages ?? 1)
+  const loadGroups = useCallback(async () => {
+    if (!open || principalType !== "GROUP") return
+    if (hasDataRef.current) setFetching(true)
+    else setLoading(true)
+    try {
+      const result = await listIamGroups({
+        page,
+        perPage: PAGE_SIZE,
+        q: search || undefined,
+      })
+      setGroups(result.items ?? [])
+      setTotalPages(Math.max(1, result.totalPages ?? 1))
+    } finally {
+      hasDataRef.current = true
+      setLoading(false)
+      setFetching(false)
+    }
+  }, [open, principalType, page, search])
+
+  useEffect(() => {
+    void loadUsers()
+  }, [loadUsers])
+  useEffect(() => {
+    void loadGroups()
+  }, [loadGroups])
 
   useEffect(() => {
     if (!value) {
@@ -174,7 +206,7 @@ export function PrincipalPicker({
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-6 py-3">
-              {activeQuery.isLoading ? (
+              {loading ? (
                 <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
                   <Spinner className="size-4" />
                   Đang tải...
@@ -271,7 +303,7 @@ export function PrincipalPicker({
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={page <= 1 || activeQuery.isFetching}
+                  disabled={page <= 1 || fetching}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 >
                   Trước
@@ -280,7 +312,7 @@ export function PrincipalPicker({
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={page >= totalPages || activeQuery.isFetching}
+                  disabled={page >= totalPages || fetching}
                   onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                 >
                   Sau

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ColumnDef, PaginationState } from "@tanstack/react-table"
 import {
   getCoreRowModel,
@@ -6,11 +6,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import type { Group, User } from "@/features/iam"
-import {
-  useApplyGroupMembers,
-  useGroupMemberPicker,
-  useGroupMembers,
-} from "@/features/iam/groups/queries"
+import { adminApi } from "@/features/iam"
+import { ApiClientError } from "@workspace/core/http/api-client"
+import { ensureRecentAuth } from "@workspace/auth/ensure-recent-auth"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { listPageCount } from "@workspace/core/http/list-api"
 import { notify } from "@workspace/notifications/notify"
@@ -89,15 +87,13 @@ export function GroupMembersDialog({
     pageIndex: 0,
     pageSize: PAGE_SIZE,
   })
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [pickerData, setPickerData] = useState<{ items: User[]; total: number; per_page: number } | null>(null)
+  const [pickerLoading, setPickerLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const membersLoadedForRef = useRef<string | null>(null)
 
   const groupId = group?.id
-  const membersQuery = useGroupMembers(groupId)
-  const pickerQuery = useGroupMemberPicker(view === "add", {
-    page: addPagination.pageIndex + 1,
-    perPage: addPagination.pageSize,
-    q: view === "add" ? search || undefined : undefined,
-  })
-  const applyMembers = useApplyGroupMembers()
 
   const debouncedMemberSearch = useDebouncedCallback((value: string) => {
     setSearch(value.trim().toLowerCase())
@@ -109,9 +105,69 @@ export function GroupMembersDialog({
     setAddPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }, 300)
 
+  // Load members when dialog opens
+  useEffect(() => {
+    if (!open || !groupId || membersLoadedForRef.current === groupId) {
+      if (open && !groupId) {
+        setDraftMembers([])
+      }
+      return
+    }
+    let cancelled = false
+    setMembersLoading(true)
+    void adminApi.listGroupMembers(groupId)
+      .then((res) => {
+        if (!cancelled) {
+          setDraftMembers(res.items)
+          setSelectedRemoveIds(new Set())
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setMembersLoading(false)
+        if (!cancelled) membersLoadedForRef.current = groupId
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, groupId])
+
+  // Load picker users when view is "add" and pagination/search changes
+  useEffect(() => {
+    if (!open || view !== "add") return
+    let cancelled = false
+    setPickerLoading(true)
+    const q = search || undefined
+    void adminApi.listUsers({ page: addPagination.pageIndex + 1, perPage: addPagination.pageSize, q })
+      .then((res) => {
+        if (!cancelled) setPickerData(res)
+      })
+      .finally(() => {
+        if (!cancelled) setPickerLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, view, addPagination.pageIndex, addPagination.pageSize, search])
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setView("members")
+      setSearchInput("")
+      setSearch("")
+      setDraftMembers([])
+      setSelectedRemoveIds(new Set())
+      setSelectedAddUsers(new Map())
+      setMembersPagination({ pageIndex: 0, pageSize: PAGE_SIZE })
+      setAddPagination({ pageIndex: 0, pageSize: PAGE_SIZE })
+      setPickerData(null)
+      membersLoadedForRef.current = null
+    }
+  }, [open])
+
   const originalMemberIds = useMemo(
-    () => new Set((membersQuery.data ?? []).map((user) => user.id)),
-    [membersQuery.data]
+    () => new Set(draftMembers.map((user) => user.id)),
+    [draftMembers]
   )
 
   const draftMemberIds = useMemo(
@@ -124,24 +180,6 @@ export function GroupMembersDialog({
     [draftMemberIds, originalMemberIds]
   )
 
-  useEffect(() => {
-    if (!open) {
-      setView("members")
-      setSearchInput("")
-      setSearch("")
-      setDraftMembers([])
-      setSelectedRemoveIds(new Set())
-      setSelectedAddUsers(new Map())
-      setMembersPagination({ pageIndex: 0, pageSize: PAGE_SIZE })
-      setAddPagination({ pageIndex: 0, pageSize: PAGE_SIZE })
-      return
-    }
-    if (membersQuery.data) {
-      setDraftMembers(membersQuery.data)
-      setSelectedRemoveIds(new Set())
-    }
-  }, [open, membersQuery.data])
-
   const filteredMembers = useMemo(
     () => draftMembers.filter((user) => userMatchesSearch(user, search)),
     [draftMembers, search]
@@ -149,8 +187,8 @@ export function GroupMembersDialog({
 
   const availableUsers = useMemo(
     () =>
-      (pickerQuery.data?.items ?? []).filter((user) => !draftMemberIds.has(user.id)),
-    [draftMemberIds, pickerQuery.data?.items]
+      (pickerData?.items ?? []).filter((user) => !draftMemberIds.has(user.id)),
+    [draftMemberIds, pickerData?.items]
   )
 
   const removeFromDraft = useCallback((userIds: string[]) => {
@@ -208,12 +246,37 @@ export function GroupMembersDialog({
     backToMembers()
   }
 
+  const ensureRecentAuthDirect = async (): Promise<boolean> => {
+    try {
+      return await ensureRecentAuth()
+    } catch {
+      return false
+    }
+  }
+
   const save = async () => {
     if (!groupId || !isDirty) return
-    const toAdd = [...draftMemberIds].filter((id) => !originalMemberIds.has(id))
-    const toRemove = [...originalMemberIds].filter((id) => !draftMemberIds.has(id))
+    const originalIds = originalMemberIds // snapshot before mutation
+    const currentDraftIds = draftMemberIds
+    const toAdd = [...currentDraftIds].filter((id) => !originalIds.has(id))
+    const toRemove = [...originalIds].filter((id) => !currentDraftIds.has(id))
+    if (toAdd.length === 0 && toRemove.length === 0) return
+    const verified = await ensureRecentAuthDirect()
+    if (!verified) {
+      throw new ApiClientError(
+        "recent_auth_required",
+        "recent_auth_required",
+        403
+      )
+    }
+    setSaving(true)
     try {
-      await applyMembers.mutateAsync({ groupId, toAdd, toRemove })
+      for (const userId of toRemove) {
+        await adminApi.removeGroupMember(groupId, userId)
+      }
+      for (const userId of toAdd) {
+        await adminApi.addGroupMember(groupId, userId)
+      }
       notify.success(t("admin.groups.members.save_success"))
       onOpenChange(false)
     } catch (err) {
@@ -221,6 +284,8 @@ export function GroupMembersDialog({
         t("admin.groups.members.save_failed"),
         translateApiError(err)
       )
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -394,8 +459,8 @@ export function GroupMembersDialog({
   })
 
   const addPageCount = listPageCount(
-    pickerQuery.data?.total ?? 0,
-    pickerQuery.data?.per_page ?? addPagination.pageSize
+    pickerData?.total ?? 0,
+    pickerData?.per_page ?? addPagination.pageSize
   )
 
   const addTable = useReactTable({
@@ -483,7 +548,7 @@ export function GroupMembersDialog({
             </div>
 
             <div className="min-h-0 flex-1 overflow-hidden px-6 py-3">
-              {membersQuery.isLoading ? (
+              {membersLoading ? (
                 <div className="py-8 text-sm text-muted-foreground">
                   {t("admin.groups.members.loading")}
                 </div>
@@ -506,8 +571,8 @@ export function GroupMembersDialog({
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
                 {t("common.action.cancel")}
               </Button>
-              <Button onClick={save} disabled={!isDirty || applyMembers.isPending}>
-                {applyMembers.isPending
+              <Button onClick={save} disabled={!isDirty || saving}>
+                {saving
                   ? t("common.action.saving")
                   : t("common.action.save")}
               </Button>
@@ -532,7 +597,7 @@ export function GroupMembersDialog({
             </div>
 
             <div className="min-h-0 flex-1 overflow-hidden px-6 py-3">
-              {pickerQuery.isLoading ? (
+              {pickerLoading ? (
                 <div className="py-8 text-sm text-muted-foreground">
                   {t("admin.groups.members.loading")}
                 </div>
@@ -545,7 +610,6 @@ export function GroupMembersDialog({
                   table={addTable}
                   defaultDensity="compact"
                   className="min-h-0"
-                  fetching={pickerQuery.isFetching}
                 />
               )}
             </div>

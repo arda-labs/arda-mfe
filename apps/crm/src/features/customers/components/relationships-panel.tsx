@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus } from "lucide-react"
@@ -20,27 +21,53 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import type { Customer } from "../api"
-import {
-  useCreateCustomerRelationship,
-  useCustomerRelationships,
-  useCustomers,
-} from "../queries"
+import { notify } from "@workspace/notifications/notify"
+import { customerApi, type Customer, type CustomerRelationship } from "../api"
+import { runMutation, relationLabel } from "../shared/form-utils"
 import {
   relationshipSchema,
   selectOptions,
   type RelationshipFormValues,
 } from "../shared/schemas"
-import { relationLabel } from "../shared/form-utils"
 import { EmptyTable, Panel } from "../shared/ui"
 
 export function RelationshipsPanel({ customer }: { customer: Customer }) {
-  const relationshipsQuery = useCustomerRelationships(customer.id)
-  const approvedCustomersQuery = useCustomers({ status: "ACTIVE" })
-  const createRelationship = useCreateCustomerRelationship(customer.id)
-  const candidates = (approvedCustomersQuery.data ?? []).filter(
-    (item) => item.id !== customer.id
-  )
+  const [relationships, setRelationships] = useState<CustomerRelationship[]>([])
+  const [relationshipsLoading, setRelationshipsLoading] = useState(true)
+  const [candidates, setCandidates] = useState<Customer[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [candidatesLoading, setCandidatesLoading] = useState(true)
+
+  const loadRelationships = useCallback(async () => {
+    setRelationshipsLoading(true)
+    try {
+      const data = await customerApi.listRelationships(customer.id)
+      setRelationships(data)
+    } finally {
+      setRelationshipsLoading(false)
+    }
+  }, [customer.id])
+
+  useEffect(() => {
+    void loadRelationships()
+  }, [loadRelationships])
+
+  useEffect(() => {
+    let cancelled = false
+    setCandidatesLoading(true)
+    customerApi
+      .list({ status: "ACTIVE" })
+      .then((all) => {
+        if (!cancelled) setCandidates(all.filter((item) => item.id !== customer.id))
+      })
+      .finally(() => {
+        if (!cancelled) setCandidatesLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [customer.id])
+
   const form = useForm<RelationshipFormValues>({
     resolver: zodResolver(relationshipSchema),
     defaultValues: {
@@ -53,14 +80,26 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
   })
 
   const submit = form.handleSubmit(async (values) => {
-    await createRelationship.mutateAsync(values)
-    form.reset({
-      relatedCustomerId: "",
-      relationType: "",
-      relationCode: "",
-      reciprocalRelationCode: "",
-      status: "ACTIVE",
-    })
+    setSubmitting(true)
+    try {
+      await runMutation(
+        () => customerApi.createRelationship(customer.id, values),
+        {
+          success: "Đã thêm quan hệ khách hàng",
+          error: "Thêm quan hệ thất bại",
+        }
+      )
+      form.reset({
+        relatedCustomerId: "",
+        relationType: "",
+        relationCode: "",
+        reciprocalRelationCode: "",
+        status: "ACTIVE",
+      })
+      await loadRelationships()
+    } finally {
+      setSubmitting(false)
+    }
   })
 
   return (
@@ -82,6 +121,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
                 onValueChange={(value) =>
                   field.onChange(value === "none" ? "" : value)
                 }
+                disabled={candidatesLoading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn khách hàng" />
@@ -154,7 +194,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
         <div className="md:col-span-2 xl:col-span-5">
           <Button
             type="submit"
-            disabled={createRelationship.isPending || !candidates.length}
+            disabled={submitting || !candidates.length || candidatesLoading}
           >
             <Plus className="size-4" />
             Thêm mới
@@ -173,8 +213,17 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
             <TableHead>Trạng thái quan he</TableHead>
           </TableRow>
         </TableHeader>
+        {relationshipsLoading ? (
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">
+                Đang tải...
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        ) : (
         <TableBody>
-          {(relationshipsQuery.data ?? []).map((item, index) => (
+          {relationships.map((item, index) => (
             <TableRow key={item.id}>
               <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-mono text-xs">
@@ -193,10 +242,11 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
               </TableCell>
             </TableRow>
           ))}
-          {!relationshipsQuery.data?.length ? (
+          {!relationships.length ? (
             <EmptyTable colSpan={7} text="Chưa có quan hệ khách hàng." />
           ) : null}
         </TableBody>
+        )}
       </Table>
     </Panel>
   )
@@ -227,4 +277,4 @@ export function RelationSelect({
       </SelectContent>
     </Select>
   )
-}
+}

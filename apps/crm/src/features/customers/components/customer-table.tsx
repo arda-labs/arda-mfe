@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Search } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { navigateTo } from "@workspace/core/routing"
-import { useCustomers } from "../queries"
+import { customerApi, type Customer, type CustomerListParams } from "../api"
 import { customerTypeLabel } from "../shared/form-utils"
 import { EmptyTable, Header } from "../shared/ui"
 
@@ -28,12 +28,29 @@ export function CustomerTable({
   const { t } = useI18n()
   const [query, setQuery] = useState("")
   const [submittedQuery, setSubmittedQuery] = useState("")
-  const customersQuery = useCustomers({
-    q: submittedQuery || undefined,
-    riskOnly: mode === "risk",
-    status: "ACTIVE",
-  })
-  const items = customersQuery.data ?? []
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params: CustomerListParams = {
+        q: submittedQuery || undefined,
+        riskOnly: mode === "risk",
+        status: "ACTIVE",
+      }
+      const data = await customerApi.list(params)
+      setCustomers(data)
+    } finally {
+      setLoading(false)
+    }
+  }, [mode, submittedQuery])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const items = customers
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4">
@@ -59,6 +76,11 @@ export function CustomerTable({
           {t("crm.actions.search")}
         </Button>
       </form>
+      {loading ? (
+        <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
+          Đang tải...
+        </div>
+      ) : (
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
@@ -136,6 +158,7 @@ export function CustomerTable({
           </TableBody>
         </Table>
       </div>
+      )}
     </section>
   )
-}
+}

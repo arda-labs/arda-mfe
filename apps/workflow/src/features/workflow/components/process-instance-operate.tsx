@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { AlertCircle, Eye, RefreshCw, RotateCcw } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
@@ -15,13 +15,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/notifications/notify"
+import { workflowApi } from "../api"
 import type { WorkflowCase, WorkflowCaseType } from "../api"
+import { useProcessInstanceRuntime } from "../shared/use-process-instance-runtime"
 import { BpmnViewerPanel } from "./bpmn-monitor-lazy"
-import {
-  useProcessInstanceRuntime,
-  useRetryProcessServiceJobs,
-  useRetryWorkflowJob,
-} from "../queries"
 
 type ProcessInstanceOperateProps = {
   cases: WorkflowCase[]
@@ -41,9 +38,9 @@ export function ProcessInstanceOperate({
   onSelect,
 }: ProcessInstanceOperateProps) {
   const [dockTab, setDockTab] = useState("jobs")
+  const [retryJobPending, setRetryJobPending] = useState<string | null>(null)
+  const [retryServicePending, setRetryServicePending] = useState(false)
   const runtimeQuery = useProcessInstanceRuntime(selected?.processInstanceKey)
-  const retryJob = useRetryWorkflowJob()
-  const retryServiceJobs = useRetryProcessServiceJobs()
   const runtime = runtimeQuery.data
   const pendingJobs = runtime?.pendingJobs ?? []
   const incidents = runtime?.incidents ?? []
@@ -55,27 +52,33 @@ export function ProcessInstanceOperate({
   )
 
   async function handleRetryJob(jobKey: string) {
+    setRetryJobPending(jobKey)
     try {
-      await retryJob.mutateAsync({ jobKey })
+      await workflowApi.retryWorkflowJob(jobKey)
       notify.success("Đã retry job", `Job ${jobKey} — worker sẽ xử lý lại`)
-      runtimeQuery.refetch()
+      await runtimeQuery.refetch()
     } catch (error) {
       notify.error("Retry thất bại", error instanceof Error ? error.message : "Lỗi không xác định")
+    } finally {
+      setRetryJobPending(null)
     }
   }
 
   async function handleRetryServiceJobs() {
     if (!selected?.processInstanceKey) return
+    setRetryServicePending(true)
     try {
-      const result = await retryServiceJobs.mutateAsync(String(selected.processInstanceKey))
+      const result = await workflowApi.retryProcessServiceJobs(String(selected.processInstanceKey))
       if (result.status === "noop") {
         notify.info("Không có incident service job", result.message)
       } else {
         notify.success("Đã retry service jobs", `Jobs: ${result.retried.join(", ")}`)
       }
-      runtimeQuery.refetch()
+      await runtimeQuery.refetch()
     } catch (error) {
       notify.error("Retry thất bại", error instanceof Error ? error.message : "Lỗi không xác định")
+    } finally {
+      setRetryServicePending(false)
     }
   }
 
@@ -93,7 +96,7 @@ export function ProcessInstanceOperate({
             type="button"
             size="sm"
             variant="outline"
-            disabled={!selected?.processInstanceKey || retryServiceJobs.isPending}
+            disabled={!selected?.processInstanceKey || retryServicePending}
             onClick={handleRetryServiceJobs}
           >
             <RotateCcw className="size-4" />
@@ -209,7 +212,7 @@ export function ProcessInstanceOperate({
                           type="button"
                           size="sm"
                           variant="outline"
-                          disabled={retryJob.isPending}
+                          disabled={retryJobPending != null}
                           onClick={() => handleRetryJob(job.jobKey)}
                         >
                           <RotateCcw className="size-3.5" />
@@ -250,7 +253,7 @@ export function ProcessInstanceOperate({
                           type="button"
                           size="sm"
                           variant="outline"
-                          disabled={retryJob.isPending}
+                          disabled={retryJobPending != null}
                           onClick={() => handleRetryJob(incident.jobKey)}
                         >
                           <RotateCcw className="size-3.5" />

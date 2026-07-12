@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useSearchParams } from "react-router-dom"
 import { notify } from "@workspace/notifications/notify"
 import { navigateTo } from "@workspace/core/routing"
 import {
@@ -125,33 +125,48 @@ export async function resolveWorkflowJobKey(
 }
 
 export function useCustomerTaskContext() {
-  const [search, setSearch] = useState(() =>
-    typeof window === "undefined" ? "" : window.location.search
-  )
-  useEffect(() => {
-    const sync = () => setSearch(window.location.search)
-    window.addEventListener("popstate", sync)
-    return () => window.removeEventListener("popstate", sync)
-  }, [])
-
-  const workItemId = stringParam(new URLSearchParams(search), "workItemId")
+  const [searchParams] = useSearchParams()
+  const workItemId = stringParam(searchParams, "workItemId")
   const fallback = useMemo(
-    () => taskContextFromSearchParams(new URLSearchParams(search)),
-    [search]
+    () => taskContextFromSearchParams(searchParams),
+    [searchParams]
   )
-  const workItemQuery = useQuery({
-    queryKey: ["crm", "workflow-work-item", workItemId ?? ""],
-    queryFn: () => customerApi.getWorkflowWorkItem(workItemId ?? ""),
-    enabled: Boolean(workItemId),
-  })
-  const context = workItemQuery.data
-    ? taskContextFromWorkItem(workItemQuery.data)
-    : fallback
+  const [workItem, setWorkItem] = useState<WorkflowWorkItem | null>(null)
+  const [isLoading, setIsLoading] = useState(Boolean(workItemId))
+  const [isError, setIsError] = useState(false)
+
+  useEffect(() => {
+    if (!workItemId) {
+      setWorkItem(null)
+      setIsLoading(false)
+      setIsError(false)
+      return
+    }
+    let cancelled = false
+    setIsLoading(true)
+    setIsError(false)
+    customerApi
+      .getWorkflowWorkItem(workItemId)
+      .then((item) => {
+        if (!cancelled) setWorkItem(item)
+      })
+      .catch(() => {
+        if (!cancelled) setIsError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [workItemId])
+
+  const context = workItem ? taskContextFromWorkItem(workItem) : fallback
   return {
     context,
     hasWorkItemId: Boolean(workItemId),
-    isError: workItemQuery.isError,
-    isLoading: workItemQuery.isLoading,
+    isError,
+    isLoading,
   }
 }
 

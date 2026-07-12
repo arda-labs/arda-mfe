@@ -15,9 +15,8 @@ export const remoteSharedDeps = {
   "react-dom/client": { singleton: true },
   "react/jsx-runtime": { singleton: true },
   "react/jsx-dev-runtime": { singleton: true },
-  "@tanstack/react-query": { singleton: true },
-  nuqs: { singleton: true },
-  "nuqs/adapters/react": { singleton: true },
+  "react-router": { singleton: true },
+  "react-router-dom": { singleton: true },
   "@workspace/i18n": { singleton: true },
   "@workspace/i18n/": { singleton: true },
   "@workspace/api": { singleton: true },
@@ -48,8 +47,5 @@ export const remotePorts = {
 // Vendor lớn để shell pre-bundle 1 lần ở boot, không ở first navigation
 // (giảm độ trễ lần đầu load một remote/page).
 export const shellOptimizeInclude = [
-  "@tanstack/react-query",
-  "nuqs",
-  "nuqs/adapters/react",
   "react-toastify",
 ]

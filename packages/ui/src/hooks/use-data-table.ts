@@ -16,66 +16,81 @@ import {
   type Updater,
   useReactTable,
   type VisibilityState,
-} from "@tanstack/react-table";
-import {
-  parseAsArrayOf,
-  parseAsInteger,
-  parseAsString,
-  type SingleParser,
-  type UseQueryStateOptions,
-  useQueryState,
-  useQueryStates,
-} from "nuqs";
-import * as React from "react";
+} from "@tanstack/react-table"
+import { useSearchParams } from "react-router-dom"
+import * as React from "react"
 
-import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback";
-import { injectRowIndexColumn, normalizeSelectColumn } from "@workspace/ui/lib/inject-row-index-column";
-import { getSortingStateParser } from "@workspace/ui/lib/parsers";
-import type { ExtendedColumnSort, QueryKeys } from "@workspace/ui/types/data-table";
+import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback"
+import { injectRowIndexColumn, normalizeSelectColumn } from "@workspace/ui/lib/inject-row-index-column"
+import type { ExtendedColumnSort, QueryKeys } from "@workspace/ui/types/data-table"
 
-const PAGE_KEY = "page";
-const PER_PAGE_KEY = "perPage";
-const SORT_KEY = "sort";
-const FILTERS_KEY = "filters";
-const JOIN_OPERATOR_KEY = "joinOperator";
-const ARRAY_SEPARATOR = ",";
-const DEBOUNCE_MS = 300;
-const THROTTLE_MS = 50;
-const TEXT_FILTER_VARIANTS = new Set(["text", "number"]);
+const PAGE_KEY = "page"
+const PER_PAGE_KEY = "perPage"
+const SORT_KEY = "sort"
+const FILTERS_KEY = "filters"
+const JOIN_OPERATOR_KEY = "joinOperator"
+const ARRAY_SEPARATOR = ","
+const DEBOUNCE_MS = 300
+const TEXT_FILTER_VARIANTS = new Set(["text", "number"])
+
+type FilterValues = Record<string, string | string[] | null>
+
+function positiveInteger(value: string | null, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+}
+
+function parseSorting<TData>(
+  raw: string | null,
+  columnIds: Set<string>,
+): ExtendedColumnSort<TData>[] {
+  if (!raw) return []
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+
+    return parsed.flatMap((item) => {
+      if (
+        !item ||
+        typeof item !== "object" ||
+        typeof (item as { id?: unknown }).id !== "string" ||
+        typeof (item as { desc?: unknown }).desc !== "boolean"
+      ) {
+        return []
+      }
+
+      const { id, desc } = item as { id: string; desc: boolean }
+      return columnIds.has(id) ? [{ id, desc } as ExtendedColumnSort<TData>] : []
+    })
+  } catch {
+    return []
+  }
+}
 
 function shouldDebounceFilterChange<TData>(
-  prev: ColumnFiltersState,
+  previous: ColumnFiltersState,
   next: ColumnFiltersState,
   filterableColumns: ColumnDef<TData, unknown>[],
 ): boolean {
-  for (const prevFilter of prev) {
-    if (!next.some((filter) => filter.id === prevFilter.id)) {
-      return false;
-    }
+  for (const previousFilter of previous) {
+    if (!next.some((filter) => filter.id === previousFilter.id)) return false
   }
 
   for (const filter of next) {
-    const column = filterableColumns.find((item) => item.id === filter.id);
-    const variant = column?.meta?.variant;
+    const variant = filterableColumns.find((column) => column.id === filter.id)
+      ?.meta?.variant
+    if (variant && !TEXT_FILTER_VARIANTS.has(variant)) return false
 
-    if (variant && !TEXT_FILTER_VARIANTS.has(variant)) {
-      return false;
-    }
-
-    const raw = filter.value;
-    const values = Array.isArray(raw)
-      ? raw.map(String)
-      : raw
-        ? [String(raw)]
-        : [];
-    const hasContent = values.some((value) => value.trim().length > 0);
-
-    if (!hasContent) {
-      return false;
-    }
+    const values = Array.isArray(filter.value)
+      ? filter.value.map(String)
+      : filter.value
+        ? [String(filter.value)]
+        : []
+    if (!values.some((value) => value.trim().length > 0)) return false
   }
 
-  return true;
+  return true
 }
 
 interface UseDataTableProps<TData>
@@ -90,20 +105,14 @@ interface UseDataTableProps<TData>
     >,
     Required<Pick<TableOptions<TData>, "pageCount">> {
   initialState?: Omit<Partial<TableState>, "sorting"> & {
-    sorting?: ExtendedColumnSort<TData>[];
-  };
-  queryKeys?: Partial<QueryKeys>;
-  history?: "push" | "replace";
-  debounceMs?: number;
-  throttleMs?: number;
-  clearOnDefault?: boolean;
-  enableAdvancedFilter?: boolean;
-  scroll?: boolean;
-  shallow?: boolean;
-  startTransition?: React.TransitionStartFunction;
+    sorting?: ExtendedColumnSort<TData>[]
+  }
+  queryKeys?: Partial<QueryKeys>
+  debounceMs?: number
+  enableAdvancedFilter?: boolean
   /** Prepends row index column (STT). Default true. Placed after `select` when present. */
-  showRowIndex?: boolean;
-  rowIndexLabel?: string;
+  showRowIndex?: boolean
+  rowIndexLabel?: string
 }
 
 export function useDataTable<TData>(props: UseDataTableProps<TData>) {
@@ -112,234 +121,176 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     pageCount = -1,
     initialState,
     queryKeys,
-    history = "replace",
     debounceMs = DEBOUNCE_MS,
-    throttleMs = THROTTLE_MS,
-    clearOnDefault = false,
     enableAdvancedFilter = false,
-    scroll = false,
-    shallow = true,
-    startTransition,
     showRowIndex = true,
     rowIndexLabel = "STT",
     ...tableProps
-  } = props;
-  const pageKey = queryKeys?.page ?? PAGE_KEY;
-  const perPageKey = queryKeys?.perPage ?? PER_PAGE_KEY;
-  const sortKey = queryKeys?.sort ?? SORT_KEY;
-  const filtersKey = queryKeys?.filters ?? FILTERS_KEY;
-  const joinOperatorKey = queryKeys?.joinOperator ?? JOIN_OPERATOR_KEY;
+  } = props
+  const [searchParams, setSearchParams] = useSearchParams()
+  const pageKey = queryKeys?.page ?? PAGE_KEY
+  const perPageKey = queryKeys?.perPage ?? PER_PAGE_KEY
+  const sortKey = queryKeys?.sort ?? SORT_KEY
+  const filtersKey = queryKeys?.filters ?? FILTERS_KEY
+  const joinOperatorKey = queryKeys?.joinOperator ?? JOIN_OPERATOR_KEY
+  const defaultPerPage = initialState?.pagination?.pageSize ?? 10
+  const page = positiveInteger(searchParams.get(pageKey), 1)
+  const perPage = positiveInteger(searchParams.get(perPageKey), defaultPerPage)
 
-  const queryStateOptions = React.useMemo<
-    Omit<UseQueryStateOptions<string>, "parse">
-  >(
-    () => ({
-      history,
-      scroll,
-      shallow,
-      throttleMs,
-      debounceMs,
-      clearOnDefault,
-      startTransition,
-    }),
-    [
-      history,
-      scroll,
-      shallow,
-      throttleMs,
-      debounceMs,
-      clearOnDefault,
-      startTransition,
-    ],
-  );
+  const updateSearch = React.useCallback(
+    (update: (params: URLSearchParams) => void) => {
+      const next = new URLSearchParams(searchParams)
+      update(next)
+      setSearchParams(next, { replace: true })
+    },
+    [searchParams, setSearchParams],
+  )
 
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
     initialState?.rowSelection ?? {},
-  );
+  )
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>(initialState?.columnVisibility ?? {});
+    React.useState<VisibilityState>(initialState?.columnVisibility ?? {})
 
-  const [page, setPage] = useQueryState(
-    pageKey,
-    parseAsInteger.withOptions(queryStateOptions).withDefault(1),
-  );
-  const [perPage, setPerPage] = useQueryState(
-    perPageKey,
-    parseAsInteger
-      .withOptions(queryStateOptions)
-      .withDefault(initialState?.pagination?.pageSize ?? 10),
-  );
-
-  const pagination: PaginationState = React.useMemo(() => {
-    return {
-      pageIndex: page - 1, // zero-based index -> one-based index
-      pageSize: perPage,
-    };
-  }, [page, perPage]);
+  const pagination: PaginationState = React.useMemo(
+    () => ({ pageIndex: page - 1, pageSize: perPage }),
+    [page, perPage],
+  )
 
   const onPaginationChange = React.useCallback(
     (updaterOrValue: Updater<PaginationState>) => {
-      if (typeof updaterOrValue === "function") {
-        const newPagination = updaterOrValue(pagination);
-        void setPage(newPagination.pageIndex + 1);
-        void setPerPage(newPagination.pageSize);
-      } else {
-        void setPage(updaterOrValue.pageIndex + 1);
-        void setPerPage(updaterOrValue.pageSize);
-      }
+      const next =
+        typeof updaterOrValue === "function"
+          ? updaterOrValue(pagination)
+          : updaterOrValue
+
+      updateSearch((params) => {
+        params.set(pageKey, String(next.pageIndex + 1))
+        params.set(perPageKey, String(next.pageSize))
+      })
     },
-    [pagination, setPage, setPerPage],
-  );
+    [pageKey, pagination, perPageKey, updateSearch],
+  )
 
-  const columnIds = React.useMemo(() => {
-    return new Set(
-      inputColumns.map((column) => column.id).filter(Boolean) as string[],
-    );
-  }, [inputColumns]);
-
-  const [sorting, setSorting] = useQueryState(
-    sortKey,
-    getSortingStateParser<TData>(columnIds)
-      .withOptions(queryStateOptions)
-      .withDefault(initialState?.sorting ?? []),
-  );
+  const columnIds = React.useMemo(
+    () => new Set(inputColumns.map((column) => column.id).filter(Boolean) as string[]),
+    [inputColumns],
+  )
+  const sorting = React.useMemo(
+    () => parseSorting<TData>(searchParams.get(sortKey), columnIds),
+    [columnIds, searchParams, sortKey],
+  )
 
   const onSortingChange = React.useCallback(
     (updaterOrValue: Updater<SortingState>) => {
-      if (typeof updaterOrValue === "function") {
-        const newSorting = updaterOrValue(sorting);
-        setSorting(newSorting as ExtendedColumnSort<TData>[]);
-      } else {
-        setSorting(updaterOrValue as ExtendedColumnSort<TData>[]);
-      }
+      const next =
+        typeof updaterOrValue === "function"
+          ? updaterOrValue(sorting)
+          : updaterOrValue
+
+      updateSearch((params) => {
+        if (next.length === 0) params.delete(sortKey)
+        else params.set(sortKey, JSON.stringify(next))
+        params.set(pageKey, "1")
+      })
     },
-    [sorting, setSorting],
-  );
+    [pageKey, sorting, sortKey, updateSearch],
+  )
 
-  const filterableColumns = React.useMemo(() => {
-    if (enableAdvancedFilter) return [];
+  const filterableColumns = React.useMemo(
+    () => (enableAdvancedFilter ? [] : inputColumns.filter((column) => column.enableColumnFilter)),
+    [enableAdvancedFilter, inputColumns],
+  )
+  const filterValues = React.useMemo<FilterValues>(() => {
+    const values: FilterValues = {}
+    for (const column of filterableColumns) {
+      const id = column.id
+      if (!id) continue
+      const raw = searchParams.get(id)
+      values[id] = column.meta?.options
+        ? raw?.split(ARRAY_SEPARATOR).filter(Boolean) ?? []
+        : raw ?? ""
+    }
+    return values
+  }, [filterableColumns, searchParams])
 
-    return inputColumns.filter((column) => column.enableColumnFilter);
-  }, [inputColumns, enableAdvancedFilter]);
+  const initialColumnFilters = React.useMemo<ColumnFiltersState>(() => {
+    if (enableAdvancedFilter) return []
 
-  const filterParsers = React.useMemo(() => {
-    if (enableAdvancedFilter) return {};
-
-    return filterableColumns.reduce<
-      Record<string, SingleParser<string> | SingleParser<string[]>>
-    >((acc, column) => {
-      if (column.meta?.options) {
-        acc[column.id ?? ""] = parseAsArrayOf(
-          parseAsString,
-          ARRAY_SEPARATOR,
-        ).withOptions(queryStateOptions);
-      } else {
-        acc[column.id ?? ""] = parseAsString.withOptions(queryStateOptions);
+    return Object.entries(filterValues).flatMap(([id, value]) => {
+      if (value == null || (Array.isArray(value) && value.length === 0) || value === "") {
+        return []
       }
-      return acc;
-    }, {});
-  }, [filterableColumns, queryStateOptions, enableAdvancedFilter]);
-
-  const [filterValues, setFilterValues] = useQueryStates(filterParsers);
-
-  const applyFilterValues = React.useCallback(
-    (values: typeof filterValues) => {
-      void setPage(1);
-      void setFilterValues(values);
-    },
-    [setFilterValues, setPage],
-  );
-
-  const debouncedApplyFilterValues = useDebouncedCallback(
-    applyFilterValues,
-    debounceMs,
-  );
-
-  const initialColumnFilters: ColumnFiltersState = React.useMemo(() => {
-    if (enableAdvancedFilter) return [];
-
-    return Object.entries(filterValues).reduce<ColumnFiltersState>(
-      (filters, [key, value]) => {
-        if (value !== null) {
-          const processedValue = Array.isArray(value)
-            ? value
-            : typeof value === "string" && /[^a-zA-Z0-9]/.test(value)
-              ? value.split(/[^a-zA-Z0-9]+/).filter(Boolean)
-              : [value];
-
-          filters.push({
-            id: key,
-            value: processedValue,
-          });
-        }
-        return filters;
-      },
-      [],
-    );
-  }, [filterValues, enableAdvancedFilter]);
-
+      return [{ id, value }]
+    })
+  }, [enableAdvancedFilter, filterValues])
   const [columnFilters, setColumnFilters] =
-    React.useState<ColumnFiltersState>(initialColumnFilters);
+    React.useState<ColumnFiltersState>(initialColumnFilters)
+
+  React.useEffect(() => {
+    setColumnFilters(initialColumnFilters)
+  }, [initialColumnFilters])
+
+  const writeFilters = React.useCallback(
+    (values: FilterValues) => {
+      updateSearch((params) => {
+        params.set(pageKey, "1")
+        for (const column of filterableColumns) {
+          const id = column.id
+          if (!id) continue
+          const value = values[id]
+          const serialized = Array.isArray(value)
+            ? value.filter(Boolean).join(ARRAY_SEPARATOR)
+            : value?.trim() ?? ""
+          if (serialized) params.set(id, serialized)
+          else params.delete(id)
+        }
+      })
+    },
+    [filterableColumns, pageKey, updateSearch],
+  )
+
+  const debouncedWriteFilters = useDebouncedCallback(writeFilters, debounceMs)
 
   const onColumnFiltersChange = React.useCallback(
     (updaterOrValue: Updater<ColumnFiltersState>) => {
-      if (enableAdvancedFilter) return;
+      if (enableAdvancedFilter) return
 
-      setColumnFilters((prev) => {
+      setColumnFilters((previous) => {
         const next =
           typeof updaterOrValue === "function"
-            ? updaterOrValue(prev)
-            : updaterOrValue;
+            ? updaterOrValue(previous)
+            : updaterOrValue
+        const updates: FilterValues = {}
 
-        const filterUpdates = next.reduce<
-          Record<string, string | string[] | null>
-        >((acc, filter) => {
-          if (filterableColumns.find((column) => column.id === filter.id)) {
-            acc[filter.id] = filter.value as string | string[];
-          }
-          return acc;
-        }, {});
-
-        for (const prevFilter of prev) {
-          if (!next.some((filter) => filter.id === prevFilter.id)) {
-            filterUpdates[prevFilter.id] = null;
-          }
+        for (const column of filterableColumns) {
+          const id = column.id
+          if (!id) continue
+          const filter = next.find((item) => item.id === id)
+          updates[id] = filter ? (filter.value as string | string[]) : null
         }
 
-        if (
-          shouldDebounceFilterChange(prev, next, filterableColumns)
-        ) {
-          debouncedApplyFilterValues(filterUpdates);
+        if (shouldDebounceFilterChange(previous, next, filterableColumns)) {
+          debouncedWriteFilters(updates)
         } else {
-          debouncedApplyFilterValues.cancel();
-          applyFilterValues(filterUpdates);
+          debouncedWriteFilters.cancel()
+          writeFilters(updates)
         }
-        return next;
-      });
+        return next
+      })
     },
-    [
-      applyFilterValues,
-      debouncedApplyFilterValues,
-      filterableColumns,
-      enableAdvancedFilter,
-    ],
-  );
+    [debouncedWriteFilters, enableAdvancedFilter, filterableColumns, writeFilters],
+  )
 
   const columns = React.useMemo(() => {
-    const normalized = normalizeSelectColumn(inputColumns);
-    if (!showRowIndex) return normalized;
+    const normalized = normalizeSelectColumn(inputColumns)
+    if (!showRowIndex) return normalized
     return injectRowIndexColumn(normalized, {
       pageIndex: pagination.pageIndex,
       pageSize: pagination.pageSize,
       label: rowIndexLabel,
-    });
-  }, [
-    inputColumns,
-    pagination.pageIndex,
-    pagination.pageSize,
-    rowIndexLabel,
-    showRowIndex,
-  ]);
+    })
+  }, [inputColumns, pagination.pageIndex, pagination.pageSize, rowIndexLabel, showRowIndex])
 
   const table = useReactTable({
     ...tableProps,
@@ -383,10 +334,10 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
         joinOperator: joinOperatorKey,
       },
     },
-  });
+  })
 
   return React.useMemo(
-    () => ({ table, shallow, debounceMs, throttleMs }),
-    [table, shallow, debounceMs, throttleMs],
-  );
+    () => ({ table, page, perPage, sorting, filterValues }),
+    [filterValues, page, perPage, sorting, table],
+  )
 }

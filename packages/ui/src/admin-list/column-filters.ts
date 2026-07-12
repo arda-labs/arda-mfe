@@ -1,8 +1,6 @@
-import type { ColumnDef } from "@tanstack/react-table"
-import { parseAsArrayOf, parseAsString, useQueryStates } from "nuqs"
 import { useMemo } from "react"
-
-const ARRAY_SEPARATOR = ","
+import { useSearchParams } from "react-router-dom"
+import type { ColumnDef } from "@tanstack/react-table"
 
 export function matchTextQuery(needle: string, ...values: Array<string | undefined | null>) {
   const q = needle.trim().toLowerCase()
@@ -61,26 +59,23 @@ export function getFilterableColumns<T>(columns: ColumnDef<T>[]) {
 
 export type ColumnFilterValues = Record<string, string | string[] | null>
 
-export function buildFilterParsers<T>(columns: ColumnDef<T>[]) {
-  return getFilterableColumns(columns).reduce<Record<string, unknown>>((acc, column) => {
-    const id = column.id ?? ""
-    if (!id) return acc
-
-    if (column.meta?.options) {
-      acc[id] = parseAsArrayOf(parseAsString, ARRAY_SEPARATOR).withDefault([])
-    } else {
-      acc[id] = parseAsString.withDefault("")
-    }
-    return acc
-  }, {})
-}
-
+/** Reads table-managed filters; `useDataTable` is the sole URL writer. */
 export function useColumnFilterParams<T>(columns: ColumnDef<T>[]) {
-  const filterParsers = useMemo(() => buildFilterParsers(columns), [columns])
-  return useQueryStates(filterParsers as Parameters<typeof useQueryStates>[0]) as [
-    ColumnFilterValues,
-    (values: Partial<ColumnFilterValues>) => void,
-  ]
+  const [searchParams] = useSearchParams()
+  const filterableColumns = useMemo(() => getFilterableColumns(columns), [columns])
+  const values = useMemo(() => {
+    return filterableColumns.reduce<ColumnFilterValues>((result, column) => {
+      const id = column.id
+      if (!id) return result
+      const raw = searchParams.get(id)
+      result[id] = column.meta?.options
+        ? raw?.split(",").filter(Boolean) ?? []
+        : raw ?? ""
+      return result
+    }, {})
+  }, [filterableColumns, searchParams])
+
+  return [values] as const
 }
 
 export function getTextFilterValue(value: string | string[] | null | undefined) {

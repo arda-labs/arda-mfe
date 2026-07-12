@@ -1,20 +1,20 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
+import { BrowserRouter } from "react-router-dom"
 
-import { ArdaQueryProvider } from "@workspace/core/query"
 import { I18nProvider } from "@workspace/i18n"
 import { ThemeProvider } from "@workspace/theme"
 import "@workspace/ui/globals.css"
-import Routes from "./Routes"
+import RemoteRoutes from "./Routes"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <I18nProvider>
-      <ArdaQueryProvider>
-        <ThemeProvider>
-          <Routes />
-        </ThemeProvider>
-      </ArdaQueryProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <RemoteRoutes />
+        </BrowserRouter>
+      </ThemeProvider>
     </I18nProvider>
   </StrictMode>
 )

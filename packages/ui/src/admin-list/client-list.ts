@@ -1,10 +1,9 @@
 import { useMemo } from "react"
+import { useSearchParams } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
-import { parseAsInteger, useQueryState } from "nuqs"
 import { listPageCount } from "@workspace/core/http/list-api"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
-import { getSortingStateParser } from "@workspace/ui/lib/parsers"
-import { useColumnFilterParams } from "./column-filters"
+import { parseSortingState } from "@workspace/ui/lib/parsers"
 
 type SortState = { id: string; desc: boolean }[]
 
@@ -22,6 +21,11 @@ function hasFilterValue(value: string | string[] | null | undefined) {
   return value.trim().length > 0
 }
 
+function positiveInteger(value: string | null, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+}
+
 export function useClientListTable<T>({
   columns,
   items,
@@ -29,18 +33,25 @@ export function useClientListTable<T>({
   sort,
   defaultPageSize = 10,
 }: UseClientListTableOptions<T>) {
+  const [searchParams] = useSearchParams()
   const columnIds = useMemo(
     () => new Set(columns.map((column) => column.id).filter(Boolean) as string[]),
     [columns]
   )
-
-  const [page] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [perPage] = useQueryState("perPage", parseAsInteger.withDefault(defaultPageSize))
-  const [sorting] = useQueryState(
-    "sort",
-    getSortingStateParser<T>(columnIds).withDefault([])
-  )
-  const [filterValues] = useColumnFilterParams(columns)
+  const page = positiveInteger(searchParams.get("page"), 1)
+  const perPage = positiveInteger(searchParams.get("perPage"), defaultPageSize)
+  const sorting = parseSortingState<T>(searchParams.get("sort"), columnIds)
+  const filterValues = useMemo(() => {
+    return columns.reduce<Record<string, string | string[] | null>>((values, column) => {
+      const id = column.id
+      if (!id || !column.enableColumnFilter) return values
+      const raw = searchParams.get(id)
+      values[id] = column.meta?.options
+        ? raw?.split(",").filter(Boolean) ?? []
+        : raw ?? ""
+      return values
+    }, {})
+  }, [columns, searchParams])
 
   const filtered = useMemo(() => {
     let result = items
@@ -49,15 +60,11 @@ export function useClientListTable<T>({
       for (const [key, handler] of Object.entries(filterBy)) {
         const value = filterValues[key]
         if (!hasFilterValue(value)) continue
-        const normalized = Array.isArray(value) ? value : String(value)
-        result = result.filter((item) => handler(item, normalized))
+        result = result.filter((item) => handler(item, Array.isArray(value) ? value : String(value)))
       }
     }
 
-    if (sort && sorting.length > 0) {
-      result = sort(result, sorting)
-    }
-
+    if (sort && sorting.length > 0) result = sort(result, sorting)
     return result
   }, [filterBy, filterValues, items, sort, sorting])
 

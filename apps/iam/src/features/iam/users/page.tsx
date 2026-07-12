@@ -1,25 +1,13 @@
-import { useEffect, useState, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSearchParams } from "react-router-dom"
 import { z } from "zod"
 import { FormField } from "@workspace/ui/components/form-field"
-import { sortToApiParams } from "@workspace/core/http/list-api"
+import { listPageCount, sortToApiParams } from "@workspace/core/http/list-api"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { adminApi } from "@/features/iam"
 import type { Role, User } from "@/features/iam"
-import {
-  useAuditIdentityConsistency,
-  useCreateUser,
-  useDeleteUser,
-  useProvisionUserIdentity,
-  useResetUserPassword,
-  useRevokeUserSessions,
-  useRoleOptions,
-  useSetUserRole,
-  useSetUserStatus,
-  useUpdateUser,
-  useUserSessions,
-  useUsers,
-} from "@/features/iam/users/queries"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -51,8 +39,6 @@ import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Check, X, Trash2, KeyRound, ShieldCheck, MonitorCog, SearchCheck, Pencil, MoreHorizontal } from "lucide-react"
 import type { IdentityConsistencyIssue } from "@/features/iam"
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -162,30 +148,106 @@ export function UsersPage() {
     defaultValues: editUserDefaultValues,
   })
   const [identityPassword, setIdentityPassword] = useState("")
-  const createUser = useCreateUser()
-  const updateUser = useUpdateUser()
-  const deleteUser = useDeleteUser()
-  const setUserStatus = useSetUserStatus()
-  const setUserRole = useSetUserRole()
-  const resetUserPassword = useResetUserPassword()
-  const provisionUserIdentity = useProvisionUserIdentity()
-  const auditIdentityConsistency = useAuditIdentityConsistency()
-  const revokeUserSessions = useRevokeUserSessions()
-  const roleOptions = useRoleOptions(roleTarget !== null)
-  const sessionsQuery = useUserSessions(sessionTarget?.id)
-  const availableRoles = roleOptions.data?.items ?? []
-  const rolesLoading = roleOptions.isLoading
-  const sessions = sessionsQuery.data?.sessions ?? []
-  const sessionsLoading = sessionsQuery.isLoading
-  const busyRoleID = setUserRole.isPending ? setUserRole.variables?.roleId : null
-  const busyUserID =
-    (setUserStatus.isPending ? setUserStatus.variables?.id : undefined) ??
-    (updateUser.isPending ? updateUser.variables?.id : undefined) ??
-    (deleteUser.isPending ? deleteUser.variables : undefined) ??
-    (resetUserPassword.isPending ? resetUserPassword.variables?.id : undefined) ??
-    (provisionUserIdentity.isPending ? provisionUserIdentity.variables?.id : undefined) ??
-    (revokeUserSessions.isPending ? sessionTarget?.id : undefined) ??
-    null
+  const [users, setUsers] = useState<User[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const hasLoadedRef = useRef(false)
+  const [busyUserId, setBusyUserId] = useState<string | null>(null)
+  const [busyRoleId, setBusyRoleId] = useState<string | null>(null)
+
+  // Role dialog session state
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([])
+  const [rolesLoading, setRolesLoading] = useState(false)
+  const [sessions, setSessions] = useState<unknown[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(false)
+
+  const [searchParams] = useSearchParams()
+  const POS = (value: string | null, fallback: number) => {
+    const n = Number.parseInt(value ?? "", 10)
+    return Number.isFinite(n) && n > 0 ? n : fallback
+  }
+  const pageParam = POS(searchParams.get("page"), 1)
+  const pageSizeParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
+  const searchParam = searchParams.get("username") || undefined
+  const statusArray = (searchParams.get("status") || "").split(",").filter(Boolean)
+  const statusParam = statusArray.length === 1 ? statusArray[0] : undefined
+  const sortParam = searchParams.get("sort")
+
+  const loadUsers = useCallback(async () => {
+    setLoadError(null)
+    if (hasLoadedRef.current) setRefreshing(true)
+    else setLoading(true)
+    try {
+      const sortApi = sortParam ? (() => {
+        try {
+          const parsed = JSON.parse(sortParam) as Array<{ id: string; desc: boolean }>
+          return sortToApiParams(parsed)
+        } catch { return {} }
+      })() : {}
+      const result = await adminApi.listUsers({
+        page: pageParam,
+        perPage: pageSizeParam,
+        q: searchParam,
+        status: statusParam,
+        sort: sortApi.sort,
+        order: sortApi.order,
+      })
+      setUsers(result.items)
+      setTotal(result.total)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      hasLoadedRef.current = true
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [pageParam, pageSizeParam, searchParam, statusParam, sortParam])
+
+  useEffect(() => {
+    void loadUsers()
+  }, [loadUsers])
+
+  const loadRolesForTarget = useCallback(async (target: User | null) => {
+    if (!target) {
+      setAvailableRoles([])
+      return
+    }
+    setRolesLoading(true)
+    try {
+      const result = await adminApi.listRoles({ page: 1, perPage: 100 })
+      setAvailableRoles(result.items ?? [])
+    } catch {
+      setAvailableRoles([])
+    } finally {
+      setRolesLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadRolesForTarget(roleTarget)
+  }, [loadRolesForTarget, roleTarget])
+
+  const loadSessionsForTarget = useCallback(async (target: User | null) => {
+    if (!target) {
+      setSessions([])
+      return
+    }
+    setSessionsLoading(true)
+    try {
+      const result = await adminApi.listUserSessions(target.id)
+      setSessions(result.sessions ?? [])
+    } catch {
+      setSessions([])
+    } finally {
+      setSessionsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadSessionsForTarget(sessionTarget)
+  }, [loadSessionsForTarget, sessionTarget])
 
   const openRoles = (user: User) => {
     setRoleTarget(user)
@@ -193,8 +255,13 @@ export function UsersPage() {
 
   const toggleRole = async (role: Role, assigned: boolean) => {
     if (!roleTarget) return
+    setBusyRoleId(role.id)
     try {
-      await setUserRole.mutateAsync({ userId: roleTarget.id, roleId: role.id, assigned })
+      if (assigned) {
+        await adminApi.unassignRole(roleTarget.id, role.id)
+      } else {
+        await adminApi.assignRole(roleTarget.id, role.id)
+      }
       const nextRoles = assigned
         ? roleTarget.roles.filter((code) => code !== role.code)
         : [...roleTarget.roles, role.code]
@@ -202,6 +269,8 @@ export function UsersPage() {
       notify.success("Đã cập nhật vai trò")
     } catch (err) {
       notify.error("Không cập nhật được vai trò", translateApiError(err))
+    } finally {
+      setBusyRoleId(null)
     }
   }
 

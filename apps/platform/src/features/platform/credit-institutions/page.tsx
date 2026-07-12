@@ -1,17 +1,12 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import type { CreditInstitution } from "../api"
-import {
-  useCreateCreditInstitution,
-  useCreditInstitutions,
-  useDeleteCreditInstitution,
-  useUpdateCreditInstitution,
-} from "./queries"
+import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -47,11 +42,10 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Edit2, Trash2 } from "lucide-react"
 import { ListPageShell } from "../shared/list-page-shell"
 import {
-  getSingleSelectValue,
-  getTextFilterValue,
+  matchSelectFilter,
+  matchTextColumnFilter,
   multiSelectFilterMeta,
   textSearchMeta,
-  useColumnFilterParams,
 } from "../shared/column-filters"
 import { sortByColumn, useClientListTable } from "../shared/client-list"
 import { ListTableToolbar } from "../shared/list-table-toolbar"
@@ -161,6 +155,31 @@ export function CreditInstitutionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<CreditInstitution | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<CreditInstitution | null>(null)
+  const [items, setItems] = useState<CreditInstitution[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const loadCreditInstitutions = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      const result = await platformApi.listCreditInstitutions()
+      setItems(result)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadCreditInstitutions(true)
+  }, [loadCreditInstitutions])
 
   const creditInstitutionSchema = useMemo(() => buildCreditInstitutionSchema(t), [t])
   const {
@@ -173,10 +192,6 @@ export function CreditInstitutionsPage() {
     resolver: zodResolver(creditInstitutionSchema),
     defaultValues: creditInstitutionDefaultValues,
   })
-
-  const createMutation = useCreateCreditInstitution()
-  const updateMutation = useUpdateCreditInstitution()
-  const deleteMutation = useDeleteCreditInstitution()
 
   const openCreate = () => {
     setEditingItem(null)
@@ -199,6 +214,8 @@ export function CreditInstitutionsPage() {
   }
 
   const submitCreditInstitution = handleSubmit(async (values) => {
+    setSaving(true)
+    const isEditing = Boolean(editingItem)
     try {
       const payload: Partial<CreditInstitution> = {
         code: values.code.trim().toUpperCase(),
@@ -217,25 +234,35 @@ export function CreditInstitutionsPage() {
       }
 
       if (editingItem) {
-        await updateMutation.mutateAsync({ id: editingItem.id, payload })
+        await platformApi.updateCreditInstitution(editingItem.id, payload)
+        notify.success("Cap nhat to chuc tin dung thanh cong")
       } else {
-        await createMutation.mutateAsync(payload)
+        await platformApi.createCreditInstitution(payload)
+        notify.success("Them to chuc tin dung thanh cong")
       }
 
       setDialogOpen(false)
       reset(creditInstitutionDefaultValues)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadCreditInstitutions()
+    } catch (err) {
+      notify.error("Luu to chuc tin dung that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await deleteMutation.mutateAsync(deleteTarget.id)
+      await platformApi.deleteCreditInstitution(deleteTarget.id)
+      notify.success("Xoa to chuc tin dung thanh cong")
       setDeleteTarget(null)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadCreditInstitutions()
+    } catch (err) {
+      notify.error("Xoa to chuc tin dung that bai", translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -357,24 +384,13 @@ export function CreditInstitutionsPage() {
     [t]
   )
 
-  const [filterValues] = useColumnFilterParams(columns)
-
-  const listParams = useMemo(
-    () => ({
-      q: getTextFilterValue(filterValues.name) || undefined,
-      status: getSingleSelectValue(filterValues.status),
-    }),
-    [filterValues]
-  )
-
-  const creditInstitutionsQuery = useCreditInstitutions(listParams)
-  const items = creditInstitutionsQuery.data ?? []
-  const pageGate = pageGateFromQueries(creditInstitutionsQuery)
-  const { fetching } = listQueryShellState(creditInstitutionsQuery)
-
   const { table, total } = useClientListTable({
     columns,
     items,
+    filterBy: {
+      name: (item, value) => matchTextColumnFilter(value, item.code, item.name),
+      status: (item, value) => matchSelectFilter(item.status, value),
+    },
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
@@ -579,8 +595,8 @@ export function CreditInstitutionsPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}>
-                {isSubmitting || createMutation.isPending || updateMutation.isPending
+              <Button type="submit" disabled={isSubmitting || saving}>
+                {isSubmitting || saving
                   ? t("common.action.saving")
                   : t("common.action.save")}
               </Button>
@@ -603,7 +619,7 @@ export function CreditInstitutionsPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.credit_institutions.delete.confirm")}
@@ -622,11 +638,11 @@ export function CreditInstitutionsPage() {
           {t("platform.credit_institutions.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadCreditInstitutions}
       loadErrorTitle={t("platform.credit_institutions.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

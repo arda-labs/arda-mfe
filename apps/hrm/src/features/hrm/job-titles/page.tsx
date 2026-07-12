@@ -1,6 +1,8 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { translateApiError } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import {
   Dialog,
   DialogContent,
@@ -12,13 +14,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
-import type { JobTitle } from "../api"
-import {
-  useCreateJobTitle,
-  useDeleteJobTitle,
-  useJobTitles,
-  useUpdateJobTitle,
-} from "../queries"
+import { hrmApi, type JobTitle } from "../api"
 import {
   jobTitleDefaults,
   jobTitleSchema,
@@ -36,15 +32,26 @@ export function JobTitlesPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<JobTitle | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<JobTitle | null>(null)
-  const jobTitles = useJobTitles()
-  const createJobTitle = useCreateJobTitle()
-  const updateJobTitle = useUpdateJobTitle()
-  const deleteJobTitle = useDeleteJobTitle()
+  const [items, setItems] = useState<JobTitle[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const form = useForm<JobTitleValues>({
     resolver: zodResolver(jobTitleSchema),
     defaultValues: jobTitleDefaults,
   })
-  const items = jobTitles.data ?? []
+
+  const load = useCallback(async () => {
+    try {
+      const result = await hrmApi.listJobTitles()
+      setItems(result)
+    } catch {
+      notify.error("Khong the tai danh sach chuc danh")
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const openCreate = () => {
     setEditing(null)
@@ -64,13 +71,23 @@ export function JobTitlesPage() {
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
     }
-    if (editing) {
-      await updateJobTitle.mutateAsync({ id: editing.id, payload })
-    } else {
-      await createJobTitle.mutateAsync(payload)
+    setSubmitting(true)
+    try {
+      if (editing) {
+        await hrmApi.updateJobTitle(editing.id, payload)
+        notify.success("Da cap nhat chuc danh")
+      } else {
+        await hrmApi.createJobTitle(payload)
+        notify.success("Da luu chuc danh")
+      }
+      setDialogOpen(false)
+      form.reset(jobTitleDefaults)
+      await load()
+    } catch (reason) {
+      notify.error("Luu chuc danh that bai", translateApiError(reason))
+    } finally {
+      setSubmitting(false)
     }
-    setDialogOpen(false)
-    form.reset(jobTitleDefaults)
   })
 
   return (
@@ -102,7 +119,7 @@ export function JobTitlesPage() {
             <FormField label="Mo ta">
               <Textarea {...form.register("description")} />
             </FormField>
-            <DialogActions pending={form.formState.isSubmitting || createJobTitle.isPending || updateJobTitle.isPending} />
+            <DialogActions pending={form.formState.isSubmitting || submitting} />
           </form>
         </DialogContent>
       </Dialog>
@@ -112,11 +129,19 @@ export function JobTitlesPage() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return
-          await deleteJobTitle.mutateAsync(deleteTarget.id)
-          setDeleteTarget(null)
+          setDeleting(true)
+          try {
+            await hrmApi.deleteJobTitle(deleteTarget.id)
+            notify.success("Da xoa chuc danh")
+            setDeleteTarget(null)
+            await load()
+          } catch (reason) {
+            notify.error("Xoa chuc danh that bai", translateApiError(reason))
+          } finally {
+            setDeleting(false)
+          }
         }}
       />
     </section>
   )
 }
-

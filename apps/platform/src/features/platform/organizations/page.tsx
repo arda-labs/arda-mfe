@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
+import { useSearchParams } from "react-router-dom"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import type { Organization } from "../api"
+import { platformApi, type OrganizationsListParams } from "../api"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -41,25 +43,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { listPageCount, sortToApiParams } from "@workspace/core/http/list-api"
+import { listPageCount } from "@workspace/core/http/list-api"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
-import { getSortingStateParser } from "@workspace/ui/lib/parsers"
-import { parseAsInteger, useQueryState } from "nuqs"
+import { parseSortingState } from "@workspace/ui/lib/parsers"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
 import {
   getSingleSelectValue,
   getTextFilterValue,
-  useColumnFilterParams,
 } from "../shared/column-filters"
 import { ListTableToolbar } from "../shared/list-table-toolbar"
-import {
-  useCreateOrganization,
-  useDeleteOrganization,
-  useOrganizationOptions,
-  useOrganizations,
-  useOrganizationTree,
-  useUpdateOrganization,
-} from "./queries"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -107,24 +99,31 @@ function toOrganizationFormValues(item: Organization): OrganizationFormValues {
   }
 }
 
+const POS = (value: string | null, fallback: number) => {
+  const n = Number.parseInt(value ?? "", 10)
+  return Number.isFinite(n) && n > 0 ? n : fallback
+}
+
 export function OrganizationsPage() {
   const { t } = useI18n()
+  const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState<"list" | "tree">("list")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null)
+  const [orgs, setOrgs] = useState<Organization[]>([])
+  const [total, setTotal] = useState(0)
+  const [treeOrgs, setTreeOrgs] = useState<Organization[]>([])
+  const [orgOptions, setOrgOptions] = useState<Organization[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [perPageParam] = useQueryState(
-    "perPage",
-    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
-  )
-  const [sorting] = useQueryState(
-    "sort",
-    getSortingStateParser<Organization>(
-      new Set(["code", "name", "is_active"])
-    ).withDefault([])
-  )
+  const pageParam = POS(searchParams.get("page"), 1)
+  const perPageParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
+  const sorting = parseSortingState(searchParams.get("sort"), ["code", "name", "is_active"])
 
   const organizationSchema = useMemo(() => buildOrganizationSchema(t), [t])
   const {
@@ -138,10 +137,37 @@ export function OrganizationsPage() {
     defaultValues: organizationDefaultValues,
   })
 
-  const createOrganization = useCreateOrganization()
-  const updateOrganization = useUpdateOrganization()
-  const deleteOrganization = useDeleteOrganization()
-  const organizationTreeQuery = useOrganizationTree()
+  const loadOrganizations = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      const listParams: OrganizationsListParams = {
+        page: pageParam,
+        perPage: perPageParam,
+        sort: sorting[0]?.id,
+        order: sorting[0]?.desc ? "desc" : "asc",
+      }
+      const [listResult, treeResult, optionsResult] = await Promise.all([
+        platformApi.listOrganizations(listParams),
+        platformApi.listOrganizations({ view: "tree" }),
+        platformApi.listOrganizations({ view: "options" }),
+      ])
+      setOrgs(listResult.items)
+      setTotal(listResult.total)
+      setTreeOrgs(treeResult.items ?? [])
+      setOrgOptions(optionsResult.items ?? [])
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [pageParam, perPageParam, sorting])
+
+  useEffect(() => {
+    void loadOrganizations(viewMode === "list")
+  }, [loadOrganizations, viewMode])
 
   const openCreate = () => {
     setEditingOrg(null)
@@ -164,6 +190,7 @@ export function OrganizationsPage() {
   }
 
   const submitOrganization = handleSubmit(async (values) => {
+    setSaving(true)
     try {
       const payload: Partial<Organization> = {
         code: values.code.trim(),
@@ -174,24 +201,34 @@ export function OrganizationsPage() {
       }
 
       if (editingOrg) {
-        await updateOrganization.mutateAsync({ id: editingOrg.id, payload })
+        await platformApi.updateOrganization(editingOrg.id, payload)
+        notify.success("Cap nhat to chuc thanh cong")
       } else {
-        await createOrganization.mutateAsync(payload)
+        await platformApi.createOrganization(payload)
+        notify.success("Them to chuc thanh cong")
       }
       setDialogOpen(false)
       reset(organizationDefaultValues)
-    } catch {
-      // Mutation hooks already show the action error toast.
+      await loadOrganizations()
+    } catch (err) {
+      notify.error("Sua to chuc that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await deleteOrganization.mutateAsync(deleteTarget.id)
+      await platformApi.deleteOrganization(deleteTarget.id)
+      notify.success("Xoa to chuc thanh cong")
       setDeleteTarget(null)
-    } catch {
-      // Mutation hook already shows the delete error toast.
+      await loadOrganizations()
+    } catch (err) {
+      notify.error("Xoa to chuc that bai", translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -315,43 +352,7 @@ export function OrganizationsPage() {
     [t]
   )
 
-  const [filterValues] = useColumnFilterParams(columns)
-
-  const listParams = useMemo(
-    () => ({
-      page: pageParam,
-      perPage: perPageParam,
-      q: getTextFilterValue(filterValues.name) || undefined,
-      is_active: getSingleSelectValue(filterValues.is_active),
-      ...sortToApiParams(sorting),
-    }),
-    [filterValues, pageParam, perPageParam, sorting]
-  )
-
-  const organizationsQuery = useOrganizations(listParams)
-  const organizationOptionsQuery = useOrganizationOptions()
-
-  const orgs = organizationsQuery.data?.items ?? []
-  const total = organizationsQuery.data?.total ?? 0
-  const treeOrgs = organizationTreeQuery.data?.items ?? []
-  const orgOptions = organizationOptionsQuery.data?.items ?? []
-  const loading =
-    viewMode === "list"
-      ? organizationsQuery.isLoading
-      : organizationTreeQuery.isLoading
-
-  useEffect(() => {
-    const error =
-      viewMode === "list"
-        ? organizationsQuery.error
-        : organizationTreeQuery.error
-    if (error) {
-      notify.error(
-        t("platform.organizations.load_failed"),
-        translateApiError(error)
-      )
-    }
-  }, [organizationTreeQuery.error, organizationsQuery.error, t, viewMode])
+  const loaded = !loading || orgs.length > 0 || treeOrgs.length > 0
 
   const pageCount = listPageCount(total, perPageParam)
 
@@ -415,9 +416,6 @@ export function OrganizationsPage() {
     )
   }
 
-  const saving =
-    isSubmitting || createOrganization.isPending || updateOrganization.isPending
-
   const viewModeToggle = (
     <div className="flex rounded-lg border border-input bg-background p-0.5">
       <Button
@@ -456,7 +454,7 @@ export function OrganizationsPage() {
     />
   )
 
-  if (loading && (viewMode === "list" ? orgs.length === 0 : treeOrgs.length === 0)) {
+  if (loading && (orgs.length === 0 && treeOrgs.length === 0)) {
     return (
       <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
         {pageHeader}
@@ -670,6 +668,7 @@ export function OrganizationsPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.organizations.delete.confirm")}

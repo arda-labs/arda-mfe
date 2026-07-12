@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -14,13 +15,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
-import type { Position } from "../api"
-import {
-  useCreatePosition,
-  useDeletePosition,
-  usePositions,
-  useUpdatePosition,
-} from "../queries"
+import { hrmApi, type Position } from "../api"
 import {
   fieldClass,
   positionDefaults,
@@ -40,19 +35,27 @@ export function PositionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Position | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Position | null>(null)
-  const positions = usePositions()
-  const createPosition = useCreatePosition()
-  const updatePosition = useUpdatePosition()
-  const deletePosition = useDeletePosition()
+  const [items, setItems] = useState<Position[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const form = useForm<PositionValues>({
     resolver: zodResolver(positionSchema),
     defaultValues: positionDefaults,
   })
   const isManager = useWatch({ control: form.control, name: "is_manager" })
 
+  const load = useCallback(async () => {
+    try {
+      const result = await hrmApi.listPositions()
+      setItems(result)
+    } catch {
+      notify.error("Khong the tai danh sach chuc vu")
+    }
+  }, [])
+
   useEffect(() => {
-    if (positions.error) notify.error("Khong the tai danh sach chuc vu")
-  }, [positions.error])
+    void load()
+  }, [load])
 
   const openCreate = () => {
     setEditing(null)
@@ -79,16 +82,25 @@ export function PositionsPage() {
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
     }
-    if (editing) {
-      await updatePosition.mutateAsync({ id: editing.id, payload })
-    } else {
-      await createPosition.mutateAsync(payload)
+    setSubmitting(true)
+    try {
+      if (editing) {
+        await hrmApi.updatePosition(editing.id, payload)
+        notify.success("Da cap nhat chuc vu")
+      } else {
+        await hrmApi.createPosition(payload)
+        notify.success("Da luu chuc vu")
+      }
+      setDialogOpen(false)
+      form.reset(positionDefaults)
+      await load()
+    } catch (reason) {
+      notify.error("Luu chuc vu that bai", translateApiError(reason))
+    } finally {
+      setSubmitting(false)
     }
-    setDialogOpen(false)
-    form.reset(positionDefaults)
   })
 
-  const items = positions.data ?? []
   return (
     <section className="space-y-4 p-4">
       <PageTitle title="Chuc vu" count={items.length} onCreate={openCreate} />
@@ -136,7 +148,7 @@ export function PositionsPage() {
             <FormField label="Mo ta">
               <Textarea {...form.register("description")} />
             </FormField>
-            <DialogActions pending={form.formState.isSubmitting || createPosition.isPending || updatePosition.isPending} />
+            <DialogActions pending={form.formState.isSubmitting || submitting} />
           </form>
         </DialogContent>
       </Dialog>
@@ -146,11 +158,19 @@ export function PositionsPage() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return
-          await deletePosition.mutateAsync(deleteTarget.id)
-          setDeleteTarget(null)
+          setDeleting(true)
+          try {
+            await hrmApi.deletePosition(deleteTarget.id)
+            notify.success("Da xoa chuc vu")
+            setDeleteTarget(null)
+            await load()
+          } catch (reason) {
+            notify.error("Xoa chuc vu that bai", translateApiError(reason))
+          } finally {
+            setDeleting(false)
+          }
         }}
       />
     </section>
   )
 }
-

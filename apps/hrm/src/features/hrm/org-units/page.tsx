@@ -1,6 +1,8 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { translateApiError } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import {
   Dialog,
   DialogContent,
@@ -12,14 +14,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
-import type { OrgUnit } from "../api"
-import {
-  useCreateOrgUnit,
-  useDeleteOrgUnit,
-  useOrganizations,
-  useOrgUnits,
-  useUpdateOrgUnit,
-} from "../queries"
+import { hrmApi, type OrgUnit, type PlatformOrganization } from "../api"
 import {
   fieldClass,
   orgUnitDefaults,
@@ -39,17 +34,31 @@ export function OrgUnitsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<OrgUnit | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<OrgUnit | null>(null)
-  const orgUnits = useOrgUnits()
-  const organizations = useOrganizations()
-  const createOrgUnit = useCreateOrgUnit()
-  const updateOrgUnit = useUpdateOrgUnit()
-  const deleteOrgUnit = useDeleteOrgUnit()
+  const [items, setItems] = useState<OrgUnit[]>([])
+  const [orgs, setOrgs] = useState<PlatformOrganization[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const form = useForm<OrgUnitValues>({
     resolver: zodResolver(orgUnitSchema),
     defaultValues: orgUnitDefaults,
   })
-  const items = orgUnits.data ?? []
-  const orgs = organizations.data?.items ?? []
+
+  const load = useCallback(async () => {
+    try {
+      const [units, organizations] = await Promise.all([
+        hrmApi.listOrgUnits(),
+        hrmApi.listOrganizations(),
+      ])
+      setItems(units)
+      setOrgs(organizations.items)
+    } catch {
+      notify.error("Khong the tai danh sach phong ban")
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const orgName = (id: string) => {
     const org = orgs.find((item) => item.id === id)
@@ -86,13 +95,23 @@ export function OrgUnitsPage() {
       parent_id: values.parent_id || undefined,
       description: values.description?.trim() || undefined,
     }
-    if (editing) {
-      await updateOrgUnit.mutateAsync({ id: editing.id, payload })
-    } else {
-      await createOrgUnit.mutateAsync(payload)
+    setSubmitting(true)
+    try {
+      if (editing) {
+        await hrmApi.updateOrgUnit(editing.id, payload)
+        notify.success("Da cap nhat phong ban")
+      } else {
+        await hrmApi.createOrgUnit(payload)
+        notify.success("Da luu phong ban")
+      }
+      setDialogOpen(false)
+      form.reset(orgUnitDefaults)
+      await load()
+    } catch (reason) {
+      notify.error("Luu phong ban that bai", translateApiError(reason))
+    } finally {
+      setSubmitting(false)
     }
-    setDialogOpen(false)
-    form.reset(orgUnitDefaults)
   })
 
   return (
@@ -165,7 +184,7 @@ export function OrgUnitsPage() {
             <FormField label="Mo ta">
               <Textarea {...form.register("description")} />
             </FormField>
-            <DialogActions pending={form.formState.isSubmitting || createOrgUnit.isPending || updateOrgUnit.isPending} />
+            <DialogActions pending={form.formState.isSubmitting || submitting} />
           </form>
         </DialogContent>
       </Dialog>
@@ -175,11 +194,19 @@ export function OrgUnitsPage() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return
-          await deleteOrgUnit.mutateAsync(deleteTarget.id)
-          setDeleteTarget(null)
+          setDeleting(true)
+          try {
+            await hrmApi.deleteOrgUnit(deleteTarget.id)
+            notify.success("Da xoa phong ban")
+            setDeleteTarget(null)
+            await load()
+          } catch (reason) {
+            notify.error("Xoa phong ban that bai", translateApiError(reason))
+          } finally {
+            setDeleting(false)
+          }
         }}
       />
     </section>
   )
 }
-

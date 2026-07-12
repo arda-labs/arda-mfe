@@ -17,7 +17,6 @@
     "@fullcalendar/react": "^6.1.21",
     "@fullcalendar/timegrid": "^6.1.21",
     "@hookform/resolvers": "^5.4.0",
-    "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-table": "^8.21.3",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
@@ -28,9 +27,9 @@
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^1.22.0",
-    "nuqs": "^2.9.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-router-dom": "^7.18.1",
     "react-hook-form": "^7.80.0",
     "react-toastify": "^11.1.0",
     "zod": "^4.4.3"

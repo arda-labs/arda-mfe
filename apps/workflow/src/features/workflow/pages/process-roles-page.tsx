@@ -1,20 +1,14 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import type {
   ProcessRole,
   WorkflowAssignmentRule,
+  WorkflowCaseType,
   WorkflowDelegation,
   WorkflowRoleCatalog,
   WorkflowRoleMembership,
 } from "../api"
-import {
-  useAssignmentRules,
-  useDelegations,
-  useProcessRoles,
-  useRoleCatalog,
-  useRoleMemberships,
-  useWorkflowCaseTypes,
-} from "../queries"
+import { workflowApi } from "../api"
 import {
   AssignmentRuleDialog,
   AssignmentRuleTable,
@@ -34,20 +28,39 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
 export function ProcessRolesPage() {
-  const stepRolesQuery = useProcessRoles()
-  const roleCatalogQuery = useRoleCatalog()
-  const membershipsQuery = useRoleMemberships()
-  const assignmentRulesQuery = useAssignmentRules()
-  const delegationsQuery = useDelegations()
-  const caseTypesQuery = useWorkflowCaseTypes()
-  const items = stepRolesQuery.data?.data ?? []
-  const roleCatalog = roleCatalogQuery.data?.data ?? []
-  const memberships = membershipsQuery.data?.data ?? []
-  const assignmentRules = assignmentRulesQuery.data?.data ?? []
-  const delegations = delegationsQuery.data?.data ?? []
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypesQuery.data?.data ?? [])
+  const [stepRoles, setStepRoles] = useState<ProcessRole[]>([])
+  const [roleCatalog, setRoleCatalog] = useState<WorkflowRoleCatalog[]>([])
+  const [memberships, setMemberships] = useState<WorkflowRoleMembership[]>([])
+  const [assignmentRules, setAssignmentRules] = useState<WorkflowAssignmentRule[]>([])
+  const [delegations, setDelegations] = useState<WorkflowDelegation[]>([])
+  const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
+  const [source, setSource] = useState<"api" | "mock">("mock")
+  const [loading, setLoading] = useState(true)
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [sr, rc, mm, ar, dl, ct] = await Promise.all([
+        workflowApi.listProcessRoles(),
+        workflowApi.listRoleCatalog(),
+        workflowApi.listRoleMemberships(),
+        workflowApi.listAssignmentRules(),
+        workflowApi.listDelegations(),
+        workflowApi.listCaseTypes(),
+      ])
+      setStepRoles(sr.data)
+      setRoleCatalog(rc.data)
+      setMemberships(mm.data)
+      setAssignmentRules(ar.data)
+      setDelegations(dl.data)
+      setCaseTypes(ct.data)
+      setSource(sr.source ?? rc.source)
+    } finally { setLoading(false) }
+  }, [])
+  useEffect(() => { void load() }, [load])
+
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const roleCodeOptions = roleCatalog.map((item) => ({ value: item.roleCode, label: `${item.roleCode} - ${item.roleName}` }))
-  const iamRoleOptions = uniqueOptions(items.map((item) => item.iamRole), roleCodeOptions)
+  const iamRoleOptions = uniqueOptions(stepRoles.map((item) => item.iamRole), roleCodeOptions)
   const [activeTab, setActiveTab] = useState("catalog")
   const [editing, setEditing] = useState<ProcessRole | null>(null)
   const [editingCatalog, setEditingCatalog] = useState<WorkflowRoleCatalog | null>(null)
@@ -55,12 +68,7 @@ export function ProcessRolesPage() {
   const [editingRule, setEditingRule] = useState<WorkflowAssignmentRule | null>(null)
   const [editingDelegation, setEditingDelegation] = useState<WorkflowDelegation | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  const loading =
-    stepRolesQuery.isLoading ||
-    roleCatalogQuery.isLoading ||
-    membershipsQuery.isLoading ||
-    assignmentRulesQuery.isLoading ||
-    delegationsQuery.isLoading
+  function onSaved() { void load() }
   const actionLabel = {
     catalog: "Tạo role",
     membership: "Thêm thành viên",
@@ -73,7 +81,7 @@ export function ProcessRolesPage() {
     <WorkflowFrame
       title="Vai trò quy trình"
       description="Quản lý role vận hành, thành viên, luật phân công, ủy quyền và mapping từng bước quy trình."
-      source={stepRolesQuery.data?.source ?? roleCatalogQuery.data?.source}
+      source={source}
       metrics={[
         { label: "Role", value: String(roleCatalog.length), tone: "default" },
         { label: "Thành viên", value: String(memberships.length), tone: "success" },
@@ -109,36 +117,36 @@ export function ProcessRolesPage() {
             <DelegationTable items={delegations} onEdit={setEditingDelegation} />
           </TabsContent>
           <TabsContent value="mapping">
-            <ProcessRoleTable items={items} onEdit={setEditing} />
+            <ProcessRoleTable items={stepRoles} onEdit={setEditing} />
           </TabsContent>
         </Tabs>
       )}
       {createOpen && activeTab === "catalog" ? (
-        <RoleCatalogDialog open onOpenChange={setCreateOpen} />
+        <RoleCatalogDialog open onOpenChange={setCreateOpen} onSaved={onSaved} />
       ) : null}
       {createOpen && activeTab === "membership" ? (
-        <RoleMembershipDialog open roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} />
+        <RoleMembershipDialog open roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
       ) : null}
       {createOpen && activeTab === "assignment" ? (
-        <AssignmentRuleDialog open caseTypeOptions={caseTypeOptions} roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} />
+        <AssignmentRuleDialog open caseTypeOptions={caseTypeOptions} roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
       ) : null}
       {createOpen && activeTab === "delegation" ? (
-        <DelegationDialog open roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} />
+        <DelegationDialog open roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
       ) : null}
       {createOpen && activeTab === "mapping" ? (
-        <ProcessRoleDialog open caseTypeOptions={caseTypeOptions} iamRoleOptions={iamRoleOptions} onOpenChange={setCreateOpen} />
+        <ProcessRoleDialog open caseTypeOptions={caseTypeOptions} iamRoleOptions={iamRoleOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
       ) : null}
       {editingCatalog ? (
-        <RoleCatalogDialog item={editingCatalog} open onOpenChange={(open) => !open && setEditingCatalog(null)} />
+        <RoleCatalogDialog item={editingCatalog} open onOpenChange={(open) => !open && setEditingCatalog(null)} onSaved={onSaved} />
       ) : null}
       {editingMembership ? (
-        <RoleMembershipDialog item={editingMembership} open roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingMembership(null)} />
+        <RoleMembershipDialog item={editingMembership} open roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingMembership(null)} onSaved={onSaved} />
       ) : null}
       {editingRule ? (
-        <AssignmentRuleDialog item={editingRule} open caseTypeOptions={caseTypeOptions} roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingRule(null)} />
+        <AssignmentRuleDialog item={editingRule} open caseTypeOptions={caseTypeOptions} roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingRule(null)} onSaved={onSaved} />
       ) : null}
       {editingDelegation ? (
-        <DelegationDialog item={editingDelegation} open roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingDelegation(null)} />
+        <DelegationDialog item={editingDelegation} open roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingDelegation(null)} onSaved={onSaved} />
       ) : null}
       {editing ? (
         <ProcessRoleDialog
@@ -147,6 +155,7 @@ export function ProcessRolesPage() {
           caseTypeOptions={caseTypeOptions}
           iamRoleOptions={iamRoleOptions}
           onOpenChange={(open) => !open && setEditing(null)}
+          onSaved={onSaved}
         />
       ) : null}
     </WorkflowFrame>

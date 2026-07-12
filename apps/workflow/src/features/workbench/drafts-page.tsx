@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ChevronDown,
   Eye,
@@ -9,7 +9,6 @@ import {
   XCircle,
 } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import { useI18n } from "@workspace/i18n"
 import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
 import {
@@ -38,15 +37,15 @@ import { Input } from "@workspace/ui/components/input"
 import { SelectPopover } from "@workspace/ui/components/select-popover"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
-import {
-  useCancelPlatformDraft,
-  usePlatformDrafts,
-} from "./drafts/queries"
+import { notify } from "@workspace/notifications/notify"
+import { fetchPlatformDrafts } from "./drafts/sources"
+import { customerDraftApi } from "./drafts/customer-client"
 import type {
   PlatformDraft,
   PlatformDraftDomain,
   PlatformDraftDomainFilter,
   PlatformDraftStatusFilter,
+  PlatformDraftsResult,
 } from "./drafts/types"
 import { navigateTo } from "./nav"
 
@@ -86,19 +85,37 @@ export function DraftWorkbenchPage() {
   const [filter, setFilter] = useState<DraftFilter>(defaultFilter)
   const [submittedQuery, setSubmittedQuery] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<PlatformDraft | null>(null)
+  const [result, setResult] = useState<PlatformDraftsResult>({ items: [], errors: {} })
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [fetchError, setFetchError] = useState<unknown>(null)
+  const hasLoadedRef = useRef(false)
+  const [cancelling, setCancelling] = useState(false)
 
-  const draftsQuery = usePlatformDrafts()
-  const cancelDraft = useCancelPlatformDraft()
-  const pageGate = pageGateFromQueries(draftsQuery)
-  const { fetching } = listQueryShellState(draftsQuery)
+  const load = useCallback(async () => {
+    setFetchError(null)
+    if (hasLoadedRef.current) setRefreshing(true)
+    else setLoading(true)
+    try {
+      setResult(await fetchPlatformDrafts())
+    } catch (reason) {
+      setFetchError(reason)
+    } finally {
+      hasLoadedRef.current = true
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
 
-  const sourceErrors = draftsQuery.data?.errors ?? {}
+  useEffect(() => { void load() }, [load])
+
+  const allItems = result.items
+  const sourceErrors = result.errors ?? {}
   const partialLoadFailed = Object.keys(sourceErrors).length > 0
 
   const items = useMemo(() => {
-    const all = draftsQuery.data?.items ?? []
     const q = submittedQuery.trim().toLowerCase()
-    return all.filter((item) => {
+    return allItems.filter((item) => {
       if (filter.domain !== "ALL" && item.domain !== filter.domain) return false
       if (filter.status !== "ALL" && item.displayStatus !== filter.status) {
         return false
@@ -110,7 +127,9 @@ export function DraftWorkbenchPage() {
         .toLowerCase()
       return haystack.includes(q)
     })
-  }, [draftsQuery.data?.items, filter.domain, filter.status, submittedQuery])
+  }, [allItems, filter.domain, filter.status, submittedQuery])
+
+  const criticalPending = loading && !hasLoadedRef.current
 
   const columns = useMemo<ColumnDef<PlatformDraft>[]>(
     () => [
@@ -180,7 +199,7 @@ export function DraftWorkbenchPage() {
                 variant="ghost"
                 className="size-7 text-destructive hover:text-destructive"
                 title={t("workflow.workbench.drafts.delete")}
-                disabled={cancelDraft.isPending}
+                disabled={cancelling}
                 onClick={() => setDeleteTarget(row.original)}
               >
                 <Trash2 className="size-4" />
@@ -190,7 +209,7 @@ export function DraftWorkbenchPage() {
         ),
       },
     ],
-    [cancelDraft.isPending, t]
+    [cancelling, t]
   )
 
   const { table } = useDataTable({
@@ -204,6 +223,27 @@ export function DraftWorkbenchPage() {
     submittedQuery !== "" ||
     filter.domain !== "ALL" ||
     filter.status !== "ALL"
+
+  async function handleCancel() {
+    if (!deleteTarget?.id) return
+    setCancelling(true)
+    try {
+      if (deleteTarget.domain !== "crm_customer_registration") {
+        throw new Error("Chưa hỗ trợ hủy nháp cho nghiệp vụ này")
+      }
+      await customerDraftApi.cancel(deleteTarget.id)
+      notify.success("Đã hủy hồ sơ nháp")
+      setDeleteTarget(null)
+      await load()
+    } catch (error) {
+      notify.error(
+        "Hủy hồ sơ thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   return (
     <>
@@ -238,19 +278,19 @@ export function DraftWorkbenchPage() {
             <Button
               type="button"
               variant="secondary"
-              disabled={draftsQuery.isFetching}
-              onClick={() => void draftsQuery.refetch()}
+              disabled={refreshing}
+              onClick={() => void load()}
             >
               <RefreshCw className="size-4" />
               {t("crm.actions.refresh")}
             </Button>
           </div>
         }
-        criticalPending={pageGate.criticalPending}
-        criticalError={pageGate.criticalError}
-        onRetry={pageGate.onRetry}
+        criticalPending={criticalPending}
+        criticalError={fetchError}
+        onRetry={load}
         loadErrorTitle={t("workflow.workbench.drafts.load_failed")}
-        fetching={fetching}
+        fetching={refreshing}
         table={table}
         header={
           <div className="flex flex-col gap-3">
@@ -390,19 +430,15 @@ export function DraftWorkbenchPage() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel disabled={cancelDraft.isPending}>
+                <AlertDialogCancel disabled={cancelling}>
                   {t("workflow.workbench.drafts.delete_cancel")}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-white hover:bg-destructive/90"
-                  disabled={cancelDraft.isPending || !deleteTarget?.id}
+                  disabled={cancelling || !deleteTarget?.id}
                   onClick={(event) => {
                     event.preventDefault()
-                    if (!deleteTarget?.id) return
-                    cancelDraft.mutate(
-                      { domain: deleteTarget.domain, id: deleteTarget.id },
-                      { onSuccess: () => setDeleteTarget(null) }
-                    )
+                    void handleCancel()
                   }}
                 >
                   {t("workflow.workbench.drafts.delete")}

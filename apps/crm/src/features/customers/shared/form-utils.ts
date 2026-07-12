@@ -1,9 +1,36 @@
+import { notify } from "@workspace/notifications/notify"
 import type { Customer, CustomerPayload, CustomerType } from "../api"
 import {
   defaultValues,
   selectOptions,
   type CustomerFormValues,
 } from "./schemas"
+
+function mutationErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : undefined
+}
+
+export async function runMutation<T>(
+  action: () => Promise<T>,
+  messages: {
+    success: string
+    error: string
+    description?: string | ((data: T) => string | undefined)
+  }
+) {
+  try {
+    const result = await action()
+    const description =
+      typeof messages.description === "function"
+        ? messages.description(result)
+        : messages.description
+    notify.success(messages.success, description)
+    return result
+  } catch (error) {
+    notify.error(messages.error, mutationErrorMessage(error))
+    throw error
+  }
+}
 
 export function optionsFor(_name: keyof CustomerFormValues) {
   return selectOptions.generic

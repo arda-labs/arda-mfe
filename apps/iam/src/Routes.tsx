@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react"
-import { usePathname } from "@workspace/core/routing"
+import { useLocation } from "react-router-dom"
 
 const UsersPage = lazy(() =>
   import("@/features/iam/users/page").then((m) => ({ default: m.UsersPage }))
@@ -24,24 +24,19 @@ const SystemSettingsPage = lazy(() =>
   }))
 )
 
-export default function Routes() {
+export default function RemoteRoutes() {
+  const { pathname } = useLocation()
+
+  let page = <UsersPage />
+  if (pathname.startsWith("/admin/groups")) page = <GroupsPage />
+  if (pathname.startsWith("/admin/roles")) page = <RolesPage />
+  if (pathname.startsWith("/admin/permissions")) page = <PermissionsPage />
+  if (pathname.startsWith("/admin/audit")) page = <AuditPage />
+  if (pathname.startsWith("/admin/settings")) page = <SystemSettingsPage />
+
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>
-        <IamRoutes />
-      </Suspense>
+      <Suspense fallback={null}>{page}</Suspense>
     </div>
   )
-}
-
-function IamRoutes() {
-  const pathname = usePathname("/admin/users")
-
-  if (pathname.startsWith("/admin/groups")) return <GroupsPage />
-  if (pathname.startsWith("/admin/roles")) return <RolesPage />
-  if (pathname.startsWith("/admin/permissions")) return <PermissionsPage />
-  if (pathname.startsWith("/admin/audit")) return <AuditPage />
-  if (pathname.startsWith("/admin/settings")) return <SystemSettingsPage />
-
-  return <UsersPage />
 }

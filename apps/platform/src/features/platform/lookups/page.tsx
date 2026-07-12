@@ -1,19 +1,12 @@
-import { useEffect, useMemo, useState, type MouseEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import type { LookupCategory, LookupValue } from "../api"
+import { platformApi } from "../api"
 import { notify } from "@workspace/notifications/notify"
-import {
-  useDeleteLookupCategory,
-  useDeleteLookupValue,
-  useLookupCategories,
-  useLookupValues,
-  useUpsertLookupCategory,
-  useUpsertLookupValue,
-} from "./queries"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -177,6 +170,61 @@ export function LookupsPage() {
   const [valDialogOpen, setValDialogOpen] = useState(false)
   const [editingVal, setEditingVal] = useState<LookupValue | null>(null)
   const [deleteValTarget, setDeleteValTarget] = useState<LookupValue | null>(null)
+  const [categories, setCategories] = useState<LookupCategory[]>([])
+  const [values, setValues] = useState<LookupValue[]>([])
+  const [loadingCats, setLoadingCats] = useState(true)
+  const [loadingValues, setLoadingValues] = useState(false)
+  const [catSavePending, setCatSavePending] = useState(false)
+  const [valSavePending, setValSavePending] = useState(false)
+  const [catDeletePending, setCatDeletePending] = useState(false)
+  const [valDeletePending, setValDeletePending] = useState(false)
+  const categoriesLoadedRef = useRef(false)
+  const selectedCatCodeRef = useRef<string | undefined>()
+
+  const loadCategories = useCallback(async () => {
+    setLoadingCats(true)
+    try {
+      const result = await platformApi.listLookupCategories()
+      setCategories(result)
+    } catch {
+      // errors handled in effect
+    } finally {
+      setLoadingCats(false)
+    }
+  }, [])
+
+  const loadValues = useCallback(async (categoryCode: string) => {
+    setLoadingValues(true)
+    try {
+      const result = await platformApi.listLookupValues(categoryCode)
+      setValues(result)
+    } catch {
+      // errors handled in effect
+    } finally {
+      setLoadingValues(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!categoriesLoadedRef.current) {
+      categoriesLoadedRef.current = true
+      void loadCategories()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (categories.length > 0 && !selectedCat) {
+      setSelectedCat(categories[0])
+    }
+  }, [categories, selectedCat])
+
+  useEffect(() => {
+    if (selectedCat?.code && selectedCat.code !== selectedCatCodeRef.current) {
+      selectedCatCodeRef.current = selectedCat.code
+      void loadValues(selectedCat.code)
+    }
+  }, [selectedCat, loadValues])
 
   const categorySchema = useMemo(() => buildCategorySchema(t), [t])
   const valueSchema = useMemo(() => buildValueSchema(t), [t])
@@ -205,41 +253,6 @@ export function LookupsPage() {
   })
 
   const catScopeType = watchCat("scope_type")
-  const categoriesQuery = useLookupCategories()
-  const valuesQuery = useLookupValues(selectedCat?.code)
-  const upsertCategoryMutation = useUpsertLookupCategory()
-  const deleteCategoryMutation = useDeleteLookupCategory()
-  const upsertValueMutation = useUpsertLookupValue(selectedCat?.code)
-  const deleteValueMutation = useDeleteLookupValue(selectedCat?.code)
-
-  const categories = categoriesQuery.data ?? []
-  const values = valuesQuery.data ?? []
-  const loadingCats = categoriesQuery.isLoading
-  const loadingValues = valuesQuery.isLoading
-
-  useEffect(() => {
-    if (categoriesQuery.error) {
-      notify.error(
-        t("platform.lookups.load_categories_failed"),
-        translateApiError(categoriesQuery.error)
-      )
-    }
-  }, [categoriesQuery.error, t])
-
-  useEffect(() => {
-    if (!selectedCat && categories.length > 0) {
-      setSelectedCat(categories[0])
-    }
-  }, [categories, selectedCat])
-
-  useEffect(() => {
-    if (valuesQuery.error) {
-      notify.error(
-        t("platform.lookups.load_values_failed"),
-        translateApiError(valuesQuery.error)
-      )
-    }
-  }, [valuesQuery.error, t])
 
   const openCreateCat = () => {
     setEditingCat(null)
@@ -263,6 +276,7 @@ export function LookupsPage() {
   }
 
   const submitCategory = handleCatSubmit(async (formValues) => {
+    setCatSavePending(true)
     try {
       const payload: Partial<LookupCategory> = {
         code: formValues.code.trim().toUpperCase().replace(/\s+/g, "_"),
@@ -275,25 +289,34 @@ export function LookupsPage() {
       if (editingCat) {
         payload.id = editingCat.id
       }
-      const saved = await upsertCategoryMutation.mutateAsync(payload)
+      const saved = await platformApi.upsertLookupCategory(payload)
+      notify.success("Luu danh muc thanh cong")
       setCatDialogOpen(false)
       resetCat(categoryDefaultValues)
       setSelectedCat(saved)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadCategories()
+    } catch (err) {
+      notify.error("Luu danh muc that bai", translateApiError(err))
+    } finally {
+      setCatSavePending(false)
     }
   })
 
   const handleCatDelete = async () => {
     if (!deleteCatTarget) return
+    setCatDeletePending(true)
     try {
-      await deleteCategoryMutation.mutateAsync(deleteCatTarget.id)
+      await platformApi.deleteLookupCategory(deleteCatTarget.id)
+      notify.success("Xoa danh muc thanh cong")
       if (selectedCat?.id === deleteCatTarget.id) {
         setSelectedCat(null)
       }
       setDeleteCatTarget(null)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadCategories()
+    } catch (err) {
+      notify.error("Xoa danh muc that bai", translateApiError(err))
+    } finally {
+      setCatDeletePending(false)
     }
   }
 
@@ -323,6 +346,7 @@ export function LookupsPage() {
 
   const submitValue = handleValSubmit(async (formValues) => {
     if (!selectedCat) return
+    setValSavePending(true)
     try {
       const payload: Partial<LookupValue> = {
         code: formValues.code.trim().toUpperCase().replace(/\s+/g, "_"),
@@ -335,21 +359,30 @@ export function LookupsPage() {
         payload.id = editingVal.id
         payload.category_id = editingVal.category_id
       }
-      await upsertValueMutation.mutateAsync(payload)
+      await platformApi.upsertLookupValue(selectedCat.code, payload)
+      notify.success("Luu gia tri danh muc thanh cong")
       setValDialogOpen(false)
       resetVal(valueDefaultValues)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadValues(selectedCat.code)
+    } catch (err) {
+      notify.error("Luu gia tri that bai", translateApiError(err))
+    } finally {
+      setValSavePending(false)
     }
   })
 
   const handleValDelete = async () => {
     if (!deleteValTarget || !selectedCat) return
+    setValDeletePending(true)
     try {
-      await deleteValueMutation.mutateAsync(deleteValTarget.id)
+      await platformApi.deleteLookupValue(deleteValTarget.id)
+      notify.success("Xoa gia tri thanh cong")
       setDeleteValTarget(null)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadValues(selectedCat.code)
+    } catch (err) {
+      notify.error("Xoa gia tri that bai", translateApiError(err))
+    } finally {
+      setValDeletePending(false)
     }
   }
 
@@ -605,8 +638,8 @@ export function LookupsPage() {
               <Button variant="outline" type="button" onClick={() => handleCatDialogOpenChange(false)}>
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isCatSubmitting || upsertCategoryMutation.isPending}>
-                {isCatSubmitting || upsertCategoryMutation.isPending
+              <Button type="submit" disabled={isCatSubmitting || catSavePending}>
+                {isCatSubmitting || catSavePending
                   ? t("common.action.saving")
                   : t("common.action.save")}
               </Button>
@@ -712,8 +745,8 @@ export function LookupsPage() {
               <Button variant="outline" type="button" onClick={() => handleValDialogOpenChange(false)}>
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isValSubmitting || upsertValueMutation.isPending}>
-                {isValSubmitting || upsertValueMutation.isPending
+              <Button type="submit" disabled={isValSubmitting || valSavePending}>
+                {isValSubmitting || valSavePending
                   ? t("common.action.saving")
                   : t("common.action.save")}
               </Button>
@@ -736,7 +769,7 @@ export function LookupsPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCatDelete}
-              disabled={deleteCategoryMutation.isPending}
+              disabled={catDeletePending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.lookups.delete.confirm")}
@@ -759,7 +792,7 @@ export function LookupsPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleValDelete}
-              disabled={deleteValueMutation.isPending}
+              disabled={valDeletePending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.lookups.delete.confirm")}

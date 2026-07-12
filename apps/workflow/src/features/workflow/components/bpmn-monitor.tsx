@@ -22,8 +22,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
+import { notify } from "@workspace/notifications/notify"
 import type { WorkflowCase, WorkflowProcessDefinition } from "../api"
-import { useUpdateProcessDefinition } from "../queries"
 
 type BpmnCanvas = {
   zoom: (value?: string | number) => number
@@ -278,8 +278,6 @@ function BpmnModelerWorkspace({
   const [sidebarWidth, setSidebarWidth] = useState(300)
   const [dockHeight, setDockHeight] = useState(200)
   const [saving, setSaving] = useState(false)
-  const updateMutation = useUpdateProcessDefinition()
-
   useEffect(() => {
     if (!containerRef.current || !xml) return
     let disposed = false
@@ -468,14 +466,14 @@ function BpmnModelerWorkspace({
       const file = new File([nextXml], item.resourceName || `${item.bpmnProcessId}.bpmn`, {
         type: "application/xml",
       })
-      await updateMutation.mutateAsync({
-        id: item.id,
-        payload: {
-          name: item.name,
-          status: item.status,
-          file,
-        },
+      await workflowApi.updateProcessDefinition(item.id, {
+        name: item.name,
+        status: item.status,
+        file,
       })
+      notify.success("Đã lưu BPMN")
+    } catch (error) {
+      notify.error("Lưu BPMN thất bại", error instanceof Error ? error.message : undefined)
     } finally {
       setSaving(false)
     }
@@ -622,7 +620,7 @@ function BpmnModelerWorkspace({
           <Button type="button" size="icon" variant="ghost" title="Export SVG" aria-label="Export SVG" onClick={exportSvg}>
             <span className="text-[10px] font-semibold">SVG</span>
           </Button>
-          <Button type="button" size="icon" title="Lưu BPMN" aria-label="Lưu BPMN" onClick={saveXml} disabled={saving || updateMutation.isPending}>
+          <Button type="button" size="icon" title="Lưu BPMN" aria-label="Lưu BPMN" onClick={saveXml} disabled={saving}>
             <Save className="size-4" />
           </Button>
         </div>

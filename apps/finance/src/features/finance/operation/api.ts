@@ -45,7 +45,7 @@ export interface AccountingConfigItem {
   updatedAt: string
 }
 
-export interface OperationResult<T> {
+export type OperationResult<T> = {
   items: T[]
   source: FinanceOperationSource
 }

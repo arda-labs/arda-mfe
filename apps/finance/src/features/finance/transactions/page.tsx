@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { parseAsInteger, useQueryState } from "nuqs"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
+import { useSearchParams } from "react-router-dom"
 import { notify } from "@workspace/notifications/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -34,8 +33,7 @@ import { listPageCount } from "@workspace/core/http/list-api"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
-import { useCreateTransaction, useTransactions } from "./queries"
-import type { Transaction } from "@/features/finance/api"
+import { financeApi, type Transaction } from "@/features/finance/api"
 
 const entrySchema = z.object({
   accountId: z.string().trim().min(1, "Account ID is required"),
@@ -102,20 +100,42 @@ function createIdempotencyKey() {
 
 export function TransactionsPage() {
   const { t } = useI18n()
+  const [searchParams] = useSearchParams()
   const [open, setOpen] = useState(false)
-  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [perPageParam] = useQueryState(
-    "perPage",
-    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
+  const [txns, setTxns] = useState<Transaction[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [posting, setPosting] = useState(false)
+  const hasLoadedRef = useRef(false)
+  const pageParam = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1)
+  const perPageParam = Math.max(
+    1,
+    Number.parseInt(searchParams.get("perPage") ?? String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE
   )
-  const transactionsQuery = useTransactions({ page: pageParam, perPage: perPageParam })
-  const pageGate = pageGateFromQueries(transactionsQuery)
-  const { fetching } = listQueryShellState(transactionsQuery)
-  const data = transactionsQuery.data
-  const isTransactionsError = transactionsQuery.isError
-  const createTransaction = useCreateTransaction()
-  const txns = data?.items ?? []
-  const total = data?.total ?? 0
+
+  const loadTransactions = useCallback(async () => {
+    setLoadError(null)
+    if (hasLoadedRef.current) setRefreshing(true)
+    else setLoading(true)
+    try {
+      const result = await financeApi.listTransactions({ page: pageParam, perPage: perPageParam })
+      setTxns(result.items)
+      setTotal(result.total)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      hasLoadedRef.current = true
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [pageParam, perPageParam])
+
+  useEffect(() => {
+    void loadTransactions()
+  }, [loadTransactions])
+
   const pageCount = listPageCount(total, perPageParam)
   const {
     control,
@@ -129,9 +149,6 @@ export function TransactionsPage() {
   })
   const { append, fields } = useFieldArray({ control, name: "entries" })
 
-  useEffect(() => {
-    if (isTransactionsError) notify.error("Could not load transactions")
-  }, [isTransactionsError])
 
   const columns = useMemo<ColumnDef<Transaction>[]>(
     () => [
@@ -246,13 +263,20 @@ export function TransactionsPage() {
   }
 
   const handleCreate = handleSubmit(async (values) => {
-    const idempotencyKey = createIdempotencyKey()
+    setPosting(true)
     try {
-      await createTransaction.mutateAsync({ ...values, idempotencyKey })
+      await financeApi.createTransaction({
+        ...values,
+        idempotencyKey: createIdempotencyKey(),
+      })
+      notify.success("Transaction posted")
       setOpen(false)
       reset(transactionDefaultValues)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadTransactions()
+    } catch (reason) {
+      notify.error(reason instanceof Error ? reason.message : "Could not post transaction")
+    } finally {
+      setPosting(false)
     }
   })
 
@@ -366,7 +390,7 @@ export function TransactionsPage() {
           <Button
             className="w-full"
             type="submit"
-            disabled={isSubmitting || createTransaction.isPending}
+            disabled={isSubmitting || posting}
           >
             {t("common.action.create")}
           </Button>
@@ -383,10 +407,10 @@ export function TransactionsPage() {
           {total}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
-      fetching={fetching}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadTransactions}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

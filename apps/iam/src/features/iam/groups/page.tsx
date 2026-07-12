@@ -1,15 +1,10 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Group } from "@/features/iam"
-import {
-  useCreateGroup,
-  useDeleteGroup,
-  useGroups,
-  useUpdateGroup,
-} from "@/features/iam/groups/queries"
+import { adminApi } from "@/features/iam"
 import { GroupMembersDialog } from "@/features/iam/groups/group-members-dialog"
 import { GroupRolesDialog } from "@/features/iam/groups/group-roles-dialog"
 import { translateApiError, useI18n } from "@workspace/i18n"
@@ -45,13 +40,13 @@ import {
 } from "@workspace/ui/components/status"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { useDataTable } from "@workspace/ui/hooks/use-data-table"
+import { listPageCount } from "@workspace/core/http/list-api"
 import {
   parseAsArrayOf,
   parseAsInteger,
   parseAsString,
   useQueryState,
 } from "nuqs"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import { Pencil, ShieldCheck, Trash2, Users } from "lucide-react"
 
 const DEFAULT_PAGE_SIZE = 10
@@ -103,6 +98,8 @@ export function GroupsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Group | null>(null)
   const [memberTarget, setMemberTarget] = useState<Group | null>(null)
   const [roleTarget, setRoleTarget] = useState<Group | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -113,30 +110,45 @@ export function GroupsPage() {
     defaultValues: groupDefaultValues,
   })
 
-  const createGroup = useCreateGroup()
-  const updateGroup = useUpdateGroup()
-  const deleteGroup = useDeleteGroup()
+  // list state
+  const [groups, setGroups] = useState<Group[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const hasLoadedRef = useRef(false)
 
   const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [pageSizeParam] = useQueryState(
-    "perPage",
-    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
-  )
+  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
   const [searchParam] = useQueryState("code", parseAsString)
-  const [statusParam] = useQueryState(
-    "status",
-    parseAsArrayOf(parseAsString, ",").withDefault([])
-  )
-  const groupsQuery = useGroups({
-    page: pageParam,
-    perPage: pageSizeParam,
-    q: searchParam || undefined,
-    status: statusParam.length === 1 ? statusParam[0] : undefined,
-  })
-  const groups = groupsQuery.data?.items ?? []
-  const total = groupsQuery.data?.total ?? 0
-  const pageGate = pageGateFromQueries(groupsQuery)
-  const { fetching } = listQueryShellState(groupsQuery)
+  const [statusParam] = useQueryState("status", parseAsArrayOf(parseAsString, ",").withDefault([]))
+
+  const loadGroups = useCallback(async () => {
+    setLoadError(null)
+    if (hasLoadedRef.current) setRefreshing(true)
+    else setLoading(true)
+    try {
+      const result = await adminApi.listGroups({
+        page: pageParam,
+        perPage: pageSizeParam,
+        q: searchParam || undefined,
+        status: statusParam.length === 1 ? statusParam[0] : undefined,
+      })
+      setGroups(result.items)
+      setTotal(result.total)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      hasLoadedRef.current = true
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [pageParam, pageSizeParam, searchParam, statusParam])
+
+  useEffect(() => {
+    void loadGroups()
+  }, [loadGroups])
+
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
   const openCreate = () => {
@@ -166,27 +178,35 @@ export function GroupsPage() {
       status: values.status,
       tenantId: values.tenantId.trim() || "default",
     }
+    setSaving(true)
     try {
       if (editTarget) {
-        await updateGroup.mutateAsync({ id: editTarget.id, data: payload })
+        await adminApi.updateGroup(editTarget.id, payload)
         notify.success(t("admin.groups.update_success"))
       } else {
-        await createGroup.mutateAsync({ code: values.code.trim(), ...payload })
+        await adminApi.createGroup({ code: values.code.trim(), ...payload })
         notify.success(t("admin.groups.create_success"))
       }
       closeForm(false)
+      await loadGroups()
     } catch (err) {
       notify.error(t("admin.groups.save_failed"), translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
   const handleDelete = async (group: Group) => {
+    setDeleting(true)
     try {
-      await deleteGroup.mutateAsync(group.id)
+      await adminApi.deleteGroup(group.id)
       notify.success(t("admin.groups.delete_success"))
       setDeleteTarget(null)
+      await loadGroups()
     } catch (err) {
       notify.error(t("admin.groups.delete_failed"), translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -421,7 +441,7 @@ export function GroupsPage() {
               className="w-full"
               type="submit"
               disabled={
-                isSubmitting || createGroup.isPending || updateGroup.isPending
+                isSubmitting || saving
               }
             >
               {editTarget ? t("common.action.save") : t("common.action.create")}
@@ -461,7 +481,7 @@ export function GroupsPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteGroup.isPending}
+              disabled={deleting}
               onClick={() => deleteTarget && handleDelete(deleteTarget)}
             >
               {t("common.action.delete")}
@@ -480,11 +500,11 @@ export function GroupsPage() {
           {t("admin.groups.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadGroups}
       loadErrorTitle={t("admin.groups.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

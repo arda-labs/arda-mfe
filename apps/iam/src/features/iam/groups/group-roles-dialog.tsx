@@ -1,10 +1,6 @@
-import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react"
+import { useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react"
 import type { Group, Role } from "@/features/iam"
-import {
-  useGroupRolePicker,
-  useGroupRoles,
-  useSetGroupRole,
-} from "@/features/iam/groups/queries"
+import { adminApi } from "@/features/iam"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -55,12 +51,20 @@ export function GroupRolesDialog({
   const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<RoleFilter>("all")
+  const [busyRoleId, setBusyRoleId] = useState<string | null>(null)
 
   const groupId = group?.id
-  const groupRolesQuery = useGroupRoles(groupId)
-  const rolePickerQuery = useGroupRolePicker(search || undefined)
-  const setGroupRole = useSetGroupRole()
-  const busyRoleId = setGroupRole.isPending ? setGroupRole.variables?.roleId : null
+
+  // assigned roles for this group (loaded when open + groupId)
+  const [assignedRoles, setAssignedRoles] = useState<Role[]>([])
+  const [assignedLoading, setAssignedLoading] = useState(false)
+  const assignedLoadedForRef = useRef<string | null>(null)
+
+  // role picker list (search-driven)
+  const [pickerRoles, setPickerRoles] = useState<Role[]>([])
+  const [pickerTotal, setPickerTotal] = useState(0)
+  const [pickerLoading, setPickerLoading] = useState(false)
+  const pickerHasLoadedRef = useRef(false)
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setSearch(value.trim())
@@ -71,12 +75,63 @@ export function GroupRolesDialog({
       setSearchInput("")
       setSearch("")
       setFilter("all")
+      setAssignedRoles([])
+      setPickerRoles([])
+      setPickerTotal(0)
+      assignedLoadedForRef.current = null
+      pickerHasLoadedRef.current = false
     }
   }, [open])
 
+  // Load assigned roles whenever the dialog opens / group changes
+  useEffect(() => {
+    if (!open || !groupId || assignedLoadedForRef.current === groupId) return
+    let cancelled = false
+    setAssignedLoading(true)
+    void adminApi.listGroupRoles(groupId)
+      .then((res) => {
+        if (!cancelled) setAssignedRoles(res.roles)
+      })
+      .catch((err) => {
+        if (!cancelled) notify.error(t("admin.groups.roles.update_failed"), translateApiError(err))
+      })
+      .finally(() => {
+        if (!cancelled) setAssignedLoading(false)
+        if (!cancelled) assignedLoadedForRef.current = groupId
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, groupId, t])
+
+  // Load role picker list (search-driven)
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setPickerLoading(true)
+    void adminApi.listRoles({ page: 1, perPage: 500, q: search || undefined })
+      .then((res) => {
+        if (cancelled) return
+        setPickerRoles(res.items)
+        setPickerTotal(res.total)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        notify.error(t("admin.groups.roles.update_failed"), translateApiError(err))
+      })
+      .finally(() => {
+        if (cancelled) return
+        pickerHasLoadedRef.current = true
+        setPickerLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, search, t])
+
   const assignedRoleIDs = useMemo(
-    () => new Set((groupRolesQuery.data ?? []).map((role) => role.id)),
-    [groupRolesQuery.data]
+    () => new Set(assignedRoles.map((role) => role.id)),
+    [assignedRoles]
   )
   const [optimisticAssigned, applyOptimisticAssigned] = useOptimistic(
     assignedRoleIDs,
@@ -90,12 +145,11 @@ export function GroupRolesDialog({
   const [, startRoleTransition] = useTransition()
 
   const visibleRoles = useMemo(() => {
-    const roles = rolePickerQuery.data?.items ?? []
     if (filter === "assigned") {
-      return roles.filter((role) => optimisticAssigned.has(role.id))
+      return pickerRoles.filter((role) => optimisticAssigned.has(role.id))
     }
-    return roles
-  }, [optimisticAssigned, filter, rolePickerQuery.data?.items])
+    return pickerRoles
+  }, [optimisticAssigned, filter, pickerRoles])
 
   const rolesByModule = useMemo(() => {
     const groups = new Map<string, Role[]>()
@@ -108,29 +162,34 @@ export function GroupRolesDialog({
     )
   }, [visibleRoles])
 
-  const toggleRole = (role: Role, assigned: boolean) => {
+  const toggleRole = useCallback((role: Role, assigned: boolean) => {
     if (!groupId) return
+    setBusyRoleId(role.id)
     startRoleTransition(async () => {
       applyOptimisticAssigned({ roleId: role.id, assigned: !assigned })
       try {
-        await setGroupRole.mutateAsync({
-          groupId,
-          roleId: role.id,
-          assigned,
-        })
+        if (assigned) {
+          await adminApi.unassignGroupRole(groupId, role.id)
+          setAssignedRoles((prev) => prev.filter((r) => r.id !== role.id))
+        } else {
+          await adminApi.assignGroupRole(groupId, role.id)
+          setAssignedRoles((prev) => [...prev, role])
+        }
         notify.success(t("admin.groups.roles.update_success"))
       } catch (err) {
         notify.error(
           t("admin.groups.roles.update_failed"),
           translateApiError(err)
         )
+      } finally {
+        setBusyRoleId(null)
       }
     })
-  }
+  }, [groupId, applyOptimisticAssigned, t])
 
-  const loading = groupRolesQuery.isLoading || rolePickerQuery.isLoading
-  const assignedCount = groupRolesQuery.data?.length ?? 0
-  const totalRoles = rolePickerQuery.data?.total ?? visibleRoles.length
+  const loading = assignedLoading || pickerLoading
+  const assignedCount = assignedRoles.length
+  const totalRoles = pickerTotal || visibleRoles.length
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

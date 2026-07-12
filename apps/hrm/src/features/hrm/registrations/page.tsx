@@ -1,21 +1,15 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { translateApiError } from "@workspace/i18n"
+import { uploadFile } from "@workspace/media"
 import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { PageTitle as CollapsingPageTitle } from "@workspace/ui/components/page-title"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { Plus, Send } from "lucide-react"
-import type { EmployeeRegistration } from "../api"
-import {
-  useCreateEmployeeRegistration,
-  useOrgUnits,
-  usePositions,
-  useSubmitEmployeeRegistration,
-  useUpdateEmployeeRegistration,
-  useUploadEmployeeAvatar,
-} from "../queries"
+import { hrmApi, type EmployeeRegistration, type OrgUnit, type Position } from "../api"
 import {
   registrationDefaults,
   registrationSchema,
@@ -36,17 +30,33 @@ import {
 
 export function RegistrationsPage() {
   const [savedRegistration, setSavedRegistration] = useState<EmployeeRegistration | null>(null)
-  const orgUnits = useOrgUnits()
-  const positions = usePositions()
-  const createRegistration = useCreateEmployeeRegistration()
-  const updateRegistration = useUpdateEmployeeRegistration()
-  const submitRegistration = useSubmitEmployeeRegistration()
-  const uploadAvatar = useUploadEmployeeAvatar()
+  const [orgUnits, setOrgUnits] = useState<OrgUnit[]>([])
+  const [positions, setPositions] = useState<Position[]>([])
+  const [saving, setSaving] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const form = useForm<RegistrationValues>({
     resolver: zodResolver(registrationSchema),
     defaultValues: registrationDefaults,
   })
   const avatarFileId = useWatch({ control: form.control, name: "avatar_file_id" })
+
+  const load = useCallback(async () => {
+    try {
+      const [units, pos] = await Promise.all([
+        hrmApi.listOrgUnits(),
+        hrmApi.listPositions(),
+      ])
+      setOrgUnits(units)
+      setPositions(pos)
+    } catch {
+      notify.error("Khong the tai danh sach don vi hoac chuc vu")
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const resetDraft = () => {
     setSavedRegistration(null)
@@ -55,17 +65,40 @@ export function RegistrationsPage() {
 
   async function save(values: RegistrationValues, submitNow = false) {
     const payload = toRegistrationPayload(values)
-    let current = savedRegistration
-    if (!current) {
-      current = await createRegistration.mutateAsync({ payload })
-    } else if (current.status === "draft") {
-      current = await updateRegistration.mutateAsync({ id: current.id, payload })
-    }
-    setSavedRegistration(current)
-    form.reset(values)
-    if (submitNow && current.status === "draft") {
-      const submitted = await submitRegistration.mutateAsync(current.id)
-      setSavedRegistration(submitted)
+    setSaving(true)
+    try {
+      let current = savedRegistration
+      if (!current) {
+        current = await hrmApi.createEmployeeRegistration({ payload })
+        notify.success("Da tao dang ky nhan su")
+      } else if (current.status === "draft") {
+        current = await hrmApi.updateEmployeeRegistration(current.id, payload)
+        notify.success("Da luu dang ky nhan su")
+      }
+      setSavedRegistration(current)
+      form.reset(values)
+      if (submitNow && current && current.status === "draft") {
+        setSaving(false)
+        setSubmitting(true)
+        try {
+          const submitted = await hrmApi.submitEmployeeRegistration(current.id)
+          notify.success("Da gui dang ky nhan su")
+          setSavedRegistration(submitted)
+        } catch (reason) {
+          notify.error("Gui dang ky nhan su that bai", translateApiError(reason))
+        } finally {
+          setSubmitting(false)
+        }
+        return
+      }
+    } catch (reason) {
+      if (!savedRegistration) {
+        notify.error("Tao dang ky nhan su that bai", translateApiError(reason))
+      } else {
+        notify.error("Luu dang ky nhan su that bai", translateApiError(reason))
+      }
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -83,8 +116,19 @@ export function RegistrationsPage() {
       return
     }
     const registrationCode = savedRegistration.registration_code
-    const result = await uploadAvatar.mutateAsync({ file, registrationCode })
-    form.setValue("avatar_file_id", result.public_id, { shouldDirty: true })
+    setUploadingAvatar(true)
+    try {
+      const result = await uploadFile(file, "hrm", "employee_avatar", registrationCode)
+      notify.success("Đã tải ảnh đại diện lên media-service")
+      form.setValue("avatar_file_id", result.public_id, { shouldDirty: true })
+    } catch (reason) {
+      notify.error(
+        "Tải ảnh đại diện thất bại",
+        reason instanceof Error ? reason.message : undefined
+      )
+    } finally {
+      setUploadingAvatar(false)
+    }
   }
 
   return (
@@ -129,12 +173,12 @@ export function RegistrationsPage() {
                 <RegistrationGeneralPanel
                   avatarFileId={avatarFileId ?? ""}
                   form={form}
-                  orgUnits={orgUnits.data ?? []}
-                  uploadingAvatar={uploadAvatar.isPending}
+                  orgUnits={orgUnits}
+                  uploadingAvatar={uploadingAvatar}
                   onClearAvatar={() => form.setValue("avatar_file_id", "", { shouldDirty: true })}
                   onUploadAvatar={uploadAvatarFile}
                 />
-                <AssignmentsTable form={form} orgUnits={orgUnits.data ?? []} positions={positions.data ?? []} />
+                <AssignmentsTable form={form} orgUnits={orgUnits} positions={positions} />
                 <EducationsTable form={form} />
               </TabsContent>
               <TabsContent value="family" className="mt-0">
@@ -156,8 +200,8 @@ export function RegistrationsPage() {
               type="submit"
               disabled={
                 form.formState.isSubmitting ||
-                createRegistration.isPending ||
-                updateRegistration.isPending ||
+                saving ||
+                submitting ||
                 (savedRegistration !== null && savedRegistration.status !== "draft")
               }
             >
@@ -171,9 +215,8 @@ export function RegistrationsPage() {
                 !savedRegistration?.id ||
                 savedRegistration.status !== "draft" ||
                 form.formState.isSubmitting ||
-                createRegistration.isPending ||
-                updateRegistration.isPending ||
-                submitRegistration.isPending
+                saving ||
+                submitting
               }
               onClick={form.handleSubmit((values) => save(values, true))}
             >

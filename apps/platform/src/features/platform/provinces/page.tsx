@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import type { GeoAdminUnit } from "../api"
+import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -30,7 +31,6 @@ import {
 } from "../shared/column-filters"
 import { sortByColumn, useClientListTable } from "../shared/client-list"
 import { ListTableToolbar } from "../shared/list-table-toolbar"
-import { useProvinces, useUpsertProvince } from "./queries"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -103,12 +103,30 @@ export function ProvincesPage() {
   const { t } = useI18n()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<GeoAdminUnit | null>(null)
+  const [items, setItems] = useState<GeoAdminUnit[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
 
-  const provincesQuery = useProvinces()
-  const upsertProvince = useUpsertProvince(Boolean(editingItem))
-  const items = provincesQuery.data ?? []
-  const pageGate = pageGateFromQueries(provincesQuery)
-  const { fetching } = listQueryShellState(provincesQuery)
+  const loadProvinces = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      const result = await platformApi.listGeoAdminUnits(undefined, 1)
+      setItems(result)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadProvinces(true)
+  }, [loadProvinces])
 
   const provinceSchema = useMemo(() => buildProvinceSchema(t), [t])
   const {
@@ -143,8 +161,10 @@ export function ProvincesPage() {
   }
 
   const submitProvince = handleSubmit(async (values) => {
+    setSaving(true)
     try {
-      await upsertProvince.mutateAsync({
+      const isEditing = Boolean(editingItem)
+      await platformApi.upsertGeoAdminUnit({
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         full_name: values.full_name?.trim() || undefined,
@@ -156,10 +176,14 @@ export function ProvincesPage() {
         effective_to: values.effective_to || undefined,
         is_active: true,
       })
+      notify.success(isEditing ? "Cap nhat tinh thanh thanh cong" : "Them tinh thanh thanh cong")
       setDialogOpen(false)
       reset(provinceDefaultValues)
-    } catch {
-      // Mutation hook already shows the save error toast.
+      await loadProvinces()
+    } catch (err) {
+      notify.error("Luu tinh thanh that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
@@ -434,8 +458,8 @@ export function ProvincesPage() {
             <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
               {t("common.action.cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting || upsertProvince.isPending}>
-              {isSubmitting || upsertProvince.isPending
+            <Button type="submit" disabled={isSubmitting || saving}>
+              {isSubmitting || saving
                 ? t("common.action.saving")
                 : t("common.action.save")}
             </Button>
@@ -453,11 +477,11 @@ export function ProvincesPage() {
           {t("platform.provinces.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadProvinces}
       loadErrorTitle={t("platform.provinces.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

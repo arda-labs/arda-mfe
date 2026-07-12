@@ -1,19 +1,13 @@
-import { useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
 import { uploadFile } from "@workspace/media"
 import { notify } from "@workspace/notifications/notify"
 import type { FileTemplate } from "../api"
-import {
-  useCreateFileTemplate,
-  useDeleteFileTemplate,
-  useFileTemplates,
-  useUpdateFileTemplate,
-} from "./queries"
+import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -119,15 +113,32 @@ export function TemplatesPage() {
   const [dragActive, setDragActive] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: number } | null>(null)
+  const [templates, setTemplates] = useState<FileTemplate[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const templatesQuery = useFileTemplates()
-  const createMutation = useCreateFileTemplate()
-  const updateMutation = useUpdateFileTemplate()
-  const deleteMutation = useDeleteFileTemplate()
-  const templates = templatesQuery.data ?? []
-  const pageGate = pageGateFromQueries(templatesQuery)
-  const { fetching } = listQueryShellState(templatesQuery)
+  const loadTemplates = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      const result = await platformApi.listFileTemplates()
+      setTemplates(result)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadTemplates(true)
+  }, [loadTemplates])
 
   const templateSchema = useMemo(() => buildTemplateSchema(t), [t])
   const {
@@ -178,6 +189,8 @@ export function TemplatesPage() {
   }
 
   const submitTemplate = handleSubmit(async (values) => {
+    setSaving(true)
+    const isEditing = Boolean(editingTemplate)
     try {
       const payload: Partial<FileTemplate> = {
         code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),
@@ -190,24 +203,34 @@ export function TemplatesPage() {
       }
 
       if (editingTemplate) {
-        await updateMutation.mutateAsync({ id: editingTemplate.id, payload })
+        await platformApi.updateFileTemplate(editingTemplate.id, payload)
+        notify.success("Cap nhat mau bieu thanh cong")
       } else {
-        await createMutation.mutateAsync(payload)
+        await platformApi.createFileTemplate(payload)
+        notify.success("Them mau bieu thanh cong")
       }
       setDialogOpen(false)
       reset(templateDefaultValues)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadTemplates()
+    } catch (err) {
+      notify.error("Luu mau bieu that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await deleteMutation.mutateAsync(deleteTarget.id)
+      await platformApi.deleteFileTemplate(deleteTarget.id)
+      notify.success("Xoa mau bieu thanh cong")
       setDeleteTarget(null)
-    } catch {
-      // Mutation hook owns the toast.
+      await loadTemplates()
+    } catch (err) {
+      notify.error("Xoa mau bieu that bai", translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -637,12 +660,11 @@ export function TemplatesPage() {
                 type="submit"
                 disabled={
                   isSubmitting ||
-                  createMutation.isPending ||
-                  updateMutation.isPending ||
+                  saving ||
                   uploadProgress !== null
                 }
               >
-                {isSubmitting || createMutation.isPending || updateMutation.isPending
+                {isSubmitting || saving
                   ? t("common.action.saving")
                   : t("common.action.save")}
               </Button>
@@ -663,7 +685,7 @@ export function TemplatesPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.templates.delete.confirm")}
@@ -682,11 +704,11 @@ export function TemplatesPage() {
           {t("platform.templates.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadTemplates}
       loadErrorTitle={t("platform.templates.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react"
-import { usePathname } from "@workspace/core/routing"
+import { useLocation } from "react-router-dom"
 
 const AreaTypesPage = lazy(() =>
   import("@/features/platform/area-types/page").then((m) => ({
@@ -51,29 +51,24 @@ const WardsPage = lazy(() =>
   import("@/features/platform/wards/page").then((m) => ({ default: m.WardsPage }))
 )
 
-export default function Routes() {
+export default function RemoteRoutes() {
+  const { pathname } = useLocation()
+
+  let page = <OrganizationsPage />
+  if (pathname.startsWith("/admin/parameters")) page = <ParametersPage />
+  if (pathname.startsWith("/admin/provinces")) page = <ProvincesPage />
+  if (pathname.startsWith("/admin/wards")) page = <WardsPage />
+  if (pathname.startsWith("/admin/lookups")) page = <LookupsPage />
+  if (pathname.startsWith("/admin/area-types")) page = <AreaTypesPage />
+  if (pathname.startsWith("/admin/areas")) page = <AreasPage />
+  if (pathname.startsWith("/admin/credit-institutions")) page = <CreditInstitutionsPage />
+  if (pathname.startsWith("/admin/templates")) page = <TemplatesPage />
+  if (pathname.startsWith("/admin/calendar")) page = <CalendarPage />
+  if (pathname.startsWith("/admin/cutoff")) page = <CutoffPage />
+
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>
-        <PlatformRoutes />
-      </Suspense>
+      <Suspense fallback={null}>{page}</Suspense>
     </div>
   )
-}
-
-function PlatformRoutes() {
-  const pathname = usePathname("/admin/organizations")
-
-  if (pathname.startsWith("/admin/parameters")) return <ParametersPage />
-  if (pathname.startsWith("/admin/provinces")) return <ProvincesPage />
-  if (pathname.startsWith("/admin/wards")) return <WardsPage />
-  if (pathname.startsWith("/admin/lookups")) return <LookupsPage />
-  if (pathname.startsWith("/admin/area-types")) return <AreaTypesPage />
-  if (pathname.startsWith("/admin/areas")) return <AreasPage />
-  if (pathname.startsWith("/admin/credit-institutions")) return <CreditInstitutionsPage />
-  if (pathname.startsWith("/admin/templates")) return <TemplatesPage />
-  if (pathname.startsWith("/admin/calendar")) return <CalendarPage />
-  if (pathname.startsWith("/admin/cutoff")) return <CutoffPage />
-
-  return <OrganizationsPage />
 }

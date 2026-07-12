@@ -1,8 +1,9 @@
-import { useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import { ArrowLeft, Check, Plus, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -18,15 +19,8 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { GeoLocationFields } from "../geo-location-fields"
 import { OrgUnitField } from "../org-unit-field"
-import {
-  useCancelAmendment,
-  useCompleteWorkflowTask,
-  useCurrentAmendment,
-  useCustomer,
-  useStartAdjustment,
-  useSubmitAmendment,
-  useUpdateAmendment,
-} from "../queries"
+import { customerApi, type Customer, type CustomerAmendment } from "../api"
+import { runMutation } from "../shared/form-utils"
 import {
   businessFields,
   customerSchema,
@@ -92,22 +86,64 @@ export function CustomerAdjustmentPage({
   const { context: taskContext, isLoading: taskContextLoading } =
     useCustomerTaskContext()
   const customerId = (taskContext.customerId ?? initialCustomerId)?.trim() || ""
-  const customerQuery = useCustomer(customerId || null)
-  const amendmentQuery = useCurrentAmendment(customerId || null)
-  const startAdjustment = useStartAdjustment()
-  const updateAmendment = useUpdateAmendment(customerId)
-  const submitAmendment = useSubmitAmendment(customerId)
-  const cancelAmendment = useCancelAmendment(customerId)
-  const completeTask = useCompleteWorkflowTask(taskContext.role)
   const viewOnly = isViewOnlyTaskContext()
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues,
   })
-  const customer = customerQuery.data ?? null
-  const amendment = amendmentQuery.data ?? null
   const customerType = form.watch("customerType")
   const isPersonal = customerType === "PERSONAL"
+
+  // ── Local state ──
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [customerFetching, setCustomerFetching] = useState(false)
+  const [amendment, setAmendment] = useState<CustomerAmendment | null>(null)
+  const [amendmentFetching, setAmendmentFetching] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // ── Load customer ──
+  useEffect(() => {
+    if (!customerId) {
+      setCustomer(null)
+      return
+    }
+    let cancelled = false
+    setCustomerFetching(true)
+    customerApi
+      .get(customerId)
+      .then((data) => {
+        if (!cancelled) setCustomer(data)
+      })
+      .catch(() => {
+        if (!cancelled) setCustomer(null)
+      })
+      .finally(() => {
+        if (!cancelled) setCustomerFetching(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [customerId])
+
+  // ── Load amendment ──
+  const loadAmendment = useCallback(async () => {
+    if (!customerId) {
+      setAmendment(null)
+      return
+    }
+    setAmendmentFetching(true)
+    try {
+      const data = await customerApi.getCurrentAmendment(customerId)
+      setAmendment(data)
+    } finally {
+      setAmendmentFetching(false)
+    }
+  }, [customerId])
+
+  useEffect(() => {
+    void loadAmendment()
+  }, [loadAmendment])
+
   const readOnly = viewOnly || amendment?.status === "PENDING"
   const canEdit = amendment?.status === "DRAFT"
   const canSubmit = canEdit && Boolean(amendment?.id)
@@ -117,7 +153,7 @@ export function CustomerAdjustmentPage({
     Boolean(customerId) &&
     customer?.status === "ACTIVE" &&
     !amendment &&
-    !amendmentQuery.isFetching
+    !amendmentFetching
   const awaitingAmendmentResubmit =
     amendment?.status === "DRAFT" && hasTaskContext(taskContext)
   const canCompleteTask =
@@ -128,12 +164,6 @@ export function CustomerAdjustmentPage({
     !viewOnly &&
     hasTaskContext(taskContext) &&
     taskContext.role === "CUSTOMER_MAKER"
-  const isSubmitting =
-    updateAmendment.isPending ||
-    submitAmendment.isPending ||
-    cancelAmendment.isPending ||
-    completeTask.isPending ||
-    startAdjustment.isPending
   const pageTitle = canEditTask
     ? "Chỉnh sửa điều chỉnh hồ sơ"
     : canCompleteTask
@@ -151,31 +181,104 @@ export function CustomerAdjustmentPage({
   async function saveAdjustment(values: CustomerFormValues) {
     if (!amendment?.id) return
     const afterSnapshot = toAmendmentSnapshot(values)
-    await updateAmendment.mutateAsync({
-      amendmentId: amendment.id,
-      payload: {
-        afterSnapshot,
-        changedFields: computeChangedFields(customer, afterSnapshot),
-      },
-    })
+    await runMutation(
+      () =>
+        customerApi.updateAmendment(customerId, amendment.id, {
+          afterSnapshot,
+          changedFields: computeChangedFields(customer, afterSnapshot),
+        }),
+      {
+        success: "Đã lưu thay đổi điều chỉnh",
+        error: "Lưu điều chỉnh thất bại",
+      }
+    )
   }
 
   async function completeCurrentTask(decision: string) {
-    const resolved = await resolveWorkflowJobKey(taskContext, customer?.status)
-    if (!resolved) return
-    const variables =
-      resolved.role === "CUSTOMER_RISK_CHECKER"
-        ? { riskDecision: decision }
-        : resolved.role === "CUSTOMER_MAKER"
-          ? { revisionSubmitted: true }
-          : { reviewDecision: decision }
-    await completeTask.mutateAsync({
-      jobKey: resolved.jobKey,
-      processInstanceKey: resolved.processInstanceKey,
-      elementId: resolved.elementId,
-      variables,
-    })
-    navigateTo(postTaskWorkbenchHref())
+    setIsSubmitting(true)
+    try {
+      const resolved = await resolveWorkflowJobKey(taskContext, customer?.status)
+      if (!resolved) return
+      const variables =
+        resolved.role === "CUSTOMER_RISK_CHECKER"
+          ? { riskDecision: decision }
+          : resolved.role === "CUSTOMER_MAKER"
+            ? { revisionSubmitted: true }
+            : { reviewDecision: decision }
+      await runMutation(() => customerApi.completeTask(resolved), {
+        success: "Đã hoàn tất task quy trình",
+        error: "Hoàn tất task thất bại",
+      })
+      navigateTo(postTaskWorkbenchHref())
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleStartAdjustment() {
+    setIsSubmitting(true)
+    try {
+      const result = await runMutation(
+        () => customerApi.startAdjustment(customerId),
+        {
+          success: "Đã mở phiên điều chỉnh hồ sơ",
+          error: "Mở điều chỉnh thất bại",
+        }
+      )
+      setAmendment(result)
+      navigateTo(adjustmentIncomingHref(taskContext))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleSaveDraft(values: CustomerFormValues) {
+    setIsSubmitting(true)
+    try {
+      await saveAdjustment(values)
+      await loadAmendment()
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleSaveAndComplete(values: CustomerFormValues) {
+    setIsSubmitting(true)
+    try {
+      await saveAdjustment(values)
+      if (!amendment?.id) return
+      await runMutation(
+        () => customerApi.submitAmendment(customerId, amendment.id),
+        {
+          success: "Đã hoàn thành điều chỉnh",
+          error: "Hoàn thành điều chỉnh thất bại",
+        }
+      )
+      if (canEditTask) {
+        await completeCurrentTask("APPROVE")
+      } else {
+        navigateTo(adjustmentIncomingHref(taskContext))
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleCancelDraft() {
+    if (!amendment?.id) return
+    setIsSubmitting(true)
+    try {
+      await runMutation(
+        () => customerApi.cancelAmendment(customerId, amendment.id),
+        {
+          success: "Đã hủy phiên điều chỉnh nháp",
+          error: "Hủy điều chỉnh thất bại",
+        }
+      )
+      await loadAmendment()
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (taskContextLoading) {
@@ -208,7 +311,7 @@ export function CustomerAdjustmentPage({
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form
         className="flex min-h-0 flex-1 flex-col"
-        onSubmit={form.handleSubmit((values) => saveAdjustment(values))}
+        onSubmit={form.handleSubmit((values) => handleSaveDraft(values))}
       >
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
           <Tabs defaultValue="general" className="flex flex-col">
@@ -229,7 +332,7 @@ export function CustomerAdjustmentPage({
               <AdjustmentTabsList />
             </div>
             <div className="space-y-4 p-4">
-              {customerQuery.isFetching || amendmentQuery.isFetching ? (
+              {customerFetching || amendmentFetching ? (
                 <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
                   Đang tải hồ sơ...
                 </div>
@@ -265,13 +368,8 @@ export function CustomerAdjustmentPage({
                 <div className="flex justify-end">
                   <Button
                     type="button"
-                    disabled={startAdjustment.isPending}
-                    onClick={() =>
-                      startAdjustment.mutate(customerId, {
-                        onSuccess: () =>
-                          navigateTo(adjustmentIncomingHref(taskContext)),
-                      })
-                    }
+                    disabled={isSubmitting}
+                    onClick={handleStartAdjustment}
                   >
                     <Plus className="size-4" />
                     {t("crm.customers.adjustments.start")}
@@ -333,21 +431,11 @@ export function CustomerAdjustmentPage({
           canEditTask={canEditTask}
           onBack={goBack}
           onCompleteTask={completeCurrentTask}
-          onSaveDraft={form.handleSubmit((values) => saveAdjustment(values))}
-          onSaveAndComplete={form.handleSubmit(async (values) => {
-            await saveAdjustment(values)
-            if (!amendment?.id) return
-            await submitAmendment.mutateAsync(amendment.id)
-            if (canEditTask) {
-              await completeCurrentTask("APPROVE")
-            } else {
-              navigateTo(adjustmentIncomingHref(taskContext))
-            }
-          })}
-          onCancelDraft={() => {
-            if (!amendment?.id) return
-            cancelAmendment.mutate(amendment.id)
-          }}
+          onSaveDraft={form.handleSubmit((values) => handleSaveDraft(values))}
+          onSaveAndComplete={form.handleSubmit(
+            handleSaveAndComplete
+          )}
+          onCancelDraft={handleCancelDraft}
         />
       </form>
     </section>

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useCallback, useEffect, useState } from "react"
 
 export const SYSTEM_SETTINGS_KEY = "system.settings"
 export const BRANDING_CACHE_KEY = "arda-branding"
@@ -44,10 +44,6 @@ export const defaultBranding: BrandingSettings = {
     "Access your secure workspace for identity, workflow, and financial operations.",
 }
 
-export const brandingKeys = {
-  all: ["system", "branding"] as const,
-}
-
 export function normalizeBranding(value: unknown): BrandingSettings {
   if (!value || typeof value !== "object") return defaultBranding
   const raw = value as Partial<Record<keyof BrandingSettings, unknown>>
@@ -81,18 +77,43 @@ export function normalizeBranding(value: unknown): BrandingSettings {
 }
 
 export function useSystemBranding() {
-  const cached = readCachedBranding()
-  const query = useQuery({
-    queryKey: brandingKeys.all,
-    queryFn: readSystemBranding,
-    staleTime: 60_000,
-    retry: 1,
-  })
+  const [branding, setBranding] = useState(
+    () => readCachedBranding() ?? defaultBranding
+  )
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  const [reloadVersion, setReloadVersion] = useState(0)
 
-  return {
-    ...query,
-    branding: query.data ?? cached ?? defaultBranding,
-  }
+  const reload = useCallback(() => {
+    setReloadVersion((version) => version + 1)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+
+    void readSystemBranding()
+      .then((nextBranding) => {
+        if (!cancelled) setBranding(nextBranding)
+      })
+      .catch((reason) => {
+        if (!cancelled) {
+          setError(
+            reason instanceof Error ? reason : new Error("Could not load branding")
+          )
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [reloadVersion])
+
+  return { branding, loading, error, reload }
 }
 
 export function cacheBranding(value: unknown) {

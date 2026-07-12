@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import type { LookupValue } from "../api"
+import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -41,7 +42,18 @@ import {
 } from "../shared/column-filters"
 import { sortByColumn, useClientListTable } from "../shared/client-list"
 import { ListTableToolbar } from "../shared/list-table-toolbar"
-import { useAreaTypes, useDeleteAreaType, useUpsertAreaType } from "./queries"
+
+const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
+
+async function ensureAreaTypeCategory() {
+  await platformApi.upsertLookupCategory({
+    code: AREA_TYPE_CATEGORY_CODE,
+    name: "Loai khu vuc",
+    scope_type: "global",
+    is_system: false,
+    description: "Danh muc loai khu vuc",
+  })
+}
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -90,13 +102,32 @@ export function AreaTypesPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<LookupValue | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<LookupValue | null>(null)
+  const [items, setItems] = useState<LookupValue[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  const areaTypesQuery = useAreaTypes()
-  const upsertAreaType = useUpsertAreaType()
-  const deleteAreaType = useDeleteAreaType()
-  const items = areaTypesQuery.data ?? []
-  const pageGate = pageGateFromQueries(areaTypesQuery)
-  const { fetching } = listQueryShellState(areaTypesQuery)
+  const loadAreaTypes = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
+    try {
+      await ensureAreaTypeCategory()
+      const result = await platformApi.listLookupValues(AREA_TYPE_CATEGORY_CODE)
+      setItems(result)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadAreaTypes(true)
+  }, [loadAreaTypes])
 
   const areaTypeSchema = useMemo(() => buildAreaTypeSchema(t), [t])
   const {
@@ -216,6 +247,7 @@ export function AreaTypesPage() {
   }
 
   const submitAreaType = handleSubmit(async (values) => {
+    setSaving(true)
     try {
       const payload: Partial<LookupValue> = {
         code: values.code.trim().toUpperCase().replace(/\s+/g, "_"),
@@ -227,21 +259,31 @@ export function AreaTypesPage() {
         payload.id = editingItem.id
         payload.category_id = editingItem.category_id
       }
-      await upsertAreaType.mutateAsync(payload)
+      await ensureAreaTypeCategory()
+      await platformApi.upsertLookupValue(AREA_TYPE_CATEGORY_CODE, payload)
+      notify.success("Luu loai khu vuc thanh cong")
       setDialogOpen(false)
       reset(areaTypeDefaultValues)
-    } catch {
-      // Mutation hook already shows the save error toast.
+      await loadAreaTypes()
+    } catch (err) {
+      notify.error("Luu loai khu vuc that bai", translateApiError(err))
+    } finally {
+      setSaving(false)
     }
   })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await deleteAreaType.mutateAsync(deleteTarget.id)
+      await platformApi.deleteLookupValue(deleteTarget.id)
+      notify.success("Xoa loai khu vuc thanh cong")
       setDeleteTarget(null)
-    } catch {
-      // Mutation hook already shows the delete error toast.
+      await loadAreaTypes()
+    } catch (err) {
+      notify.error("Xoa loai khu vuc that bai", translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -312,8 +354,8 @@ export function AreaTypesPage() {
               <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isSubmitting || upsertAreaType.isPending}>
-                {isSubmitting || upsertAreaType.isPending
+              <Button type="submit" disabled={isSubmitting || saving}>
+                {isSubmitting || saving
                   ? t("common.action.saving")
                   : t("common.action.save")}
               </Button>
@@ -334,6 +376,7 @@ export function AreaTypesPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("platform.area_types.delete.confirm")}
@@ -352,11 +395,11 @@ export function AreaTypesPage() {
           {t("platform.area_types.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadAreaTypes}
       loadErrorTitle={t("platform.area_types.load_failed")}
-      fetching={fetching}
+      fetching={refreshing}
       table={table}
       onRowDoubleClick={(row) => openEdit(row.original)}
       toolbar={

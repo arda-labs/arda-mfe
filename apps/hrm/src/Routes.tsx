@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react"
-import { usePathname } from "@workspace/core/routing"
+import { useLocation } from "react-router-dom"
 
 const PositionsPage = lazy(() =>
   import("@/features/hrm/positions/page").then((m) => ({ default: m.PositionsPage }))
@@ -19,22 +19,18 @@ const EmployeesPage = lazy(() =>
   import("@/features/hrm/employees/page").then((m) => ({ default: m.EmployeesPage }))
 )
 
-export default function Routes() {
+export default function RemoteRoutes() {
+  const { pathname } = useLocation()
+
+  let page = <PositionsPage />
+  if (pathname.startsWith("/hrm/job-titles")) page = <JobTitlesPage />
+  if (pathname.startsWith("/hrm/org-units")) page = <OrgUnitsPage />
+  if (pathname.startsWith("/hrm/registrations")) page = <RegistrationsPage />
+  if (pathname.startsWith("/hrm/employees")) page = <EmployeesPage />
+
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>
-        <HrmRoutes />
-      </Suspense>
+      <Suspense fallback={null}>{page}</Suspense>
     </div>
   )
-}
-
-function HrmRoutes() {
-  const pathname = usePathname("/hrm/positions")
-
-  if (pathname.startsWith("/hrm/job-titles")) return <JobTitlesPage />
-  if (pathname.startsWith("/hrm/org-units")) return <OrgUnitsPage />
-  if (pathname.startsWith("/hrm/registrations")) return <RegistrationsPage />
-  if (pathname.startsWith("/hrm/employees")) return <EmployeesPage />
-  return <PositionsPage />
 }

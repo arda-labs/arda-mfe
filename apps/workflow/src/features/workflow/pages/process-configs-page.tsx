@@ -1,6 +1,6 @@
-import { useState } from "react"
-import type { WorkflowCaseType } from "../api"
-import { useSlaPolicies, useWorkflowCaseTypes } from "../queries"
+import { useCallback, useEffect, useState } from "react"
+import type { WorkflowCaseType, SlaPolicy } from "../api"
+import { workflowApi } from "../api"
 import {
   CaseTypeTable,
   LoadingBlock,
@@ -10,10 +10,20 @@ import {
 } from "../shared/admin-ui"
 
 export function ProcessConfigsPage() {
-  const { data, isLoading } = useWorkflowCaseTypes()
-  const slaQuery = useSlaPolicies()
-  const items = data?.data ?? []
-  const slaItems = slaQuery.data?.data ?? []
+  const [ctResult, setCtResult] = useState<{ data: WorkflowCaseType[]; source: "api" | "mock" }>({ data: [], source: "mock" })
+  const [slaItems, setSlaItems] = useState<SlaPolicy[]>([])
+  const [loading, setLoading] = useState(true)
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [ct, sl] = await Promise.all([workflowApi.listCaseTypes(), workflowApi.listSlaPolicies()])
+      setCtResult(ct)
+      setSlaItems(sl.data)
+    } finally { setLoading(false) }
+  }, [])
+  useEffect(() => { void load() }, [load])
+
+  const items = ctResult.data
   const [editing, setEditing] = useState<WorkflowCaseType>()
   const enabled = items.filter((item) => item.workflowEnabled).length
   const roleOptions = roleOptionsFromCaseTypes(items)
@@ -27,7 +37,7 @@ export function ProcessConfigsPage() {
     <WorkflowFrame
       title="Cấu hình quy trình"
       description="Ánh xạ từng loại nghiệp vụ tới BPMN process id, version, SLA mặc định và role xử lý."
-      source={data?.source}
+      source={ctResult.source}
       metrics={[
         { label: "Loại nghiệp vụ", value: String(items.length), tone: "default" },
         { label: "Đang bật workflow", value: String(enabled), tone: "success" },
@@ -38,7 +48,7 @@ export function ProcessConfigsPage() {
         },
       ]}
     >
-      {isLoading ? (
+      {loading ? (
         <LoadingBlock />
       ) : (
         <CaseTypeTable items={items} mode="process" onEdit={setEditing} />

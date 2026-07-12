@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useState, type ReactNode } from "react"
+import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { AuthLoadingScreen } from "../../../packages/auth/src/loading-screen"
 import {
   CallbackPage,
@@ -10,24 +11,29 @@ import {
   normalizeAuthUser,
   useAuthStore,
 } from "../../../packages/auth/src/store"
+import * as authShare from "../../../packages/auth/src/index"
 import { getMediaContentUrl } from "../../../packages/core/src/media/urls"
+import { Dashboard } from "./dashboard"
+import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
+import { lazyRemote } from "./lazy-remote"
+import { ShellLayout } from "./ShellLayout"
 
-const WorkspaceApp = lazy(() => import("./WorkspaceApp"))
+const IamRoutes = lazyRemote(() => import("iam/Routes"))
+const PlatformRoutes = lazyRemote(() => import("platform/Routes"))
+const FinanceRoutes = lazyRemote(() => import("finance/Routes"))
+const HrmRoutes = lazyRemote(() => import("hrm/Routes"))
+const AccountRoutes = lazyRemote(() => import("account/Routes"))
+const CrmRoutes = lazyRemote(() => import("crm/Routes"))
+const WorkflowRoutes = lazyRemote(() => import("workflow/Routes"))
 
-function usePathname() {
-  const [pathname, setPathname] = useState(window.location.pathname)
+const routeFallback = <AuthLoadingScreen fullscreen={false} />
 
-  useEffect(() => {
-    const syncPathname = () => setPathname(window.location.pathname)
-    window.addEventListener("popstate", syncPathname)
-    return () => window.removeEventListener("popstate", syncPathname)
-  }, [])
-
-  return pathname
+function RemoteRoute({ children }: { children: ReactNode }) {
+  return <Suspense fallback={routeFallback}>{children}</Suspense>
 }
 
 export function App() {
-  const pathname = usePathname()
+  const { pathname } = useLocation()
   const { isAuthenticated, login, logout } = useAuthStore()
   const isAuthRoute = [
     "/login",
@@ -42,6 +48,7 @@ export function App() {
   useEffect(() => {
     if (!shouldCheckSession || redirectingToAuth) return
     let cancelled = false
+
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => {
         if (res.ok) return res.json()
@@ -58,23 +65,140 @@ export function App() {
           `${window.location.pathname}${window.location.search}`
         )
       })
+
     return () => {
       cancelled = true
     }
   }, [login, logout, redirectingToAuth, shouldCheckSession])
 
-  if (shouldCheckSession || (redirectingToAuth && !isAuthRoute))
+  if (shouldCheckSession || (redirectingToAuth && !isAuthRoute)) {
     return <AuthLoadingScreen />
-
-  if (pathname === "/auth") return <LoginPage />
-  if (pathname === "/login") return <LoginPage />
-  if (pathname === "/callback" || pathname === "/login-callback")
-    return <CallbackPage />
-  if (pathname === "/consent") return <ConsentPage />
+  }
 
   return (
-    <Suspense fallback={<AuthLoadingScreen />}>
-      <WorkspaceApp pathname={pathname} />
-    </Suspense>
+    <Routes>
+      <Route path="/auth" element={<LoginPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/callback" element={<CallbackPage />} />
+      <Route path="/login-callback" element={<CallbackPage />} />
+      <Route path="/consent" element={<ConsentPage />} />
+      <Route path="/404" element={<NotFoundPage />} />
+      <Route path="/502" element={<BadGatewayPage />} />
+      <Route
+        element={
+          <Suspense fallback={<AuthLoadingScreen />}>
+            <authShare.StepUpProvider>
+              <authShare.AuthGuard>
+                <ShellLayout />
+              </authShare.AuthGuard>
+            </authShare.StepUpProvider>
+          </Suspense>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+        <Route
+          path="/admin/organizations/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/parameters/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/provinces/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/wards/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/lookups/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/area-types/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/areas/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/credit-institutions/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/templates/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/calendar/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/cutoff/*"
+          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/users/*"
+          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/groups/*"
+          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/roles/*"
+          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/permissions/*"
+          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/audit/*"
+          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/admin/settings/*"
+          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/finance/*"
+          element={<RemoteRoute><FinanceRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/hrm/*"
+          element={<RemoteRoute><HrmRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/customers/*"
+          element={<RemoteRoute><CrmRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/workflow/*"
+          element={<RemoteRoute><WorkflowRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/workbench/*"
+          element={<RemoteRoute><WorkflowRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/my-account/*"
+          element={<RemoteRoute><AccountRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/in/*"
+          element={<RemoteRoute><AccountRoutes /></RemoteRoute>}
+        />
+        <Route
+          path="/settings/*"
+          element={<RemoteRoute><AccountRoutes /></RemoteRoute>}
+        />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   )
 }

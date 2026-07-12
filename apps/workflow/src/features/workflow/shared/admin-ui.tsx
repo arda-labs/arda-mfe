@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import {
   AlertCircle,
   Check,
@@ -64,8 +63,11 @@ import {
 } from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { workflowApi } from "../api"
 import { PrincipalPicker } from "../components/principal-picker"
+import { notify } from "@workspace/notifications/notify"
+import { useProcessInstanceRuntime } from "../shared/use-process-instance-runtime"
 import type {
   DescriptionTemplate,
   ProcessRole,
@@ -79,22 +81,6 @@ import type {
   WorkflowRoleCatalog,
   WorkflowRoleMembership,
 } from "../api"
-import {
-  useDeleteProcessDefinition,
-  useDeployProcessDefinition,
-  useImportProcessDefinition,
-  useProcessInstanceRuntime,
-  useSaveAssignmentRule,
-  useSaveCaseType,
-  useSaveDelegation,
-  useSaveDescriptionTemplate,
-  useSaveProcessRole,
-  useSaveRoleCatalog,
-  useSaveRoleMembership,
-  useSaveSlaPolicy,
-  useUpdateProcessDefinition,
-  useUpdateProcessConfig,
-} from "../queries"
 
 export function WorkflowFrame({
   title,
@@ -482,22 +468,36 @@ export function ProcessDefinitionsTable({
   onSelect,
   onView,
   onUpdate,
+  onDeploy,
+  onDelete,
+  saving,
 }: {
   items: WorkflowProcessDefinition[]
   selectedId?: string
   onSelect: (item: WorkflowProcessDefinition) => void
   onView: (item: WorkflowProcessDefinition) => void
   onUpdate: (item: WorkflowProcessDefinition) => void
+  onDeploy?: (id: string) => Promise<void>
+  onDelete?: (id: string) => void
+  saving?: boolean
 }) {
-  const deployMutation = useDeployProcessDefinition()
-  const deleteMutation = useDeleteProcessDefinition()
+  const [deployPending, setDeployPending] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<WorkflowProcessDefinition | null>(null)
+  const pending = deployPending != null || saving
+
+  async function handleDeploy(id: string) {
+    setDeployPending(id)
+    try {
+      await onDeploy?.(id)
+    } finally {
+      setDeployPending(null)
+    }
+  }
 
   function confirmDeleteDefinition() {
-    if (!deleteTarget) return
-    deleteMutation.mutate(deleteTarget.id, {
-      onSuccess: () => setDeleteTarget(null),
-    })
+    if (!deleteTarget || !onDelete) return
+    onDelete(deleteTarget.id)
+    setDeleteTarget(null)
   }
 
   if (!items.length) return <EmptyState text="Chưa có định nghĩa BPMN. Import file BPMN/XML để bắt đầu." />
@@ -550,8 +550,8 @@ export function ProcessDefinitionsTable({
                     type="button"
                     size="icon"
                     variant="outline"
-                    disabled={deployMutation.isPending}
-                    onClick={() => deployMutation.mutate(item.id)}
+                    disabled={Boolean(pending)}
+                    onClick={() => void handleDeploy(item.id)}
                   >
                     <Rocket className="size-4" />
                   </Button>
@@ -559,7 +559,7 @@ export function ProcessDefinitionsTable({
                     type="button"
                     size="icon"
                     variant="outline"
-                    disabled={deleteMutation.isPending}
+                    disabled={Boolean(pending)}
                     onClick={() => setDeleteTarget(item)}
                   >
                     <Trash2 className="size-4" />
@@ -581,10 +581,10 @@ export function ProcessDefinitionsTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={Boolean(pending)}>Hủy</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
+              disabled={Boolean(pending)}
               onClick={confirmDeleteDefinition}
             >
               Xóa
@@ -751,36 +751,48 @@ export function ProcessDefinitionDialog({
   item,
   open,
   onOpenChange,
+  onSaved,
 }: {
   item?: WorkflowProcessDefinition | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
-  const importMutation = useImportProcessDefinition()
-  const updateMutation = useUpdateProcessDefinition()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     processCode: item?.processCode ?? "",
     name: item?.name ?? "",
     status: item?.status ?? "DRAFT",
   })
   const [file, setFile] = useState<File | null>(null)
-  const pending = importMutation.isPending || updateMutation.isPending
+  const pending = saving
   const canSave = Boolean(form.name.trim() && file && (item || form.processCode.trim()))
 
   async function save() {
     if (!file || !canSave) return
-    const payload = {
-      processCode: form.processCode,
-      name: form.name,
-      status: form.status,
-      file,
+    setSaving(true)
+    try {
+      const payload = {
+        processCode: form.processCode,
+        name: form.name,
+        status: form.status,
+        file,
+      }
+      if (item) {
+        await workflowApi.updateProcessDefinition(item.id, payload)
+      } else {
+        await workflowApi.importProcessDefinition(payload)
+      }
+      onOpenChange(false)
+      onSaved?.()
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật BPMN thất bại" : "Import BPMN thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
     }
-    if (item) {
-      await updateMutation.mutateAsync({ id: item.id, payload })
-    } else {
-      await importMutation.mutateAsync(payload)
-    }
-    onOpenChange(false)
   }
 
   return (
@@ -839,14 +851,16 @@ export function CaseTypeDialog({
   businessAreaOptions,
   roleOptions,
   onOpenChange,
+  onSaved,
 }: {
   item?: WorkflowCaseType | null
   open: boolean
   businessAreaOptions: SelectOption[]
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }) {
-  const mutation = useSaveCaseType()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     caseType: item?.caseType ?? "",
     businessArea: item?.businessArea ?? "",
@@ -871,15 +885,43 @@ export function CaseTypeDialog({
 
   async function save() {
     if (!canSave) return
-    await mutation.mutateAsync({
-      caseType: item?.caseType,
-      payload: {
+    setSaving(true)
+    try {
+      const payload = {
         ...form,
         bpmnVersion: Number(form.bpmnVersion) || 1,
-      },
-    })
-    onOpenChange(false)
+      }
+      if (item?.caseType) {
+        await workflowApi.updateCaseType(item.caseType, payload)
+      } else {
+        await workflowApi.createCaseType(payload)
+      }
+      onOpenChange(false)
+      onSaved?.()
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật loại nghiệp vụ thất bại" : "Tạo loại nghiệp vụ thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
+
+  return (
+    <ConfigDialog title={item ? "Sửa loại nghiệp vụ" : "Tạo loại nghiệp vụ"} open={open} onOpenChange={onOpenChange}>
+      <TextInput label="Mã loại nghiệp vụ" value={form.caseType} onChange={(caseType) => setForm({ ...form, caseType })} disabled={Boolean(item)} />
+      <SelectInput label="Nhóm menu" value={form.businessArea} options={businessAreaOptions} onChange={(businessArea) => setForm({ ...form, businessArea })} />
+      <TextInput label="Tên vận hành" value={form.operationName} onChange={(operationName) => setForm({ ...form, operationName })} />
+      <SelectInput label="Owner service" value={form.ownerService} options={ownerServiceOptions} onChange={(ownerService) => setForm({ ...form, ownerService })} />
+      <TextInput label="BPMN process id" value={form.bpmnProcessId} onChange={(bpmnProcessId) => setForm({ ...form, bpmnProcessId })} />
+      <TextInput label="BPMN version" value={form.bpmnVersion} onChange={(bpmnVersion) => setForm({ ...form, bpmnVersion })} />
+      <SearchSelect label="Maker role" value={form.makerRole} options={roleOptions} allowCustom onChange={(makerRole) => setForm({ ...form, makerRole })} />
+      <SearchSelect label="Checker role" value={form.checkerRole} options={roleOptions} allowCustom onChange={(checkerRole) => setForm({ ...form, checkerRole })} />
+      <SelectInput label="Trạng thái" value={form.status} options={configStatusOptions} onChange={(status) => setForm({ ...form, status })} />
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
 
   return (
     <ConfigDialog title={item ? "Sửa loại nghiệp vụ" : "Tạo loại nghiệp vụ"} open={open} onOpenChange={onOpenChange}>
@@ -903,7 +945,7 @@ export function CaseTypeDialog({
       <DialogActions
         onCancel={() => onOpenChange(false)}
         onSave={save}
-        pending={mutation.isPending}
+        pending={saving}
         disabled={!canSave}
       />
     </ConfigDialog>
@@ -921,7 +963,7 @@ export function ProcessConfigDialog({
   slaOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useUpdateProcessConfig()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     bpmnProcessId: item?.bpmnProcessId ?? "",
     bpmnVersion: String(item?.bpmnVersion ?? 1),
@@ -934,14 +976,21 @@ export function ProcessConfigDialog({
 
   async function save() {
     if (!item) return
-    await mutation.mutateAsync({
-      caseType: item.caseType,
-      payload: {
+    setSaving(true)
+    try {
+      await workflowApi.updateProcessConfig(item.caseType, {
         ...form,
         bpmnVersion: Number(form.bpmnVersion) || 1,
-      },
-    })
-    onOpenChange(false)
+      })
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        "Cập nhật cấu hình quy trình thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -966,7 +1015,7 @@ export function ProcessConfigDialog({
             />
             Bật workflow
           </label>
-          <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={mutation.isPending} />
+          <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={saving} />
         </div>
       </DialogContent>
     </Dialog>
@@ -986,7 +1035,7 @@ export function SlaPolicyDialog({
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useSaveSlaPolicy()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     code: item?.code ?? "",
     name: item?.name ?? "",
@@ -1006,10 +1055,10 @@ export function SlaPolicyDialog({
 
   async function save() {
     if (!canSave) return
-    const summary = summarizeSlaTasks(form.taskPolicies)
-    await mutation.mutateAsync({
-      id: item?.id,
-      payload: {
+    setSaving(true)
+    try {
+      const summary = summarizeSlaTasks(form.taskPolicies)
+      const payload = {
         ...form,
         dueInHours: summary.dueInHours,
         warningInHours: summary.warningInHours,
@@ -1023,9 +1072,21 @@ export function SlaPolicyDialog({
           effectiveFrom: fromDateInputValue(task.effectiveFrom),
           effectiveTo: fromDateInputValue(task.effectiveTo),
         })),
-      },
-    })
-    onOpenChange(false)
+      }
+      if (item?.id) {
+        await workflowApi.updateSlaPolicy(item.id, payload)
+      } else {
+        await workflowApi.createSlaPolicy(payload)
+      }
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật SLA thất bại" : "Tạo SLA thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1050,7 +1111,7 @@ export function SlaPolicyDialog({
       <DialogActions
         onCancel={() => onOpenChange(false)}
         onSave={save}
-        pending={mutation.isPending}
+        pending={saving}
         disabled={!canSave}
       />
     </ConfigDialog>
@@ -1184,7 +1245,7 @@ export function DescriptionTemplateDialog({
   subsystemOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useSaveDescriptionTemplate()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     code: item?.code ?? "",
     businessSubsystem: item?.businessSubsystem ?? "FAC",
@@ -1203,8 +1264,23 @@ export function DescriptionTemplateDialog({
 
   async function save() {
     if (!canSave) return
-    await mutation.mutateAsync({ id: item?.id, payload: { ...form, preview } })
-    onOpenChange(false)
+    setSaving(true)
+    try {
+      const payload = { ...form, preview }
+      if (item?.id) {
+        await workflowApi.updateDescriptionTemplate(item.id, payload)
+      } else {
+        await workflowApi.createDescriptionTemplate(payload)
+      }
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật cấu trúc diễn giải thất bại" : "Tạo cấu trúc diễn giải thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1251,7 +1327,7 @@ export function DescriptionTemplateDialog({
       <DialogActions
         onCancel={() => onOpenChange(false)}
         onSave={save}
-        pending={mutation.isPending}
+        pending={saving}
         disabled={!canSave}
       />
     </ConfigDialog>
@@ -1271,7 +1347,7 @@ export function ProcessRoleDialog({
   iamRoleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useSaveProcessRole()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     caseType: item?.caseType ?? "",
     stepCode: item?.stepCode ?? "",
@@ -1282,8 +1358,22 @@ export function ProcessRoleDialog({
   })
 
   async function save() {
-    await mutation.mutateAsync({ id: item?.id, payload: form })
-    onOpenChange(false)
+    setSaving(true)
+    try {
+      if (item?.id) {
+        await workflowApi.updateProcessRole(item.id, form)
+      } else {
+        await workflowApi.createProcessRole(form)
+      }
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật vai trò quy trình thất bại" : "Tạo vai trò quy trình thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1294,7 +1384,7 @@ export function ProcessRoleDialog({
       <SearchSelect label="IAM role" value={form.iamRole} options={iamRoleOptions} allowCustom onChange={(iamRole) => setForm({ ...form, iamRole })} />
       <SelectInput label="Quyền thao tác" value={form.actionScope} options={actionScopeOptions} onChange={(actionScope) => setForm({ ...form, actionScope })} />
       <SelectInput label="Trạng thái" value={form.status} options={configStatusOptions} onChange={(status) => setForm({ ...form, status })} />
-      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={mutation.isPending} />
+      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={saving} />
     </ConfigDialog>
   )
 }
@@ -1308,7 +1398,7 @@ export function RoleCatalogDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useSaveRoleCatalog()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     roleCode: item?.roleCode ?? "",
     roleName: item?.roleName ?? "",
@@ -1320,8 +1410,22 @@ export function RoleCatalogDialog({
 
   async function save() {
     if (!canSave) return
-    await mutation.mutateAsync({ roleCode: item?.roleCode, payload: form })
-    onOpenChange(false)
+    setSaving(true)
+    try {
+      if (item?.roleCode) {
+        await workflowApi.updateRoleCatalog(item.roleCode, form)
+      } else {
+        await workflowApi.createRoleCatalog(form)
+      }
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật role vận hành thất bại" : "Tạo role vận hành thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1331,7 +1435,7 @@ export function RoleCatalogDialog({
       <SelectInput label="Loại role" value={form.roleType} options={roleTypeOptions} onChange={(roleType) => setForm({ ...form, roleType })} />
       <SelectInput label="Phân hệ" value={form.businessSubsystem} options={businessSubsystemOptions} onChange={(businessSubsystem) => setForm({ ...form, businessSubsystem })} />
       <SelectInput label="Trạng thái" value={form.status} options={configStatusOptions} onChange={(status) => setForm({ ...form, status })} />
-      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={mutation.isPending} disabled={!canSave} />
+      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={saving} disabled={!canSave} />
     </ConfigDialog>
   )
 }
@@ -1347,7 +1451,7 @@ export function RoleMembershipDialog({
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useSaveRoleMembership()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     roleCode: item?.roleCode ?? "",
     principalType: item?.principalType ?? "USER",
@@ -1385,17 +1489,29 @@ export function RoleMembershipDialog({
 
   async function save() {
     if (!canSave) return
-    await mutation.mutateAsync({
-      id: item?.id,
-      payload: {
+    setSaving(true)
+    try {
+      const payload = {
         ...form,
         minAmount: numberOrUndefined(form.minAmount),
         maxAmount: numberOrUndefined(form.maxAmount),
         effectiveFrom: fromDateInputValue(form.effectiveFrom),
         effectiveTo: fromDateInputValue(form.effectiveTo),
-      },
-    })
-    onOpenChange(false)
+      }
+      if (item?.id) {
+        await workflowApi.updateRoleMembership(item.id, payload)
+      } else {
+        await workflowApi.createRoleMembership(payload)
+      }
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật thành viên role thất bại" : "Thêm thành viên role thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1426,7 +1542,7 @@ export function RoleMembershipDialog({
         <DateInput label="Ngày hết hiệu lực" value={form.effectiveTo} onChange={(effectiveTo) => setForm({ ...form, effectiveTo })} />
       </div>
       <SelectInput label="Trạng thái" value={form.status} options={configStatusOptions} onChange={(status) => setForm({ ...form, status })} />
-      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={mutation.isPending} disabled={!canSave} />
+      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={saving} disabled={!canSave} />
     </ConfigDialog>
   )
 }
@@ -1444,7 +1560,7 @@ export function AssignmentRuleDialog({
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useSaveAssignmentRule()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     caseType: item?.caseType ?? "",
     stepCode: item?.stepCode ?? "",
@@ -1459,14 +1575,26 @@ export function AssignmentRuleDialog({
 
   async function save() {
     if (!canSave) return
-    await mutation.mutateAsync({
-      id: item?.id,
-      payload: {
+    setSaving(true)
+    try {
+      const payload = {
         ...form,
         priority: Number(form.priority) || 100,
-      },
-    })
-    onOpenChange(false)
+      }
+      if (item?.id) {
+        await workflowApi.updateAssignmentRule(item.id, payload)
+      } else {
+        await workflowApi.createAssignmentRule(payload)
+      }
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật luật phân công thất bại" : "Tạo luật phân công thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1486,7 +1614,7 @@ export function AssignmentRuleDialog({
         Bắt buộc tách maker/checker
       </label>
       <SelectInput label="Trạng thái" value={form.status} options={configStatusOptions} onChange={(status) => setForm({ ...form, status })} />
-      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={mutation.isPending} disabled={!canSave} />
+      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={saving} disabled={!canSave} />
     </ConfigDialog>
   )
 }
@@ -1502,7 +1630,7 @@ export function DelegationDialog({
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
-  const mutation = useSaveDelegation()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     fromPrincipalId: item?.fromPrincipalId ?? "",
     toPrincipalId: item?.toPrincipalId ?? "",
@@ -1516,15 +1644,27 @@ export function DelegationDialog({
 
   async function save() {
     if (!canSave) return
-    await mutation.mutateAsync({
-      id: item?.id,
-      payload: {
+    setSaving(true)
+    try {
+      const payload = {
         ...form,
         effectiveFrom: fromDateInputValue(form.effectiveFrom),
         effectiveTo: fromDateInputValue(form.effectiveTo),
-      },
-    })
-    onOpenChange(false)
+      }
+      if (item?.id) {
+        await workflowApi.updateDelegation(item.id, payload)
+      } else {
+        await workflowApi.createDelegation(payload)
+      }
+      onOpenChange(false)
+    } catch (error) {
+      notify.error(
+        item ? "Cập nhật ủy quyền thất bại" : "Tạo ủy quyền thất bại",
+        error instanceof Error ? error.message : undefined
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1539,7 +1679,7 @@ export function DelegationDialog({
         <Textarea value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} />
       </label>
       <SelectInput label="Trạng thái" value={form.status} options={configStatusOptions} onChange={(status) => setForm({ ...form, status })} />
-      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={mutation.isPending} disabled={!canSave} />
+      <DialogActions onCancel={() => onOpenChange(false)} onSave={save} pending={saving} disabled={!canSave} />
     </ConfigDialog>
   )
 }

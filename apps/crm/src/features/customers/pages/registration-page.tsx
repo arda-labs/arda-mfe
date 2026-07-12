@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
+import { uploadFile } from "@workspace/media"
 import { ArrowLeft, Check, RotateCcw, Save, Send, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -17,7 +18,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
-import type { Customer, CustomerType } from "../api"
+import type { Customer, CustomerType, WorkflowTimelineEvent } from "../api"
 import { customerApi } from "../api"
 import {
   CheckerDecisionDialog,
@@ -27,15 +28,7 @@ import { CustomerRegistrationTabsList } from "../components/registration-tabs-li
 import { RelationshipsPanel } from "../components/relationships-panel"
 import { GeoLocationFields } from "../geo-location-fields"
 import { OrgUnitField } from "../org-unit-field"
-import {
-  useCancelCustomer,
-  useCaseTimeline,
-  useCompleteWorkflowTask,
-  useCustomer,
-  useSaveCustomer,
-  useSubmitCustomer,
-  useUploadCustomerAvatar,
-} from "../queries"
+import { runMutation } from "../shared/form-utils"
 import {
   businessFields,
   customerSchema,
@@ -87,17 +80,11 @@ export function CustomerRegistrationPage({
     isLoading: taskContextLoading,
   } = useCustomerTaskContext()
   const customerId = taskContext.customerId ?? initialCustomerId ?? null
-  const saveCustomer = useSaveCustomer()
-  const submitCustomer = useSubmitCustomer()
-  const cancelCustomer = useCancelCustomer()
-  const completeTask = useCompleteWorkflowTask(taskContext.role)
   const [checkerDecision, setCheckerDecision] = useState<Exclude<
     CheckerDecision,
     "APPROVE"
   > | null>(null)
   const viewOnly = isViewOnlyTaskContext()
-  const uploadAvatar = useUploadCustomerAvatar()
-  const customerQuery = useCustomer(customerId)
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues,
@@ -115,23 +102,6 @@ export function CustomerRegistrationPage({
     savedCustomer?.status === "DRAFT" ||
     savedCustomer?.status === "NEEDS_CHANGES"
   const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
-  const caseTimeline = useCaseTimeline(
-    awaitingMakerResubmit
-      ? (taskContext.caseId ?? savedCustomer?.workflowCaseId ?? null)
-      : null
-  )
-  const latestRequestChangesNote = useMemo(() => {
-    const events = caseTimeline.data ?? []
-    for (let i = events.length - 1; i >= 0; i -= 1) {
-      if (
-        events[i]?.eventType === "CHECKER_REQUEST_CHANGES" &&
-        events[i]?.note
-      ) {
-        return events[i].note
-      }
-    }
-    return ""
-  }, [caseTimeline.data])
   const isReadonly = viewOnly || isActive || (isSubmitted && !canEditTask)
   const canCompleteTask =
     !viewOnly &&
@@ -147,16 +117,76 @@ export function CustomerRegistrationPage({
     : canEditTask
       ? "Cập nhật thông tin khách hàng theo yêu cầu của quy trình."
       : t("crm.customers.registrations.description")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const submittingRef = useRef(false)
+
+  // ── Load customer data ──
+  const [customerFetching, setCustomerFetching] = useState(false)
+  useEffect(() => {
+    if (!customerId) {
+      setSavedCustomer(null)
+      return
+    }
+    let cancelled = false
+    setCustomerFetching(true)
+    customerApi
+      .get(customerId)
+      .then((data) => {
+        if (!cancelled) {
+          setSavedCustomer(data)
+          form.reset(toFormValues(data))
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSavedCustomer(null)
+      })
+      .finally(() => {
+        if (!cancelled) setCustomerFetching(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [customerId, form])
+
   const loadingInitialCustomer =
     taskContextLoading ||
     (hasWorkItemId && !customerId && !taskContextError) ||
-    (Boolean(customerId) && customerQuery.isFetching && !savedCustomer)
-  const isSubmitting =
-    form.formState.isSubmitting ||
-    saveCustomer.isPending ||
-    submitCustomer.isPending ||
-    completeTask.isPending
-  const submittingRef = useRef(false)
+    (customerFetching && !savedCustomer)
+
+  // ── Case timeline ──
+  const [timelineEvents, setTimelineEvents] = useState<WorkflowTimelineEvent[]>([])
+  const timelineCaseId = awaitingMakerResubmit
+    ? (taskContext.caseId ?? savedCustomer?.workflowCaseId ?? null)
+    : null
+  useEffect(() => {
+    if (!timelineCaseId) {
+      setTimelineEvents([])
+      return
+    }
+    let cancelled = false
+    customerApi
+      .getWorkflowCaseTimeline(timelineCaseId)
+      .then((events) => {
+        if (!cancelled) setTimelineEvents(events)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [timelineCaseId])
+
+  const latestRequestChangesNote = useMemo(() => {
+    for (let i = timelineEvents.length - 1; i >= 0; i -= 1) {
+      if (
+        timelineEvents[i]?.eventType === "CHECKER_REQUEST_CHANGES" &&
+        timelineEvents[i]?.note
+      ) {
+        return timelineEvents[i].note
+      }
+    }
+    return ""
+  }, [timelineEvents])
 
   // ── Auto-save draft ──────────────────────────────
   const draftKey = useMemo(() => {
@@ -166,15 +196,9 @@ export function CustomerRegistrationPage({
 
   // Khôi phục draft từ localStorage hoặc từ API
   useEffect(() => {
-    if (customerQuery.data) {
-      form.reset(toFormValues(customerQuery.data))
-      setSavedCustomer(customerQuery.data)
-      // Xoá localStorage draft nếu có
-      if (draftKey) localStorage.removeItem(draftKey)
-      return
-    }
-    // Nếu chưa có customerId: khôi phục localStorage
-    if (taskContextLoading || hasWorkItemId || customerId) return
+    // Data loaded by the customerId effect above already resets the form.
+    // For new customers (no customerId), restore from localStorage.
+    if (taskContextLoading || hasWorkItemId || customerId || savedCustomer) return
     const raw = localStorage.getItem("crm_customer_draft:new")
     if (raw) {
       try {
@@ -184,21 +208,13 @@ export function CustomerRegistrationPage({
         /* ignore */
       }
     }
-  }, [
-    customerQuery.data,
-    form,
-    customerId,
-    draftKey,
-    hasWorkItemId,
-    taskContextLoading,
-  ])
+  }, [customerId, draftKey, form, hasWorkItemId, savedCustomer, taskContextLoading])
 
   // Auto-save khi form thay đổi (debounced)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoSaveDraft = useCallback(
     (values: CustomerFormValues) => {
       const cid = savedCustomer?.id
-      // Luôn lưu localStorage
       const storageKey = cid
         ? `crm_customer_draft:${cid}`
         : "crm_customer_draft:new"
@@ -223,21 +239,35 @@ export function CustomerRegistrationPage({
     (customer: Customer) => {
       setSavedCustomer(customer)
       form.reset(toFormValues(customer))
-      // Xoá draft localStorage sau khi lưu thành công lên server
       localStorage.removeItem(`crm_customer_draft:${customer.id}`)
       localStorage.removeItem("crm_customer_draft:new")
     },
     [form]
   )
 
+  async function saveDraft(payload: CustomerPayload) {
+    return customerApi.save(payload)
+  }
+
+  async function saveDraftWithToast(payload: CustomerPayload) {
+    return runMutation(() => customerApi.save(payload), {
+      success: "Đã lưu nháp",
+      error: "Lưu hồ sơ khách hàng thất bại",
+      description: (customer) =>
+        customer.customerCode
+          ? `Mã hồ sơ: ${customer.customerCode}. Tiếp theo: chỉnh sửa hồ sơ rồi bấm Hoàn thành.`
+          : "Tiếp theo: chỉnh sửa hồ sơ rồi bấm Hoàn thành.",
+    })
+  }
+
   async function saveAndSubmit(values: CustomerFormValues) {
     if (submittingRef.current) return
     submittingRef.current = true
+    setIsSubmitting(true)
     try {
-      const saved = await saveCustomer.mutateAsync({
-        payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
-        quiet: true,
-      })
+      const saved = await saveDraft(
+        toPayload(values, savedCustomer?.id, savedCustomer?.status)
+      )
       if (!saved.id) return
       refreshCustomer(saved)
 
@@ -247,27 +277,49 @@ export function CustomerRegistrationPage({
         navigateTo(`/customers/registrations?${params.toString()}`)
       }
 
-      const submitted = await submitCustomer.mutateAsync(saved.id)
+      const submitted = await runMutation(() => customerApi.submit(saved.id), {
+        success: "Đã khởi tạo hồ sơ khách hàng",
+        error: "Khởi tạo hồ sơ thất bại",
+        description: (customer) => {
+          const caseHint = customer.workflowCaseId
+            ? `Case BPM: ${customer.workflowCaseId}. `
+            : ""
+          return `${caseHint}Tiếp tục chỉnh sửa hồ sơ rồi bấm Hoàn thành.`
+        },
+      })
       refreshCustomer(submitted)
       navigateTo(await registrationMakerEditHref(submitted))
     } finally {
+      setIsSubmitting(false)
       submittingRef.current = false
     }
+  }
+
+  async function completeWorkflowTask(input: {
+    jobKey: string
+    processInstanceKey: string
+    elementId: string
+    variables: Record<string, unknown>
+  }) {
+    return runMutation(() => customerApi.completeTask(input), {
+      success: "Đã hoàn tất task quy trình",
+      error: "Hoàn tất task thất bại",
+    })
   }
 
   async function saveAndCompleteTask(values: CustomerFormValues) {
     if (submittingRef.current) return
     submittingRef.current = true
+    setIsSubmitting(true)
     try {
-      const saved = await saveCustomer.mutateAsync({
-        payload: toPayload(values, savedCustomer?.id, savedCustomer?.status),
-        quiet: true,
-      })
+      const saved = await saveDraft(
+        toPayload(values, savedCustomer?.id, savedCustomer?.status)
+      )
       refreshCustomer(saved)
 
       const resolved = await resolveWorkflowJobKey(taskContext, saved.status)
       if (!resolved) return
-      await completeTask.mutateAsync({
+      await completeWorkflowTask({
         jobKey: resolved.jobKey,
         processInstanceKey: resolved.processInstanceKey,
         elementId: resolved.elementId,
@@ -280,6 +332,7 @@ export function CustomerRegistrationPage({
       })
       navigateTo(postTaskWorkbenchHref())
     } finally {
+      setIsSubmitting(false)
       submittingRef.current = false
     }
   }
@@ -295,35 +348,34 @@ export function CustomerRegistrationPage({
     decision: CheckerDecision,
     comment?: string
   ) {
-    const resolved = await resolveWorkflowJobKey(
-      taskContext,
-      savedCustomer?.status
-    )
-    if (!resolved) return
-    const variables =
-      resolved.role === "CUSTOMER_RISK_CHECKER"
-        ? {
-            riskDecision: decision,
-            ...(comment ? { reviewComment: comment } : {}),
-          }
-        : {
-            reviewDecision: decision,
-            ...(comment ? { reviewComment: comment } : {}),
-          }
-    completeTask.mutate(
-      {
+    setIsSubmitting(true)
+    try {
+      const resolved = await resolveWorkflowJobKey(
+        taskContext,
+        savedCustomer?.status
+      )
+      if (!resolved) return
+      const variables =
+        resolved.role === "CUSTOMER_RISK_CHECKER"
+          ? {
+              riskDecision: decision,
+              ...(comment ? { reviewComment: comment } : {}),
+            }
+          : {
+              reviewDecision: decision,
+              ...(comment ? { reviewComment: comment } : {}),
+            }
+      await completeWorkflowTask({
         jobKey: resolved.jobKey,
         processInstanceKey: resolved.processInstanceKey,
         elementId: resolved.elementId,
         variables,
-      },
-      {
-        onSuccess: () => {
-          setCheckerDecision(null)
-          navigateTo(postTaskWorkbenchHref())
-        },
-      }
-    )
+      })
+      setCheckerDecision(null)
+      navigateTo(postTaskWorkbenchHref())
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function requestCheckerDecision(
@@ -333,8 +385,8 @@ export function CustomerRegistrationPage({
   }
 
   async function uploadAvatarFile(file: File) {
-    const customerId = savedCustomer?.id ?? form.getValues("id")?.trim()
-    if (!customerId) {
+    const cid = savedCustomer?.id ?? form.getValues("id")?.trim()
+    if (!cid) {
       notify.error("Lưu hồ sơ trước khi upload ảnh đại diện")
       return
     }
@@ -346,8 +398,45 @@ export function CustomerRegistrationPage({
       notify.error("Ảnh đại diện tối đa 5MB")
       return
     }
-    const result = await uploadAvatar.mutateAsync({ file, customerId })
-    form.setValue("avatarFileId", result.public_id, { shouldDirty: true })
+    setUploadingAvatar(true)
+    try {
+      const result = await runMutation(
+        () => uploadFile(file, "crm", "customer_avatar", cid),
+        {
+          success: "Đã tải ảnh đại diện lên media-service",
+          error: "Tải ảnh đại diện thất bại",
+        }
+      )
+      form.setValue("avatarFileId", result.public_id, { shouldDirty: true })
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  async function handleCancel() {
+    if (!savedCustomer?.id) return
+    await runMutation(() => customerApi.cancel(savedCustomer.id), {
+      success: "Đã hủy hồ sơ nháp",
+      error: "Hủy hồ sơ thất bại",
+    })
+    navigateTo("/workbench/drafts")
+  }
+
+  async function handleSaveDraft(values: CustomerFormValues) {
+    setIsSubmitting(true)
+    try {
+      const saved = await saveDraftWithToast(
+        toPayload(values, savedCustomer?.id, savedCustomer?.status)
+      )
+      refreshCustomer(saved)
+      const params = new URLSearchParams(window.location.search)
+      if (!params.has("customerId")) {
+        params.set("customerId", saved.id)
+        navigateTo(`/customers/registrations?${params.toString()}`)
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (loadingInitialCustomer || taskContextError) {
@@ -397,7 +486,7 @@ export function CustomerRegistrationPage({
               />
             </div>
             <div className="space-y-4 p-4">
-              {customerQuery.isFetching ? (
+              {customerFetching ? (
                 <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
                   Đang tải hồ sơ...
                 </div>
@@ -479,7 +568,7 @@ export function CustomerRegistrationPage({
                       </div>
                       <AvatarUploader
                         fileId={form.watch("avatarFileId")}
-                        uploading={uploadAvatar.isPending}
+                        uploading={uploadingAvatar}
                         onClear={() =>
                           form.setValue("avatarFileId", "", {
                             shouldDirty: true,
@@ -532,28 +621,9 @@ export function CustomerRegistrationPage({
           onApprove={() => completeCurrentTask("APPROVE")}
           onRequestChanges={() => requestCheckerDecision("REQUEST_CHANGES")}
           onReject={() => requestCheckerDecision("REJECT")}
-          onCancel={() => {
-            if (!savedCustomer?.id) return
-            cancelCustomer.mutate(savedCustomer.id, {
-              onSuccess: () => navigateTo("/workbench/drafts"),
-            })
-          }}
+          onCancel={handleCancel}
           onBack={goBack}
-          onSaveDraft={form.handleSubmit(async (values) => {
-            const saved = await saveCustomer.mutateAsync({
-              payload: toPayload(
-                values,
-                savedCustomer?.id,
-                savedCustomer?.status
-              ),
-            })
-            refreshCustomer(saved)
-            const params = new URLSearchParams(window.location.search)
-            if (!params.has("customerId")) {
-              params.set("customerId", saved.id)
-              navigateTo(`/customers/registrations?${params.toString()}`)
-            }
-          }, handleInvalid)}
+          onSaveDraft={form.handleSubmit(handleSaveDraft, handleInvalid)}
           onSaveAndSubmit={form.handleSubmit(saveAndSubmit, handleInvalid)}
           onSaveAndRevise={form.handleSubmit(
             saveAndCompleteTask,
@@ -564,7 +634,7 @@ export function CustomerRegistrationPage({
       <CheckerDecisionDialog
         decision={checkerDecision}
         open={checkerDecision != null}
-        submitting={completeTask.isPending}
+        submitting={isSubmitting}
         onOpenChange={(open) => {
           if (!open) setCheckerDecision(null)
         }}

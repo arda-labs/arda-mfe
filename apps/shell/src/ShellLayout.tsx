@@ -1,5 +1,6 @@
-import type { Dispatch, ReactNode, SetStateAction } from "react"
+import type { Dispatch, SetStateAction } from "react"
 import { useEffect, useState } from "react"
+import { useLocation, useNavigate, Outlet } from "react-router-dom"
 import type { LucideIcon } from "lucide-react"
 import {
   Building2,
@@ -364,15 +365,10 @@ const navItems: NavNode[] = [
   },
 ]
 
-export function ShellLayout({
-  children,
-  pathname,
-  navigate,
-}: {
-  children: ReactNode
-  pathname: string
-  navigate: (pathname: string) => void
-}) {
+export function ShellLayout() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const pathname = location.pathname
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "nav.admin": true,
@@ -544,7 +540,7 @@ export function ShellLayout({
         </header>
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-            {children}
+            <Outlet />
           </div>
           <Toaster />
           <GlobalErrorDialog />

@@ -12,7 +12,6 @@
     "typecheck": "bun run --filter './apps/*' --filter './packages/*' typecheck"
   },
   "devDependencies": {
-    "@tanstack/react-query": "^5.101.2",
     "@eslint/js": "^10",
     "@module-federation/vite": "^1.16.12",
     "eslint": "^10",
@@ -21,6 +20,7 @@
     "globals": "^17",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "react-router-dom": "^7",
     "typescript": "~6",
     "typescript-eslint": "^8"
   },

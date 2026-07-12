@@ -1,28 +1,45 @@
-import { useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
-import {
-  useEmployees,
-  useJobTitles,
-  useOrgUnits,
-  usePositions,
-} from "../queries"
+import { hrmApi, type Employee, type JobTitle, type OrgUnit, type Position } from "../api"
 import { DataTable, StatusBadge } from "../shared/ui"
 
 export function EmployeesPage() {
-  const employees = useEmployees()
-  const orgUnits = useOrgUnits()
-  const positions = usePositions()
-  const jobTitles = useJobTitles()
+  const [items, setItems] = useState<Employee[]>([])
+  const [orgUnits, setOrgUnits] = useState<OrgUnit[]>([])
+  const [positions, setPositions] = useState<Position[]>([])
+  const [jobTitles, setJobTitles] = useState<JobTitle[]>([])
+
+  const load = useCallback(async () => {
+    try {
+      const [employees, units, pos, titles] = await Promise.all([
+        hrmApi.listEmployees(),
+        hrmApi.listOrgUnits(),
+        hrmApi.listPositions(),
+        hrmApi.listJobTitles(),
+      ])
+      setItems(employees)
+      setOrgUnits(units)
+      setPositions(pos)
+      setJobTitles(titles)
+    } catch {
+      notify.error("Khong the tai danh sach nhan su")
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
   const itemMap = useMemo(
     () => ({
-      orgUnits: new Map((orgUnits.data ?? []).map((item) => [item.id, item.name])),
-      positions: new Map((positions.data ?? []).map((item) => [item.id, item.name])),
-      jobTitles: new Map((jobTitles.data ?? []).map((item) => [item.id, item.name])),
+      orgUnits: new Map(orgUnits.map((item) => [item.id, item.name])),
+      positions: new Map(positions.map((item) => [item.id, item.name])),
+      jobTitles: new Map(jobTitles.map((item) => [item.id, item.name])),
     }),
-    [jobTitles.data, orgUnits.data, positions.data]
+    [jobTitles, orgUnits, positions]
   )
-  const items = employees.data ?? []
 
   return (
     <section className="space-y-4 p-4">

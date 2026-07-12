@@ -1,15 +1,9 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { Permission, Role } from "@/features/iam"
-import {
-  useCreateRole,
-  useDeleteRole,
-  useRolePermissionOptions,
-  useRoles,
-  useSetRolePermission,
-} from "@/features/iam/roles/queries"
+import { adminApi } from "@/features/iam"
 import { notify } from "@workspace/notifications/notify"
 import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
@@ -40,9 +34,9 @@ import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { FormField } from "@workspace/ui/components/form-field"
 import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
-import { ShieldCheck, Trash2 } from "lucide-react"
+import { listPageCount } from "@workspace/core/http/list-api"
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from "nuqs"
-import { listQueryShellState, pageGateFromQueries } from "@workspace/core/query/list-query"
+import { ShieldCheck, Trash2 } from "lucide-react"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -63,6 +57,23 @@ export function RolesPage() {
   const [open, setOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Role | null>(null)
   const [permissionTarget, setPermissionTarget] = useState<Role | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [busyPermissionID, setBusyPermissionID] = useState<string | null>(null)
+
+  // list state
+  const [roles, setRoles] = useState<Role[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const hasLoadedRef = useRef(false)
+
+  // permission options dialog state
+  const [allPermissions, setAllPermissions] = useState<Permission[]>([])
+  const [rolePermissions, setRolePermissions] = useState<Permission[]>([])
+  const [permissionsLoading, setPermissionsLoading] = useState(false)
+
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -72,16 +83,67 @@ export function RolesPage() {
     resolver: zodResolver(roleFormSchema),
     defaultValues: roleDefaultValues,
   })
-  const createRole = useCreateRole()
-  const deleteRole = useDeleteRole()
-  const setRolePermission = useSetRolePermission()
-  const rolePermissionOptions = useRolePermissionOptions(permissionTarget?.id)
-  const permissions = rolePermissionOptions.data?.permissions ?? []
-  const rolePermissions = rolePermissionOptions.data?.rolePermissions ?? []
-  const permissionsLoading = rolePermissionOptions.isLoading
-  const busyPermissionID = setRolePermission.isPending
-    ? setRolePermission.variables?.permissionId
-    : null
+
+  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
+  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
+  const [searchParam] = useQueryState("code", parseAsString)
+  const [statusParam] = useQueryState("status", parseAsArrayOf(parseAsString, ",").withDefault([]))
+
+  const loadRoles = useCallback(async () => {
+    setLoadError(null)
+    if (hasLoadedRef.current) setRefreshing(true)
+    else setLoading(true)
+    try {
+      const result = await adminApi.listRoles({
+        page: pageParam,
+        perPage: pageSizeParam,
+        q: searchParam || undefined,
+        status: statusParam.length === 1 ? statusParam[0] : undefined,
+      })
+      setRoles(result.items)
+      setTotal(result.total)
+    } catch (reason) {
+      setLoadError(reason)
+    } finally {
+      hasLoadedRef.current = true
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [pageParam, pageSizeParam, searchParam, statusParam])
+
+  useEffect(() => {
+    void loadRoles()
+  }, [loadRoles])
+
+  // Load permission options locally while a permission target is set
+  useEffect(() => {
+    if (!permissionTarget) {
+      setAllPermissions([])
+      setRolePermissions([])
+      return
+    }
+    let cancelled = false
+    setPermissionsLoading(true)
+    void Promise.all([
+      adminApi.listPermissions({ page: 1, perPage: 100 }),
+      adminApi.listRolePermissions(permissionTarget.id),
+    ])
+      .then(([all, assigned]) => {
+        if (cancelled) return
+        setAllPermissions(all.items)
+        setRolePermissions(assigned.permissions)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        notify.error("Không tải được danh sách quyền", translateApiError(err))
+      })
+      .finally(() => {
+        if (!cancelled) setPermissionsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [permissionTarget])
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
@@ -89,42 +151,50 @@ export function RolesPage() {
   }
 
   const handleCreate = handleSubmit(async (values) => {
+    setCreating(true)
     try {
-      await createRole.mutateAsync(values)
+      await adminApi.createRole(values)
       notify.success("Đã tạo vai trò")
       setOpen(false)
       reset(roleDefaultValues)
+      await loadRoles()
     } catch (err) {
       notify.error("Không tạo được vai trò", translateApiError(err))
+    } finally {
+      setCreating(false)
     }
   })
 
   const handleDelete = async (id: string) => {
+    setDeleting(true)
     try {
-      await deleteRole.mutateAsync(id)
+      await adminApi.deleteRole(id)
       notify.success("Đã xóa vai trò")
       setDeleteTarget(null)
+      await loadRoles()
     } catch (err) {
       notify.error("Không xóa được vai trò", translateApiError(err))
+    } finally {
+      setDeleting(false)
     }
-  }
-
-
-  const openPermissions = (role: Role) => {
-    setPermissionTarget(role)
   }
 
   const togglePermission = async (permission: Permission, assigned: boolean) => {
     if (!permissionTarget) return
+    setBusyPermissionID(permission.id)
     try {
-      await setRolePermission.mutateAsync({
-        roleId: permissionTarget.id,
-        permissionId: permission.id,
-        assigned,
-      })
+      if (assigned) {
+        await adminApi.unassignRolePermission(permissionTarget.id, permission.id)
+        setRolePermissions((prev) => prev.filter((item) => item.id !== permission.id))
+      } else {
+        await adminApi.assignRolePermission(permissionTarget.id, permission.id)
+        setRolePermissions((prev) => [...prev, permission])
+      }
       notify.success("Đã cập nhật quyền")
     } catch (err) {
       notify.error("Không cập nhật được quyền", translateApiError(err))
+    } finally {
+      setBusyPermissionID(null)
     }
   }
 
@@ -201,7 +271,7 @@ export function RolesPage() {
             variant="ghost"
             size="icon"
             className="size-7 text-muted-foreground"
-            onClick={() => openPermissions(row.original)}
+            onClick={() => setPermissionTarget(row.original)}
             title="Phân quyền"
           >
             <ShieldCheck className="size-3.5" />
@@ -222,32 +292,16 @@ export function RolesPage() {
     },
   ], [t])
 
-  const [pageParam] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [pageSizeParam] = useQueryState("perPage", parseAsInteger.withDefault(DEFAULT_PAGE_SIZE))
-  const [searchParam] = useQueryState("code", parseAsString)
-  const [statusParam] = useQueryState(
-    "status",
-    parseAsArrayOf(parseAsString, ",").withDefault([])
-  )
-  const rolesQuery = useRoles({
-    page: pageParam,
-    perPage: pageSizeParam,
-    q: searchParam || undefined,
-    status: statusParam.length === 1 ? statusParam[0] : undefined,
-  })
-  const roles = rolesQuery.data?.items ?? []
-  const total = rolesQuery.data?.total ?? 0
-  const pageGate = pageGateFromQueries(rolesQuery)
-  const { fetching } = listQueryShellState(rolesQuery)
-  const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
+  const totalPages = Math.max(1, listPageCount(total, pageSizeParam))
+
   const permissionsByModule = useMemo(() => {
     const groups = new Map<string, Permission[]>()
-    for (const permission of permissions) {
+    for (const permission of allPermissions) {
       const key = permission.module || "other"
       groups.set(key, [...(groups.get(key) ?? []), permission])
     }
     return Array.from(groups.entries())
-  }, [permissions])
+  }, [allPermissions])
 
   const { table } = useDataTable<Role>({
     columns,
@@ -260,12 +314,6 @@ export function RolesPage() {
       },
     },
   })
-
-  useEffect(() => {
-    if (rolePermissionOptions.error) {
-      notify.error("Không tải được danh sách quyền", translateApiError(rolePermissionOptions.error))
-    }
-  }, [rolePermissionOptions.error])
 
   const dialogs = (
     <>
@@ -287,7 +335,7 @@ export function RolesPage() {
                 {...register("name")}
               />
             </FormField>
-            <Button className="w-full" type="submit" disabled={isSubmitting || createRole.isPending}>
+            <Button className="w-full" type="submit" disabled={isSubmitting || creating}>
               {t("common.action.create")}
             </Button>
           </form>
@@ -304,7 +352,7 @@ export function RolesPage() {
           <div className="max-h-[65vh] space-y-4 overflow-auto pr-1">
             {permissionsLoading ? (
               <div className="text-sm text-muted-foreground">Đang tải quyền...</div>
-            ) : permissions.length === 0 ? (
+            ) : allPermissions.length === 0 ? (
               <div className="text-sm text-muted-foreground">Chưa có quyền để gán.</div>
             ) : (
               permissionsByModule.map(([module, items]) => (
@@ -345,7 +393,7 @@ export function RolesPage() {
       <AlertDialog open={deleteTarget !== null} onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("common.confirm.delete_title")}</AlertDialogTitle>
+            <DialogTitle>{t("common.confirm.delete_title")}</DialogTitle>
             <AlertDialogDescription>
               {t("common.confirm.delete_description", {
                 item: deleteTarget?.code || deleteTarget?.name || "",
@@ -356,7 +404,7 @@ export function RolesPage() {
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteRole.isPending}
+              disabled={deleting}
               onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
             >
               {t("common.action.delete")}
@@ -375,10 +423,10 @@ export function RolesPage() {
           {t("admin.roles.count", { count: total })}
         </Badge>
       }
-      criticalPending={pageGate.criticalPending}
-      criticalError={pageGate.criticalError}
-      onRetry={pageGate.onRetry}
-      fetching={fetching}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={loadRoles}
+      fetching={refreshing}
       table={table}
       toolbar={
         <ListTableToolbar

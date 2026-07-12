@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/notifications/notify"
-import { useAddHoliday, useCalendarStatus, useHolidays, useTriggerEOD } from "./queries"
+import { platformApi, type HolidayCalendar, type SystemDate } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -42,14 +42,32 @@ export function CalendarPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedHolidayId, setSelectedHolidayId] = useState<string | null>(null)
+  const [status, setStatus] = useState<SystemDate | null>(null)
+  const [holidays, setHolidays] = useState<HolidayCalendar[]>([])
+  const [loading, setLoading] = useState(true)
+  const [eodPending, setEodPending] = useState(false)
+  const [addHolidayPending, setAddHolidayPending] = useState(false)
   const calendarRef = useRef<FullCalendar>(null)
-  const statusQuery = useCalendarStatus("HEAD_OFFICE")
-  const holidaysQuery = useHolidays()
-  const triggerEODMutation = useTriggerEOD("HEAD_OFFICE")
-  const addHolidayMutation = useAddHoliday()
-  const status = statusQuery.data ?? null
-  const holidays = holidaysQuery.data ?? []
-  const loading = statusQuery.isLoading || holidaysQuery.isLoading
+
+  const loadCalendar = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    try {
+      const [statusResult, holidaysResult] = await Promise.all([
+        platformApi.getCalendarStatus("HEAD_OFFICE"),
+        platformApi.listHolidays(),
+      ])
+      setStatus(statusResult)
+      setHolidays(holidaysResult)
+    } catch (err) {
+      notify.error("Khong the tai thong tin lich lam viec", translateApiError(err))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadCalendar(true)
+  }, [loadCalendar])
   const {
     control,
     formState: { errors, isSubmitting },
@@ -61,18 +79,16 @@ export function CalendarPage() {
     defaultValues: holidayDefaultValues,
   })
 
-  useEffect(() => {
-    const error = statusQuery.error || holidaysQuery.error
-    if (error) {
-      notify.error("Khong the tai thong tin lich lam viec", translateApiError(error))
-    }
-  }, [statusQuery.error, holidaysQuery.error])
-
   const handleRunEOD = async () => {
+    setEodPending(true)
     try {
-      await triggerEODMutation.mutateAsync()
-    } catch {
-      // Mutation hook owns the toast.
+      const result = await platformApi.triggerEOD("HEAD_OFFICE")
+      notify.success(result.message || "Xu ly cuoi ngay (EOD) thanh cong")
+      await loadCalendar()
+    } catch (err) {
+      notify.error("Chay EOD that bai", translateApiError(err))
+    } finally {
+      setEodPending(false)
     }
   }
 
@@ -147,12 +163,13 @@ export function CalendarPage() {
     const newDate = event.startStr
     const extProps = event.extendedProps
     try {
-      await addHolidayMutation.mutateAsync({
+      await platformApi.addHoliday({
         date: newDate,
         description: extProps.description,
         isRecurring: extProps.isRecurring,
       })
       notify.success(`Da doi ngay nghi le sang ${new Date(newDate).toLocaleDateString("vi-VN")}`)
+      await loadCalendar()
     } catch (error) {
       dropInfo.revert()
       notify.error("Khong the thay doi ngay nghi le", translateApiError(error))
@@ -160,8 +177,9 @@ export function CalendarPage() {
   }
 
   const submitHoliday = handleSubmit(async (values) => {
+    setAddHolidayPending(true)
     try {
-      await addHolidayMutation.mutateAsync({
+      await platformApi.addHoliday({
         date: values.holidayDate,
         description: values.description.trim(),
         isRecurring: values.isRecurring,
@@ -169,8 +187,11 @@ export function CalendarPage() {
       notify.success(selectedHolidayId ? "Cap nhat ngay nghi le thanh cong" : "Them ngay nghi le thanh cong")
       setModalOpen(false)
       reset(holidayDefaultValues)
+      await loadCalendar()
     } catch (error) {
       notify.error("Xu ly that bai", translateApiError(error))
+    } finally {
+      setAddHolidayPending(false)
     }
   })
 
@@ -219,8 +240,8 @@ export function CalendarPage() {
                 </div>
               </div>
             )}
-            <Button size="sm" onClick={handleRunEOD} disabled={triggerEODMutation.isPending || status?.status !== "OPEN"}>
-              {triggerEODMutation.isPending ? <Spinner className="mr-1 size-3" /> : null}
+            <Button size="sm" onClick={handleRunEOD} disabled={eodPending || status?.status !== "OPEN"}>
+              {eodPending ? <Spinner className="mr-1 size-3" /> : null}
               Chay EOD
             </Button>
           </div>
@@ -350,7 +371,7 @@ export function CalendarPage() {
               <Button type="button" variant="outline" onClick={() => handleDialogOpenChange(false)}>
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting || addHolidayMutation.isPending}>
+              <Button type="submit" disabled={isSubmitting || addHolidayPending}>
                 {isSubmitting ? <Spinner className="mr-1 size-4" /> : null}
                 Luu thong tin
               </Button>

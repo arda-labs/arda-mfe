@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
+import { api } from "@workspace/api"
+import { uploadAvatar } from "@workspace/media"
 import type { LucideIcon } from "lucide-react"
 import { BadgeCheck, Camera, Copy, Mail, ShieldCheck, Upload, User2 } from "lucide-react"
 import { useAuthStore } from "@workspace/auth/store"
@@ -17,7 +19,6 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { useUpdateEmail, useUploadAvatar } from "./queries"
 
 export function ProfilePage() {
   const { t } = useI18n()
@@ -29,8 +30,8 @@ export function ProfilePage() {
   const [emailOpen, setEmailOpen] = useState(false)
   const [newEmail, setNewEmail] = useState("")
   const [emailError, setEmailError] = useState<string | null>(null)
-  const uploadAvatarMutation = useUploadAvatar()
-  const updateEmailMutation = useUpdateEmail()
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [updatingEmail, setUpdatingEmail] = useState(false)
 
   useEffect(() => {
     setPreview(user?.picture || "")
@@ -66,8 +67,9 @@ export function ProfilePage() {
 
     const localPreview = URL.createObjectURL(file)
     setPreview(localPreview)
+    setUploadingAvatar(true)
     try {
-      const result = await uploadAvatarMutation.mutateAsync({ file, userId: user.userId || user.sub })
+      const result = await uploadAvatar(file, user.userId || user.sub)
       updateUser({ picture: result.url, avatarFileId: result.public_id })
       setPreview(result.url)
       setMessage(t("profile.avatar.upload_success"))
@@ -75,6 +77,7 @@ export function ProfilePage() {
       setPreview(user.picture || "")
       setError(translateApiError(err, "profile.avatar.upload_failed"))
     } finally {
+      setUploadingAvatar(false)
       URL.revokeObjectURL(localPreview)
       if (inputRef.current) inputRef.current.value = ""
     }
@@ -88,14 +91,20 @@ export function ProfilePage() {
     }
 
     setEmailError(null)
+    setUpdatingEmail(true)
     try {
-      const updated = await updateEmailMutation.mutateAsync(email)
+      const updated = await api.put<{ email: string }>(
+        "/api/identity/me/email",
+        { email }
+      )
       updateUser({ email: updated.email })
       setMessage("Email updated")
       setEmailOpen(false)
       setNewEmail("")
     } catch (err) {
       setEmailError(err instanceof Error ? err.message : "Failed to update email")
+    } finally {
+      setUpdatingEmail(false)
     }
   }
 
@@ -181,10 +190,10 @@ export function ProfilePage() {
         <Button
           className="mt-6 w-full gap-2"
           onClick={() => inputRef.current?.click()}
-          disabled={uploadAvatarMutation.isPending}
+          disabled={uploadingAvatar}
         >
-          {uploadAvatarMutation.isPending ? <Spinner className="size-4" /> : <Upload className="size-4" />}
-          {uploadAvatarMutation.isPending ? t("profile.avatar.uploading") : t("profile.avatar.upload")}
+          {uploadingAvatar ? <Spinner className="size-4" /> : <Upload className="size-4" />}
+          {uploadingAvatar ? t("profile.avatar.uploading") : t("profile.avatar.upload")}
         </Button>
         <p className="mt-3 text-xs leading-5 text-muted-foreground">{t("profile.avatar.hint")}</p>
       </aside>
@@ -216,8 +225,8 @@ export function ProfilePage() {
             <Button variant="outline" onClick={() => setEmailOpen(false)}>
               {t("common.action.cancel")}
             </Button>
-            <Button onClick={handleChangeEmail} disabled={updateEmailMutation.isPending}>
-              {updateEmailMutation.isPending ? <Spinner className="mr-2 size-4" /> : null}
+            <Button onClick={handleChangeEmail} disabled={updatingEmail}>
+              {updatingEmail ? <Spinner className="mr-2 size-4" /> : null}
               Save
             </Button>
           </DialogFooter>

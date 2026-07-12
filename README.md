@@ -45,7 +45,8 @@ apps/<remote>/src/features/<domain>/
 - `Routes.tsx` only — remotes expose `./Routes` via Module Federation.
 - `page.tsx` target ≤ 400 lines; split into `components/` when larger.
 - Heavy dependencies (BPMN, large forms): `lazy()` at tab/dialog open.
-- Server state via TanStack Query; no mirroring lists in Zustand.
+- Server state: page-local React primitives (useState/useEffect/useCallback), direct API calls, no generic cache/invalidation layer.
+- URL state: React Router useSearchParams.
 
 ## Business areas
 
