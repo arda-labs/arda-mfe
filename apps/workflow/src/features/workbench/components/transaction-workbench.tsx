@@ -67,10 +67,12 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
     loadingRef.current = true
     setFetching(true)
     setError(null)
+    const filterAtCall = filterRef.current
+    const baseAtCall = baseFilterRef.current
     try {
       const [wi, sm] = await Promise.all([
-        workbenchApi.listWorkItems(filterRef.current),
-        workbenchApi.listWorkItemSummary(baseFilterRef.current),
+        workbenchApi.listWorkItems(filterAtCall),
+        workbenchApi.listWorkItemSummary(baseAtCall),
       ])
       if (mountedRef.current) {
         setItems(wi)
@@ -81,6 +83,15 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
     } finally {
       if (mountedRef.current) setFetching(false)
       loadingRef.current = false
+      // Retry nếu filter thay đổi trong lúc fetch (tránh mất request)
+      if (
+        mountedRef.current &&
+        (JSON.stringify(filterRef.current) !== JSON.stringify(filterAtCall) ||
+          JSON.stringify(baseFilterRef.current) !== JSON.stringify(baseAtCall))
+      ) {
+        loadingRef.current = false
+        void reload()
+      }
     }
   }, [])
 
@@ -115,9 +126,11 @@ function TransactionWorkbenchInner({
     [direction, activeNode]
   )
 
+  const debouncedKeyword = useDebouncedValue(filters.keyword ?? "", 300)
+
   const queryFilter = useMemo(() => {
     const next = { ...baseFilter }
-    if (filters.keyword) next.keyword = filters.keyword
+    if (debouncedKeyword) next.keyword = debouncedKeyword
     if (filters.fromDate) next.fromDate = filters.fromDate
     if (filters.toDate) next.toDate = filters.toDate
     if (filters.accounting)
@@ -125,7 +138,7 @@ function TransactionWorkbenchInner({
     if (filters.slaStatus)
       next.slaStatus = filters.slaStatus as WorkItemFilter["slaStatus"]
     return next
-  }, [baseFilter, filters])
+  }, [baseFilter, debouncedKeyword, filters.fromDate, filters.toDate, filters.accounting, filters.slaStatus])
 
   const { items: allItems, summary: summaryData, fetching, reload } = useWorkbenchData(queryFilter, baseFilter)
   const [claimPending, setClaimPending] = useState(false)
@@ -292,23 +305,32 @@ function TransactionWorkbenchInner({
   )
 }
 
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+  return debounced
+}
+
 export function TransactionSearchPage() {
   const { t } = useI18n()
   const [filters, setFilters] = useState<FilterState>({})
   const [items, setItems] = useState<WorkItem[]>([])
   const [_fetching, setFetching] = useState(false)
 
+  const debouncedKeyword = useDebouncedValue(filters.keyword ?? "", 300)
+
   const queryFilter = useMemo<WorkItemFilter>(() => {
     const next: WorkItemFilter = { direction: "ALL", limit: 100 }
-    if (filters.keyword) next.keyword = filters.keyword
+    if (debouncedKeyword) next.keyword = debouncedKeyword
     if (filters.fromDate) next.fromDate = filters.fromDate
     if (filters.toDate) next.toDate = filters.toDate
-    if (filters.transactionStatus)
-      next.transactionStatus = filters.transactionStatus
-    if (filters.slaStatus)
-      next.slaStatus = filters.slaStatus as WorkItemFilter["slaStatus"]
+    if (filters.transactionStatus) next.transactionStatus = filters.transactionStatus
+    if (filters.slaStatus) next.slaStatus = filters.slaStatus as WorkItemFilter["slaStatus"]
     return next
-  }, [filters])
+  }, [debouncedKeyword, filters.fromDate, filters.toDate, filters.transactionStatus, filters.slaStatus])
 
   const filterStable = JSON.stringify(queryFilter)
   const expectCaseCode = workbenchExpectCaseCode()
@@ -326,7 +348,7 @@ export function TransactionSearchPage() {
     }
   }, [])
 
-  // Reload khi filter thay đổi — so sánh filterStable để không phụ thuộc vào object reference
+  // Reload khi filter thay đổi
   useEffect(() => {
     void load()
   }, [load, filterStable])

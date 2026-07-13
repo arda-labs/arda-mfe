@@ -107,7 +107,7 @@ export function AvatarUploader({
 
   return (
     <div className="space-y-2">
-      <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-md border bg-muted/30">
+      <div className="flex aspect-4/5 w-full items-center justify-center overflow-hidden rounded-md border bg-muted/30">
         {fileId ? (
           <img
             alt="Avatar khách hàng"

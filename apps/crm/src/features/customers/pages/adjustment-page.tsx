@@ -321,7 +321,7 @@ export function CustomerAdjustmentPage({
   if (taskContextLoading) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter:stable]">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter-stable]">
           <PageTitle title={pageTitle} description={pageDescription} />
           <div className="mt-4 rounded-md border px-4 py-3 text-sm text-muted-foreground">
             Đang tải ngữ cảnh giao dịch...
@@ -335,7 +335,7 @@ export function CustomerAdjustmentPage({
   if (!customerId) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 [scrollbar-gutter:stable]">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 [scrollbar-gutter-stable]">
           <PageTitle title={pageTitle} description={pageDescription} />
           <EmptyState text="Thiếu customerId trên URL." />
         </div>
@@ -353,7 +353,7 @@ export function CustomerAdjustmentPage({
         className="flex min-h-0 flex-1 flex-col"
         onSubmit={form.handleSubmit((values) => handleSaveDraft(values))}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter-stable]">
           <Tabs defaultValue="general" className="flex flex-col">
             <div className="space-y-4 p-4 pb-3">
               <PageTitle
