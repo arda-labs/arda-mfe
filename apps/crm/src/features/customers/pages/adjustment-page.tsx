@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/core/routing"
-import { useI18n } from "@workspace/i18n"
-import { Plus } from "lucide-react"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/notifications/notify"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { PageTitle } from "@workspace/ui/components/page-title"
@@ -40,9 +39,10 @@ import {
   hasTaskContext,
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
-  type CustomerTaskContext,
   useCustomerTaskContext,
+  workflowKey,
 } from "../utils/task-context"
+import { waitForTaskReady } from "../utils/workflow-transition"
 import { postTaskWorkbenchHref } from "../utils/workbench-return"
 import {
   EmptyState,
@@ -98,25 +98,34 @@ export function CustomerAdjustmentPage({
   // ── Local state ──
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [customerFetching, setCustomerFetching] = useState(false)
+  const [customerError, setCustomerError] = useState<unknown>(null)
   const [amendment, setAmendment] = useState<CustomerAmendment | null>(null)
   const [amendmentFetching, setAmendmentFetching] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [autoStarting, setAutoStarting] = useState(false)
+  const [autoStartFailed, setAutoStartFailed] = useState(false)
 
   // ── Load customer ──
   useEffect(() => {
     if (!customerId) {
       setCustomer(null)
+      setCustomerError(null)
       return
     }
     let cancelled = false
     setCustomerFetching(true)
+    setCustomerError(null)
     customerApi
       .get(customerId)
       .then((data) => {
         if (!cancelled) setCustomer(data)
       })
-      .catch(() => {
-        if (!cancelled) setCustomer(null)
+      .catch((err) => {
+        if (!cancelled) {
+          setCustomer(null)
+          setCustomerError(err)
+          notify.error("Không tải được thông tin khách hàng", translateApiError(err))
+        }
       })
       .finally(() => {
         if (!cancelled) setCustomerFetching(false)
@@ -149,11 +158,13 @@ export function CustomerAdjustmentPage({
   const canEdit = amendment?.status === "DRAFT"
   const canSubmit = canEdit && Boolean(amendment?.id)
   const canCancelDraft = canEdit && Boolean(amendment?.id)
-  const canStart =
+  const canAutoStart =
     !viewOnly &&
+    !autoStarting &&
+    !autoStartFailed &&
     Boolean(customerId) &&
     customer?.status === "ACTIVE" &&
-    !amendment &&
+    !amendment?.id &&
     !amendmentFetching
   const awaitingAmendmentResubmit =
     amendment?.status === "DRAFT" && hasTaskContext(taskContext)
@@ -216,22 +227,47 @@ export function CustomerAdjustmentPage({
     }
   }
 
-  async function handleStartAdjustment() {
-    setIsSubmitting(true)
-    try {
-      const result = await runMutation(
-        () => customerApi.startAdjustment(customerId),
-        {
-          success: "Đã mở phiên điều chỉnh hồ sơ",
-          error: "Mở điều chỉnh thất bại",
+  // ── Auto-start adjustment when entering with customerId and no amendment ──
+  const autoStartedRef = useRef(false)
+  useEffect(() => {
+    if (!canAutoStart || autoStartedRef.current) return
+    autoStartedRef.current = true
+    setAutoStarting(true)
+
+    ;(async () => {
+      try {
+        const result = await customerApi.startAdjustment(customerId)
+
+        const { ready, timedOut } = await waitForTaskReady({
+          caseId: result.workflowCaseId,
+          stepCode: "UT_MakerRevise",
+          getReadiness: customerApi.getTaskReadiness.bind(customerApi),
+          timeoutMs: 30_000,
+        })
+        setAutoStarting(false)
+
+        if (!ready) {
+          notify.warning(
+            "Đang xử lý hồ sơ",
+            timedOut
+              ? "Hệ thống đang xử lý, vui lòng vào Giao dịch đến sau vài phút."
+              : "Vui lòng vào Giao dịch đến để tiếp tục chỉnh sửa."
+          )
+          navigateTo(postTaskWorkbenchHref())
+          return
         }
-      )
-      setAmendment(result)
-      navigateTo(adjustmentIncomingHref(taskContext))
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+
+        navigateTo(await adjustmentMakerEditHref(result))
+      } catch (error) {
+        notify.error(
+          "Không thể khởi tạo điều chỉnh",
+          translateApiError(error)
+        )
+        setAutoStarting(false)
+        setAutoStartFailed(true)
+      }
+    })()
+  }, [canAutoStart, customerId])
 
   async function handleSaveDraft(values: CustomerFormValues) {
     setIsSubmitting(true)
@@ -258,7 +294,7 @@ export function CustomerAdjustmentPage({
       if (canEditTask) {
         await completeCurrentTask("APPROVE")
       } else {
-        navigateTo(adjustmentIncomingHref(taskContext))
+        navigateTo(postTaskWorkbenchHref())
       }
     } finally {
       setIsSubmitting(false)
@@ -308,6 +344,9 @@ export function CustomerAdjustmentPage({
     )
   }
 
+  const isCustomerLoading = customerFetching && !customer
+  const hasCustomerError = customerError !== null && !customer
+
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form
@@ -333,12 +372,18 @@ export function CustomerAdjustmentPage({
               <AdjustmentTabsList />
             </div>
             <div className="space-y-4 p-4">
-              {customerFetching || amendmentFetching ? (
+              {isCustomerLoading ? (
                 <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-                  Đang tải hồ sơ...
+                  Đang tải hồ sơ khách hàng...
+                </div>
+              ) : hasCustomerError ? (
+                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                  Không tải được thông tin khách hàng. Vui lòng thử lại hoặc kiểm tra customerId.
                 </div>
               ) : null}
+
               <RegistrationStatusBar customer={customer} />
+
               {amendment ? (
                 <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
                   <span>
@@ -360,21 +405,24 @@ export function CustomerAdjustmentPage({
                   {t("crm.customers.adjustments.resubmit_banner")}
                 </div>
               ) : null}
-              {readOnly ? (
+              {readOnly && amendment ? (
                 <div className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
                   {t("crm.customers.adjustments.pending_banner")}
                 </div>
               ) : null}
-              {canStart ? (
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={handleStartAdjustment}
-                  >
-                    <Plus className="size-4" />
-                    {t("crm.customers.adjustments.start")}
-                  </Button>
+
+              {!customerFetching && !hasCustomerError && customer && !amendment?.id && !autoStarting && !autoStartFailed ? (
+                <div className="rounded-md border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                  {customer.status === "ACTIVE"
+                    ? "Khách hàng này chưa có phiên điều chỉnh. Hệ thống sẽ tự động khởi tạo..."
+                    : `Không thể bắt đầu điều chỉnh — trạng thái khách hàng là "${customer.status}".`}
+                </div>
+              ) : null}
+
+              {autoStarting ? (
+                <div className="flex flex-col items-center rounded-md border px-4 py-10 text-sm text-muted-foreground">
+                  <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+                  <p>Đang khởi tạo phiên điều chỉnh...</p>
                 </div>
               ) : null}
               {amendment ? (
@@ -443,8 +491,26 @@ export function CustomerAdjustmentPage({
   )
 }
 
-function adjustmentIncomingHref(context: CustomerTaskContext) {
-  const code = context.caseCode?.trim()
-  if (!code) return "/workbench/incoming-transactions"
-  return `/workbench/incoming-transactions?caseCode=${encodeURIComponent(code)}`
+async function adjustmentMakerEditHref(amendment: CustomerAmendment): Promise<string> {
+  const caseId = amendment.workflowCaseId?.trim()
+  if (!caseId) return postTaskWorkbenchHref()
+
+  try {
+    const wfCase = await customerApi.getWorkflowCase(caseId)
+    const processInstanceKey = workflowKey(wfCase.processInstanceKey)
+    if (!processInstanceKey) return postTaskWorkbenchHref()
+
+    const params = new URLSearchParams({
+      customerId: amendment.customerId,
+      caseId,
+      caseCode: wfCase.caseCode || "",
+      processInstanceKey,
+      elementId: "UT_MakerRevise",
+      role: "CUSTOMER_MAKER",
+      returnUrl: "/workbench/incoming-transactions",
+    })
+    return `/customers/adjustments?${params.toString()}`
+  } catch {
+    return postTaskWorkbenchHref()
+  }
 }

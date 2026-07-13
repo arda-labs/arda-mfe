@@ -282,7 +282,7 @@ export function EmptyState({ text }: { text: string }) {
 export function FooterBackButton({ onBack }: { onBack: () => void }) {
   return (
     <div className="flex h-13 shrink-0 items-center justify-end border-t bg-background px-4">
-      <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+      <Button className="h-8" type="button" variant="outline" onClick={onBack}>
         <ArrowLeft className="size-4" />
         Quay lại
       </Button>
@@ -333,7 +333,7 @@ export function FooterActions({
 }) {
   const showMakerActions =
     (canEditTask || awaitingMakerResubmit || canEdit) && !canCompleteTask
-  const showCheckerActions = canCompleteTask && !isReadonly
+  const showCheckerActions = canCompleteTask
 
   return (
     <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
@@ -467,7 +467,7 @@ export function FooterActions({
           </Button>
         ) : null}
 
-        <Button className="h-8" type="button" variant="ghost" onClick={onBack}>
+        <Button className="h-8" type="button" variant="outline" onClick={onBack}>
           <ArrowLeft className="size-4" />
           Quay lại
         </Button>
