@@ -210,11 +210,7 @@ export const workbenchApi = {
   listWorkItems(filter: WorkItemFilter = {}) {
     const search = toWorkItemSearch(filter)
     const suffix = search ? `?${search}` : ""
-    // #region agent log
-    const url = `/api/workflow/work-items${suffix}`
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'api.ts:listWorkItems',message:'listWorkItems called',data:{url,filter},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    return getItems<WorkItem>(url)
+    return getItems<WorkItem>(`/api/workflow/work-items${suffix}`)
   },
 
   listWorkItemSummary(filter: WorkItemFilter = {}) {

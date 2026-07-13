@@ -63,9 +63,6 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
   const loadingRef = useRef(false)
 
   const reload = useCallback(async () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:HOOK_RELOAD',message:'useWorkbenchData reload() called',data:{filter:filterRef.current,loadingRef:loadingRef.current},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     if (loadingRef.current) return // no overlap
     loadingRef.current = true
     setFetching(true)
@@ -76,9 +73,6 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
         workbenchApi.listWorkItemSummary(baseFilterRef.current),
       ])
       if (mountedRef.current) {
-        // #region agent log
-        fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:HOOK_RELOAD_RESULT',message:'useWorkbenchData reload() result',data:{workItemsCount:wi.length,summaryCount:sm.length,workItems:wi.slice(0,3).map(i=>({id:i.id,caseCode:i.caseCode,title:i.title}))},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         setItems(wi)
         setSummary(sm)
       }
@@ -121,15 +115,6 @@ function TransactionWorkbenchInner({
     [direction, activeNode]
   )
 
-  // #region agent log
-  const filtersLogSent = useRef<string>("")
-  const filtersJson = JSON.stringify(filters)
-  if (filtersLogSent.current !== filtersJson) {
-    filtersLogSent.current = filtersJson
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:WORKBENCH',message:'TransactionWorkbench filters changed',data:{direction,filters,baseFilter},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-  }
-  // #endregion
-
   const queryFilter = useMemo(() => {
     const next = { ...baseFilter }
     if (filters.keyword) next.keyword = filters.keyword
@@ -157,23 +142,12 @@ function TransactionWorkbenchInner({
   reloadRef.current = reload
   const filterStable = JSON.stringify(queryFilter)
 
-  // #region agent log
-  const stableLogSent = useRef<string>("")
-  if (stableLogSent.current !== filterStable) {
-    stableLogSent.current = filterStable
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:WORKBENCH_FILTER_STABLE',message:'TransactionWorkbench filterStable changed',data:{filterStable},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-  }
-  // #endregion
-
   // Reload ngay khi filter thay đổi (không chờ poll cycle)
   useEffect(() => {
     void reload()
   }, [reload, filterStable])
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:WORKBENCH_POLL',message:'TransactionWorkbench poll effect fired',data:{filterStable,refetchInterval,direction,filters},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     let cancelled = false
     let timer: ReturnType<typeof setTimeout>
 
@@ -192,9 +166,6 @@ function TransactionWorkbenchInner({
     timer = setTimeout(poll, refetchInterval)
 
     return () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:WORKBENCH_POLL_CLEANUP',message:'TransactionWorkbench poll effect cleanup',data:{filterStable,refetchInterval},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       cancelled = true
       clearTimeout(timer)
     }
@@ -327,19 +298,7 @@ export function TransactionSearchPage() {
   const [items, setItems] = useState<WorkItem[]>([])
   const [_fetching, setFetching] = useState(false)
 
-  // #region agent log
-  const filterLogSent = useRef<string>("")
-  const filtersJson = JSON.stringify(filters)
-  if (filterLogSent.current !== filtersJson) {
-    filterLogSent.current = filtersJson
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:SEARCH_PAGE',message:'TransactionSearchPage filters changed',data:{filters},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-  }
-  // #endregion
-
   const queryFilter = useMemo<WorkItemFilter>(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:SEARCH_QUERY_FILTER',message:'TransactionSearchPage queryFilter recomputed',data:{queryFilter:{direction:'ALL',limit:100,keyword:filters.keyword,fromDate:filters.fromDate,toDate:filters.toDate,transactionStatus:filters.transactionStatus,slaStatus:filters.slaStatus}},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     const next: WorkItemFilter = { direction: "ALL", limit: 100 }
     if (filters.keyword) next.keyword = filters.keyword
     if (filters.fromDate) next.fromDate = filters.fromDate
@@ -358,15 +317,9 @@ export function TransactionSearchPage() {
   filterRef.current = queryFilter
 
   const load = useCallback(async () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:SEARCH_LOAD',message:'TransactionSearchPage load() called',data:{filter:filterRef.current},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     setFetching(true)
     try {
       const data = await workbenchApi.listWorkItems(filterRef.current)
-      // #region agent log
-      fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:SEARCH_RESULT',message:'TransactionSearchPage load() result',data:{itemsCount:data.length,items:data.slice(0,3).map(i=>({id:i.id,caseCode:i.caseCode,title:i.title}))},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
       setItems(data)
     } finally {
       setFetching(false)
@@ -382,9 +335,6 @@ export function TransactionSearchPage() {
   const loadRef = useRef(load)
   loadRef.current = load
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:SEARCH_POLL_EFFECT',message:'TransactionSearchPage poll effect fired',data:{refetchInterval,deps:JSON.stringify([refetchInterval]),filters},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     let cancelled = false
     let timer: ReturnType<typeof setTimeout>
     async function poll() {
@@ -399,9 +349,6 @@ export function TransactionSearchPage() {
     }
     timer = setTimeout(poll, refetchInterval)
     return () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7339/ingest/80a6fe47-f115-44af-8b61-ec3d1349dc7b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'318383'},body:JSON.stringify({sessionId:'318383',location:'transaction-workbench.tsx:SEARCH_POLL_CLEANUP',message:'TransactionSearchPage poll effect cleanup',data:{refetchInterval},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
       cancelled = true
       clearTimeout(timer)
     }
