@@ -24,7 +24,13 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/notifications/notify"
 import { workflowApi } from "../api"
-import type { WorkflowCase, WorkflowProcessDefinition } from "../api"
+import type { ElementInstanceStat, WorkflowCase, WorkflowProcessDefinition } from "../api"
+
+type BpmnOverlays = {
+  add: (elementId: string, options: { position: Record<string, string | number>; html: HTMLElement }) => void
+  remove: (elementId: string) => void
+  clear: () => void
+}
 
 type BpmnCanvas = {
   zoom: (value?: string | number) => number
@@ -220,6 +226,194 @@ export function BpmnViewerPanel({
           stroke: var(--primary) !important;
           stroke-width: 4px !important;
         }
+      `}</style>
+    </div>
+  )
+}
+
+// ─── Operate BPMN Viewer with element instance overlay badges ───────────────────
+
+export function OperateBpmnViewer({
+  title,
+  xml,
+  highlightId,
+  loading,
+  elementStats,
+  className,
+}: {
+  title: string
+  xml: string
+  highlightId?: string
+  loading?: boolean
+  elementStats?: Map<string, ElementInstanceStat>
+  className?: string
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (!containerRef.current || !xml) return
+    let disposed = false
+    let frame = 0
+    const container = containerRef.current
+    container.replaceChildren()
+    const viewer = new BpmnViewer({
+      container,
+      moddleExtensions: { zeebe: zeebeModdle },
+    })
+    setError("")
+
+    frame = window.requestAnimationFrame(() => {
+      viewer
+      .importXML(xml)
+      .then(() => {
+        if (disposed) return
+        const canvas = viewer.get("canvas") as BpmnCanvas
+        const overlays = viewer.get("overlays") as BpmnOverlays
+
+        fitCanvasViewport(canvas)
+
+        // Highlight current element
+        if (highlightId) {
+          try {
+            canvas.addMarker(highlightId, "highlight-current")
+          } catch {
+            setError(`Không tìm thấy BPMN element "${highlightId}" để highlight.`)
+          }
+        }
+
+        // Add element count overlays
+        if (elementStats && elementStats.size > 0) {
+          for (const [elementId, stat] of elementStats) {
+            if (stat.totalCount === 0 && stat.incidentCount === 0) continue
+
+            const badge = document.createElement("div")
+            badge.className = "operate-element-badge"
+            badge.title = `${stat.elementName || elementId}: ${stat.activeCount} active, ${stat.incidentCount} incidents, ${stat.completedCount} completed`
+
+            if (stat.incidentCount > 0) {
+              badge.innerHTML = `
+                <span class="badge-incident">${stat.incidentCount}</span>
+                ${stat.activeCount > 0 ? `<span class="badge-active">${stat.activeCount}</span>` : ""}
+              `
+            } else if (stat.activeCount > 0) {
+              badge.innerHTML = `<span class="badge-active">${stat.activeCount}</span>`
+            } else if (stat.completedCount > 0) {
+              badge.innerHTML = `<span class="badge-completed">${stat.completedCount}</span>`
+            }
+
+            try {
+              overlays.add(elementId, {
+                position: { bottom: -8, right: -8 },
+                html: badge,
+              })
+            } catch {
+              // Element might not be on the current diagram
+            }
+          }
+        }
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Không đọc được BPMN XML."
+        setError(message)
+      })
+    })
+
+    return () => {
+      disposed = true
+      window.cancelAnimationFrame(frame)
+      try {
+        viewer.destroy()
+      } catch {
+        container.replaceChildren()
+      }
+    }
+  }, [xml, highlightId, elementStats])
+
+  if (loading) return <LoadingBlock />
+  if (!xml) return <EmptyState text="Chọn hoặc import một định nghĩa BPMN để xem sơ đồ." />
+
+  return (
+    <div className={cn("overflow-hidden rounded-lg border", className)}>
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-base font-semibold">{title}</h2>
+          {highlightId ? (
+            <p className="font-mono text-xs text-muted-foreground">current: {highlightId}</p>
+          ) : null}
+        </div>
+      </div>
+      <div className="relative min-h-[34rem]">
+        <div ref={containerRef} className="h-full min-h-[34rem] w-full bg-background" />
+        {error ? (
+          <div className="absolute bottom-3 left-3 right-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
+            {error}
+          </div>
+        ) : null}
+      </div>
+      <style>{`
+        .highlight-current:not(.djs-connection) .djs-visual > :nth-child(1) {
+          stroke: var(--primary) !important;
+          stroke-width: 4px !important;
+        }
+        .highlight-current.djs-connection .djs-visual > path {
+          stroke: var(--primary) !important;
+          stroke-width: 4px !important;
+        }
+        .operate-element-badge {
+          display: flex;
+          gap: 2px;
+          pointer-events: auto;
+          cursor: pointer;
+        }
+        .operate-element-badge .badge-active {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          border-radius: 999px;
+          background: #0ea5e9;
+          color: white;
+          font-size: 10px;
+          font-weight: 700;
+          line-height: 1;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .operate-element-badge .badge-incident {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          border-radius: 999px;
+          background: #ef4444;
+          color: white;
+          font-size: 10px;
+          font-weight: 700;
+          line-height: 1;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .operate-element-badge .badge-completed {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          border-radius: 999px;
+          background: #6b7280;
+          color: white;
+          font-size: 10px;
+          font-weight: 600;
+          line-height: 1;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .dark .operate-element-badge .badge-active { background: #38bdf8; }
+        .dark .operate-element-badge .badge-incident { background: #f87171; }
+        .dark .operate-element-badge .badge-completed { background: #9ca3af; }
       `}</style>
     </div>
   )

@@ -36,3 +36,8 @@ export const BpmnDefinitionViewerDialog = lazyBpmn(
   () => import("./bpmn-monitor"),
   "BpmnDefinitionViewerDialog"
 )
+
+export const OperateBpmnViewer = lazyBpmn(
+  () => import("./bpmn-monitor"),
+  "OperateBpmnViewer"
+)

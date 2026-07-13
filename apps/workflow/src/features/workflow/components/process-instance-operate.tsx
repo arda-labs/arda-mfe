@@ -1,24 +1,49 @@
 import { useMemo, useState } from "react"
-import { AlertCircle, Eye, RefreshCw, RotateCcw } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
-import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+  AlertCircle,
+  AlertTriangle,
+  Ban,
+  CheckCircle2,
+  CircleDot,
+  Clock,
+  Eye,
+  Filter,
+  ListTree,
+  PauseCircle,
+  PlayCircle,
+  RefreshCw,
+  RotateCcw,
+  Search,
+} from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@workspace/ui/components/accordion"
+import { Button } from "@workspace/ui/components/button"
+import { Input } from "@workspace/ui/components/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/notifications/notify"
 import { workflowApi } from "../api"
-import type { WorkflowCase, WorkflowCaseType } from "../api"
+import type {
+  ElementInstanceStat,
+  IncidentState,
+  JobState,
+  WorkflowCase,
+  WorkflowCaseType,
+} from "../api"
 import { useProcessInstanceRuntime } from "../shared/use-process-instance-runtime"
-import { BpmnViewerPanel } from "./bpmn-monitor-lazy"
+import { OperateBpmnViewer } from "./bpmn-monitor-lazy"
 
 type ProcessInstanceOperateProps = {
   cases: WorkflowCase[]
@@ -27,6 +52,47 @@ type ProcessInstanceOperateProps = {
   bpmnXml: string
   bpmnLoading?: boolean
   onSelect: (item: WorkflowCase) => void
+  elementStats: Map<string, ElementInstanceStat>
+  incidents: IncidentState[]
+  jobs: JobState[]
+}
+
+function InstanceStateBadge({ state }: { state: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    ACTIVE: { label: "Đang chạy", className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300" },
+    COMPLETED: { label: "Hoàn thành", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
+    CANCELED: { label: "Đã hủy", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
+    SUSPENDED: { label: "Tạm dừng", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+    INCIDENT: { label: "Lỗi", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
+  }
+  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium", c.className)}>
+      {c.label}
+    </span>
+  )
+}
+
+function IncidentStateBadge({ state }: { state: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    CREATED: { label: "Mới", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
+    RESOLVED: { label: "Đã xử lý", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
+    PENDING: { label: "Đang chờ", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+  }
+  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
+  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c.className)}>{c.label}</span>
+}
+
+function JobStateBadge({ state }: { state: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    ACTIVATABLE: { label: "Sẵn sàng", className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300" },
+    ACTIVATED: { label: "Đang chạy", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
+    FAILED: { label: "Thất bại", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
+    ERROR_THROWN: { label: "Lỗi", className: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300" },
+    SUSPENDED: { label: "Tạm dừng", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+  }
+  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
+  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c.className)}>{c.label}</span>
 }
 
 export function ProcessInstanceOperate({
@@ -36,14 +102,18 @@ export function ProcessInstanceOperate({
   bpmnXml,
   bpmnLoading,
   onSelect,
+  elementStats,
+  incidents,
+  jobs,
 }: ProcessInstanceOperateProps) {
-  const [dockTab, setDockTab] = useState("jobs")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [instanceFilter, setInstanceFilter] = useState("all")
   const [retryJobPending, setRetryJobPending] = useState<string | null>(null)
-  const [retryServicePending, setRetryServicePending] = useState(false)
+  const [actionPending, setActionPending] = useState<string | null>(null)
   const runtimeQuery = useProcessInstanceRuntime(selected?.processInstanceKey)
   const runtime: import("../api").ProcessInstanceRuntime | undefined = runtimeQuery.data ?? undefined
   const pendingJobs = runtime?.pendingJobs ?? []
-  const incidents = runtime?.incidents ?? []
+  const runtimeIncidents = runtime?.incidents ?? []
   const timeline = runtime?.timeline ?? []
   const highlightId = runtime?.activeElementId || selected?.currentStep
   const caseTypeNames = useMemo(
@@ -51,11 +121,47 @@ export function ProcessInstanceOperate({
     [caseTypes]
   )
 
+  // Filter cases client-side
+  const filteredCases = useMemo(() => {
+    let list = cases
+    if (instanceFilter !== "all") {
+      list = list.filter((item) => item.status === instanceFilter)
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      list = list.filter((item) =>
+        item.caseCode.toLowerCase().includes(q) ||
+        item.title.toLowerCase().includes(q) ||
+        String(item.processInstanceKey ?? "").toLowerCase().includes(q)
+      )
+    }
+    return list
+  }, [cases, instanceFilter, searchQuery])
+
+  // Filter operate-level data per selected instance's bpmnProcessId
+  const selectedBpmnId = selected?.bpmnProcessId
+  const filteredIncidents = selectedBpmnId
+    ? incidents.filter((i) => i.bpmnProcessId === selectedBpmnId)
+    : incidents
+  const filteredJobs = selectedBpmnId
+    ? jobs.filter((j) => j.bpmnProcessId === selectedBpmnId)
+    : jobs
+  const activeIncidents = filteredIncidents.filter((i) => i.state !== "RESOLVED")
+  const failedJobs = filteredJobs.filter((j) => j.state === "FAILED" || j.state === "ERROR_THROWN")
+
+  const instanceFilterOptions = [
+    { value: "all", label: `Tất cả (${cases.length})` },
+    { value: "ACTIVE", label: `Đang chạy (${cases.filter((c) => c.status === "ACTIVE" || c.status === "IN_REVIEW" || c.status === "SUBMITTED").length})` },
+    { value: "INCIDENT", label: `Lỗi (${cases.filter((c) => c.status === "FAILED" || c.status === "INCIDENT").length})` },
+    { value: "SUSPENDED", label: `Tạm dừng (${cases.filter((c) => c.status === "SUSPENDED").length})` },
+    { value: "COMPLETED", label: `Hoàn thành (${cases.filter((c) => c.status === "COMPLETED").length})` },
+  ]
+
   async function handleRetryJob(jobKey: string) {
     setRetryJobPending(jobKey)
     try {
       await workflowApi.retryWorkflowJob(jobKey)
-      notify.success("Đã retry job", `Job ${jobKey} — worker sẽ xử lý lại`)
+      notify.success("Đã retry job")
       await runtimeQuery.refetch()
     } catch (error) {
       notify.error("Retry thất bại", error instanceof Error ? error.message : "Lỗi không xác định")
@@ -66,29 +172,100 @@ export function ProcessInstanceOperate({
 
   async function handleRetryServiceJobs() {
     if (!selected?.processInstanceKey) return
-    setRetryServicePending(true)
+    setActionPending("retryService")
     try {
       const result = await workflowApi.retryProcessServiceJobs(String(selected.processInstanceKey))
       if (result.status === "noop") {
         notify.info("Không có incident service job", result.message)
       } else {
-        notify.success("Đã retry service jobs", `Jobs: ${result.retried.join(", ")}`)
+        notify.success("Đã retry service jobs")
       }
       await runtimeQuery.refetch()
     } catch (error) {
       notify.error("Retry thất bại", error instanceof Error ? error.message : "Lỗi không xác định")
     } finally {
-      setRetryServicePending(false)
+      setActionPending(null)
     }
   }
 
+  async function handlePause() {
+    if (!selected?.processInstanceKey) return
+    setActionPending("pause")
+    try {
+      await workflowApi.pauseProcessInstance(String(selected.processInstanceKey))
+      notify.success("Đã tạm dừng process instance")
+    } catch (error) {
+      notify.error("Tạm dừng thất bại", error instanceof Error ? error.message : undefined)
+    } finally {
+      setActionPending(null)
+    }
+  }
+
+  async function handleResume() {
+    if (!selected?.processInstanceKey) return
+    setActionPending("resume")
+    try {
+      await workflowApi.resumeProcessInstance(String(selected.processInstanceKey))
+      notify.success("Đã tiếp tục process instance")
+    } catch (error) {
+      notify.error("Tiếp tục thất bại", error instanceof Error ? error.message : undefined)
+    } finally {
+      setActionPending(null)
+    }
+  }
+
+  async function handleCancel() {
+    if (!selected?.processInstanceKey) return
+    setActionPending("cancel")
+    try {
+      await workflowApi.cancelProcessInstance(String(selected.processInstanceKey))
+      notify.success("Đã hủy process instance")
+    } catch (error) {
+      notify.error("Hủy thất bại", error instanceof Error ? error.message : undefined)
+    } finally {
+      setActionPending(null)
+    }
+  }
+
+  async function handleRetryIncident(incidentKey: string) {
+    try {
+      await workflowApi.retryIncident(incidentKey)
+      notify.success("Đã retry incident")
+    } catch (err) {
+      notify.error("Retry thất bại", err instanceof Error ? err.message : undefined)
+    }
+  }
+
+  async function handleResolveIncident(incidentKey: string) {
+    try {
+      await workflowApi.resolveIncident(incidentKey)
+      notify.success("Đã resolve incident")
+    } catch (err) {
+      notify.error("Resolve thất bại", err instanceof Error ? err.message : undefined)
+    }
+  }
+
+  async function handleRetryJobOperate(jobKey: string) {
+    try {
+      await workflowApi.updateJobRetries(jobKey, 3)
+      notify.success("Đã cập nhật retries cho job")
+    } catch (err) {
+      notify.error("Cập nhật retries thất bại", err instanceof Error ? err.message : undefined)
+    }
+  }
+
+  const canPause = selected?.status === "ACTIVE" || selected?.status === "IN_REVIEW" || selected?.status === "SUBMITTED" || selected?.status === "INCIDENT" || selected?.status === "FAILED"
+  const canResume = selected?.status === "SUSPENDED"
+  const canCancel = selected && selected.status !== "CANCELED" && selected.status !== "COMPLETED"
+
   return (
     <div className="flex min-h-[40rem] flex-col gap-0 overflow-hidden rounded-lg border bg-background">
+      {/* ── Header ── */}
       <div className="flex items-center justify-between border-b px-4 py-2">
         <div>
           <p className="text-sm font-medium">Process instances</p>
           <p className="text-xs text-muted-foreground">
-            Giám sát runtime kiểu Camunda Operate — BPMN, jobs, incidents, retry
+            Giám sát runtime — BPMN, jobs, incidents, retry
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -96,7 +273,7 @@ export function ProcessInstanceOperate({
             type="button"
             size="sm"
             variant="outline"
-            disabled={!selected?.processInstanceKey || retryServicePending}
+            disabled={!selected?.processInstanceKey || actionPending != null}
             onClick={handleRetryServiceJobs}
           >
             <RotateCcw className="size-4" />
@@ -115,45 +292,81 @@ export function ProcessInstanceOperate({
         </div>
       </div>
 
+      {/* ── Body: 3-column ── */}
       <div className="grid min-h-0 flex-1 lg:grid-cols-[17rem_minmax(0,1fr)_20rem]">
-        <aside className="overflow-auto border-b lg:border-b-0 lg:border-r">
-          <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow>
-                <TableHead>Instance</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cases.map((item) => (
-                <TableRow
-                  key={item.id}
-                  className={cn("cursor-pointer", item.id === selected?.id && "bg-muted/60")}
-                  onClick={() => onSelect(item)}
-                >
-                  <TableCell>
-                    <p className="font-mono text-xs">{item.caseCode}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {caseTypeNames.get(item.caseType) ?? item.caseType}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <OperateStatusBadge status={item.status} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        {/* ── Left: Instance list with search/filter ── */}
+        <aside className="flex flex-col overflow-hidden border-b lg:border-b-0 lg:border-r">
+          <div className="border-b p-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Tìm instance..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 pl-8 text-xs"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-1 border-b px-2 py-1">
+            <Filter className="size-3 text-muted-foreground" />
+            <Select value={instanceFilter} onValueChange={setInstanceFilter}>
+              <SelectTrigger className="h-6 border-0 bg-transparent p-0 text-xs shadow-none focus:ring-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start">
+                {instanceFilterOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {filteredCases.length === 0 ? (
+              <div className="p-3 text-center text-xs text-muted-foreground">
+                Không có instance nào.
+              </div>
+            ) : (
+              <div className="divide-y">
+                {filteredCases.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={cn(
+                      "flex w-full flex-col gap-0.5 px-3 py-2 text-left text-xs transition-colors hover:bg-muted/50",
+                      item.id === selected?.id && "bg-sky-50 dark:bg-sky-950/30"
+                    )}
+                    onClick={() => onSelect(item)}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium truncate">{item.caseCode}</span>
+                      <InstanceStateBadge state={item.status} />
+                    </div>
+                    <span className="truncate text-muted-foreground">{item.title}</span>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <span className="truncate">{caseTypeNames.get(item.caseType) ?? item.caseType}</span>
+                      {item.processInstanceKey ? (
+                        <span className="font-mono">{String(item.processInstanceKey).slice(-8)}</span>
+                      ) : null}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </aside>
 
+        {/* ── Center: BPMN viewer ── */}
         <div className="min-h-[24rem] border-b lg:border-b-0 lg:border-r">
           {selected ? (
-            <BpmnViewerPanel
+            <OperateBpmnViewer
               title={selected.title}
               xml={bpmnXml}
               highlightId={highlightId}
               loading={bpmnLoading}
-              canvasClassName="min-h-[24rem]"
+              elementStats={elementStats}
+              className="min-h-[24rem]"
             />
           ) : (
             <div className="flex h-full min-h-[24rem] items-center justify-center text-sm text-muted-foreground">
@@ -162,188 +375,241 @@ export function ProcessInstanceOperate({
           )}
         </div>
 
+        {/* ── Right: Sidebar ── */}
         <aside className="space-y-3 overflow-auto p-4">
           {selected ? (
-            <OperateSidebar
-              item={selected}
-              runtime={runtime}
-              loading={runtimeQuery.isLoading}
-              error={runtimeQuery.error}
-            />
+            <>
+              <div>
+                <p className="font-mono text-xs text-muted-foreground">{selected.caseCode}</p>
+                <h2 className="text-base font-semibold">{selected.title}</h2>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1">
+                {canPause && (
+                  <Button type="button" size="sm" variant="outline" className="h-7 text-xs" disabled={actionPending != null} onClick={handlePause}>
+                    <PauseCircle className="size-3.5 mr-1 text-amber-600" />
+                    Tạm dừng
+                  </Button>
+                )}
+                {canResume && (
+                  <Button type="button" size="sm" variant="outline" className="h-7 text-xs" disabled={actionPending != null} onClick={handleResume}>
+                    <PlayCircle className="size-3.5 mr-1 text-emerald-600" />
+                    Tiếp tục
+                  </Button>
+                )}
+                {canCancel && (
+                  <Button type="button" size="sm" variant="outline" className="h-7 text-xs text-destructive" disabled={actionPending != null} onClick={handleCancel}>
+                    <Ban className="size-3.5 mr-1" />
+                    Hủy
+                  </Button>
+                )}
+              </div>
+
+              {(() => {
+                const domainHref = workflowDomainHref(selected)
+                return domainHref ? (
+                  <Button type="button" size="sm" variant="outline" onClick={() => navigateToOperate(domainHref)}>
+                    <Eye className="size-4" />
+                    Mở hồ sơ CRM
+                  </Button>
+                ) : null
+              })()}
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <Field label="Trạng thái" value={selected.status} />
+                <Field label="Bước DB" value={selected.currentStep || "—"} />
+                <Field label="Active BPMN" value={runtime?.activeElementId || "—"} />
+                <Field label="Assignee" value={selected.assignedTo || "Chưa nhận"} />
+                <Field label="PI key" value={selected.processInstanceKey ? String(selected.processInstanceKey) : "—"} />
+                <Field label="Zeebe" value={runtime?.zeebeStatus ?? (runtimeQuery.isLoading ? "…" : "—")} />
+              </div>
+
+              {runtimeQuery.isLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Spinner className="size-4" />
+                  Đang quét Zeebe…
+                </div>
+              ) : null}
+
+              {runtimeQuery.error ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="size-4" />
+                  <AlertTitle>Runtime lỗi</AlertTitle>
+                  <AlertDescription>{runtimeQuery.error.message}</AlertDescription>
+                </Alert>
+              ) : null}
+
+              {runtime ? (
+                <Alert>
+                  <AlertCircle className="size-4" />
+                  <AlertTitle>Gợi ý</AlertTitle>
+                  <AlertDescription className="space-y-2 text-xs">
+                    <p>{runtime.hint}</p>
+                    <p className="text-muted-foreground">{runtime.workerNote}</p>
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+
+              {/* ── Accordion: Lỗi / Công việc / Lịch sử ── */}
+              <Accordion type="multiple" className="space-y-1">
+                {/* ── Incidents ── */}
+                <AccordionItem value="incidents" className="rounded-lg border">
+                  <AccordionTrigger className="px-3 py-2 text-xs font-medium hover:no-underline [&[data-state=open]>div>svg]:rotate-0">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="size-3.5 text-destructive" />
+                      Lỗi
+                      {(activeIncidents.length + runtimeIncidents.length) > 0 && (
+                        <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white leading-tight">
+                          {activeIncidents.length + runtimeIncidents.length}
+                        </span>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 pb-0">
+                    {runtimeIncidents.length === 0 && filteredIncidents.length === 0 ? (
+                      <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
+                        <CheckCircle2 className="size-3.5 text-emerald-500" />
+                        Không có lỗi
+                      </div>
+                    ) : (
+                      <div className="max-h-48 space-y-px overflow-y-auto">
+                        {runtimeIncidents.map((inc) => (
+                          <div key={`rt-${inc.jobKey}`} className="flex items-start gap-2 bg-red-50/30 px-3 py-2 text-xs dark:bg-red-950/10">
+                            <IncidentStateBadge state="CREATED" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-mono text-[11px] text-destructive">{inc.errorMessage || "—"}</p>
+                              <p className="text-[10px] text-muted-foreground">{inc.jobType} · {inc.elementId}</p>
+                            </div>
+                            <Button type="button" size="sm" variant="ghost" className="h-6 shrink-0 text-[11px]" disabled={retryJobPending != null} onClick={() => handleRetryJob(inc.jobKey)}>
+                              <RotateCcw className="size-3 mr-1" />
+                              Retry
+                            </Button>
+                          </div>
+                        ))}
+                        {filteredIncidents.map((inc) => (
+                          <div key={`op-${inc.incidentKey}`} className={`flex items-start gap-2 px-3 py-2 text-xs ${inc.state !== "RESOLVED" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}>
+                            <IncidentStateBadge state={inc.state} />
+                            <div className="min-w-0 flex-1">
+                              <p className={`truncate font-mono text-[11px] ${inc.state !== "RESOLVED" ? "text-destructive" : "text-muted-foreground"}`}>{inc.errorMessage || "—"}</p>
+                              <p className="text-[10px] text-muted-foreground">{inc.errorType} · {inc.elementId}</p>
+                            </div>
+                            <div className="flex shrink-0 gap-1">
+                              <Button type="button" size="sm" variant="ghost" className="h-6 text-[11px]" disabled={inc.state === "RESOLVED"} onClick={() => handleRetryIncident(inc.incidentKey)}>
+                                <RotateCcw className="size-3 mr-1" />
+                                Retry
+                              </Button>
+                              {inc.state !== "RESOLVED" && (
+                                <Button type="button" size="sm" variant="ghost" className="h-6 text-[11px] text-emerald-600" onClick={() => handleResolveIncident(inc.incidentKey)}>
+                                  <CheckCircle2 className="size-3 mr-1" />
+                                  Resolve
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* ── Jobs ── */}
+                <AccordionItem value="jobs" className="rounded-lg border">
+                  <AccordionTrigger className="px-3 py-2 text-xs font-medium hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <CircleDot className="size-3.5 text-amber-500" />
+                      Công việc
+                      {failedJobs.length > 0 && (
+                        <span className="inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white leading-tight">
+                          {failedJobs.length}
+                        </span>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 pb-0">
+                    {pendingJobs.length === 0 && filteredJobs.length === 0 ? (
+                      <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
+                        <CheckCircle2 className="size-3.5 text-emerald-500" />
+                        Không có công việc nền
+                      </div>
+                    ) : (
+                      <div className="max-h-48 space-y-px overflow-y-auto">
+                        {pendingJobs.map((job) => (
+                          <div key={`rt-${job.jobKey}`} className={`flex items-start gap-2 px-3 py-2 text-xs ${job.retries === 0 ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}>
+                            <JobStateBadge state={job.state} />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-mono text-[11px]">{job.jobType}</p>
+                              <p className="text-[10px] text-muted-foreground">{job.elementId} · lượt {job.retries}</p>
+                            </div>
+                            <Button type="button" size="sm" variant="ghost" className="h-6 shrink-0 text-[11px]" disabled={retryJobPending != null} onClick={() => handleRetryJob(job.jobKey)}>
+                              <RotateCcw className="size-3 mr-1" />
+                              Retry
+                            </Button>
+                          </div>
+                        ))}
+                        {filteredJobs.map((job) => (
+                          <div key={`op-${job.jobKey}`} className={`flex items-start gap-2 px-3 py-2 text-xs ${job.state === "FAILED" || job.state === "ERROR_THROWN" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}>
+                            <JobStateBadge state={job.state} />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-mono text-[11px]">{job.type}</p>
+                              <p className="text-[10px] text-muted-foreground">{job.elementId} · lượt {job.retries}/{job.maxRetries}</p>
+                            </div>
+                            {(job.state === "FAILED" || job.state === "ERROR_THROWN") && (
+                              <Button type="button" size="sm" variant="ghost" className="h-6 shrink-0 text-[11px]" onClick={() => handleRetryJobOperate(job.jobKey)}>
+                                <RotateCcw className="size-3 mr-1" />
+                                Retry
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* ── Timeline ── */}
+                <AccordionItem value="timeline" className="rounded-lg border">
+                  <AccordionTrigger className="px-3 py-2 text-xs font-medium hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <ListTree className="size-3.5 text-muted-foreground" />
+                      Lịch sử
+                      {timeline.length > 0 && <span className="text-muted-foreground">({timeline.length})</span>}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-0 pb-0">
+                    {timeline.length === 0 ? (
+                      <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
+                        <Clock className="size-3.5" />
+                        Chưa có lịch sử
+                      </div>
+                    ) : (
+                      <div className="max-h-48 space-y-1 overflow-y-auto p-3">
+                        {timeline.map((event, idx) => (
+                          <div key={event.id} className="flex gap-2 text-xs">
+                            <div className="mt-1 flex shrink-0 flex-col items-center">
+                              <div className={`size-2 rounded-full ${idx === 0 ? "bg-primary" : "bg-muted-foreground/30"}`} />
+                              {idx < timeline.length - 1 && <div className="mt-1 h-full w-px bg-border" />}
+                            </div>
+                            <div className="min-w-0 flex-1 pb-3">
+                              <p className="font-medium">{event.eventType}</p>
+                              <p className="text-[10px] text-muted-foreground">{formatOperateDateTime(event.createdAt)}</p>
+                              {event.note ? <p className="mt-0.5 break-all font-mono text-[10px] text-muted-foreground">{event.note}</p> : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">Chưa chọn instance.</p>
           )}
         </aside>
       </div>
 
-      <div className="border-t bg-muted/10">
-        <Tabs value={dockTab} onValueChange={setDockTab}>
-          <div className="flex items-center justify-between border-b px-3 py-2">
-            <TabsList className="h-9">
-              <TabsTrigger value="jobs">Jobs ({pendingJobs.length})</TabsTrigger>
-              <TabsTrigger value="incidents">Incidents ({incidents.length})</TabsTrigger>
-              <TabsTrigger value="timeline">Timeline ({timeline.length})</TabsTrigger>
-            </TabsList>
-            <span className="font-mono text-xs text-muted-foreground">
-              {selected?.processInstanceKey ? String(selected.processInstanceKey) : "—"}
-            </span>
-          </div>
-          <TabsContent value="jobs" className="m-0 max-h-56 overflow-auto">
-            {pendingJobs.length ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Job type</TableHead>
-                    <TableHead>Element</TableHead>
-                    <TableHead>Job key</TableHead>
-                    <TableHead>Retries</TableHead>
-                    <TableHead />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingJobs.map((job) => (
-                    <TableRow key={job.jobKey}>
-                      <TableCell className="font-mono text-xs">{job.jobType}</TableCell>
-                      <TableCell className="font-mono text-xs">{job.elementId}</TableCell>
-                      <TableCell className="font-mono text-xs">{job.jobKey}</TableCell>
-                      <TableCell>{job.retries}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={retryJobPending != null}
-                          onClick={() => handleRetryJob(job.jobKey)}
-                        >
-                          <RotateCcw className="size-3.5" />
-                          Retry
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <p className="p-4 text-sm text-muted-foreground">
-                Không có job đang chờ trên Zeebe cho process này.
-              </p>
-            )}
-          </TabsContent>
-          <TabsContent value="incidents" className="m-0 max-h-56 overflow-auto">
-            {incidents.length ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Job type</TableHead>
-                    <TableHead>Element</TableHead>
-                    <TableHead>Lỗi</TableHead>
-                    <TableHead />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {incidents.map((incident) => (
-                    <TableRow key={`${incident.jobKey}-${incident.createdAt}`}>
-                      <TableCell className="font-mono text-xs">{incident.jobType}</TableCell>
-                      <TableCell className="font-mono text-xs">{incident.elementId}</TableCell>
-                      <TableCell className="max-w-xs truncate text-xs text-destructive">
-                        {incident.errorMessage || "—"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={retryJobPending != null}
-                          onClick={() => handleRetryJob(incident.jobKey)}
-                        >
-                          <RotateCcw className="size-3.5" />
-                          Retry
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <p className="p-4 text-sm text-muted-foreground">Chưa ghi nhận incident (JOB_FAILED) cho case này.</p>
-            )}
-          </TabsContent>
-          <TabsContent value="timeline" className="m-0 max-h-56 overflow-auto p-3">
-            {timeline.length ? (
-              <div className="space-y-2 text-xs">
-                {timeline.map((event) => (
-                  <div key={event.id} className="rounded border bg-background px-2 py-1.5">
-                    <p className="font-medium">{event.eventType}</p>
-                    <p className="text-muted-foreground">{formatOperateDateTime(event.createdAt)}</p>
-                    {event.note ? <p className="mt-1 break-all font-mono">{event.note}</p> : null}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Chưa có timeline event.</p>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
     </div>
-  )
-}
-
-function OperateSidebar({
-  item,
-  runtime,
-  loading,
-  error,
-}: {
-  item: WorkflowCase
-  runtime?: import("../api").ProcessInstanceRuntime
-  loading: boolean
-  error: Error | null
-}) {
-  const domainHref = workflowDomainHref(item)
-
-  return (
-    <>
-      <div>
-        <p className="font-mono text-xs text-muted-foreground">{item.caseCode}</p>
-        <h2 className="text-base font-semibold">{item.title}</h2>
-      </div>
-      {domainHref ? (
-        <Button type="button" size="sm" variant="outline" onClick={() => navigateToOperate(domainHref)}>
-          <Eye className="size-4" />
-          Mở hồ sơ CRM
-        </Button>
-      ) : null}
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <Field label="Status" value={item.status} />
-        <Field label="Bước DB" value={item.currentStep || "—"} />
-        <Field label="Active BPMN" value={runtime?.activeElementId || "—"} />
-        <Field label="Zeebe" value={runtime?.zeebeStatus ?? (loading ? "…" : "—")} />
-      </div>
-      {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner className="size-4" />
-          Đang quét Zeebe…
-        </div>
-      ) : null}
-      {error ? (
-        <Alert variant="destructive">
-          <AlertCircle className="size-4" />
-          <AlertTitle>Runtime lỗi</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      ) : null}
-      {runtime ? (
-        <Alert>
-          <AlertCircle className="size-4" />
-          <AlertTitle>Gợi ý</AlertTitle>
-          <AlertDescription className="space-y-2 text-xs">
-            <p>{runtime.hint}</p>
-            <p className="text-muted-foreground">{runtime.workerNote}</p>
-          </AlertDescription>
-        </Alert>
-      ) : null}
-    </>
   )
 }
 
@@ -354,18 +620,6 @@ function Field({ label, value }: { label: string; value: string }) {
       <p className="break-words font-medium">{value}</p>
     </div>
   )
-}
-
-function OperateStatusBadge({ status }: { status: string }) {
-  const tone =
-    status === "COMPLETED"
-      ? "bg-emerald-100 text-emerald-800"
-      : status === "IN_REVIEW" || status === "SUBMITTED"
-        ? "bg-sky-100 text-sky-800"
-        : status === "FAILED" || status === "INCIDENT"
-          ? "bg-red-100 text-red-800"
-          : "bg-muted text-muted-foreground"
-  return <Badge className={tone}>{status}</Badge>
 }
 
 function formatOperateDateTime(value: string) {

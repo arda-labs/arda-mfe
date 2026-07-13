@@ -192,602 +192,98 @@ export interface WorkflowProcessDefinition {
   updatedAt?: string
 }
 
+// --- Operate-specific types (Camunda Operate style) ---
+
+export interface ProcessInstanceState {
+  processInstanceKey: string
+  processDefinitionKey: string
+  bpmnProcessId: string
+  version: number
+  businessKey?: string
+  state: "ACTIVE" | "COMPLETED" | "CANCELED" | "SUSPENDED" | "INCIDENT"
+  elementId?: string
+  startTime: string
+  endTime?: string
+  runningDuration?: string
+  variables?: Record<string, unknown>
+}
+
+export interface IncidentState {
+  incidentKey: string
+  processInstanceKey: string
+  processDefinitionKey: string
+  bpmnProcessId: string
+  elementId: string
+  elementInstanceKey: string
+  jobKey?: string
+  errorType: string
+  errorMessage: string
+  state: "CREATED" | "RESOLVED" | "PENDING"
+  createdAt: string
+  resolvedAt?: string
+  retries?: number
+}
+
+export interface JobState {
+  jobKey: string
+  type: string
+  processInstanceKey: string
+  processDefinitionKey: string
+  bpmnProcessId: string
+  elementId: string
+  elementInstanceKey: string
+  state: "ACTIVATABLE" | "ACTIVATED" | "FAILED" | "ERROR_THROWN" | "SUSPENDED"
+  retries: number
+  maxRetries: number
+  createdAt: string
+  deadline?: string
+  worker?: string
+  errorMessage?: string
+  customHeaders?: Record<string, string>
+}
+
+export interface JobDefinitionState {
+  jobDefinitionKey: string
+  type: string
+  processDefinitionKey: string
+  bpmnProcessId: string
+  worker?: string
+  state: "ACTIVE" | "SUSPENDED"
+  retries: number
+  createdAt: string
+}
+
+export interface ElementInstanceStat {
+  bpmnProcessId: string
+  elementId: string
+  elementName: string
+  elementType: string
+  activeCount: number
+  completedCount: number
+  incidentCount: number
+  totalCount: number
+}
+
+export interface ProcessDefinitionOperate {
+  id: string
+  processCode: string
+  name: string
+  bpmnProcessId: string
+  version: number
+  resourceName: string
+  status: string
+  deploymentKey?: number
+  deployedAt?: string
+  instanceCount: number
+  incidentCount: number
+  activeCount: number
+  elementStats: ElementInstanceStat[]
+}
+
 export interface ProcessMetric {
   label: string
   value: string
   tone: "default" | "success" | "warning" | "error"
-}
-
-const mockCaseTypes: WorkflowCaseType[] = [
-  {
-    caseType: "FINANCE_INCOMING_TRANSACTION",
-    businessArea: "Kế toán",
-    operationName: "Giao dịch đến",
-    bpmnProcessId: "finance-incoming-transaction-v1",
-    bpmnVersion: 1,
-    workflowEnabled: true,
-    defaultSlaPolicyId: "SLA_FIN_IN_8H",
-    makerRole: "FINANCE_TXN_MAKER",
-    checkerRole: "FINANCE_TXN_CHECKER",
-    ownerService: "finance-service",
-    status: "ACTIVE",
-    effectiveFrom: "2026-07-02T00:00:00+07:00",
-  },
-  {
-    caseType: "FINANCE_OUTGOING_TRANSACTION",
-    businessArea: "Kế toán",
-    operationName: "Giao dịch đi",
-    bpmnProcessId: "finance-outgoing-transaction-v1",
-    bpmnVersion: 1,
-    workflowEnabled: true,
-    defaultSlaPolicyId: "SLA_FIN_OUT_8H",
-    makerRole: "FINANCE_TXN_MAKER",
-    checkerRole: "FINANCE_TXN_CHECKER",
-    ownerService: "finance-service",
-    status: "ACTIVE",
-    effectiveFrom: "2026-07-02T00:00:00+07:00",
-  },
-  {
-    caseType: "CUSTOMER_REGISTRATION",
-    businessArea: "Khách hàng hội viên",
-    operationName: "Đăng ký khách hàng",
-    bpmnProcessId: "crm-customer-registration-v2",
-    bpmnVersion: 2,
-    workflowEnabled: true,
-    defaultSlaPolicyId: "SLA_CUSTOMER_REG_EPAS_24H",
-    makerRole: "CUSTOMER_MAKER",
-    checkerRole: "CUSTOMER_CHECKER",
-    ownerService: "crm-service",
-    status: "ACTIVE",
-    effectiveFrom: "2026-07-08T00:00:00+07:00",
-  },
-  {
-    caseType: "CUSTOMER_ADJUSTMENT",
-    businessArea: "Khách hàng hội viên",
-    operationName: "Điều chỉnh khách hàng",
-    bpmnProcessId: "customer-adjustment-v2",
-    bpmnVersion: 2,
-    workflowEnabled: true,
-    defaultSlaPolicyId: "SLA_CUSTOMER_ADJ_EPAS_24H",
-    makerRole: "CUSTOMER_MAKER",
-    checkerRole: "CUSTOMER_CHECKER",
-    ownerService: "crm-service",
-    status: "ACTIVE",
-    effectiveFrom: "2026-07-08T00:00:00+07:00",
-  },
-]
-
-const mockCases: WorkflowCase[] = [
-  {
-    id: "case-fin-in-001",
-    caseType: "FINANCE_INCOMING_TRANSACTION",
-    caseCode: "FIN-IN-20260702-001",
-    title: "Thu tiền chuyển khoản khách hàng",
-    status: "IN_REVIEW",
-    currentStep: "Phân loại tài khoản",
-    assignedTo: "ops.finance.01",
-    candidateRole: "FINANCE_TXN_MAKER",
-    slaDueAt: "2026-07-02T16:30:00+07:00",
-    processInstanceKey: 2251799813685251,
-    bpmnProcessId: "finance-incoming-transaction-v1",
-    bpmnVersion: 1,
-    updatedAt: "2026-07-02T11:25:00+07:00",
-  },
-  {
-    id: "case-fin-out-001",
-    caseType: "FINANCE_OUTGOING_TRANSACTION",
-    caseCode: "FIN-OUT-20260702-004",
-    title: "Chi hoàn tiền khách hàng",
-    status: "SUBMITTED",
-    currentStep: "Kiểm tra người nhận",
-    candidateRole: "FINANCE_TXN_MAKER",
-    slaDueAt: "2026-07-03T09:00:00+07:00",
-    bpmnProcessId: "finance-outgoing-transaction-v1",
-    bpmnVersion: 1,
-    updatedAt: "2026-07-02T10:40:00+07:00",
-  },
-]
-
-const mockSlaPolicies: SlaPolicy[] = [
-  {
-    id: "SLA_FIN_IN_8H",
-    code: "SLA_FIN_IN_8H",
-    name: "Giao dịch đến trong ngày",
-    caseType: "FINANCE_INCOMING_TRANSACTION",
-    dueInHours: 8,
-    warningInHours: 2,
-    escalationRole: "FINANCE_OPS_SUPERVISOR",
-    status: "ACTIVE",
-    effectiveFrom: "2026-07-02T00:00:00+07:00",
-    taskPolicies: [
-      {
-        id: "SLA_TASK_FIN_IN_CLASSIFY",
-        stepCode: "classify-account",
-        taskName: "Phân loại tài khoản",
-        durationValue: 2,
-        durationUnit: "HOUR",
-        warningMode: "ABSOLUTE",
-        warningValue: 30,
-        warningUnit: "MINUTE",
-        escalationRole: "FINANCE_OPS_SUPERVISOR",
-        sortOrder: 10,
-        status: "ACTIVE",
-      },
-      {
-        id: "SLA_TASK_FIN_IN_APPROVE",
-        stepCode: "approve-journal",
-        taskName: "Duyệt bút toán",
-        durationValue: 4,
-        durationUnit: "HOUR",
-        warningMode: "PERCENT",
-        warningValue: 75,
-        warningUnit: "PERCENT",
-        escalationRole: "FINANCE_OPS_SUPERVISOR",
-        sortOrder: 20,
-        status: "ACTIVE",
-      },
-    ],
-  },
-  {
-    id: "SLA_CUSTOMER_REG_EPAS_24H",
-    code: "SLA_CUSTOMER_REG_EPAS_24H",
-    name: "Đăng ký khách hàng EPAS 24h",
-    caseType: "CUSTOMER_REGISTRATION",
-    dueInHours: 24,
-    warningInHours: 4,
-    escalationRole: "CUSTOMER_SUPERVISOR",
-    status: "ACTIVE",
-    effectiveFrom: "2026-07-08T00:00:00+07:00",
-    taskPolicies: [
-      {
-        id: "SLA_TASK_CUSTOMER_REG_EDIT",
-        stepCode: "UT_MakerRevise",
-        taskName: "Chỉnh sửa hồ sơ",
-        durationValue: 8,
-        durationUnit: "HOUR",
-        warningMode: "PERCENT",
-        warningValue: 75,
-        warningUnit: "PERCENT",
-        escalationRole: "CUSTOMER_SUPERVISOR",
-        sortOrder: 10,
-        status: "ACTIVE",
-      },
-      {
-        id: "SLA_TASK_CUSTOMER_REG_APPROVE",
-        stepCode: "UT_CheckerReview",
-        taskName: "Phê duyệt hồ sơ khách hàng",
-        durationValue: 8,
-        durationUnit: "HOUR",
-        warningMode: "PERCENT",
-        warningValue: 75,
-        warningUnit: "PERCENT",
-        escalationRole: "CUSTOMER_SUPERVISOR",
-        sortOrder: 20,
-        status: "ACTIVE",
-      },
-    ],
-  },
-  {
-    id: "SLA_CUSTOMER_ADJ_EPAS_24H",
-    code: "SLA_CUSTOMER_ADJ_EPAS_24H",
-    name: "Điều chỉnh khách hàng EPAS 24h",
-    caseType: "CUSTOMER_ADJUSTMENT",
-    dueInHours: 24,
-    warningInHours: 4,
-    escalationRole: "CUSTOMER_SUPERVISOR",
-    status: "ACTIVE",
-    effectiveFrom: "2026-07-08T00:00:00+07:00",
-    taskPolicies: [
-      {
-        id: "SLA_TASK_CUSTOMER_ADJ_EDIT",
-        stepCode: "UT_MakerRevise",
-        taskName: "Chỉnh sửa điều chỉnh hồ sơ",
-        durationValue: 8,
-        durationUnit: "HOUR",
-        warningMode: "PERCENT",
-        warningValue: 75,
-        warningUnit: "PERCENT",
-        escalationRole: "CUSTOMER_SUPERVISOR",
-        sortOrder: 10,
-        status: "ACTIVE",
-      },
-      {
-        id: "SLA_TASK_CUSTOMER_ADJ_APPROVE",
-        stepCode: "UT_CheckerReview",
-        taskName: "Phê duyệt điều chỉnh hồ sơ",
-        durationValue: 8,
-        durationUnit: "HOUR",
-        warningMode: "PERCENT",
-        warningValue: 75,
-        warningUnit: "PERCENT",
-        escalationRole: "CUSTOMER_SUPERVISOR",
-        sortOrder: 20,
-        status: "ACTIVE",
-      },
-    ],
-  },
-]
-
-const mockDescriptionTemplates: DescriptionTemplate[] = [
-  {
-    id: "DESC_FIN_IN",
-    code: "DESC_FIN_IN",
-    businessSubsystem: "FAC",
-    caseType: "FINANCE_INCOMING_TRANSACTION",
-    pattern: "{caseCode} - {counterpartyName} - {amount} {currency}",
-    preview: "FIN-IN-20260702-001 - Công ty Minh An - 125.000.000 VND",
-    status: "ACTIVE",
-  },
-  {
-    id: "DESC_CUSTOMER_REG",
-    code: "DESC_CUSTOMER_REG",
-    businessSubsystem: "CRM",
-    caseType: "CUSTOMER_REGISTRATION",
-    pattern: "{caseCode} - {customerName} - {identityNo}",
-    preview: "CUS-REG-20260702-009 - Nguyễn Hoàng Nam - 012345678901",
-    status: "DRAFT",
-  },
-]
-
-const mockProcessRoles: ProcessRole[] = [
-  {
-    id: "ROLE_FIN_IN_MAKER",
-    caseType: "FINANCE_INCOMING_TRANSACTION",
-    stepCode: "classify-account",
-    businessRole: "Người xử lý giao dịch đến",
-    iamRole: "FINANCE_TXN_MAKER",
-    actionScope: "claim, save, submit",
-    status: "ACTIVE",
-  },
-  {
-    id: "ROLE_FIN_IN_CHECKER",
-    caseType: "FINANCE_INCOMING_TRANSACTION",
-    stepCode: "approve-journal",
-    businessRole: "Người duyệt bút toán",
-    iamRole: "FINANCE_TXN_CHECKER",
-    actionScope: "approve, reject, suspend",
-    status: "ACTIVE",
-  },
-]
-
-const mockRoleCatalog: WorkflowRoleCatalog[] = [
-  {
-    roleCode: "FINANCE_TXN_MAKER",
-    roleName: "Người lập giao dịch kế toán",
-    roleType: "MAKER",
-    businessSubsystem: "FAC",
-    status: "ACTIVE",
-  },
-  {
-    roleCode: "FINANCE_TXN_CHECKER",
-    roleName: "Người duyệt giao dịch kế toán",
-    roleType: "CHECKER",
-    businessSubsystem: "FAC",
-    status: "ACTIVE",
-  },
-  {
-    roleCode: "FINANCE_OPS_SUPERVISOR",
-    roleName: "Giám sát vận hành kế toán",
-    roleType: "SUPERVISOR",
-    businessSubsystem: "FAC",
-    status: "ACTIVE",
-  },
-]
-
-const mockRoleMemberships: WorkflowRoleMembership[] = [
-  {
-    id: "MEM_FIN_MAKER_01",
-    roleCode: "FINANCE_TXN_MAKER",
-    principalType: "USER",
-    principalId: "ops.finance.01",
-    tenantId: "tenant-1",
-    orgId: "HO",
-    branchId: "",
-    productCode: "",
-    minAmount: 0,
-    maxAmount: 500000000,
-    effectiveFrom: "2026-07-02T00:00:00+07:00",
-    status: "ACTIVE",
-  },
-]
-
-const mockAssignmentRules: WorkflowAssignmentRule[] = [
-  {
-    id: "ASSIGN_FIN_IN_APPROVE",
-    caseType: "FINANCE_INCOMING_TRANSACTION",
-    stepCode: "approve-journal",
-    roleCode: "FINANCE_TXN_CHECKER",
-    assignmentMode: "CANDIDATE_POOL",
-    requireSeparationOfDuties: true,
-    fallbackRoleCode: "FINANCE_OPS_SUPERVISOR",
-    priority: 20,
-    status: "ACTIVE",
-  },
-]
-
-const mockDelegations: WorkflowDelegation[] = [
-  {
-    id: "DEL_FIN_SUP_01",
-    fromPrincipalId: "ops.finance.01",
-    toPrincipalId: "ops.finance.02",
-    roleCode: "FINANCE_TXN_MAKER",
-    effectiveFrom: "2026-07-02T00:00:00+07:00",
-    effectiveTo: "2026-07-09T00:00:00+07:00",
-    reason: "Nghỉ phép",
-    status: "ACTIVE",
-  },
-]
-
-const mockProcessXml = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Finance_In" targetNamespace="http://arda.local/bpmn">
-  <bpmn:process id="finance-incoming-transaction-v1" name="Finance Incoming Transaction" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_Submit" name="Submit"><bpmn:outgoing>Flow_Submit_Classify</bpmn:outgoing></bpmn:startEvent>
-    <bpmn:sequenceFlow id="Flow_Submit_Classify" sourceRef="StartEvent_Submit" targetRef="classify-account" />
-    <bpmn:userTask id="classify-account" name="Phan loai tai khoan"><bpmn:incoming>Flow_Submit_Classify</bpmn:incoming><bpmn:outgoing>Flow_Classify_Approve</bpmn:outgoing></bpmn:userTask>
-    <bpmn:sequenceFlow id="Flow_Classify_Approve" sourceRef="classify-account" targetRef="approve-journal" />
-    <bpmn:userTask id="approve-journal" name="Duyet but toan"><bpmn:incoming>Flow_Classify_Approve</bpmn:incoming><bpmn:outgoing>Flow_Approve_End</bpmn:outgoing></bpmn:userTask>
-    <bpmn:sequenceFlow id="Flow_Approve_End" sourceRef="approve-journal" targetRef="EndEvent_Done" />
-    <bpmn:endEvent id="EndEvent_Done" name="Done"><bpmn:incoming>Flow_Approve_End</bpmn:incoming></bpmn:endEvent>
-  </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_Finance_In">
-    <bpmndi:BPMNPlane id="BPMNPlane_Finance_In" bpmnElement="finance-incoming-transaction-v1">
-      <bpmndi:BPMNShape id="StartEvent_Submit_di" bpmnElement="StartEvent_Submit"><dc:Bounds x="150" y="110" width="36" height="36" /></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="classify-account_di" bpmnElement="classify-account"><dc:Bounds x="250" y="88" width="150" height="80" /></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="approve-journal_di" bpmnElement="approve-journal"><dc:Bounds x="470" y="88" width="150" height="80" /></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_Done_di" bpmnElement="EndEvent_Done"><dc:Bounds x="700" y="110" width="36" height="36" /></bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_Submit_Classify_di" bpmnElement="Flow_Submit_Classify"><di:waypoint x="186" y="128" /><di:waypoint x="250" y="128" /></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_Classify_Approve_di" bpmnElement="Flow_Classify_Approve"><di:waypoint x="400" y="128" /><di:waypoint x="470" y="128" /></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_Approve_End_di" bpmnElement="Flow_Approve_End"><di:waypoint x="620" y="128" /><di:waypoint x="700" y="128" /></bpmndi:BPMNEdge>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
-</bpmn:definitions>`
-
-const mockProcessDefinitions: WorkflowProcessDefinition[] = [
-  {
-    id: "PROC_DEF_FIN_IN",
-    processCode: "FIN_INCOMING_V1",
-    name: "Giao dịch đến",
-    bpmnProcessId: "finance-incoming-transaction-v1",
-    version: 1,
-    resourceName: "finance-incoming-transaction-v1.bpmn",
-    xmlContent: mockProcessXml,
-    deploymentKey: 2251799813685001,
-    status: "ACTIVE",
-    deployedAt: "2026-07-02T09:00:00+07:00",
-  },
-]
-
-export const workflowApi = {
-  async listCaseTypes() {
-    return getArrayOrMock<WorkflowCaseType>(
-      "/api/workflow/case-types",
-      "caseTypes",
-      mockCaseTypes
-    )
-  },
-  async listCases() {
-    return getArrayOrMock<WorkflowCase>(
-      "/api/workflow/cases?limit=100",
-      "cases",
-      mockCases
-    )
-  },
-  getProcessInstanceRuntime(processInstanceKey: string | number) {
-    return request<ProcessInstanceRuntime>(
-      `/api/workflow/process-instances/${encodeURIComponent(String(processInstanceKey))}/runtime`
-    )
-  },
-  retryWorkflowJob(jobKey: string, retries = 3) {
-    return request<{ status: string; jobKey: string; retries: number }>(
-      `/api/workflow/jobs/${encodeURIComponent(jobKey)}/retry`,
-      { method: "POST", body: { retries } }
-    )
-  },
-  retryProcessServiceJobs(processInstanceKey: string | number) {
-    return request<{ status: string; retried: string[]; message?: string }>(
-      `/api/workflow/process-instances/${encodeURIComponent(String(processInstanceKey))}/retry-service-jobs`,
-      { method: "POST" }
-    )
-  },
-  async listSlaPolicies() {
-    return getArrayOrMock<SlaPolicy>(
-      "/api/workflow/sla-policies",
-      "slaPolicies",
-      mockSlaPolicies
-    )
-  },
-  async listDescriptionTemplates() {
-    return getArrayOrMock<DescriptionTemplate>(
-      "/api/workflow/description-templates",
-      "descriptionTemplates",
-      mockDescriptionTemplates
-    )
-  },
-  async listProcessRoles() {
-    return getArrayOrMock<ProcessRole>(
-      "/api/workflow/roles",
-      "processRoles",
-      mockProcessRoles
-    )
-  },
-  async listRoleCatalog() {
-    return getArrayOrMock<WorkflowRoleCatalog>(
-      "/api/workflow/role-catalog",
-      "roleCatalog",
-      mockRoleCatalog
-    )
-  },
-  async listRoleMemberships() {
-    return getArrayOrMock<WorkflowRoleMembership>(
-      "/api/workflow/role-memberships",
-      "roleMemberships",
-      mockRoleMemberships
-    )
-  },
-  async listAssignmentRules() {
-    return getArrayOrMock<WorkflowAssignmentRule>(
-      "/api/workflow/assignment-rules",
-      "assignmentRules",
-      mockAssignmentRules
-    )
-  },
-  async listDelegations() {
-    return getArrayOrMock<WorkflowDelegation>(
-      "/api/workflow/delegations",
-      "delegations",
-      mockDelegations
-    )
-  },
-  async listProcessDefinitions() {
-    return getArrayOrMock<WorkflowProcessDefinition>(
-      "/api/workflow/process-definitions",
-      "processDefinitions",
-      mockProcessDefinitions
-    )
-  },
-  getProcessDefinitionXml(id: string) {
-    return requestText(`/api/workflow/process-definitions/${encodeURIComponent(id)}/xml`)
-  },
-  importProcessDefinition(payload: ProcessDefinitionUploadPayload) {
-    return uploadProcessDefinition("/api/workflow/process-definitions", "POST", payload)
-  },
-  updateProcessDefinition(id: string, payload: ProcessDefinitionUploadPayload) {
-    return uploadProcessDefinition(
-      `/api/workflow/process-definitions/${encodeURIComponent(id)}`,
-      "PUT",
-      payload
-    )
-  },
-  deployProcessDefinition(id: string) {
-    return request<WorkflowProcessDefinition>(
-      `/api/workflow/process-definitions/${encodeURIComponent(id)}/deploy`,
-      { method: "POST" }
-    )
-  },
-  deleteProcessDefinition(id: string) {
-    return request<void>(`/api/workflow/process-definitions/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-    })
-  },
-  createCaseType(payload: Omit<WorkflowCaseType, "effectiveFrom" | "effectiveTo">) {
-    return request<WorkflowCaseType>("/api/workflow/case-types", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateCaseType(
-    caseType: string,
-    payload: Omit<WorkflowCaseType, "caseType" | "effectiveFrom" | "effectiveTo">
-  ) {
-    return request<WorkflowCaseType>(
-      `/api/workflow/case-types/${encodeURIComponent(caseType)}`,
-      {
-        method: "PUT",
-        body: payload,
-      }
-    )
-  },
-  updateProcessConfig(caseType: string, payload: Partial<WorkflowCaseType>) {
-    return request<WorkflowCaseType>(
-      `/api/workflow/case-types/${encodeURIComponent(caseType)}/process-config`,
-      {
-        method: "PUT",
-        body: payload,
-      }
-    )
-  },
-  createSlaPolicy(payload: Omit<SlaPolicy, "id" | "createdAt" | "updatedAt">) {
-    return request<SlaPolicy>("/api/workflow/sla-policies", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateSlaPolicy(id: string, payload: Omit<SlaPolicy, "id" | "createdAt" | "updatedAt">) {
-    return request<SlaPolicy>(`/api/workflow/sla-policies/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      body: payload,
-    })
-  },
-  createDescriptionTemplate(
-    payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">
-  ) {
-    return request<DescriptionTemplate>("/api/workflow/description-templates", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateDescriptionTemplate(
-    id: string,
-    payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">
-  ) {
-    return request<DescriptionTemplate>(
-      `/api/workflow/description-templates/${encodeURIComponent(id)}`,
-      {
-        method: "PUT",
-        body: payload,
-      }
-    )
-  },
-  createProcessRole(payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">) {
-    return request<ProcessRole>("/api/workflow/roles", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateProcessRole(id: string, payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">) {
-    return request<ProcessRole>(`/api/workflow/roles/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      body: payload,
-    })
-  },
-  createRoleCatalog(payload: WorkflowRoleCatalog) {
-    return request<WorkflowRoleCatalog>("/api/workflow/role-catalog", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateRoleCatalog(roleCode: string, payload: WorkflowRoleCatalog) {
-    return request<WorkflowRoleCatalog>(`/api/workflow/role-catalog/${encodeURIComponent(roleCode)}`, {
-      method: "PUT",
-      body: payload,
-    })
-  },
-  createRoleMembership(payload: Omit<WorkflowRoleMembership, "id">) {
-    return request<WorkflowRoleMembership>("/api/workflow/role-memberships", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateRoleMembership(id: string, payload: Omit<WorkflowRoleMembership, "id">) {
-    return request<WorkflowRoleMembership>(`/api/workflow/role-memberships/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      body: payload,
-    })
-  },
-  createAssignmentRule(payload: Omit<WorkflowAssignmentRule, "id">) {
-    return request<WorkflowAssignmentRule>("/api/workflow/assignment-rules", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateAssignmentRule(id: string, payload: Omit<WorkflowAssignmentRule, "id">) {
-    return request<WorkflowAssignmentRule>(`/api/workflow/assignment-rules/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      body: payload,
-    })
-  },
-  createDelegation(payload: Omit<WorkflowDelegation, "id">) {
-    return request<WorkflowDelegation>("/api/workflow/delegations", {
-      method: "POST",
-      body: payload,
-    })
-  },
-  updateDelegation(id: string, payload: Omit<WorkflowDelegation, "id">) {
-    return request<WorkflowDelegation>(`/api/workflow/delegations/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      body: payload,
-    })
-  },
 }
 
 export type ProcessDefinitionUploadPayload = {
@@ -797,18 +293,7 @@ export type ProcessDefinitionUploadPayload = {
   file: File
 }
 
-async function getArrayOrMock<T>(
-  path: string,
-  key: string,
-  fallback: T[]
-): Promise<{ data: T[]; source: "api" | "mock" }> {
-  const response = await fetch(path, { credentials: "include" })
-  if (response.status === 404) return { data: fallback, source: "mock" }
-  if (!response.ok) throw new Error(`Request failed with status ${response.status}`)
-  const data = (await response.json()) as T[] | Record<string, T[] | undefined>
-  if (Array.isArray(data)) return { data, source: "api" }
-  return { data: data[key] ?? data.items ?? [], source: "api" }
-}
+// ─── API helpers ─────────────────────────────────────────────────────────────────
 
 async function request<T>(
   path: string,
@@ -859,4 +344,202 @@ async function uploadProcessDefinition(
     throw new Error(message || `Request failed with status ${response.status}`)
   }
   return (await response.json()) as WorkflowProcessDefinition
+}
+
+// ─── API methods ─────────────────────────────────────────────────────────────────
+
+export const workflowApi = {
+  async listCaseTypes() {
+    return request<WorkflowCaseType[]>("/api/workflow/case-types")
+  },
+  async listCases() {
+    return request<WorkflowCase[]>("/api/workflow/cases?limit=100")
+  },
+  getProcessInstanceRuntime(processInstanceKey: string | number) {
+    return request<ProcessInstanceRuntime>(
+      `/api/workflow/process-instances/${encodeURIComponent(String(processInstanceKey))}/runtime`
+    )
+  },
+  retryWorkflowJob(jobKey: string, retries = 3) {
+    return request<{ status: string; jobKey: string; retries: number }>(
+      `/api/workflow/jobs/${encodeURIComponent(jobKey)}/retry`,
+      { method: "POST", body: { retries } }
+    )
+  },
+  retryProcessServiceJobs(processInstanceKey: string | number) {
+    return request<{ status: string; retried: string[]; message?: string }>(
+      `/api/workflow/process-instances/${encodeURIComponent(String(processInstanceKey))}/retry-service-jobs`,
+      { method: "POST" }
+    )
+  },
+  async listSlaPolicies() {
+    return request<SlaPolicy[]>("/api/workflow/sla-policies")
+  },
+  async listDescriptionTemplates() {
+    return request<DescriptionTemplate[]>("/api/workflow/description-templates")
+  },
+  async listProcessRoles() {
+    return request<ProcessRole[]>("/api/workflow/roles")
+  },
+  async listRoleCatalog() {
+    return request<WorkflowRoleCatalog[]>("/api/workflow/role-catalog")
+  },
+  async listRoleMemberships() {
+    return request<WorkflowRoleMembership[]>("/api/workflow/role-memberships")
+  },
+  async listAssignmentRules() {
+    return request<WorkflowAssignmentRule[]>("/api/workflow/assignment-rules")
+  },
+  async listDelegations() {
+    return request<WorkflowDelegation[]>("/api/workflow/delegations")
+  },
+  async listProcessDefinitions() {
+    return request<WorkflowProcessDefinition[]>("/api/workflow/process-definitions")
+  },
+  getProcessDefinitionXml(id: string) {
+    return requestText(`/api/workflow/process-definitions/${encodeURIComponent(id)}/xml`)
+  },
+  importProcessDefinition(payload: ProcessDefinitionUploadPayload) {
+    return uploadProcessDefinition("/api/workflow/process-definitions", "POST", payload)
+  },
+  updateProcessDefinition(id: string, payload: ProcessDefinitionUploadPayload) {
+    return uploadProcessDefinition(
+      `/api/workflow/process-definitions/${encodeURIComponent(id)}`,
+      "PUT",
+      payload
+    )
+  },
+  deployProcessDefinition(id: string) {
+    return request<WorkflowProcessDefinition>(
+      `/api/workflow/process-definitions/${encodeURIComponent(id)}/deploy`,
+      { method: "POST" }
+    )
+  },
+  deleteProcessDefinition(id: string) {
+    return request<void>(`/api/workflow/process-definitions/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    })
+  },
+
+  // --- Operate API methods ---
+
+  listOperateProcessDefinitions() {
+    return request<ProcessDefinitionOperate[]>("/api/workflow/operate/process-definitions")
+  },
+  listOperateProcessInstances(bpmnProcessId?: string) {
+    const path = "/api/workflow/operate/process-instances" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    return request<ProcessInstanceState[]>(path)
+  },
+  getOperateProcessInstance(key: string) {
+    return request<ProcessInstanceState>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}`)
+  },
+  listOperateIncidents(bpmnProcessId?: string) {
+    const path = "/api/workflow/operate/incidents" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    return request<IncidentState[]>(path)
+  },
+  listOperateJobs(bpmnProcessId?: string) {
+    const path = "/api/workflow/operate/jobs" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    return request<JobState[]>(path)
+  },
+  listOperateJobDefinitions(bpmnProcessId?: string) {
+    const path = "/api/workflow/operate/job-definitions" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    return request<JobDefinitionState[]>(path)
+  },
+  listElementInstanceStats(bpmnProcessId?: string) {
+    const path = "/api/workflow/operate/element-stats" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    return request<ElementInstanceStat[]>(path)
+  },
+  pauseProcessInstance(key: string) {
+    return request<{ status: string }>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}/pause`, { method: "POST" })
+  },
+  resumeProcessInstance(key: string) {
+    return request<{ status: string }>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}/resume`, { method: "POST" })
+  },
+  cancelProcessInstance(key: string) {
+    return request<{ status: string }>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}/cancel`, { method: "POST" })
+  },
+  deleteProcessInstance(key: string) {
+    return request<void>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}`, { method: "DELETE" })
+  },
+  retryIncident(incidentKey: string) {
+    return request<{ status: string }>(`/api/workflow/operate/incidents/${encodeURIComponent(incidentKey)}/retry`, { method: "POST" })
+  },
+  resolveIncident(incidentKey: string) {
+    return request<{ status: string }>(`/api/workflow/operate/incidents/${encodeURIComponent(incidentKey)}/resolve`, { method: "POST" })
+  },
+  updateJobRetries(jobKey: string, retries: number) {
+    return request<{ status: string }>(`/api/workflow/operate/jobs/${encodeURIComponent(jobKey)}/retries`, {
+      method: "PUT",
+      body: { retries },
+    })
+  },
+  suspendJobDefinition(jobDefinitionKey: string) {
+    return request<{ status: string }>(`/api/workflow/operate/job-definitions/${encodeURIComponent(jobDefinitionKey)}/suspend`, { method: "POST" })
+  },
+  activateJobDefinition(jobDefinitionKey: string) {
+    return request<{ status: string }>(`/api/workflow/operate/job-definitions/${encodeURIComponent(jobDefinitionKey)}/activate`, { method: "POST" })
+  },
+  createCaseType(payload: Omit<WorkflowCaseType, "effectiveFrom" | "effectiveTo">) {
+    return request<WorkflowCaseType>("/api/workflow/case-types", {
+      method: "POST",
+      body: payload,
+    })
+  },
+  updateCaseType(
+    caseType: string,
+    payload: Omit<WorkflowCaseType, "caseType" | "effectiveFrom" | "effectiveTo">
+  ) {
+    return request<WorkflowCaseType>(
+      `/api/workflow/case-types/${encodeURIComponent(caseType)}`,
+      { method: "PUT", body: payload }
+    )
+  },
+  updateProcessConfig(caseType: string, payload: Partial<WorkflowCaseType>) {
+    return request<WorkflowCaseType>(
+      `/api/workflow/case-types/${encodeURIComponent(caseType)}/process-config`,
+      { method: "PUT", body: payload }
+    )
+  },
+  createSlaPolicy(payload: Omit<SlaPolicy, "id" | "createdAt" | "updatedAt">) {
+    return request<SlaPolicy>("/api/workflow/sla-policies", { method: "POST", body: payload })
+  },
+  updateSlaPolicy(id: string, payload: Omit<SlaPolicy, "id" | "createdAt" | "updatedAt">) {
+    return request<SlaPolicy>(`/api/workflow/sla-policies/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  },
+  createDescriptionTemplate(payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">) {
+    return request<DescriptionTemplate>("/api/workflow/description-templates", { method: "POST", body: payload })
+  },
+  updateDescriptionTemplate(id: string, payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">) {
+    return request<DescriptionTemplate>(`/api/workflow/description-templates/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  },
+  createProcessRole(payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">) {
+    return request<ProcessRole>("/api/workflow/roles", { method: "POST", body: payload })
+  },
+  updateProcessRole(id: string, payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">) {
+    return request<ProcessRole>(`/api/workflow/roles/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  },
+  createRoleCatalog(payload: WorkflowRoleCatalog) {
+    return request<WorkflowRoleCatalog>("/api/workflow/role-catalog", { method: "POST", body: payload })
+  },
+  updateRoleCatalog(roleCode: string, payload: WorkflowRoleCatalog) {
+    return request<WorkflowRoleCatalog>(`/api/workflow/role-catalog/${encodeURIComponent(roleCode)}`, { method: "PUT", body: payload })
+  },
+  createRoleMembership(payload: Omit<WorkflowRoleMembership, "id">) {
+    return request<WorkflowRoleMembership>("/api/workflow/role-memberships", { method: "POST", body: payload })
+  },
+  updateRoleMembership(id: string, payload: Omit<WorkflowRoleMembership, "id">) {
+    return request<WorkflowRoleMembership>(`/api/workflow/role-memberships/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  },
+  createAssignmentRule(payload: Omit<WorkflowAssignmentRule, "id">) {
+    return request<WorkflowAssignmentRule>("/api/workflow/assignment-rules", { method: "POST", body: payload })
+  },
+  updateAssignmentRule(id: string, payload: Omit<WorkflowAssignmentRule, "id">) {
+    return request<WorkflowAssignmentRule>(`/api/workflow/assignment-rules/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  },
+  createDelegation(payload: Omit<WorkflowDelegation, "id">) {
+    return request<WorkflowDelegation>("/api/workflow/delegations", { method: "POST", body: payload })
+  },
+  updateDelegation(id: string, payload: Omit<WorkflowDelegation, "id">) {
+    return request<WorkflowDelegation>(`/api/workflow/delegations/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  },
 }
