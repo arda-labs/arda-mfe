@@ -1,4 +1,5 @@
 import { api } from "@workspace/api"
+import { buildSearchParams } from "@workspace/api/query"
 import { ApiClientError } from "@workspace/api/client"
 
 export type FinanceOperation = "incoming" | "outgoing"
@@ -203,8 +204,7 @@ export const financeOperationApi = {
     operation: FinanceOperation,
     view: OperationView
   ): Promise<OperationResult<FinanceOperationCase>> {
-    const p = new URLSearchParams()
-    p.set("per_page", "100")
+    const p = buildSearchParams({ per_page: 100 })
 
     try {
       const data = await api.get<
@@ -228,12 +228,13 @@ export const financeOperationApi = {
   async searchTransactions(
     params: FinanceTransactionSearchParams
   ): Promise<OperationResult<FinanceOperationCase>> {
-    const p = new URLSearchParams()
-    if (params.keyword) p.set("keyword", params.keyword)
-    if (params.direction !== "ALL") p.set("direction", params.direction)
-    if (params.status !== "ALL") p.set("status", params.status)
-    if (params.from) p.set("from", params.from)
-    if (params.to) p.set("to", params.to)
+    const p = buildSearchParams({
+      keyword: params.keyword,
+      direction: params.direction === "ALL" ? undefined : params.direction,
+      status: params.status === "ALL" ? undefined : params.status,
+      from: params.from,
+      to: params.to,
+    })
 
     try {
       const data = await api.get<

@@ -35,6 +35,14 @@ for (const [name, workspace] of workspaces) {
   )
   graph.set(name, workspaceDependencies)
 
+  for (const [exportName, exportTarget] of Object.entries(workspace.manifest.exports ?? {})) {
+    if (exportName.includes("*")) continue
+    const target = path.join(workspace.directory, exportTarget)
+    if (!existsSync(target)) {
+      errors.push(`${name}: export ${exportName} points to missing ${exportTarget}`)
+    }
+  }
+
   const sourceRoot = path.join(workspace.directory, "src")
   if (!existsSync(sourceRoot)) continue
   for (const file of walk(sourceRoot)) {

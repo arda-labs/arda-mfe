@@ -15,7 +15,6 @@
     "lucide-react": "^1.22.0",
     "react": "^19.2.6",
     "react-i18next": "^17.0.8",
-    "react-toastify": "^11.1.0",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
@@ -25,8 +24,6 @@
     "typescript": "~6"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./notify": "./src/notify.ts",
-    "./toast": "./src/toast.ts"
+    ".": "./src/index.ts"
   }
 }

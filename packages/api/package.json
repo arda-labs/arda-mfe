@@ -20,6 +20,7 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./list": "./src/list.ts",
+    "./query": "./src/query.ts",
     "./url": "./src/url.ts"
   }
 }

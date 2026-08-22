@@ -21,6 +21,7 @@ import { useSearchParams } from "react-router-dom"
 import * as React from "react"
 
 import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback"
+import { parseSortingState } from "@workspace/ui/lib/parsers"
 import {
   injectRowIndexColumn,
   normalizeSelectColumn,
@@ -29,6 +30,7 @@ import type {
   ExtendedColumnSort,
   QueryKeys,
 } from "@workspace/ui/types/data-table"
+import { parsePositiveInteger } from "./list-url"
 
 const PAGE_KEY = "page"
 const PER_PAGE_KEY = "perPage"
@@ -40,41 +42,6 @@ const DEBOUNCE_MS = 300
 const TEXT_FILTER_VARIANTS = new Set(["text", "number"])
 
 type FilterValues = Record<string, string | string[] | null>
-
-function positiveInteger(value: string | null, fallback: number) {
-  const parsed = Number.parseInt(value ?? "", 10)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
-}
-
-function parseSorting<TData>(
-  raw: string | null,
-  columnIds: Set<string>
-): ExtendedColumnSort<TData>[] {
-  if (!raw) return []
-
-  try {
-    const parsed: unknown = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-
-    return parsed.flatMap((item) => {
-      if (
-        !item ||
-        typeof item !== "object" ||
-        typeof (item as { id?: unknown }).id !== "string" ||
-        typeof (item as { desc?: unknown }).desc !== "boolean"
-      ) {
-        return []
-      }
-
-      const { id, desc } = item as { id: string; desc: boolean }
-      return columnIds.has(id)
-        ? [{ id, desc } as ExtendedColumnSort<TData>]
-        : []
-    })
-  } catch {
-    return []
-  }
-}
 
 function shouldDebounceFilterChange<TData>(
   previous: ColumnFiltersState,
@@ -143,8 +110,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const filtersKey = queryKeys?.filters ?? FILTERS_KEY
   const joinOperatorKey = queryKeys?.joinOperator ?? JOIN_OPERATOR_KEY
   const defaultPerPage = initialState?.pagination?.pageSize ?? 10
-  const page = positiveInteger(searchParams.get(pageKey), 1)
-  const perPage = positiveInteger(searchParams.get(perPageKey), defaultPerPage)
+  const page = parsePositiveInteger(searchParams.get(pageKey), 1)
+  const perPage = parsePositiveInteger(searchParams.get(perPageKey), defaultPerPage)
 
   const updateSearch = React.useCallback(
     (update: (params: URLSearchParams) => void) => {
@@ -189,7 +156,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     [inputColumns]
   )
   const sorting = React.useMemo(
-    () => parseSorting<TData>(searchParams.get(sortKey), columnIds),
+    () => parseSortingState<TData>(searchParams.get(sortKey), columnIds),
     [columnIds, searchParams, sortKey]
   )
 

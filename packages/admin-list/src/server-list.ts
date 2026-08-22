@@ -12,6 +12,8 @@ import {
   type ListQueryInput,
   type ListResponse,
 } from "@workspace/api/list"
+import { parseSortingState } from "@workspace/ui/lib/parsers"
+import { parsePositiveInteger } from "./list-url"
 
 export type ServerListFilterMode = "text" | "single" | "multi"
 
@@ -80,13 +82,13 @@ export function buildServerListQuery(
   const pageKey = config.queryKeys?.page ?? "page"
   const perPageKey = config.queryKeys?.perPage ?? "perPage"
   const sortKey = config.queryKeys?.sort ?? "sort"
-  const sorting = parseServerSorting(
+  const sorting = parseSortingState(
     searchParams.get(sortKey),
-    config.sortableColumns
+    config.sortableColumns ? new Set(config.sortableColumns) : undefined
   )
   const query: ListQueryInput = {
-    page: positiveInteger(searchParams.get(pageKey), 1),
-    perPage: positiveInteger(
+    page: parsePositiveInteger(searchParams.get(pageKey), 1),
+    perPage: parsePositiveInteger(
       searchParams.get(perPageKey),
       config.defaultPageSize ?? 20
     ),
@@ -161,34 +163,6 @@ export function useServerList<
     page: result.data?.page ?? query.page ?? 1,
     perPage: result.data?.per_page ?? query.perPage ?? 20,
     total: result.data?.total ?? 0,
-  }
-}
-
-function positiveInteger(raw: string | null, fallback: number) {
-  const parsed = Number.parseInt(raw ?? "", 10)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
-}
-
-function parseServerSorting(raw: string | null, allowed?: readonly string[]) {
-  if (!raw) return []
-  try {
-    const value: unknown = JSON.parse(raw)
-    if (!Array.isArray(value)) return []
-    const allowedSet = allowed ? new Set(allowed) : null
-    return value.flatMap((item) => {
-      if (!item || typeof item !== "object") return []
-      const candidate = item as { id?: unknown; desc?: unknown }
-      if (
-        typeof candidate.id !== "string" ||
-        typeof candidate.desc !== "boolean"
-      ) {
-        return []
-      }
-      if (allowedSet && !allowedSet.has(candidate.id)) return []
-      return [{ id: candidate.id, desc: candidate.desc }]
-    })
-  } catch {
-    return []
   }
 }
 

@@ -18,7 +18,6 @@
     "@workspace/auth": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/media": "workspace:*",
-    "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
     "bpmn-js": "^18.9.1",

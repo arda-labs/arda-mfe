@@ -1,5 +1,6 @@
 import { api } from "@workspace/api"
 import type { ListResponse } from "@workspace/api/list"
+import { buildSearchParams } from "@workspace/api/query"
 
 export type Status = "active" | "inactive"
 
@@ -58,10 +59,7 @@ export interface EmployeeRegistration {
 }
 
 function withParams(path: string, params: Record<string, string | undefined>) {
-  const q = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value) q.set(key, value)
-  })
+  const q = buildSearchParams(params)
   const query = q.toString()
   return query ? `${path}?${query}` : path
 }

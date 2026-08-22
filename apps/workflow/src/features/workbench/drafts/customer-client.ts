@@ -1,4 +1,5 @@
 import { api } from "@workspace/api"
+import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 
 export type CustomerStatus = "DRAFT" | "NEEDS_CHANGES"
 
@@ -21,11 +22,8 @@ export const customerDraftApi = {
   },
 }
 
-async function getItems<T>(path: string, params: Record<string, unknown> = {}) {
-  const search = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== "") search.set(key, String(value))
-  })
+async function getItems<T>(path: string, params: SearchParams = {}) {
+  const search = buildSearchParams(params)
   const suffix = search.size ? `?${search.toString()}` : ""
   const data = await api.get<T[] | { items?: T[] }>(`${path}${suffix}`)
   return Array.isArray(data) ? data : (data.items ?? [])

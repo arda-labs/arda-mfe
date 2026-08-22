@@ -3,6 +3,7 @@ import {
   buildListSearchParams,
   type ListResponse,
 } from "@workspace/api/list"
+import { buildSearchParams } from "@workspace/api/query"
 
 // ── Audit ────────────────────────────────────────────
 
@@ -102,16 +103,12 @@ export const auditApi = {
   },
 
   stats: (from?: string, to?: string) => {
-    const p = new URLSearchParams()
-    if (from) p.set("from", from)
-    if (to) p.set("to", to)
+    const p = buildSearchParams({ from, to })
     return api.get<AuditStats>(`/api/admin/audit/stats?${p.toString()}`)
   },
 
   verify: (from?: string, to?: string) => {
-    const p = new URLSearchParams()
-    if (from) p.set("from", from)
-    if (to) p.set("to", to)
+    const p = buildSearchParams({ from, to })
     return api.get<ChainVerification>(`/api/admin/audit/verify?${p.toString()}`)
   },
 }

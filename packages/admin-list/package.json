@@ -26,6 +26,7 @@
     "./client-list": "./src/client-list.ts",
     "./column-filters": "./src/column-filters.ts",
     "./list-page-shell": "./src/list-page-shell.tsx",
+    "./list-url": "./src/list-url.ts",
     "./list-table-toolbar": "./src/list-table-toolbar.tsx",
     "./page-error-dialog": "./src/page-error-dialog.tsx",
     "./page-load-overlay": "./src/page-load-overlay.tsx",

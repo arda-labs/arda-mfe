@@ -1,5 +1,9 @@
 import { api } from "@workspace/api"
-import type { ListResponse } from "@workspace/api/list"
+import {
+  buildListSearchParams,
+  type ListResponse,
+} from "@workspace/api/list"
+import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 import { apiUrl } from "@workspace/api/url"
 
 export type CustomerType = "PERSONAL" | "BUSINESS"
@@ -107,7 +111,7 @@ export type CustomerListParams = {
   riskOnly?: boolean
   q?: string
   page?: number
-  limit?: number
+  perPage?: number
 }
 
 export type WorkflowTaskRole =
@@ -160,7 +164,15 @@ export interface WorkflowTimelineEvent {
 
 export const customerApi = {
   list(params: CustomerListParams = {}) {
-    return getItems<Customer>("/api/crm/customers", params)
+    const search = buildListSearchParams({
+      page: params.page,
+      perPage: params.perPage,
+      q: params.q,
+      customer_type: params.customerType,
+      status: params.status,
+      risk_only: params.riskOnly,
+    })
+    return getItems<Customer>(`/api/crm/customers?${search.toString()}`)
   },
   get(id: string) {
     return request<Customer>(`/api/crm/customers/${encodeURIComponent(id)}`, {
@@ -330,26 +342,27 @@ export interface PlatformOrganization {
 
 export const platformReferenceApi = {
   listGeoAdminUnits(params?: { parentCode?: string; level?: number }) {
-    const q = new URLSearchParams()
-    if (params?.parentCode) q.set("parent_code", params.parentCode)
-    if (params?.level) q.set("level", String(params.level))
+    const q = buildSearchParams({
+      parent_code: params?.parentCode,
+      level: params?.level,
+    })
     const suffix = q.size ? `?${q.toString()}` : ""
     return api.get<GeoAdminUnit[]>(`/api/platform/geo/admin-units${suffix}`)
   },
   listAreas(params?: { status?: string; q?: string; adminUnitCode?: string }) {
-    const q = new URLSearchParams()
-    if (params?.status) q.set("status", params.status)
-    if (params?.q) q.set("q", params.q)
-    if (params?.adminUnitCode) q.set("admin_unit_code", params.adminUnitCode)
+    const q = buildSearchParams({
+      status: params?.status,
+      q: params?.q,
+      admin_unit_code: params?.adminUnitCode,
+    })
     const suffix = q.size ? `?${q.toString()}` : ""
     return api.get<PlatformArea[]>(`/api/platform/areas${suffix}`)
   },
   listOrganizations(params?: { all?: boolean; is_active?: boolean }) {
-    const q = new URLSearchParams()
-    if (params?.all) q.set("all", "1")
-    if (params?.is_active !== undefined) {
-      q.set("is_active", String(params.is_active))
-    }
+    const q = buildSearchParams({
+      all: params?.all ? "1" : undefined,
+      is_active: params?.is_active,
+    })
     const suffix = q.size ? `?${q.toString()}` : ""
     return api.get<ListResponse<PlatformOrganization>>(
       `/api/platform/organizations${suffix}`
@@ -357,11 +370,8 @@ export const platformReferenceApi = {
   },
 }
 
-async function getItems<T>(path: string, params: Record<string, unknown> = {}) {
-  const search = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== "") search.set(key, String(value))
-  })
+async function getItems<T>(path: string, params: SearchParams = {}) {
+  const search = buildSearchParams(params)
   const suffix = search.size ? `?${search.toString()}` : ""
   const data = await request<T[] | { items?: T[] }>(`${path}${suffix}`, {
     method: "GET",

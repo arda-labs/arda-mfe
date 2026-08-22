@@ -1,4 +1,5 @@
 import { api } from "@workspace/api"
+import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 import { customerDraftApi, type Customer, type CustomerStatus } from "./customer-client"
 import type {
   PlatformDraft,
@@ -30,13 +31,8 @@ interface EmployeeRegistration {
   updated_at: string
 }
 
-function withQuery(path: string, params: Record<string, string | number | undefined>) {
-  const search = new URLSearchParams()
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, String(value))
-    }
-  }
+function withQuery(path: string, params: SearchParams) {
+  const search = buildSearchParams(params)
   const suffix = search.size ? `?${search.toString()}` : ""
   return `${path}${suffix}`
 }

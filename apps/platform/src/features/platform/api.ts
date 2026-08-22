@@ -5,6 +5,7 @@ import {
   type ListQueryInput,
   type ListResponse,
 } from "@workspace/api/list"
+import { buildSearchParams } from "@workspace/api/query"
 
 export interface Organization {
   id: string
@@ -170,10 +171,11 @@ export const platformApi = {
     scopeType?: string
     scopeId?: string
   }) => {
-    const q = new URLSearchParams()
-    if (params?.tenantId) q.set("tenant_id", params.tenantId)
-    if (params?.scopeType) q.set("scope_type", params.scopeType)
-    if (params?.scopeId) q.set("scope_id", params.scopeId)
+    const q = buildSearchParams({
+      tenant_id: params?.tenantId,
+      scope_type: params?.scopeType,
+      scope_id: params?.scopeId,
+    })
     return api.get<Parameter[]>(`/api/platform/parameters?${q.toString()}`)
   },
   upsertParameter: (data: Partial<Parameter>) => {
@@ -189,10 +191,11 @@ export const platformApi = {
     scopeType?: string
     scopeId?: string
   }) => {
-    const q = new URLSearchParams()
-    if (params?.tenantId) q.set("tenant_id", params.tenantId)
-    if (params?.scopeType) q.set("scope_type", params.scopeType)
-    if (params?.scopeId) q.set("scope_id", params.scopeId)
+    const q = buildSearchParams({
+      tenant_id: params?.tenantId,
+      scope_type: params?.scopeType,
+      scope_id: params?.scopeId,
+    })
     return api.get<LookupCategory[]>(`/api/platform/lookups?${q.toString()}`)
   },
   upsertLookupCategory: (data: Partial<LookupCategory>) => {
@@ -226,9 +229,7 @@ export const platformApi = {
 
   // Geo Admin Units
   listGeoAdminUnits: (parentCode?: string, level?: number) => {
-    const q = new URLSearchParams()
-    if (parentCode) q.set("parent_code", parentCode)
-    if (level) q.set("level", String(level))
+    const q = buildSearchParams({ parent_code: parentCode, level })
     return api.get<GeoAdminUnit[]>(
       `/api/platform/geo/admin-units?${q.toString()}`
     )
@@ -243,10 +244,11 @@ export const platformApi = {
     status?: string
     q?: string
   }) => {
-    const q = new URLSearchParams()
-    if (params?.tenantId) q.set("tenant_id", params.tenantId)
-    if (params?.status) q.set("status", params.status)
-    if (params?.q) q.set("q", params.q)
+    const q = buildSearchParams({
+      tenant_id: params?.tenantId,
+      status: params?.status,
+      q: params?.q,
+    })
     return api.get<CreditInstitution[]>(
       `/api/platform/credit-institutions?${q.toString()}`
     )
@@ -280,12 +282,13 @@ export const platformApi = {
     parentId?: string
     q?: string
   }) => {
-    const q = new URLSearchParams()
-    if (params?.tenantId) q.set("tenant_id", params.tenantId)
-    if (params?.status) q.set("status", params.status)
-    if (params?.areaTypeCode) q.set("area_type_code", params.areaTypeCode)
-    if (params?.parentId) q.set("parent_id", params.parentId)
-    if (params?.q) q.set("q", params.q)
+    const q = buildSearchParams({
+      tenant_id: params?.tenantId,
+      status: params?.status,
+      area_type_code: params?.areaTypeCode,
+      parent_id: params?.parentId,
+      q: params?.q,
+    })
     return api.get<Area[]>(`/api/platform/areas?${q.toString()}`)
   },
   getArea: (id: string) => {
@@ -303,8 +306,7 @@ export const platformApi = {
 
   // File Templates
   listFileTemplates: (tenantId?: string) => {
-    const params = new URLSearchParams()
-    if (tenantId) params.set("tenant_id", tenantId)
+    const params = buildSearchParams({ tenant_id: tenantId })
     return api.get<FileTemplate[]>(
       `/api/platform/templates?${params.toString()}`
     )
@@ -332,10 +334,7 @@ export const platformApi = {
       `/api/platform/calendar/eod?branchCode=${branchCode || "HEAD_OFFICE"}`
     ),
   evaluateDate: (channel: string, type: string, time?: string) => {
-    const p = new URLSearchParams()
-    p.set("channel", channel)
-    p.set("type", type)
-    if (time) p.set("time", time)
+    const p = buildSearchParams({ channel, type, time })
     return api.get<{
       channel: string
       type: string

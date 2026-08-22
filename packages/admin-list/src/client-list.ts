@@ -2,7 +2,8 @@ import { useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { listPageCount } from "@workspace/api/list"
-import { useDataTable } from "@workspace/admin-list/use-data-table"
+import { useDataTable } from "./use-data-table"
+import { parsePositiveInteger } from "./list-url"
 import { parseSortingState } from "@workspace/ui/lib/parsers"
 
 type SortState = { id: string; desc: boolean }[]
@@ -21,11 +22,6 @@ function hasFilterValue(value: string | string[] | null | undefined) {
   return value.trim().length > 0
 }
 
-function positiveInteger(value: string | null, fallback: number) {
-  const parsed = Number.parseInt(value ?? "", 10)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
-}
-
 export function useClientListTable<T>({
   columns,
   items,
@@ -39,8 +35,8 @@ export function useClientListTable<T>({
       new Set(columns.map((column) => column.id).filter(Boolean) as string[]),
     [columns]
   )
-  const page = positiveInteger(searchParams.get("page"), 1)
-  const perPage = positiveInteger(searchParams.get("perPage"), defaultPageSize)
+  const page = parsePositiveInteger(searchParams.get("page"), 1)
+  const perPage = parsePositiveInteger(searchParams.get("perPage"), defaultPageSize)
   const sortParam = searchParams.get("sort")
   const sorting = useMemo(
     () => parseSortingState<T>(sortParam, columnIds),

@@ -3,6 +3,7 @@ import {
   buildListSearchParams,
   type ListResponse,
 } from "@workspace/api/list"
+import { buildSearchParams } from "@workspace/api/query"
 
 export interface Account {
   id: string
@@ -111,10 +112,7 @@ export const financeApi = {
   getCalendarStatus: (branchCode?: string) => api.get<SystemDate>(`/api/finance/calendar/status?branchCode=${branchCode || "HEAD_OFFICE"}`),
   triggerEOD: (branchCode?: string) => api.post<{ message: string; data: SystemDate }>(`/api/finance/calendar/eod?branchCode=${branchCode || "HEAD_OFFICE"}`),
   evaluateDate: (channel: string, type: string, time?: string) => {
-    const p = new URLSearchParams()
-    p.set("channel", channel)
-    p.set("type", type)
-    if (time) p.set("time", time)
+    const p = buildSearchParams({ channel, type, time })
     return api.get<{ channel: string; type: string; executionTime: string; accountingDate: string }>(`/api/finance/calendar/evaluate?${p.toString()}`)
   },
   listHolidays: () => api.get<HolidayCalendar[]>("/api/finance/calendar/holidays"),

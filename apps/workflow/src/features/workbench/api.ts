@@ -1,4 +1,5 @@
 import { apiUrl } from "@workspace/api/url"
+import { buildSearchParams } from "@workspace/api/query"
 
 export type WorkbenchDirection = "incoming" | "outgoing"
 export type WorkbenchSearchDirection = "ALL" | "INCOMING" | "OUTGOING"
@@ -265,7 +266,7 @@ export const workbenchApi = {
   },
 
   async activateTasks(input: WorkflowTaskRequest) {
-    const search = new URLSearchParams({
+    const search = buildSearchParams({
       task_type: input.taskType,
       role: input.role,
       limit: "10",
@@ -309,11 +310,12 @@ async function listWorkflowCases(params: {
   keyword?: string
   limit?: number
 }) {
-  const search = new URLSearchParams()
-  search.set("case_type", params.caseType)
-  search.set("limit", String(params.limit ?? 100))
-  if (params.status) search.set("status", params.status)
-  if (params.keyword) search.set("keyword", params.keyword)
+  const search = buildSearchParams({
+    case_type: params.caseType,
+    limit: params.limit ?? 100,
+    status: params.status,
+    keyword: params.keyword,
+  })
   return request<WorkflowCase[]>(`/api/workflow/cases?${search.toString()}`)
 }
 
@@ -324,50 +326,28 @@ async function getItems<T>(path: string, key = "items") {
 }
 
 function toWorkItemSearch(filter: WorkItemFilter) {
-  const search = new URLSearchParams()
-  setSearch(search, "keyword", filter.keyword)
   // Keep direction=ALL — omitting it makes the API default to INCOMING
   // and permission-filter the list, so search looks empty.
-  setSearch(search, "direction", filter.direction)
-  setSearch(search, "fromDate", filter.fromDate)
-  setSearch(search, "toDate", filter.toDate)
-  setSearch(
-    search,
-    "accounting",
-    filter.accounting === "ALL" ? undefined : filter.accounting
-  )
-  setSearch(
-    search,
-    "slaStatus",
-    filter.slaStatus === "ALL" ? undefined : filter.slaStatus
-  )
-  setSearch(
-    search,
-    "transactionStatus",
-    filter.transactionStatus === "ALL" ? undefined : filter.transactionStatus
-  )
-  setSearch(search, "node", filter.node === "ALL" ? undefined : filter.node)
-  setSearch(
-    search,
-    "status",
-    filter.status === "ALL" ? undefined : filter.status
-  )
-  setSearch(search, "case_type", filter.caseType)
-  setSearch(search, "candidate_role", filter.candidateRole)
-  setSearch(search, "assigned_to", filter.assignedTo)
-  setSearch(search, "priority", filter.priority)
-  setSearch(search, "due_before", filter.dueBefore)
-  setSearch(search, "limit", filter.limit)
-  setSearch(search, "offset", filter.offset)
+  const search = buildSearchParams({
+    keyword: filter.keyword,
+    direction: filter.direction,
+    fromDate: filter.fromDate,
+    toDate: filter.toDate,
+    accounting: filter.accounting === "ALL" ? undefined : filter.accounting,
+    slaStatus: filter.slaStatus === "ALL" ? undefined : filter.slaStatus,
+    transactionStatus:
+      filter.transactionStatus === "ALL" ? undefined : filter.transactionStatus,
+    node: filter.node === "ALL" ? undefined : filter.node,
+    status: filter.status === "ALL" ? undefined : filter.status,
+    case_type: filter.caseType,
+    candidate_role: filter.candidateRole,
+    assigned_to: filter.assignedTo,
+    priority: filter.priority,
+    due_before: filter.dueBefore,
+    limit: filter.limit,
+    offset: filter.offset,
+  })
   return search.toString()
-}
-
-function setSearch(
-  search: URLSearchParams,
-  key: string,
-  value: string | number | undefined
-) {
-  if (value !== undefined && value !== "") search.set(key, String(value))
 }
 
 async function request<T>(

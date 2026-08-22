@@ -17,7 +17,6 @@
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
     "@workspace/i18n": "workspace:*",
-    "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^1.22.0",
