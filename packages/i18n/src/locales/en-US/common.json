@@ -84,6 +84,13 @@
     "next_page": "Go to next page",
     "last_page": "Go to last page"
   },
+  "table": {
+    "column_options": "Column options",
+    "sort_ascending": "Ascending",
+    "sort_descending": "Descending",
+    "reset_sorting": "Reset sorting",
+    "hide_column": "Hide column"
+  },
   "status": {
     "active": "Active",
     "inactive": "Inactive"

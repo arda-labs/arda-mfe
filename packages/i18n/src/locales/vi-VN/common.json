@@ -84,6 +84,13 @@
     "next_page": "Sang trang sau",
     "last_page": "Đến trang cuối"
   },
+  "table": {
+    "column_options": "Tùy chọn cột",
+    "sort_ascending": "Tăng dần",
+    "sort_descending": "Giảm dần",
+    "reset_sorting": "Bỏ sắp xếp",
+    "hide_column": "Ẩn cột"
+  },
   "status": {
     "active": "Đang hoạt động",
     "inactive": "Ngưng hoạt động"

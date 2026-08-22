@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
 import { cn } from "@workspace/ui/lib/utils";
+import { useI18n } from "@workspace/i18n";
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.ComponentProps<"button"> {
@@ -44,6 +45,7 @@ export function DataTableColumnHeader<TData, TValue>({
   className,
   ...props
 }: DataTableColumnHeaderProps<TData, TValue>) {
+  const { t } = useI18n();
   const canSort = column.getCanSort();
   const canHide = column.getCanHide();
   const sorted = column.getIsSorted();
@@ -107,7 +109,7 @@ export function DataTableColumnHeader<TData, TValue>({
               className="size-7 shrink-0 text-muted-foreground"
             >
               <MoreHorizontal className="size-3.5" />
-              <span className="sr-only">Column options</span>
+              <span className="sr-only">{t("common.table.column_options")}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-28">
@@ -119,7 +121,7 @@ export function DataTableColumnHeader<TData, TValue>({
                   onClick={() => column.toggleSorting(false)}
                 >
                   <ChevronUp />
-                  Asc
+                  {t("common.table.sort_ascending")}
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   className="relative pr-8 pl-2 [&>span:first-child]:right-2 [&>span:first-child]:left-auto [&_svg]:text-muted-foreground"
@@ -127,7 +129,7 @@ export function DataTableColumnHeader<TData, TValue>({
                   onClick={() => column.toggleSorting(true)}
                 >
                   <ChevronDown />
-                  Desc
+                  {t("common.table.sort_descending")}
                 </DropdownMenuCheckboxItem>
                 {sorted && (
                   <DropdownMenuItem
@@ -135,7 +137,7 @@ export function DataTableColumnHeader<TData, TValue>({
                     onClick={() => column.clearSorting()}
                   >
                     <X />
-                    Reset
+                    {t("common.table.reset_sorting")}
                   </DropdownMenuItem>
                 )}
               </>
@@ -146,7 +148,7 @@ export function DataTableColumnHeader<TData, TValue>({
               onClick={() => column.toggleVisibility(false)}
             >
               <EyeOff />
-              Hide
+              {t("common.table.hide_column")}
             </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
