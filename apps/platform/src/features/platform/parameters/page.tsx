@@ -709,6 +709,7 @@ export function ParametersPage() {
   return (
     <ListPageShell
       title={t("platform.parameters.title")}
+      totalRows={total}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
           {t("platform.parameters.count", { count: total })}

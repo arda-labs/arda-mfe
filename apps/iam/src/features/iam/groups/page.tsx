@@ -501,6 +501,7 @@ export function GroupsPage() {
   return (
     <ListPageShell
       title={t("admin.groups.title")}
+      totalRows={total}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
           {t("admin.groups.count", { count: total })}

@@ -237,6 +237,7 @@ export function AuditPage() {
   return (
     <ListPageShell
       title={t("admin.audit.title")}
+      totalRows={total}
       meta={<Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">{t("admin.audit.count", { count: total })}</Badge>}
       criticalPending={loading}
       criticalError={loadError}

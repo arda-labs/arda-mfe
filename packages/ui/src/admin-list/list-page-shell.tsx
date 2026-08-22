@@ -9,6 +9,7 @@ import { useDelayedBusy } from "@workspace/ui/hooks/use-delayed-busy"
 type ListPageShellProps<TData> = {
   title: string
   meta?: ReactNode
+  totalRows?: number
   actions?: ReactNode
   /** Critical APIs still loading on first paint (list + required lookups). */
   criticalPending: boolean
@@ -28,6 +29,7 @@ type ListPageShellProps<TData> = {
 export function ListPageShell<TData>({
   title,
   meta,
+  totalRows,
   actions,
   criticalPending,
   criticalError = null,
@@ -51,6 +53,7 @@ export function ListPageShell<TData>({
         <DataTable
           layout="panel"
           table={table}
+          totalRows={totalRows}
           className="min-h-0 flex-1"
           fetching={fetching}
           onRowDoubleClick={onRowDoubleClick}

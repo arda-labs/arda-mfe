@@ -491,7 +491,7 @@ export function OrganizationsPage() {
           </Card>
         </div>
       ) : (
-        <DataTable layout="panel" table={table} className="min-h-0 flex-1">
+        <DataTable layout="panel" table={table} totalRows={total} className="min-h-0 flex-1">
           <ListTableToolbar
             table={table}
             onCreate={openCreate}

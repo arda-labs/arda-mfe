@@ -632,6 +632,7 @@ export function CreditInstitutionsPage() {
   return (
     <ListPageShell
       title={t("platform.credit_institutions.title")}
+      totalRows={total}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
           {t("platform.credit_institutions.count", { count: total })}

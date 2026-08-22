@@ -402,6 +402,7 @@ export function TransactionsPage() {
   return (
     <ListPageShell
       title={t("finance.transactions.title")}
+      totalRows={total}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
           {total}

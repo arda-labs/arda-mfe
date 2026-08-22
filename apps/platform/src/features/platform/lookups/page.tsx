@@ -517,7 +517,7 @@ export function LookupsPage() {
           </Badge>
         </div>
       </div>
-      <DataTable layout="panel" table={table} className="min-h-0 flex-1">
+      <DataTable layout="panel" table={table} totalRows={valuesTotal} className="min-h-0 flex-1">
         <ListTableToolbar
           table={table}
           onCreate={openCreateVal}

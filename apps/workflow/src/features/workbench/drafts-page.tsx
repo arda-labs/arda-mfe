@@ -249,6 +249,7 @@ export function DraftWorkbenchPage() {
     <>
       <ListPageShell
         title={t("workflow.workbench.drafts.title")}
+        totalRows={items.length}
         meta={
           <Badge variant="secondary">
             {t("workflow.workbench.drafts.count", { count: items.length })}

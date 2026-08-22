@@ -17,6 +17,7 @@ import { cn } from "@workspace/ui/lib/utils"
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>
+  totalRows?: number
   actionBar?: React.ReactNode
   defaultDensity?: DataTableDensity
   /** `panel` — toolbar + pagination fixed; only table body scrolls. */
@@ -73,6 +74,7 @@ export function useDataTableDensity() {
 
 export function DataTable<TData>({
   table,
+  totalRows,
   actionBar,
   children,
   className,
@@ -257,7 +259,7 @@ export function DataTable<TData>({
             </div>
           )}
           <div className="shrink-0 border-t bg-muted/35 px-3 py-2">
-            <DataTablePagination table={table} className="p-0" />
+            <DataTablePagination table={table} totalRows={totalRows} className="p-0" />
             {actionBar &&
               table.getFilteredSelectedRowModel().rows.length > 0 &&
               actionBar}

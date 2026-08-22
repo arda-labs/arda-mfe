@@ -351,6 +351,7 @@ export function ApprovalsPage() {
   return (
     <ListPageShell
       title={t("finance.approvals.title")}
+      totalRows={total}
       meta={<Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">{total}</Badge>}
       actions={levelSelector}
       criticalPending={loading}

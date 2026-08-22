@@ -519,6 +519,7 @@ export function WardsPage() {
   return (
     <ListPageShell
       title={t("platform.wards.title")}
+      totalRows={total}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
           {t("platform.wards.count", { count: total })}

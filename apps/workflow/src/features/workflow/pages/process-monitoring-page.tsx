@@ -352,6 +352,7 @@ export function ProcessMonitoringPage() {
     <>
       <ListPageShell
         title="Giám sát quy trình"
+        totalRows={definitions.length}
         meta={<Badge variant="outline">{definitions.length} định nghĩa</Badge>}
         actions={
           <Button type="button" size="sm" onClick={() => setImportOpen(true)}>

@@ -635,6 +635,7 @@ export function AreasPage() {
   return (
     <ListPageShell
       title={t("platform.areas.title")}
+      totalRows={total}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
           {t("platform.areas.count", { count: total })}
