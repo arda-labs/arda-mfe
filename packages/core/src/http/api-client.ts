@@ -39,6 +39,10 @@ export interface CreateApiClientOptions {
   onRecentAuthRequired?: () => boolean | void | Promise<boolean | void>
 }
 
+export interface ApiRequestOptions {
+  signal?: AbortSignal
+}
+
 export function createApiClient(options: CreateApiClientOptions = {}) {
   const baseURL = options.baseURL ?? getApiBaseURL()
   const inflightGet = new Map<string, Promise<unknown>>()
@@ -47,7 +51,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     method: string,
     path: string,
     body?: unknown,
-    didStepUp = false
+    didStepUp = false,
+    requestOptions: ApiRequestOptions = {}
   ): Promise<T> => {
     const headers: Record<string, string> = {
       "X-Request-Id": createRequestId(),
@@ -70,6 +75,7 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
       headers,
       credentials: "include",
       body: requestBody,
+      signal: requestOptions.signal,
     })
 
     if (res.status === 401) {
@@ -86,7 +92,7 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
       if (res.status === 403 && payload.code === "recent_auth_required") {
         const verified = await options.onRecentAuthRequired?.()
         if (!didStepUp && verified !== false) {
-          return request<T>(method, path, body, true)
+          return request<T>(method, path, body, true, requestOptions)
         }
       }
       throw new ApiClientError(
@@ -101,7 +107,16 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     return res.json()
   }
 
-  const get = <T = unknown>(path: string): Promise<T> => {
+  const get = <T = unknown>(
+    path: string,
+    requestOptions: ApiRequestOptions = {}
+  ): Promise<T> => {
+    // A caller-provided AbortSignal has its own lifecycle. Do not share that
+    // promise with unrelated consumers; the server-state layer handles dedupe.
+    if (requestOptions.signal) {
+      return request<T>("GET", path, undefined, false, requestOptions)
+    }
+
     const locale = options.getLocale?.() ?? ""
     const key = `${baseURL}${path}|${locale}`
     const existing = inflightGet.get(key)
@@ -116,11 +131,18 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
 
   return {
     get,
-    post: <T = unknown>(path: string, body?: unknown) =>
-      request<T>("POST", path, body),
-    put: <T = unknown>(path: string, body?: unknown) =>
-      request<T>("PUT", path, body),
-    delete: <T = unknown>(path: string) => request<T>("DELETE", path),
+    post: <T = unknown>(
+      path: string,
+      body?: unknown,
+      requestOptions?: ApiRequestOptions
+    ) => request<T>("POST", path, body, false, requestOptions),
+    put: <T = unknown>(
+      path: string,
+      body?: unknown,
+      requestOptions?: ApiRequestOptions
+    ) => request<T>("PUT", path, body, false, requestOptions),
+    delete: <T = unknown>(path: string, requestOptions?: ApiRequestOptions) =>
+      request<T>("DELETE", path, undefined, false, requestOptions),
   }
 }
 

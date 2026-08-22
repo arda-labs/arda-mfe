@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -48,8 +48,12 @@ import { useDataTable } from "@workspace/ui/hooks/use-data-table"
 import { parseSortingState } from "@workspace/ui/lib/parsers"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
 import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+import { PageErrorDialog } from "@workspace/ui/admin-list/page-error-dialog"
+import { useServerList } from "@workspace/ui/admin-list/server-list"
+import { useServerStateClient } from "@workspace/ui/server-state/provider"
 
 const DEFAULT_PAGE_SIZE = 10
+const ORGANIZATIONS_QUERY_KEY = ["platform", "organizations"] as const
 
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
@@ -107,20 +111,17 @@ export function OrganizationsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null)
-  const [orgs, setOrgs] = useState<Organization[]>([])
-  const [total, setTotal] = useState(0)
-  const [treeOrgs, setTreeOrgs] = useState<Organization[]>([])
-  const [orgOptions, setOrgOptions] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
-  // ponytail: refreshing/loadError tracked but unused; add loading UI when ready
-  const [_refreshing, setRefreshing] = useState(false)
-  const [_loadError, setLoadError] = useState<unknown>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const queryClient = useServerStateClient()
 
   const pageParam = POS(searchParams.get("page"), 1)
   const perPageParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
-  const sorting = parseSortingState(searchParams.get("sort"), ["code", "name", "is_active"])
+  const sortParam = searchParams.get("sort")
+  const sorting = useMemo(
+    () => parseSortingState(sortParam, ["code", "name", "is_active"]),
+    [sortParam]
+  )
 
   const organizationSchema = useMemo(() => buildOrganizationSchema(t), [t])
   const {
@@ -134,37 +135,45 @@ export function OrganizationsPage() {
     defaultValues: organizationDefaultValues,
   })
 
-  const loadOrganizations = useCallback(async (initial = false) => {
-    if (initial) setLoading(true)
-    else setRefreshing(true)
-    setLoadError(null)
-    try {
-      const listParams: OrganizationsListParams = {
-        page: pageParam,
-        perPage: perPageParam,
-        sort: sorting[0]?.id,
-        order: sorting[0]?.desc ? "desc" : "asc",
-      }
-      const [listResult, treeResult, optionsResult] = await Promise.all([
-        platformApi.listOrganizations(listParams),
-        platformApi.listOrganizations({ view: "tree" }),
-        platformApi.listOrganizations({ view: "options" }),
-      ])
-      setOrgs(listResult.items)
-      setTotal(listResult.total)
-      setTreeOrgs(treeResult.items ?? [])
-      setOrgOptions(optionsResult.items ?? [])
-    } catch (reason) {
-      setLoadError(reason)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [pageParam, perPageParam, sorting])
+  const listParams = useMemo<OrganizationsListParams>(
+    () => ({
+      page: pageParam,
+      perPage: perPageParam,
+      sort: sorting[0]?.id,
+      order: sorting[0]?.desc ? "desc" : "asc",
+    }),
+    [pageParam, perPageParam, sorting]
+  )
 
-  useEffect(() => {
-    void loadOrganizations(viewMode === "list")
-  }, [loadOrganizations, viewMode])
+  const listQuery = useServerList({
+    queryKey: [...ORGANIZATIONS_QUERY_KEY, "list"],
+    query: listParams,
+    queryFn: (query, { signal }) =>
+      platformApi.listOrganizations(query, { signal }),
+    enabled: viewMode === "list",
+  })
+  const treeQuery = useServerList({
+    queryKey: [...ORGANIZATIONS_QUERY_KEY, "tree"],
+    query: { view: "tree" },
+    queryFn: (query, { signal }) =>
+      platformApi.listOrganizations(query, { signal }),
+    enabled: viewMode === "tree",
+    staleTime: 5 * 60_000,
+  })
+  const optionsQuery = useServerList({
+    queryKey: [...ORGANIZATIONS_QUERY_KEY, "options"],
+    query: { view: "options" },
+    queryFn: (query, { signal }) =>
+      platformApi.listOrganizations(query, { signal }),
+    enabled: dialogOpen,
+    staleTime: 5 * 60_000,
+  })
+
+  const orgs = listQuery.items
+  const treeOrgs = treeQuery.items
+  const orgOptions = optionsQuery.items
+  const activeQuery = viewMode === "list" ? listQuery : treeQuery
+  const total = activeQuery.total
 
   const openCreate = () => {
     setEditingOrg(null)
@@ -206,7 +215,7 @@ export function OrganizationsPage() {
       }
       setDialogOpen(false)
       reset(organizationDefaultValues)
-      await loadOrganizations()
+      await queryClient.invalidateQueries({ queryKey: ORGANIZATIONS_QUERY_KEY })
     } catch (err) {
       notify.error("Sua to chuc that bai", translateApiError(err))
     } finally {
@@ -221,7 +230,7 @@ export function OrganizationsPage() {
       await platformApi.deleteOrganization(deleteTarget.id)
       notify.success("Xoa to chuc thanh cong")
       setDeleteTarget(null)
-      await loadOrganizations()
+      await queryClient.invalidateQueries({ queryKey: ORGANIZATIONS_QUERY_KEY })
     } catch (err) {
       notify.error("Xoa to chuc that bai", translateApiError(err))
     } finally {
@@ -449,7 +458,7 @@ export function OrganizationsPage() {
     />
   )
 
-  if (loading && (orgs.length === 0 && treeOrgs.length === 0)) {
+  if (activeQuery.isPending && activeQuery.items.length === 0) {
     return (
       <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
         {pageHeader}
@@ -491,7 +500,13 @@ export function OrganizationsPage() {
           </Card>
         </div>
       ) : (
-        <DataTable layout="panel" table={table} totalRows={total} className="min-h-0 flex-1">
+        <DataTable
+          layout="panel"
+          table={table}
+          totalRows={total}
+          className="min-h-0 flex-1"
+          fetching={listQuery.isFetching}
+        >
           <ListTableToolbar
             table={table}
             onCreate={openCreate}
@@ -499,6 +514,12 @@ export function OrganizationsPage() {
           />
         </DataTable>
       )}
+
+      <PageErrorDialog
+        open={activeQuery.isError && !activeQuery.isFetching}
+        error={activeQuery.error}
+        onRetry={() => void activeQuery.refetch()}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-lg">

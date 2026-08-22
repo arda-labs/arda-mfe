@@ -1,6 +1,7 @@
 import "@workspace/i18n/apps/platform"
 import { lazy, Suspense } from "react"
 import { useLocation } from "react-router-dom"
+import { ServerStateProvider } from "@workspace/ui/server-state/provider"
 
 const AreaTypesPage = lazy(() =>
   import("@/features/platform/area-types/page").then((m) => ({
@@ -75,8 +76,10 @@ export default function RemoteRoutes() {
   if (pathname.startsWith("/admin/cutoff")) page = <CutoffPage />
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>{page}</Suspense>
-    </div>
+    <ServerStateProvider>
+      <div className="flex h-full min-h-0 flex-col">
+        <Suspense fallback={null}>{page}</Suspense>
+      </div>
+    </ServerStateProvider>
   )
 }

@@ -9,8 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@workspace/core": "workspace:*",
-    "@workspace/i18n": "workspace:*",
     "@fontsource-variable/inter": "^5.2.8",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -39,7 +37,10 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@tanstack/react-query": "^5.90.0",
     "@tanstack/react-table": "^8.21.3",
+    "@workspace/core": "workspace:*",
+    "@workspace/i18n": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -84,12 +85,14 @@
     "./admin-list/list-table-toolbar": "./src/admin-list/list-table-toolbar.tsx",
     "./admin-list/page-error-dialog": "./src/admin-list/page-error-dialog.tsx",
     "./admin-list/page-load-overlay": "./src/admin-list/page-load-overlay.tsx",
+    "./admin-list/server-list": "./src/admin-list/server-list.ts",
     "./admin-list/table-columns": "./src/admin-list/table-columns.tsx",
     "./config/*": "./src/config/*.ts",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
     "./hooks/use-mobile": "./src/hooks/use-mobile.tsx",
     "./hooks/*": "./src/hooks/*.ts",
+    "./server-state/provider": "./src/server-state/provider.tsx",
     "./types/*": "./src/types/*.ts"
   }
 }

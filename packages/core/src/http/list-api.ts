@@ -33,7 +33,9 @@ const RESERVED_LIST_KEYS = new Set([
   "all",
 ])
 
-export function buildListSearchParams(params: ListQueryInput = {}): URLSearchParams {
+export function buildListSearchParams(
+  params: ListQueryInput = {}
+): URLSearchParams {
   const search = new URLSearchParams()
 
   if (params.page !== undefined) {
@@ -65,6 +67,13 @@ export function buildListSearchParams(params: ListQueryInput = {}): URLSearchPar
   }
 
   return search
+}
+
+/** Stable representation for cache/query keys, independent of object key order. */
+export function serializeListQuery(params: ListQueryInput = {}): string {
+  const search = buildListSearchParams(params)
+  search.sort()
+  return search.toString()
 }
 
 export function listPageCount(total: number, perPage: number): number {

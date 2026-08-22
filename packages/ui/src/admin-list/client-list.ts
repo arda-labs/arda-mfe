@@ -35,22 +35,30 @@ export function useClientListTable<T>({
 }: UseClientListTableOptions<T>) {
   const [searchParams] = useSearchParams()
   const columnIds = useMemo(
-    () => new Set(columns.map((column) => column.id).filter(Boolean) as string[]),
+    () =>
+      new Set(columns.map((column) => column.id).filter(Boolean) as string[]),
     [columns]
   )
   const page = positiveInteger(searchParams.get("page"), 1)
   const perPage = positiveInteger(searchParams.get("perPage"), defaultPageSize)
-  const sorting = parseSortingState<T>(searchParams.get("sort"), columnIds)
+  const sortParam = searchParams.get("sort")
+  const sorting = useMemo(
+    () => parseSortingState<T>(sortParam, columnIds),
+    [columnIds, sortParam]
+  )
   const filterValues = useMemo(() => {
-    return columns.reduce<Record<string, string | string[] | null>>((values, column) => {
-      const id = column.id
-      if (!id || !column.enableColumnFilter) return values
-      const raw = searchParams.get(id)
-      values[id] = column.meta?.options
-        ? raw?.split(",").filter(Boolean) ?? []
-        : raw ?? ""
-      return values
-    }, {})
+    return columns.reduce<Record<string, string | string[] | null>>(
+      (values, column) => {
+        const id = column.id
+        if (!id || !column.enableColumnFilter) return values
+        const raw = searchParams.get(id)
+        values[id] = column.meta?.options
+          ? (raw?.split(",").filter(Boolean) ?? [])
+          : (raw ?? "")
+        return values
+      },
+      {}
+    )
   }, [columns, searchParams])
 
   const filtered = useMemo(() => {
@@ -60,7 +68,9 @@ export function useClientListTable<T>({
       for (const [key, handler] of Object.entries(filterBy)) {
         const value = filterValues[key]
         if (!hasFilterValue(value)) continue
-        result = result.filter((item) => handler(item, Array.isArray(value) ? value : String(value)))
+        result = result.filter((item) =>
+          handler(item, Array.isArray(value) ? value : String(value))
+        )
       }
     }
 

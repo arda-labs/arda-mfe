@@ -1,4 +1,5 @@
 import { api } from "@workspace/api"
+import type { ApiRequestOptions } from "@workspace/core/http/api-client"
 import {
   buildListSearchParams,
   type ListQueryInput,
@@ -131,7 +132,10 @@ export type OrganizationsListParams = ListQueryInput & {
 
 export const platformApi = {
   // Organizations
-  listOrganizations: (params: OrganizationsListParams = {}) => {
+  listOrganizations: (
+    params: OrganizationsListParams = {},
+    requestOptions?: ApiRequestOptions
+  ) => {
     const search = buildListSearchParams({
       page: params.page ?? 1,
       perPage: params.perPage ?? 20,
@@ -143,7 +147,8 @@ export const platformApi = {
       is_active: params.is_active,
     })
     return api.get<ListResponse<Organization>>(
-      `/api/platform/organizations?${search.toString()}`
+      `/api/platform/organizations?${search.toString()}`,
+      requestOptions
     )
   },
   getOrganization: (id: string) => {
