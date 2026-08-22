@@ -12,20 +12,19 @@ import {
 } from "../shared/admin-ui"
 
 export function SlaPoliciesPage() {
-  const [slaResult, setSlaResult] = useState<{ data: SlaPolicy[]; source: "api" | "mock" }>({ data: [], source: "mock" })
+  const [items, setItems] = useState<SlaPolicy[]>([])
   const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const [sl, ct] = await Promise.all([workflowApi.listSlaPolicies(), workflowApi.listCaseTypes()])
-      setSlaResult(sl)
-      setCaseTypes(ct.data)
+      setItems(sl)
+      setCaseTypes(ct)
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { void load() }, [load])
 
-  const items = slaResult.data
   const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const roleOptions = uniqueOptions(items.map((item) => item.escalationRole), [])
   const [editing, setEditing] = useState<SlaPolicy | null>(null)
@@ -36,7 +35,7 @@ export function SlaPoliciesPage() {
     <WorkflowFrame
       title="Cấu hình SLA"
       description="Định nghĩa thời hạn xử lý, ngưỡng cảnh báo và role escalations cho từng nghiệp vụ."
-      source={slaResult.source}
+      source="api"
       action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>Tạo SLA</Button>}
     >
       {loading ? <LoadingBlock /> : <SlaTable items={items} onEdit={setEditing} />}
@@ -61,4 +60,4 @@ export function SlaPoliciesPage() {
       ) : null}
     </WorkflowFrame>
   )
-}
+}

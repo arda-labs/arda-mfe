@@ -47,13 +47,13 @@ export function ProcessRolesPage() {
         workflowApi.listDelegations(),
         workflowApi.listCaseTypes(),
       ])
-      setStepRoles(sr.data)
-      setRoleCatalog(rc.data)
-      setMemberships(mm.data)
-      setAssignmentRules(ar.data)
-      setDelegations(dl.data)
-      setCaseTypes(ct.data)
-      setSource(sr.source ?? rc.source)
+      setStepRoles(sr)
+      setRoleCatalog(rc)
+      setMemberships(mm)
+      setAssignmentRules(ar)
+      setDelegations(dl)
+      setCaseTypes(ct)
+      setSource("api")
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { void load() }, [load])
@@ -160,4 +160,4 @@ export function ProcessRolesPage() {
       ) : null}
     </WorkflowFrame>
   )
-}
+}

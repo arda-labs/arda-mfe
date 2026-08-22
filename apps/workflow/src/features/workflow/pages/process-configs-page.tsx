@@ -10,20 +10,19 @@ import {
 } from "../shared/admin-ui"
 
 export function ProcessConfigsPage() {
-  const [ctResult, setCtResult] = useState<{ data: WorkflowCaseType[]; source: "api" | "mock" }>({ data: [], source: "mock" })
+  const [items, setItems] = useState<WorkflowCaseType[]>([])
   const [slaItems, setSlaItems] = useState<SlaPolicy[]>([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const [ct, sl] = await Promise.all([workflowApi.listCaseTypes(), workflowApi.listSlaPolicies()])
-      setCtResult(ct)
-      setSlaItems(sl.data)
+      setItems(ct)
+      setSlaItems(sl)
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { void load() }, [load])
 
-  const items = ctResult.data
   const [editing, setEditing] = useState<WorkflowCaseType>()
   const enabled = items.filter((item) => item.workflowEnabled).length
   const roleOptions = roleOptionsFromCaseTypes(items)
@@ -37,7 +36,7 @@ export function ProcessConfigsPage() {
     <WorkflowFrame
       title="Cấu hình quy trình"
       description="Ánh xạ từng loại nghiệp vụ tới BPMN process id, version, SLA mặc định và role xử lý."
-      source={ctResult.source}
+      source="api"
       metrics={[
         { label: "Loại nghiệp vụ", value: String(items.length), tone: "default" },
         { label: "Đang bật workflow", value: String(enabled), tone: "success" },
@@ -63,4 +62,4 @@ export function ProcessConfigsPage() {
       ) : null}
     </WorkflowFrame>
   )
-}
+}

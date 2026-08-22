@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "build": "bun run --filter './apps/*' build",
+    "cf:build": "bun ./scripts/build-cloudflare-app.mjs",
+    "cf:deploy": "bun ./scripts/deploy-cloudflare-app.mjs",
     "clear:dev-ports": "bun ./scripts/clear-dev-ports.mjs",
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
@@ -22,7 +24,8 @@
     "prettier-plugin-tailwindcss": "^0.8.0",
     "react-router-dom": "^7",
     "typescript": "~6",
-    "typescript-eslint": "^8"
+    "typescript-eslint": "^8",
+    "wrangler": "^4.125.0"
   },
   "packageManager": "bun@1.3.14",
   "engines": {

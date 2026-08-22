@@ -72,6 +72,27 @@ bun run format
 
 Build order: remotes first, shell last (`bun run build`).
 
+## Cloudflare Workers deployment
+
+The shell and every Module Federation remote are separate Workers deployment
+units while retaining the same-origin URL contract on `arda.io.vn`.
+
+```bash
+bun run cf:build iam
+bun run cf:deploy iam
+```
+
+The shell owns `arda.io.vn/*` and forwards `/api/*` to the existing DNS origin
+(Cloudflare Tunnel into k3s). Each remote owns its more-specific
+`arda.io.vn/mfes/<name>/*` route.
+
+All eight Workers are connected directly to `arda-labs/arda-mfe` through
+Cloudflare Workers Builds. Pushes to `main` deploy production; non-production
+branches create preview versions. Build watch paths keep app-only changes scoped
+to that deployment unit, while shared packages and Cloudflare build files trigger
+all units. Cloudflare manages the build token, so GitHub deployment secrets are
+not required.
+
 ## Adding UI components
 
 Run shadcn from the workspace root target:

@@ -1,0 +1,8 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "arda-mfe-workflow",
+  "compatibility_date": "2026-08-22",
+  "workers_dev": true,
+  "routes": [{ "pattern": "arda.io.vn/mfes/workflow/*", "zone_name": "arda.io.vn" }],
+  "assets": { "directory": "../.cloudflare/dist/workflow" }
+}

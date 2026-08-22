@@ -12,20 +12,19 @@ import {
 } from "../shared/admin-ui"
 
 export function DescriptionTemplatesPage() {
-  const [dtResult, setDtResult] = useState<{ data: DescriptionTemplate[]; source: "api" | "mock" }>({ data: [], source: "mock" })
+  const [items, setItems] = useState<DescriptionTemplate[]>([])
   const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const [dt, ct] = await Promise.all([workflowApi.listDescriptionTemplates(), workflowApi.listCaseTypes()])
-      setDtResult(dt)
-      setCaseTypes(ct.data)
+      setItems(dt)
+      setCaseTypes(ct)
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { void load() }, [load])
 
-  const items = dtResult.data
   const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const [editing, setEditing] = useState<DescriptionTemplate | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -35,7 +34,7 @@ export function DescriptionTemplatesPage() {
     <WorkflowFrame
       title="Cấu trúc diễn giải"
       description="Chuẩn hóa cách sinh tiêu đề, mô tả và dòng timeline để các danh sách dễ quét."
-      source={dtResult.source}
+      source="api"
       action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>Tạo cấu trúc</Button>}
     >
       {loading ? (
@@ -64,4 +63,4 @@ export function DescriptionTemplatesPage() {
       ) : null}
     </WorkflowFrame>
   )
-}
+}

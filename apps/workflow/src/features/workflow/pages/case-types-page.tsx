@@ -13,15 +13,14 @@ import {
 } from "../shared/admin-ui"
 
 export function CaseTypesPage() {
-  const [result, setResult] = useState<{ data: WorkflowCaseType[]; source: "api" | "mock" }>({ data: [], source: "mock" })
+  const [items, setItems] = useState<WorkflowCaseType[]>([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
     setLoading(true)
-    try { setResult(await workflowApi.listCaseTypes()) } finally { setLoading(false) }
+    try { setItems(await workflowApi.listCaseTypes()) } finally { setLoading(false) }
   }, [])
   useEffect(() => { void load() }, [load])
 
-  const items = result.data
   const [editing, setEditing] = useState<WorkflowCaseType | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const businessAreas = new Set(items.map((item) => item.businessArea)).size
@@ -33,7 +32,7 @@ export function CaseTypesPage() {
     <WorkflowFrame
       title="Danh mục loại nghiệp vụ"
       description="Quản lý mã nghiệp vụ, khu vực menu, service sở hữu và trạng thái áp dụng."
-      source={result.source}
+      source="api"
       metrics={[
         { label: "Loại nghiệp vụ", value: String(items.length), tone: "default" },
         { label: "Nhóm menu", value: String(businessAreas), tone: "success" },
@@ -71,4 +70,4 @@ export function CaseTypesPage() {
       ) : null}
     </WorkflowFrame>
   )
-}
+}
