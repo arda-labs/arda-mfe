@@ -52,7 +52,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     path: string,
     body?: unknown,
     didStepUp = false,
-    requestOptions: ApiRequestOptions = {}
+    requestOptions: ApiRequestOptions = {},
+    responseType: "json" | "text" = "json"
   ): Promise<T> => {
     const headers: Record<string, string> = {
       "X-Request-Id": createRequestId(),
@@ -92,7 +93,14 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
       if (res.status === 403 && payload.code === "recent_auth_required") {
         const verified = await options.onRecentAuthRequired?.()
         if (!didStepUp && verified !== false) {
-          return request<T>(method, path, body, true, requestOptions)
+          return request<T>(
+            method,
+            path,
+            body,
+            true,
+            requestOptions,
+            responseType
+          )
         }
       }
       throw new ApiClientError(
@@ -104,7 +112,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
       )
     }
 
-    return res.json()
+    if (res.status === 204) return undefined as T
+    return (responseType === "text" ? res.text() : res.json()) as Promise<T>
   }
 
   const get = <T = unknown>(
@@ -131,6 +140,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
 
   return {
     get,
+    getText: (path: string, requestOptions?: ApiRequestOptions) =>
+      request<string>("GET", path, undefined, false, requestOptions, "text"),
     post: <T = unknown>(
       path: string,
       body?: unknown,

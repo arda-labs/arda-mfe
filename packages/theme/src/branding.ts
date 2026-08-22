@@ -1,4 +1,4 @@
-import { apiUrl } from "@workspace/api/url"
+import { api } from "@workspace/api"
 import {
   createContext,
   createElement,
@@ -205,18 +205,19 @@ function readSystemBranding() {
 }
 
 async function fetchSystemBranding() {
-  const publicRes = await fetch(apiUrl(publicBrandingEndpoint), {
-    credentials: "include",
-    headers: { Accept: "application/json" },
-  })
-  if (publicRes.ok) return cacheAndReturn(await publicRes.json())
+  try {
+    return cacheAndReturn(await api.get(publicBrandingEndpoint))
+  } catch {
+    // The authenticated fallback is retained for older deployments where the
+    // public branding endpoint is not available yet.
+  }
 
-  const res = await fetch(apiUrl(parametersEndpoint), {
-    credentials: "include",
-    headers: { Accept: "application/json" },
-  })
-  if (!res.ok) return defaultBranding
-  const parameters = (await res.json()) as Parameter[]
+  let parameters: Parameter[]
+  try {
+    parameters = await api.get<Parameter[]>(parametersEndpoint)
+  } catch {
+    return defaultBranding
+  }
   const aggregate = parameters.find(
     (param) => param.key === SYSTEM_SETTINGS_KEY
   )

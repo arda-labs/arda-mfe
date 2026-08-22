@@ -4,7 +4,6 @@ import {
   type ListResponse,
 } from "@workspace/api/list"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
-import { apiUrl } from "@workspace/api/url"
 
 export type CustomerType = "PERSONAL" | "BUSINESS"
 export type CustomerStatus =
@@ -383,18 +382,14 @@ async function request<T>(
   path: string,
   options: { method: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown }
 ) {
-  const response = await fetch(apiUrl(path), {
-    method: options.method,
-    credentials: "include",
-    headers:
-      options.body === undefined
-        ? undefined
-        : { "Content-Type": "application/json" },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
-  if (!response.ok) {
-    const message = await response.text().catch(() => "")
-    throw new Error(message || `Request failed with status ${response.status}`)
+  switch (options.method) {
+    case "GET":
+      return api.get<T>(path)
+    case "POST":
+      return api.post<T>(path, options.body)
+    case "PUT":
+      return api.put<T>(path, options.body)
+    case "DELETE":
+      return api.delete<T>(path)
   }
-  return (await response.json()) as T
 }

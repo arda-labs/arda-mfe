@@ -1,4 +1,4 @@
-import { apiUrl } from "@workspace/api/url"
+import { api } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 
 export type WorkbenchDirection = "incoming" | "outgoing"
@@ -354,20 +354,9 @@ async function request<T>(
   path: string,
   options: { method?: "GET" | "POST"; body?: unknown } = {}
 ) {
-  const response = await fetch(apiUrl(path), {
-    method: options.method ?? "GET",
-    credentials: "include",
-    headers:
-      options.body === undefined
-        ? undefined
-        : { "Content-Type": "application/json" },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
-  if (!response.ok) {
-    const message = await response.text().catch(() => "")
-    throw new Error(message || `Request failed with status ${response.status}`)
-  }
-  return (await response.json()) as T
+  return options.method === "POST"
+    ? api.post<T>(path, options.body)
+    : api.get<T>(path)
 }
 
 function sortCases(items: Array<WorkflowCase | null | undefined>) {

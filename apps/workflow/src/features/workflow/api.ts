@@ -1,4 +1,4 @@
-import { apiUrl } from "@workspace/api/url"
+import { api } from "@workspace/api"
 
 export interface WorkflowCaseType {
   caseType: string
@@ -302,31 +302,20 @@ async function request<T>(
   options?: { method?: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown }
 ) {
   const method = options?.method ?? "GET"
-  const response = await fetch(apiUrl(path), {
-    method,
-    credentials: "include",
-    headers:
-      options?.body === undefined
-        ? undefined
-        : { "Content-Type": "application/json" },
-    body:
-      options?.body === undefined ? undefined : JSON.stringify(options.body),
-  })
-  if (!response.ok) {
-    const message = await response.text().catch(() => "")
-    throw new Error(message || `Request failed with status ${response.status}`)
+  switch (method) {
+    case "GET":
+      return api.get<T>(path)
+    case "POST":
+      return api.post<T>(path, options?.body)
+    case "PUT":
+      return api.put<T>(path, options?.body)
+    case "DELETE":
+      return api.delete<T>(path)
   }
-  if (response.status === 204) return undefined as T
-  return (await response.json()) as T
 }
 
 async function requestText(path: string) {
-  const response = await fetch(apiUrl(path), { credentials: "include" })
-  if (!response.ok) {
-    const message = await response.text().catch(() => "")
-    throw new Error(message || `Request failed with status ${response.status}`)
-  }
-  return response.text()
+  return api.getText(path)
 }
 
 async function uploadProcessDefinition(
@@ -340,16 +329,9 @@ async function uploadProcessDefinition(
   body.set("status", payload.status)
   body.set("file", payload.file)
 
-  const response = await fetch(apiUrl(path), {
-    method,
-    credentials: "include",
-    body,
-  })
-  if (!response.ok) {
-    const message = await response.text().catch(() => "")
-    throw new Error(message || `Request failed with status ${response.status}`)
-  }
-  return (await response.json()) as WorkflowProcessDefinition
+  return method === "POST"
+    ? api.post<WorkflowProcessDefinition>(path, body)
+    : api.put<WorkflowProcessDefinition>(path, body)
 }
 
 // ─── API methods ─────────────────────────────────────────────────────────────────
