@@ -75,7 +75,14 @@
     "en": "English"
   },
   "pagination": {
-    "page_of": "Trang {page} / {totalPages}"
+    "page_of": "Trang {page} / {totalPages}",
+    "total": "Tổng: {count}",
+    "selected": "Đã chọn: {count}",
+    "rows_per_page": "Số dòng mỗi trang",
+    "first_page": "Đến trang đầu",
+    "previous_page": "Về trang trước",
+    "next_page": "Sang trang sau",
+    "last_page": "Đến trang cuối"
   },
   "status": {
     "active": "Đang hoạt động",

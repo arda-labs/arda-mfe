@@ -1,14 +1,21 @@
+import "@workspace/i18n/apps/hrm"
 import { lazy, Suspense } from "react"
 import { useLocation } from "react-router-dom"
 
 const PositionsPage = lazy(() =>
-  import("@/features/hrm/positions/page").then((m) => ({ default: m.PositionsPage }))
+  import("@/features/hrm/positions/page").then((m) => ({
+    default: m.PositionsPage,
+  }))
 )
 const JobTitlesPage = lazy(() =>
-  import("@/features/hrm/job-titles/page").then((m) => ({ default: m.JobTitlesPage }))
+  import("@/features/hrm/job-titles/page").then((m) => ({
+    default: m.JobTitlesPage,
+  }))
 )
 const OrgUnitsPage = lazy(() =>
-  import("@/features/hrm/org-units/page").then((m) => ({ default: m.OrgUnitsPage }))
+  import("@/features/hrm/org-units/page").then((m) => ({
+    default: m.OrgUnitsPage,
+  }))
 )
 const RegistrationsPage = lazy(() =>
   import("@/features/hrm/registrations/page").then((m) => ({
@@ -16,7 +23,9 @@ const RegistrationsPage = lazy(() =>
   }))
 )
 const EmployeesPage = lazy(() =>
-  import("@/features/hrm/employees/page").then((m) => ({ default: m.EmployeesPage }))
+  import("@/features/hrm/employees/page").then((m) => ({
+    default: m.EmployeesPage,
+  }))
 )
 
 export default function RemoteRoutes() {

@@ -75,7 +75,14 @@
     "en": "English"
   },
   "pagination": {
-    "page_of": "Page {page} of {totalPages}"
+    "page_of": "Page {page} of {totalPages}",
+    "total": "Total: {count}",
+    "selected": "Selected: {count}",
+    "rows_per_page": "Rows per page",
+    "first_page": "Go to first page",
+    "previous_page": "Go to previous page",
+    "next_page": "Go to next page",
+    "last_page": "Go to last page"
   },
   "status": {
     "active": "Active",

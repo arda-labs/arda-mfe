@@ -6,8 +6,9 @@
 // Thêm package dùng chung mới → thêm vào `remoteSharedDeps` Ở ĐÂY, không sửa
 // từng apps/<remote>/vite.config.ts.
 //
-// why trailing "/": catch subpath imports (`@workspace/auth/store`,
-// `@workspace/i18n/foo`). Khai báo cả tên gốc lẫn "/" để cover cả hai kiểu.
+// why trailing "/": catch shared subpath imports such as `@workspace/auth/store`.
+// i18n app resource subpaths are intentionally NOT shared: each remote bundles
+// only its own locale JSON, then registers it into the shared i18n singleton.
 
 export const remoteSharedDeps = {
   react: { singleton: true },
@@ -17,7 +18,6 @@ export const remoteSharedDeps = {
   "react/jsx-dev-runtime": { singleton: true },
   "react-router-dom": { singleton: true },
   "@workspace/i18n": { singleton: true },
-  "@workspace/i18n/": { singleton: true },
   "@workspace/api": { singleton: true },
   "@workspace/api/": { singleton: true },
   "@workspace/theme": { singleton: true },
@@ -45,6 +45,4 @@ export const remotePorts = {
 
 // Vendor lớn để shell pre-bundle 1 lần ở boot, không ở first navigation
 // (giảm độ trễ lần đầu load một remote/page).
-export const shellOptimizeInclude = [
-  "react-toastify",
-]
+export const shellOptimizeInclude = ["react-toastify"]

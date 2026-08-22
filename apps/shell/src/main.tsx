@@ -1,4 +1,5 @@
 import "./mf-share-init"
+import "@workspace/i18n/apps/shell"
 
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"

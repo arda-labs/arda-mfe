@@ -25,7 +25,7 @@ const target = path.join(root, ".cloudflare", "dist", app)
 
 const build = Bun.spawn(["bun", "run", "--filter", app, "build"], {
   cwd: root,
-  env: { ...process.env, VITE_I18N_APP: app },
+  env: process.env,
   stdout: "inherit",
   stderr: "inherit",
 })

@@ -1,3 +1,4 @@
+import "@workspace/i18n/apps/account"
 import { useLocation, useNavigate } from "react-router-dom"
 import { AppearancePage } from "@/features/settings/appearance/page"
 import { DevicesPage } from "@/features/settings/devices/page"

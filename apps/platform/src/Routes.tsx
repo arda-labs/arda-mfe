@@ -1,3 +1,4 @@
+import "@workspace/i18n/apps/platform"
 import { lazy, Suspense } from "react"
 import { useLocation } from "react-router-dom"
 
@@ -7,7 +8,9 @@ const AreaTypesPage = lazy(() =>
   }))
 )
 const AreasPage = lazy(() =>
-  import("@/features/platform/areas/page").then((m) => ({ default: m.AreasPage }))
+  import("@/features/platform/areas/page").then((m) => ({
+    default: m.AreasPage,
+  }))
 )
 const CalendarPage = lazy(() =>
   import("@/features/platform/calendar/page").then((m) => ({
@@ -20,7 +23,9 @@ const CreditInstitutionsPage = lazy(() =>
   }))
 )
 const CutoffPage = lazy(() =>
-  import("@/features/platform/cutoff/page").then((m) => ({ default: m.CutoffPage }))
+  import("@/features/platform/cutoff/page").then((m) => ({
+    default: m.CutoffPage,
+  }))
 )
 const LookupsPage = lazy(() =>
   import("@/features/platform/lookups/page").then((m) => ({
@@ -48,7 +53,9 @@ const TemplatesPage = lazy(() =>
   }))
 )
 const WardsPage = lazy(() =>
-  import("@/features/platform/wards/page").then((m) => ({ default: m.WardsPage }))
+  import("@/features/platform/wards/page").then((m) => ({
+    default: m.WardsPage,
+  }))
 )
 
 export default function RemoteRoutes() {
@@ -61,7 +68,8 @@ export default function RemoteRoutes() {
   if (pathname.startsWith("/admin/lookups")) page = <LookupsPage />
   if (pathname.startsWith("/admin/area-types")) page = <AreaTypesPage />
   if (pathname.startsWith("/admin/areas")) page = <AreasPage />
-  if (pathname.startsWith("/admin/credit-institutions")) page = <CreditInstitutionsPage />
+  if (pathname.startsWith("/admin/credit-institutions"))
+    page = <CreditInstitutionsPage />
   if (pathname.startsWith("/admin/templates")) page = <TemplatesPage />
   if (pathname.startsWith("/admin/calendar")) page = <CalendarPage />
   if (pathname.startsWith("/admin/cutoff")) page = <CutoffPage />

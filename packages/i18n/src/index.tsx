@@ -6,8 +6,13 @@ import {
   i18n,
   STORAGE_KEY,
   supportedLocales,
+  registerResourceBundles,
   type Locale,
+  type ResourceBundles,
 } from "./config"
+
+export { registerResourceBundles }
+export type { ResourceBundles }
 
 export type MessageKey = string & {}
 
@@ -102,7 +107,6 @@ export function translateApiError(
   }
   return fallback
 }
-
 
 function translate(
   key: string,

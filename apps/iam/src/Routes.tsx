@@ -1,3 +1,4 @@
+import "@workspace/i18n/apps/iam"
 import { lazy, Suspense } from "react"
 import { useLocation } from "react-router-dom"
 

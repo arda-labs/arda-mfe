@@ -16,6 +16,7 @@ const shellWorkspaceAliases = {
     packagesRoot,
     "auth/src/step-up-channel.ts"
   ),
+  "@workspace/i18n/apps": path.resolve(packagesRoot, "i18n/src/apps"),
   "@workspace/i18n": path.resolve(packagesRoot, "i18n/src/index.tsx"),
   "@workspace/notifications/toast": path.resolve(
     packagesRoot,

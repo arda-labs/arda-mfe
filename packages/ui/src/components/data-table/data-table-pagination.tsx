@@ -1,12 +1,12 @@
-import type { Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table"
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-} from "lucide-react";
+} from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/button"
 import {
   Select,
   SelectContent,
@@ -14,14 +14,15 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { cn } from "@workspace/ui/lib/utils";
-import { SELECT_COLUMN_ID } from "@workspace/ui/lib/inject-row-index-column";
+} from "@workspace/ui/components/select"
+import { cn } from "@workspace/ui/lib/utils"
+import { SELECT_COLUMN_ID } from "@workspace/ui/lib/inject-row-index-column"
+import { useI18n } from "@workspace/i18n"
 
 interface DataTablePaginationProps<TData> extends React.ComponentProps<"div"> {
-  table: Table<TData>;
-  totalRows?: number;
-  pageSizeOptions?: number[];
+  table: Table<TData>
+  totalRows?: number
+  pageSizeOptions?: number[]
 }
 
 export function DataTablePagination<TData>({
@@ -31,33 +32,36 @@ export function DataTablePagination<TData>({
   className,
   ...props
 }: DataTablePaginationProps<TData>) {
-  const selectedRows = table.getFilteredSelectedRowModel().rows.length;
+  const { t } = useI18n()
+  const selectedRows = table.getFilteredSelectedRowModel().rows.length
   const hasSelectionColumn = table
     .getAllLeafColumns()
-    .some((column) => column.id === SELECT_COLUMN_ID);
-  const total = totalRows ?? table.getFilteredRowModel().rows.length;
+    .some((column) => column.id === SELECT_COLUMN_ID)
+  const total = totalRows ?? table.getFilteredRowModel().rows.length
 
   return (
     <div
       className={cn(
         "flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto sm:flex-row sm:gap-8",
-        className,
+        className
       )}
       {...props}
     >
-      <div className="flex-1 whitespace-nowrap text-muted-foreground text-sm">
-        Total: {total}
+      <div className="flex-1 text-sm whitespace-nowrap text-muted-foreground">
+        {t("common.pagination.total", { count: total })}
         {hasSelectionColumn && selectedRows > 0
-          ? ` · Selected: ${selectedRows}`
+          ? ` · ${t("common.pagination.selected", { count: selectedRows })}`
           : null}
       </div>
       <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
         <div className="flex items-center space-x-2">
-          <p className="whitespace-nowrap font-medium text-sm">Rows per page</p>
+          <p className="text-sm font-medium whitespace-nowrap">
+            {t("common.pagination.rows_per_page")}
+          </p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
-              table.setPageSize(Number(value));
+              table.setPageSize(Number(value))
             }}
           >
             <SelectTrigger className="h-8 w-18 data-size:h-8">
@@ -74,13 +78,15 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center justify-center font-medium text-sm">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
+        <div className="flex items-center justify-center text-sm font-medium">
+          {t("common.pagination.page_of", {
+            page: table.getState().pagination.pageIndex + 1,
+            totalPages: table.getPageCount(),
+          })}
         </div>
         <div className="flex items-center space-x-2">
           <Button
-            aria-label="Go to first page"
+            aria-label={t("common.pagination.first_page")}
             variant="outline"
             size="icon"
             className="hidden size-8 lg:flex"
@@ -90,7 +96,7 @@ export function DataTablePagination<TData>({
             <ChevronsLeft />
           </Button>
           <Button
-            aria-label="Go to previous page"
+            aria-label={t("common.pagination.previous_page")}
             variant="outline"
             size="icon"
             className="size-8"
@@ -100,7 +106,7 @@ export function DataTablePagination<TData>({
             <ChevronLeft />
           </Button>
           <Button
-            aria-label="Go to next page"
+            aria-label={t("common.pagination.next_page")}
             variant="outline"
             size="icon"
             className="size-8"
@@ -110,7 +116,7 @@ export function DataTablePagination<TData>({
             <ChevronRight />
           </Button>
           <Button
-            aria-label="Go to last page"
+            aria-label={t("common.pagination.last_page")}
             variant="outline"
             size="icon"
             className="hidden size-8 lg:flex"
@@ -122,5 +128,5 @@ export function DataTablePagination<TData>({
         </div>
       </div>
     </div>
-  );
+  )
 }

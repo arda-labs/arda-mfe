@@ -1,11 +1,16 @@
+import "@workspace/i18n/apps/finance"
 import { lazy, Suspense, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 
 const AccountsPage = lazy(() =>
-  import("@/features/finance/accounts/page").then((m) => ({ default: m.AccountsPage }))
+  import("@/features/finance/accounts/page").then((m) => ({
+    default: m.AccountsPage,
+  }))
 )
 const ApprovalsPage = lazy(() =>
-  import("@/features/finance/approvals/page").then((m) => ({ default: m.ApprovalsPage }))
+  import("@/features/finance/approvals/page").then((m) => ({
+    default: m.ApprovalsPage,
+  }))
 )
 const AccountingConfigPage = lazy(() =>
   import("@/features/finance/operation/page").then((m) => ({

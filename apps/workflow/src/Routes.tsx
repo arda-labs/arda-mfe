@@ -1,11 +1,16 @@
+import "@workspace/i18n/apps/workflow"
 import { lazy, Suspense } from "react"
 import { useLocation } from "react-router-dom"
 
 const WorkflowAdminPage = lazy(() =>
-  import("@/features/workflow/page").then((m) => ({ default: m.WorkflowAdminPage }))
+  import("@/features/workflow/page").then((m) => ({
+    default: m.WorkflowAdminPage,
+  }))
 )
 const WorkbenchPage = lazy(() =>
-  import("@/features/workbench/page").then((m) => ({ default: m.WorkbenchPage }))
+  import("@/features/workbench/page").then((m) => ({
+    default: m.WorkbenchPage,
+  }))
 )
 
 export default function RemoteRoutes() {
