@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useState } from "react"
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react"
 
 export const SYSTEM_SETTINGS_KEY = "system.settings"
 export const BRANDING_CACHE_KEY = "arda-branding"
@@ -24,8 +33,20 @@ type Parameter = {
   value: string
 }
 
+type SystemBrandingContextValue = {
+  branding: BrandingSettings
+  loading: boolean
+  error: Error | null
+  reload: () => void
+}
+
+const SystemBrandingContext = createContext<SystemBrandingContextValue | null>(
+  null
+)
+
 const publicBrandingEndpoint = "/api/platform/public/branding"
 const parametersEndpoint = "/api/platform/parameters"
+let brandingRequest: Promise<BrandingSettings> | null = null
 
 export const defaultBranding: BrandingSettings = {
   appName: "Arda",
@@ -76,7 +97,7 @@ export function normalizeBranding(value: unknown): BrandingSettings {
   }
 }
 
-export function useSystemBranding() {
+export function SystemBrandingProvider({ children }: { children: ReactNode }) {
   const [branding, setBranding] = useState(
     () => readCachedBranding() ?? defaultBranding
   )
@@ -85,13 +106,13 @@ export function useSystemBranding() {
   const [reloadVersion, setReloadVersion] = useState(0)
 
   const reload = useCallback(() => {
+    setLoading(true)
+    setError(null)
     setReloadVersion((version) => version + 1)
   }, [])
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    setError(null)
 
     void readSystemBranding()
       .then((nextBranding) => {
@@ -100,7 +121,9 @@ export function useSystemBranding() {
       .catch((reason) => {
         if (!cancelled) {
           setError(
-            reason instanceof Error ? reason : new Error("Could not load branding")
+            reason instanceof Error
+              ? reason
+              : new Error("Could not load branding")
           )
         }
       })
@@ -113,12 +136,30 @@ export function useSystemBranding() {
     }
   }, [reloadVersion])
 
-  return { branding, loading, error, reload }
+  const value = useMemo(
+    () => ({ branding, loading, error, reload }),
+    [branding, error, loading, reload]
+  )
+
+  return createElement(SystemBrandingContext.Provider, { value }, children)
+}
+
+export function useSystemBranding() {
+  const context = useContext(SystemBrandingContext)
+  if (!context) {
+    throw new Error(
+      "useSystemBranding must be used within SystemBrandingProvider"
+    )
+  }
+  return context
 }
 
 export function cacheBranding(value: unknown) {
   if (typeof localStorage === "undefined") return
-  localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify(normalizeBranding(value)))
+  localStorage.setItem(
+    BRANDING_CACHE_KEY,
+    JSON.stringify(normalizeBranding(value))
+  )
 }
 
 export function readCachedBranding() {
@@ -153,7 +194,16 @@ export function isSafeBrandImageUrl(value: string) {
   }
 }
 
-async function readSystemBranding() {
+function readSystemBranding() {
+  if (!brandingRequest) {
+    brandingRequest = fetchSystemBranding().finally(() => {
+      brandingRequest = null
+    })
+  }
+  return brandingRequest
+}
+
+async function fetchSystemBranding() {
   const publicRes = await fetch(publicBrandingEndpoint, {
     credentials: "include",
     headers: { Accept: "application/json" },
@@ -166,7 +216,9 @@ async function readSystemBranding() {
   })
   if (!res.ok) return defaultBranding
   const parameters = (await res.json()) as Parameter[]
-  const aggregate = parameters.find((param) => param.key === SYSTEM_SETTINGS_KEY)
+  const aggregate = parameters.find(
+    (param) => param.key === SYSTEM_SETTINGS_KEY
+  )
   if (!aggregate?.value) return defaultBranding
   try {
     return cacheAndReturn(JSON.parse(aggregate.value))
