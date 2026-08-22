@@ -4,29 +4,29 @@ Bun + Vite micro frontend workspace for Arda.
 
 ## Apps
 
-| App | Port | Role |
-| --- | --- | --- |
-| `shell` | 5000 | Layout, auth, navigation, lazy remote loading |
-| `iam` | 5101 | IAM admin remote |
-| `platform` | 5102 | Platform master data remote |
-| `finance` | 5103 | Finance operations remote |
-| `account` | 5104 | Profile & account settings remote |
-| `hrm` | 5105 | HRM remote |
-| `workflow` | 5106 | Workflow / BPMN admin remote |
-| `crm` | 5107 | CRM & workbench remote |
+| App        | Port | Role                                          |
+| ---------- | ---- | --------------------------------------------- |
+| `shell`    | 5000 | Layout, auth, navigation, lazy remote loading |
+| `iam`      | 5101 | IAM admin remote                              |
+| `platform` | 5102 | Platform master data remote                   |
+| `finance`  | 5103 | Finance operations remote                     |
+| `account`  | 5104 | Profile & account settings remote             |
+| `hrm`      | 5105 | HRM remote                                    |
+| `workflow` | 5106 | Workflow / BPMN admin remote                  |
+| `crm`      | 5107 | CRM & workbench remote                        |
 
 ## Packages
 
-| Package | Purpose |
-| --- | --- |
-| `@workspace/ui` | Shared shadcn/ui components |
-| `@workspace/api` | HTTP client |
-| `@workspace/auth` | Session, step-up, auth store |
-| `@workspace/core` | List API, query helpers, routing hooks |
-| `@workspace/i18n` | Locales, `translateApiError` |
-| `@workspace/notifications` | Toast / notify |
-| `@workspace/theme` | Theme tokens |
-| `@workspace/media` | Media URL helpers |
+| Package                    | Purpose                                |
+| -------------------------- | -------------------------------------- |
+| `@workspace/ui`            | Shared shadcn/ui components            |
+| `@workspace/api`           | HTTP client                            |
+| `@workspace/auth`          | Session, step-up, auth store           |
+| `@workspace/core`          | List API, query helpers, routing hooks |
+| `@workspace/i18n`          | Locales, `translateApiError`           |
+| `@workspace/notifications` | Toast / notify                         |
+| `@workspace/theme`         | Theme tokens                           |
+| `@workspace/media`         | Media URL helpers                      |
 
 ## Structure conventions
 
@@ -82,9 +82,15 @@ bun run cf:build iam
 bun run cf:deploy iam
 ```
 
-The shell owns `arda.io.vn/*` and forwards `/api/*` to the existing DNS origin
-(Cloudflare Tunnel into k3s). Each remote owns its more-specific
-`arda.io.vn/mfes/<name>/*` route.
+The shell owns frontend routes under `arda.io.vn/*`. Production browser API
+requests use `https://api.arda.io.vn/api/*`, which goes through Cloudflare
+Tunnel directly to `auth-gateway` in k3s and does not invoke the shell Worker.
+Each remote owns its more-specific `arda.io.vn/mfes/<name>/*` route.
+
+Shared API URL resolution keeps local development on relative `/api/*` paths
+and switches only the production `https://arda.io.vn` origin to
+`https://api.arda.io.vn`. Fetch, SSE, and media URLs must use the shared
+resolver/client so credentialed cross-origin requests remain consistent.
 
 All eight Workers are connected directly to `arda-labs/arda-mfe` through
 Cloudflare Workers Builds. Pushes to `main` deploy production; non-production

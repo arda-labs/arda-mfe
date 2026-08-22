@@ -1,4 +1,5 @@
 import { getMediaContentUrl } from "@workspace/core/media/urls"
+import { apiUrl } from "@workspace/core/http/api-url"
 import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { Building2 } from "lucide-react"
@@ -25,7 +26,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
       return
     }
     if (user.orgIds.length > 1 && !user.activeOrgId && availableOrgs === null) {
-      fetch("/api/platform/organizations", { credentials: "include" })
+      fetch(apiUrl("/api/platform/organizations"), { credentials: "include" })
         .then((res) => (res.ok ? res.json() : []))
         .then((orgList: Organization[]) => {
           setAvailableOrgs(

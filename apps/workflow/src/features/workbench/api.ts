@@ -1,3 +1,5 @@
+import { apiUrl } from "@workspace/core/http/api-url"
+
 export type WorkbenchDirection = "incoming" | "outgoing"
 export type WorkbenchSearchDirection = "ALL" | "INCOMING" | "OUTGOING"
 
@@ -372,7 +374,7 @@ async function request<T>(
   path: string,
   options: { method?: "GET" | "POST"; body?: unknown } = {}
 ) {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     method: options.method ?? "GET",
     credentials: "include",
     headers:

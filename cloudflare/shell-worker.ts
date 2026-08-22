@@ -6,8 +6,8 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url)
 
-    // On a Workers Route, fetching the incoming request continues to the
-    // existing DNS origin, which is the Cloudflare Tunnel into k3s.
+    // Legacy fallback. Production has a more-specific no-script Worker route
+    // for arda.io.vn/api/* and new frontend builds call api.arda.io.vn.
     if (pathname === "/api" || pathname.startsWith("/api/")) {
       return fetch(request)
     }

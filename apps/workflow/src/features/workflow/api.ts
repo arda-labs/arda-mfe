@@ -1,3 +1,5 @@
+import { apiUrl } from "@workspace/core/http/api-url"
+
 export interface WorkflowCaseType {
   caseType: string
   businessArea: string
@@ -300,11 +302,15 @@ async function request<T>(
   options?: { method?: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown }
 ) {
   const method = options?.method ?? "GET"
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     method,
     credentials: "include",
-    headers: options?.body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: options?.body === undefined ? undefined : JSON.stringify(options.body),
+    headers:
+      options?.body === undefined
+        ? undefined
+        : { "Content-Type": "application/json" },
+    body:
+      options?.body === undefined ? undefined : JSON.stringify(options.body),
   })
   if (!response.ok) {
     const message = await response.text().catch(() => "")
@@ -315,7 +321,7 @@ async function request<T>(
 }
 
 async function requestText(path: string) {
-  const response = await fetch(path, { credentials: "include" })
+  const response = await fetch(apiUrl(path), { credentials: "include" })
   if (!response.ok) {
     const message = await response.text().catch(() => "")
     throw new Error(message || `Request failed with status ${response.status}`)
@@ -334,7 +340,7 @@ async function uploadProcessDefinition(
   body.set("status", payload.status)
   body.set("file", payload.file)
 
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     method,
     credentials: "include",
     body,
@@ -394,13 +400,21 @@ export const workflowApi = {
     return request<WorkflowDelegation[]>("/api/workflow/delegations")
   },
   async listProcessDefinitions() {
-    return request<WorkflowProcessDefinition[]>("/api/workflow/process-definitions")
+    return request<WorkflowProcessDefinition[]>(
+      "/api/workflow/process-definitions"
+    )
   },
   getProcessDefinitionXml(id: string) {
-    return requestText(`/api/workflow/process-definitions/${encodeURIComponent(id)}/xml`)
+    return requestText(
+      `/api/workflow/process-definitions/${encodeURIComponent(id)}/xml`
+    )
   },
   importProcessDefinition(payload: ProcessDefinitionUploadPayload) {
-    return uploadProcessDefinition("/api/workflow/process-definitions", "POST", payload)
+    return uploadProcessDefinition(
+      "/api/workflow/process-definitions",
+      "POST",
+      payload
+    )
   },
   updateProcessDefinition(id: string, payload: ProcessDefinitionUploadPayload) {
     return uploadProcessDefinition(
@@ -416,70 +430,126 @@ export const workflowApi = {
     )
   },
   deleteProcessDefinition(id: string) {
-    return request<void>(`/api/workflow/process-definitions/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-    })
+    return request<void>(
+      `/api/workflow/process-definitions/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+      }
+    )
   },
 
   // --- Operate API methods ---
 
   listOperateProcessDefinitions() {
-    return request<ProcessDefinitionOperate[]>("/api/workflow/operate/process-definitions")
+    return request<ProcessDefinitionOperate[]>(
+      "/api/workflow/operate/process-definitions"
+    )
   },
   listOperateProcessInstances(bpmnProcessId?: string) {
-    const path = "/api/workflow/operate/process-instances" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    const path =
+      "/api/workflow/operate/process-instances" +
+      (bpmnProcessId
+        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
+        : "")
     return request<ProcessInstanceState[]>(path)
   },
   getOperateProcessInstance(key: string) {
-    return request<ProcessInstanceState>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}`)
+    return request<ProcessInstanceState>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}`
+    )
   },
   listOperateIncidents(bpmnProcessId?: string) {
-    const path = "/api/workflow/operate/incidents" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    const path =
+      "/api/workflow/operate/incidents" +
+      (bpmnProcessId
+        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
+        : "")
     return request<IncidentState[]>(path)
   },
   listOperateJobs(bpmnProcessId?: string) {
-    const path = "/api/workflow/operate/jobs" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    const path =
+      "/api/workflow/operate/jobs" +
+      (bpmnProcessId
+        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
+        : "")
     return request<JobState[]>(path)
   },
   listOperateJobDefinitions(bpmnProcessId?: string) {
-    const path = "/api/workflow/operate/job-definitions" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    const path =
+      "/api/workflow/operate/job-definitions" +
+      (bpmnProcessId
+        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
+        : "")
     return request<JobDefinitionState[]>(path)
   },
   listElementInstanceStats(bpmnProcessId?: string) {
-    const path = "/api/workflow/operate/element-stats" + (bpmnProcessId ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}` : "")
+    const path =
+      "/api/workflow/operate/element-stats" +
+      (bpmnProcessId
+        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
+        : "")
     return request<ElementInstanceStat[]>(path)
   },
   pauseProcessInstance(key: string) {
-    return request<{ status: string }>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}/pause`, { method: "POST" })
+    return request<{ status: string }>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/pause`,
+      { method: "POST" }
+    )
   },
   resumeProcessInstance(key: string) {
-    return request<{ status: string }>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}/resume`, { method: "POST" })
+    return request<{ status: string }>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/resume`,
+      { method: "POST" }
+    )
   },
   cancelProcessInstance(key: string) {
-    return request<{ status: string }>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}/cancel`, { method: "POST" })
+    return request<{ status: string }>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/cancel`,
+      { method: "POST" }
+    )
   },
   deleteProcessInstance(key: string) {
-    return request<void>(`/api/workflow/operate/process-instances/${encodeURIComponent(key)}`, { method: "DELETE" })
+    return request<void>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}`,
+      { method: "DELETE" }
+    )
   },
   retryIncident(incidentKey: string) {
-    return request<{ status: string }>(`/api/workflow/operate/incidents/${encodeURIComponent(incidentKey)}/retry`, { method: "POST" })
+    return request<{ status: string }>(
+      `/api/workflow/operate/incidents/${encodeURIComponent(incidentKey)}/retry`,
+      { method: "POST" }
+    )
   },
   resolveIncident(incidentKey: string) {
-    return request<{ status: string }>(`/api/workflow/operate/incidents/${encodeURIComponent(incidentKey)}/resolve`, { method: "POST" })
+    return request<{ status: string }>(
+      `/api/workflow/operate/incidents/${encodeURIComponent(incidentKey)}/resolve`,
+      { method: "POST" }
+    )
   },
   updateJobRetries(jobKey: string, retries: number) {
-    return request<{ status: string }>(`/api/workflow/operate/jobs/${encodeURIComponent(jobKey)}/retries`, {
-      method: "PUT",
-      body: { retries },
-    })
+    return request<{ status: string }>(
+      `/api/workflow/operate/jobs/${encodeURIComponent(jobKey)}/retries`,
+      {
+        method: "PUT",
+        body: { retries },
+      }
+    )
   },
   suspendJobDefinition(jobDefinitionKey: string) {
-    return request<{ status: string }>(`/api/workflow/operate/job-definitions/${encodeURIComponent(jobDefinitionKey)}/suspend`, { method: "POST" })
+    return request<{ status: string }>(
+      `/api/workflow/operate/job-definitions/${encodeURIComponent(jobDefinitionKey)}/suspend`,
+      { method: "POST" }
+    )
   },
   activateJobDefinition(jobDefinitionKey: string) {
-    return request<{ status: string }>(`/api/workflow/operate/job-definitions/${encodeURIComponent(jobDefinitionKey)}/activate`, { method: "POST" })
+    return request<{ status: string }>(
+      `/api/workflow/operate/job-definitions/${encodeURIComponent(jobDefinitionKey)}/activate`,
+      { method: "POST" }
+    )
   },
-  createCaseType(payload: Omit<WorkflowCaseType, "effectiveFrom" | "effectiveTo">) {
+  createCaseType(
+    payload: Omit<WorkflowCaseType, "effectiveFrom" | "effectiveTo">
+  ) {
     return request<WorkflowCaseType>("/api/workflow/case-types", {
       method: "POST",
       body: payload,
@@ -487,7 +557,10 @@ export const workflowApi = {
   },
   updateCaseType(
     caseType: string,
-    payload: Omit<WorkflowCaseType, "caseType" | "effectiveFrom" | "effectiveTo">
+    payload: Omit<
+      WorkflowCaseType,
+      "caseType" | "effectiveFrom" | "effectiveTo"
+    >
   ) {
     return request<WorkflowCaseType>(
       `/api/workflow/case-types/${encodeURIComponent(caseType)}`,
@@ -501,45 +574,106 @@ export const workflowApi = {
     )
   },
   createSlaPolicy(payload: Omit<SlaPolicy, "id" | "createdAt" | "updatedAt">) {
-    return request<SlaPolicy>("/api/workflow/sla-policies", { method: "POST", body: payload })
+    return request<SlaPolicy>("/api/workflow/sla-policies", {
+      method: "POST",
+      body: payload,
+    })
   },
-  updateSlaPolicy(id: string, payload: Omit<SlaPolicy, "id" | "createdAt" | "updatedAt">) {
-    return request<SlaPolicy>(`/api/workflow/sla-policies/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  updateSlaPolicy(
+    id: string,
+    payload: Omit<SlaPolicy, "id" | "createdAt" | "updatedAt">
+  ) {
+    return request<SlaPolicy>(
+      `/api/workflow/sla-policies/${encodeURIComponent(id)}`,
+      { method: "PUT", body: payload }
+    )
   },
-  createDescriptionTemplate(payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">) {
-    return request<DescriptionTemplate>("/api/workflow/description-templates", { method: "POST", body: payload })
+  createDescriptionTemplate(
+    payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">
+  ) {
+    return request<DescriptionTemplate>("/api/workflow/description-templates", {
+      method: "POST",
+      body: payload,
+    })
   },
-  updateDescriptionTemplate(id: string, payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">) {
-    return request<DescriptionTemplate>(`/api/workflow/description-templates/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  updateDescriptionTemplate(
+    id: string,
+    payload: Omit<DescriptionTemplate, "id" | "createdAt" | "updatedAt">
+  ) {
+    return request<DescriptionTemplate>(
+      `/api/workflow/description-templates/${encodeURIComponent(id)}`,
+      { method: "PUT", body: payload }
+    )
   },
-  createProcessRole(payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">) {
-    return request<ProcessRole>("/api/workflow/roles", { method: "POST", body: payload })
+  createProcessRole(
+    payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">
+  ) {
+    return request<ProcessRole>("/api/workflow/roles", {
+      method: "POST",
+      body: payload,
+    })
   },
-  updateProcessRole(id: string, payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">) {
-    return request<ProcessRole>(`/api/workflow/roles/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  updateProcessRole(
+    id: string,
+    payload: Omit<ProcessRole, "id" | "createdAt" | "updatedAt">
+  ) {
+    return request<ProcessRole>(
+      `/api/workflow/roles/${encodeURIComponent(id)}`,
+      { method: "PUT", body: payload }
+    )
   },
   createRoleCatalog(payload: WorkflowRoleCatalog) {
-    return request<WorkflowRoleCatalog>("/api/workflow/role-catalog", { method: "POST", body: payload })
+    return request<WorkflowRoleCatalog>("/api/workflow/role-catalog", {
+      method: "POST",
+      body: payload,
+    })
   },
   updateRoleCatalog(roleCode: string, payload: WorkflowRoleCatalog) {
-    return request<WorkflowRoleCatalog>(`/api/workflow/role-catalog/${encodeURIComponent(roleCode)}`, { method: "PUT", body: payload })
+    return request<WorkflowRoleCatalog>(
+      `/api/workflow/role-catalog/${encodeURIComponent(roleCode)}`,
+      { method: "PUT", body: payload }
+    )
   },
   createRoleMembership(payload: Omit<WorkflowRoleMembership, "id">) {
-    return request<WorkflowRoleMembership>("/api/workflow/role-memberships", { method: "POST", body: payload })
+    return request<WorkflowRoleMembership>("/api/workflow/role-memberships", {
+      method: "POST",
+      body: payload,
+    })
   },
-  updateRoleMembership(id: string, payload: Omit<WorkflowRoleMembership, "id">) {
-    return request<WorkflowRoleMembership>(`/api/workflow/role-memberships/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  updateRoleMembership(
+    id: string,
+    payload: Omit<WorkflowRoleMembership, "id">
+  ) {
+    return request<WorkflowRoleMembership>(
+      `/api/workflow/role-memberships/${encodeURIComponent(id)}`,
+      { method: "PUT", body: payload }
+    )
   },
   createAssignmentRule(payload: Omit<WorkflowAssignmentRule, "id">) {
-    return request<WorkflowAssignmentRule>("/api/workflow/assignment-rules", { method: "POST", body: payload })
+    return request<WorkflowAssignmentRule>("/api/workflow/assignment-rules", {
+      method: "POST",
+      body: payload,
+    })
   },
-  updateAssignmentRule(id: string, payload: Omit<WorkflowAssignmentRule, "id">) {
-    return request<WorkflowAssignmentRule>(`/api/workflow/assignment-rules/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+  updateAssignmentRule(
+    id: string,
+    payload: Omit<WorkflowAssignmentRule, "id">
+  ) {
+    return request<WorkflowAssignmentRule>(
+      `/api/workflow/assignment-rules/${encodeURIComponent(id)}`,
+      { method: "PUT", body: payload }
+    )
   },
   createDelegation(payload: Omit<WorkflowDelegation, "id">) {
-    return request<WorkflowDelegation>("/api/workflow/delegations", { method: "POST", body: payload })
+    return request<WorkflowDelegation>("/api/workflow/delegations", {
+      method: "POST",
+      body: payload,
+    })
   },
   updateDelegation(id: string, payload: Omit<WorkflowDelegation, "id">) {
-    return request<WorkflowDelegation>(`/api/workflow/delegations/${encodeURIComponent(id)}`, { method: "PUT", body: payload })
+    return request<WorkflowDelegation>(
+      `/api/workflow/delegations/${encodeURIComponent(id)}`,
+      { method: "PUT", body: payload }
+    )
   },
 }

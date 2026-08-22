@@ -1,4 +1,5 @@
 import { createApiClient } from "@workspace/core/http/api-client"
+import { getApiBaseURL } from "@workspace/core/http/api-url"
 import { getCurrentLocale } from "@workspace/i18n"
 import { ensureRecentAuth } from "@workspace/auth/ensure-recent-auth"
 import { useAuthStore } from "@workspace/auth/store"
@@ -7,6 +8,7 @@ import { useAuthStore } from "@workspace/auth/store"
 // `api` configured. ApiClientError đã có code/status/fields/requestId;
 // catch dùng `instanceof ApiClientError`, không cần bọc lớp nào khác.
 export const api = createApiClient({
+  baseURL: getApiBaseURL(),
   getLocale: getCurrentLocale,
   onUnauthorized: () => {
     useAuthStore.getState().logout()

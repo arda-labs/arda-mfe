@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
+import { apiUrl } from "@workspace/core/http/api-url"
 import { ShieldCheck } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -21,7 +22,9 @@ type MFAStatus = {
 
 async function loadMFAStatus(): Promise<boolean> {
   try {
-    const res = await fetch("/api/iam/me/mfa/status", { credentials: "include" })
+    const res = await fetch(apiUrl("/api/iam/me/mfa/status"), {
+      credentials: "include",
+    })
     if (!res.ok) return true
     const data = (await res.json()) as MFAStatus
     return Boolean(data.is_enrolled)
@@ -68,7 +71,7 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
     setSubmitting(true)
     setError("")
     try {
-      const res = await fetch("/api/auth/step-up", {
+      const res = await fetch(apiUrl("/api/auth/step-up"), {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -92,7 +95,10 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
-      <Dialog open={request !== null} onOpenChange={(open) => !open && close(false)}>
+      <Dialog
+        open={request !== null}
+        onOpenChange={(open) => !open && close(false)}
+      >
         <DialogContent className="z-[300] max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -124,7 +130,11 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
             error && <p className="text-sm text-destructive">{error}</p>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => close(false)} disabled={submitting}>
+            <Button
+              variant="outline"
+              onClick={() => close(false)}
+              disabled={submitting}
+            >
               Hủy
             </Button>
             <Button

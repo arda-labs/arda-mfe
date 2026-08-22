@@ -1,5 +1,6 @@
 import { api } from "@workspace/api"
 import type { ListResponse } from "@workspace/core/http/list-api"
+import { apiUrl } from "@workspace/core/http/api-url"
 
 export type CustomerType = "PERSONAL" | "BUSINESS"
 export type CustomerStatus =
@@ -241,10 +242,11 @@ export const customerApi = {
     )
   },
   getWorkflowCaseTimeline(id: string) {
-    return request<{ items?: WorkflowTimelineEvent[] } | WorkflowTimelineEvent[]>(
-      `/api/workflow/cases/${encodeURIComponent(id)}/timeline`,
-      { method: "GET" }
-    ).then((res) => (Array.isArray(res) ? res : (res.items ?? [])))
+    return request<
+      { items?: WorkflowTimelineEvent[] } | WorkflowTimelineEvent[]
+    >(`/api/workflow/cases/${encodeURIComponent(id)}/timeline`, {
+      method: "GET",
+    }).then((res) => (Array.isArray(res) ? res : (res.items ?? [])))
   },
   completeTask(input: {
     jobKey: string
@@ -371,7 +373,7 @@ async function request<T>(
   path: string,
   options: { method: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown }
 ) {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     method: options.method,
     credentials: "include",
     headers:

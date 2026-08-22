@@ -1,3 +1,4 @@
+import { apiUrl } from "@workspace/core/http/api-url"
 import { requestStepUp } from "./step-up-channel"
 
 type RecentAuthStatus = {
@@ -6,7 +7,9 @@ type RecentAuthStatus = {
 
 export async function ensureRecentAuth(): Promise<boolean> {
   try {
-    const res = await fetch("/api/auth/recent-auth", { credentials: "include" })
+    const res = await fetch(apiUrl("/api/auth/recent-auth"), {
+      credentials: "include",
+    })
     if (res.ok) {
       const data = (await res.json()) as RecentAuthStatus
       if (data.recentAuthOk) return true

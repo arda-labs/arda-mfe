@@ -1,4 +1,5 @@
 import type { PersistStorage } from "zustand/middleware"
+import { apiUrl } from "@workspace/core/http/api-url"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
@@ -169,7 +170,7 @@ export const useAuthStore = create<AuthState>()(
       clearSession: () => set({ user: null, isAuthenticated: false }),
       logout: async () => {
         if (typeof window !== "undefined") {
-          await fetch("/api/auth/logout", {
+          await fetch(apiUrl("/api/auth/logout"), {
             method: "POST",
             credentials: "include",
           }).catch(() => {})

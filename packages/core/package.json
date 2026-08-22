@@ -22,6 +22,7 @@
     "./branding": "./src/branding/index.ts",
     "./browser/pkce": "./src/browser/pkce.ts",
     "./http/api-client": "./src/http/api-client.ts",
+    "./http/api-url": "./src/http/api-url.ts",
     "./http/list-api": "./src/http/list-api.ts",
     "./media/urls": "./src/media/urls.ts",
     "./page-title": "./src/page-title/index.ts",

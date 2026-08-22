@@ -16,6 +16,7 @@ import {
 } from "../../../packages/auth/src/store"
 import * as authShare from "../../../packages/auth/src/index"
 import { getMediaContentUrl } from "../../../packages/core/src/media/urls"
+import { apiUrl } from "../../../packages/core/src/http/api-url"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Dashboard } from "./dashboard"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
@@ -94,7 +95,7 @@ export function App() {
     let cancelled = false
     sessionCheckInFlight.current = true
 
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch(apiUrl("/api/auth/me"), { credentials: "include" })
       .then((res) => {
         if (res.ok) return res.json()
         throw new Error("session expired")

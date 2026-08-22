@@ -407,6 +407,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@workspace/api": "workspace:*",
+        "@workspace/core": "workspace:*",
         "@workspace/i18n": "workspace:*",
         "@workspace/ui": "workspace:*",
         "lucide-react": "^1.22.0",

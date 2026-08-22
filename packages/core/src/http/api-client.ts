@@ -1,4 +1,5 @@
 import { createRequestId } from "./list-api"
+import { getApiBaseURL } from "./api-url"
 
 export interface ApiClientErrorPayload {
   code: string
@@ -20,7 +21,7 @@ export class ApiClientError extends Error {
     message: string,
     status: number,
     fields?: Record<string, string>,
-    requestId?: string,
+    requestId?: string
   ) {
     super(message)
     this.name = "ApiClientError"
@@ -39,10 +40,15 @@ export interface CreateApiClientOptions {
 }
 
 export function createApiClient(options: CreateApiClientOptions = {}) {
-  const baseURL = options.baseURL ?? ""
+  const baseURL = options.baseURL ?? getApiBaseURL()
   const inflightGet = new Map<string, Promise<unknown>>()
 
-  const request = async <T>(method: string, path: string, body?: unknown, didStepUp = false): Promise<T> => {
+  const request = async <T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    didStepUp = false
+  ): Promise<T> => {
     const headers: Record<string, string> = {
       "X-Request-Id": createRequestId(),
     }
@@ -68,7 +74,11 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
 
     if (res.status === 401) {
       await options.onUnauthorized?.()
-      throw new ApiClientError("common.error.session_expired", "Session expired", res.status)
+      throw new ApiClientError(
+        "common.error.session_expired",
+        "Session expired",
+        res.status
+      )
     }
 
     if (!res.ok) {
@@ -79,7 +89,13 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
           return request<T>(method, path, body, true)
         }
       }
-      throw new ApiClientError(payload.code, payload.message, res.status, payload.fields, payload.request_id)
+      throw new ApiClientError(
+        payload.code,
+        payload.message,
+        res.status,
+        payload.fields,
+        payload.request_id
+      )
     }
 
     return res.json()
@@ -100,13 +116,17 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
 
   return {
     get,
-    post: <T = unknown>(path: string, body?: unknown) => request<T>("POST", path, body),
-    put: <T = unknown>(path: string, body?: unknown) => request<T>("PUT", path, body),
+    post: <T = unknown>(path: string, body?: unknown) =>
+      request<T>("POST", path, body),
+    put: <T = unknown>(path: string, body?: unknown) =>
+      request<T>("PUT", path, body),
     delete: <T = unknown>(path: string) => request<T>("DELETE", path),
   }
 }
 
-async function parseApiClientError(res: Response): Promise<ApiClientErrorPayload> {
+async function parseApiClientError(
+  res: Response
+): Promise<ApiClientErrorPayload> {
   const fallback = {
     code: "common.error.api_failed",
     message: `Request failed with status ${res.status}`,
@@ -120,7 +140,9 @@ async function parseApiClientError(res: Response): Promise<ApiClientErrorPayload
     if (json?.error && typeof json.error === "object") {
       return {
         code: String(json.error.code ?? json.error.error ?? fallback.code),
-        message: String(json.error.message ?? json.error.error ?? fallback.message),
+        message: String(
+          json.error.message ?? json.error.error ?? fallback.message
+        ),
         fields: json.error.fields as Record<string, string> | undefined,
         request_id:
           typeof json.error.request_id === "string"

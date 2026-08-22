@@ -1,6 +1,8 @@
+import { apiUrl } from "@workspace/core/http/api-url"
+
 export const HYDRA_PUBLIC_URL = "https://auth.arda.io.vn"
 export const OAUTH_CLIENT_ID = "arda-shell"
-export const BFF_API = "/api/auth"
+export const BFF_API = apiUrl("/api/auth")
 
 function getOrigin(): string {
   if (typeof window !== "undefined") return window.location.origin
@@ -13,16 +15,23 @@ export function getOAuthRedirectUri(): string {
 
 export async function redirectToHydraLogin(returnTo?: string): Promise<void> {
   if (typeof window !== "undefined") {
-    const next = returnTo ?? `${window.location.pathname}${window.location.search}`
-    const authRoute = /^\/(auth|login|callback|login-callback|consent)(\/|$)/.test(window.location.pathname)
+    const next =
+      returnTo ?? `${window.location.pathname}${window.location.search}`
+    const authRoute =
+      /^\/(auth|login|callback|login-callback|consent)(\/|$)/.test(
+        window.location.pathname
+      )
     const params = new URLSearchParams({ return_to: authRoute ? "/" : next })
     window.location.href = `${BFF_API}/start?${params.toString()}`
   }
 }
 
-export async function acceptHydraConsent(consentChallenge: string): Promise<string> {
+export async function acceptHydraConsent(
+  consentChallenge: string
+): Promise<string> {
   const res = await fetch(`${BFF_API}/accept-consent`, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       consent_challenge: consentChallenge,
@@ -31,7 +40,8 @@ export async function acceptHydraConsent(consentChallenge: string): Promise<stri
   })
   if (!res.ok) throw new Error("accept consent failed")
   const data = await res.json()
-  if (!data.redirect_url) throw new Error("accept consent returned empty redirect_url")
+  if (!data.redirect_url)
+    throw new Error("accept consent returned empty redirect_url")
   return data.redirect_url
 }
 

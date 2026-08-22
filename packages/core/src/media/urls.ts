@@ -1,7 +1,9 @@
+import { apiUrl } from "../http/api-url"
+
 export function getMediaContentUrl(publicId: string) {
-  return `/api/media/${encodeURIComponent(publicId)}`
+  return apiUrl(`/api/media/${encodeURIComponent(publicId)}`)
 }
 
 export function getMediaDownloadUrl(publicId: string) {
-  return `/api/media/${encodeURIComponent(publicId)}/download`
+  return apiUrl(`/api/media/${encodeURIComponent(publicId)}/download`)
 }

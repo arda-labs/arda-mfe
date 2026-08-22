@@ -1,3 +1,4 @@
+import { apiUrl } from "../http/api-url"
 import {
   createContext,
   createElement,
@@ -204,13 +205,13 @@ function readSystemBranding() {
 }
 
 async function fetchSystemBranding() {
-  const publicRes = await fetch(publicBrandingEndpoint, {
+  const publicRes = await fetch(apiUrl(publicBrandingEndpoint), {
     credentials: "include",
     headers: { Accept: "application/json" },
   })
   if (publicRes.ok) return cacheAndReturn(await publicRes.json())
 
-  const res = await fetch(parametersEndpoint, {
+  const res = await fetch(apiUrl(parametersEndpoint), {
     credentials: "include",
     headers: { Accept: "application/json" },
   })

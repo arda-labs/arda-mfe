@@ -1,11 +1,12 @@
 import { useEffect } from "react"
+import { apiUrl } from "@workspace/core/http/api-url"
 import { i18n } from "@workspace/i18n"
 import { notificationsApi } from "./api"
 import { maybeShowBrowserNotification } from "./browser-notification"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem, UnreadCountResponse } from "./types"
 
-const STREAM_URL = "/api/notifications/stream"
+const STREAM_URL = apiUrl("/api/notifications/stream")
 const MAX_RECONNECT_DELAY_MS = 30_000
 const UNREAD_POLL_MS = 15_000
 
@@ -36,9 +37,7 @@ export function useNotificationStream(enabled: boolean) {
       notificationsApi
         .list(20)
         .then((res) => {
-          useNotificationsStore
-            .getState()
-            .setNotifications(res.notifications)
+          useNotificationsStore.getState().setNotifications(res.notifications)
           for (const item of res.notifications) {
             toastedIds.add(item.id)
           }
