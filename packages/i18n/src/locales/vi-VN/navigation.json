@@ -7,7 +7,7 @@
     "permissions": "Quyền",
     "audit": "Nhật ký",
     "system_settings": "Cài đặt hệ thống",
-    "groups": "Nhom nguoi dung"
+    "groups": "Nhóm người dùng"
   },
   "finance": {
     "_self": "Tài chính",
@@ -17,12 +17,12 @@
     "trial_balance": "Bảng cân đối thử"
   },
   "hrm": {
-    "_self": "Nhan su",
-    "positions": "Chuc vu",
-    "job_titles": "Chuc danh",
-    "org_units": "Co cau to chuc",
-    "registrations": "Dang ky nhan su",
-    "employees": "Thong tin nhan su"
+    "_self": "Nhân sự",
+    "positions": "Chức vụ",
+    "job_titles": "Chức danh",
+    "org_units": "Cơ cấu tổ chức",
+    "registrations": "Đăng ký nhân sự",
+    "employees": "Thông tin nhân sự"
   },
   "platform": {
     "_self": "Nền tảng",
