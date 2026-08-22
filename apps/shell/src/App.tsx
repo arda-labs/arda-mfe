@@ -1,6 +1,9 @@
-import { Suspense, useEffect, useState, type ReactNode } from "react"
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
-import { AuthLoadingScreen } from "../../../packages/auth/src/loading-screen"
+import {
+  AuthLoadingScreen,
+  AuthShellLoadingScreen,
+} from "../../../packages/auth/src/loading-screen"
 import {
   CallbackPage,
   ConsentPage,
@@ -34,7 +37,7 @@ function RemoteRoute({ children }: { children: ReactNode }) {
 
 export function App() {
   const { pathname } = useLocation()
-  const { isAuthenticated, login, logout } = useAuthStore()
+  const { isAuthenticated, login, clearSession } = useAuthStore()
   const isAuthRoute = [
     "/login",
     "/auth",
@@ -42,12 +45,32 @@ export function App() {
     "/login-callback",
     "/consent",
   ].includes(pathname)
-  const shouldCheckSession = !isAuthRoute && !isAuthenticated
-  const [redirectingToAuth, setRedirectingToAuth] = useState(false)
+  const [authHydrated, setAuthHydrated] = useState(() =>
+    useAuthStore.persist.hasHydrated()
+  )
+  const [sessionStatus, setSessionStatus] = useState<
+    "checking" | "authenticated" | "redirecting"
+  >("checking")
+  const sessionCheckInFlight = useRef(false)
 
   useEffect(() => {
-    if (!shouldCheckSession || redirectingToAuth) return
+    if (authHydrated) return
+    return useAuthStore.persist.onFinishHydration(() => setAuthHydrated(true))
+  }, [authHydrated])
+
+  useEffect(() => {
+    if (
+      isAuthRoute ||
+      !authHydrated ||
+      sessionCheckInFlight.current ||
+      sessionStatus === "redirecting" ||
+      (sessionStatus === "authenticated" && isAuthenticated)
+    ) {
+      return
+    }
+
     let cancelled = false
+    sessionCheckInFlight.current = true
 
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => {
@@ -55,12 +78,14 @@ export function App() {
         throw new Error("session expired")
       })
       .then((userData) => {
-        if (!cancelled) login(normalizeAuthUser(userData, getMediaContentUrl))
+        if (cancelled) return
+        login(normalizeAuthUser(userData, getMediaContentUrl))
+        setSessionStatus("authenticated")
       })
       .catch(() => {
         if (cancelled) return
-        logout()
-        setRedirectingToAuth(true)
+        clearSession()
+        setSessionStatus("redirecting")
         void redirectToHydraLogin(
           `${window.location.pathname}${window.location.search}`
         )
@@ -68,11 +93,19 @@ export function App() {
 
     return () => {
       cancelled = true
+      sessionCheckInFlight.current = false
     }
-  }, [login, logout, redirectingToAuth, shouldCheckSession])
+  }, [
+    authHydrated,
+    clearSession,
+    isAuthRoute,
+    isAuthenticated,
+    login,
+    sessionStatus,
+  ])
 
-  if (shouldCheckSession || (redirectingToAuth && !isAuthRoute)) {
-    return <AuthLoadingScreen />
+  if (!isAuthRoute && (sessionStatus !== "authenticated" || !isAuthenticated)) {
+    return <AuthShellLoadingScreen />
   }
 
   return (
@@ -99,103 +132,203 @@ export function App() {
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route
           path="/admin/organizations/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/parameters/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/provinces/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/wards/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/lookups/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/area-types/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/areas/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/credit-institutions/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/templates/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/calendar/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/cutoff/*"
-          element={<RemoteRoute><PlatformRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/users/*"
-          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <IamRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/groups/*"
-          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <IamRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/roles/*"
-          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <IamRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/permissions/*"
-          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <IamRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/audit/*"
-          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <IamRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/admin/settings/*"
-          element={<RemoteRoute><IamRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <IamRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/finance/*"
-          element={<RemoteRoute><FinanceRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <FinanceRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/hrm/*"
-          element={<RemoteRoute><HrmRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <HrmRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/customers/*"
-          element={<RemoteRoute><CrmRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <CrmRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/workflow/*"
-          element={<RemoteRoute><WorkflowRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <WorkflowRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/workbench/*"
-          element={<RemoteRoute><WorkflowRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <WorkflowRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/my-account/*"
-          element={<RemoteRoute><AccountRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <AccountRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/in/*"
-          element={<RemoteRoute><AccountRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <AccountRoutes />
+            </RemoteRoute>
+          }
         />
         <Route
           path="/settings/*"
-          element={<RemoteRoute><AccountRoutes /></RemoteRoute>}
+          element={
+            <RemoteRoute>
+              <AccountRoutes />
+            </RemoteRoute>
+          }
         />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

@@ -62,7 +62,9 @@ export function normalizeAuthUser(
 ): AuthUser {
   const avatarFileId = source.avatarFileId?.trim() || ""
   const picture =
-    avatarFileId && resolvePicture ? resolvePicture(avatarFileId) : source.picture || ""
+    avatarFileId && resolvePicture
+      ? resolvePicture(avatarFileId)
+      : source.picture || ""
   const displayName = composeDisplayName(source)
 
   return {
@@ -94,20 +96,31 @@ export function normalizeAuthUser(
     orgIds: source.orgIds || [],
     activeOrgId: source.activeOrgId || "",
     roles: Array.isArray(source.roles) ? source.roles : undefined,
-    permissions: Array.isArray(source.permissions) ? source.permissions : undefined,
+    permissions: Array.isArray(source.permissions)
+      ? source.permissions
+      : undefined,
     authVersion: source.authVersion || 0,
   }
 }
 
-export function hasPermission(user: AuthUser | null | undefined, code: string): boolean {
+export function hasPermission(
+  user: AuthUser | null | undefined,
+  code: string
+): boolean {
   if (!user) return false
   if (user.roles?.includes("SUPER_ADMIN")) return true
-  return Boolean(user.permissions?.includes("superadmin") || user.permissions?.includes(code))
+  return Boolean(
+    user.permissions?.includes("superadmin") || user.permissions?.includes(code)
+  )
 }
 
-export function hasAnyPermission(user: AuthUser | null | undefined, codes: string[]): boolean {
+export function hasAnyPermission(
+  user: AuthUser | null | undefined,
+  codes: string[]
+): boolean {
   if (codes.length === 0) return true
-  if (user && user.roles === undefined && user.permissions === undefined) return true
+  if (user && user.roles === undefined && user.permissions === undefined)
+    return true
   return codes.some((code) => hasPermission(user, code))
 }
 
@@ -117,6 +130,7 @@ interface AuthState {
   login: (user: AuthUser) => void
   updateUser: (patch: Partial<AuthUser>) => void
   setActiveOrgId: (orgId: string) => void
+  clearSession: () => void
   logout: () => Promise<void>
 }
 
@@ -152,9 +166,13 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, activeOrgId: orgId } : null,
         })),
+      clearSession: () => set({ user: null, isAuthenticated: false }),
       logout: async () => {
         if (typeof window !== "undefined") {
-          await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {})
+          await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include",
+          }).catch(() => {})
         }
         set({ user: null, isAuthenticated: false })
       },
@@ -164,7 +182,9 @@ export const useAuthStore = create<AuthState>()(
       version: 3,
       migrate: (persistedState) => {
         const rawUser =
-          persistedState && typeof persistedState === "object" && "user" in persistedState
+          persistedState &&
+          typeof persistedState === "object" &&
+          "user" in persistedState
             ? persistedState.user
             : null
         if (rawUser) {

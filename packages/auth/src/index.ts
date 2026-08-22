@@ -1,7 +1,12 @@
 export { AuthGuard } from "./auth-guard"
-export { AuthLoadingScreen } from "./loading-screen"
+export { AuthLoadingScreen, AuthShellLoadingScreen } from "./loading-screen"
 export { acceptHydraConsent, exchangeCode, redirectToHydraLogin } from "./oauth"
 export { CallbackPage, ConsentPage, LoginPage } from "./pages"
 export { ensureRecentAuth, requestStepUp, StepUpProvider } from "./step-up"
-export { hasAnyPermission, hasPermission, normalizeAuthUser, useAuthStore } from "./store"
+export {
+  hasAnyPermission,
+  hasPermission,
+  normalizeAuthUser,
+  useAuthStore,
+} from "./store"
 export type { AuthUser } from "./store"
