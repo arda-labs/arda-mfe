@@ -1,7 +1,7 @@
 import { create } from "zustand"
 
 // Error dialog global — mở imperatively từ bất kỳ catch nào (showErrorDialog).
-// Shell mount 1 <GlobalErrorDialog/> đọc store này. Khác notifications/toast:
+// Shell mount 1 <GlobalErrorDialog/> đọc store này. Khác toast notifications:
 // đây cho error nghiêm trọng cần trace_id dev-debug, không phải validation
 // (validation đi form setError + notify.warning).
 
@@ -19,8 +19,7 @@ export const useErrorDialogStore = create<ErrorDialogState>((set) => ({
   error: undefined,
   title: undefined,
   retry: undefined,
-  // duck-type ApiClientError thay vì import (tránh cycle core→auth; core
-  // throw ApiClientError, ở đây chỉ đọc code/status/requestId/fields).
+  // Duck-type ApiClientError để feedback UI không phụ thuộc API package.
   show: (error, opts) =>
     set({ open: true, error, title: opts?.title, retry: opts?.retry }),
   dismiss: () =>

@@ -6,12 +6,12 @@ import { auditApi } from "@/features/iam/audit"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import { useDataTable } from "@workspace/ui/hooks/use-data-table"
+import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { useI18n } from "@workspace/i18n"
-import { listPageCount } from "@workspace/core/http/list-api"
+import { listPageCount } from "@workspace/api/list"
 
 const DEFAULT_PAGE_SIZE = 10
 

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useSearchParams } from "react-router-dom"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
@@ -29,10 +29,10 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { useI18n } from "@workspace/i18n"
-import { listPageCount } from "@workspace/core/http/list-api"
-import { useDataTable } from "@workspace/ui/hooks/use-data-table"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+import { listPageCount } from "@workspace/api/list"
+import { useDataTable } from "@workspace/admin-list/use-data-table"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 import { financeApi, type Transaction } from "@/features/finance/api"
 
 const entrySchema = z.object({

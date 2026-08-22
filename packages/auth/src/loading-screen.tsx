@@ -1,4 +1,4 @@
-import { useSystemBranding } from "@workspace/core/branding"
+import { useSystemBranding } from "@workspace/theme/branding"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Spinner } from "@workspace/ui/components/spinner"
 

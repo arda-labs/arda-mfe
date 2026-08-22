@@ -1,7 +1,8 @@
 import type { PersistStorage } from "zustand/middleware"
-import { apiUrl } from "@workspace/core/http/api-url"
+import { apiUrl } from "@workspace/api/url"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
+
 
 export interface AuthUser {
   userId?: string

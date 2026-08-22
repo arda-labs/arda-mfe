@@ -10,7 +10,7 @@ import {
   readAppearance,
   resetAppearance,
   saveAppearance,
-} from "@workspace/core/appearance"
+} from "@workspace/theme/appearance"
 import type {
   AppearanceSettings,
   BaseColor,
@@ -18,7 +18,7 @@ import type {
   FontPreset,
   LayoutSurface,
   RadiusPreset,
-} from "@workspace/core/appearance"
+} from "@workspace/theme/appearance"
 import { useTheme } from "@workspace/theme"
 import { Button } from "@workspace/ui/components/button"
 import { Label } from "@workspace/ui/components/label"

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTr
 import type { Group, Role } from "@/features/iam"
 import { adminApi } from "@/features/iam"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {

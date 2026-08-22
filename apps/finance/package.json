@@ -16,7 +16,6 @@
     "@tanstack/react-table": "^8.21.3",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
-    "@workspace/core": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",
@@ -27,7 +26,8 @@
     "react-router-dom": "^7.18.1",
     "react-hook-form": "^7.80.0",
     "react-toastify": "^11.1.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@workspace/admin-list": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^10",

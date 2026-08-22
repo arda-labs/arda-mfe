@@ -1,9 +1,9 @@
 import {
   useSystemBranding,
   type BrandingSettings,
-} from "@workspace/core/branding"
-import { apiUrl } from "@workspace/core/http/api-url"
-import { getMediaContentUrl } from "@workspace/core/media/urls"
+} from "@workspace/theme/branding"
+import { apiUrl } from "@workspace/api/url"
+import { getMediaContentUrl } from "@workspace/media/urls"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
@@ -37,7 +37,7 @@ import {
   Sun,
   User,
 } from "lucide-react"
-import { toast } from "@workspace/notifications/toast"
+import { toast } from "@workspace/ui/feedback/toast"
 import {
   useEffect,
   useRef,
@@ -45,7 +45,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
-import { useTheme } from "../../theme/src/index"
+import { useTheme } from "@workspace/theme"
 import { AuthLoadingScreen } from "./loading-screen"
 import { acceptHydraConsent, exchangeCode, redirectToHydraLogin } from "./oauth"
 import { normalizeAuthUser, useAuthStore } from "./store"

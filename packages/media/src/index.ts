@@ -1,5 +1,5 @@
 import { api } from "@workspace/api"
-import { getMediaContentUrl, getMediaDownloadUrl } from "@workspace/core/media/urls"
+import { getMediaContentUrl, getMediaDownloadUrl } from "./urls"
 
 type IAMUserContext = {
   userId: string

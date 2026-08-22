@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { createApiClient } from "./api-client"
+import { createApiClient } from "./client"
 
 const originalFetch = globalThis.fetch
 

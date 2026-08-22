@@ -1,8 +1,8 @@
 import { useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
-import { listPageCount } from "@workspace/core/http/list-api"
-import { useDataTable } from "@workspace/ui/hooks/use-data-table"
+import { listPageCount } from "@workspace/api/list"
+import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { parseSortingState } from "@workspace/ui/lib/parsers"
 
 type SortState = { id: string; desc: boolean }[]

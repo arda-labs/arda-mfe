@@ -1,6 +1,6 @@
 import { api } from "@workspace/api"
-import type { ListResponse } from "@workspace/core/http/list-api"
-import { apiUrl } from "@workspace/core/http/api-url"
+import type { ListResponse } from "@workspace/api/list"
+import { apiUrl } from "@workspace/api/url"
 
 export type CustomerType = "PERSONAL" | "BUSINESS"
 export type CustomerStatus =

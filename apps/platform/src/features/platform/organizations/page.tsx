@@ -3,11 +3,10 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useSearchParams } from "react-router-dom"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import type { Organization } from "../api"
-import { platformApi, type OrganizationsListParams } from "../api"
-import { notify } from "@workspace/notifications/notify"
+import { platformApi } from "../api"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -18,7 +17,11 @@ import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-tabl
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { PageHeader } from "@workspace/ui/components/page-header"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import {
   Dialog,
   DialogContent,
@@ -43,19 +46,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { listPageCount } from "@workspace/core/http/list-api"
-import { useDataTable } from "@workspace/ui/hooks/use-data-table"
-import { parseSortingState } from "@workspace/ui/lib/parsers"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
-import { PageErrorDialog } from "@workspace/ui/admin-list/page-error-dialog"
-import { useServerList } from "@workspace/ui/admin-list/server-list"
-import { useServerStateClient } from "@workspace/ui/server-state/provider"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
+import { useServerList } from "@workspace/admin-list/server-list"
+import { useAppQueryClient } from "@workspace/query/provider"
+import { useServerDataTable } from "@workspace/admin-list/server-data-table"
+import { organizationsListDefinition } from "./list-query"
 
-const DEFAULT_PAGE_SIZE = 10
 const ORGANIZATIONS_QUERY_KEY = ["platform", "organizations"] as const
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildOrganizationSchema(t: TranslateFn) {
   return z.object({
@@ -79,7 +83,9 @@ function buildOrganizationSchema(t: TranslateFn) {
   })
 }
 
-type OrganizationFormValues = z.infer<ReturnType<typeof buildOrganizationSchema>>
+type OrganizationFormValues = z.infer<
+  ReturnType<typeof buildOrganizationSchema>
+>
 
 const organizationDefaultValues: OrganizationFormValues = {
   code: "",
@@ -99,29 +105,15 @@ function toOrganizationFormValues(item: Organization): OrganizationFormValues {
   }
 }
 
-const POS = (value: string | null, fallback: number) => {
-  const n = Number.parseInt(value ?? "", 10)
-  return Number.isFinite(n) && n > 0 ? n : fallback
-}
-
 export function OrganizationsPage() {
   const { t } = useI18n()
-  const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState<"list" | "tree">("list")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const queryClient = useServerStateClient()
-
-  const pageParam = POS(searchParams.get("page"), 1)
-  const perPageParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
-  const sortParam = searchParams.get("sort")
-  const sorting = useMemo(
-    () => parseSortingState(sortParam, ["code", "name", "is_active"]),
-    [sortParam]
-  )
+  const queryClient = useAppQueryClient()
 
   const organizationSchema = useMemo(() => buildOrganizationSchema(t), [t])
   const {
@@ -135,23 +127,6 @@ export function OrganizationsPage() {
     defaultValues: organizationDefaultValues,
   })
 
-  const listParams = useMemo<OrganizationsListParams>(
-    () => ({
-      page: pageParam,
-      perPage: perPageParam,
-      sort: sorting[0]?.id,
-      order: sorting[0]?.desc ? "desc" : "asc",
-    }),
-    [pageParam, perPageParam, sorting]
-  )
-
-  const listQuery = useServerList({
-    queryKey: [...ORGANIZATIONS_QUERY_KEY, "list"],
-    query: listParams,
-    queryFn: (query, { signal }) =>
-      platformApi.listOrganizations(query, { signal }),
-    enabled: viewMode === "list",
-  })
   const treeQuery = useServerList({
     queryKey: [...ORGANIZATIONS_QUERY_KEY, "tree"],
     query: { view: "tree" },
@@ -169,11 +144,8 @@ export function OrganizationsPage() {
     staleTime: 5 * 60_000,
   })
 
-  const orgs = listQuery.items
   const treeOrgs = treeQuery.items
   const orgOptions = optionsQuery.items
-  const activeQuery = viewMode === "list" ? listQuery : treeQuery
-  const total = activeQuery.total
 
   const openCreate = () => {
     setEditingOrg(null)
@@ -358,19 +330,16 @@ export function OrganizationsPage() {
     [t]
   )
 
-  const pageCount = listPageCount(total, perPageParam)
-
-  const { table } = useDataTable<Organization>({
+  const listQuery = useServerDataTable<Organization>({
+    ...organizationsListDefinition,
     columns,
-    data: orgs,
-    pageCount,
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: DEFAULT_PAGE_SIZE,
-      },
-    },
+    queryFn: (query, { signal }) =>
+      platformApi.listOrganizations(query, { signal }),
+    enabled: viewMode === "list",
   })
+  const { table } = listQuery
+  const activeQuery = viewMode === "list" ? listQuery : treeQuery
+  const total = activeQuery.total
 
   const renderTree = (parentId: string | undefined = undefined, depth = 0) => {
     const children = treeOrgs.filter((org) => org.parent_id === parentId)
@@ -378,7 +347,7 @@ export function OrganizationsPage() {
 
     return (
       <div
-        className={`space-y-2 ${depth > 0 ? "ml-3 mt-2 border-l border-muted/80 pl-6" : ""}`}
+        className={`space-y-2 ${depth > 0 ? "mt-2 ml-3 border-l border-muted/80 pl-6" : ""}`}
       >
         {children.map((org) => (
           <div key={org.id} className="group">
@@ -599,7 +568,9 @@ export function OrganizationsPage() {
                         {t("platform.organizations.placeholder.parent_none")}
                       </SelectItem>
                       {orgOptions
-                        .filter((org) => !editingOrg || org.id !== editingOrg.id)
+                        .filter(
+                          (org) => !editingOrg || org.id !== editingOrg.id
+                        )
                         .map((org) => (
                           <SelectItem key={org.id} value={org.id}>
                             {org.name}
@@ -639,7 +610,7 @@ export function OrganizationsPage() {
                   />
                   <label
                     htmlFor="org_is_active"
-                    className="cursor-pointer select-none text-sm font-medium"
+                    className="cursor-pointer text-sm font-medium select-none"
                   >
                     {t("platform.organizations.field.is_active")}
                   </label>
@@ -656,9 +627,7 @@ export function OrganizationsPage() {
                 {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving
-                  ? t("common.action.saving")
-                  : t("common.action.save")}
+                {saving ? t("common.action.saving") : t("common.action.save")}
               </Button>
             </div>
           </form>

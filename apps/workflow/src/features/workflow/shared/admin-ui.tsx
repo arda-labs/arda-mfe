@@ -66,7 +66,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useEffect, useState } from "react"
 import { workflowApi } from "../api"
 import { PrincipalPicker } from "../components/principal-picker"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { useProcessInstanceRuntime } from "../shared/use-process-instance-runtime"
 import type {
   DescriptionTemplate,

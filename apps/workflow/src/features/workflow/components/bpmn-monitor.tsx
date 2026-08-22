@@ -22,7 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../api"
 import type { ElementInstanceStat, WorkflowCase, WorkflowProcessDefinition } from "../api"
 

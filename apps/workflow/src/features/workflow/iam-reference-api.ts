@@ -2,8 +2,8 @@ import {
   buildListSearchParams,
   listPageCount,
   type ListResponse,
-} from "@workspace/core/http/list-api"
-import { apiUrl } from "@workspace/core/http/api-url"
+} from "@workspace/api/list"
+import { apiUrl } from "@workspace/api/url"
 
 export type IamPrincipalUser = {
   id: string

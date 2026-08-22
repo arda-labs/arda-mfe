@@ -5,7 +5,7 @@ import {
   useQueryClient,
   type QueryClientConfig,
 } from "@tanstack/react-query"
-import { ApiClientError } from "@workspace/core/http/api-client"
+import { ApiClientError } from "@workspace/api/client"
 
 const DEFAULT_QUERY_CONFIG: QueryClientConfig = {
   defaultOptions: {
@@ -24,7 +24,7 @@ const DEFAULT_QUERY_CONFIG: QueryClientConfig = {
   },
 }
 
-export function createServerStateClient(config: QueryClientConfig = {}) {
+export function createQueryClient(config: QueryClientConfig = {}) {
   return new QueryClient({
     ...DEFAULT_QUERY_CONFIG,
     ...config,
@@ -43,22 +43,21 @@ export function createServerStateClient(config: QueryClientConfig = {}) {
   })
 }
 
-type ServerStateProviderProps = {
+type QueryProviderProps = {
   children: ReactNode
   client?: QueryClient
 }
 
-export function ServerStateProvider({
+export function QueryProvider({
   children,
   client,
-}: ServerStateProviderProps) {
-  const [queryClient] = useState(() => client ?? createServerStateClient())
-
+}: QueryProviderProps) {
+  const [queryClient] = useState(() => client ?? createQueryClient())
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 }
 
-export function useServerStateClient() {
+export function useAppQueryClient() {
   return useQueryClient()
 }

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { applyStoredAppearance } from "@workspace/core/appearance"
+import { applyStoredAppearance } from "./appearance"
 
 type Theme = "dark" | "light" | "system"
 type ResolvedTheme = "dark" | "light"

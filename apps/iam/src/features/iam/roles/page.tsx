@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { Permission, Role } from "@/features/iam"
 import { adminApi } from "@/features/iam"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -12,8 +12,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 import {
   Dialog,
   DialogContent,
@@ -29,11 +29,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
 } from "@workspace/ui/components/alert-dialog"
-import { useDataTable } from "@workspace/ui/hooks/use-data-table"
+import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { FormField } from "@workspace/ui/components/form-field"
 import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
-import { listPageCount } from "@workspace/core/http/list-api"
+import { listPageCount } from "@workspace/api/list"
 import { useSearchParams } from "react-router-dom"
 import { ShieldCheck, Trash2 } from "lucide-react"
 

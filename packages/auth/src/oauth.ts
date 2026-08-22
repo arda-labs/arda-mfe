@@ -1,4 +1,4 @@
-import { apiUrl } from "@workspace/core/http/api-url"
+import { apiUrl } from "@workspace/api/url"
 
 export const HYDRA_PUBLIC_URL = "https://auth.arda.io.vn"
 export const OAUTH_CLIENT_ID = "arda-shell"

@@ -1,0 +1,37 @@
+{
+  "name": "@workspace/admin-list",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@workspace/api": "workspace:*",
+    "@workspace/i18n": "workspace:*",
+    "@workspace/ui": "workspace:*",
+    "lucide-react": "^1.22.0",
+    "react": "^19.2.6",
+    "react-router-dom": "^7.18.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "~6"
+  },
+  "exports": {
+    "./client-list": "./src/client-list.ts",
+    "./column-filters": "./src/column-filters.ts",
+    "./list-page-shell": "./src/list-page-shell.tsx",
+    "./list-table-toolbar": "./src/list-table-toolbar.tsx",
+    "./page-error-dialog": "./src/page-error-dialog.tsx",
+    "./page-load-overlay": "./src/page-load-overlay.tsx",
+    "./server-data-table": "./src/server-data-table.ts",
+    "./server-list": "./src/server-list.ts",
+    "./table-columns": "./src/table-columns.tsx",
+    "./use-data-table": "./src/use-data-table.ts"
+  }
+}

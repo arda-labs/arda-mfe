@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { hrmApi, type Employee, type JobTitle, type OrgUnit, type Position } from "../api"

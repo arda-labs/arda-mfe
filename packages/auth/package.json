@@ -9,9 +9,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@workspace/core": "workspace:*",
+    "@workspace/api": "workspace:*",
     "@workspace/i18n": "workspace:*",
-    "@workspace/notifications": "workspace:*",
+    "@workspace/media": "workspace:*",
+    "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^0.511.0",
     "react": "^19.2.6",
@@ -26,9 +27,12 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./api-bridge": "./src/api-bridge.ts",
     "./store": "./src/store.ts",
     "./oauth": "./src/oauth.ts",
+    "./pkce": "./src/pkce.ts",
     "./auth-guard": "./src/auth-guard.tsx",
+    "./loading-screen": "./src/loading-screen.tsx",
     "./step-up-channel": "./src/step-up-channel.ts",
     "./ensure-recent-auth": "./src/ensure-recent-auth.ts",
     "./step-up": "./src/step-up.tsx",

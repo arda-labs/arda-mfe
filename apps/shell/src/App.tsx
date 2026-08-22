@@ -3,20 +3,20 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import {
   AuthLoadingScreen,
   AuthShellLoadingScreen,
-} from "../../../packages/auth/src/loading-screen"
+} from "@workspace/auth/loading-screen"
 import {
   CallbackPage,
   ConsentPage,
   LoginPage,
-} from "../../../packages/auth/src/pages"
-import { redirectToHydraLogin } from "../../../packages/auth/src/oauth"
+} from "@workspace/auth/pages"
+import { redirectToHydraLogin } from "@workspace/auth/oauth"
 import {
   normalizeAuthUser,
   useAuthStore,
-} from "../../../packages/auth/src/store"
-import * as authShare from "../../../packages/auth/src/index"
-import { getMediaContentUrl } from "../../../packages/core/src/media/urls"
-import { apiUrl } from "../../../packages/core/src/http/api-url"
+} from "@workspace/auth/store"
+import * as authShare from "@workspace/auth"
+import { getMediaContentUrl } from "@workspace/media/urls"
+import { apiUrl } from "@workspace/api/url"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Dashboard } from "./dashboard"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"

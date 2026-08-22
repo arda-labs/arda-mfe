@@ -11,7 +11,7 @@ const head = `import type { ChangeEvent, ReactNode } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import { useFieldArray } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import {
   AlertDialog,
   AlertDialogAction,

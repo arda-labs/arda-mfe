@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { financeApi, type Account, type AccountBalance } from "@/features/finance/api"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
 

@@ -1,4 +1,4 @@
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import type { Customer, CustomerPayload, CustomerType } from "../../api"
 import {
   defaultValues,

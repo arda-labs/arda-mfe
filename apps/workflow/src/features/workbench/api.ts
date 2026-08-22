@@ -1,4 +1,4 @@
-import { apiUrl } from "@workspace/core/http/api-url"
+import { apiUrl } from "@workspace/api/url"
 
 export type WorkbenchDirection = "incoming" | "outgoing"
 export type WorkbenchSearchDirection = "ALL" | "INCOMING" | "OUTGOING"

@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { apiUrl } from "@workspace/core/http/api-url"
+import { apiUrl } from "@workspace/api/url"
 import { i18n } from "@workspace/i18n"
 import { notificationsApi } from "./api"
 import { maybeShowBrowserNotification } from "./browser-notification"

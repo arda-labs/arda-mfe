@@ -7,7 +7,7 @@ const headers = {
   "positions/page.tsx": `import { useEffect, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Dialog,
@@ -46,7 +46,7 @@ import {
   "job-titles/page.tsx": `import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import {
   Dialog,
   DialogContent,
@@ -83,7 +83,7 @@ import {
   "org-units/page.tsx": `import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import {
   Dialog,
   DialogContent,
@@ -122,7 +122,7 @@ import {
   "registrations/page.tsx": `import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { PageTitle as CollapsingPageTitle } from "@workspace/ui/components/page-title"

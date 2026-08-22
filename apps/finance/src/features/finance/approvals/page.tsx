@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { financeApi, type ApprovalRequest } from "@/features/finance/api"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -37,18 +37,18 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 import {
   sortByColumn,
   useClientListTable,
-} from "@workspace/ui/admin-list/client-list"
+} from "@workspace/admin-list/client-list"
 import {
   matchSelectFilter,
   matchTextColumnFilter,
   multiSelectFilterMeta,
   textSearchMeta,
-} from "@workspace/ui/admin-list/column-filters"
+} from "@workspace/admin-list/column-filters"
 
 const approvalFormSchema = z.object({
   refId: z.string().trim().min(1, "Reference ID is required"),

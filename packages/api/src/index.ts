@@ -1,22 +1,26 @@
-import { createApiClient } from "@workspace/core/http/api-client"
-import { getApiBaseURL } from "@workspace/core/http/api-url"
 import { getCurrentLocale } from "@workspace/i18n"
-import { ensureRecentAuth } from "@workspace/auth/ensure-recent-auth"
-import { useAuthStore } from "@workspace/auth/store"
 
-// Composition root: createApiClient (thuần, core) + auth + i18n → instance
-// `api` configured. ApiClientError đã có code/status/fields/requestId;
-// catch dùng `instanceof ApiClientError`, không cần bọc lớp nào khác.
+import { createApiClient } from "./client"
+import { getApiBaseURL } from "./url"
+
+export type ApiAuthHandlers = {
+  onUnauthorized?: () => void | Promise<void>
+  onRecentAuthRequired?: () => boolean | void | Promise<boolean | void>
+}
+
+let authHandlers: ApiAuthHandlers = {}
+
+/** Inject authentication behavior without making API depend on auth. */
+export function configureApiAuthHandlers(handlers: ApiAuthHandlers) {
+  authHandlers = handlers
+}
+
 export const api = createApiClient({
   baseURL: getApiBaseURL(),
   getLocale: getCurrentLocale,
-  onUnauthorized: () => {
-    useAuthStore.getState().logout()
-    if (typeof window !== "undefined") {
-      window.location.href = "/login"
-    }
+  onUnauthorized: () => authHandlers.onUnauthorized?.(),
+  onRecentAuthRequired: async () => {
+    if (!authHandlers.onRecentAuthRequired) return false
+    return authHandlers.onRecentAuthRequired()
   },
-  onRecentAuthRequired: ensureRecentAuth,
 })
-
-export { ensureRecentAuth }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { serializeListQuery } from "./list-api"
+import { serializeListQuery } from "./list"
 
 describe("serializeListQuery", () => {
   test("is stable when callers create filters in a different key order", () => {

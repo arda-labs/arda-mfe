@@ -1,4 +1,4 @@
-import { useSystemBranding } from "@workspace/core/branding"
+import { useSystemBranding } from "@workspace/theme/branding"
 
 export function Dashboard() {
   const { branding } = useSystemBranding()

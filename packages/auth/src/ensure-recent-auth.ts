@@ -1,4 +1,4 @@
-import { apiUrl } from "@workspace/core/http/api-url"
+import { apiUrl } from "@workspace/api/url"
 import { requestStepUp } from "./step-up-channel"
 
 type RecentAuthStatus = {

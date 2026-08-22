@@ -1,0 +1,23 @@
+{
+  "name": "@workspace/query",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.0",
+    "@workspace/api": "workspace:*",
+    "react": "^19.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "~6"
+  },
+  "exports": {
+    "./provider": "./src/provider.tsx"
+  }
+}

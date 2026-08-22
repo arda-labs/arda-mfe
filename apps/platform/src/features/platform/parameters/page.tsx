@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import type { Organization, Parameter } from "../api"
 import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
@@ -37,10 +37,10 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
 import { Check, ChevronsUpDown, Edit2, Eye, EyeOff, Key, Trash2 } from "lucide-react"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
-import { matchTextColumnFilter, textSearchMeta } from "@workspace/ui/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { matchTextColumnFilter, textSearchMeta } from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

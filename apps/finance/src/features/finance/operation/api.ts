@@ -1,5 +1,5 @@
 import { api } from "@workspace/api"
-import { ApiClientError } from "@workspace/core/http/api-client"
+import { ApiClientError } from "@workspace/api/client"
 
 export type FinanceOperation = "incoming" | "outgoing"
 export type OperationView =

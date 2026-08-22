@@ -14,7 +14,7 @@ import { Input } from "@workspace/ui/components/input"
 import { MaskInput } from "@workspace/ui/components/mask-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import {
   BadgeCheck,
   BriefcaseBusiness,

@@ -9,29 +9,34 @@ const packagesRoot = path.resolve(__dirname, "../../packages")
 
 // Shell host bundles selected workspace shared modules directly — avoids MF
 // loadShare returning undefined on hard refresh before mfCache is warm (F5 race).
-// Do not alias "@workspace/auth" root: subpaths like /ensure-recent-auth break.
-const shellWorkspaceAliases = {
-  "@workspace/auth/store": path.resolve(packagesRoot, "auth/src/store.ts"),
-  "@workspace/auth/step-up-channel": path.resolve(
-    packagesRoot,
-    "auth/src/step-up-channel.ts"
-  ),
-  "@workspace/i18n/apps": path.resolve(packagesRoot, "i18n/src/apps"),
-  "@workspace/i18n": path.resolve(packagesRoot, "i18n/src/index.tsx"),
-  "@workspace/notifications/toast": path.resolve(
-    packagesRoot,
-    "notifications/src/toast.ts"
-  ),
-  "@workspace/notifications/notify": path.resolve(
-    packagesRoot,
-    "notifications/src/notify.ts"
-  ),
-  "@workspace/notifications": path.resolve(
-    packagesRoot,
-    "notifications/src/index.ts"
-  ),
-  "@workspace/theme": path.resolve(packagesRoot, "theme/src/index.tsx"),
-}
+// Exact matches are required: a root alias must never swallow package subpaths
+// such as @workspace/theme/branding.
+const shellWorkspaceAliases = [
+  {
+    find: /^@workspace\/auth\/store$/,
+    replacement: path.resolve(packagesRoot, "auth/src/store.ts"),
+  },
+  {
+    find: /^@workspace\/auth\/step-up-channel$/,
+    replacement: path.resolve(packagesRoot, "auth/src/step-up-channel.ts"),
+  },
+  {
+    find: /^@workspace\/i18n\/apps/,
+    replacement: path.resolve(packagesRoot, "i18n/src/apps"),
+  },
+  {
+    find: /^@workspace\/i18n$/,
+    replacement: path.resolve(packagesRoot, "i18n/src/index.tsx"),
+  },
+  {
+    find: /^@workspace\/notifications$/,
+    replacement: path.resolve(packagesRoot, "notifications/src/index.ts"),
+  },
+  {
+    find: /^@workspace\/theme$/,
+    replacement: path.resolve(packagesRoot, "theme/src/index.tsx"),
+  },
+]
 
 const backend = {
   authGateway: "http://localhost:8082",
@@ -75,10 +80,10 @@ export default defineConfig(({ command }) => {
       }),
     ],
     resolve: {
-      alias: {
+      alias: [
         ...shellWorkspaceAliases,
-        "@": path.resolve(__dirname, "./src"),
-      },
+        { find: /^@\//, replacement: `${path.resolve(__dirname, "./src")}/` },
+      ],
     },
     // Pre-bundle vendor lớn 1 lần ở boot — giảm độ trễ first navigation
     // tới một remote/page (triệu chứng "load lần đầu rất lâu").

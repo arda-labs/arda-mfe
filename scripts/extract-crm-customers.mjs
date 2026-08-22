@@ -35,7 +35,7 @@ export { customerIdFromSearch } from "./shared/task-context"
 writeFileSync(
   join(dir, "shared/task-context.ts"),
   `import type { ReactNode } from "react"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { customerApi, type WorkflowTaskRole } from "../api"
 
 ${lines

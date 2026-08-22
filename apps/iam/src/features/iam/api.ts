@@ -2,7 +2,7 @@ import { api } from "@workspace/api"
 import {
   buildListSearchParams,
   type ListResponse,
-} from "@workspace/core/http/list-api"
+} from "@workspace/api/list"
 
 // ── Audit ────────────────────────────────────────────
 

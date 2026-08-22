@@ -9,7 +9,6 @@
     "strict": true,
     "noEmit": true,
     "paths": {
-      "@workspace/core/*": ["../core/src/*"],
       "@workspace/i18n": ["../i18n/src/index.tsx"],
       "@workspace/ui/*": ["../ui/src/*"]
     }

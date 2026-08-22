@@ -3,9 +3,9 @@ import {
   cacheBranding,
   defaultBranding,
   isSafeBrandImageUrl,
-} from "@workspace/core/branding"
+} from "@workspace/theme/branding"
 import { api } from "@workspace/api"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 
 type Parameter = {
   id: string

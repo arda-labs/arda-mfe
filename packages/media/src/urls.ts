@@ -1,4 +1,4 @@
-import { apiUrl } from "../http/api-url"
+import { apiUrl } from "@workspace/api/url"
 
 export function getMediaContentUrl(publicId: string) {
   return apiUrl(`/api/media/${encodeURIComponent(publicId)}`)

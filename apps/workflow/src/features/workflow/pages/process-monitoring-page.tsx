@@ -19,10 +19,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
-import { useDataTable } from "@workspace/ui/hooks/use-data-table"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { useDataTable } from "@workspace/admin-list/use-data-table"
 import type { ColumnDef, Row } from "@tanstack/react-table"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import type {
   ElementInstanceStat,
   IncidentState,

@@ -1,5 +1,5 @@
-import { createRequestId } from "./list-api"
-import { getApiBaseURL } from "./api-url"
+import { createRequestId } from "./list"
+import { getApiBaseURL } from "./url"
 
 export interface ApiClientErrorPayload {
   code: string

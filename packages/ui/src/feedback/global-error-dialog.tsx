@@ -17,7 +17,7 @@ import { useErrorDialogStore } from "./error-dialog-store"
 // cho dev debug. Validation errors (có fields) KHÔNG nên vào đây —
 // callers đó dùng form.setError + notify.warning.
 
-// duck-type ApiClientError (core) — đọc trace, không import để tránh cycle.
+// Duck-type ApiClientError — đọc trace mà không làm UI phụ thuộc API package.
 type ApiClientErrorLike = {
   code?: string
   status?: number

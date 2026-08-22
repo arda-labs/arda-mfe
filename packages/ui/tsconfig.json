@@ -10,8 +10,7 @@
     "noEmit": true,
     "paths": {
       "@workspace/ui/*": ["./src/*"],
-      "@workspace/i18n": ["../i18n/src/index.tsx"],
-      "@workspace/core/*": ["../core/src/*"]
+      "@workspace/i18n": ["../i18n/src/index.tsx"]
     }
   },
   "include": ["."],

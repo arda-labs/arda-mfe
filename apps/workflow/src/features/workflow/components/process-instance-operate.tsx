@@ -33,7 +33,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../api"
 import type {
   ElementInstanceStat,

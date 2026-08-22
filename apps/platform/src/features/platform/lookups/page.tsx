@@ -6,7 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import type { LookupCategory, LookupValue } from "../api"
 import { platformApi } from "../api"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -42,9 +42,9 @@ import {
   matchBooleanActiveFilter,
   matchTextColumnFilter,
   textSearchMeta,
-} from "@workspace/ui/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+} from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

@@ -17,16 +17,22 @@ Bun + Vite micro frontend workspace for Arda.
 
 ## Packages
 
-| Package                    | Purpose                                |
-| -------------------------- | -------------------------------------- |
-| `@workspace/ui`            | Shared shadcn/ui components            |
-| `@workspace/api`           | HTTP client                            |
-| `@workspace/auth`          | Session, step-up, auth store           |
-| `@workspace/core`          | List API, query helpers, routing hooks |
-| `@workspace/i18n`          | Locales, `translateApiError`           |
-| `@workspace/notifications` | Toast / notify                         |
-| `@workspace/theme`         | Theme tokens                           |
-| `@workspace/media`         | Media URL helpers                      |
+| Package                    | Purpose                                             |
+| -------------------------- | --------------------------------------------------- |
+| `@workspace/api`           | HTTP client, URL resolver, list transport contract  |
+| `@workspace/query`         | TanStack Query client and cache policy              |
+| `@workspace/ui`            | Design system, generic table and feedback UI        |
+| `@workspace/admin-list`    | URL/search/filter/list page orchestration           |
+| `@workspace/auth`          | Session, step-up, auth store and API auth bridge    |
+| `@workspace/i18n`          | Locales and `translateApiError`                     |
+| `@workspace/notifications` | Notification inbox, stream and browser push         |
+| `@workspace/theme`         | Theme, appearance and branding                     |
+| `@workspace/media`         | Media API and URL helpers                           |
+
+Dependency direction is enforced by `bun run check:packages`. Workspace code
+must import package exports, never another package's `src` directory. The only
+exception is the shell Module Federation share bootstrap, which must seed shared
+modules before lazy chunks are evaluated.
 
 ## Structure conventions
 
@@ -44,8 +50,10 @@ apps/<remote>/src/features/<domain>/
 - `Routes.tsx` only — remotes expose `./Routes` via Module Federation.
 - `page.tsx` target ≤ 400 lines; split into `components/` when larger.
 - Heavy dependencies (BPMN, large forms): `lazy()` at tab/dialog open.
-- Server state: page-local React primitives (useState/useEffect/useCallback), direct API calls, no generic cache/invalidation layer.
-- URL state: React Router useSearchParams.
+- Server state: `@workspace/query`; server-backed lists use
+  `@workspace/admin-list/server-list` instead of page-local fetch effects.
+- List URL state: declare one filter/search mapping with `defineServerList` and
+  reuse it for table filters and advanced search.
 
 ## Business areas
 
@@ -66,6 +74,7 @@ bun install
 bun run dev
 bun run build
 bun run lint
+bun run check:packages
 bun run typecheck
 bun run format
 ```

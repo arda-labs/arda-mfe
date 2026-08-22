@@ -1,13 +1,14 @@
 import "./mf-share-init"
+import "@workspace/auth/api-bridge"
 import "@workspace/i18n/apps/shell"
 
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
 
-import { SystemBrandingProvider } from "@workspace/core/branding"
-import { I18nProvider } from "../../../packages/i18n/src/index"
-import { ThemeProvider } from "../../../packages/theme/src/index"
+import { SystemBrandingProvider } from "@workspace/theme/branding"
+import { I18nProvider } from "@workspace/i18n"
+import { ThemeProvider } from "@workspace/theme"
 import "@workspace/ui/globals.css"
 import { App } from "./App.tsx"
 

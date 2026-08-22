@@ -1,10 +1,10 @@
 import { api } from "@workspace/api"
-import type { ApiRequestOptions } from "@workspace/core/http/api-client"
+import type { ApiRequestOptions } from "@workspace/api/client"
 import {
   buildListSearchParams,
   type ListQueryInput,
   type ListResponse,
-} from "@workspace/core/http/list-api"
+} from "@workspace/api/list"
 
 export interface Organization {
   id: string

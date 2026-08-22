@@ -23,16 +23,16 @@ import {
   Users,
   Wallet,
 } from "lucide-react"
-import { useSystemBranding } from "@workspace/core/branding"
+import { useSystemBranding } from "@workspace/theme/branding"
 import {
   SHELL_PAGE_HEADER_SLOT_ID,
   SHELL_PAGE_TITLE_EVENT,
   type ShellPageTitleEventDetail,
   type ShellPageTitleState,
-} from "@workspace/core/page-title"
-import { useI18n, type MessageKey } from "../../../packages/i18n/src/index"
-import type { AuthUser } from "../../../packages/auth/src/store"
-import { hasAnyPermission } from "../../../packages/auth/src/store"
+} from "@workspace/ui/shell/page-title"
+import { useI18n, type MessageKey } from "@workspace/i18n"
+import type { AuthUser } from "@workspace/auth/store"
+import { hasAnyPermission } from "@workspace/auth/store"
 import {
   Avatar,
   AvatarFallback,
@@ -56,13 +56,13 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
-import { useAuthStore } from "../../../packages/auth/src/index"
+import { useAuthStore } from "@workspace/auth"
 import {
-  GlobalErrorDialog,
   NotificationBell,
   useNotificationStream,
-} from "../../../packages/notifications/src/index"
-import { useTheme } from "../../../packages/theme/src/index"
+} from "@workspace/notifications"
+import { GlobalErrorDialog } from "@workspace/ui/feedback/global-error-dialog"
+import { useTheme } from "@workspace/theme"
 import { preloadRemoteForPath } from "./remote-routes"
 
 type NavNode = {

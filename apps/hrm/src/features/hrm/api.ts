@@ -1,5 +1,5 @@
 import { api } from "@workspace/api"
-import type { ListResponse } from "@workspace/core/http/list-api"
+import type { ListResponse } from "@workspace/api/list"
 
 export type Status = "active" | "inactive"
 

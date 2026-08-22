@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { notify } from "@workspace/notifications/notify"
-import { navigateTo } from "@workspace/core/routing"
+import { notify } from "@workspace/ui/feedback/notify"
+import { navigateTo } from "@workspace/ui/shell/routing"
 import {
   customerApi,
   type Customer,

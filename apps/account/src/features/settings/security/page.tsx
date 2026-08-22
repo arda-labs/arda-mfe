@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { QRCode, QRCodeSvg } from "@workspace/ui/components/qr-code"
 import { translateApiError } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,

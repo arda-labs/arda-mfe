@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import type { GeoAdminUnit } from "../api"
 import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Edit2 } from "lucide-react"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import {
   activeStatusMeta,
   getSingleSelectValue,
@@ -39,9 +39,9 @@ import {
   selectFilterMeta,
   textSearchMeta,
   useColumnFilterParams,
-} from "@workspace/ui/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+} from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

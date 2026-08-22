@@ -1,5 +1,5 @@
-import { getMediaContentUrl } from "@workspace/core/media/urls"
-import { apiUrl } from "@workspace/core/http/api-url"
+import { getMediaContentUrl } from "@workspace/media/urls"
+import { apiUrl } from "@workspace/api/url"
 import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { Building2 } from "lucide-react"

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { apiUrl } from "@workspace/core/http/api-url"
+import { apiUrl } from "@workspace/api/url"
 import { ShieldCheck } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {

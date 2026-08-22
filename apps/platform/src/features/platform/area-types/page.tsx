@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import type { LookupValue } from "../api"
 import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
@@ -12,7 +12,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { DataTableKeyCell } from "@workspace/ui/components/data-table/data-table-key-cell"
-import { createActionsColumn } from "@workspace/ui/admin-list/table-columns"
+import { createActionsColumn } from "@workspace/admin-list/table-columns"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
@@ -33,15 +33,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import {
   activeStatusMeta,
   matchBooleanActiveFilter,
   matchTextColumnFilter,
   textSearchMeta,
-} from "@workspace/ui/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+} from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
 

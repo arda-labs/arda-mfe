@@ -8,10 +8,11 @@
     "cf:build": "bun ./scripts/build-cloudflare-app.mjs",
     "cf:deploy": "bun ./scripts/deploy-cloudflare-app.mjs",
     "clear:dev-ports": "bun ./scripts/clear-dev-ports.mjs",
+    "check:packages": "bun ./scripts/check-package-boundaries.mjs",
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
     "format": "bun run --workspaces --parallel format",
-    "typecheck": "bun run --filter './apps/*' --filter './packages/*' typecheck"
+    "typecheck": "bun run check:packages && bun run --filter './apps/*' --filter './packages/*' typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10",

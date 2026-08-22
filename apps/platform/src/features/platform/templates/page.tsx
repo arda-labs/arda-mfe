@@ -5,7 +5,7 @@ import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { uploadFile } from "@workspace/media"
-import { notify } from "@workspace/notifications/notify"
+import { notify } from "@workspace/ui/feedback/notify"
 import type { FileTemplate } from "../api"
 import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
@@ -29,15 +29,15 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
 import { AlertCircle, Download, Edit2, File, Link2, Loader2, Settings, Trash2, UploadCloud } from "lucide-react"
-import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import {
   activeStatusMeta,
   matchBooleanActiveFilter,
   matchTextColumnFilter,
   textSearchMeta,
-} from "@workspace/ui/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/ui/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
+} from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

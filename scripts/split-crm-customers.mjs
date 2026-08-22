@@ -64,8 +64,8 @@ ${exportFn(lines.slice(1813).join("\n"))}
 // --- task-context.ts (no JSX) ---
 writeFileSync(
   join(dir, "shared/task-context.ts"),
-  `import { notify } from "@workspace/notifications/notify"
-import { navigateTo } from "@workspace/core/routing"
+  `import { notify } from "@workspace/ui/feedback/notify"
+import { navigateTo } from "@workspace/ui/shell/routing"
 import { customerApi, type Customer, type WorkflowTaskRole } from "../api"
 
 ${lines

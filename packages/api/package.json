@@ -9,8 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@workspace/auth": "workspace:*",
-    "@workspace/core": "workspace:*",
     "@workspace/i18n": "workspace:*"
   },
   "devDependencies": {
@@ -19,6 +17,9 @@
     "typescript": "~6"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./list": "./src/list.ts",
+    "./url": "./src/url.ts"
   }
 }

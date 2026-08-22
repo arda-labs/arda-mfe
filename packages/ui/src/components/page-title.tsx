@@ -4,7 +4,7 @@ import {
   clearShellPageTitle,
   emitShellPageTitle,
   SHELL_PAGE_HEADER_SLOT_ID,
-} from "@workspace/core/page-title"
+} from "@workspace/ui/shell/page-title"
 
 import { cn } from "@workspace/ui/lib/utils"
 

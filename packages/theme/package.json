@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@workspace/core": "workspace:*",
+    "@workspace/api": "workspace:*",
     "react": "^19.2.6"
   },
   "devDependencies": {
@@ -19,6 +19,8 @@
     "typescript": "~6"
   },
   "exports": {
-    ".": "./src/index.tsx"
+    ".": "./src/index.tsx",
+    "./appearance": "./src/appearance.ts",
+    "./branding": "./src/branding.ts"
   }
 }
