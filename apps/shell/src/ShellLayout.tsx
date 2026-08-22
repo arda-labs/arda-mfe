@@ -208,7 +208,7 @@ const navItems: NavNode[] = [
     ],
   },
   {
-    labelKey: "nav.hrm",
+    labelKey: "nav.hrm._self",
     label: "Nhan su",
     icon: Users,
     children: [
@@ -686,7 +686,8 @@ function getNavNodeId(item: NavNode) {
 }
 
 function getNavLabel(item: NavNode, t: (key: MessageKey) => string) {
-  return item.label ?? t(item.labelKey)
+  const translated = t(item.labelKey)
+  return translated === item.labelKey ? (item.label ?? translated) : translated
 }
 
 function UserMenu({
