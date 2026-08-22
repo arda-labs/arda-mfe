@@ -16,6 +16,7 @@
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
     "@workspace/i18n": "workspace:*",
+    "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
     "@tanstack/react-table": "^8.21.3",

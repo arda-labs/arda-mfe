@@ -17,6 +17,7 @@
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
     "@workspace/i18n": "workspace:*",
+    "@workspace/notifications": "workspace:*",
     "@workspace/media": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
