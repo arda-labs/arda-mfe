@@ -16,20 +16,42 @@ import {
 } from "../../../packages/auth/src/store"
 import * as authShare from "../../../packages/auth/src/index"
 import { getMediaContentUrl } from "../../../packages/core/src/media/urls"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Dashboard } from "./dashboard"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
-import { lazyRemote } from "./lazy-remote"
+import {
+  AccountRoutes,
+  CrmRoutes,
+  FinanceRoutes,
+  HrmRoutes,
+  IamRoutes,
+  PlatformRoutes,
+  WorkflowRoutes,
+} from "./remote-routes"
 import { ShellLayout } from "./ShellLayout"
 
-const IamRoutes = lazyRemote(() => import("iam/Routes"))
-const PlatformRoutes = lazyRemote(() => import("platform/Routes"))
-const FinanceRoutes = lazyRemote(() => import("finance/Routes"))
-const HrmRoutes = lazyRemote(() => import("hrm/Routes"))
-const AccountRoutes = lazyRemote(() => import("account/Routes"))
-const CrmRoutes = lazyRemote(() => import("crm/Routes"))
-const WorkflowRoutes = lazyRemote(() => import("workflow/Routes"))
-
-const routeFallback = <AuthLoadingScreen fullscreen={false} />
+const routeFallback = (
+  <div
+    aria-busy="true"
+    aria-label="Đang tải ứng dụng"
+    className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 sm:p-6"
+  >
+    <span className="sr-only" role="status" aria-live="polite">
+      Đang tải ứng dụng...
+    </span>
+    <div className="flex items-center justify-between gap-4">
+      <Skeleton className="h-7 w-48 motion-reduce:animate-none" />
+      <Skeleton className="h-9 w-28 motion-reduce:animate-none" />
+    </div>
+    <Skeleton className="h-10 w-full motion-reduce:animate-none" />
+    <div className="min-h-0 flex-1 space-y-3 rounded-lg border bg-card p-4">
+      <Skeleton className="h-10 w-full motion-reduce:animate-none" />
+      <Skeleton className="h-10 w-full motion-reduce:animate-none" />
+      <Skeleton className="h-10 w-full motion-reduce:animate-none" />
+      <Skeleton className="h-10 w-10/12 motion-reduce:animate-none" />
+    </div>
+  </div>
+)
 
 function RemoteRoute({ children }: { children: ReactNode }) {
   return <Suspense fallback={routeFallback}>{children}</Suspense>

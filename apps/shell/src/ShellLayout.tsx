@@ -63,6 +63,7 @@ import {
   useNotificationStream,
 } from "../../../packages/notifications/src/index"
 import { useTheme } from "../../../packages/theme/src/index"
+import { preloadRemoteForPath } from "./remote-routes"
 
 type NavNode = {
   href?: string
@@ -646,7 +647,10 @@ function SidebarNode({
   return (
     <button
       type="button"
+      onFocus={() => void preloadRemoteForPath(item.href!)}
       onClick={() => navigate(item.href!)}
+      onPointerDown={() => void preloadRemoteForPath(item.href!)}
+      onPointerEnter={() => void preloadRemoteForPath(item.href!)}
       className={itemClassName}
       style={style}
       title={!sidebarOpen ? label : undefined}
