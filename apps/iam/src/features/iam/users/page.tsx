@@ -37,7 +37,7 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { ListPageShell } from "@workspace/ui/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/ui/admin-list/list-table-toolbar"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Check, X, Trash2, KeyRound, ShieldCheck, MonitorCog, SearchCheck, Pencil, MoreHorizontal } from "lucide-react"
+import { Check, X, Trash2, KeyRound, ShieldCheck, ShieldOff, MonitorCog, SearchCheck, Pencil, MoreHorizontal } from "lucide-react"
 import type { IdentityConsistencyIssue } from "@/features/iam"
 
 const DEFAULT_PAGE_SIZE = 10
@@ -124,6 +124,7 @@ export function UsersPage() {
   const [editTarget, setEditTarget] = useState<User | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [resetTarget, setResetTarget] = useState<User | null>(null)
+  const [mfaResetTarget, setMfaResetTarget] = useState<User | null>(null)
   const [provisionTarget, setProvisionTarget] = useState<User | null>(null)
   const [roleTarget, setRoleTarget] = useState<User | null>(null)
   const [sessionTarget, setSessionTarget] = useState<User | null>(null)
@@ -359,6 +360,17 @@ export function UsersPage() {
     }
   }
 
+  const handleResetMFA = async () => {
+    if (!mfaResetTarget) return
+    try {
+      await adminApi.resetUserMFA(mfaResetTarget.id)
+      notify.success(t("admin.users.mfa.reset_success"))
+      setMfaResetTarget(null)
+    } catch (err) {
+      notify.error(t("admin.users.mfa.reset_failed"), translateApiError(err))
+    }
+  }
+
   const handleProvisionIdentity = async () => {
     if (!provisionTarget) return
     try {
@@ -531,6 +543,10 @@ export function UsersPage() {
                 >
                   <KeyRound className="mr-2 size-4" />
                   {t("admin.users.action.reset_password")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setMfaResetTarget(u)}>
+                  <ShieldOff className="mr-2 size-4" />
+                  {t("admin.users.action.reset_mfa")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={hasKratosIdentity}
@@ -790,6 +806,25 @@ export function UsersPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={mfaResetTarget !== null} onOpenChange={(open) => !open && setMfaResetTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("admin.users.mfa.reset_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.users.mfa.reset_description", {
+                user: mfaResetTarget?.username || mfaResetTarget?.email || "",
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResetMFA}>
+              {t("admin.users.action.reset_mfa")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={sessionTarget !== null} onOpenChange={(open) => !open && setSessionTarget(null)}>
         <DialogContent className="max-w-2xl">

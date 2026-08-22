@@ -131,6 +131,7 @@
       "edit": "Sửa người dùng",
       "audit_identity": "Kiểm tra định danh",
       "reset_password": "Đặt lại mật khẩu",
+      "reset_mfa": "Đặt lại MFA",
       "provision_identity": "Tạo định danh Kratos",
       "manage_sessions": "Quản lý phiên",
       "save_changes": "Lưu thay đổi",
@@ -150,6 +151,12 @@
       "temporary_password": "Mật khẩu tạm thời",
       "reset_description": "Đặt mật khẩu Kratos mới cho {user}.",
       "provision_description": "Tạo hoặc liên kết định danh Kratos cho {user}."
+    },
+    "mfa": {
+      "reset_title": "Đặt lại xác thực đa yếu tố?",
+      "reset_description": "Thao tác này sẽ xoá đăng ký MFA của {user}. Người dùng cần đăng ký lại ứng dụng xác thực sau khi đăng nhập.",
+      "reset_success": "Đã đặt lại MFA",
+      "reset_failed": "Đặt lại MFA thất bại"
     },
     "sessions": {
       "title": "Phiên của {user}",

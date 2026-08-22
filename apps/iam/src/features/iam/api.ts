@@ -467,6 +467,8 @@ export const adminApi = {
       `/api/admin/users/${id}/identity/password/reset`,
       { password }
     ),
+  resetUserMFA: (id: string) =>
+    api.post<{ status: string }>(`/api/admin/users/${id}/mfa/reset`),
   provisionUserIdentity: (id: string, temporaryPassword: string) =>
     api
       .post<{ status: string; kratos_identity_id?: string; kratosIdentityId?: string }>(

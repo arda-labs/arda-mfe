@@ -131,6 +131,7 @@
       "edit": "Edit user",
       "audit_identity": "Audit identity",
       "reset_password": "Reset password",
+      "reset_mfa": "Reset MFA",
       "provision_identity": "Provision Kratos identity",
       "manage_sessions": "Manage sessions",
       "save_changes": "Save changes",
@@ -150,6 +151,12 @@
       "temporary_password": "Temporary password",
       "reset_description": "Set a new Kratos password for {user}.",
       "provision_description": "Create or link a Kratos identity for {user}."
+    },
+    "mfa": {
+      "reset_title": "Reset multi-factor authentication?",
+      "reset_description": "This removes MFA enrollment for {user}. They will need to enroll an authenticator again after signing in.",
+      "reset_success": "MFA reset successfully",
+      "reset_failed": "Reset MFA failed"
     },
     "sessions": {
       "title": "Sessions for {user}",
