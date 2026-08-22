@@ -209,41 +209,35 @@ const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.hrm._self",
-    label: "Nhan su",
     icon: Users,
     children: [
       {
         href: "/hrm/positions",
         labelKey: "nav.hrm.positions",
-        label: "Chuc vu",
         icon: Users,
         permissions: ["hrm.read"],
       },
       {
         href: "/hrm/job-titles",
         labelKey: "nav.hrm.job_titles",
-        label: "Chuc danh",
         icon: FileText,
         permissions: ["hrm.read"],
       },
       {
         href: "/hrm/org-units",
         labelKey: "nav.hrm.org_units",
-        label: "Co cau to chuc",
         icon: ListTree,
         permissions: ["hrm.read"],
       },
       {
         href: "/hrm/registrations",
         labelKey: "nav.hrm.registrations",
-        label: "Dang ky nhan su",
         icon: FileText,
         permissions: ["hrm.read"],
       },
       {
         href: "/hrm/employees",
         labelKey: "nav.hrm.employees",
-        label: "Thong tin nhan su",
         icon: Users,
         permissions: ["hrm.read"],
       },
@@ -686,8 +680,7 @@ function getNavNodeId(item: NavNode) {
 }
 
 function getNavLabel(item: NavNode, t: (key: MessageKey) => string) {
-  const translated = t(item.labelKey)
-  return translated === item.labelKey ? (item.label ?? translated) : translated
+  return item.label ?? t(item.labelKey)
 }
 
 function UserMenu({
