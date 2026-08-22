@@ -23,6 +23,7 @@
   "exports": {
     ".": "./src/index.tsx",
     "./config": "./src/config.ts",
+    "./app-resources": "./src/app-resources.ts",
     "./resources": "./src/resources.ts"
   }
 }
