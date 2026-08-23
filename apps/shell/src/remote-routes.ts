@@ -55,5 +55,5 @@ export function preloadRemoteForPath(pathname: string) {
       (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
     )
   )
-  return match?.component.preload().catch(() => undefined)
+  return match?.component.preload(pathname).catch(() => undefined)
 }

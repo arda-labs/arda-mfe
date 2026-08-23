@@ -1,14 +1,71 @@
 import "@workspace/i18n/apps/account"
 import { useLocation, useNavigate } from "react-router-dom"
-import { AppearancePage } from "@/features/settings/appearance/page"
-import { DevicesPage } from "@/features/settings/devices/page"
-import { SettingsLayout } from "@/features/settings/layout"
-import { ProfilePage as AccountProfilePage } from "@/features/settings/profile/page"
-import { SecurityPage } from "@/features/settings/security/page"
-import { SessionsPage } from "@/features/settings/sessions/page"
-import { ProfilePage as PublicProfilePage } from "@/features/profile/page"
+import {
+  attachPreload,
+  lazyWithPreload,
+} from "@workspace/ui/lib/lazy"
 
-export default function RemoteRoutes() {
+const AppearancePage = lazyWithPreload(() =>
+  import("@/features/settings/appearance/page").then((m) => ({
+    default: m.AppearancePage,
+  }))
+)
+const DevicesPage = lazyWithPreload(() =>
+  import("@/features/settings/devices/page").then((m) => ({
+    default: m.DevicesPage,
+  }))
+)
+const SettingsLayout = lazyWithPreload(() =>
+  import("@/features/settings/layout").then((m) => ({
+    default: m.SettingsLayout,
+  }))
+)
+const AccountProfilePage = lazyWithPreload(() =>
+  import("@/features/settings/profile/page").then((m) => ({
+    default: m.ProfilePage,
+  }))
+)
+const SecurityPage = lazyWithPreload(() =>
+  import("@/features/settings/security/page").then((m) => ({
+    default: m.SecurityPage,
+  }))
+)
+const SessionsPage = lazyWithPreload(() =>
+  import("@/features/settings/sessions/page").then((m) => ({
+    default: m.SessionsPage,
+  }))
+)
+const PublicProfilePage = lazyWithPreload(() =>
+  import("@/features/profile/page").then((m) => ({
+    default: m.ProfilePage,
+  }))
+)
+
+function resolvePathname(pathname?: string) {
+  if (pathname) return pathname
+  if (typeof window === "undefined") return "/my-account/profile"
+  return window.location.pathname
+}
+
+function resolvePage(pathname: string) {
+  if (pathname.startsWith("/in/")) return PublicProfilePage
+  if (pathname.startsWith("/settings/appearance")) return AppearancePage
+  if (pathname.startsWith("/my-account/security")) return SecurityPage
+  if (pathname.startsWith("/my-account/sessions")) return SessionsPage
+  if (pathname.startsWith("/my-account/devices")) return DevicesPage
+  return AccountProfilePage
+}
+
+async function preload(pathname?: string) {
+  const page = resolvePage(resolvePathname(pathname))
+  if (page === PublicProfilePage || page === AppearancePage) {
+    await page.preload()
+    return
+  }
+  await Promise.all([SettingsLayout.preload(), page.preload()])
+}
+
+function RemoteRoutes() {
   const location = useLocation()
   const navigate = useNavigate()
   const { pathname } = location
@@ -27,3 +84,7 @@ export default function RemoteRoutes() {
     </SettingsLayout>
   )
 }
+
+const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
+
+export default RemoteRoutesWithPreload

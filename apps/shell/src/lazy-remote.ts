@@ -1,20 +1,27 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react"
 
 type RemoteModule = {
-  default?: ComponentType
+  default?: PreloadableRemoteComponent
+  preload?: (pathname?: string) => Promise<void>
   [key: string]: unknown
 }
 
+type PreloadableRemoteComponent = ComponentType & {
+  preload?: (pathname?: string) => Promise<void>
+}
+
 export type PreloadableRemote = LazyExoticComponent<ComponentType> & {
-  preload: () => Promise<void>
+  preload: (pathname?: string) => Promise<void>
 }
 
 export function lazyRemote(load: () => Promise<RemoteModule>) {
   let modulePromise: Promise<{ default: ComponentType }> | null = null
+  let preloadRemote: RemoteModule["preload"]
   const loadModule = () => {
     if (!modulePromise) {
       modulePromise = load()
         .then((mod) => {
+          preloadRemote = mod.preload ?? mod.default?.preload
           const component =
             mod.default ??
             Object.values(mod).find((value) => typeof value === "function")
@@ -32,8 +39,9 @@ export function lazyRemote(load: () => Promise<RemoteModule>) {
   }
 
   const Remote = lazy(loadModule) as PreloadableRemote
-  Remote.preload = async () => {
+  Remote.preload = async (pathname) => {
     await loadModule()
+    await preloadRemote?.(pathname)
   }
   return Remote
 }

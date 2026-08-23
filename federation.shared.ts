@@ -21,6 +21,7 @@ export const remoteSharedDeps = {
   "@workspace/api": { singleton: true },
   "@workspace/api/": { singleton: true },
   "@workspace/theme": { singleton: true },
+  "@workspace/theme/": { singleton: true },
   "@workspace/auth": { singleton: true },
   "@workspace/auth/": { singleton: true },
   "@workspace/notifications": { singleton: true },

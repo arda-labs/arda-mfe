@@ -1,14 +1,22 @@
 import "@workspace/i18n/apps/crm"
-import { lazy, Suspense } from "react"
+import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
+import {
+  attachPreload,
+  lazyWithPreload,
+} from "@workspace/ui/lib/lazy"
 
-const CustomersPage = lazy(() =>
+const CustomersPage = lazyWithPreload(() =>
   import("@/features/customers/page").then((m) => ({
     default: m.CustomersPage,
   }))
 )
 
-export default function RemoteRoutes() {
+async function preload() {
+  await CustomersPage.preload()
+}
+
+function RemoteRoutes() {
   const { pathname } = useLocation()
 
   return (
@@ -19,3 +27,7 @@ export default function RemoteRoutes() {
     </div>
   )
 }
+
+const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
+
+export default RemoteRoutesWithPreload

@@ -1,34 +1,47 @@
 import "@workspace/i18n/apps/hrm"
-import { lazy, Suspense } from "react"
+import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
+import {
+  attachPreload,
+  lazyWithPreload,
+} from "@workspace/ui/lib/lazy"
 
-const PositionsPage = lazy(() =>
+const PositionsPage = lazyWithPreload(() =>
   import("@/features/hrm/positions/page").then((m) => ({
     default: m.PositionsPage,
   }))
 )
-const JobTitlesPage = lazy(() =>
+const JobTitlesPage = lazyWithPreload(() =>
   import("@/features/hrm/job-titles/page").then((m) => ({
     default: m.JobTitlesPage,
   }))
 )
-const OrgUnitsPage = lazy(() =>
+const OrgUnitsPage = lazyWithPreload(() =>
   import("@/features/hrm/org-units/page").then((m) => ({
     default: m.OrgUnitsPage,
   }))
 )
-const RegistrationsPage = lazy(() =>
+const RegistrationsPage = lazyWithPreload(() =>
   import("@/features/hrm/registrations/page").then((m) => ({
     default: m.RegistrationsPage,
   }))
 )
-const EmployeesPage = lazy(() =>
+const EmployeesPage = lazyWithPreload(() =>
   import("@/features/hrm/employees/page").then((m) => ({
     default: m.EmployeesPage,
   }))
 )
 
-export default function RemoteRoutes() {
+async function preload(pathname = "") {
+  let page = PositionsPage
+  if (pathname.startsWith("/hrm/job-titles")) page = JobTitlesPage
+  if (pathname.startsWith("/hrm/org-units")) page = OrgUnitsPage
+  if (pathname.startsWith("/hrm/registrations")) page = RegistrationsPage
+  if (pathname.startsWith("/hrm/employees")) page = EmployeesPage
+  await page.preload()
+}
+
+function RemoteRoutes() {
   const { pathname } = useLocation()
 
   let page = <PositionsPage />
@@ -43,3 +56,7 @@ export default function RemoteRoutes() {
     </div>
   )
 }
+
+const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
+
+export default RemoteRoutesWithPreload

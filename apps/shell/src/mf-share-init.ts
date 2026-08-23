@@ -4,6 +4,8 @@ import * as stepUpChannelShare from "../../../packages/auth/src/step-up-channel"
 import * as i18nShare from "../../../packages/i18n/src/index"
 import * as notificationsShare from "../../../packages/notifications/src/index"
 import * as reactToastifyShare from "react-toastify"
+import * as themeAppearanceShare from "../../../packages/theme/src/appearance"
+import * as themeBrandingShare from "../../../packages/theme/src/branding"
 import * as themeShare from "../../../packages/theme/src/index"
 
 const mfCache = ((
@@ -25,6 +27,8 @@ seedShare("@workspace/auth", authShare)
 seedShare("@workspace/auth/store", authStoreShare)
 seedShare("@workspace/auth/step-up-channel", stepUpChannelShare)
 seedShare("@workspace/theme", themeShare)
+seedShare("@workspace/theme/appearance", themeAppearanceShare)
+seedShare("@workspace/theme/branding", themeBrandingShare)
 seedShare("@workspace/notifications", notificationsShare)
 seedShare("@workspace/i18n", i18nShare)
 seedShare("react-toastify", reactToastifyShare)

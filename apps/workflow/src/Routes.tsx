@@ -1,19 +1,31 @@
 import "@workspace/i18n/apps/workflow"
-import { lazy, Suspense } from "react"
+import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
+import {
+  attachPreload,
+  lazyWithPreload,
+} from "@workspace/ui/lib/lazy"
 
-const WorkflowAdminPage = lazy(() =>
+const WorkflowAdminPage = lazyWithPreload(() =>
   import("@/features/workflow/page").then((m) => ({
     default: m.WorkflowAdminPage,
   }))
 )
-const WorkbenchPage = lazy(() =>
+const WorkbenchPage = lazyWithPreload(() =>
   import("@/features/workbench/page").then((m) => ({
     default: m.WorkbenchPage,
   }))
 )
 
-export default function RemoteRoutes() {
+async function preload(pathname = "") {
+  if (pathname.startsWith("/workbench/")) {
+    await WorkbenchPage.preload()
+    return
+  }
+  await WorkflowAdminPage.preload()
+}
+
+function RemoteRoutes() {
   const { pathname } = useLocation()
   const page = pathname.startsWith("/workbench/") ? (
     <WorkbenchPage pathname={pathname} />
@@ -27,3 +39,7 @@ export default function RemoteRoutes() {
     </div>
   )
 }
+
+const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
+
+export default RemoteRoutesWithPreload

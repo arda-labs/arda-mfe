@@ -1,34 +1,63 @@
 import "@workspace/i18n/apps/finance"
-import { lazy, Suspense, useEffect } from "react"
+import { Suspense, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import {
+  attachPreload,
+  lazyWithPreload,
+} from "@workspace/ui/lib/lazy"
 
-const AccountsPage = lazy(() =>
+const AccountsPage = lazyWithPreload(() =>
   import("@/features/finance/accounts/page").then((m) => ({
     default: m.AccountsPage,
   }))
 )
-const ApprovalsPage = lazy(() =>
+const ApprovalsPage = lazyWithPreload(() =>
   import("@/features/finance/approvals/page").then((m) => ({
     default: m.ApprovalsPage,
   }))
 )
-const AccountingConfigPage = lazy(() =>
+const AccountingConfigPage = lazyWithPreload(() =>
   import("@/features/finance/operation/page").then((m) => ({
     default: m.AccountingConfigPage,
   }))
 )
-const TransactionsPage = lazy(() =>
+const TransactionsPage = lazyWithPreload(() =>
   import("@/features/finance/transactions/page").then((m) => ({
     default: m.TransactionsPage,
   }))
 )
-const TrialBalancePage = lazy(() =>
+const TrialBalancePage = lazyWithPreload(() =>
   import("@/features/finance/trial-balance/page").then((m) => ({
     default: m.TrialBalancePage,
   }))
 )
 
-export default function RemoteRoutes() {
+async function preload(pathname = "") {
+  if (
+    pathname.startsWith("/finance/transactions/search") ||
+    pathname.startsWith("/finance/transaction-search") ||
+    pathname.startsWith("/finance/transactions/outgoing") ||
+    pathname.startsWith("/finance/outgoing-transactions") ||
+    pathname.startsWith("/finance/transactions/incoming") ||
+    pathname.startsWith("/finance/incoming-transactions")
+  ) {
+    return
+  }
+
+  let page = AccountsPage
+  if (
+    pathname.startsWith("/finance/accounting-config") ||
+    pathname.startsWith("/finance/transactions/accounting-config")
+  ) {
+    page = AccountingConfigPage
+  }
+  if (pathname.startsWith("/finance/transactions")) page = TransactionsPage
+  if (pathname.startsWith("/finance/approvals")) page = ApprovalsPage
+  if (pathname.startsWith("/finance/trial-balance")) page = TrialBalancePage
+  await page.preload()
+}
+
+function RemoteRoutes() {
   const { pathname } = useLocation()
 
   if (
@@ -67,6 +96,10 @@ export default function RemoteRoutes() {
     </div>
   )
 }
+
+const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
+
+export default RemoteRoutesWithPreload
 
 function Redirect({ to }: { to: string }) {
   const navigate = useNavigate()
