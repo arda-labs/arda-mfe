@@ -1,42 +1,117 @@
-# AGENTS.md
+# AGENTS.md — Arda MFE Agent & Developer Guide
 
-## Cursor Cloud specific instructions
+Tài liệu hướng dẫn toàn diện dành cho các AI Agent (Antigravity, Cursor, Copilot) và Kỹ sư phát triển khi làm việc với Monorepo **Arda MFE**.
 
-Durable, non-obvious notes for the Bun + Vite micro-frontend workspace inside a
-Cursor Cloud VM. Standard commands are in `README.md` / `package.json`
-(`bun install`, `bun run dev|build|lint|typecheck|format`). Bun `1.3.14` and Node
-`>=20` are provisioned; `bun` lives at `$HOME/.bun/bin/bun`.
+---
 
-### Known pre-existing lint/build failures (not environment issues)
-- `bun run typecheck` passes for all apps/packages.
-- `bun run lint` exits non-zero: the `workflow` app has pre-existing
-  `react-refresh/only-export-components` errors in
-  `apps/workflow/src/features/workflow/shared/admin-ui.tsx`.
-- `bun run build` exits non-zero: the `workflow` app has pre-existing
-  `react-refresh/only-export-components` lint errors in
-  `apps/workflow/src/features/workflow/shared/admin-ui.tsx` (build itself succeeds
-  once `react-toastify` is a direct dep on every remote that pulls in
-  `@workspace/auth` / `@workspace/notifications`).
+## 1. Tổng quan Kiến trúc Micro-Frontend (MFE Architecture)
 
-### Auth backend is not reachable — how to actually render the UI
-The app has no mock-auth mode. On load, `AuthGuard` calls `GET /api/auth/me` and,
-on failure, redirects to Ory Hydra (`auth.arda.io.vn`) / Kratos. In the Cloud VM
-the auth BFF (`auth-gateway`) and the Ory identity stack are **not reachable**
-(see `arda-be/AGENTS.md`), so a real login cannot complete, and remotes cannot
-render standalone (`bun run --filter <remote> dev` throws a Module Federation
-"host component is missing" error — remotes must be loaded by the `shell` host).
+Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host Shell và 7 Remote Micro-frontends độc lập:
 
-To exercise the real UI end-to-end in the VM:
-1. Run the shell host: `bun run --filter shell dev` (serves :5000). The shell
-   proxies all `/api/*` to `http://localhost:8082` (see `apps/shell/vite.config.ts`).
-2. Run the remote you want to view, e.g. `bun run --filter platform dev` (:5102).
-   The shell lazy-loads it on navigation.
-3. Provide something on :8082 that `AuthGuard` accepts. A minimal dev stand-in
-   for `auth-gateway` that returns a superadmin JSON for `GET /api/auth/me`
-   (fields: `sub`, `email`, `roles:["SUPER_ADMIN"]`, `permissions:["superadmin"]`,
-   `orgIds:[]`) and reverse-proxies `/api/platform/*` to a locally-running
-   `platform-service` (:8091) is enough to render the authenticated workspace and
-   perform real reads/writes (e.g. create an Organization) against the backend.
+| App / Remote | Cổng Dev | Route Prefix | Chức năng chính |
+| :--- | :---: | :--- | :--- |
+| **`shell`** | `5000` | `/*` | Host container, xác thực, điều hướng layout, nạp dynamic remotes |
+| **`iam`** | `5101` | `/admin/*` | Quản trị IAM: Users, Groups, Roles, Permissions, Audit |
+| **`platform`** | `5102` | `/admin/*` | Master data: Organizations, Parameters, Lookups, Geo, Templates |
+| **`finance`** | `5103` | `/finance/*` | Kế toán: Accounts, Transactions, Approvals, Trial balance |
+| **`account`** | `5104` | `/my-account/*`, `/settings/*`, `/in/*` | Quản lý Profile, Security, Sessions, Devices, Appearance |
+| **`hrm`** | `5105` | `/hrm/*` | Quản trị nhân sự: Positions, Job Titles, Org Units, Employees |
+| **`workflow`** | `5106` | `/workflow/*` | Quy trình & BPMN: Case Types, SLA, Roles, Zeebe 8.5 Monitoring |
+| **`crm`** | `5107` | `/customers/*`, `/workbench/*` | Quản lý khách hàng hội viên, bàn làm việc xử lý giao dịch |
 
-There are no `.env` files; API base URLs are relative `/api/*` and resolved by the
-shell's Vite dev proxy.
+---
+
+## 2. Quy tắc Bắt buộc trong Module Federation (Strict Rules)
+
+### 2.1. Đồng bộ Singleton trong `federation.shared.ts`
+* Tất cả cấu hình chia sẻ thư viện dùng chung **phải khai báo tại `federation.shared.ts`** ở thư mục gốc.
+* **Tuyệt đối không sửa riêng lẻ `shared` trong từng `apps/<remote>/vite.config.ts`**.
+* Các thư viện bắt buộc là singleton: `react`, `react-dom`, `react-router-dom`, `@workspace/auth`, `@workspace/theme`, `@workspace/notifications`, `@workspace/i18n`, `react-toastify`.
+
+### 2.2. Chuẩn hoá Remote Router với `createRemoteRoutes`
+* Mọi remote đều export một file duy nhất [`src/Routes.tsx`](file:///d:/github/arda/arda-mfe/apps/platform/src/Routes.tsx) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.
+* Sử dụng factory `createRemoteRoutes` từ `@workspace/ui/lib/lazy`:
+  ```tsx
+  import "@workspace/i18n/apps/platform"
+  import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
+
+  const OrgsPage = lazyWithPreload(() => import("@/features/platform/organizations/page"))
+  const ParametersPage = lazyWithPreload(() => import("@/features/platform/parameters/page"))
+
+  export default createRemoteRoutes({
+    routes: [
+      { prefix: "/admin/organizations", component: OrgsPage },
+      { prefix: "/admin/parameters", component: ParametersPage },
+    ],
+    defaultComponent: OrgsPage,
+  })
+  ```
+* Host Shell luôn bọc các Remote Routes bên trong `<RemoteErrorBoundary>` để cô lập sự cố khi remote gặp lỗi mạng.
+
+---
+
+## 3. Quy chuẩn Tổ chức Code & Cấu trúc Thư mục (Code Conventions)
+
+```text
+apps/<remote>/src/
+├── features/<domain>/
+│   ├── api.ts                     <-- API client riêng của domain
+│   ├── <feature-name>/
+│   │   ├── schema.ts              <-- Zod validation schemas & form default values
+│   │   ├── page.tsx               <-- Main page (Target ≤ 300-400 lines)
+│   │   └── components/            <-- Các Dialog, Drawer, Table views tách rời
+│   │       ├── CreateDialog.tsx
+│   │       ├── EditDialog.tsx
+│   │       └── TableView.tsx
+├── Routes.tsx                     <-- Remote entrypoint cho Module Federation
+└── main.tsx                       <-- Standalone dev harness
+```
+
+### 3.1. Quy tắc phân rã file:
+* **Không viết file nguyên khối (Monolithic Mega-file):** Mục tiêu `page.tsx` ≤ 400 dòng.
+* **Tách Zod Schema ra `schema.ts`:** Không khai báo Zod schema, interface form values và default values trực tiếp trong file UI.
+* **Tách Form / View Dialogs vào `components/`:** Mỗi dialog xử lý một nghiệp vụ riêng (Create, Edit, Roles, Audit, Sessions).
+
+---
+
+## 4. Hệ thống Đa ngôn ngữ (i18n)
+
+* **Hook sử dụng:** Luôn dùng `useI18n()` từ `@workspace/i18n`. Không dùng `useTranslation()`.
+* **Cơ chế nạp tĩnh (Bundled):** Mỗi remote import từ điển của mình tại đầu `Routes.tsx`: `import "@workspace/i18n/apps/<app>"`.
+* **Quy ước key navigation:** Các menu cha có các menu con cấp dưới sử dụng quy ước `_self` (ví dụ: `nav.workbench` ➔ `navigation:workbench._self`). Hàm `translate()` đã được bọc an toàn để không bao giờ trả về raw object cho React render.
+
+---
+
+## 5. Lệnh Phát triển & Kiểm thử (Commands)
+
+```bash
+# Cài đặt dependencies (sử dụng bun 1.3.14+)
+bun install
+
+# Kiểm tra ranh giới package (Package boundaries & no circular deps)
+bun run check:packages
+
+# Kiểm tra TypeScript toàn bộ monorepo (17 workspaces)
+bun run typecheck
+
+# Kiểm tra ESLint
+bun run lint
+
+# Build production toàn bộ 8 apps
+bun run build
+
+# Build từng app cho Cloudflare Pages
+bun run cf:build <app_name>     # ví dụ: bun run cf:build shell
+```
+
+> [!IMPORTANT]
+> Khi thêm hoặc cập nhật dependencies, luôn chạy `bun install` và commit file `bun.lock`. CI/CD deploy trên Cloudflare sử dụng cờ `--frozen-lockfile`.
+
+---
+
+## 6. Môi trường Dev & Local Auth Simulation
+
+Do hệ thống backend OAuth/Ory Kratos không có chế độ mock trong môi trường local sandbox:
+1. Chạy Host Shell: `bun run --filter shell dev` (:5000). Shell reverse-proxy tất cả `/api/*` về `http://localhost:8082`.
+2. Chạy Remote cần phát triển: `bun run --filter platform dev` (:5102).
+3. Đảm bảo cổng `8082` trả về user info hợp lệ cho endpoint `GET /api/auth/me` (`roles: ["SUPER_ADMIN"]`, `permissions: ["superadmin"]`) để vượt qua `AuthGuard`.
