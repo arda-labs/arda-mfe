@@ -59,5 +59,14 @@
     "registrations": "Đăng ký khách hàng",
     "profiles": "Hồ sơ khách hàng",
     "risk_cases": "Khách hàng rủi ro"
+  },
+  "workflow": {
+    "_self": "Quy trình",
+    "case_types": "Loại hồ sơ",
+    "process_configs": "Cấu hình quy trình",
+    "sla_policies": "Chính sách SLA",
+    "description_templates": "Mẫu mô tả",
+    "roles": "Vai trò quy trình",
+    "monitoring": "Giám sát quy trình"
   }
 }

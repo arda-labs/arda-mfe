@@ -59,5 +59,14 @@
     "registrations": "Customer registration",
     "profiles": "Customer profiles",
     "risk_cases": "Risk customers"
+  },
+  "workflow": {
+    "_self": "Workflow",
+    "case_types": "Case Types",
+    "process_configs": "Process Configurations",
+    "sla_policies": "SLA Policies",
+    "description_templates": "Description Templates",
+    "roles": "Workflow Roles",
+    "monitoring": "Process Monitoring"
   }
 }

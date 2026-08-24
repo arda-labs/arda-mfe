@@ -112,14 +112,18 @@ function translate(
   key: string,
   locale: Locale,
   params?: Record<string, string | number>
-) {
+): string {
   const nextKey = normalizeKey(key)
   const translated = i18n.t(nextKey, {
     lng: locale,
     ...params,
     defaultValue: "",
   })
-  if (translated) return translated
+  if (typeof translated === "string" && translated) return translated
+  if (translated && typeof translated === "object") {
+    const selfVal = (translated as { _self?: unknown })._self
+    if (typeof selfVal === "string" && selfVal) return selfVal
+  }
 
   return key
 }
@@ -138,7 +142,8 @@ function normalizeKey(key: string) {
 }
 
 function normalizeNavigationKey(key: string) {
-  return key.replace(/^(admin|finance|platform|settings)$/, "$1._self")
+  if (key.includes(".")) return key
+  return `${key}._self`
 }
 
 function getStoredLocale(): Locale {
