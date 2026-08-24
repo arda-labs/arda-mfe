@@ -317,7 +317,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 export function TransactionSearchPage() {
   const { t } = useI18n()
   const [filters, setFilters] = useState<FilterState>({})
-  const [, setFetching] = useState(false)
+  const [items, setItems] = useState<WorkItem[]>([])
 
   const debouncedKeyword = useDebouncedValue(filters.keyword ?? "", 300)
 
@@ -338,12 +338,10 @@ export function TransactionSearchPage() {
   filterRef.current = queryFilter
 
   const load = useCallback(async () => {
-    setFetching(true)
     try {
       const data = await workbenchApi.listWorkItems(filterRef.current)
       setItems(data)
     } finally {
-      setFetching(false)
     }
   }, [])
 
