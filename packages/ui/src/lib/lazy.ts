@@ -7,15 +7,18 @@ import {
 } from "react"
 import { useLocation } from "react-router-dom"
 
-export type PreloadableComponent<T extends ComponentType<Record<string, unknown>> = ComponentType<Record<string, unknown>>> = T & {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PreloadableComponent<T extends ComponentType<any> = ComponentType<any>> = T & {
   preload: () => Promise<void>
 }
 
-export type PreloadableRemoteComponent<T extends ComponentType<Record<string, unknown>> = ComponentType<Record<string, unknown>>> = T & {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PreloadableRemoteComponent<T extends ComponentType<any> = ComponentType<any>> = T & {
   preload: (pathname?: string) => Promise<void>
 }
 
-export function lazyWithPreload<T extends ComponentType<Record<string, unknown>>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function lazyWithPreload<T extends ComponentType<any>>(
   load: () => Promise<{ default: T }>
 ): PreloadableComponent<T> {
   let modulePromise: Promise<{ default: T }> | null = null
@@ -39,7 +42,8 @@ export function lazyWithPreload<T extends ComponentType<Record<string, unknown>>
   return component
 }
 
-export function attachPreload<T extends ComponentType<Record<string, unknown>>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function attachPreload<T extends ComponentType<any>>(
   component: T,
   preload: (pathname?: string) => Promise<void>
 ): PreloadableRemoteComponent<T> {
@@ -48,12 +52,14 @@ export function attachPreload<T extends ComponentType<Record<string, unknown>>>(
 
 export type RouteMapEntry = {
   prefix: string
-  component: PreloadableComponent<ComponentType<Record<string, unknown>>>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: PreloadableComponent<ComponentType<any>>
 }
 
 export type CreateRemoteRoutesOptions = {
   routes: RouteMapEntry[]
-  defaultComponent: PreloadableComponent<ComponentType<Record<string, unknown>>>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultComponent: PreloadableComponent<ComponentType<any>>
   wrapper?: ComponentType<{ children: ReactNode }>
 }
 
@@ -61,11 +67,12 @@ export type CreateRemoteRoutesOptions = {
  * Creates a micro-frontend remote entry router component with automatic
  * path-based component selection and preloading support.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createRemoteRoutes({
   routes,
   defaultComponent,
   wrapper: Wrapper,
-}: CreateRemoteRoutesOptions): PreloadableRemoteComponent<ComponentType<Record<string, unknown>>> {
+}: CreateRemoteRoutesOptions): PreloadableRemoteComponent<ComponentType<any>> {
   async function preload(pathname = "") {
     const match = routes.find((r) => pathname.startsWith(r.prefix))
     const target = match?.component ?? defaultComponent
@@ -94,5 +101,6 @@ export function createRemoteRoutes({
     return inner
   }
 
-  return attachPreload(RemoteRoutes as ComponentType<Record<string, unknown>>, preload)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return attachPreload(RemoteRoutes as ComponentType<any>, preload)
 }
