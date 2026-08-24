@@ -37,7 +37,7 @@ export function SelectPopover({
           variant="outline"
           className={cn(
             "h-8 gap-1 px-2.5 font-normal",
-            !hasValue && "border-dashed text-muted-foreground",
+            !hasValue && "border-dashed text-muted-foreground"
           )}
         >
           {hasValue ? (
@@ -53,7 +53,7 @@ export function SelectPopover({
                 role="button"
                 aria-label={`Clear ${label} filter`}
                 tabIndex={0}
-                className="ml-0.5 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="ml-0.5 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                 onClick={(e) => {
                   e.stopPropagation()
                   onChange(undefined)
@@ -81,12 +81,12 @@ export function SelectPopover({
                     onChange(opt.value || undefined)
                     setOpen(false)
                   }}
-                  className="text-sm py-1.5"
+                  className="py-1.5 text-sm"
                 >
                   <Check
                     className={cn(
                       "size-4",
-                      value === opt.value ? "opacity-100" : "opacity-0",
+                      value === opt.value ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {opt.label}

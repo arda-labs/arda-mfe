@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import type { Column } from "@tanstack/react-table";
+import type { Column } from "@tanstack/react-table"
 import {
   ChevronDown,
   ChevronsUpDown,
@@ -8,35 +8,37 @@ import {
   EyeOff,
   MoreHorizontal,
   X,
-} from "lucide-react";
+} from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import { cn } from "@workspace/ui/lib/utils";
-import { useI18n } from "@workspace/i18n";
+} from "@workspace/ui/components/dropdown-menu"
+import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 
-interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.ComponentProps<"button"> {
-  column: Column<TData, TValue>;
-  label: string;
+interface DataTableColumnHeaderProps<
+  TData,
+  TValue,
+> extends React.ComponentProps<"button"> {
+  column: Column<TData, TValue>
+  label: string
 }
 
 function SortIndicator({ sorted }: { sorted: false | "asc" | "desc" }) {
   if (sorted === "desc") {
-    return <ChevronDown className="size-3.5 shrink-0 text-foreground" />;
+    return <ChevronDown className="size-3.5 shrink-0 text-foreground" />
   }
   if (sorted === "asc") {
-    return <ChevronUp className="size-3.5 shrink-0 text-foreground" />;
+    return <ChevronUp className="size-3.5 shrink-0 text-foreground" />
   }
   return (
     <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground/60" />
-  );
+  )
 }
 
 export function DataTableColumnHeader<TData, TValue>({
@@ -45,22 +47,17 @@ export function DataTableColumnHeader<TData, TValue>({
   className,
   ...props
 }: DataTableColumnHeaderProps<TData, TValue>) {
-  const { t } = useI18n();
-  const canSort = column.getCanSort();
-  const canHide = column.getCanHide();
-  const sorted = column.getIsSorted();
+  const { t } = useI18n()
+  const canSort = column.getCanSort()
+  const canHide = column.getCanHide()
+  const sorted = column.getIsSorted()
 
   if (!canSort && !canHide) {
     return (
-      <span
-        className={cn(
-          "text-xs font-bold text-foreground",
-          className,
-        )}
-      >
+      <span className={cn("text-xs font-bold text-foreground", className)}>
         {label}
       </span>
-    );
+    )
   }
 
   if (canSort && !canHide) {
@@ -69,16 +66,16 @@ export function DataTableColumnHeader<TData, TValue>({
         type="button"
         onClick={() => column.toggleSorting(undefined, false)}
         className={cn(
-          "-ml-2 inline-flex h-8 max-w-full items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+          "-ml-2 inline-flex h-8 max-w-full items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
           sorted && "text-foreground",
-          className,
+          className
         )}
         {...props}
       >
         <span className="truncate">{label}</span>
         <SortIndicator sorted={sorted} />
       </button>
-    );
+    )
   }
 
   return (
@@ -88,17 +85,15 @@ export function DataTableColumnHeader<TData, TValue>({
           type="button"
           onClick={() => column.toggleSorting(undefined, false)}
           className={cn(
-            "-ml-2 inline-flex h-8 max-w-full flex-1 items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-            sorted && "text-foreground",
+            "-ml-2 inline-flex h-8 max-w-full flex-1 items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
+            sorted && "text-foreground"
           )}
         >
           <span className="truncate">{label}</span>
           <SortIndicator sorted={sorted} />
         </button>
       ) : (
-        <span className="px-2 text-xs font-bold text-foreground">
-          {label}
-        </span>
+        <span className="px-2 text-xs font-bold text-foreground">{label}</span>
       )}
       {canHide ? (
         <DropdownMenu>
@@ -109,14 +104,16 @@ export function DataTableColumnHeader<TData, TValue>({
               className="size-7 shrink-0 text-muted-foreground"
             >
               <MoreHorizontal className="size-3.5" />
-              <span className="sr-only">{t("common.table.column_options")}</span>
+              <span className="sr-only">
+                {t("common.table.column_options")}
+              </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-28">
             {canSort && (
               <>
                 <DropdownMenuCheckboxItem
-                  className="relative pr-8 pl-2 [&>span:first-child]:right-2 [&>span:first-child]:left-auto [&_svg]:text-muted-foreground"
+                  className="relative pr-8 pl-2 [&_svg]:text-muted-foreground [&>span:first-child]:right-2 [&>span:first-child]:left-auto"
                   checked={sorted === "asc"}
                   onClick={() => column.toggleSorting(false)}
                 >
@@ -124,7 +121,7 @@ export function DataTableColumnHeader<TData, TValue>({
                   {t("common.table.sort_ascending")}
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  className="relative pr-8 pl-2 [&>span:first-child]:right-2 [&>span:first-child]:left-auto [&_svg]:text-muted-foreground"
+                  className="relative pr-8 pl-2 [&_svg]:text-muted-foreground [&>span:first-child]:right-2 [&>span:first-child]:left-auto"
                   checked={sorted === "desc"}
                   onClick={() => column.toggleSorting(true)}
                 >
@@ -143,7 +140,7 @@ export function DataTableColumnHeader<TData, TValue>({
               </>
             )}
             <DropdownMenuCheckboxItem
-              className="relative pr-8 pl-2 [&>span:first-child]:right-2 [&>span:first-child]:left-auto [&_svg]:text-muted-foreground"
+              className="relative pr-8 pl-2 [&_svg]:text-muted-foreground [&>span:first-child]:right-2 [&>span:first-child]:left-auto"
               checked={!column.getIsVisible()}
               onClick={() => column.toggleVisibility(false)}
             >
@@ -154,5 +151,5 @@ export function DataTableColumnHeader<TData, TValue>({
         </DropdownMenu>
       ) : null}
     </div>
-  );
+  )
 }

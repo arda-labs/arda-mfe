@@ -15,7 +15,11 @@ import {
   RotateCcw,
   Search,
 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
 import {
   Accordion,
   AccordionContent,
@@ -59,15 +63,41 @@ type ProcessInstanceOperateProps = {
 
 function InstanceStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    ACTIVE: { label: "Đang chạy", className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300" },
-    COMPLETED: { label: "Hoàn thành", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
-    CANCELED: { label: "Đã hủy", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
-    SUSPENDED: { label: "Tạm dừng", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
-    INCIDENT: { label: "Lỗi", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
+    ACTIVE: {
+      label: "Đang chạy",
+      className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
+    },
+    COMPLETED: {
+      label: "Hoàn thành",
+      className:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+    },
+    CANCELED: {
+      label: "Đã hủy",
+      className:
+        "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+    },
+    SUSPENDED: {
+      label: "Tạm dừng",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    },
+    INCIDENT: {
+      label: "Lỗi",
+      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    },
   }
-  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
+  const c = config[state] ?? {
+    label: state,
+    className: "bg-muted text-muted-foreground",
+  }
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium", c.className)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        c.className
+      )}
+    >
       {c.label}
     </span>
   )
@@ -75,24 +105,77 @@ function InstanceStateBadge({ state }: { state: string }) {
 
 function IncidentStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    CREATED: { label: "Mới", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
-    RESOLVED: { label: "Đã xử lý", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
-    PENDING: { label: "Đang chờ", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+    CREATED: {
+      label: "Mới",
+      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    },
+    RESOLVED: {
+      label: "Đã xử lý",
+      className:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+    },
+    PENDING: {
+      label: "Đang chờ",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    },
   }
-  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
-  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c.className)}>{c.label}</span>
+  const c = config[state] ?? {
+    label: state,
+    className: "bg-muted text-muted-foreground",
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        c.className
+      )}
+    >
+      {c.label}
+    </span>
+  )
 }
 
 function JobStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    ACTIVATABLE: { label: "Sẵn sàng", className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300" },
-    ACTIVATED: { label: "Đang chạy", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
-    FAILED: { label: "Thất bại", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
-    ERROR_THROWN: { label: "Lỗi", className: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300" },
-    SUSPENDED: { label: "Tạm dừng", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+    ACTIVATABLE: {
+      label: "Sẵn sàng",
+      className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
+    },
+    ACTIVATED: {
+      label: "Đang chạy",
+      className:
+        "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+    },
+    FAILED: {
+      label: "Thất bại",
+      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    },
+    ERROR_THROWN: {
+      label: "Lỗi",
+      className:
+        "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
+    },
+    SUSPENDED: {
+      label: "Tạm dừng",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    },
   }
-  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
-  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c.className)}>{c.label}</span>
+  const c = config[state] ?? {
+    label: state,
+    className: "bg-muted text-muted-foreground",
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        c.className
+      )}
+    >
+      {c.label}
+    </span>
+  )
 }
 
 export function ProcessInstanceOperate({
@@ -111,7 +194,8 @@ export function ProcessInstanceOperate({
   const [retryJobPending, setRetryJobPending] = useState<string | null>(null)
   const [actionPending, setActionPending] = useState<string | null>(null)
   const runtimeQuery = useProcessInstanceRuntime(selected?.processInstanceKey)
-  const runtime: import("../api").ProcessInstanceRuntime | undefined = runtimeQuery.data ?? undefined
+  const runtime: import("../api").ProcessInstanceRuntime | undefined =
+    runtimeQuery.data ?? undefined
   const pendingJobs = runtime?.pendingJobs ?? []
   const runtimeIncidents = runtime?.incidents ?? []
   const timeline = runtime?.timeline ?? []
@@ -129,10 +213,13 @@ export function ProcessInstanceOperate({
     }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
-      list = list.filter((item) =>
-        item.caseCode.toLowerCase().includes(q) ||
-        item.title.toLowerCase().includes(q) ||
-        String(item.processInstanceKey ?? "").toLowerCase().includes(q)
+      list = list.filter(
+        (item) =>
+          item.caseCode.toLowerCase().includes(q) ||
+          item.title.toLowerCase().includes(q) ||
+          String(item.processInstanceKey ?? "")
+            .toLowerCase()
+            .includes(q)
       )
     }
     return list
@@ -146,15 +233,31 @@ export function ProcessInstanceOperate({
   const filteredJobs = selectedBpmnId
     ? jobs.filter((j) => j.bpmnProcessId === selectedBpmnId)
     : jobs
-  const activeIncidents = filteredIncidents.filter((i) => i.state !== "RESOLVED")
-  const failedJobs = filteredJobs.filter((j) => j.state === "FAILED" || j.state === "ERROR_THROWN")
+  const activeIncidents = filteredIncidents.filter(
+    (i) => i.state !== "RESOLVED"
+  )
+  const failedJobs = filteredJobs.filter(
+    (j) => j.state === "FAILED" || j.state === "ERROR_THROWN"
+  )
 
   const instanceFilterOptions = [
     { value: "all", label: `Tất cả (${cases.length})` },
-    { value: "ACTIVE", label: `Đang chạy (${cases.filter((c) => c.status === "ACTIVE" || c.status === "IN_REVIEW" || c.status === "SUBMITTED").length})` },
-    { value: "INCIDENT", label: `Lỗi (${cases.filter((c) => c.status === "FAILED" || c.status === "INCIDENT").length})` },
-    { value: "SUSPENDED", label: `Tạm dừng (${cases.filter((c) => c.status === "SUSPENDED").length})` },
-    { value: "COMPLETED", label: `Hoàn thành (${cases.filter((c) => c.status === "COMPLETED").length})` },
+    {
+      value: "ACTIVE",
+      label: `Đang chạy (${cases.filter((c) => c.status === "ACTIVE" || c.status === "IN_REVIEW" || c.status === "SUBMITTED").length})`,
+    },
+    {
+      value: "INCIDENT",
+      label: `Lỗi (${cases.filter((c) => c.status === "FAILED" || c.status === "INCIDENT").length})`,
+    },
+    {
+      value: "SUSPENDED",
+      label: `Tạm dừng (${cases.filter((c) => c.status === "SUSPENDED").length})`,
+    },
+    {
+      value: "COMPLETED",
+      label: `Hoàn thành (${cases.filter((c) => c.status === "COMPLETED").length})`,
+    },
   ]
 
   async function handleRetryJob(jobKey: string) {
@@ -164,7 +267,10 @@ export function ProcessInstanceOperate({
       notify.success("Đã retry job")
       await runtimeQuery.refetch()
     } catch (error) {
-      notify.error("Retry thất bại", error instanceof Error ? error.message : "Lỗi không xác định")
+      notify.error(
+        "Retry thất bại",
+        error instanceof Error ? error.message : "Lỗi không xác định"
+      )
     } finally {
       setRetryJobPending(null)
     }
@@ -174,7 +280,9 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("retryService")
     try {
-      const result = await workflowApi.retryProcessServiceJobs(String(selected.processInstanceKey))
+      const result = await workflowApi.retryProcessServiceJobs(
+        String(selected.processInstanceKey)
+      )
       if (result.status === "noop") {
         notify.info("Không có incident service job", result.message)
       } else {
@@ -182,7 +290,10 @@ export function ProcessInstanceOperate({
       }
       await runtimeQuery.refetch()
     } catch (error) {
-      notify.error("Retry thất bại", error instanceof Error ? error.message : "Lỗi không xác định")
+      notify.error(
+        "Retry thất bại",
+        error instanceof Error ? error.message : "Lỗi không xác định"
+      )
     } finally {
       setActionPending(null)
     }
@@ -192,10 +303,15 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("pause")
     try {
-      await workflowApi.pauseProcessInstance(String(selected.processInstanceKey))
+      await workflowApi.pauseProcessInstance(
+        String(selected.processInstanceKey)
+      )
       notify.success("Đã tạm dừng process instance")
     } catch (error) {
-      notify.error("Tạm dừng thất bại", error instanceof Error ? error.message : undefined)
+      notify.error(
+        "Tạm dừng thất bại",
+        error instanceof Error ? error.message : undefined
+      )
     } finally {
       setActionPending(null)
     }
@@ -205,10 +321,15 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("resume")
     try {
-      await workflowApi.resumeProcessInstance(String(selected.processInstanceKey))
+      await workflowApi.resumeProcessInstance(
+        String(selected.processInstanceKey)
+      )
       notify.success("Đã tiếp tục process instance")
     } catch (error) {
-      notify.error("Tiếp tục thất bại", error instanceof Error ? error.message : undefined)
+      notify.error(
+        "Tiếp tục thất bại",
+        error instanceof Error ? error.message : undefined
+      )
     } finally {
       setActionPending(null)
     }
@@ -218,10 +339,15 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("cancel")
     try {
-      await workflowApi.cancelProcessInstance(String(selected.processInstanceKey))
+      await workflowApi.cancelProcessInstance(
+        String(selected.processInstanceKey)
+      )
       notify.success("Đã hủy process instance")
     } catch (error) {
-      notify.error("Hủy thất bại", error instanceof Error ? error.message : undefined)
+      notify.error(
+        "Hủy thất bại",
+        error instanceof Error ? error.message : undefined
+      )
     } finally {
       setActionPending(null)
     }
@@ -232,7 +358,10 @@ export function ProcessInstanceOperate({
       await workflowApi.retryIncident(incidentKey)
       notify.success("Đã retry incident")
     } catch (err) {
-      notify.error("Retry thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Retry thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -241,7 +370,10 @@ export function ProcessInstanceOperate({
       await workflowApi.resolveIncident(incidentKey)
       notify.success("Đã resolve incident")
     } catch (err) {
-      notify.error("Resolve thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Resolve thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -250,13 +382,24 @@ export function ProcessInstanceOperate({
       await workflowApi.updateJobRetries(jobKey, 3)
       notify.success("Đã cập nhật retries cho job")
     } catch (err) {
-      notify.error("Cập nhật retries thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Cập nhật retries thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
-  const canPause = selected?.status === "ACTIVE" || selected?.status === "IN_REVIEW" || selected?.status === "SUBMITTED" || selected?.status === "INCIDENT" || selected?.status === "FAILED"
+  const canPause =
+    selected?.status === "ACTIVE" ||
+    selected?.status === "IN_REVIEW" ||
+    selected?.status === "SUBMITTED" ||
+    selected?.status === "INCIDENT" ||
+    selected?.status === "FAILED"
   const canResume = selected?.status === "SUSPENDED"
-  const canCancel = selected && selected.status !== "CANCELED" && selected.status !== "COMPLETED"
+  const canCancel =
+    selected &&
+    selected.status !== "CANCELED" &&
+    selected.status !== "COMPLETED"
 
   return (
     <div className="flex min-h-[40rem] flex-col gap-0 overflow-hidden rounded-lg border bg-background">
@@ -286,7 +429,12 @@ export function ProcessInstanceOperate({
             disabled={!selected?.processInstanceKey || runtimeQuery.isFetching}
             onClick={() => runtimeQuery.refetch()}
           >
-            <RefreshCw className={cn("size-4", runtimeQuery.isFetching && "animate-spin")} />
+            <RefreshCw
+              className={cn(
+                "size-4",
+                runtimeQuery.isFetching && "animate-spin"
+              )}
+            />
             Làm mới
           </Button>
         </div>
@@ -295,10 +443,10 @@ export function ProcessInstanceOperate({
       {/* ── Body: 3-column ── */}
       <div className="grid min-h-0 flex-1 lg:grid-cols-[17rem_minmax(0,1fr)_20rem]">
         {/* ── Left: Instance list with search/filter ── */}
-        <aside className="flex flex-col overflow-hidden border-b lg:border-b-0 lg:border-r">
+        <aside className="flex flex-col overflow-hidden border-b lg:border-r lg:border-b-0">
           <div className="border-b p-2">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Tìm instance..."
                 value={searchQuery}
@@ -315,7 +463,11 @@ export function ProcessInstanceOperate({
               </SelectTrigger>
               <SelectContent align="start">
                 {instanceFilterOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    className="text-xs"
+                  >
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -340,14 +492,22 @@ export function ProcessInstanceOperate({
                     onClick={() => onSelect(item)}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium truncate">{item.caseCode}</span>
+                      <span className="truncate font-medium">
+                        {item.caseCode}
+                      </span>
                       <InstanceStateBadge state={item.status} />
                     </div>
-                    <span className="truncate text-muted-foreground">{item.title}</span>
+                    <span className="truncate text-muted-foreground">
+                      {item.title}
+                    </span>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                      <span className="truncate">{caseTypeNames.get(item.caseType) ?? item.caseType}</span>
+                      <span className="truncate">
+                        {caseTypeNames.get(item.caseType) ?? item.caseType}
+                      </span>
                       {item.processInstanceKey ? (
-                        <span className="font-mono">{String(item.processInstanceKey).slice(-8)}</span>
+                        <span className="font-mono">
+                          {String(item.processInstanceKey).slice(-8)}
+                        </span>
                       ) : null}
                     </div>
                   </button>
@@ -358,7 +518,7 @@ export function ProcessInstanceOperate({
         </aside>
 
         {/* ── Center: BPMN viewer ── */}
-        <div className="min-h-[24rem] border-b lg:border-b-0 lg:border-r">
+        <div className="min-h-[24rem] border-b lg:border-r lg:border-b-0">
           {selected ? (
             <OperateBpmnViewer
               title={selected.title}
@@ -380,27 +540,50 @@ export function ProcessInstanceOperate({
           {selected ? (
             <>
               <div>
-                <p className="font-mono text-xs text-muted-foreground">{selected.caseCode}</p>
+                <p className="font-mono text-xs text-muted-foreground">
+                  {selected.caseCode}
+                </p>
                 <h2 className="text-base font-semibold">{selected.title}</h2>
               </div>
 
               {/* Actions */}
               <div className="flex items-center gap-1">
                 {canPause && (
-                  <Button type="button" size="sm" variant="outline" className="h-7 text-xs" disabled={actionPending != null} onClick={handlePause}>
-                    <PauseCircle className="size-3.5 mr-1 text-amber-600" />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    disabled={actionPending != null}
+                    onClick={handlePause}
+                  >
+                    <PauseCircle className="mr-1 size-3.5 text-amber-600" />
                     Tạm dừng
                   </Button>
                 )}
                 {canResume && (
-                  <Button type="button" size="sm" variant="outline" className="h-7 text-xs" disabled={actionPending != null} onClick={handleResume}>
-                    <PlayCircle className="size-3.5 mr-1 text-emerald-600" />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    disabled={actionPending != null}
+                    onClick={handleResume}
+                  >
+                    <PlayCircle className="mr-1 size-3.5 text-emerald-600" />
                     Tiếp tục
                   </Button>
                 )}
                 {canCancel && (
-                  <Button type="button" size="sm" variant="outline" className="h-7 text-xs text-destructive" disabled={actionPending != null} onClick={handleCancel}>
-                    <Ban className="size-3.5 mr-1" />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-destructive"
+                    disabled={actionPending != null}
+                    onClick={handleCancel}
+                  >
+                    <Ban className="mr-1 size-3.5" />
                     Hủy
                   </Button>
                 )}
@@ -409,7 +592,12 @@ export function ProcessInstanceOperate({
               {(() => {
                 const domainHref = workflowDomainHref(selected)
                 return domainHref ? (
-                  <Button type="button" size="sm" variant="outline" onClick={() => navigateToOperate(domainHref)}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigateToOperate(domainHref)}
+                  >
                     <Eye className="size-4" />
                     Mở hồ sơ CRM
                   </Button>
@@ -419,10 +607,28 @@ export function ProcessInstanceOperate({
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <Field label="Trạng thái" value={selected.status} />
                 <Field label="Bước DB" value={selected.currentStep || "—"} />
-                <Field label="Active BPMN" value={runtime?.activeElementId || "—"} />
-                <Field label="Assignee" value={selected.assignedTo || "Chưa nhận"} />
-                <Field label="PI key" value={selected.processInstanceKey ? String(selected.processInstanceKey) : "—"} />
-                <Field label="Zeebe" value={runtime?.zeebeStatus ?? (runtimeQuery.isLoading ? "…" : "—")} />
+                <Field
+                  label="Active BPMN"
+                  value={runtime?.activeElementId || "—"}
+                />
+                <Field
+                  label="Assignee"
+                  value={selected.assignedTo || "Chưa nhận"}
+                />
+                <Field
+                  label="PI key"
+                  value={
+                    selected.processInstanceKey
+                      ? String(selected.processInstanceKey)
+                      : "—"
+                  }
+                />
+                <Field
+                  label="Zeebe"
+                  value={
+                    runtime?.zeebeStatus ?? (runtimeQuery.isLoading ? "…" : "—")
+                  }
+                />
               </div>
 
               {runtimeQuery.isLoading ? (
@@ -436,7 +642,9 @@ export function ProcessInstanceOperate({
                 <Alert variant="destructive">
                   <AlertCircle className="size-4" />
                   <AlertTitle>Runtime lỗi</AlertTitle>
-                  <AlertDescription>{runtimeQuery.error.message}</AlertDescription>
+                  <AlertDescription>
+                    {runtimeQuery.error.message}
+                  </AlertDescription>
                 </Alert>
               ) : null}
 
@@ -446,7 +654,9 @@ export function ProcessInstanceOperate({
                   <AlertTitle>Gợi ý</AlertTitle>
                   <AlertDescription className="space-y-2 text-xs">
                     <p>{runtime.hint}</p>
-                    <p className="text-muted-foreground">{runtime.workerNote}</p>
+                    <p className="text-muted-foreground">
+                      {runtime.workerNote}
+                    </p>
                   </AlertDescription>
                 </Alert>
               ) : null}
@@ -459,15 +669,16 @@ export function ProcessInstanceOperate({
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="size-3.5 text-destructive" />
                       Lỗi
-                      {(activeIncidents.length + runtimeIncidents.length) > 0 && (
-                        <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white leading-tight">
+                      {activeIncidents.length + runtimeIncidents.length > 0 && (
+                        <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] leading-tight font-bold text-white">
                           {activeIncidents.length + runtimeIncidents.length}
                         </span>
                       )}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-0 pb-0">
-                    {runtimeIncidents.length === 0 && filteredIncidents.length === 0 ? (
+                    {runtimeIncidents.length === 0 &&
+                    filteredIncidents.length === 0 ? (
                       <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
                         <CheckCircle2 className="size-3.5 text-emerald-500" />
                         Không có lỗi
@@ -475,33 +686,73 @@ export function ProcessInstanceOperate({
                     ) : (
                       <div className="max-h-48 space-y-px overflow-y-auto">
                         {runtimeIncidents.map((inc) => (
-                          <div key={`rt-${inc.jobKey}`} className="flex items-start gap-2 bg-red-50/30 px-3 py-2 text-xs dark:bg-red-950/10">
+                          <div
+                            key={`rt-${inc.jobKey}`}
+                            className="flex items-start gap-2 bg-red-50/30 px-3 py-2 text-xs dark:bg-red-950/10"
+                          >
                             <IncidentStateBadge state="CREATED" />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-mono text-[11px] text-destructive">{inc.errorMessage || "—"}</p>
-                              <p className="text-[10px] text-muted-foreground">{inc.jobType} · {inc.elementId}</p>
+                              <p className="truncate font-mono text-[11px] text-destructive">
+                                {inc.errorMessage || "—"}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {inc.jobType} · {inc.elementId}
+                              </p>
                             </div>
-                            <Button type="button" size="sm" variant="ghost" className="h-6 shrink-0 text-[11px]" disabled={retryJobPending != null} onClick={() => handleRetryJob(inc.jobKey)}>
-                              <RotateCcw className="size-3 mr-1" />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 shrink-0 text-[11px]"
+                              disabled={retryJobPending != null}
+                              onClick={() => handleRetryJob(inc.jobKey)}
+                            >
+                              <RotateCcw className="mr-1 size-3" />
                               Retry
                             </Button>
                           </div>
                         ))}
                         {filteredIncidents.map((inc) => (
-                          <div key={`op-${inc.incidentKey}`} className={`flex items-start gap-2 px-3 py-2 text-xs ${inc.state !== "RESOLVED" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}>
+                          <div
+                            key={`op-${inc.incidentKey}`}
+                            className={`flex items-start gap-2 px-3 py-2 text-xs ${inc.state !== "RESOLVED" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}
+                          >
                             <IncidentStateBadge state={inc.state} />
                             <div className="min-w-0 flex-1">
-                              <p className={`truncate font-mono text-[11px] ${inc.state !== "RESOLVED" ? "text-destructive" : "text-muted-foreground"}`}>{inc.errorMessage || "—"}</p>
-                              <p className="text-[10px] text-muted-foreground">{inc.errorType} · {inc.elementId}</p>
+                              <p
+                                className={`truncate font-mono text-[11px] ${inc.state !== "RESOLVED" ? "text-destructive" : "text-muted-foreground"}`}
+                              >
+                                {inc.errorMessage || "—"}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {inc.errorType} · {inc.elementId}
+                              </p>
                             </div>
                             <div className="flex shrink-0 gap-1">
-                              <Button type="button" size="sm" variant="ghost" className="h-6 text-[11px]" disabled={inc.state === "RESOLVED"} onClick={() => handleRetryIncident(inc.incidentKey)}>
-                                <RotateCcw className="size-3 mr-1" />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 text-[11px]"
+                                disabled={inc.state === "RESOLVED"}
+                                onClick={() =>
+                                  handleRetryIncident(inc.incidentKey)
+                                }
+                              >
+                                <RotateCcw className="mr-1 size-3" />
                                 Retry
                               </Button>
                               {inc.state !== "RESOLVED" && (
-                                <Button type="button" size="sm" variant="ghost" className="h-6 text-[11px] text-emerald-600" onClick={() => handleResolveIncident(inc.incidentKey)}>
-                                  <CheckCircle2 className="size-3 mr-1" />
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 text-[11px] text-emerald-600"
+                                  onClick={() =>
+                                    handleResolveIncident(inc.incidentKey)
+                                  }
+                                >
+                                  <CheckCircle2 className="mr-1 size-3" />
                                   Resolve
                                 </Button>
                               )}
@@ -520,7 +771,7 @@ export function ProcessInstanceOperate({
                       <CircleDot className="size-3.5 text-amber-500" />
                       Công việc
                       {failedJobs.length > 0 && (
-                        <span className="inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white leading-tight">
+                        <span className="inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] leading-tight font-bold text-white">
                           {failedJobs.length}
                         </span>
                       )}
@@ -535,28 +786,59 @@ export function ProcessInstanceOperate({
                     ) : (
                       <div className="max-h-48 space-y-px overflow-y-auto">
                         {pendingJobs.map((job) => (
-                          <div key={`rt-${job.jobKey}`} className={`flex items-start gap-2 px-3 py-2 text-xs ${job.retries === 0 ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}>
+                          <div
+                            key={`rt-${job.jobKey}`}
+                            className={`flex items-start gap-2 px-3 py-2 text-xs ${job.retries === 0 ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}
+                          >
                             <JobStateBadge state={job.state} />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-mono text-[11px]">{job.jobType}</p>
-                              <p className="text-[10px] text-muted-foreground">{job.elementId} · lượt {job.retries}</p>
+                              <p className="truncate font-mono text-[11px]">
+                                {job.jobType}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {job.elementId} · lượt {job.retries}
+                              </p>
                             </div>
-                            <Button type="button" size="sm" variant="ghost" className="h-6 shrink-0 text-[11px]" disabled={retryJobPending != null} onClick={() => handleRetryJob(job.jobKey)}>
-                              <RotateCcw className="size-3 mr-1" />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 shrink-0 text-[11px]"
+                              disabled={retryJobPending != null}
+                              onClick={() => handleRetryJob(job.jobKey)}
+                            >
+                              <RotateCcw className="mr-1 size-3" />
                               Retry
                             </Button>
                           </div>
                         ))}
                         {filteredJobs.map((job) => (
-                          <div key={`op-${job.jobKey}`} className={`flex items-start gap-2 px-3 py-2 text-xs ${job.state === "FAILED" || job.state === "ERROR_THROWN" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}>
+                          <div
+                            key={`op-${job.jobKey}`}
+                            className={`flex items-start gap-2 px-3 py-2 text-xs ${job.state === "FAILED" || job.state === "ERROR_THROWN" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}
+                          >
                             <JobStateBadge state={job.state} />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-mono text-[11px]">{job.type}</p>
-                              <p className="text-[10px] text-muted-foreground">{job.elementId} · lượt {job.retries}/{job.maxRetries}</p>
+                              <p className="truncate font-mono text-[11px]">
+                                {job.type}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {job.elementId} · lượt {job.retries}/
+                                {job.maxRetries}
+                              </p>
                             </div>
-                            {(job.state === "FAILED" || job.state === "ERROR_THROWN") && (
-                              <Button type="button" size="sm" variant="ghost" className="h-6 shrink-0 text-[11px]" onClick={() => handleRetryJobOperate(job.jobKey)}>
-                                <RotateCcw className="size-3 mr-1" />
+                            {(job.state === "FAILED" ||
+                              job.state === "ERROR_THROWN") && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 shrink-0 text-[11px]"
+                                onClick={() =>
+                                  handleRetryJobOperate(job.jobKey)
+                                }
+                              >
+                                <RotateCcw className="mr-1 size-3" />
                                 Retry
                               </Button>
                             )}
@@ -573,7 +855,11 @@ export function ProcessInstanceOperate({
                     <div className="flex items-center gap-2">
                       <ListTree className="size-3.5 text-muted-foreground" />
                       Lịch sử
-                      {timeline.length > 0 && <span className="text-muted-foreground">({timeline.length})</span>}
+                      {timeline.length > 0 && (
+                        <span className="text-muted-foreground">
+                          ({timeline.length})
+                        </span>
+                      )}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-0 pb-0">
@@ -587,13 +873,23 @@ export function ProcessInstanceOperate({
                         {timeline.map((event, idx) => (
                           <div key={event.id} className="flex gap-2 text-xs">
                             <div className="mt-1 flex shrink-0 flex-col items-center">
-                              <div className={`size-2 rounded-full ${idx === 0 ? "bg-primary" : "bg-muted-foreground/30"}`} />
-                              {idx < timeline.length - 1 && <div className="mt-1 h-full w-px bg-border" />}
+                              <div
+                                className={`size-2 rounded-full ${idx === 0 ? "bg-primary" : "bg-muted-foreground/30"}`}
+                              />
+                              {idx < timeline.length - 1 && (
+                                <div className="mt-1 h-full w-px bg-border" />
+                              )}
                             </div>
                             <div className="min-w-0 flex-1 pb-3">
                               <p className="font-medium">{event.eventType}</p>
-                              <p className="text-[10px] text-muted-foreground">{formatOperateDateTime(event.createdAt)}</p>
-                              {event.note ? <p className="mt-0.5 break-all font-mono text-[10px] text-muted-foreground">{event.note}</p> : null}
+                              <p className="text-[10px] text-muted-foreground">
+                                {formatOperateDateTime(event.createdAt)}
+                              </p>
+                              {event.note ? (
+                                <p className="mt-0.5 font-mono text-[10px] break-all text-muted-foreground">
+                                  {event.note}
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         ))}
@@ -608,7 +904,6 @@ export function ProcessInstanceOperate({
           )}
         </aside>
       </div>
-
     </div>
   )
 }
@@ -617,7 +912,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="break-words font-medium">{value}</p>
+      <p className="font-medium break-words">{value}</p>
     </div>
   )
 }

@@ -109,10 +109,16 @@ export function TransactionsPage() {
   const [loadError, setLoadError] = useState<unknown>(null)
   const [posting, setPosting] = useState(false)
   const hasLoadedRef = useRef(false)
-  const pageParam = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1)
+  const pageParam = Math.max(
+    1,
+    Number.parseInt(searchParams.get("page") ?? "1", 10) || 1
+  )
   const perPageParam = Math.max(
     1,
-    Number.parseInt(searchParams.get("perPage") ?? String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE
+    Number.parseInt(
+      searchParams.get("perPage") ?? String(DEFAULT_PAGE_SIZE),
+      10
+    ) || DEFAULT_PAGE_SIZE
   )
 
   const loadTransactions = useCallback(async () => {
@@ -120,7 +126,10 @@ export function TransactionsPage() {
     if (hasLoadedRef.current) setRefreshing(true)
     else setLoading(true)
     try {
-      const result = await financeApi.listTransactions({ page: pageParam, perPage: perPageParam })
+      const result = await financeApi.listTransactions({
+        page: pageParam,
+        perPage: perPageParam,
+      })
       setTxns(result.items)
       setTotal(result.total)
     } catch (reason) {
@@ -148,7 +157,6 @@ export function TransactionsPage() {
     defaultValues: transactionDefaultValues,
   })
   const { append, fields } = useFieldArray({ control, name: "entries" })
-
 
   const columns = useMemo<ColumnDef<Transaction>[]>(
     () => [
@@ -274,7 +282,9 @@ export function TransactionsPage() {
       reset(transactionDefaultValues)
       await loadTransactions()
     } catch (reason) {
-      notify.error(reason instanceof Error ? reason.message : "Could not post transaction")
+      notify.error(
+        reason instanceof Error ? reason.message : "Could not post transaction"
+      )
     } finally {
       setPosting(false)
     }
@@ -365,7 +375,10 @@ export function TransactionsPage() {
                   )}
                 />
               </FormField>
-              <FormField label="Amount" error={errors.entries?.[i]?.amount?.message}>
+              <FormField
+                label="Amount"
+                error={errors.entries?.[i]?.amount?.message}
+              >
                 <Input
                   aria-invalid={Boolean(errors.entries?.[i]?.amount)}
                   {...register(`entries.${i}.amount`)}

@@ -18,7 +18,9 @@ export const customerDraftApi = {
     return getItems<Customer>("/api/crm/customers", { status })
   },
   cancel(id: string) {
-    return api.post<Customer>(`/api/crm/customers/${encodeURIComponent(id)}/cancel`)
+    return api.post<Customer>(
+      `/api/crm/customers/${encodeURIComponent(id)}/cancel`
+    )
   },
 }
 

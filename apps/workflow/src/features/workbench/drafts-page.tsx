@@ -11,10 +11,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import {
-  Alert,
-  AlertDescription,
-} from "@workspace/ui/components/alert"
+import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +32,11 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
 import { SelectPopover } from "@workspace/ui/components/select-popover"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { notify } from "@workspace/ui/feedback/notify"
 import { fetchPlatformDrafts } from "./drafts/sources"
@@ -85,7 +86,10 @@ export function DraftWorkbenchPage() {
   const [filter, setFilter] = useState<DraftFilter>(defaultFilter)
   const [submittedQuery, setSubmittedQuery] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<PlatformDraft | null>(null)
-  const [result, setResult] = useState<PlatformDraftsResult>({ items: [], errors: {} })
+  const [result, setResult] = useState<PlatformDraftsResult>({
+    items: [],
+    errors: {},
+  })
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [fetchError, setFetchError] = useState<unknown>(null)
@@ -107,7 +111,9 @@ export function DraftWorkbenchPage() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const allItems = result.items
   const sourceErrors = result.errors ?? {}
@@ -172,7 +178,7 @@ export function DraftWorkbenchPage() {
         accessorKey: "updatedAt",
         header: t("workflow.workbench.drafts.col_updated"),
         cell: ({ row }) => (
-          <span className="tabular-nums text-muted-foreground">
+          <span className="text-muted-foreground tabular-nums">
             {formatDateTime(row.original.updatedAt)}
           </span>
         ),
@@ -220,9 +226,7 @@ export function DraftWorkbenchPage() {
   })
 
   const hasActiveFilter =
-    submittedQuery !== "" ||
-    filter.domain !== "ALL" ||
-    filter.status !== "ALL"
+    submittedQuery !== "" || filter.domain !== "ALL" || filter.status !== "ALL"
 
   async function handleCancel() {
     if (!deleteTarget?.id) return
@@ -323,7 +327,9 @@ export function DraftWorkbenchPage() {
                 <Input
                   className="h-8 pl-9"
                   value={filter.q}
-                  placeholder={t("workflow.workbench.drafts.search_placeholder")}
+                  placeholder={t(
+                    "workflow.workbench.drafts.search_placeholder"
+                  )}
                   onChange={(event) =>
                     setFilter((prev) => ({ ...prev, q: event.target.value }))
                   }
@@ -350,11 +356,15 @@ export function DraftWorkbenchPage() {
                     value: "crm_customer_registration",
                   },
                   {
-                    label: t("workflow.workbench.drafts.domain_finance_incoming"),
+                    label: t(
+                      "workflow.workbench.drafts.domain_finance_incoming"
+                    ),
                     value: "finance_incoming",
                   },
                   {
-                    label: t("workflow.workbench.drafts.domain_finance_outgoing"),
+                    label: t(
+                      "workflow.workbench.drafts.domain_finance_outgoing"
+                    ),
                     value: "finance_outgoing",
                   },
                   {
@@ -384,7 +394,9 @@ export function DraftWorkbenchPage() {
                     value: "DRAFT",
                   },
                   {
-                    label: t("workflow.workbench.drafts.filter_status_needs_changes"),
+                    label: t(
+                      "workflow.workbench.drafts.filter_status_needs_changes"
+                    ),
                     value: "NEEDS_CHANGES",
                   },
                 ]}
@@ -426,7 +438,10 @@ export function DraftWorkbenchPage() {
                 <AlertDialogDescription>
                   {t("workflow.workbench.drafts.delete_confirm_description", {
                     code:
-                      deleteTarget?.code || deleteTarget?.title || deleteTarget?.id || "",
+                      deleteTarget?.code ||
+                      deleteTarget?.title ||
+                      deleteTarget?.id ||
+                      "",
                   })}
                 </AlertDialogDescription>
               </AlertDialogHeader>

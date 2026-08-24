@@ -33,7 +33,9 @@ export async function runMutation<T>(
 }
 
 export function optionsFor(name: keyof CustomerFormValues) {
-  const map: Partial<Record<keyof CustomerFormValues, { value: string; label: string }[]>> = {
+  const map: Partial<
+    Record<keyof CustomerFormValues, { value: string; label: string }[]>
+  > = {
     gender: selectOptions.gender,
     maritalStatus: selectOptions.maritalStatus,
     occupation: selectOptions.occupation,
@@ -236,7 +238,9 @@ export function relationLabel(value: string) {
   )
 }
 
-export function toAmendmentSnapshot(values: CustomerFormValues): Record<string, unknown> {
+export function toAmendmentSnapshot(
+  values: CustomerFormValues
+): Record<string, unknown> {
   const payload = toPayload(values, values.id, "ACTIVE")
   return {
     name: payload.name,

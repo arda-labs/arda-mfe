@@ -3,8 +3,7 @@ import type { NotificationItem } from "./types"
 const PREFERENCE_KEY = "arda.browser-notifications"
 
 export type BrowserNotificationPermission =
-  | NotificationPermission
-  | "unsupported"
+  NotificationPermission | "unsupported"
 
 export function browserNotificationsSupported(): boolean {
   return (

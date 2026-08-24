@@ -88,7 +88,11 @@ export function GroupMembersDialog({
     pageSize: PAGE_SIZE,
   })
   const [membersLoading, setMembersLoading] = useState(false)
-  const [pickerData, setPickerData] = useState<{ items: User[]; total: number; per_page: number } | null>(null)
+  const [pickerData, setPickerData] = useState<{
+    items: User[]
+    total: number
+    per_page: number
+  } | null>(null)
   const [pickerLoading, setPickerLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const membersLoadedForRef = useRef<string | null>(null)
@@ -115,7 +119,8 @@ export function GroupMembersDialog({
     }
     let cancelled = false
     setMembersLoading(true)
-    void adminApi.listGroupMembers(groupId)
+    void adminApi
+      .listGroupMembers(groupId)
       .then((res) => {
         if (!cancelled) {
           setDraftMembers(res.items)
@@ -137,7 +142,12 @@ export function GroupMembersDialog({
     let cancelled = false
     setPickerLoading(true)
     const q = search || undefined
-    void adminApi.listUsers({ page: addPagination.pageIndex + 1, perPage: addPagination.pageSize, q })
+    void adminApi
+      .listUsers({
+        page: addPagination.pageIndex + 1,
+        perPage: addPagination.pageSize,
+        q,
+      })
       .then((res) => {
         if (!cancelled) setPickerData(res)
       })
@@ -328,7 +338,9 @@ export function GroupMembersDialog({
         header: () => t("common.field.name"),
         cell: ({ row }) => (
           <div className="min-w-0">
-            <div className="truncate font-medium">{displayName(row.original)}</div>
+            <div className="truncate font-medium">
+              {displayName(row.original)}
+            </div>
             {row.original.username ? (
               <div className="truncate font-mono text-xs text-muted-foreground">
                 {row.original.username}
@@ -421,7 +433,9 @@ export function GroupMembersDialog({
         header: () => t("common.field.name"),
         cell: ({ row }) => (
           <div className="min-w-0">
-            <div className="truncate font-medium">{displayName(row.original)}</div>
+            <div className="truncate font-medium">
+              {displayName(row.original)}
+            </div>
             {row.original.username ? (
               <div className="truncate font-mono text-xs text-muted-foreground">
                 {row.original.username}
@@ -572,9 +586,7 @@ export function GroupMembersDialog({
                 {t("common.action.cancel")}
               </Button>
               <Button onClick={save} disabled={!isDirty || saving}>
-                {saving
-                  ? t("common.action.saving")
-                  : t("common.action.save")}
+                {saving ? t("common.action.saving") : t("common.action.save")}
               </Button>
             </DialogFooter>
           </>
@@ -618,7 +630,10 @@ export function GroupMembersDialog({
               <Button variant="outline" onClick={backToMembers}>
                 {t("common.action.cancel")}
               </Button>
-              <Button onClick={confirmAdd} disabled={selectedAddUsers.size === 0}>
+              <Button
+                onClick={confirmAdd}
+                disabled={selectedAddUsers.size === 0}
+              >
                 {t("admin.groups.members.add_dialog.confirm", {
                   count: selectedAddUsers.size,
                 })}

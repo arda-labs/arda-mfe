@@ -7,10 +7,7 @@ export type PlatformDraftDomain =
 export type PlatformDraftStatus = "DRAFT" | "NEEDS_CHANGES"
 
 export type PlatformDraftSource =
-  | "crm"
-  | "finance_incoming"
-  | "finance_outgoing"
-  | "hrm"
+  "crm" | "finance_incoming" | "finance_outgoing" | "hrm"
 
 export interface PlatformDraft {
   id: string

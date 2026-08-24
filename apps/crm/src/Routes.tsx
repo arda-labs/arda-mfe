@@ -1,10 +1,7 @@
 import "@workspace/i18n/apps/crm"
 import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
-import {
-  attachPreload,
-  lazyWithPreload,
-} from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const CustomersPage = lazyWithPreload(() =>
   import("@/features/customers/page").then((m) => ({

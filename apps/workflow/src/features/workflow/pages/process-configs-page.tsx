@@ -16,12 +16,19 @@ export function ProcessConfigsPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [ct, sl] = await Promise.all([workflowApi.listCaseTypes(), workflowApi.listSlaPolicies()])
+      const [ct, sl] = await Promise.all([
+        workflowApi.listCaseTypes(),
+        workflowApi.listSlaPolicies(),
+      ])
       setItems(ct)
       setSlaItems(sl)
-    } finally { setLoading(false) }
+    } finally {
+      setLoading(false)
+    }
   }, [])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const [editing, setEditing] = useState<WorkflowCaseType>()
   const enabled = items.filter((item) => item.workflowEnabled).length
@@ -38,11 +45,17 @@ export function ProcessConfigsPage() {
       description="Ánh xạ từng loại nghiệp vụ tới BPMN process id, version, SLA mặc định và role xử lý."
       source="api"
       metrics={[
-        { label: "Loại nghiệp vụ", value: String(items.length), tone: "default" },
+        {
+          label: "Loại nghiệp vụ",
+          value: String(items.length),
+          tone: "default",
+        },
         { label: "Đang bật workflow", value: String(enabled), tone: "success" },
         {
           label: "Chưa áp dụng",
-          value: String(items.filter((item) => item.status !== "ACTIVE").length),
+          value: String(
+            items.filter((item) => item.status !== "ACTIVE").length
+          ),
           tone: "warning",
         },
       ]}

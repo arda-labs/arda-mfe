@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -14,7 +22,11 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertDialog,
@@ -26,9 +38,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
-import { AlertCircle, Download, Edit2, File, Link2, Loader2, Settings, Trash2, UploadCloud } from "lucide-react"
+import {
+  AlertCircle,
+  Download,
+  Edit2,
+  File,
+  Link2,
+  Loader2,
+  Settings,
+  Trash2,
+  UploadCloud,
+} from "lucide-react"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import {
   activeStatusMeta,
@@ -36,12 +64,18 @@ import {
   matchTextColumnFilter,
   textSearchMeta,
 } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildTemplateSchema(t: TranslateFn) {
   return z
@@ -61,8 +95,14 @@ function buildTemplateSchema(t: TranslateFn) {
         .trim()
         .max(500, t("platform.templates.validation.description_too_long"))
         .optional(),
-      file_type: z.string().trim().min(1, t("platform.templates.validation.file_type_required")),
-      file_url: z.string().trim().min(1, t("platform.templates.validation.file_url_required")),
+      file_type: z
+        .string()
+        .trim()
+        .min(1, t("platform.templates.validation.file_type_required")),
+      file_url: z
+        .string()
+        .trim()
+        .min(1, t("platform.templates.validation.file_url_required")),
       mapping_config: z.string().trim().optional(),
       is_active: z.boolean(),
     })
@@ -108,11 +148,16 @@ function toTemplateFormValues(item: FileTemplate): TemplateFormValues {
 export function TemplatesPage() {
   const { t } = useI18n()
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingTemplate, setEditingTemplate] = useState<FileTemplate | null>(null)
+  const [editingTemplate, setEditingTemplate] = useState<FileTemplate | null>(
+    null
+  )
   const [deleteTarget, setDeleteTarget] = useState<FileTemplate | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
-  const [selectedFile, setSelectedFile] = useState<{ name: string; size: number } | null>(null)
+  const [selectedFile, setSelectedFile] = useState<{
+    name: string
+    size: number
+  } | null>(null)
   const [templates, setTemplates] = useState<FileTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -169,7 +214,12 @@ export function TemplatesPage() {
     setEditingTemplate(template)
     setSelectedFile(
       template.file_url
-        ? { name: template.file_url.split("/").pop() || t("platform.templates.upload.template_file"), size: 0 }
+        ? {
+            name:
+              template.file_url.split("/").pop() ||
+              t("platform.templates.upload.template_file"),
+            size: 0,
+          }
         : null
     )
     setUploadProgress(null)
@@ -265,21 +315,41 @@ export function TemplatesPage() {
     setSelectedFile({ name: file.name, size: file.size })
 
     const extension = file.name.split(".").pop()?.toLowerCase() || ""
-    const matchedType = ["jrxml", "docx", "xlsx", "pdf", "html"].includes(extension) ? extension : "jrxml"
-    setValue("file_type", matchedType, { shouldDirty: true, shouldValidate: true })
+    const matchedType = ["jrxml", "docx", "xlsx", "pdf", "html"].includes(
+      extension
+    )
+      ? extension
+      : "jrxml"
+    setValue("file_type", matchedType, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
 
     setUploadProgress(20)
     try {
-      const result = await uploadFile(file, "platform", "file_template", getValues("code") || "temp_id")
+      const result = await uploadFile(
+        file,
+        "platform",
+        "file_template",
+        getValues("code") || "temp_id"
+      )
       setUploadProgress(100)
       setTimeout(() => {
         setUploadProgress(null)
-        setValue("file_url", result.url, { shouldDirty: true, shouldValidate: true })
-        notify.success(t("platform.templates.upload.success", { name: file.name }))
+        setValue("file_url", result.url, {
+          shouldDirty: true,
+          shouldValidate: true,
+        })
+        notify.success(
+          t("platform.templates.upload.success", { name: file.name })
+        )
       }, 300)
     } catch (err) {
       setUploadProgress(null)
-      notify.error(t("platform.templates.upload.failed"), translateApiError(err))
+      notify.error(
+        t("platform.templates.upload.failed"),
+        translateApiError(err)
+      )
     }
   }
 
@@ -304,17 +374,25 @@ export function TemplatesPage() {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.templates.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.templates.field.code")}
+          />
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs font-bold">{row.original.code}</span>
+          <span className="font-mono text-xs font-bold">
+            {row.original.code}
+          </span>
         ),
       },
       {
         id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.templates.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.templates.field.name")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
@@ -335,7 +413,10 @@ export function TemplatesPage() {
       {
         accessorKey: "file_type",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.templates.field.file_type")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.templates.field.file_type")}
+          />
         ),
         cell: ({ row }) => (
           <Badge variant="outline" className="text-[10px] uppercase">
@@ -369,7 +450,9 @@ export function TemplatesPage() {
               size="icon"
               variant="ghost"
               className="size-6 flex-shrink-0 text-muted-foreground hover:text-primary"
-              onClick={() => window.open(`${row.original.file_url}/download`, "_blank")}
+              onClick={() =>
+                window.open(`${row.original.file_url}/download`, "_blank")
+              }
               title={t("platform.templates.action.download_file")}
             >
               <Download className="size-3" />
@@ -382,7 +465,10 @@ export function TemplatesPage() {
         id: "is_active",
         accessorKey: "is_active",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.templates.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.templates.field.status")}
+          />
         ),
         enableColumnFilter: true,
         meta: activeStatusMeta(
@@ -404,7 +490,9 @@ export function TemplatesPage() {
       {
         id: "actions",
         header: () => (
-          <span className="sr-only">{t("platform.templates.field.actions")}</span>
+          <span className="sr-only">
+            {t("platform.templates.field.actions")}
+          </span>
         ),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
@@ -461,10 +549,16 @@ export function TemplatesPage() {
                 ? t("platform.templates.edit")
                 : t("platform.templates.create_title")}
             </DialogTitle>
-            <DialogDescription>{t("platform.templates.dialog_description")}</DialogDescription>
+            <DialogDescription>
+              {t("platform.templates.dialog_description")}
+            </DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={submitTemplate} className="space-y-4 py-1.5">
+          <form
+            autoComplete="off"
+            onSubmit={submitTemplate}
+            className="space-y-4 py-1.5"
+          >
             <div className="max-h-[60vh] space-y-4 overflow-y-auto px-1.5 py-1.5">
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -480,7 +574,9 @@ export function TemplatesPage() {
                     spellCheck={false}
                     {...register("code", {
                       onChange: (event) => {
-                        event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "_")
+                        event.target.value = event.target.value
+                          .toUpperCase()
+                          .replace(/\s+/g, "_")
                       },
                     })}
                   />
@@ -515,7 +611,10 @@ export function TemplatesPage() {
                 />
               </FormField>
 
-              <FormField label={t("platform.templates.field.file_attachment")} error={errors.file_url?.message}>
+              <FormField
+                label={t("platform.templates.field.file_attachment")}
+                error={errors.file_url?.message}
+              >
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -532,7 +631,9 @@ export function TemplatesPage() {
                   onClick={triggerFileSelect}
                   className={cn(
                     "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 transition-all",
-                    dragActive ? "border-primary bg-primary/5" : "border-muted/80 hover:bg-muted/10",
+                    dragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-muted/80 hover:bg-muted/10",
                     fileUrl ? "border-success/40 bg-muted/5" : ""
                   )}
                   aria-invalid={Boolean(errors.file_url)}
@@ -541,7 +642,9 @@ export function TemplatesPage() {
                     <div className="flex w-full max-w-xs flex-col items-center gap-2 py-2 text-center">
                       <Loader2 className="size-8 animate-spin text-primary" />
                       <span className="text-sm font-medium">
-                        {t("platform.templates.upload.uploading", { progress: uploadProgress })}
+                        {t("platform.templates.upload.uploading", {
+                          progress: uploadProgress,
+                        })}
                       </span>
                       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
@@ -555,7 +658,8 @@ export function TemplatesPage() {
                       <File className="size-8 flex-shrink-0 text-success" />
                       <div className="min-w-0 flex-1 text-left">
                         <p className="truncate text-sm font-semibold text-foreground">
-                          {selectedFile?.name || t("platform.templates.upload.template_file")}
+                          {selectedFile?.name ||
+                            t("platform.templates.upload.template_file")}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {selectedFile?.size
@@ -563,7 +667,10 @@ export function TemplatesPage() {
                             : t("platform.templates.upload.linked")}
                         </p>
                       </div>
-                      <div className="flex flex-shrink-0 items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
+                      <div
+                        className="flex flex-shrink-0 items-center gap-1.5"
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         <Button
                           type="button"
                           variant="ghost"
@@ -574,7 +681,10 @@ export function TemplatesPage() {
                         >
                           <Download className="size-3.5" />
                         </Button>
-                        <Badge variant="outline" className="border-success text-[10px] font-bold uppercase text-success">
+                        <Badge
+                          variant="outline"
+                          className="border-success text-[10px] font-bold text-success uppercase"
+                        >
                           {fileType}
                         </Badge>
                       </div>
@@ -595,7 +705,10 @@ export function TemplatesPage() {
                 {fileUrl && !uploadProgress && (
                   <div className="mt-1.5 flex w-full items-start gap-1.5 px-1 font-mono text-[11px] text-muted-foreground">
                     <AlertCircle className="mt-0.5 size-3 flex-shrink-0 text-success" />
-                    <div className="flex-1 break-all whitespace-normal" title={fileUrl}>
+                    <div
+                      className="flex-1 break-all whitespace-normal"
+                      title={fileUrl}
+                    >
                       <span className="font-semibold text-foreground">
                         {t("platform.templates.upload.s3_link")}:{" "}
                       </span>
@@ -607,7 +720,7 @@ export function TemplatesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField label={t("platform.templates.field.file_type")}>
-                  <div className="flex h-9 w-fit items-center rounded-lg border border-input bg-muted/40 px-3 text-xs font-bold uppercase text-foreground">
+                  <div className="flex h-9 w-fit items-center rounded-lg border border-input bg-muted/40 px-3 text-xs font-bold text-foreground uppercase">
                     {fileType || t("platform.templates.upload.unrecognized")}
                   </div>
                 </FormField>
@@ -621,9 +734,14 @@ export function TemplatesPage() {
                         <Checkbox
                           id="template_is_active"
                           checked={field.value}
-                          onCheckedChange={(checked) => field.onChange(checked === true)}
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked === true)
+                          }
                         />
-                        <label htmlFor="template_is_active" className="cursor-pointer select-none text-sm font-medium">
+                        <label
+                          htmlFor="template_is_active"
+                          className="cursor-pointer text-sm font-medium select-none"
+                        >
                           {t("platform.templates.field.is_active")}
                         </label>
                       </div>
@@ -642,7 +760,9 @@ export function TemplatesPage() {
                 </div>
                 <Textarea
                   id="template_mapping_config"
-                  placeholder={t("platform.templates.placeholder.mapping_config")}
+                  placeholder={t(
+                    "platform.templates.placeholder.mapping_config"
+                  )}
                   className="h-[180px] font-mono text-xs"
                   spellCheck={false}
                   aria-invalid={Boolean(errors.mapping_config)}
@@ -652,16 +772,16 @@ export function TemplatesPage() {
             </div>
 
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleDialogOpenChange(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
               <Button
                 type="submit"
-                disabled={
-                  isSubmitting ||
-                  saving ||
-                  uploadProgress !== null
-                }
+                disabled={isSubmitting || saving || uploadProgress !== null}
               >
                 {isSubmitting || saving
                   ? t("common.action.saving")
@@ -672,12 +792,19 @@ export function TemplatesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.templates.delete.title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.templates.delete.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("platform.templates.delete.description", { name: deleteTarget?.name ?? "" })}
+              {t("platform.templates.delete.description", {
+                name: deleteTarget?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

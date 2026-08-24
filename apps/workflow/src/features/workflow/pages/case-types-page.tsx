@@ -17,16 +17,27 @@ export function CaseTypesPage() {
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
     setLoading(true)
-    try { setItems(await workflowApi.listCaseTypes()) } finally { setLoading(false) }
+    try {
+      setItems(await workflowApi.listCaseTypes())
+    } finally {
+      setLoading(false)
+    }
   }, [])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const [editing, setEditing] = useState<WorkflowCaseType | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const businessAreas = new Set(items.map((item) => item.businessArea)).size
-  const businessAreaOptions = uniqueOptions(items.map((item) => item.businessArea), defaultBusinessAreaOptions)
+  const businessAreaOptions = uniqueOptions(
+    items.map((item) => item.businessArea),
+    defaultBusinessAreaOptions
+  )
   const roleOptions = roleOptionsFromCaseTypes(items)
-  function onSaved() { void load() }
+  function onSaved() {
+    void load()
+  }
 
   return (
     <WorkflowFrame
@@ -34,15 +45,25 @@ export function CaseTypesPage() {
       description="Quản lý mã nghiệp vụ, khu vực menu, service sở hữu và trạng thái áp dụng."
       source="api"
       metrics={[
-        { label: "Loại nghiệp vụ", value: String(items.length), tone: "default" },
+        {
+          label: "Loại nghiệp vụ",
+          value: String(items.length),
+          tone: "default",
+        },
         { label: "Nhóm menu", value: String(businessAreas), tone: "success" },
         {
           label: "Bản nháp",
-          value: String(items.filter((item) => item.status !== "ACTIVE").length),
+          value: String(
+            items.filter((item) => item.status !== "ACTIVE").length
+          ),
           tone: "warning",
         },
       ]}
-      action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>Tạo loại nghiệp vụ</Button>}
+      action={
+        <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+          Tạo loại nghiệp vụ
+        </Button>
+      }
     >
       {loading ? (
         <LoadingBlock />

@@ -1,17 +1,41 @@
 import { useState, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
-import { Check, Copy, ExternalLink, Laptop, Monitor, Shield, User } from "lucide-react"
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  Laptop,
+  Monitor,
+  Shield,
+  User,
+} from "lucide-react"
 import { useAuthStore } from "@workspace/auth/store"
 import { useI18n, type MessageKey } from "@workspace/i18n"
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 
 const tabs: { href: string; labelKey: MessageKey; icon: LucideIcon }[] = [
   { href: "/my-account/profile", labelKey: "nav.settings.profile", icon: User },
-  { href: "/my-account/security", labelKey: "nav.settings.security", icon: Shield },
-  { href: "/my-account/sessions", labelKey: "nav.settings.sessions", icon: Laptop },
-  { href: "/my-account/devices", labelKey: "nav.settings.devices", icon: Monitor },
+  {
+    href: "/my-account/security",
+    labelKey: "nav.settings.security",
+    icon: Shield,
+  },
+  {
+    href: "/my-account/sessions",
+    labelKey: "nav.settings.sessions",
+    icon: Laptop,
+  },
+  {
+    href: "/my-account/devices",
+    labelKey: "nav.settings.devices",
+    icon: Monitor,
+  },
 ]
 
 export function SettingsLayout({
@@ -42,7 +66,9 @@ export function SettingsLayout({
   const publicProfilePath = `/in/${profileIdentifier}`
 
   const copyProfileLink = async () => {
-    await navigator.clipboard.writeText(`${window.location.origin}${publicProfilePath}`)
+    await navigator.clipboard.writeText(
+      `${window.location.origin}${publicProfilePath}`
+    )
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1600)
   }
@@ -57,7 +83,11 @@ export function SettingsLayout({
             className="shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Avatar className="size-14">
-              <AvatarImage src={user?.picture} alt={name} className="object-cover" />
+              <AvatarImage
+                src={user?.picture}
+                alt={name}
+                className="object-cover"
+              />
               <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
                 {initials}
               </AvatarFallback>
@@ -65,7 +95,9 @@ export function SettingsLayout({
           </button>
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-2">
-              <h1 className="truncate text-xl font-semibold tracking-tight">{name}</h1>
+              <h1 className="truncate text-xl font-semibold tracking-tight">
+                {name}
+              </h1>
               <button
                 type="button"
                 onClick={() => navigate(publicProfilePath)}
@@ -75,7 +107,9 @@ export function SettingsLayout({
                 <ExternalLink className="size-4" />
               </button>
             </div>
-            <p className="truncate text-sm text-muted-foreground">{user?.email || publicProfilePath}</p>
+            <p className="truncate text-sm text-muted-foreground">
+              {user?.email || publicProfilePath}
+            </p>
           </div>
         </div>
         <Button
@@ -96,7 +130,8 @@ export function SettingsLayout({
             const Icon = item.icon
             const isActive =
               pathname === item.href ||
-              (item.href === "/my-account/profile" && pathname === "/my-account")
+              (item.href === "/my-account/profile" &&
+                pathname === "/my-account")
 
             return (
               <button

@@ -140,7 +140,8 @@ export function OutgoingTransactionsOperationPage() {
 }
 
 export function AccountingConfigPage() {
-  const [result, setResult] = useState<OperationResult<AccountingConfigItem> | null>(null)
+  const [result, setResult] =
+    useState<OperationResult<AccountingConfigItem> | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -173,14 +174,26 @@ export function AccountingConfigPage() {
         <Tabs defaultValue="process" className="space-y-3">
           <TabsList className="flex h-auto flex-wrap justify-start">
             <TabsTrigger value="process">Cấu hình quy trình</TabsTrigger>
-            <TabsTrigger value="classification">Phân loại tài khoản</TabsTrigger>
+            <TabsTrigger value="classification">
+              Phân loại tài khoản
+            </TabsTrigger>
             <TabsTrigger value="journal">Định nghĩa bút toán</TabsTrigger>
             <TabsTrigger value="regulatory">Tài khoản quy định</TabsTrigger>
             <TabsTrigger value="internal">Tài khoản nội bộ</TabsTrigger>
           </TabsList>
-          {(["process", "classification", "journal", "regulatory", "internal"] as const).map((group) => (
+          {(
+            [
+              "process",
+              "classification",
+              "journal",
+              "regulatory",
+              "internal",
+            ] as const
+          ).map((group) => (
             <TabsContent key={group} value={group}>
-              <AccountingConfigTable items={items.filter((item) => item.group === group)} />
+              <AccountingConfigTable
+                items={items.filter((item) => item.group === group)}
+              />
             </TabsContent>
           ))}
         </Tabs>
@@ -190,8 +203,10 @@ export function AccountingConfigPage() {
 }
 
 export function FinanceTransactionSearchPage() {
-  const [params, setParams] = useState<FinanceTransactionSearchParams>(searchDefaultValues)
-  const [result, setResult] = useState<OperationResult<FinanceOperationCase> | null>(null)
+  const [params, setParams] =
+    useState<FinanceTransactionSearchParams>(searchDefaultValues)
+  const [result, setResult] =
+    useState<OperationResult<FinanceOperationCase> | null>(null)
   const [loading, setLoading] = useState(true)
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchSchema),
@@ -222,36 +237,58 @@ export function FinanceTransactionSearchPage() {
       {result?.source === "mock" ? <MockDataNotice /> : null}
       <form className="rounded-lg border p-4" onSubmit={onSubmit}>
         <div className="grid gap-3 md:grid-cols-[minmax(12rem,1.4fr)_10rem_10rem_9rem_9rem_auto]">
-          <FormField label="Từ khóa" error={form.formState.errors.keyword?.message}>
-            <Input aria-invalid={Boolean(form.formState.errors.keyword)} placeholder="Mã hồ sơ, đối tượng, đối tác" {...form.register("keyword")} />
+          <FormField
+            label="Từ khóa"
+            error={form.formState.errors.keyword?.message}
+          >
+            <Input
+              aria-invalid={Boolean(form.formState.errors.keyword)}
+              placeholder="Mã hồ sơ, đối tượng, đối tác"
+              {...form.register("keyword")}
+            />
           </FormField>
           <FormField label="Chiều giao dịch">
-            <Controller control={form.control} name="direction" render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Tất cả</SelectItem>
-                  <SelectItem value="INCOMING">Giao dịch đến</SelectItem>
-                  <SelectItem value="OUTGOING">Giao dịch đi</SelectItem>
-                </SelectContent>
-              </Select>
-            )} />
+            <Controller
+              control={form.control}
+              name="direction"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Tất cả</SelectItem>
+                    <SelectItem value="INCOMING">Giao dịch đến</SelectItem>
+                    <SelectItem value="OUTGOING">Giao dịch đi</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </FormField>
           <FormField label="Trạng thái">
-            <Controller control={form.control} name="status" render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Tất cả</SelectItem>
-                  <SelectItem value="SUBMITTED">Đã gửi</SelectItem>
-                  <SelectItem value="IN_REVIEW">Đang rà soát</SelectItem>
-                  <SelectItem value="PENDING_APPROVAL">Chờ duyệt</SelectItem>
-                  <SelectItem value="COMPLETED">Hoàn tất</SelectItem>
-                </SelectContent>
-              </Select>
-            )} />
+            <Controller
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Tất cả</SelectItem>
+                    <SelectItem value="SUBMITTED">Đã gửi</SelectItem>
+                    <SelectItem value="IN_REVIEW">Đang rà soát</SelectItem>
+                    <SelectItem value="PENDING_APPROVAL">Chờ duyệt</SelectItem>
+                    <SelectItem value="COMPLETED">Hoàn tất</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </FormField>
-          <FormField label="Từ ngày" error={form.formState.errors.from?.message}>
+          <FormField
+            label="Từ ngày"
+            error={form.formState.errors.from?.message}
+          >
             <Input type="date" {...form.register("from")} />
           </FormField>
           <FormField label="Đến ngày">
@@ -270,7 +307,8 @@ export function FinanceTransactionSearchPage() {
 
 function FinanceOperationPage({ operation }: { operation: FinanceOperation }) {
   const [view, setView] = useState<OperationView>("all")
-  const [result, setResult] = useState<OperationResult<FinanceOperationCase> | null>(null)
+  const [result, setResult] =
+    useState<OperationResult<FinanceOperationCase> | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
 
@@ -298,11 +336,21 @@ function FinanceOperationPage({ operation }: { operation: FinanceOperation }) {
   const Icon = meta.icon
 
   return (
-    <FinanceOperationFrame active={operation} title={meta.title} description={meta.description}>
+    <FinanceOperationFrame
+      active={operation}
+      title={meta.title}
+      description={meta.description}
+    >
       {result?.source === "mock" ? <MockDataNotice /> : null}
       <div className="flex flex-wrap items-center gap-2">
         {views.map((item) => (
-          <Button key={item.value} type="button" variant={view === item.value ? "default" : "outline"} size="sm" onClick={() => setView(item.value)}>
+          <Button
+            key={item.value}
+            type="button"
+            variant={view === item.value ? "default" : "outline"}
+            size="sm"
+            onClick={() => setView(item.value)}
+          >
             {item.label}
           </Button>
         ))}
@@ -319,10 +367,17 @@ function FinanceOperationPage({ operation }: { operation: FinanceOperation }) {
             {cases.length ? (
               <CaseTable cases={cases} onSelect={setSelectedId} />
             ) : (
-              <div className="rounded-lg border p-6 text-sm text-muted-foreground">{meta.empty}</div>
+              <div className="rounded-lg border p-6 text-sm text-muted-foreground">
+                {meta.empty}
+              </div>
             )}
           </div>
-          {selected ? <CaseDetailShell item={selected} readOnly={operation === "outgoing"} /> : null}
+          {selected ? (
+            <CaseDetailShell
+              item={selected}
+              readOnly={operation === "outgoing"}
+            />
+          ) : null}
         </div>
       )}
     </FinanceOperationFrame>
@@ -345,7 +400,9 @@ function FinanceOperationFrame({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1">
           <h1 className="text-2xl font-semibold tracking-normal">{title}</h1>
-          <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            {description}
+          </p>
         </div>
         <OperationNav active={active} />
       </div>
@@ -354,12 +411,36 @@ function FinanceOperationFrame({
   )
 }
 
-function OperationNav({ active }: { active: FinanceOperation | "search" | "accounting-config" }) {
+function OperationNav({
+  active,
+}: {
+  active: FinanceOperation | "search" | "accounting-config"
+}) {
   const links = [
-    { key: "incoming", href: "/workbench/incoming-transactions", label: "Giao dịch đến", icon: ArrowDownToLine },
-    { key: "outgoing", href: "/workbench/outgoing-transactions", label: "Giao dịch đi", icon: ArrowUpFromLine },
-    { key: "search", href: "/workbench/transaction-search", label: "Tìm kiếm", icon: Search },
-    { key: "accounting-config", href: "/finance/accounting-config", label: "Cấu hình", icon: Settings },
+    {
+      key: "incoming",
+      href: "/workbench/incoming-transactions",
+      label: "Giao dịch đến",
+      icon: ArrowDownToLine,
+    },
+    {
+      key: "outgoing",
+      href: "/workbench/outgoing-transactions",
+      label: "Giao dịch đi",
+      icon: ArrowUpFromLine,
+    },
+    {
+      key: "search",
+      href: "/workbench/transaction-search",
+      label: "Tìm kiếm",
+      icon: Search,
+    },
+    {
+      key: "accounting-config",
+      href: "/finance/accounting-config",
+      label: "Cấu hình",
+      icon: Settings,
+    },
   ] as const
 
   return (
@@ -386,9 +467,19 @@ function OperationNav({ active }: { active: FinanceOperation | "search" | "accou
   )
 }
 
-function CaseTable({ cases, onSelect }: { cases: FinanceOperationCase[]; onSelect?: (id: string) => void }) {
+function CaseTable({
+  cases,
+  onSelect,
+}: {
+  cases: FinanceOperationCase[]
+  onSelect?: (id: string) => void
+}) {
   if (!cases.length) {
-    return <div className="rounded-lg border p-6 text-sm text-muted-foreground">Không có giao dịch phù hợp.</div>
+    return (
+      <div className="rounded-lg border p-6 text-sm text-muted-foreground">
+        Không có giao dịch phù hợp.
+      </div>
+    )
   }
 
   return (
@@ -409,21 +500,38 @@ function CaseTable({ cases, onSelect }: { cases: FinanceOperationCase[]; onSelec
         <TableBody>
           {cases.map((item) => (
             <TableRow key={item.id}>
-              <TableCell className="font-mono text-xs">{item.caseCode}</TableCell>
-              <TableCell className="min-w-48 font-medium">{item.primaryObject}</TableCell>
-              <TableCell className="text-muted-foreground">{item.counterparty}</TableCell>
-              <TableCell className="text-right font-medium">{formatMoney(item.amount, item.currency)}</TableCell>
+              <TableCell className="font-mono text-xs">
+                {item.caseCode}
+              </TableCell>
+              <TableCell className="min-w-48 font-medium">
+                {item.primaryObject}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {item.counterparty}
+              </TableCell>
+              <TableCell className="text-right font-medium">
+                {formatMoney(item.amount, item.currency)}
+              </TableCell>
               <TableCell>
                 <Status variant={statusVariant[item.status] || "default"}>
                   <StatusIndicator />
                   <StatusLabel>{statusLabel(item.status)}</StatusLabel>
                 </Status>
               </TableCell>
-              <TableCell className="text-muted-foreground">{item.currentStep}</TableCell>
-              <TableCell><SlaBadge item={item} /></TableCell>
+              <TableCell className="text-muted-foreground">
+                {item.currentStep}
+              </TableCell>
+              <TableCell>
+                <SlaBadge item={item} />
+              </TableCell>
               <TableCell className="text-right">
                 {onSelect ? (
-                  <Button type="button" variant="outline" size="sm" onClick={() => onSelect(item.id)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onSelect(item.id)}
+                  >
                     <Eye className="size-4" />
                     Mở
                   </Button>
@@ -445,18 +553,37 @@ function CaseTable({ cases, onSelect }: { cases: FinanceOperationCase[]; onSelec
   )
 }
 
-function CaseDetailShell({ item, readOnly = false }: { item: FinanceOperationCase; readOnly?: boolean }) {
+function CaseDetailShell({
+  item,
+  readOnly = false,
+}: {
+  item: FinanceOperationCase
+  readOnly?: boolean
+}) {
   const domainTabs =
     item.operation === "incoming"
-      ? ["Thông tin giao dịch", "Phân loại tài khoản", "Bút toán dự kiến", "Kết quả hạch toán"]
-      : ["Thông tin giao dịch", "Thông tin người nhận", "Phí và hạn mức", "Bút toán dự kiến", "Kết quả xử lý"]
+      ? [
+          "Thông tin giao dịch",
+          "Phân loại tài khoản",
+          "Bút toán dự kiến",
+          "Kết quả hạch toán",
+        ]
+      : [
+          "Thông tin giao dịch",
+          "Thông tin người nhận",
+          "Phí và hạn mức",
+          "Bút toán dự kiến",
+          "Kết quả xử lý",
+        ]
 
   return (
     <aside className="space-y-3 rounded-lg border p-4">
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="font-mono text-xs text-muted-foreground">{item.caseCode}</p>
+            <p className="font-mono text-xs text-muted-foreground">
+              {item.caseCode}
+            </p>
             <h2 className="text-base font-semibold">{item.primaryObject}</h2>
           </div>
           <SlaBadge item={item} />
@@ -467,20 +594,37 @@ function CaseDetailShell({ item, readOnly = false }: { item: FinanceOperationCas
           <Field label="Người xử lý" value={item.assignee || "Chưa nhận"} />
           <Field label="Vai trò" value={item.candidateRole} />
           <Field label="Ưu tiên" value={priorityLabel(item.priority)} />
-          <Field label="Số tiền" value={formatMoney(item.amount, item.currency)} />
+          <Field
+            label="Số tiền"
+            value={formatMoney(item.amount, item.currency)}
+          />
         </div>
         {!readOnly ? (
           <div className="flex flex-wrap gap-2 pt-1">
-            <Button size="sm" type="button">{item.quickAction}</Button>
-            <Button size="sm" type="button" variant="outline">Yêu cầu bổ sung</Button>
-            <Button size="sm" type="button" variant="outline">Tạm treo</Button>
+            <Button size="sm" type="button">
+              {item.quickAction}
+            </Button>
+            <Button size="sm" type="button" variant="outline">
+              Yêu cầu bổ sung
+            </Button>
+            <Button size="sm" type="button" variant="outline">
+              Tạm treo
+            </Button>
           </div>
         ) : null}
       </div>
       <Tabs defaultValue={domainTabs[0]}>
         <TabsList className="flex h-auto flex-wrap justify-start">
-          {[...domainTabs, "Tài liệu", "Ghi chú", "Lịch sử", "Luồng phê duyệt"].map((tab) => (
-            <TabsTrigger key={tab} value={tab}>{tab}</TabsTrigger>
+          {[
+            ...domainTabs,
+            "Tài liệu",
+            "Ghi chú",
+            "Lịch sử",
+            "Luồng phê duyệt",
+          ].map((tab) => (
+            <TabsTrigger key={tab} value={tab}>
+              {tab}
+            </TabsTrigger>
           ))}
         </TabsList>
         {domainTabs.map((tab) => (
@@ -495,7 +639,8 @@ function CaseDetailShell({ item, readOnly = false }: { item: FinanceOperationCas
         {["Tài liệu", "Ghi chú", "Lịch sử", "Luồng phê duyệt"].map((tab) => (
           <TabsContent key={tab} value={tab}>
             <div className="rounded-md border p-3 text-sm text-muted-foreground">
-              {tab} sẽ đọc theo case_id và case_type khi workflow-service mở API.
+              {tab} sẽ đọc theo case_id và case_type khi workflow-service mở
+              API.
             </div>
           </TabsContent>
         ))}
@@ -506,7 +651,11 @@ function CaseDetailShell({ item, readOnly = false }: { item: FinanceOperationCas
 
 function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
   if (!items.length) {
-    return <div className="rounded-lg border p-6 text-sm text-muted-foreground">Chưa có cấu hình trong nhóm này.</div>
+    return (
+      <div className="rounded-lg border p-6 text-sm text-muted-foreground">
+        Chưa có cấu hình trong nhóm này.
+      </div>
+    )
   }
 
   return (
@@ -526,9 +675,15 @@ function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
             <TableRow key={item.id}>
               <TableCell className="font-mono text-xs">{item.code}</TableCell>
               <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell className="text-muted-foreground">{item.owner}</TableCell>
-              <TableCell><Badge variant="secondary">{item.status}</Badge></TableCell>
-              <TableCell className="text-muted-foreground">{item.updatedAt}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {item.owner}
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">{item.status}</Badge>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {item.updatedAt}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -543,7 +698,8 @@ function MockDataNotice() {
       <SlidersHorizontal className="size-4" />
       <AlertTitle>Đang dùng dữ liệu mẫu</AlertTitle>
       <AlertDescription>
-        Các endpoint workflow/finance operation chưa sẵn sàng; UI đang chạy bằng fallback local trong app finance.
+        Các endpoint workflow/finance operation chưa sẵn sàng; UI đang chạy bằng
+        fallback local trong app finance.
       </AlertDescription>
     </Alert>
   )
@@ -558,25 +714,41 @@ function LoadingBlock() {
 }
 
 function SlaBadge({ item }: { item: FinanceOperationCase }) {
-  const variant = item.slaState === "OVERDUE" ? "destructive" : item.slaState === "DUE_SOON" ? "secondary" : "outline"
-  return <Badge variant={variant}>{slaLabel(item.slaState)} · {formatDateTime(item.slaDueAt)}</Badge>
+  const variant =
+    item.slaState === "OVERDUE"
+      ? "destructive"
+      : item.slaState === "DUE_SOON"
+        ? "secondary"
+        : "outline"
+  return (
+    <Badge variant={variant}>
+      {slaLabel(item.slaState)} · {formatDateTime(item.slaDueAt)}
+    </Badge>
+  )
 }
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="break-words font-medium">{value}</p>
+      <p className="font-medium break-words">{value}</p>
     </div>
   )
 }
 
 function formatMoney(value: string, currency: string) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency, maximumFractionDigits: 0 }).format(Number(value))
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(Number(value))
 }
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value))
+  return new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value))
 }
 
 function statusLabel(status: string) {

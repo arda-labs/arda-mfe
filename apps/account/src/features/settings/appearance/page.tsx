@@ -32,7 +32,9 @@ const themeOptions = [
 
 export function AppearancePage() {
   const { theme, setTheme } = useTheme()
-  const [settings, setSettings] = useState<AppearanceSettings>(() => readAppearance())
+  const [settings, setSettings] = useState<AppearanceSettings>(() =>
+    readAppearance()
+  )
 
   useEffect(() => {
     applyAppearance(settings)
@@ -40,7 +42,10 @@ export function AppearancePage() {
 
   const cssPreview = useMemo(() => buildCSSPreview(settings), [settings])
 
-  const update = <TKey extends keyof AppearanceSettings>(key: TKey, value: AppearanceSettings[TKey]) => {
+  const update = <TKey extends keyof AppearanceSettings>(
+    key: TKey,
+    value: AppearanceSettings[TKey]
+  ) => {
     const next = { ...settings, [key]: value }
     setSettings(next)
     saveAppearance(next)
@@ -57,7 +62,9 @@ export function AppearancePage() {
         <section className="space-y-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Appearance</h1>
-            <p className="text-sm text-muted-foreground">Customize the theme, layout, and colors of your workspace</p>
+            <p className="text-sm text-muted-foreground">
+              Customize the theme, layout, and colors of your workspace
+            </p>
           </div>
           <SettingBlock label="Theme">
             <div className="inline-flex rounded-xl border bg-muted/40 p-1">
@@ -68,7 +75,9 @@ export function AppearancePage() {
                   onClick={() => setTheme(item.value)}
                   className={cn(
                     "h-8 rounded-lg px-4 text-xs font-semibold transition-all duration-200",
-                    theme === item.value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    theme === item.value
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {item.label}
@@ -89,12 +98,15 @@ export function AppearancePage() {
                   onClick={() => update("baseColor", key)}
                   className={cn(
                     "flex h-10 items-center gap-2.5 rounded-xl border px-3 text-left text-xs font-semibold transition-all hover:bg-muted/75",
-                    settings.baseColor === key 
-                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20" 
+                    settings.baseColor === key
+                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20"
                       : "border-muted-foreground/10"
                   )}
                 >
-                  <span className="size-4.5 rounded-full border border-black/10" style={{ background: item.swatch }} />
+                  <span
+                    className="size-4.5 rounded-full border border-black/10"
+                    style={{ background: item.swatch }}
+                  />
                   {item.label}
                 </button>
               )
@@ -113,15 +125,19 @@ export function AppearancePage() {
                   onClick={() => update("chartPalette", key)}
                   className={cn(
                     "flex h-14 items-center justify-between rounded-xl border px-4 text-xs font-semibold transition-all hover:bg-muted/75",
-                    settings.chartPalette === key 
-                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20" 
+                    settings.chartPalette === key
+                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20"
                       : "border-muted-foreground/10"
                   )}
                 >
                   <span>{item.label}</span>
                   <span className="flex gap-1.5">
                     {item.colors.map((color) => (
-                      <span key={color} className="size-4.5 rounded-full border border-black/10" style={{ background: color }} />
+                      <span
+                        key={color}
+                        className="size-4.5 rounded-full border border-black/10"
+                        style={{ background: color }}
+                      />
                     ))}
                   </span>
                 </button>
@@ -179,21 +195,27 @@ export function AppearancePage() {
           </SettingBlock>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-muted/50">
-          <Button variant="outline" onClick={handleReset} className="rounded-xl px-5 py-4.5 text-xs font-semibold">
+        <div className="flex justify-end border-t border-muted/50 pt-4">
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            className="rounded-xl px-5 py-4.5 text-xs font-semibold"
+          >
             Reset to defaults
           </Button>
         </div>
       </div>
 
       <aside className="space-y-5">
-        <section className="rounded-2xl border border-muted/50 p-5 bg-card/45 backdrop-blur-md shadow-sm">
+        <section className="rounded-2xl border border-muted/50 bg-card/45 p-5 shadow-sm backdrop-blur-md">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold">Theme Preview</h2>
-              <p className="text-[11px] text-muted-foreground font-medium">Visualizing current style system</p>
+              <p className="text-[11px] font-medium text-muted-foreground">
+                Visualizing current style system
+              </p>
             </div>
-            <span className="rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[10px] font-bold text-primary">
+            <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold text-primary">
               Active
             </span>
           </div>
@@ -202,19 +224,25 @@ export function AppearancePage() {
               {[1, 2, 3, 4, 5].map((index) => (
                 <div
                   key={index}
-                  className="h-10 rounded-lg shadow-sm border border-black/5"
+                  className="h-10 rounded-lg border border-black/5 shadow-sm"
                   style={{ background: `var(--chart-${index})` }}
                 />
               ))}
             </div>
-            <div className="rounded-xl border border-muted/50 p-4 bg-muted/15 space-y-3">
+            <div className="space-y-3 rounded-xl border border-muted/50 bg-muted/15 p-4">
               <h3 className="text-sm font-semibold">Example Component</h3>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div className="h-full w-2/3 rounded-full bg-primary" />
               </div>
               <div className="flex gap-2">
-                <Button size="sm" className="rounded-lg text-[11px] h-8">Save</Button>
-                <Button size="sm" variant="outline" className="rounded-lg text-[11px] h-8">
+                <Button size="sm" className="h-8 rounded-lg text-[11px]">
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-lg text-[11px]"
+                >
                   Cancel
                 </Button>
               </div>
@@ -222,7 +250,7 @@ export function AppearancePage() {
           </div>
         </section>
 
-        <pre className="overflow-auto rounded-2xl border bg-muted/20 p-4 text-[10px] font-mono leading-relaxed text-muted-foreground/80 max-h-[220px]">
+        <pre className="max-h-[220px] overflow-auto rounded-2xl border bg-muted/20 p-4 font-mono text-[10px] leading-relaxed text-muted-foreground/80">
           {cssPreview}
         </pre>
       </aside>
@@ -230,10 +258,18 @@ export function AppearancePage() {
   )
 }
 
-function SettingBlock({ label, children }: { label: string; children: React.ReactNode }) {
+function SettingBlock({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
   return (
     <section className="flex flex-col gap-2.5">
-      <Label className="text-xs font-bold text-muted-foreground/90 uppercase tracking-wider">{label}</Label>
+      <Label className="text-xs font-bold tracking-wider text-muted-foreground/90 uppercase">
+        {label}
+      </Label>
       <div className="flex">{children}</div>
     </section>
   )
@@ -259,7 +295,9 @@ function Segmented<T extends string>({
           onClick={() => onChange(item)}
           className={cn(
             "h-8 rounded-lg px-3.5 text-xs font-semibold transition-all duration-200",
-            value === item ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            value === item
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
           {getLabel(item)}

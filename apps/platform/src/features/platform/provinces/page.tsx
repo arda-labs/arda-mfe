@@ -13,7 +13,11 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { MaskInput } from "@workspace/ui/components/mask-input"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import {
   Dialog,
   DialogContent,
@@ -29,12 +33,18 @@ import {
   matchTextColumnFilter,
   textSearchMeta,
 } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildProvinceSchema(t: TranslateFn) {
   return z.object({
@@ -176,7 +186,11 @@ export function ProvincesPage() {
         effective_to: values.effective_to || undefined,
         is_active: true,
       })
-      notify.success(isEditing ? "Cap nhat tinh thanh thanh cong" : "Them tinh thanh thanh cong")
+      notify.success(
+        isEditing
+          ? "Cap nhat tinh thanh thanh cong"
+          : "Them tinh thanh thanh cong"
+      )
       setDialogOpen(false)
       reset(provinceDefaultValues)
       await loadProvinces()
@@ -192,7 +206,10 @@ export function ProvincesPage() {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.provinces.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.provinces.field.code")}
+          />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.code}</span>
@@ -202,26 +219,37 @@ export function ProvincesPage() {
         id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.provinces.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.provinces.field.name")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
           t("platform.provinces.field.name"),
           t("platform.provinces.placeholder.search")
         ),
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.name}</span>
+        ),
       },
       {
         accessorKey: "full_name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.provinces.field.full_name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.provinces.field.full_name")}
+          />
         ),
         cell: ({ row }) => row.original.full_name || "-",
       },
       {
         accessorKey: "unit_type",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.provinces.field.unit_type")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.provinces.field.unit_type")}
+          />
         ),
       },
       {
@@ -239,7 +267,10 @@ export function ProvincesPage() {
       {
         accessorKey: "region_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.provinces.field.region_code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.provinces.field.region_code")}
+          />
         ),
         cell: ({ row }) => row.original.region_code || "-",
       },
@@ -267,7 +298,10 @@ export function ProvincesPage() {
         id: "is_active",
         accessorKey: "is_active",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.provinces.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.provinces.field.status")}
+          />
         ),
         enableColumnFilter: true,
         meta: activeStatusMeta(
@@ -289,7 +323,9 @@ export function ProvincesPage() {
       {
         id: "actions",
         header: () => (
-          <span className="sr-only">{t("platform.provinces.field.actions")}</span>
+          <span className="sr-only">
+            {t("platform.provinces.field.actions")}
+          </span>
         ),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
@@ -322,13 +358,16 @@ export function ProvincesPage() {
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
         name: (a, b) => a.name.localeCompare(b.name),
-        full_name: (a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? ""),
+        full_name: (a, b) =>
+          (a.full_name ?? "").localeCompare(b.full_name ?? ""),
         unit_type: (a, b) => a.unit_type.localeCompare(b.unit_type),
         country_code: (a, b) => a.country_code.localeCompare(b.country_code),
-        region_code: (a, b) => (a.region_code ?? "").localeCompare(b.region_code ?? ""),
+        region_code: (a, b) =>
+          (a.region_code ?? "").localeCompare(b.region_code ?? ""),
         effective_from: (a, b) =>
           (a.effective_from ?? "").localeCompare(b.effective_from ?? ""),
-        effective_to: (a, b) => (a.effective_to ?? "").localeCompare(b.effective_to ?? ""),
+        effective_to: (a, b) =>
+          (a.effective_to ?? "").localeCompare(b.effective_to ?? ""),
         is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
@@ -343,9 +382,15 @@ export function ProvincesPage() {
               ? t("platform.provinces.edit")
               : t("platform.provinces.create_title")}
           </DialogTitle>
-          <DialogDescription>{t("platform.provinces.dialog_description")}</DialogDescription>
+          <DialogDescription>
+            {t("platform.provinces.dialog_description")}
+          </DialogDescription>
         </DialogHeader>
-        <form autoComplete="off" onSubmit={submitProvince} className="space-y-4 py-2">
+        <form
+          autoComplete="off"
+          onSubmit={submitProvince}
+          className="space-y-4 py-2"
+        >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               label={t("platform.provinces.field.code")}
@@ -364,7 +409,11 @@ export function ProvincesPage() {
               htmlFor="province_name"
               error={errors.name?.message}
             >
-              <Input id="province_name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+              <Input
+                id="province_name"
+                aria-invalid={Boolean(errors.name)}
+                {...register("name")}
+              />
             </FormField>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -455,7 +504,11 @@ export function ProvincesPage() {
             </FormField>
           </div>
           <div className="flex gap-2 sm:justify-end">
-            <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => handleDialogOpenChange(false)}
+            >
               {t("common.action.cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting || saving}>

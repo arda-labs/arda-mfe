@@ -125,7 +125,9 @@ export function GeoLocationFields<T extends GeoFormValues>({
         placeholder="Chọn tỉnh, thành phố"
         options={provinceOptions}
         loading={provincesLoading}
-        error={form.formState.errors.provinceCode?.message as string | undefined}
+        error={
+          form.formState.errors.provinceCode?.message as string | undefined
+        }
       />
       <SearchSelectField
         control={form.control}

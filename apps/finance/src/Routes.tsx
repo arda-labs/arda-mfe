@@ -1,10 +1,7 @@
 import "@workspace/i18n/apps/finance"
 import { Suspense, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import {
-  attachPreload,
-  lazyWithPreload,
-} from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const AccountsPage = lazyWithPreload(() =>
   import("@/features/finance/accounts/page").then((m) => ({

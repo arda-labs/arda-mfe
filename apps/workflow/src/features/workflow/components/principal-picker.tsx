@@ -176,152 +176,161 @@ export function PrincipalPicker({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="z-[260] flex max-h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
           <DialogHeader className="border-b px-6 py-4">
-              <DialogTitle>
-                {principalType === "USER" ? "Chọn người dùng" : "Chọn nhóm"}
-              </DialogTitle>
-              <DialogDescription>
-                Chọn một {principalType === "USER" ? "user" : "group"} từ IAM để gán
-                membership.
-              </DialogDescription>
-            </DialogHeader>
+            <DialogTitle>
+              {principalType === "USER" ? "Chọn người dùng" : "Chọn nhóm"}
+            </DialogTitle>
+            <DialogDescription>
+              Chọn một {principalType === "USER" ? "user" : "group"} từ IAM để
+              gán membership.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="border-b px-6 py-3">
-              <div className="relative">
-                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchInput}
-                  onChange={(event) => {
-                    const next = event.target.value
-                    setSearchInput(next)
-                    debouncedSearch(next)
-                  }}
-                  placeholder={
-                    principalType === "USER"
-                      ? "Tìm theo tên, username, email..."
-                      : "Tìm theo mã hoặc tên nhóm..."
-                  }
-                  className="pl-9"
-                />
-              </div>
+          <div className="border-b px-6 py-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchInput}
+                onChange={(event) => {
+                  const next = event.target.value
+                  setSearchInput(next)
+                  debouncedSearch(next)
+                }}
+                placeholder={
+                  principalType === "USER"
+                    ? "Tìm theo tên, username, email..."
+                    : "Tìm theo mã hoặc tên nhóm..."
+                }
+                className="pl-9"
+              />
             </div>
+          </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-3">
-              {loading ? (
-                <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-                  <Spinner className="size-4" />
-                  Đang tải...
-                </div>
-              ) : principalType === "USER" ? (
-                users.length === 0 ? (
-                  <div className="py-10 text-sm text-muted-foreground">
-                    Không có người dùng phù hợp.
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-10" />
-                        <TableHead>Username</TableHead>
-                        <TableHead>Tên</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Trạng thái</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.map((user) => (
-                        <TableRow
-                          key={user.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => selectUser(user)}
-                        >
-                          <TableCell>
-                            <Check
-                              className={cn(
-                                "size-4",
-                                value === user.id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {user.username || "-"}
-                          </TableCell>
-                          <TableCell>{user.name || "-"}</TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {user.email || "-"}
-                          </TableCell>
-                          <TableCell>{user.status || "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )
-              ) : groups.length === 0 ? (
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-3">
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+                <Spinner className="size-4" />
+                Đang tải...
+              </div>
+            ) : principalType === "USER" ? (
+              users.length === 0 ? (
                 <div className="py-10 text-sm text-muted-foreground">
-                  Không có nhóm phù hợp.
+                  Không có người dùng phù hợp.
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-10" />
-                      <TableHead>Mã</TableHead>
-                      <TableHead>Tên nhóm</TableHead>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Tên</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Trạng thái</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {groups.map((group) => (
+                    {users.map((user) => (
                       <TableRow
-                        key={group.id}
+                        key={user.id}
                         className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => selectGroup(group)}
+                        onClick={() => selectUser(user)}
                       >
                         <TableCell>
                           <Check
                             className={cn(
                               "size-4",
-                              value === group.id ? "opacity-100" : "opacity-0"
+                              value === user.id ? "opacity-100" : "opacity-0"
                             )}
                           />
                         </TableCell>
-                        <TableCell className="font-mono text-xs">{group.code}</TableCell>
-                        <TableCell>{group.name}</TableCell>
-                        <TableCell>{group.status || "-"}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {user.username || "-"}
+                        </TableCell>
+                        <TableCell>{user.name || "-"}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {user.email || "-"}
+                        </TableCell>
+                        <TableCell>{user.status || "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between border-t px-6 py-3 text-sm">
-              <span className="text-muted-foreground">
-                Trang {page}/{totalPages}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1 || fetching}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                >
-                  Trước
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages || fetching}
-                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                >
-                  Sau
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
-                  Đóng
-                </Button>
+              )
+            ) : groups.length === 0 ? (
+              <div className="py-10 text-sm text-muted-foreground">
+                Không có nhóm phù hợp.
               </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10" />
+                    <TableHead>Mã</TableHead>
+                    <TableHead>Tên nhóm</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {groups.map((group) => (
+                    <TableRow
+                      key={group.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => selectGroup(group)}
+                    >
+                      <TableCell>
+                        <Check
+                          className={cn(
+                            "size-4",
+                            value === group.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {group.code}
+                      </TableCell>
+                      <TableCell>{group.name}</TableCell>
+                      <TableCell>{group.status || "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t px-6 py-3 text-sm">
+            <span className="text-muted-foreground">
+              Trang {page}/{totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page <= 1 || fetching}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                Trước
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages || fetching}
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+              >
+                Sau
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setOpen(false)}
+              >
+                Đóng
+              </Button>
             </div>
+          </div>
         </DialogContent>
       </Dialog>
     </label>

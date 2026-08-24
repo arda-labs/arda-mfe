@@ -16,7 +16,12 @@ import {
 } from "@workspace/ui/components/select"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { PageTitle } from "@workspace/ui/components/page-title"
-import type { Customer, CustomerPayload, CustomerType, WorkflowTimelineEvent } from "../../api"
+import type {
+  Customer,
+  CustomerPayload,
+  CustomerType,
+  WorkflowTimelineEvent,
+} from "../../api"
 import { customerApi } from "../../api"
 import {
   CheckerDecisionDialog,
@@ -46,7 +51,10 @@ import {
   workflowKey,
 } from "../utils/task-context"
 import { postTaskWorkbenchHref } from "../utils/workbench-return"
-import { waitForTaskReady, waitForWorkflowStepChange } from "../utils/workflow-transition"
+import {
+  waitForTaskReady,
+  waitForWorkflowStepChange,
+} from "../utils/workflow-transition"
 import {
   AvatarUploader,
   FieldGrid,
@@ -155,7 +163,9 @@ export function CustomerRegistrationPage({
     (customerFetching && !savedCustomer)
 
   // ── Case timeline ──
-  const [timelineEvents, setTimelineEvents] = useState<WorkflowTimelineEvent[]>([])
+  const [timelineEvents, setTimelineEvents] = useState<WorkflowTimelineEvent[]>(
+    []
+  )
   const timelineCaseId = awaitingMakerResubmit
     ? (taskContext.caseId ?? savedCustomer?.workflowCaseId ?? null)
     : null
@@ -198,7 +208,8 @@ export function CustomerRegistrationPage({
   useEffect(() => {
     // Data loaded by the customerId effect above already resets the form.
     // For new customers (no customerId), restore from localStorage.
-    if (taskContextLoading || hasWorkItemId || customerId || savedCustomer) return
+    if (taskContextLoading || hasWorkItemId || customerId || savedCustomer)
+      return
     const raw = localStorage.getItem("crm_customer_draft:new")
     if (raw) {
       try {
@@ -208,7 +219,14 @@ export function CustomerRegistrationPage({
         /* ignore */
       }
     }
-  }, [customerId, draftKey, form, hasWorkItemId, savedCustomer, taskContextLoading])
+  }, [
+    customerId,
+    draftKey,
+    form,
+    hasWorkItemId,
+    savedCustomer,
+    taskContextLoading,
+  ])
 
   // Auto-save khi form thay đổi (debounced)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)

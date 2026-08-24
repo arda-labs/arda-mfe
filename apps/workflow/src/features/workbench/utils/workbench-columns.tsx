@@ -19,8 +19,12 @@ export function workItemColumns(
       minSize: 280,
       maxSize: 560,
       cell: ({ row }) => (
-        <div className="w-full min-w-0 max-w-md whitespace-normal">
-          <WorkItemCard item={row.original} claiming={claiming} onOpen={onOpen} />
+        <div className="w-full max-w-md min-w-0 whitespace-normal">
+          <WorkItemCard
+            item={row.original}
+            claiming={claiming}
+            onOpen={onOpen}
+          />
         </div>
       ),
     },
@@ -114,7 +118,7 @@ export function searchColumns(
       minSize: 280,
       maxSize: 560,
       cell: ({ row }) => (
-        <div className="w-full min-w-0 max-w-md whitespace-normal">
+        <div className="w-full max-w-md min-w-0 whitespace-normal">
           <WorkItemCard item={row.original} claiming={false} onOpen={onOpen} />
         </div>
       ),
@@ -169,9 +173,13 @@ export function searchColumns(
         return (
           <div className="min-w-36">
             <span className="inline-flex items-center gap-1.5">
-              <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-muted text-[8px] font-medium text-muted-foreground overflow-hidden">
+              <span className="flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[8px] font-medium text-muted-foreground">
                 {c.createdByAvatar ? (
-                  <img src={getMediaUrl(c.createdByAvatar)} alt="" className="size-full object-cover" />
+                  <img
+                    src={getMediaUrl(c.createdByAvatar)}
+                    alt=""
+                    className="size-full object-cover"
+                  />
                 ) : (
                   (name || "?").charAt(0).toUpperCase()
                 )}
@@ -195,26 +203,38 @@ export function AssigneeFlow({ item }: { item: WorkItem }) {
           avatar: item.previousAssignedToAvatar,
         })}
         <span className="text-muted-foreground">→</span>
-        {assigneeDisplay({ id: item.assignedTo, name: item.assignedToName, avatar: item.assignedToAvatar })}
+        {assigneeDisplay({
+          id: item.assignedTo,
+          name: item.assignedToName,
+          avatar: item.assignedToAvatar,
+        })}
       </div>
     </div>
   )
 }
 
-function assigneeDisplay(info: { id?: string | null; name?: string | null; avatar?: string | null }) {
+function assigneeDisplay(info: {
+  id?: string | null
+  name?: string | null
+  avatar?: string | null
+}) {
   if (!info.id) return <span className="text-muted-foreground">Chưa nhận</span>
   const display = info.name || displayNameFromId(info.id)
   const initial = display.charAt(0).toUpperCase()
   return (
     <span className="inline-flex items-center gap-1.5 font-medium">
-      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary overflow-hidden">
+      <span className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
         {info.avatar ? (
-          <img src={getMediaUrl(info.avatar)} alt="" className="size-full object-cover" />
+          <img
+            src={getMediaUrl(info.avatar)}
+            alt=""
+            className="size-full object-cover"
+          />
         ) : (
           initial
         )}
       </span>
-      <span className="truncate max-w-28">{display}</span>
+      <span className="max-w-28 truncate">{display}</span>
     </span>
   )
 }
@@ -224,7 +244,11 @@ function getMediaUrl(id: string): string {
   return getMediaContentUrl(id)
 }
 
-function previousAssigneeDisplay(info: { id?: string | null; name?: string | null; avatar?: string | null }) {
+function previousAssigneeDisplay(info: {
+  id?: string | null
+  name?: string | null
+  avatar?: string | null
+}) {
   const name = info.name || ""
   if (name === "Chưa có" || !name) {
     return <span className="text-muted-foreground">—</span>
@@ -235,12 +259,16 @@ function previousAssigneeDisplay(info: { id?: string | null; name?: string | nul
     <span className="inline-flex items-center gap-1.5 text-muted-foreground">
       <span className="flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[8px] font-medium">
         {info.avatar ? (
-          <img src={getMediaUrl(info.avatar)} alt="" className="size-full object-cover" />
+          <img
+            src={getMediaUrl(info.avatar)}
+            alt=""
+            className="size-full object-cover"
+          />
         ) : (
           initial
         )}
       </span>
-      <span className="truncate max-w-20">{display}</span>
+      <span className="max-w-20 truncate">{display}</span>
     </span>
   )
 }

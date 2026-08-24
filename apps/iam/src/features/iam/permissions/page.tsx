@@ -44,11 +44,31 @@ const POS = (value: string | null, fallback: number) => {
 }
 
 const permissionFormSchema = z.object({
-  code: z.string().trim().min(1, "Code is required").max(128, "Code is too long"),
-  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long"),
-  module: z.string().trim().min(1, "Module is required").max(64, "Module is too long"),
-  resource: z.string().trim().min(1, "Resource is required").max(64, "Resource is too long"),
-  operation: z.string().trim().min(1, "Operation is required").max(64, "Operation is too long"),
+  code: z
+    .string()
+    .trim()
+    .min(1, "Code is required")
+    .max(128, "Code is too long"),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(255, "Name is too long"),
+  module: z
+    .string()
+    .trim()
+    .min(1, "Module is required")
+    .max(64, "Module is too long"),
+  resource: z
+    .string()
+    .trim()
+    .min(1, "Resource is required")
+    .max(64, "Resource is too long"),
+  operation: z
+    .string()
+    .trim()
+    .min(1, "Operation is required")
+    .max(64, "Operation is too long"),
 })
 
 type PermissionFormValues = z.infer<typeof permissionFormSchema>
@@ -94,7 +114,11 @@ export function PermissionsPage() {
     if (hasLoadedRef.current) setRefreshing(true)
     else setLoading(true)
     try {
-      const result = await adminApi.listPermissions({ page: pageParam, perPage: pageSizeParam, module: moduleParam })
+      const result = await adminApi.listPermissions({
+        page: pageParam,
+        perPage: pageSizeParam,
+        module: moduleParam,
+      })
       setPerms(result.items)
       setTotal(result.total)
     } catch (reason) {
@@ -144,53 +168,102 @@ export function PermissionsPage() {
     }
   }
 
-  const columns = useMemo<ColumnDef<Permission>[]>(() => [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label={t("common.action.select_all")} className="translate-y-[2px]" />
-      ),
-      cell: ({ row }) => (
-        <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label={t("common.action.select_row")} className="translate-y-[2px]" />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      id: "code",
-      accessorKey: "code",
-      header: ({ column }) => <DataTableColumnHeader column={column} label={t("common.field.code")} />,
-      cell: ({ row }) => <span className="font-mono text-sm">{row.original.code}</span>,
-    },
-    {
-      id: "module",
-      accessorKey: "module",
-      header: ({ column }) => <DataTableColumnHeader column={column} label={t("admin.field.module")} />,
-      enableColumnFilter: true,
-      meta: { label: t("admin.field.module"), variant: "text", placeholder: t("admin.field.module") },
-    },
-    {
-      accessorKey: "resource",
-      header: ({ column }) => <DataTableColumnHeader column={column} label={t("common.field.resource")} />,
-    },
-    {
-      accessorKey: "operation",
-      header: ({ column }) => <DataTableColumnHeader column={column} label={t("common.field.operation")} />,
-    },
-    {
-      id: "actions",
-      header: () => <div className="text-right">{t("common.field.action")}</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600" onClick={() => setDeleteTarget(row.original)} title={t("common.action.delete")}>
-            <Trash2 className="size-3.5" />
-          </Button>
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-  ], [t])
+  const columns = useMemo<ColumnDef<Permission>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label={t("common.action.select_all")}
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label={t("common.action.select_row")}
+            className="translate-y-[2px]"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        id: "code",
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.code")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">{row.original.code}</span>
+        ),
+      },
+      {
+        id: "module",
+        accessorKey: "module",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.field.module")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: {
+          label: t("admin.field.module"),
+          variant: "text",
+          placeholder: t("admin.field.module"),
+        },
+      },
+      {
+        accessorKey: "resource",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.resource")}
+          />
+        ),
+      },
+      {
+        accessorKey: "operation",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.operation")}
+          />
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              onClick={() => setDeleteTarget(row.original)}
+              title={t("common.action.delete")}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [t]
+  )
 
   const totalPages = Math.max(1, listPageCount(total, pageSizeParam))
 
@@ -205,27 +278,88 @@ export function PermissionsPage() {
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{t("admin.permissions.create")}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{t("admin.permissions.create")}</DialogTitle>
+          </DialogHeader>
           <form className="space-y-3" onSubmit={handleCreate}>
-            <FormField label={t("common.field.code")} error={errors.code?.message}><Input aria-invalid={Boolean(errors.code)} {...register("code")} /></FormField>
-            <FormField label={t("common.field.name")} error={errors.name?.message}><Input aria-invalid={Boolean(errors.name)} {...register("name")} /></FormField>
-            <FormField label={t("admin.field.module")} error={errors.module?.message}><Input aria-invalid={Boolean(errors.module)} {...register("module")} /></FormField>
-            <FormField label={t("common.field.resource")} error={errors.resource?.message}><Input aria-invalid={Boolean(errors.resource)} {...register("resource")} /></FormField>
-            <FormField label={t("common.field.operation")} error={errors.operation?.message}><Input aria-invalid={Boolean(errors.operation)} {...register("operation")} /></FormField>
-            <Button className="w-full" type="submit" disabled={isSubmitting || saving}>{t("common.action.create")}</Button>
+            <FormField
+              label={t("common.field.code")}
+              error={errors.code?.message}
+            >
+              <Input
+                aria-invalid={Boolean(errors.code)}
+                {...register("code")}
+              />
+            </FormField>
+            <FormField
+              label={t("common.field.name")}
+              error={errors.name?.message}
+            >
+              <Input
+                aria-invalid={Boolean(errors.name)}
+                {...register("name")}
+              />
+            </FormField>
+            <FormField
+              label={t("admin.field.module")}
+              error={errors.module?.message}
+            >
+              <Input
+                aria-invalid={Boolean(errors.module)}
+                {...register("module")}
+              />
+            </FormField>
+            <FormField
+              label={t("common.field.resource")}
+              error={errors.resource?.message}
+            >
+              <Input
+                aria-invalid={Boolean(errors.resource)}
+                {...register("resource")}
+              />
+            </FormField>
+            <FormField
+              label={t("common.field.operation")}
+              error={errors.operation?.message}
+            >
+              <Input
+                aria-invalid={Boolean(errors.operation)}
+                {...register("operation")}
+              />
+            </FormField>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isSubmitting || saving}
+            >
+              {t("common.action.create")}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteTarget !== null} onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}>
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("common.confirm.delete_title")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("common.confirm.delete_description", { item: deleteTarget?.code || deleteTarget?.name || "" })}</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("common.confirm.delete_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("common.confirm.delete_description", {
+                item: deleteTarget?.code || deleteTarget?.name || "",
+              })}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleting} onClick={() => deleteTarget && void handleDelete(deleteTarget.id)}>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleting}
+              onClick={() => deleteTarget && void handleDelete(deleteTarget.id)}
+            >
               {t("common.action.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -238,13 +372,26 @@ export function PermissionsPage() {
     <ListPageShell
       title={t("admin.permissions.title")}
       totalRows={total}
-      meta={<Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">{t("admin.permissions.count", { count: total })}</Badge>}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("admin.permissions.count", { count: total })}
+        </Badge>
+      }
       criticalPending={loading}
       criticalError={loadError}
       onRetry={loadPermissions}
       fetching={refreshing}
       table={table}
-      toolbar={<ListTableToolbar table={table} onCreate={() => setOpen(true)} createLabel={t("admin.permissions.create")} />}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setOpen(true)}
+          createLabel={t("admin.permissions.create")}
+        />
+      }
       dialogs={dialogs}
     />
   )

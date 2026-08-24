@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import type { Table } from "@tanstack/react-table";
-import { Check, Settings2 } from "lucide-react";
-import * as React from "react";
-import { Button } from "@workspace/ui/components/button";
+import type { Table } from "@tanstack/react-table"
+import { Check, Settings2 } from "lucide-react"
+import * as React from "react"
+import { Button } from "@workspace/ui/components/button"
 import {
   Command,
   CommandEmpty,
@@ -11,18 +11,19 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@workspace/ui/components/command";
+} from "@workspace/ui/components/command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
-import { cn } from "@workspace/ui/lib/utils";
+} from "@workspace/ui/components/popover"
+import { cn } from "@workspace/ui/lib/utils"
 
-interface DataTableViewOptionsProps<TData>
-  extends React.ComponentProps<typeof PopoverContent> {
-  table: Table<TData>;
-  disabled?: boolean;
+interface DataTableViewOptionsProps<TData> extends React.ComponentProps<
+  typeof PopoverContent
+> {
+  table: Table<TData>
+  disabled?: boolean
 }
 
 export function DataTableViewOptions<TData>({
@@ -37,10 +38,10 @@ export function DataTableViewOptions<TData>({
         .getAllColumns()
         .filter(
           (column) =>
-            typeof column.accessorFn !== "undefined" && column.getCanHide(),
+            typeof column.accessorFn !== "undefined" && column.getCanHide()
         ),
-    [table],
-  );
+    [table]
+  )
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -78,7 +79,7 @@ export function DataTableViewOptions<TData>({
                       "flex size-4 items-center justify-center rounded-sm border",
                       column.getIsVisible()
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-input text-transparent",
+                        : "border-input text-transparent"
                     )}
                   >
                     <Check className="size-3" />
@@ -90,5 +91,5 @@ export function DataTableViewOptions<TData>({
         </Command>
       </PopoverContent>
     </Popover>
-  );
+  )
 }

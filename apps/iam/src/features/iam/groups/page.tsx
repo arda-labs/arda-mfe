@@ -48,7 +48,12 @@ const POS = (value: string | null, fallback: number) => {
 }
 
 const parseArrayParam = (raw: string | null) =>
-  raw ? raw.split(",").map((item) => item.trim()).filter(Boolean) : []
+  raw
+    ? raw
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : []
 import { Pencil, ShieldCheck, Trash2, Users } from "lucide-react"
 
 const DEFAULT_PAGE_SIZE = 10
@@ -245,7 +250,10 @@ export function GroupsPage() {
         id: "code",
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("common.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.code")}
+          />
         ),
         enableColumnFilter: true,
         meta: {
@@ -260,14 +268,20 @@ export function GroupsPage() {
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("common.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.name")}
+          />
         ),
       },
       {
         id: "status",
         accessorKey: "status",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("common.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
         ),
         enableColumnFilter: true,
         meta: {
@@ -308,7 +322,10 @@ export function GroupsPage() {
       {
         accessorKey: "createdAt",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("common.field.created")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.created")}
+          />
         ),
         cell: ({ row }) => formatDate(row.original.createdAt),
       },
@@ -386,9 +403,7 @@ export function GroupsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editTarget
-                ? t("admin.groups.edit")
-                : t("admin.groups.create")}
+              {editTarget ? t("admin.groups.edit") : t("admin.groups.create")}
             </DialogTitle>
           </DialogHeader>
           <form className="space-y-3" onSubmit={submit}>
@@ -446,9 +461,7 @@ export function GroupsPage() {
             <Button
               className="w-full"
               type="submit"
-              disabled={
-                isSubmitting || saving
-              }
+              disabled={isSubmitting || saving}
             >
               {editTarget ? t("common.action.save") : t("common.action.create")}
             </Button>
@@ -503,7 +516,10 @@ export function GroupsPage() {
       title={t("admin.groups.title")}
       totalRows={total}
       meta={
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
           {t("admin.groups.count", { count: total })}
         </Badge>
       }

@@ -4,16 +4,9 @@ import {
   AuthLoadingScreen,
   AuthShellLoadingScreen,
 } from "@workspace/auth/loading-screen"
-import {
-  CallbackPage,
-  ConsentPage,
-  LoginPage,
-} from "@workspace/auth/pages"
+import { CallbackPage, ConsentPage, LoginPage } from "@workspace/auth/pages"
 import { redirectToHydraLogin } from "@workspace/auth/oauth"
-import {
-  normalizeAuthUser,
-  useAuthStore,
-} from "@workspace/auth/store"
+import { normalizeAuthUser, useAuthStore } from "@workspace/auth/store"
 import * as authShare from "@workspace/auth"
 import { getMediaContentUrl } from "@workspace/media/urls"
 import { apiUrl } from "@workspace/api/url"

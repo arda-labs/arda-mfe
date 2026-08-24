@@ -21,7 +21,11 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { customerApi, type Customer, type CustomerRelationship } from "../../api"
+import {
+  customerApi,
+  type Customer,
+  type CustomerRelationship,
+} from "../../api"
 import { runMutation, relationLabel } from "../utils/form-utils"
 import {
   relationshipSchema,
@@ -57,7 +61,8 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
     customerApi
       .list({ status: "ACTIVE" })
       .then((all) => {
-        if (!cancelled) setCandidates(all.filter((item) => item.id !== customer.id))
+        if (!cancelled)
+          setCandidates(all.filter((item) => item.id !== customer.id))
       })
       .finally(() => {
         if (!cancelled) setCandidatesLoading(false)
@@ -215,36 +220,39 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
         {relationshipsLoading ? (
           <TableBody>
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">
+              <TableCell
+                colSpan={7}
+                className="py-4 text-center text-sm text-muted-foreground"
+              >
                 Đang tải...
               </TableCell>
             </TableRow>
           </TableBody>
         ) : (
-        <TableBody>
-          {relationships.map((item, index) => (
-            <TableRow key={item.id}>
-              <TableCell>{index + 1}</TableCell>
+          <TableBody>
+            {relationships.map((item, index) => (
+              <TableRow key={item.id}>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-mono text-xs">
-                {item.relatedCustomerCode || item.relatedCustomerId}
-              </TableCell>
-              <TableCell>{item.relatedCustomerName || "-"}</TableCell>
-              <TableCell className="max-w-64 truncate">
-                {item.relatedCustomerAddress || "-"}
-              </TableCell>
-              <TableCell>{relationLabel(item.relationCode)}</TableCell>
-              <TableCell>
-                {relationLabel(item.reciprocalRelationCode)}
-              </TableCell>
-              <TableCell>
-                <Badge variant="secondary">{item.status}</Badge>
-              </TableCell>
-            </TableRow>
-          ))}
-          {!relationships.length ? (
-            <EmptyTable colSpan={7} text="Chưa có quan hệ khách hàng." />
-          ) : null}
-        </TableBody>
+                  {item.relatedCustomerCode || item.relatedCustomerId}
+                </TableCell>
+                <TableCell>{item.relatedCustomerName || "-"}</TableCell>
+                <TableCell className="max-w-64 truncate">
+                  {item.relatedCustomerAddress || "-"}
+                </TableCell>
+                <TableCell>{relationLabel(item.relationCode)}</TableCell>
+                <TableCell>
+                  {relationLabel(item.reciprocalRelationCode)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">{item.status}</Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+            {!relationships.length ? (
+              <EmptyTable colSpan={7} text="Chưa có quan hệ khách hàng." />
+            ) : null}
+          </TableBody>
         )}
       </Table>
     </Panel>

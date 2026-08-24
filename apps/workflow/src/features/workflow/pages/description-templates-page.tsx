@@ -18,24 +18,37 @@ export function DescriptionTemplatesPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [dt, ct] = await Promise.all([workflowApi.listDescriptionTemplates(), workflowApi.listCaseTypes()])
+      const [dt, ct] = await Promise.all([
+        workflowApi.listDescriptionTemplates(),
+        workflowApi.listCaseTypes(),
+      ])
       setItems(dt)
       setCaseTypes(ct)
-    } finally { setLoading(false) }
+    } finally {
+      setLoading(false)
+    }
   }, [])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const [editing, setEditing] = useState<DescriptionTemplate | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  function onSaved() { void load() }
+  function onSaved() {
+    void load()
+  }
 
   return (
     <WorkflowFrame
       title="Cấu trúc diễn giải"
       description="Chuẩn hóa cách sinh tiêu đề, mô tả và dòng timeline để các danh sách dễ quét."
       source="api"
-      action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>Tạo cấu trúc</Button>}
+      action={
+        <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+          Tạo cấu trúc
+        </Button>
+      }
     >
       {loading ? (
         <LoadingBlock />

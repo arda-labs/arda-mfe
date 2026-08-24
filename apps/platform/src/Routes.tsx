@@ -2,10 +2,7 @@ import "@workspace/i18n/apps/platform"
 import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
 import { QueryProvider } from "@workspace/query/provider"
-import {
-  attachPreload,
-  lazyWithPreload,
-} from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const AreaTypesPage = lazyWithPreload(() =>
   import("@/features/platform/area-types/page").then((m) => ({

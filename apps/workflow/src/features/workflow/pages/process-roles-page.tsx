@@ -25,13 +25,20 @@ import {
   uniqueOptions,
   WorkflowFrame,
 } from "../shared/admin-ui"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 
 export function ProcessRolesPage() {
   const [stepRoles, setStepRoles] = useState<ProcessRole[]>([])
   const [roleCatalog, setRoleCatalog] = useState<WorkflowRoleCatalog[]>([])
   const [memberships, setMemberships] = useState<WorkflowRoleMembership[]>([])
-  const [assignmentRules, setAssignmentRules] = useState<WorkflowAssignmentRule[]>([])
+  const [assignmentRules, setAssignmentRules] = useState<
+    WorkflowAssignmentRule[]
+  >([])
   const [delegations, setDelegations] = useState<WorkflowDelegation[]>([])
   const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
   const [source, setSource] = useState<"api" | "mock">("mock")
@@ -54,28 +61,46 @@ export function ProcessRolesPage() {
       setDelegations(dl)
       setCaseTypes(ct)
       setSource("api")
-    } finally { setLoading(false) }
+    } finally {
+      setLoading(false)
+    }
   }, [])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
-  const roleCodeOptions = roleCatalog.map((item) => ({ value: item.roleCode, label: `${item.roleCode} - ${item.roleName}` }))
-  const iamRoleOptions = uniqueOptions(stepRoles.map((item) => item.iamRole), roleCodeOptions)
+  const roleCodeOptions = roleCatalog.map((item) => ({
+    value: item.roleCode,
+    label: `${item.roleCode} - ${item.roleName}`,
+  }))
+  const iamRoleOptions = uniqueOptions(
+    stepRoles.map((item) => item.iamRole),
+    roleCodeOptions
+  )
   const [activeTab, setActiveTab] = useState("catalog")
   const [editing, setEditing] = useState<ProcessRole | null>(null)
-  const [editingCatalog, setEditingCatalog] = useState<WorkflowRoleCatalog | null>(null)
-  const [editingMembership, setEditingMembership] = useState<WorkflowRoleMembership | null>(null)
-  const [editingRule, setEditingRule] = useState<WorkflowAssignmentRule | null>(null)
-  const [editingDelegation, setEditingDelegation] = useState<WorkflowDelegation | null>(null)
+  const [editingCatalog, setEditingCatalog] =
+    useState<WorkflowRoleCatalog | null>(null)
+  const [editingMembership, setEditingMembership] =
+    useState<WorkflowRoleMembership | null>(null)
+  const [editingRule, setEditingRule] = useState<WorkflowAssignmentRule | null>(
+    null
+  )
+  const [editingDelegation, setEditingDelegation] =
+    useState<WorkflowDelegation | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  function onSaved() { void load() }
-  const actionLabel = {
-    catalog: "Tạo role",
-    membership: "Thêm thành viên",
-    assignment: "Tạo luật phân công",
-    delegation: "Tạo ủy quyền",
-    mapping: "Tạo mapping bước",
-  }[activeTab] ?? "Tạo"
+  function onSaved() {
+    void load()
+  }
+  const actionLabel =
+    {
+      catalog: "Tạo role",
+      membership: "Thêm thành viên",
+      assignment: "Tạo luật phân công",
+      delegation: "Tạo ủy quyền",
+      mapping: "Tạo mapping bước",
+    }[activeTab] ?? "Tạo"
 
   return (
     <WorkflowFrame
@@ -84,14 +109,25 @@ export function ProcessRolesPage() {
       source={source}
       metrics={[
         { label: "Role", value: String(roleCatalog.length), tone: "default" },
-        { label: "Thành viên", value: String(memberships.length), tone: "success" },
+        {
+          label: "Thành viên",
+          value: String(memberships.length),
+          tone: "success",
+        },
         {
           label: "Luật tách maker/checker",
-          value: String(assignmentRules.filter((item) => item.requireSeparationOfDuties).length),
+          value: String(
+            assignmentRules.filter((item) => item.requireSeparationOfDuties)
+              .length
+          ),
           tone: "warning",
         },
       ]}
-      action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>{actionLabel}</Button>}
+      action={
+        <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+          {actionLabel}
+        </Button>
+      }
     >
       {loading ? (
         <LoadingBlock />
@@ -108,13 +144,22 @@ export function ProcessRolesPage() {
             <RoleCatalogTable items={roleCatalog} onEdit={setEditingCatalog} />
           </TabsContent>
           <TabsContent value="membership">
-            <RoleMembershipTable items={memberships} onEdit={setEditingMembership} />
+            <RoleMembershipTable
+              items={memberships}
+              onEdit={setEditingMembership}
+            />
           </TabsContent>
           <TabsContent value="assignment">
-            <AssignmentRuleTable items={assignmentRules} onEdit={setEditingRule} />
+            <AssignmentRuleTable
+              items={assignmentRules}
+              onEdit={setEditingRule}
+            />
           </TabsContent>
           <TabsContent value="delegation">
-            <DelegationTable items={delegations} onEdit={setEditingDelegation} />
+            <DelegationTable
+              items={delegations}
+              onEdit={setEditingDelegation}
+            />
           </TabsContent>
           <TabsContent value="mapping">
             <ProcessRoleTable items={stepRoles} onEdit={setEditing} />
@@ -122,31 +167,81 @@ export function ProcessRolesPage() {
         </Tabs>
       )}
       {createOpen && activeTab === "catalog" ? (
-        <RoleCatalogDialog open onOpenChange={setCreateOpen} onSaved={onSaved} />
+        <RoleCatalogDialog
+          open
+          onOpenChange={setCreateOpen}
+          onSaved={onSaved}
+        />
       ) : null}
       {createOpen && activeTab === "membership" ? (
-        <RoleMembershipDialog open roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
+        <RoleMembershipDialog
+          open
+          roleOptions={roleCodeOptions}
+          onOpenChange={setCreateOpen}
+          onSaved={onSaved}
+        />
       ) : null}
       {createOpen && activeTab === "assignment" ? (
-        <AssignmentRuleDialog open caseTypeOptions={caseTypeOptions} roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
+        <AssignmentRuleDialog
+          open
+          caseTypeOptions={caseTypeOptions}
+          roleOptions={roleCodeOptions}
+          onOpenChange={setCreateOpen}
+          onSaved={onSaved}
+        />
       ) : null}
       {createOpen && activeTab === "delegation" ? (
-        <DelegationDialog open roleOptions={roleCodeOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
+        <DelegationDialog
+          open
+          roleOptions={roleCodeOptions}
+          onOpenChange={setCreateOpen}
+          onSaved={onSaved}
+        />
       ) : null}
       {createOpen && activeTab === "mapping" ? (
-        <ProcessRoleDialog open caseTypeOptions={caseTypeOptions} iamRoleOptions={iamRoleOptions} onOpenChange={setCreateOpen} onSaved={onSaved} />
+        <ProcessRoleDialog
+          open
+          caseTypeOptions={caseTypeOptions}
+          iamRoleOptions={iamRoleOptions}
+          onOpenChange={setCreateOpen}
+          onSaved={onSaved}
+        />
       ) : null}
       {editingCatalog ? (
-        <RoleCatalogDialog item={editingCatalog} open onOpenChange={(open) => !open && setEditingCatalog(null)} onSaved={onSaved} />
+        <RoleCatalogDialog
+          item={editingCatalog}
+          open
+          onOpenChange={(open) => !open && setEditingCatalog(null)}
+          onSaved={onSaved}
+        />
       ) : null}
       {editingMembership ? (
-        <RoleMembershipDialog item={editingMembership} open roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingMembership(null)} onSaved={onSaved} />
+        <RoleMembershipDialog
+          item={editingMembership}
+          open
+          roleOptions={roleCodeOptions}
+          onOpenChange={(open) => !open && setEditingMembership(null)}
+          onSaved={onSaved}
+        />
       ) : null}
       {editingRule ? (
-        <AssignmentRuleDialog item={editingRule} open caseTypeOptions={caseTypeOptions} roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingRule(null)} onSaved={onSaved} />
+        <AssignmentRuleDialog
+          item={editingRule}
+          open
+          caseTypeOptions={caseTypeOptions}
+          roleOptions={roleCodeOptions}
+          onOpenChange={(open) => !open && setEditingRule(null)}
+          onSaved={onSaved}
+        />
       ) : null}
       {editingDelegation ? (
-        <DelegationDialog item={editingDelegation} open roleOptions={roleCodeOptions} onOpenChange={(open) => !open && setEditingDelegation(null)} onSaved={onSaved} />
+        <DelegationDialog
+          item={editingDelegation}
+          open
+          roleOptions={roleCodeOptions}
+          onOpenChange={(open) => !open && setEditingDelegation(null)}
+          onSaved={onSaved}
+        />
       ) : null}
       {editing ? (
         <ProcessRoleDialog

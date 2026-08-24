@@ -67,7 +67,10 @@ export function PageTitle({
   return (
     <>
       <div className={cn("flex flex-col gap-3", className)}>
-        <div ref={ref} className="flex flex-wrap items-start justify-between gap-3">
+        <div
+          ref={ref}
+          className="flex flex-wrap items-start justify-between gap-3"
+        >
           <div className="min-w-0 space-y-1">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h1 className="truncate text-2xl font-semibold">{title}</h1>

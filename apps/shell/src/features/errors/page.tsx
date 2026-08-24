@@ -27,7 +27,11 @@ export function ErrorPage({ code }: ErrorPageProps) {
         <h1 className="text-4xl font-semibold tracking-tight">{title}</h1>
         <p className="text-pretty text-muted-foreground">{body}</p>
       </div>
-      <Button type="button" variant="outline" onClick={() => window.history.back()}>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => window.history.back()}
+      >
         {t("common.action.back")}
       </Button>
     </div>

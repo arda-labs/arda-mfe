@@ -5,10 +5,14 @@ const CaseTypesPage = lazy(() =>
   import("./pages/case-types-page").then((m) => ({ default: m.CaseTypesPage }))
 )
 const ProcessConfigsPage = lazy(() =>
-  import("./pages/process-configs-page").then((m) => ({ default: m.ProcessConfigsPage }))
+  import("./pages/process-configs-page").then((m) => ({
+    default: m.ProcessConfigsPage,
+  }))
 )
 const SlaPoliciesPage = lazy(() =>
-  import("./pages/sla-policies-page").then((m) => ({ default: m.SlaPoliciesPage }))
+  import("./pages/sla-policies-page").then((m) => ({
+    default: m.SlaPoliciesPage,
+  }))
 )
 const DescriptionTemplatesPage = lazy(() =>
   import("./pages/description-templates-page").then((m) => ({
@@ -16,7 +20,9 @@ const DescriptionTemplatesPage = lazy(() =>
   }))
 )
 const ProcessRolesPage = lazy(() =>
-  import("./pages/process-roles-page").then((m) => ({ default: m.ProcessRolesPage }))
+  import("./pages/process-roles-page").then((m) => ({
+    default: m.ProcessRolesPage,
+  }))
 )
 const ProcessMonitoringPage = lazy(() =>
   import("./pages/process-monitoring-page").then((m) => ({
@@ -43,7 +49,9 @@ function RoutePage({ route }: { route: WorkflowRoute }) {
 
 export function WorkflowAdminPage({ pathname }: { pathname: string }) {
   const route = routeFromPath(pathname)
-  const [visited, setVisited] = useState<Set<WorkflowRoute>>(() => new Set([route]))
+  const [visited, setVisited] = useState<Set<WorkflowRoute>>(
+    () => new Set([route])
+  )
 
   if (!visited.has(route)) {
     setVisited((prev) => new Set(prev).add(route))

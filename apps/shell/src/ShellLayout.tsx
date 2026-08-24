@@ -399,7 +399,8 @@ export function ShellLayout() {
     }
 
     window.addEventListener(SHELL_PAGE_TITLE_EVENT, handlePageTitle)
-    return () => window.removeEventListener(SHELL_PAGE_TITLE_EVENT, handlePageTitle)
+    return () =>
+      window.removeEventListener(SHELL_PAGE_TITLE_EVENT, handlePageTitle)
   }, [])
 
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light")
@@ -534,7 +535,7 @@ export function ShellLayout() {
           </div>
         </header>
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <Outlet />
+          <Outlet />
           <Toaster />
           <GlobalErrorDialog />
         </main>

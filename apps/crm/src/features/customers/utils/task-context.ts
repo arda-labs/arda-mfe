@@ -31,7 +31,8 @@ export function effectiveBpmnElementId(
       elementId === "UT_CheckerReview" ||
       !elementId
     ) {
-      return elementId === "UT_MakerRevise" || elementId === "Activity_MakerRevise"
+      return elementId === "UT_MakerRevise" ||
+        elementId === "Activity_MakerRevise"
         ? elementId
         : "UT_MakerRevise"
     }
@@ -76,7 +77,10 @@ export async function resolveWorkflowJobKey(
     customerStatus
   )
   if (!elementId) {
-    notify.error("Thiếu ngữ cảnh task BPM", "Không xác định được bước BPM (elementId).")
+    notify.error(
+      "Thiếu ngữ cảnh task BPM",
+      "Không xác định được bước BPM (elementId)."
+    )
     return null
   }
   if (context.taskKey) {
@@ -126,7 +130,9 @@ export async function resolveWorkflowJobKey(
       if (attempt === 2) {
         notify.error(
           "Thiếu ngữ cảnh task BPM",
-          error instanceof Error ? error.message : "Không claim được task từ workflow."
+          error instanceof Error
+            ? error.message
+            : "Không claim được task từ workflow."
         )
       }
     }
@@ -212,11 +218,17 @@ export function workflowKey(value: string | number | null | undefined) {
 }
 
 export function roleParam(value: string | null): WorkflowTaskRole {
-  if (value === "CUSTOMER_RISK_CHECKER" || value === "CUSTOMER_MAKER" || value === "CUSTOMER_CHECKER") {
+  if (
+    value === "CUSTOMER_RISK_CHECKER" ||
+    value === "CUSTOMER_MAKER" ||
+    value === "CUSTOMER_CHECKER"
+  ) {
     return value
   }
   if (value && value.trim()) {
-    console.warn(`[roleParam] Unknown role "${value}", falling back to CUSTOMER_CHECKER`)
+    console.warn(
+      `[roleParam] Unknown role "${value}", falling back to CUSTOMER_CHECKER`
+    )
   }
   return "CUSTOMER_CHECKER"
 }
@@ -240,5 +252,7 @@ export function taskContextFromSearchParams(
 }
 
 export function taskContextFromSearch(): CustomerTaskContext {
-  return taskContextFromSearchParams(new URLSearchParams(window.location.search))
+  return taskContextFromSearchParams(
+    new URLSearchParams(window.location.search)
+  )
 }

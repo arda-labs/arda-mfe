@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button";
-import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 
 type DataTableRowActionsProps = {
-  onEdit?: () => void;
-  onDelete?: () => void;
-  editTitle?: string;
-  deleteTitle?: string;
-  className?: string;
-};
+  onEdit?: () => void
+  onDelete?: () => void
+  editTitle?: string
+  deleteTitle?: string
+  className?: string
+}
 
 export function DataTableRowActions({
   onEdit,
@@ -51,5 +51,5 @@ export function DataTableRowActions({
         </Button>
       ) : null}
     </div>
-  );
+  )
 }

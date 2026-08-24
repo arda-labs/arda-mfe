@@ -30,7 +30,9 @@ export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration |
   return navigator.serviceWorker.register("/sw.js")
 }
 
-export async function enableWebPush(): Promise<"granted" | "denied" | "unsupported" | "unavailable"> {
+export async function enableWebPush(): Promise<
+  "granted" | "denied" | "unsupported" | "unavailable"
+> {
   if (!webPushSupported()) return "unsupported"
   const permission = await requestBrowserNotificationPermission()
   if (permission !== "granted") {

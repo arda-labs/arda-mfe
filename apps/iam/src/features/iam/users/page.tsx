@@ -11,8 +11,19 @@ import type { AdminUserSession, Role, User } from "@/features/iam"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
-import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,13 +48,28 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Check, X, Trash2, KeyRound, ShieldCheck, ShieldOff, MonitorCog, SearchCheck, Pencil, MoreHorizontal } from "lucide-react"
+import {
+  Check,
+  X,
+  Trash2,
+  KeyRound,
+  ShieldCheck,
+  ShieldOff,
+  MonitorCog,
+  SearchCheck,
+  Pencil,
+  MoreHorizontal,
+} from "lucide-react"
 import type { IdentityConsistencyIssue } from "@/features/iam"
 
 const DEFAULT_PAGE_SIZE = 10
 
 const createUserSchema = z.object({
-  username: z.string().trim().min(1, "Username is required").max(64, "Username is too long"),
+  username: z
+    .string()
+    .trim()
+    .min(1, "Username is required")
+    .max(64, "Username is too long"),
   email: z.string().trim().email("Enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   firstName: z.string().trim().max(100, "First name is too long").optional(),
@@ -59,7 +85,11 @@ const createUserSchema = z.object({
 type CreateUserValues = z.infer<typeof createUserSchema>
 
 const editUserSchema = z.object({
-  username: z.string().trim().min(1, "Username is required").max(64, "Username is too long"),
+  username: z
+    .string()
+    .trim()
+    .min(1, "Username is required")
+    .max(64, "Username is too long"),
   email: z.string().trim().email("Enter a valid email"),
   firstName: z.string().trim().max(100, "First name is too long").optional(),
   lastName: z.string().trim().max(100, "Last name is too long").optional(),
@@ -128,7 +158,9 @@ export function UsersPage() {
   const [provisionTarget, setProvisionTarget] = useState<User | null>(null)
   const [roleTarget, setRoleTarget] = useState<User | null>(null)
   const [sessionTarget, setSessionTarget] = useState<User | null>(null)
-  const [identityIssues, setIdentityIssues] = useState<IdentityConsistencyIssue[] | null>(null)
+  const [identityIssues, setIdentityIssues] = useState<
+    IdentityConsistencyIssue[] | null
+  >(null)
   const [identityAuditOpen, setIdentityAuditOpen] = useState(false)
   const {
     formState: { errors: createErrors, isSubmitting: isCreating },
@@ -172,7 +204,9 @@ export function UsersPage() {
   const pageParam = POS(searchParams.get("page"), 1)
   const pageSizeParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
   const searchParam = searchParams.get("username") || undefined
-  const statusArray = (searchParams.get("status") || "").split(",").filter(Boolean)
+  const statusArray = (searchParams.get("status") || "")
+    .split(",")
+    .filter(Boolean)
   const statusParam = statusArray.length === 1 ? statusArray[0] : undefined
   const sortParam = searchParams.get("sort")
 
@@ -181,12 +215,19 @@ export function UsersPage() {
     if (hasLoadedRef.current) setRefreshing(true)
     else setLoading(true)
     try {
-      const sortApi = sortParam ? (() => {
-        try {
-          const parsed = JSON.parse(sortParam) as Array<{ id: string; desc: boolean }>
-          return sortToApiParams(parsed)
-        } catch { return {} }
-      })() : {}
+      const sortApi = sortParam
+        ? (() => {
+            try {
+              const parsed = JSON.parse(sortParam) as Array<{
+                id: string
+                desc: boolean
+              }>
+              return sortToApiParams(parsed)
+            } catch {
+              return {}
+            }
+          })()
+        : {}
       const result = await adminApi.listUsers({
         page: pageParam,
         perPage: pageSizeParam,
@@ -291,9 +332,15 @@ export function UsersPage() {
     }
   })
 
-  const handleSetStatus = async (user: User, nextStatus: "ACTIVE" | "DISABLED") => {
+  const handleSetStatus = async (
+    user: User,
+    nextStatus: "ACTIVE" | "DISABLED"
+  ) => {
     try {
-      await adminApi.updateUser(user.id, { status: nextStatus } as Record<string, unknown>)
+      await adminApi.updateUser(user.id, { status: nextStatus } as Record<
+        string,
+        unknown
+      >)
       notify.success(
         nextStatus === "ACTIVE"
           ? t("admin.users.enable_success")
@@ -356,7 +403,10 @@ export function UsersPage() {
       setResetTarget(null)
       setIdentityPassword("")
     } catch (err) {
-      notify.error(t("admin.users.identity.reset_failed"), translateApiError(err))
+      notify.error(
+        t("admin.users.identity.reset_failed"),
+        translateApiError(err)
+      )
     }
   }
 
@@ -374,12 +424,21 @@ export function UsersPage() {
   const handleProvisionIdentity = async () => {
     if (!provisionTarget) return
     try {
-      const res = await adminApi.provisionUserIdentity(provisionTarget.id, identityPassword)
-      notify.success(t("admin.users.identity.provision_success"), res.kratosIdentityId)
+      const res = await adminApi.provisionUserIdentity(
+        provisionTarget.id,
+        identityPassword
+      )
+      notify.success(
+        t("admin.users.identity.provision_success"),
+        res.kratosIdentityId
+      )
       setProvisionTarget(null)
       setIdentityPassword("")
     } catch (err) {
-      notify.error(t("admin.users.identity.provision_failed"), translateApiError(err))
+      notify.error(
+        t("admin.users.identity.provision_failed"),
+        translateApiError(err)
+      )
     }
   }
 
@@ -394,7 +453,10 @@ export function UsersPage() {
         notify.warning(t("admin.users.identity.audit_issues"), `${res.count}`)
       }
     } catch (err) {
-      notify.error(t("admin.users.identity.audit_failed"), translateApiError(err))
+      notify.error(
+        t("admin.users.identity.audit_failed"),
+        translateApiError(err)
+      )
     }
   }
 
@@ -408,175 +470,206 @@ export function UsersPage() {
       const res = await adminApi.revokeUserSessions(sessionTarget.id)
       notify.success(t("admin.users.sessions.revoke_success"), `${res.count}`)
     } catch (err) {
-      notify.error(t("admin.users.sessions.revoke_failed"), translateApiError(err))
+      notify.error(
+        t("admin.users.sessions.revoke_failed"),
+        translateApiError(err)
+      )
     }
   }
 
   // Reusable Columns with Dice UI filter meta
-  const columns = useMemo<ColumnDef<User>[]>(() => [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label={t("common.action.select_all")}
-          className="translate-y-[2px]"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label={t("common.action.select_row")}
-          className="translate-y-[2px]"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      id: "username",
-      accessorKey: "username",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("admin.users.field.username")} />
-      ),
-      enableColumnFilter: true,
-      meta: {
-        label: t("admin.users.field.username"),
-        variant: "text",
-        placeholder: t("admin.users.search"),
-      }
-    },
-    {
-      accessorKey: "email",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("common.field.email")} />
-      ),
-    },
-    {
-      id: "status",
-      accessorKey: "status",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("common.field.status")} />
-      ),
-      enableColumnFilter: true,
-      meta: {
-        label: t("common.field.status"),
-        variant: "multiSelect",
-        options: [
-          { label: t("admin.users.status.active"), value: "ACTIVE" },
-          { label: t("admin.users.status.disabled"), value: "DISABLED" },
-        ]
+  const columns = useMemo<ColumnDef<User>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label={t("common.action.select_all")}
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label={t("common.action.select_row")}
+            className="translate-y-[2px]"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
       },
-      cell: ({ row }) => {
-        const u = row.original
-        return (
-          <Status variant={u.status === "ACTIVE" ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>{u.status}</StatusLabel>
-          </Status>
-        )
-      }
-    },
-    {
-      accessorKey: "roles",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("admin.roles.title")} />
-      ),
-      cell: ({ row }) => row.original.roles.join(", ") || "-",
-    },
-    {
-      accessorKey: "createdAt",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("common.field.created")} />
-      ),
-      cell: ({ row }) => formatDate(row.original.createdAt),
-    },
-    {
-      id: "actions",
-      header: () => <div className="text-right">{t("common.field.action")}</div>,
-      cell: ({ row }) => {
-        const u = row.original
-        const hasKratosIdentity = Boolean(u.kratosIdentityId)
-        return (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-muted-foreground hover:text-foreground"
-                  disabled={busyUserId === u.id}
-                >
-                  <MoreHorizontal className="size-4" />
-                  <span className="sr-only">{t("admin.users.action.open_actions")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => openEdit(u)}>
-                  <Pencil className="mr-2 size-4" />
-                  {t("admin.users.action.edit")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openRoles(u)}>
-                  <ShieldCheck className="mr-2 size-4" />
-                  Phân vai trò
-                </DropdownMenuItem>
-                {u.status === "ACTIVE" ? (
-                  <DropdownMenuItem onClick={() => handleSetStatus(u, "DISABLED")}>
-                    <X className="mr-2 size-4" />
-                    {t("common.action.disable")}
+      {
+        id: "username",
+        accessorKey: "username",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.users.field.username")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: {
+          label: t("admin.users.field.username"),
+          variant: "text",
+          placeholder: t("admin.users.search"),
+        },
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.email")}
+          />
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: {
+          label: t("common.field.status"),
+          variant: "multiSelect",
+          options: [
+            { label: t("admin.users.status.active"), value: "ACTIVE" },
+            { label: t("admin.users.status.disabled"), value: "DISABLED" },
+          ],
+        },
+        cell: ({ row }) => {
+          const u = row.original
+          return (
+            <Status variant={u.status === "ACTIVE" ? "success" : "default"}>
+              <StatusIndicator />
+              <StatusLabel>{u.status}</StatusLabel>
+            </Status>
+          )
+        },
+      },
+      {
+        accessorKey: "roles",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.roles.title")}
+          />
+        ),
+        cell: ({ row }) => row.original.roles.join(", ") || "-",
+      },
+      {
+        accessorKey: "createdAt",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.created")}
+          />
+        ),
+        cell: ({ row }) => formatDate(row.original.createdAt),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => {
+          const u = row.original
+          const hasKratosIdentity = Boolean(u.kratosIdentityId)
+          return (
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-muted-foreground hover:text-foreground"
+                    disabled={busyUserId === u.id}
+                  >
+                    <MoreHorizontal className="size-4" />
+                    <span className="sr-only">
+                      {t("admin.users.action.open_actions")}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => openEdit(u)}>
+                    <Pencil className="mr-2 size-4" />
+                    {t("admin.users.action.edit")}
                   </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={() => handleSetStatus(u, "ACTIVE")}>
-                    <Check className="mr-2 size-4" />
-                    {t("common.action.enable")}
+                  <DropdownMenuItem onClick={() => openRoles(u)}>
+                    <ShieldCheck className="mr-2 size-4" />
+                    Phân vai trò
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled={!hasKratosIdentity}
-                  onClick={() => {
-                    setResetTarget(u)
-                    setIdentityPassword("")
-                  }}
-                >
-                  <KeyRound className="mr-2 size-4" />
-                  {t("admin.users.action.reset_password")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setMfaResetTarget(u)}>
-                  <ShieldOff className="mr-2 size-4" />
-                  {t("admin.users.action.reset_mfa")}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={hasKratosIdentity}
-                  onClick={() => {
-                    setProvisionTarget(u)
-                    setIdentityPassword("")
-                  }}
-                >
-                  <ShieldCheck className="mr-2 size-4" />
-                  {t("admin.users.action.provision_identity")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openSessions(u)}>
-                  <MonitorCog className="mr-2 size-4" />
-                  {t("admin.users.action.manage_sessions")}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => setDeleteTarget(u)}
-                >
-                  <Trash2 className="mr-2 size-4" />
-                  {t("common.action.delete")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )
-      }
-    }
-  ], [t, formatDate, busyUserId])
+                  {u.status === "ACTIVE" ? (
+                    <DropdownMenuItem
+                      onClick={() => handleSetStatus(u, "DISABLED")}
+                    >
+                      <X className="mr-2 size-4" />
+                      {t("common.action.disable")}
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => handleSetStatus(u, "ACTIVE")}
+                    >
+                      <Check className="mr-2 size-4" />
+                      {t("common.action.enable")}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={!hasKratosIdentity}
+                    onClick={() => {
+                      setResetTarget(u)
+                      setIdentityPassword("")
+                    }}
+                  >
+                    <KeyRound className="mr-2 size-4" />
+                    {t("admin.users.action.reset_password")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setMfaResetTarget(u)}>
+                    <ShieldOff className="mr-2 size-4" />
+                    {t("admin.users.action.reset_mfa")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={hasKratosIdentity}
+                    onClick={() => {
+                      setProvisionTarget(u)
+                      setIdentityPassword("")
+                    }}
+                  >
+                    <ShieldCheck className="mr-2 size-4" />
+                    {t("admin.users.action.provision_identity")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openSessions(u)}>
+                    <MonitorCog className="mr-2 size-4" />
+                    {t("admin.users.action.manage_sessions")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => setDeleteTarget(u)}
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    {t("common.action.delete")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        },
+      },
+    ],
+    [t, formatDate, busyUserId]
+  )
 
   const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
 
@@ -588,8 +681,8 @@ export function UsersPage() {
       pagination: {
         pageIndex: 0,
         pageSize: DEFAULT_PAGE_SIZE,
-      }
-    }
+      },
+    },
   })
 
   const dialogs = (
@@ -600,50 +693,118 @@ export function UsersPage() {
             <DialogTitle>{t("admin.users.create")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate}>
-          <DialogBody className="space-y-3">
-            <FormField label={t("admin.users.field.username")} error={createErrors.username?.message}>
-              <Input aria-invalid={Boolean(createErrors.username)} {...registerCreate("username")} />
-            </FormField>
-            <FormField label={t("common.field.email")} error={createErrors.email?.message}>
-              <Input type="email" aria-invalid={Boolean(createErrors.email)} {...registerCreate("email")} />
-            </FormField>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t("admin.users.field.first_name")} error={createErrors.firstName?.message}>
-                <Input aria-invalid={Boolean(createErrors.firstName)} {...registerCreate("firstName")} />
+            <DialogBody className="space-y-3">
+              <FormField
+                label={t("admin.users.field.username")}
+                error={createErrors.username?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(createErrors.username)}
+                  {...registerCreate("username")}
+                />
               </FormField>
-              <FormField label={t("admin.users.field.last_name")} error={createErrors.lastName?.message}>
-                <Input aria-invalid={Boolean(createErrors.lastName)} {...registerCreate("lastName")} />
+              <FormField
+                label={t("common.field.email")}
+                error={createErrors.email?.message}
+              >
+                <Input
+                  type="email"
+                  aria-invalid={Boolean(createErrors.email)}
+                  {...registerCreate("email")}
+                />
               </FormField>
-            </div>
-            <FormField label={t("admin.users.field.nickname")} error={createErrors.nickname?.message}>
-              <Input aria-invalid={Boolean(createErrors.nickname)} {...registerCreate("nickname")} />
-            </FormField>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t("admin.users.field.gender")} error={createErrors.gender?.message}>
-                <Input aria-invalid={Boolean(createErrors.gender)} {...registerCreate("gender")} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormField
+                  label={t("admin.users.field.first_name")}
+                  error={createErrors.firstName?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(createErrors.firstName)}
+                    {...registerCreate("firstName")}
+                  />
+                </FormField>
+                <FormField
+                  label={t("admin.users.field.last_name")}
+                  error={createErrors.lastName?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(createErrors.lastName)}
+                    {...registerCreate("lastName")}
+                  />
+                </FormField>
+              </div>
+              <FormField
+                label={t("admin.users.field.nickname")}
+                error={createErrors.nickname?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(createErrors.nickname)}
+                  {...registerCreate("nickname")}
+                />
               </FormField>
-              <FormField label={t("admin.users.field.country")} error={createErrors.country?.message}>
-                <Input aria-invalid={Boolean(createErrors.country)} {...registerCreate("country")} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormField
+                  label={t("admin.users.field.gender")}
+                  error={createErrors.gender?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(createErrors.gender)}
+                    {...registerCreate("gender")}
+                  />
+                </FormField>
+                <FormField
+                  label={t("admin.users.field.country")}
+                  error={createErrors.country?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(createErrors.country)}
+                    {...registerCreate("country")}
+                  />
+                </FormField>
+              </div>
+              <FormField
+                label={t("admin.users.field.address")}
+                error={createErrors.address?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(createErrors.address)}
+                  {...registerCreate("address")}
+                />
               </FormField>
-            </div>
-            <FormField label={t("admin.users.field.address")} error={createErrors.address?.message}>
-              <Input aria-invalid={Boolean(createErrors.address)} {...registerCreate("address")} />
-            </FormField>
-            <FormField label={t("admin.users.field.position")} error={createErrors.position?.message}>
-              <Input aria-invalid={Boolean(createErrors.position)} {...registerCreate("position")} />
-            </FormField>
-            <FormField label={t("admin.users.field.tenant")} error={createErrors.tenantId?.message}>
-              <Input aria-invalid={Boolean(createErrors.tenantId)} {...registerCreate("tenantId")} />
-            </FormField>
-            <FormField label={t("auth.login.field.password")} error={createErrors.password?.message}>
-              <Input type="password" aria-invalid={Boolean(createErrors.password)} {...registerCreate("password")} />
-            </FormField>
-          </DialogBody>
-          <DialogFooter>
-            <Button className="w-full" type="submit" disabled={isCreating}>
-              {t("common.action.create")}
-            </Button>
-          </DialogFooter>
+              <FormField
+                label={t("admin.users.field.position")}
+                error={createErrors.position?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(createErrors.position)}
+                  {...registerCreate("position")}
+                />
+              </FormField>
+              <FormField
+                label={t("admin.users.field.tenant")}
+                error={createErrors.tenantId?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(createErrors.tenantId)}
+                  {...registerCreate("tenantId")}
+                />
+              </FormField>
+              <FormField
+                label={t("auth.login.field.password")}
+                error={createErrors.password?.message}
+              >
+                <Input
+                  type="password"
+                  aria-invalid={Boolean(createErrors.password)}
+                  {...registerCreate("password")}
+                />
+              </FormField>
+            </DialogBody>
+            <DialogFooter>
+              <Button className="w-full" type="submit" disabled={isCreating}>
+                {t("common.action.create")}
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
@@ -663,38 +824,96 @@ export function UsersPage() {
           </DialogHeader>
           <form onSubmit={handleEdit}>
             <DialogBody className="space-y-3">
-              <FormField label={t("admin.users.field.username")} error={editErrors.username?.message}>
-                <Input aria-invalid={Boolean(editErrors.username)} {...registerEdit("username")} />
+              <FormField
+                label={t("admin.users.field.username")}
+                error={editErrors.username?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(editErrors.username)}
+                  {...registerEdit("username")}
+                />
               </FormField>
-              <FormField label={t("common.field.email")} error={editErrors.email?.message}>
-                <Input type="email" aria-invalid={Boolean(editErrors.email)} {...registerEdit("email")} />
+              <FormField
+                label={t("common.field.email")}
+                error={editErrors.email?.message}
+              >
+                <Input
+                  type="email"
+                  aria-invalid={Boolean(editErrors.email)}
+                  {...registerEdit("email")}
+                />
               </FormField>
               <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label={t("admin.users.field.first_name")} error={editErrors.firstName?.message}>
-                  <Input aria-invalid={Boolean(editErrors.firstName)} {...registerEdit("firstName")} />
+                <FormField
+                  label={t("admin.users.field.first_name")}
+                  error={editErrors.firstName?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(editErrors.firstName)}
+                    {...registerEdit("firstName")}
+                  />
                 </FormField>
-                <FormField label={t("admin.users.field.last_name")} error={editErrors.lastName?.message}>
-                  <Input aria-invalid={Boolean(editErrors.lastName)} {...registerEdit("lastName")} />
+                <FormField
+                  label={t("admin.users.field.last_name")}
+                  error={editErrors.lastName?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(editErrors.lastName)}
+                    {...registerEdit("lastName")}
+                  />
                 </FormField>
               </div>
-              <FormField label={t("admin.users.field.nickname")} error={editErrors.nickname?.message}>
-                <Input aria-invalid={Boolean(editErrors.nickname)} {...registerEdit("nickname")} />
+              <FormField
+                label={t("admin.users.field.nickname")}
+                error={editErrors.nickname?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(editErrors.nickname)}
+                  {...registerEdit("nickname")}
+                />
               </FormField>
               <div className="grid gap-3 sm:grid-cols-2">
-                <FormField label={t("admin.users.field.gender")} error={editErrors.gender?.message}>
-                  <Input aria-invalid={Boolean(editErrors.gender)} {...registerEdit("gender")} />
+                <FormField
+                  label={t("admin.users.field.gender")}
+                  error={editErrors.gender?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(editErrors.gender)}
+                    {...registerEdit("gender")}
+                  />
                 </FormField>
-                <FormField label={t("admin.users.field.country")} error={editErrors.country?.message}>
-                  <Input aria-invalid={Boolean(editErrors.country)} {...registerEdit("country")} />
+                <FormField
+                  label={t("admin.users.field.country")}
+                  error={editErrors.country?.message}
+                >
+                  <Input
+                    aria-invalid={Boolean(editErrors.country)}
+                    {...registerEdit("country")}
+                  />
                 </FormField>
               </div>
-              <FormField label={t("admin.users.field.address")} error={editErrors.address?.message}>
-                <Input aria-invalid={Boolean(editErrors.address)} {...registerEdit("address")} />
+              <FormField
+                label={t("admin.users.field.address")}
+                error={editErrors.address?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(editErrors.address)}
+                  {...registerEdit("address")}
+                />
               </FormField>
-              <FormField label={t("admin.users.field.position")} error={editErrors.position?.message}>
-                <Input aria-invalid={Boolean(editErrors.position)} {...registerEdit("position")} />
+              <FormField
+                label={t("admin.users.field.position")}
+                error={editErrors.position?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(editErrors.position)}
+                  {...registerEdit("position")}
+                />
               </FormField>
-              <FormField label={t("common.field.status")} error={editErrors.status?.message}>
+              <FormField
+                label={t("common.field.status")}
+                error={editErrors.status?.message}
+              >
                 <Input
                   aria-invalid={Boolean(editErrors.status)}
                   placeholder="ACTIVE/DISABLED"
@@ -705,12 +924,22 @@ export function UsersPage() {
                   })}
                 />
               </FormField>
-              <FormField label={t("admin.users.field.tenant")} error={editErrors.tenantId?.message}>
-                <Input aria-invalid={Boolean(editErrors.tenantId)} {...registerEdit("tenantId")} />
+              <FormField
+                label={t("admin.users.field.tenant")}
+                error={editErrors.tenantId?.message}
+              >
+                <Input
+                  aria-invalid={Boolean(editErrors.tenantId)}
+                  {...registerEdit("tenantId")}
+                />
               </FormField>
             </DialogBody>
             <DialogFooter>
-              <Button className="w-full" type="submit" disabled={isUpdatingUser || busyUserId === editTarget?.id}>
+              <Button
+                className="w-full"
+                type="submit"
+                disabled={isUpdatingUser || busyUserId === editTarget?.id}
+              >
                 {t("admin.users.action.save_changes")}
               </Button>
             </DialogFooter>
@@ -718,7 +947,10 @@ export function UsersPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={roleTarget !== null} onOpenChange={(open) => !open && setRoleTarget(null)}>
+      <Dialog
+        open={roleTarget !== null}
+        onOpenChange={(open) => !open && setRoleTarget(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -727,9 +959,13 @@ export function UsersPage() {
           </DialogHeader>
           <div className="space-y-2">
             {rolesLoading ? (
-              <div className="text-sm text-muted-foreground">Đang tải vai trò...</div>
+              <div className="text-sm text-muted-foreground">
+                Đang tải vai trò...
+              </div>
             ) : availableRoles.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Chưa có vai trò để gán.</div>
+              <div className="text-sm text-muted-foreground">
+                Chưa có vai trò để gán.
+              </div>
             ) : (
               availableRoles.map((role) => {
                 const assigned = Boolean(roleTarget?.roles.includes(role.code))
@@ -757,7 +993,10 @@ export function UsersPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={resetTarget !== null} onOpenChange={(open) => !open && setResetTarget(null)}>
+      <Dialog
+        open={resetTarget !== null}
+        onOpenChange={(open) => !open && setResetTarget(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("admin.users.action.reset_password")}</DialogTitle>
@@ -775,17 +1014,26 @@ export function UsersPage() {
                 onChange={(e) => setIdentityPassword(e.target.value)}
               />
             </FormField>
-            <Button className="w-full" onClick={handleResetPassword} disabled={!identityPassword || busyUserId === resetTarget?.id}>
+            <Button
+              className="w-full"
+              onClick={handleResetPassword}
+              disabled={!identityPassword || busyUserId === resetTarget?.id}
+            >
               {t("admin.users.action.reset_password")}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={provisionTarget !== null} onOpenChange={(open) => !open && setProvisionTarget(null)}>
+      <Dialog
+        open={provisionTarget !== null}
+        onOpenChange={(open) => !open && setProvisionTarget(null)}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("admin.users.action.provision_identity")}</DialogTitle>
+            <DialogTitle>
+              {t("admin.users.action.provision_identity")}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
@@ -800,17 +1048,26 @@ export function UsersPage() {
                 onChange={(e) => setIdentityPassword(e.target.value)}
               />
             </FormField>
-            <Button className="w-full" onClick={handleProvisionIdentity} disabled={!identityPassword || busyUserId === provisionTarget?.id}>
+            <Button
+              className="w-full"
+              onClick={handleProvisionIdentity}
+              disabled={!identityPassword || busyUserId === provisionTarget?.id}
+            >
               {t("admin.users.action.provision_identity")}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={mfaResetTarget !== null} onOpenChange={(open) => !open && setMfaResetTarget(null)}>
+      <AlertDialog
+        open={mfaResetTarget !== null}
+        onOpenChange={(open) => !open && setMfaResetTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("admin.users.mfa.reset_title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("admin.users.mfa.reset_title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("admin.users.mfa.reset_description", {
                 user: mfaResetTarget?.username || mfaResetTarget?.email || "",
@@ -826,7 +1083,10 @@ export function UsersPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={sessionTarget !== null} onOpenChange={(open) => !open && setSessionTarget(null)}>
+      <Dialog
+        open={sessionTarget !== null}
+        onOpenChange={(open) => !open && setSessionTarget(null)}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -837,24 +1097,47 @@ export function UsersPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="flex justify-end">
-              <Button variant="outline" onClick={revokeSessions} disabled={!sessionTarget || busyUserId === sessionTarget?.id}>
+              <Button
+                variant="outline"
+                onClick={revokeSessions}
+                disabled={!sessionTarget || busyUserId === sessionTarget?.id}
+              >
                 {t("admin.users.action.revoke_sessions")}
               </Button>
             </div>
             {sessionsLoading ? (
-              <div className="text-sm text-muted-foreground">{t("admin.users.sessions.loading")}</div>
+              <div className="text-sm text-muted-foreground">
+                {t("admin.users.sessions.loading")}
+              </div>
             ) : sessions.length === 0 ? (
-              <div className="text-sm text-muted-foreground">{t("admin.users.sessions.empty")}</div>
+              <div className="text-sm text-muted-foreground">
+                {t("admin.users.sessions.empty")}
+              </div>
             ) : (
               <div className="max-h-96 space-y-2 overflow-auto">
                 {sessions.map((session) => (
-                  <div key={session.id} className="rounded-lg border p-3 text-sm">
-                    <div className="font-medium">{session.deviceName || session.deviceId || session.id}</div>
+                  <div
+                    key={session.id}
+                    className="rounded-lg border p-3 text-sm"
+                  >
+                    <div className="font-medium">
+                      {session.deviceName || session.deviceId || session.id}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {[session.browser, session.os, session.ipAddress, session.status].filter(Boolean).join(" · ") || "-"}
+                      {[
+                        session.browser,
+                        session.os,
+                        session.ipAddress,
+                        session.status,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "-"}
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      {t("admin.users.sessions.last_seen")}: {session.lastSeenAt ? formatDate(session.lastSeenAt) : "-"}
+                      {t("admin.users.sessions.last_seen")}:{" "}
+                      {session.lastSeenAt
+                        ? formatDate(session.lastSeenAt)
+                        : "-"}
                     </div>
                   </div>
                 ))}
@@ -876,10 +1159,19 @@ export function UsersPage() {
           ) : (
             <div className="max-h-96 space-y-2 overflow-auto">
               {(identityIssues ?? []).map((issue, index) => (
-                <div key={`${issue.type}-${issue.userId || issue.kratosIdentityId || index}`} className="rounded-lg border p-3 text-sm">
+                <div
+                  key={`${issue.type}-${issue.userId || issue.kratosIdentityId || index}`}
+                  className="rounded-lg border p-3 text-sm"
+                >
                   <div className="font-medium">{issue.type}</div>
                   <div className="text-xs text-muted-foreground">
-                    {[issue.username, issue.email, issue.userId, issue.kratosIdentityId, issue.mappingIdentityId]
+                    {[
+                      issue.username,
+                      issue.email,
+                      issue.userId,
+                      issue.kratosIdentityId,
+                      issue.mappingIdentityId,
+                    ]
                       .filter(Boolean)
                       .join(" · ") || `count: ${issue.count ?? 0}`}
                   </div>
@@ -890,10 +1182,15 @@ export function UsersPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("common.confirm.delete_title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("common.confirm.delete_title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("common.confirm.delete_description", {
                 item: deleteTarget?.username || deleteTarget?.email || "",
@@ -920,7 +1217,10 @@ export function UsersPage() {
       title={t("admin.users.title")}
       totalRows={total}
       meta={
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
           {t("admin.users.count", { count: total })}
         </Badge>
       }

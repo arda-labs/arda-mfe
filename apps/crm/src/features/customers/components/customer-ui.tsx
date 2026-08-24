@@ -2,7 +2,16 @@ import type { ChangeEvent, ReactNode } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
-import { ArrowLeft, Check, FileText, RotateCcw, Save, Send, Upload, X } from "lucide-react"
+import {
+  ArrowLeft,
+  Check,
+  FileText,
+  RotateCcw,
+  Save,
+  Send,
+  Upload,
+  X,
+} from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -14,15 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import {
-  TableCell,
-  TableRow,
-} from "@workspace/ui/components/table"
+import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
 import type { Customer } from "../../api"
-import {
-  type CustomerFormValues,
-} from "../schemas"
+import { type CustomerFormValues } from "../schemas"
 import { optionsFor } from "../utils/form-utils"
 import { registrationStatusLabelKey } from "../utils/registration-status"
 
@@ -84,7 +88,9 @@ export function FieldGrid({
 
   if (bare) return content
 
-  return <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{content}</div>
+  return (
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{content}</div>
+  )
 }
 
 export function AvatarUploader({
@@ -165,38 +171,55 @@ export function RegistrationSubmittedBanner({
           </p>
         ) : null}
       </div>
-      <Button className="h-8 shrink-0" type="button" variant="secondary" onClick={onOpenWorkbench}>
+      <Button
+        className="h-8 shrink-0"
+        type="button"
+        variant="secondary"
+        onClick={onOpenWorkbench}
+      >
         {t("crm.customers.registrations.submitted_open_workbench")}
       </Button>
     </div>
   )
 }
 
-export function RegistrationStatusBar({ customer }: { customer: Customer | null }) {
+export function RegistrationStatusBar({
+  customer,
+}: {
+  customer: Customer | null
+}) {
   const { t } = useI18n()
   const status = customer?.status
   if (!status) return null
 
   const config: Record<string, { classes: string }> = {
     DRAFT: { classes: "border-amber-200 bg-amber-50 text-amber-700" },
-    NEEDS_CHANGES: { classes: "border-orange-200 bg-orange-50 text-orange-700" },
+    NEEDS_CHANGES: {
+      classes: "border-orange-200 bg-orange-50 text-orange-700",
+    },
     SUBMITTED: { classes: "border-sky-200 bg-sky-50 text-sky-700" },
     ACTIVE: { classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
     REJECTED: { classes: "border-red-200 bg-red-50 text-red-700" },
   }
 
-  const c = config[status] ?? { classes: "border-muted bg-muted/30 text-muted-foreground" }
+  const c = config[status] ?? {
+    classes: "border-muted bg-muted/30 text-muted-foreground",
+  }
   const labelKey = registrationStatusLabelKey(status)
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border bg-background px-3 py-2 text-xs">
-      <span className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-medium ${c.classes}`}>
+      <span
+        className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-medium ${c.classes}`}
+      >
         {labelKey ? t(labelKey) : status}
       </span>
       {customer.customerCode ? (
         <span className="text-muted-foreground">
           Mã hồ sơ:{" "}
-          <span className="font-mono font-semibold text-foreground">{customer.customerCode}</span>
+          <span className="font-mono font-semibold text-foreground">
+            {customer.customerCode}
+          </span>
         </span>
       ) : null}
       {customer.workflowCaseId ? (
@@ -208,7 +231,11 @@ export function RegistrationStatusBar({ customer }: { customer: Customer | null 
   )
 }
 
-export function RegistrationMetaBar({ customer }: { customer: Customer | null }) {
+export function RegistrationMetaBar({
+  customer,
+}: {
+  customer: Customer | null
+}) {
   if (!customer?.customerCode) return null
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
@@ -218,15 +245,20 @@ export function RegistrationMetaBar({ customer }: { customer: Customer | null })
       </span>
       {customer.workflowCaseId ? (
         <span className="text-muted-foreground">
-          Case BPM:{" "}
-          <span className="font-mono">{customer.workflowCaseId}</span>
+          Case BPM: <span className="font-mono">{customer.workflowCaseId}</span>
         </span>
       ) : null}
     </div>
   )
 }
 
-export function Panel({ title, children }: { title: string; children: ReactNode }) {
+export function Panel({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
   return (
     <section className="space-y-3 rounded-md border p-4">
       <h2 className="text-base font-semibold">{title}</h2>
@@ -254,11 +286,18 @@ export function Header({
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const variant = status === "ACTIVE" || status === "APPROVED" ? "default" : "secondary"
+  const variant =
+    status === "ACTIVE" || status === "APPROVED" ? "default" : "secondary"
   return <Badge variant={variant}>{status}</Badge>
 }
 
-export function EmptyTable({ colSpan, text }: { colSpan: number; text: string }) {
+export function EmptyTable({
+  colSpan,
+  text,
+}: {
+  colSpan: number
+  text: string
+}) {
   return (
     <TableRow>
       <TableCell
@@ -467,7 +506,12 @@ export function FooterActions({
           </Button>
         ) : null}
 
-        <Button className="h-8" type="button" variant="outline" onClick={onBack}>
+        <Button
+          className="h-8"
+          type="button"
+          variant="outline"
+          onClick={onBack}
+        >
           <ArrowLeft className="size-4" />
           Quay lại
         </Button>

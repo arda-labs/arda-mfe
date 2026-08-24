@@ -1,31 +1,31 @@
-"use client";
+"use client"
 
-import { Slot as SlotPrimitive } from "radix-ui";
-import * as React from "react";
-import { useComposedRefs } from "@workspace/ui/lib/compose-refs";
-import { cn } from "@workspace/ui/lib/utils";
+import { Slot as SlotPrimitive } from "radix-ui"
+import * as React from "react"
+import { useComposedRefs } from "@workspace/ui/lib/compose-refs"
+import { cn } from "@workspace/ui/lib/utils"
 
-const PAST_YEARS_LIMIT = 120;
-const FUTURE_YEARS_LIMIT = 10;
-const DEFAULT_CURRENCY = "USD";
-const DEFAULT_LOCALE = "en-US";
+const PAST_YEARS_LIMIT = 120
+const FUTURE_YEARS_LIMIT = 10
+const DEFAULT_CURRENCY = "USD"
+const DEFAULT_LOCALE = "en-US"
 
 const NUMERIC_MASK_PATTERNS =
-  /^(phone|zipCode|zipCodeExtended|ssn|ein|time|date|creditCard|creditCardExpiry)$/;
-const CURRENCY_PERCENTAGE_SYMBOLS = /[€$%]/;
+  /^(phone|zipCode|zipCodeExtended|ssn|ein|time|date|creditCard|creditCardExpiry)$/
+const CURRENCY_PERCENTAGE_SYMBOLS = /[€$%]/
 
 interface CurrencySymbols {
-  currency: string;
-  decimal: string;
-  group: string;
+  currency: string
+  decimal: string
+  group: string
 }
 
-const formattersCache = new Map<string, Intl.NumberFormat>();
-const currencyAtEndCache = new Map<string, boolean>();
-const currencySymbolsCache = new Map<string, CurrencySymbols>();
+const formattersCache = new Map<string, Intl.NumberFormat>()
+const currencyAtEndCache = new Map<string, boolean>()
+const currencySymbolsCache = new Map<string, CurrencySymbols>()
 const daysInMonthCache = [
   31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
-] as const;
+] as const
 
 const REGEX_CACHE = {
   digitsOnly: /^\d+$/,
@@ -49,19 +49,19 @@ const REGEX_CACHE = {
   macAddress: /^[A-F0-9]{12}$/,
   currencyValidation: /^\d+(\.\d{1,2})?$/,
   ipv4Segment: /^\d{1,3}$/,
-} as const;
+} as const
 
 function getCachedFormatter(
   locale: string | undefined,
-  opts: Intl.NumberFormatOptions,
+  opts: Intl.NumberFormatOptions
 ): Intl.NumberFormat {
   const {
     currency,
     minimumFractionDigits = 0,
     maximumFractionDigits = 2,
-  } = opts;
+  } = opts
 
-  const key = `${locale}|${currency}|${minimumFractionDigits}|${maximumFractionDigits}`;
+  const key = `${locale}|${currency}|${minimumFractionDigits}|${maximumFractionDigits}`
 
   if (!formattersCache.has(key)) {
     try {
@@ -71,8 +71,8 @@ function getCachedFormatter(
           style: "currency",
           currency,
           ...opts,
-        }),
-      );
+        })
+      )
     } catch {
       formattersCache.set(
         key,
@@ -80,45 +80,45 @@ function getCachedFormatter(
           style: "currency",
           currency: DEFAULT_CURRENCY,
           ...opts,
-        }),
-      );
+        })
+      )
     }
   }
 
-  const formatter = formattersCache.get(key);
+  const formatter = formattersCache.get(key)
   if (!formatter) {
-    throw new Error(`Failed to create formatter for ${key}`);
+    throw new Error(`Failed to create formatter for ${key}`)
   }
-  return formatter;
+  return formatter
 }
 
 function getCachedCurrencySymbols(opts: TransformOptions): CurrencySymbols {
-  const { locale, currency } = opts;
+  const { locale, currency } = opts
 
-  const key = `${locale}|${currency}`;
-  const cached = currencySymbolsCache.get(key);
+  const key = `${locale}|${currency}`
+  const cached = currencySymbolsCache.get(key)
   if (cached) {
-    return cached;
+    return cached
   }
 
-  let currencySymbol = "$";
-  let decimalSeparator = ".";
-  let groupSeparator = ",";
+  let currencySymbol = "$"
+  let decimalSeparator = "."
+  let groupSeparator = ","
 
   try {
     const formatter = getCachedFormatter(locale, {
       currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
-    });
-    const parts = formatter.formatToParts(1234.5);
-    const currencyPart = parts.find((part) => part.type === "currency");
-    const decimalPart = parts.find((part) => part.type === "decimal");
-    const groupPart = parts.find((part) => part.type === "group");
+    })
+    const parts = formatter.formatToParts(1234.5)
+    const currencyPart = parts.find((part) => part.type === "currency")
+    const decimalPart = parts.find((part) => part.type === "decimal")
+    const groupPart = parts.find((part) => part.type === "group")
 
-    if (currencyPart) currencySymbol = currencyPart.value;
-    if (decimalPart) decimalSeparator = decimalPart.value;
-    if (groupPart) groupSeparator = groupPart.value;
+    if (currencyPart) currencySymbol = currencyPart.value
+    if (decimalPart) decimalSeparator = decimalPart.value
+    if (groupPart) groupSeparator = groupPart.value
   } catch {
     // Keep defaults
   }
@@ -127,18 +127,18 @@ function getCachedCurrencySymbols(opts: TransformOptions): CurrencySymbols {
     currency: currencySymbol,
     decimal: decimalSeparator,
     group: groupSeparator,
-  };
-  currencySymbolsCache.set(key, symbols);
-  return symbols;
+  }
+  currencySymbolsCache.set(key, symbols)
+  return symbols
 }
 
 function isCurrencyAtEnd(opts: TransformOptions): boolean {
-  const { locale, currency } = opts;
+  const { locale, currency } = opts
 
-  const key = `${locale}|${currency}`;
-  const cached = currencyAtEndCache.get(key);
+  const key = `${locale}|${currency}`
+  const cached = currencyAtEndCache.get(key)
   if (cached !== undefined) {
-    return cached;
+    return cached
   }
 
   try {
@@ -146,43 +146,43 @@ function isCurrencyAtEnd(opts: TransformOptions): boolean {
       currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    });
-    const sample = formatter.format(123);
-    const result = REGEX_CACHE.currencyAtEnd.test(sample);
-    currencyAtEndCache.set(key, result);
-    return result;
+    })
+    const sample = formatter.format(123)
+    const result = REGEX_CACHE.currencyAtEnd.test(sample)
+    currencyAtEndCache.set(key, result)
+    return result
   } catch {
-    currencyAtEndCache.set(key, false);
-    return false;
+    currencyAtEndCache.set(key, false)
+    return false
   }
 }
 
 function isCurrencyMask(opts: {
-  mask: MaskPatternKey | MaskPattern | undefined;
-  pattern?: string;
+  mask: MaskPatternKey | MaskPattern | undefined
+  pattern?: string
 }): boolean {
-  const { mask, pattern } = opts;
+  const { mask, pattern } = opts
 
   return (
     mask === "currency" ||
     Boolean(pattern && (pattern.includes("$") || pattern.includes("€")))
-  );
+  )
 }
 
 interface TransformOptions {
-  currency?: string;
-  locale?: string;
+  currency?: string
+  locale?: string
 }
 
 interface ValidateOptions {
-  min?: number;
-  max?: number;
+  min?: number
+  max?: number
 }
 
 interface MaskPattern {
-  pattern: string;
-  transform?: (value: string, opts?: TransformOptions) => string;
-  validate?: (value: string, opts?: ValidateOptions) => boolean;
+  pattern: string
+  transform?: (value: string, opts?: TransformOptions) => string
+  validate?: (value: string, opts?: ValidateOptions) => boolean
 }
 
 type MaskPatternKey =
@@ -200,7 +200,7 @@ type MaskPatternKey =
   | "ipv4"
   | "macAddress"
   | "isbn"
-  | "ein";
+  | "ein"
 
 const MASK_PATTERNS: Record<MaskPatternKey, MaskPattern> = {
   phone: {
@@ -219,15 +219,15 @@ const MASK_PATTERNS: Record<MaskPatternKey, MaskPattern> = {
     pattern: "##/##/####",
     transform: (value) => value.replace(REGEX_CACHE.nonDigits, ""),
     validate: (value) => {
-      const cleaned = value.replace(REGEX_CACHE.nonDigits, "");
-      if (cleaned.length !== 8) return false;
-      const month = parseInt(cleaned.substring(0, 2), 10);
-      const day = parseInt(cleaned.substring(2, 4), 10);
-      const year = parseInt(cleaned.substring(4, 8), 10);
+      const cleaned = value.replace(REGEX_CACHE.nonDigits, "")
+      if (cleaned.length !== 8) return false
+      const month = parseInt(cleaned.substring(0, 2), 10)
+      const day = parseInt(cleaned.substring(2, 4), 10)
+      const year = parseInt(cleaned.substring(4, 8), 10)
 
-      const currentYear = new Date().getFullYear();
-      const minYear = currentYear - PAST_YEARS_LIMIT;
-      const maxYear = currentYear + FUTURE_YEARS_LIMIT;
+      const currentYear = new Date().getFullYear()
+      const minYear = currentYear - PAST_YEARS_LIMIT
+      const maxYear = currentYear + FUTURE_YEARS_LIMIT
       if (
         month < 1 ||
         month > 12 ||
@@ -235,84 +235,84 @@ const MASK_PATTERNS: Record<MaskPatternKey, MaskPattern> = {
         year < minYear ||
         year > maxYear
       )
-        return false;
+        return false
 
       const maxDays =
         month === 2 &&
         ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0)
           ? 29
-          : (daysInMonthCache[month - 1] ?? 31);
+          : (daysInMonthCache[month - 1] ?? 31)
 
-      return day <= maxDays;
+      return day <= maxDays
     },
   },
   time: {
     pattern: "##:##",
     transform: (value) => value.replace(REGEX_CACHE.nonDigits, ""),
     validate: (value) => {
-      const cleaned = value.replace(REGEX_CACHE.nonDigits, "");
-      if (!REGEX_CACHE.time.test(cleaned)) return false;
-      const hours = parseInt(cleaned.substring(0, 2), 10);
-      const minutes = parseInt(cleaned.substring(2, 4), 10);
-      return hours <= 23 && minutes <= 59;
+      const cleaned = value.replace(REGEX_CACHE.nonDigits, "")
+      if (!REGEX_CACHE.time.test(cleaned)) return false
+      const hours = parseInt(cleaned.substring(0, 2), 10)
+      const minutes = parseInt(cleaned.substring(2, 4), 10)
+      return hours <= 23 && minutes <= 59
     },
   },
   creditCard: {
     pattern: "#### #### #### ####",
     transform: (value) => value.replace(REGEX_CACHE.nonDigits, ""),
     validate: (value) => {
-      const cleaned = value.replace(REGEX_CACHE.nonDigits, "");
-      if (!REGEX_CACHE.creditCard.test(cleaned)) return false;
+      const cleaned = value.replace(REGEX_CACHE.nonDigits, "")
+      if (!REGEX_CACHE.creditCard.test(cleaned)) return false
 
-      let sum = 0;
-      let isEven = false;
+      let sum = 0
+      let isEven = false
       for (let i = cleaned.length - 1; i >= 0; i--) {
-        const digitChar = cleaned[i];
-        if (!digitChar) continue;
-        let digit = parseInt(digitChar, 10);
+        const digitChar = cleaned[i]
+        if (!digitChar) continue
+        let digit = parseInt(digitChar, 10)
         if (isEven) {
-          digit *= 2;
+          digit *= 2
           if (digit > 9) {
-            digit -= 9;
+            digit -= 9
           }
         }
-        sum += digit;
-        isEven = !isEven;
+        sum += digit
+        isEven = !isEven
       }
-      return sum % 10 === 0;
+      return sum % 10 === 0
     },
   },
   creditCardExpiry: {
     pattern: "##/##",
     transform: (value) => value.replace(REGEX_CACHE.nonDigits, ""),
     validate: (value) => {
-      const cleaned = value.replace(REGEX_CACHE.nonDigits, "");
-      if (!REGEX_CACHE.creditCardExpiry.test(cleaned)) return false;
+      const cleaned = value.replace(REGEX_CACHE.nonDigits, "")
+      if (!REGEX_CACHE.creditCardExpiry.test(cleaned)) return false
 
-      const month = parseInt(cleaned.substring(0, 2), 10);
-      const year = parseInt(cleaned.substring(2, 4), 10);
+      const month = parseInt(cleaned.substring(0, 2), 10)
+      const year = parseInt(cleaned.substring(2, 4), 10)
 
-      if (month < 1 || month > 12) return false;
+      if (month < 1 || month > 12) return false
 
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1;
+      const now = new Date()
+      const currentYear = now.getFullYear()
+      const currentMonth = now.getMonth() + 1
 
-      const fullYear = year <= 75 ? 2000 + year : 1900 + year;
+      const fullYear = year <= 75 ? 2000 + year : 1900 + year
 
       if (
         fullYear < currentYear ||
         (fullYear === currentYear && month < currentMonth)
       ) {
-        return false;
+        return false
       }
 
-      const maxYear = currentYear + 50;
+      const maxYear = currentYear + 50
       if (fullYear > maxYear) {
-        return false;
+        return false
       }
 
-      return true;
+      return true
     },
   },
   zipCode: {
@@ -326,86 +326,86 @@ const MASK_PATTERNS: Record<MaskPatternKey, MaskPattern> = {
     transform: (value) => value.replace(REGEX_CACHE.nonDigits, ""),
     validate: (value) =>
       REGEX_CACHE.zipCodeExtended.test(
-        value.replace(REGEX_CACHE.nonDigits, ""),
+        value.replace(REGEX_CACHE.nonDigits, "")
       ),
   },
   currency: {
     pattern: "$###,###.##",
     transform: (
       value,
-      { currency = DEFAULT_CURRENCY, locale = DEFAULT_LOCALE } = {},
+      { currency = DEFAULT_CURRENCY, locale = DEFAULT_LOCALE } = {}
     ) => {
-      let localeDecimalSeparator = ".";
+      let localeDecimalSeparator = "."
 
       try {
         const formatter = getCachedFormatter(locale, {
           currency,
           minimumFractionDigits: 0,
           maximumFractionDigits: 2,
-        });
-        const parts = formatter.formatToParts(1234.5);
-        const decimalPart = parts.find((part) => part.type === "decimal");
+        })
+        const parts = formatter.formatToParts(1234.5)
+        const decimalPart = parts.find((part) => part.type === "decimal")
 
-        if (decimalPart) localeDecimalSeparator = decimalPart.value;
+        if (decimalPart) localeDecimalSeparator = decimalPart.value
       } catch {
         // Keep defaults
       }
 
-      const cleaned = value.replace(REGEX_CACHE.nonCurrencyChars, "");
+      const cleaned = value.replace(REGEX_CACHE.nonCurrencyChars, "")
 
-      const dotIndex = cleaned.indexOf(".");
-      const commaIndex = cleaned.indexOf(",");
+      const dotIndex = cleaned.indexOf(".")
+      const commaIndex = cleaned.indexOf(",")
 
-      let hasDecimalSeparator = false;
-      let decimalIndex = -1;
+      let hasDecimalSeparator = false
+      let decimalIndex = -1
 
       if (localeDecimalSeparator === ",") {
-        const lastCommaIndex = cleaned.lastIndexOf(",");
+        const lastCommaIndex = cleaned.lastIndexOf(",")
         if (lastCommaIndex !== -1) {
-          const afterComma = cleaned.substring(lastCommaIndex + 1);
+          const afterComma = cleaned.substring(lastCommaIndex + 1)
           if (afterComma.length <= 2 && /^\d*$/.test(afterComma)) {
-            hasDecimalSeparator = true;
-            decimalIndex = lastCommaIndex;
+            hasDecimalSeparator = true
+            decimalIndex = lastCommaIndex
           }
         }
 
         if (!hasDecimalSeparator && dotIndex !== -1) {
-          const afterDot = cleaned.substring(dotIndex + 1);
+          const afterDot = cleaned.substring(dotIndex + 1)
           if (afterDot.length <= 2 && /^\d*$/.test(afterDot)) {
-            hasDecimalSeparator = true;
-            decimalIndex = dotIndex;
+            hasDecimalSeparator = true
+            decimalIndex = dotIndex
           }
         }
 
         if (!hasDecimalSeparator && cleaned.length >= 4) {
-          const match = cleaned.match(/^(\d+)\.(\d{3})(\d{1,2})$/);
+          const match = cleaned.match(/^(\d+)\.(\d{3})(\d{1,2})$/)
           if (match) {
-            const [, beforeDot, thousandsPart, decimalPart] = match;
-            const integerPart = (beforeDot ?? "") + (thousandsPart ?? "");
-            const result = `${integerPart}.${decimalPart}`;
-            return result;
+            const [, beforeDot, thousandsPart, decimalPart] = match
+            const integerPart = (beforeDot ?? "") + (thousandsPart ?? "")
+            const result = `${integerPart}.${decimalPart}`
+            return result
           }
         }
       } else {
-        const lastDotIndex = cleaned.lastIndexOf(".");
+        const lastDotIndex = cleaned.lastIndexOf(".")
         if (lastDotIndex !== -1) {
-          const afterDot = cleaned.substring(lastDotIndex + 1);
+          const afterDot = cleaned.substring(lastDotIndex + 1)
           if (afterDot.length <= 2 && /^\d*$/.test(afterDot)) {
-            hasDecimalSeparator = true;
-            decimalIndex = lastDotIndex;
+            hasDecimalSeparator = true
+            decimalIndex = lastDotIndex
           }
         }
 
         if (!hasDecimalSeparator && commaIndex !== -1) {
-          const afterComma = cleaned.substring(commaIndex + 1);
-          const looksLikeThousands = commaIndex <= 3 && afterComma.length >= 3;
+          const afterComma = cleaned.substring(commaIndex + 1)
+          const looksLikeThousands = commaIndex <= 3 && afterComma.length >= 3
           if (
             !looksLikeThousands &&
             afterComma.length <= 2 &&
             /^\d*$/.test(afterComma)
           ) {
-            hasDecimalSeparator = true;
-            decimalIndex = commaIndex;
+            hasDecimalSeparator = true
+            decimalIndex = commaIndex
           }
         }
       }
@@ -413,47 +413,47 @@ const MASK_PATTERNS: Record<MaskPatternKey, MaskPattern> = {
       if (hasDecimalSeparator && decimalIndex !== -1) {
         const beforeDecimal = cleaned
           .substring(0, decimalIndex)
-          .replace(/[.,]/g, "");
+          .replace(/[.,]/g, "")
         const afterDecimal = cleaned
           .substring(decimalIndex + 1)
-          .replace(/[.,]/g, "");
+          .replace(/[.,]/g, "")
 
         if (afterDecimal === "") {
-          const result = `${beforeDecimal}.`;
-          return result;
+          const result = `${beforeDecimal}.`
+          return result
         }
 
-        const result = `${beforeDecimal}.${afterDecimal.substring(0, 2)}`;
-        return result;
+        const result = `${beforeDecimal}.${afterDecimal.substring(0, 2)}`
+        return result
       }
 
-      const digitsOnly = cleaned.replace(/[.,]/g, "");
-      return digitsOnly;
+      const digitsOnly = cleaned.replace(/[.,]/g, "")
+      return digitsOnly
     },
     validate: (value) => {
-      if (!REGEX_CACHE.currencyValidation.test(value)) return false;
-      const num = parseFloat(value);
-      return !Number.isNaN(num) && num >= 0;
+      if (!REGEX_CACHE.currencyValidation.test(value)) return false
+      const num = parseFloat(value)
+      return !Number.isNaN(num) && num >= 0
     },
   },
   percentage: {
     pattern: "##.##%",
     transform: (value) => {
-      const cleaned = value.replace(REGEX_CACHE.percentageChars, "");
-      const parts = cleaned.split(".");
+      const cleaned = value.replace(REGEX_CACHE.percentageChars, "")
+      const parts = cleaned.split(".")
       if (parts.length > 2) {
-        return `${parts[0]}.${parts.slice(1).join("")}`;
+        return `${parts[0]}.${parts.slice(1).join("")}`
       }
       if (parts[1] && parts[1].length > 2) {
-        return `${parts[0]}.${parts[1].substring(0, 2)}`;
+        return `${parts[0]}.${parts[1].substring(0, 2)}`
       }
-      return cleaned;
+      return cleaned
     },
     validate: (value, opts = {}) => {
-      const num = parseFloat(value);
-      const min = opts.min ?? 0;
-      const max = opts.max ?? 100;
-      return !Number.isNaN(num) && num >= min && num <= max;
+      const num = parseFloat(value)
+      const min = opts.min ?? 0
+      const max = opts.max ?? 100
+      return !Number.isNaN(num) && num >= min && num <= max
     },
   },
   licensePlate: {
@@ -467,30 +467,30 @@ const MASK_PATTERNS: Record<MaskPatternKey, MaskPattern> = {
     transform: (value) => value.replace(REGEX_CACHE.nonNumericDot, ""),
     validate: (value) => {
       if (value.includes(".")) {
-        const segments = value.split(".");
-        if (segments.length > 4) return false;
+        const segments = value.split(".")
+        if (segments.length > 4) return false
 
         return segments.every((segment) => {
-          if (segment === "") return true;
-          if (!REGEX_CACHE.ipv4Segment.test(segment)) return false;
-          const num = parseInt(segment, 10);
-          return num <= 255;
-        });
+          if (segment === "") return true
+          if (!REGEX_CACHE.ipv4Segment.test(segment)) return false
+          const num = parseInt(segment, 10)
+          return num <= 255
+        })
       } else {
-        if (!REGEX_CACHE.digitsOnly.test(value)) return false;
-        if (value.length > 12) return false;
+        if (!REGEX_CACHE.digitsOnly.test(value)) return false
+        if (value.length > 12) return false
 
-        const chunks = [];
+        const chunks = []
         for (let i = 0; i < value.length; i += 3) {
-          chunks.push(value.substring(i, i + 3));
+          chunks.push(value.substring(i, i + 3))
         }
 
-        if (chunks.length > 4) return false;
+        if (chunks.length > 4) return false
 
         return chunks.every((chunk) => {
-          const num = parseInt(chunk, 10);
-          return num >= 0 && num <= 255;
-        });
+          const num = parseInt(chunk, 10)
+          return num >= 0 && num <= 255
+        })
       }
     },
   },
@@ -512,204 +512,204 @@ const MASK_PATTERNS: Record<MaskPatternKey, MaskPattern> = {
     validate: (value) =>
       REGEX_CACHE.ein.test(value.replace(REGEX_CACHE.nonDigits, "")),
   },
-};
+}
 
 function applyMask(opts: {
-  value: string;
-  pattern: string;
-  currency?: string;
-  locale?: string;
-  mask?: MaskPatternKey | MaskPattern;
+  value: string
+  pattern: string
+  currency?: string
+  locale?: string
+  mask?: MaskPatternKey | MaskPattern
 }): string {
-  const { value, pattern, currency, locale, mask } = opts;
+  const { value, pattern, currency, locale, mask } = opts
 
-  const cleanValue = value;
+  const cleanValue = value
 
   if (pattern.includes("$") || pattern.includes("€") || mask === "currency") {
     return applyCurrencyMask({
       value: cleanValue,
       currency: currency ?? DEFAULT_CURRENCY,
       locale: locale ?? DEFAULT_LOCALE,
-    });
+    })
   }
 
   if (pattern.includes("%")) {
-    return applyPercentageMask(cleanValue);
+    return applyPercentageMask(cleanValue)
   }
 
   if (mask === "ipv4") {
-    return cleanValue;
+    return cleanValue
   }
 
-  const maskedChars: string[] = [];
-  let valueIndex = 0;
+  const maskedChars: string[] = []
+  let valueIndex = 0
 
   for (let i = 0; i < pattern.length && valueIndex < cleanValue.length; i++) {
-    const patternChar = pattern[i];
-    const valueChar = cleanValue[valueIndex];
+    const patternChar = pattern[i]
+    const valueChar = cleanValue[valueIndex]
 
     if (patternChar === "#" && valueChar) {
-      maskedChars.push(valueChar);
-      valueIndex++;
+      maskedChars.push(valueChar)
+      valueIndex++
     } else if (patternChar) {
-      maskedChars.push(patternChar);
+      maskedChars.push(patternChar)
     }
   }
 
-  return maskedChars.join("");
+  return maskedChars.join("")
 }
 
 function applyCurrencyMask(opts: {
-  value: string;
-  currency?: string;
-  locale?: string;
+  value: string
+  currency?: string
+  locale?: string
 }): string {
-  const { value, currency = DEFAULT_CURRENCY, locale = DEFAULT_LOCALE } = opts;
+  const { value, currency = DEFAULT_CURRENCY, locale = DEFAULT_LOCALE } = opts
 
-  if (!value) return "";
+  if (!value) return ""
 
   const {
     currency: currencySymbol,
     decimal: decimalSeparator,
     group: groupSeparator,
-  } = getCachedCurrencySymbols({ locale, currency });
+  } = getCachedCurrencySymbols({ locale, currency })
 
   const normalizedValue = value
     .replace(
       new RegExp(
         `\\${groupSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-        "g",
+        "g"
       ),
-      "",
+      ""
     )
-    .replace(decimalSeparator, ".");
+    .replace(decimalSeparator, ".")
 
-  const parts = normalizedValue.split(".");
-  const integerPart = parts[0] ?? "";
-  const fractionalPart = parts[1] ?? "";
+  const parts = normalizedValue.split(".")
+  const integerPart = parts[0] ?? ""
+  const fractionalPart = parts[1] ?? ""
 
-  if (!integerPart && !fractionalPart) return "";
+  if (!integerPart && !fractionalPart) return ""
 
-  const intValue = integerPart ?? "0";
-  const fracValue = fractionalPart.slice(0, 2);
+  const intValue = integerPart ?? "0"
+  const fracValue = fractionalPart.slice(0, 2)
 
-  const num = Number(`${intValue}.${fracValue ?? ""}`);
+  const num = Number(`${intValue}.${fracValue ?? ""}`)
 
   if (Number.isNaN(num)) {
-    const cleanedDigits = value.replace(/[^\d]/g, "");
-    if (!cleanedDigits) return "";
-    return `${currencySymbol}${cleanedDigits}`;
+    const cleanedDigits = value.replace(/[^\d]/g, "")
+    if (!cleanedDigits) return ""
+    return `${currencySymbol}${cleanedDigits}`
   }
 
   const hasExplicitDecimal =
-    value.includes(".") || value.includes(decimalSeparator);
+    value.includes(".") || value.includes(decimalSeparator)
 
   try {
     const formatter = getCachedFormatter(locale, {
       currency,
       minimumFractionDigits: fracValue ? fracValue.length : 0,
       maximumFractionDigits: 2,
-    });
-    const result = formatter.format(num);
+    })
+    const result = formatter.format(num)
 
     if (hasExplicitDecimal && !fracValue) {
       if (result.match(/^[^\d\s]+/)) {
-        const finalResult = result.replace(/(\d)$/, `$1${decimalSeparator}`);
-        return finalResult;
+        const finalResult = result.replace(/(\d)$/, `$1${decimalSeparator}`)
+        return finalResult
       } else {
         const finalResult = result.replace(
           /(\d)(\s*)([^\d\s]+)$/,
-          `$1${decimalSeparator}$2$3`,
-        );
-        return finalResult;
+          `$1${decimalSeparator}$2$3`
+        )
+        return finalResult
       }
     }
 
-    return result;
+    return result
   } catch {
     const formattedInt = intValue.replace(
       /\B(?=(\d{3})+(?!\d))/g,
-      groupSeparator,
-    );
-    let result = `${currencySymbol}${formattedInt}`;
+      groupSeparator
+    )
+    let result = `${currencySymbol}${formattedInt}`
     if (hasExplicitDecimal) {
-      result += `${decimalSeparator}${fracValue}`;
+      result += `${decimalSeparator}${fracValue}`
     }
 
-    return result;
+    return result
   }
 }
 
 function applyPercentageMask(value: string): string {
-  if (!value) return "";
+  if (!value) return ""
 
-  const parts = value.split(".");
-  let result = parts[0] ?? "0";
+  const parts = value.split(".")
+  let result = parts[0] ?? "0"
 
   if (value.includes(".")) {
-    result += `.${(parts[1] ?? "").substring(0, 2)}`;
+    result += `.${(parts[1] ?? "").substring(0, 2)}`
   }
 
-  return `${result}%`;
+  return `${result}%`
 }
 
 function getUnmaskedValue(opts: {
-  value: string;
-  currency?: string;
-  locale?: string;
-  transform?: (value: string, opts?: TransformOptions) => string;
+  value: string
+  currency?: string
+  locale?: string
+  transform?: (value: string, opts?: TransformOptions) => string
 }): string {
-  const { value, transform, currency, locale } = opts;
+  const { value, transform, currency, locale } = opts
 
   return transform
     ? transform(value, { currency, locale })
-    : value.replace(REGEX_CACHE.nonDigits, "");
+    : value.replace(REGEX_CACHE.nonDigits, "")
 }
 
 function toUnmaskedIndex(opts: {
-  masked: string;
-  pattern: string;
-  caret: number;
+  masked: string
+  pattern: string
+  caret: number
 }): number {
-  const { masked, pattern, caret } = opts;
+  const { masked, pattern, caret } = opts
 
-  let idx = 0;
+  let idx = 0
   for (let i = 0; i < caret && i < masked.length && i < pattern.length; i++) {
     if (pattern[i] === "#") {
-      idx++;
+      idx++
     }
   }
 
-  return idx;
+  return idx
 }
 
 function fromUnmaskedIndex(opts: {
-  masked: string;
-  pattern: string;
-  unmaskedIndex: number;
+  masked: string
+  pattern: string
+  unmaskedIndex: number
 }): number {
-  const { masked, pattern, unmaskedIndex } = opts;
+  const { masked, pattern, unmaskedIndex } = opts
 
-  let seen = 0;
+  let seen = 0
   for (let i = 0; i < masked.length && i < pattern.length; i++) {
     if (pattern[i] === "#") {
-      seen++;
+      seen++
       if (seen === unmaskedIndex) {
-        return i + 1;
+        return i + 1
       }
     }
   }
 
-  return masked.length;
+  return masked.length
 }
 
 function getCurrencyCaretPosition(opts: {
-  newValue: string;
-  mask: MaskPatternKey | MaskPattern | undefined;
-  transformOpts: TransformOptions;
-  oldCursorPosition?: number;
-  oldValue?: string;
-  previousUnmasked?: string;
+  newValue: string
+  mask: MaskPatternKey | MaskPattern | undefined
+  transformOpts: TransformOptions
+  oldCursorPosition?: number
+  oldValue?: string
+  previousUnmasked?: string
 }): number {
   const {
     newValue,
@@ -718,7 +718,7 @@ function getCurrencyCaretPosition(opts: {
     oldCursorPosition,
     oldValue,
     previousUnmasked,
-  } = opts;
+  } = opts
 
   if (
     oldCursorPosition !== undefined &&
@@ -728,14 +728,14 @@ function getCurrencyCaretPosition(opts: {
     if (oldCursorPosition < oldValue.length) {
       const digitsBeforeCursor = oldValue
         .substring(0, oldCursorPosition)
-        .replace(/\D/g, "").length;
+        .replace(/\D/g, "").length
 
-      let digitCount = 0;
+      let digitCount = 0
       for (let i = 0; i < newValue.length; i++) {
         if (/\d/.test(newValue[i] ?? "")) {
-          digitCount++;
+          digitCount++
           if (digitCount === digitsBeforeCursor) {
-            return i + 1;
+            return i + 1
           }
         }
       }
@@ -743,29 +743,29 @@ function getCurrencyCaretPosition(opts: {
   }
 
   if (mask === "currency") {
-    const currencyAtEnd = isCurrencyAtEnd(transformOpts);
+    const currencyAtEnd = isCurrencyAtEnd(transformOpts)
     if (currencyAtEnd) {
-      const match = newValue.match(/(\d)\s*([^\d\s]+)$/);
+      const match = newValue.match(/(\d)\s*([^\d\s]+)$/)
       if (match?.[1]) {
-        return newValue.lastIndexOf(match[1]) + 1;
+        return newValue.lastIndexOf(match[1]) + 1
       } else {
-        return newValue.length;
+        return newValue.length
       }
     } else {
-      return newValue.length;
+      return newValue.length
     }
   } else {
-    return newValue.length;
+    return newValue.length
   }
 }
 
 function getPatternCaretPosition(opts: {
-  newValue: string;
-  maskPattern: MaskPattern;
-  currentUnmasked: string;
-  oldCursorPosition?: number;
-  oldValue?: string;
-  previousUnmasked?: string;
+  newValue: string
+  maskPattern: MaskPattern
+  currentUnmasked: string
+  oldCursorPosition?: number
+  oldValue?: string
+  previousUnmasked?: string
 }): number {
   const {
     newValue,
@@ -774,9 +774,9 @@ function getPatternCaretPosition(opts: {
     oldCursorPosition,
     oldValue,
     previousUnmasked,
-  } = opts;
-  let position = 0;
-  let unmaskedCount = 0;
+  } = opts
+  let position = 0
+  let unmaskedCount = 0
 
   if (
     oldCursorPosition !== undefined &&
@@ -787,13 +787,13 @@ function getPatternCaretPosition(opts: {
       masked: oldValue,
       pattern: maskPattern.pattern,
       caret: oldCursorPosition,
-    });
+    })
 
     if (oldCursorPosition < oldValue.length) {
       const targetUnmaskedIndex = Math.min(
         oldUnmaskedIndex,
-        currentUnmasked.length,
-      );
+        currentUnmasked.length
+      )
 
       for (
         let i = 0;
@@ -801,44 +801,44 @@ function getPatternCaretPosition(opts: {
         i++
       ) {
         if (maskPattern.pattern[i] === "#") {
-          unmaskedCount++;
+          unmaskedCount++
           if (unmaskedCount <= targetUnmaskedIndex) {
-            position = i + 1;
+            position = i + 1
           }
         }
       }
 
-      return position;
+      return position
     }
   }
 
   for (let i = 0; i < maskPattern.pattern.length && i < newValue.length; i++) {
     if (maskPattern.pattern[i] === "#") {
-      unmaskedCount++;
+      unmaskedCount++
       if (unmaskedCount <= currentUnmasked.length) {
-        position = i + 1;
+        position = i + 1
       }
     }
   }
 
-  return position;
+  return position
 }
 
-type InputElement = React.ComponentRef<"input">;
+type InputElement = React.ComponentRef<"input">
 
 interface MaskInputProps extends React.ComponentProps<"input"> {
-  value?: string;
-  defaultValue?: string;
-  onValueChange?: (maskedValue: string, unmaskedValue: string) => void;
-  onValidate?: (isValid: boolean, unmaskedValue: string) => void;
-  validationMode?: "onChange" | "onBlur" | "onSubmit" | "onTouched" | "all";
-  mask?: MaskPatternKey | MaskPattern;
-  maskPlaceholder?: string;
-  currency?: string;
-  locale?: string;
-  asChild?: boolean;
-  invalid?: boolean;
-  withoutMask?: boolean;
+  value?: string
+  defaultValue?: string
+  onValueChange?: (maskedValue: string, unmaskedValue: string) => void
+  onValidate?: (isValid: boolean, unmaskedValue: string) => void
+  validationMode?: "onChange" | "onBlur" | "onSubmit" | "onTouched" | "all"
+  mask?: MaskPatternKey | MaskPattern
+  maskPlaceholder?: string
+  currency?: string
+  locale?: string
+  asChild?: boolean
+  invalid?: boolean
+  withoutMask?: boolean
 }
 
 function MaskInput(props: MaskInputProps) {
@@ -872,142 +872,142 @@ function MaskInput(props: MaskInputProps) {
     className,
     ref,
     ...inputProps
-  } = props;
+  } = props
 
-  const [internalValue, setInternalValue] = React.useState(defaultValue ?? "");
-  const [focused, setFocused] = React.useState(false);
-  const [composing, setComposing] = React.useState(false);
-  const [touched, setTouched] = React.useState(false);
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const composedRef = useComposedRefs(ref, inputRef);
+  const [internalValue, setInternalValue] = React.useState(defaultValue ?? "")
+  const [focused, setFocused] = React.useState(false)
+  const [composing, setComposing] = React.useState(false)
+  const [touched, setTouched] = React.useState(false)
+  const inputRef = React.useRef<HTMLInputElement>(null)
+  const composedRef = useComposedRefs(ref, inputRef)
 
-  const isControlled = valueProp !== undefined;
-  const value = isControlled ? valueProp : internalValue;
+  const isControlled = valueProp !== undefined
+  const value = isControlled ? valueProp : internalValue
 
   const maskPattern = React.useMemo(() => {
     if (typeof mask === "string") {
-      return MASK_PATTERNS[mask];
+      return MASK_PATTERNS[mask]
     }
-    return mask;
-  }, [mask]);
+    return mask
+  }, [mask])
 
   const transformOpts = React.useMemo(
     () => ({
       currency,
       locale,
     }),
-    [currency, locale],
-  );
+    [currency, locale]
+  )
 
   const placeholderValue = React.useMemo(() => {
-    if (withoutMask) return placeholder;
+    if (withoutMask) return placeholder
 
     if (placeholder && maskPlaceholder) {
-      return focused ? maskPlaceholder : placeholder;
+      return focused ? maskPlaceholder : placeholder
     }
 
     if (maskPlaceholder) {
-      return focused ? maskPlaceholder : undefined;
+      return focused ? maskPlaceholder : undefined
     }
 
-    return placeholder;
-  }, [placeholder, maskPlaceholder, focused, withoutMask]);
+    return placeholder
+  }, [placeholder, maskPlaceholder, focused, withoutMask])
 
   const displayValue = React.useMemo(() => {
-    if (withoutMask || !maskPattern || !value) return value ?? "";
+    if (withoutMask || !maskPattern || !value) return value ?? ""
     const unmasked = getUnmaskedValue({
       value,
       transform: maskPattern.transform,
       ...transformOpts,
-    });
+    })
     return applyMask({
       value: unmasked,
       pattern: maskPattern.pattern,
       ...transformOpts,
       mask,
-    });
-  }, [value, maskPattern, withoutMask, transformOpts, mask]);
+    })
+  }, [value, maskPattern, withoutMask, transformOpts, mask])
 
   const tokenCount = React.useMemo(() => {
     if (!maskPattern || CURRENCY_PERCENTAGE_SYMBOLS.test(maskPattern.pattern))
-      return undefined;
-    return maskPattern.pattern.match(REGEX_CACHE.hashPattern)?.length ?? 0;
-  }, [maskPattern]);
+      return undefined
+    return maskPattern.pattern.match(REGEX_CACHE.hashPattern)?.length ?? 0
+  }, [maskPattern])
 
   const calculatedMaxLength = tokenCount
     ? maskPattern?.pattern.length
-    : maxLength;
+    : maxLength
 
   const calculatedInputMode = React.useMemo(() => {
-    if (inputMode) return inputMode;
-    if (!maskPattern) return undefined;
+    if (inputMode) return inputMode
+    if (!maskPattern) return undefined
 
     if (mask === "currency" || mask === "percentage" || mask === "ipv4") {
-      return "decimal";
+      return "decimal"
     }
 
     if (typeof mask === "string" && NUMERIC_MASK_PATTERNS.test(mask)) {
-      return "numeric";
+      return "numeric"
     }
-    return undefined;
-  }, [maskPattern, mask, inputMode]);
+    return undefined
+  }, [maskPattern, mask, inputMode])
 
   const shouldValidate = React.useCallback(
     (trigger: "change" | "blur") => {
-      if (!onValidate || !maskPattern?.validate) return false;
+      if (!onValidate || !maskPattern?.validate) return false
 
       switch (validationMode) {
         case "onChange":
-          return trigger === "change";
+          return trigger === "change"
         case "onBlur":
-          return trigger === "blur";
+          return trigger === "blur"
         case "onSubmit":
-          return false;
+          return false
         case "onTouched":
-          return touched ? trigger === "change" : trigger === "blur";
+          return touched ? trigger === "change" : trigger === "blur"
         case "all":
-          return true;
+          return true
         default:
-          return trigger === "change";
+          return trigger === "change"
       }
     },
-    [onValidate, maskPattern, validationMode, touched],
-  );
+    [onValidate, maskPattern, validationMode, touched]
+  )
 
   const validationOpts = React.useMemo(
     () => ({
       min: typeof min === "string" ? parseFloat(min) : min,
       max: typeof max === "string" ? parseFloat(max) : max,
     }),
-    [min, max],
-  );
+    [min, max]
+  )
 
   const onInputValidate = React.useCallback(
     (unmaskedValue: string) => {
       if (onValidate && maskPattern?.validate) {
-        const isValid = maskPattern.validate(unmaskedValue, validationOpts);
-        onValidate(isValid, unmaskedValue);
+        const isValid = maskPattern.validate(unmaskedValue, validationOpts)
+        onValidate(isValid, unmaskedValue)
       }
     },
-    [onValidate, maskPattern?.validate, validationOpts],
-  );
+    [onValidate, maskPattern?.validate, validationOpts]
+  )
 
   const onValueChange = React.useCallback(
     (event: React.ChangeEvent<InputElement>) => {
-      const inputValue = event.target.value;
-      let newValue = inputValue;
-      let unmaskedValue = inputValue;
+      const inputValue = event.target.value
+      let newValue = inputValue
+      let unmaskedValue = inputValue
 
       if (composing) {
-        if (!isControlled) setInternalValue(inputValue);
-        return;
+        if (!isControlled) setInternalValue(inputValue)
+        return
       }
 
       if (withoutMask || !maskPattern) {
-        if (!isControlled) setInternalValue(inputValue);
-        if (shouldValidate("change")) onValidate?.(true, inputValue);
-        onValueChangeProp?.(inputValue, inputValue);
-        return;
+        if (!isControlled) setInternalValue(inputValue)
+        if (shouldValidate("change")) onValidate?.(true, inputValue)
+        onValueChangeProp?.(inputValue, inputValue)
+        return
       }
 
       if (maskPattern) {
@@ -1015,35 +1015,35 @@ function MaskInput(props: MaskInputProps) {
           value: inputValue,
           transform: maskPattern.transform,
           ...transformOpts,
-        });
+        })
         newValue = applyMask({
           value: unmaskedValue,
           pattern: maskPattern.pattern,
           ...transformOpts,
           mask,
-        });
+        })
 
         if (inputRef.current && newValue !== inputValue) {
-          const inputElement = inputRef.current;
-          if (!(inputElement instanceof HTMLInputElement)) return;
+          const inputElement = inputRef.current
+          if (!(inputElement instanceof HTMLInputElement)) return
 
-          const oldCursorPosition = inputElement.selectionStart ?? 0;
+          const oldCursorPosition = inputElement.selectionStart ?? 0
 
-          inputElement.value = newValue;
+          inputElement.value = newValue
 
           const currentUnmasked = getUnmaskedValue({
             value: newValue,
             transform: maskPattern.transform,
             ...transformOpts,
-          });
+          })
 
-          let newCursorPosition: number;
+          let newCursorPosition: number
 
           const previousUnmasked = getUnmaskedValue({
             value,
             transform: maskPattern.transform,
             ...transformOpts,
-          });
+          })
 
           if (CURRENCY_PERCENTAGE_SYMBOLS.test(maskPattern.pattern)) {
             newCursorPosition = getCurrencyCaretPosition({
@@ -1053,7 +1053,7 @@ function MaskInput(props: MaskInputProps) {
               oldCursorPosition,
               oldValue: inputValue,
               previousUnmasked,
-            });
+            })
           } else {
             newCursorPosition = getPatternCaretPosition({
               newValue,
@@ -1062,40 +1062,37 @@ function MaskInput(props: MaskInputProps) {
               oldCursorPosition,
               oldValue: inputValue,
               previousUnmasked,
-            });
+            })
           }
 
           if (isCurrencyMask({ mask, pattern: maskPattern.pattern })) {
             if (mask === "currency") {
-              const currencyAtEnd = isCurrencyAtEnd(transformOpts);
+              const currencyAtEnd = isCurrencyAtEnd(transformOpts)
               if (!currencyAtEnd) {
-                newCursorPosition = Math.max(1, newCursorPosition);
+                newCursorPosition = Math.max(1, newCursorPosition)
               }
             } else {
-              newCursorPosition = Math.max(1, newCursorPosition);
+              newCursorPosition = Math.max(1, newCursorPosition)
             }
           } else if (maskPattern.pattern.includes("%")) {
-            newCursorPosition = Math.min(
-              newValue.length - 1,
-              newCursorPosition,
-            );
+            newCursorPosition = Math.min(newValue.length - 1, newCursorPosition)
           }
 
-          newCursorPosition = Math.min(newCursorPosition, newValue.length);
+          newCursorPosition = Math.min(newCursorPosition, newValue.length)
 
-          inputElement.setSelectionRange(newCursorPosition, newCursorPosition);
+          inputElement.setSelectionRange(newCursorPosition, newCursorPosition)
         }
       }
 
       if (!isControlled) {
-        setInternalValue(newValue);
+        setInternalValue(newValue)
       }
 
       if (shouldValidate("change")) {
-        onInputValidate(unmaskedValue);
+        onInputValidate(unmaskedValue)
       }
 
-      onValueChangeProp?.(newValue, unmaskedValue);
+      onValueChangeProp?.(newValue, unmaskedValue)
     },
     [
       maskPattern,
@@ -1109,40 +1106,40 @@ function MaskInput(props: MaskInputProps) {
       transformOpts,
       mask,
       value,
-    ],
-  );
+    ]
+  )
 
   const onFocus = React.useCallback(
     (event: React.FocusEvent<InputElement>) => {
-      onFocusProp?.(event);
-      if (event.defaultPrevented) return;
+      onFocusProp?.(event)
+      if (event.defaultPrevented) return
 
-      setFocused(true);
+      setFocused(true)
     },
-    [onFocusProp],
-  );
+    [onFocusProp]
+  )
 
   const onBlur = React.useCallback(
     (event: React.FocusEvent<InputElement>) => {
-      onBlurProp?.(event);
-      if (event.defaultPrevented) return;
+      onBlurProp?.(event)
+      if (event.defaultPrevented) return
 
-      setFocused(false);
+      setFocused(false)
 
       if (!touched) {
-        setTouched(true);
+        setTouched(true)
       }
 
       if (shouldValidate("blur")) {
-        const currentValue = event.target.value;
+        const currentValue = event.target.value
         const unmaskedValue = maskPattern
           ? getUnmaskedValue({
               value: currentValue,
               transform: maskPattern.transform,
               ...transformOpts,
             })
-          : currentValue;
-        onInputValidate(unmaskedValue);
+          : currentValue
+        onInputValidate(unmaskedValue)
       }
     },
     [
@@ -1152,53 +1149,53 @@ function MaskInput(props: MaskInputProps) {
       onInputValidate,
       maskPattern,
       transformOpts,
-    ],
-  );
+    ]
+  )
 
   const onCompositionStart = React.useCallback(
     (event: React.CompositionEvent<InputElement>) => {
-      onCompositionStartProp?.(event);
-      if (event.defaultPrevented) return;
+      onCompositionStartProp?.(event)
+      if (event.defaultPrevented) return
 
-      setComposing(true);
+      setComposing(true)
     },
-    [onCompositionStartProp],
-  );
+    [onCompositionStartProp]
+  )
 
   const onCompositionEnd = React.useCallback(
     (event: React.CompositionEvent<InputElement>) => {
-      onCompositionEndProp?.(event);
-      if (event.defaultPrevented) return;
+      onCompositionEndProp?.(event)
+      if (event.defaultPrevented) return
 
-      setComposing(false);
+      setComposing(false)
 
-      const inputElement = inputRef.current;
-      if (!inputElement) return;
-      if (!(inputElement instanceof HTMLInputElement)) return;
-      const inputValue = inputElement.value;
+      const inputElement = inputRef.current
+      if (!inputElement) return
+      if (!(inputElement instanceof HTMLInputElement)) return
+      const inputValue = inputElement.value
 
       if (!maskPattern || withoutMask) {
-        if (!isControlled) setInternalValue(inputValue);
-        if (shouldValidate("change")) onValidate?.(true, inputValue);
-        onValueChangeProp?.(inputValue, inputValue);
-        return;
+        if (!isControlled) setInternalValue(inputValue)
+        if (shouldValidate("change")) onValidate?.(true, inputValue)
+        onValueChangeProp?.(inputValue, inputValue)
+        return
       }
 
       const unmasked = getUnmaskedValue({
         value: inputValue,
         transform: maskPattern.transform,
         ...transformOpts,
-      });
+      })
       const masked = applyMask({
         value: unmasked,
         pattern: maskPattern.pattern,
         ...transformOpts,
         mask,
-      });
+      })
 
-      if (!isControlled) setInternalValue(masked);
-      if (shouldValidate("change")) onInputValidate(unmasked);
-      onValueChangeProp?.(masked, unmasked);
+      if (!isControlled) setInternalValue(masked)
+      if (shouldValidate("change")) onInputValidate(unmasked)
+      onValueChangeProp?.(masked, unmasked)
     },
     [
       onCompositionEndProp,
@@ -1211,70 +1208,70 @@ function MaskInput(props: MaskInputProps) {
       transformOpts,
       mask,
       onInputValidate,
-    ],
-  );
+    ]
+  )
 
   const onPaste = React.useCallback(
     (event: React.ClipboardEvent<InputElement>) => {
-      onPasteProp?.(event);
-      if (event.defaultPrevented) return;
+      onPasteProp?.(event)
+      if (event.defaultPrevented) return
 
-      if (withoutMask || !maskPattern) return;
+      if (withoutMask || !maskPattern) return
 
-      if (mask === "ipv4") return;
+      if (mask === "ipv4") return
 
-      const target = event.target as InputElement;
-      if (!(target instanceof HTMLInputElement)) return;
+      const target = event.target as InputElement
+      if (!(target instanceof HTMLInputElement)) return
 
-      const pastedData = event.clipboardData.getData("text");
-      if (!pastedData) return;
+      const pastedData = event.clipboardData.getData("text")
+      if (!pastedData) return
 
-      event.preventDefault();
+      event.preventDefault()
 
-      const currentValue = target.value;
-      const selectionStart = target.selectionStart ?? 0;
-      const selectionEnd = target.selectionEnd ?? 0;
+      const currentValue = target.value
+      const selectionStart = target.selectionStart ?? 0
+      const selectionEnd = target.selectionEnd ?? 0
 
-      const beforeSelection = currentValue.slice(0, selectionStart);
-      const afterSelection = currentValue.slice(selectionEnd);
-      const newInputValue = beforeSelection + pastedData + afterSelection;
+      const beforeSelection = currentValue.slice(0, selectionStart)
+      const afterSelection = currentValue.slice(selectionEnd)
+      const newInputValue = beforeSelection + pastedData + afterSelection
 
       const unmasked = getUnmaskedValue({
         value: newInputValue,
         transform: maskPattern.transform,
         ...transformOpts,
-      });
+      })
       const newMaskedValue = applyMask({
         value: unmasked,
         pattern: maskPattern.pattern,
         ...transformOpts,
         mask,
-      });
+      })
 
-      target.value = newMaskedValue;
+      target.value = newMaskedValue
 
       if (isCurrencyMask({ mask, pattern: maskPattern.pattern })) {
-        const currencyAtEnd = isCurrencyAtEnd(transformOpts);
+        const currencyAtEnd = isCurrencyAtEnd(transformOpts)
         const caret = currencyAtEnd
           ? newMaskedValue.search(/\s*[^\d\s]+$/)
-          : newMaskedValue.length;
-        target.setSelectionRange(caret, caret);
-        return;
+          : newMaskedValue.length
+        target.setSelectionRange(caret, caret)
+        return
       }
 
       if (maskPattern.pattern.includes("%")) {
         target.setSelectionRange(
           newMaskedValue.length - 1,
-          newMaskedValue.length - 1,
-        );
-        return;
+          newMaskedValue.length - 1
+        )
+        return
       }
 
-      let newCursorPosition = newMaskedValue.length;
+      let newCursorPosition = newMaskedValue.length
       try {
-        const unmaskedCount = unmasked.length;
-        let position = 0;
-        let count = 0;
+        const unmaskedCount = unmasked.length
+        let position = 0
+        let count = 0
 
         for (
           let i = 0;
@@ -1282,22 +1279,22 @@ function MaskInput(props: MaskInputProps) {
           i++
         ) {
           if (maskPattern.pattern[i] === "#") {
-            count++;
+            count++
             if (count <= unmaskedCount) {
-              position = i + 1;
+              position = i + 1
             }
           }
         }
-        newCursorPosition = position;
+        newCursorPosition = position
       } catch {
         // fallback to end
       }
 
-      target.setSelectionRange(newCursorPosition, newCursorPosition);
+      target.setSelectionRange(newCursorPosition, newCursorPosition)
 
-      if (!isControlled) setInternalValue(newMaskedValue);
-      if (shouldValidate("change")) onInputValidate(unmasked);
-      onValueChangeProp?.(newMaskedValue, unmasked);
+      if (!isControlled) setInternalValue(newMaskedValue)
+      if (shouldValidate("change")) onInputValidate(unmasked)
+      onValueChangeProp?.(newMaskedValue, unmasked)
     },
     [
       onPasteProp,
@@ -1309,24 +1306,24 @@ function MaskInput(props: MaskInputProps) {
       shouldValidate,
       onInputValidate,
       onValueChangeProp,
-    ],
-  );
+    ]
+  )
 
   const onKeyDown = React.useCallback(
     (event: React.KeyboardEvent<InputElement>) => {
-      onKeyDownProp?.(event);
-      if (event.defaultPrevented) return;
+      onKeyDownProp?.(event)
+      if (event.defaultPrevented) return
 
-      if (withoutMask || !maskPattern) return;
+      if (withoutMask || !maskPattern) return
 
-      if (mask === "ipv4") return;
+      if (mask === "ipv4") return
 
       if (event.key === "Backspace") {
-        const target = event.target as InputElement;
-        if (!(target instanceof HTMLInputElement)) return;
-        const cursorPosition = target.selectionStart ?? 0;
-        const selectionEnd = target.selectionEnd ?? 0;
-        const currentValue = target.value;
+        const target = event.target as InputElement
+        if (!(target instanceof HTMLInputElement)) return
+        const cursorPosition = target.selectionStart ?? 0
+        const selectionEnd = target.selectionEnd ?? 0
+        const currentValue = target.value
 
         if (
           mask === "currency" ||
@@ -1335,63 +1332,63 @@ function MaskInput(props: MaskInputProps) {
           maskPattern.pattern.includes("€") ||
           maskPattern.pattern.includes("%")
         ) {
-          return;
+          return
         }
 
         if (cursorPosition !== selectionEnd) {
-          return;
+          return
         }
 
         if (cursorPosition > 0) {
-          const charBeforeCursor = currentValue[cursorPosition - 1];
+          const charBeforeCursor = currentValue[cursorPosition - 1]
 
           if (charBeforeCursor) {
-            event.preventDefault();
+            event.preventDefault()
 
             const unmaskedIndex = toUnmaskedIndex({
               masked: currentValue,
               pattern: maskPattern.pattern,
               caret: cursorPosition,
-            });
+            })
 
             if (unmaskedIndex > 0) {
               const currentUnmasked = getUnmaskedValue({
                 value: currentValue,
                 transform: maskPattern.transform,
                 ...transformOpts,
-              });
+              })
               const nextUnmasked =
                 currentUnmasked.slice(0, unmaskedIndex - 1) +
-                currentUnmasked.slice(unmaskedIndex);
+                currentUnmasked.slice(unmaskedIndex)
               const nextMasked = applyMask({
                 value: nextUnmasked,
                 pattern: maskPattern.pattern,
                 ...transformOpts,
                 mask,
-              });
+              })
 
-              target.value = nextMasked;
+              target.value = nextMasked
               const nextCaret = fromUnmaskedIndex({
                 masked: nextMasked,
                 pattern: maskPattern.pattern,
                 unmaskedIndex: unmaskedIndex - 1,
-              });
+              })
 
-              target.setSelectionRange(nextCaret, nextCaret);
+              target.setSelectionRange(nextCaret, nextCaret)
 
-              onValueChangeProp?.(nextMasked, nextUnmasked);
+              onValueChangeProp?.(nextMasked, nextUnmasked)
             }
-            return;
+            return
           }
         }
       }
 
       if (event.key === "Delete") {
-        const target = event.target as InputElement;
-        if (!(target instanceof HTMLInputElement)) return;
-        const cursorPosition = target.selectionStart ?? 0;
-        const selectionEnd = target.selectionEnd ?? 0;
-        const currentValue = target.value;
+        const target = event.target as InputElement
+        if (!(target instanceof HTMLInputElement)) return
+        const cursorPosition = target.selectionStart ?? 0
+        const selectionEnd = target.selectionEnd ?? 0
+        const currentValue = target.value
 
         if (
           mask === "currency" ||
@@ -1400,54 +1397,54 @@ function MaskInput(props: MaskInputProps) {
           maskPattern.pattern.includes("€") ||
           maskPattern.pattern.includes("%")
         ) {
-          return;
+          return
         }
 
         if (cursorPosition !== selectionEnd) {
-          return;
+          return
         }
 
         if (cursorPosition < currentValue.length) {
-          const charAtCursor = currentValue[cursorPosition];
+          const charAtCursor = currentValue[cursorPosition]
 
           if (charAtCursor) {
-            event.preventDefault();
+            event.preventDefault()
 
             const unmaskedIndex = toUnmaskedIndex({
               masked: currentValue,
               pattern: maskPattern.pattern,
               caret: cursorPosition,
-            });
+            })
 
             const currentUnmasked = getUnmaskedValue({
               value: currentValue,
               transform: maskPattern.transform,
               ...transformOpts,
-            });
+            })
 
             if (unmaskedIndex < currentUnmasked.length) {
               const nextUnmasked =
                 currentUnmasked.slice(0, unmaskedIndex) +
-                currentUnmasked.slice(unmaskedIndex + 1);
+                currentUnmasked.slice(unmaskedIndex + 1)
               const nextMasked = applyMask({
                 value: nextUnmasked,
                 pattern: maskPattern.pattern,
                 ...transformOpts,
                 mask,
-              });
+              })
 
-              target.value = nextMasked;
+              target.value = nextMasked
               const nextCaret = fromUnmaskedIndex({
                 masked: nextMasked,
                 pattern: maskPattern.pattern,
                 unmaskedIndex: unmaskedIndex,
-              });
+              })
 
-              target.setSelectionRange(nextCaret, nextCaret);
+              target.setSelectionRange(nextCaret, nextCaret)
 
-              onValueChangeProp?.(nextMasked, nextUnmasked);
+              onValueChangeProp?.(nextMasked, nextUnmasked)
             }
-            return;
+            return
           }
         }
       }
@@ -1459,10 +1456,10 @@ function MaskInput(props: MaskInputProps) {
       transformOpts,
       mask,
       withoutMask,
-    ],
-  );
+    ]
+  )
 
-  const InputPrimitive = asChild ? SlotPrimitive.Slot : "input";
+  const InputPrimitive = asChild ? SlotPrimitive.Slot : "input"
 
   return (
     <InputPrimitive
@@ -1474,10 +1471,10 @@ function MaskInput(props: MaskInputProps) {
       data-slot="mask-input"
       {...inputProps}
       className={cn(
-        "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30",
+        "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30",
         "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
         "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
-        className,
+        className
       )}
       placeholder={placeholderValue}
       ref={composedRef}
@@ -1497,7 +1494,7 @@ function MaskInput(props: MaskInputProps) {
       onCompositionStart={onCompositionStart}
       onCompositionEnd={onCompositionEnd}
     />
-  );
+  )
 }
 
 export {
@@ -1511,4 +1508,4 @@ export {
   type MaskInputProps,
   type MaskPattern,
   toUnmaskedIndex,
-};
+}

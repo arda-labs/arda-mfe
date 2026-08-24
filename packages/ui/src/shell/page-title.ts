@@ -9,8 +9,7 @@ export type ShellPageTitleState = {
 }
 
 export type ShellPageTitleEventDetail =
-  | (ShellPageTitleState & { cleared?: false })
-  | { id: string; cleared: true }
+  (ShellPageTitleState & { cleared?: false }) | { id: string; cleared: true }
 
 export function emitShellPageTitle(state: ShellPageTitleState) {
   if (typeof window === "undefined") return

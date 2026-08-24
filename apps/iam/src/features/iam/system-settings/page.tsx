@@ -292,263 +292,275 @@ export function SystemSettingsPage() {
 
           <div className="space-y-4 p-4">
             <TabsContent value="display" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Thương hiệu và hiển thị
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-              <div className="grid gap-4 md:grid-cols-2">
-                <TextInput
-                  label="Tên ứng dụng"
-                  value={settings.appName}
-                  onChange={(appName) => setSettings((s) => ({ ...s, appName }))}
-                />
-                <TextInput
-                  label="Tên rút gọn"
-                  value={settings.shortName}
-                  onChange={(shortName) =>
-                    setSettings((s) => ({ ...s, shortName }))
-                  }
-                />
-                <TextInput
-                  label="Tổ chức"
-                  value={settings.organizationName}
-                  onChange={(organizationName) =>
-                    setSettings((s) => ({ ...s, organizationName }))
-                  }
-                />
-                <TextInput
-                  label="Email hỗ trợ"
-                  value={settings.supportEmail}
-                  onChange={(supportEmail) =>
-                    setSettings((s) => ({ ...s, supportEmail }))
-                  }
-                />
-                <TextInput
-                  label="Số điện thoại hỗ trợ"
-                  value={settings.supportPhone}
-                  onChange={(supportPhone) =>
-                    setSettings((s) => ({ ...s, supportPhone }))
-                  }
-                />
-                <TextInput
-                  label="Help center URL"
-                  value={settings.helpUrl}
-                  onChange={(helpUrl) => setSettings((s) => ({ ...s, helpUrl }))}
-                />
-                <TextInput
-                  label="Login logo URL"
-                  value={settings.loginLogoUrl}
-                  onChange={(loginLogoUrl) =>
-                    setSettings((s) => ({ ...s, loginLogoUrl }))
-                  }
-                />
-                <TextInput
-                  label="Dashboard logo URL"
-                  value={settings.dashboardLogoUrl}
-                  onChange={(dashboardLogoUrl) =>
-                    setSettings((s) => ({ ...s, dashboardLogoUrl }))
-                  }
-                />
-                <TextInput
-                  label="Favicon URL"
-                  value={settings.faviconUrl}
-                  onChange={(faviconUrl) =>
-                    setSettings((s) => ({ ...s, faviconUrl }))
-                  }
-                />
-                <TextInput
-                  label="Login background URL"
-                  value={settings.loginBackgroundUrl}
-                  onChange={(loginBackgroundUrl) =>
-                    setSettings((s) => ({ ...s, loginBackgroundUrl }))
-                  }
-                />
-                <TextInput
-                  label="Tiêu đề login"
-                  value={settings.loginWelcomeTitle}
-                  onChange={(loginWelcomeTitle) =>
-                    setSettings((s) => ({ ...s, loginWelcomeTitle }))
-                  }
-                />
-                <TextInput
-                  label="Mô tả login"
-                  value={settings.loginWelcomeSubtitle}
-                  onChange={(loginWelcomeSubtitle) =>
-                    setSettings((s) => ({ ...s, loginWelcomeSubtitle }))
-                  }
-                />
-                <SettingSwitch
-                  className="md:col-span-2"
-                  label="Bật ảnh nền login"
-                  checked={settings.loginBackgroundEnabled}
-                  onCheckedChange={(loginBackgroundEnabled) =>
-                    setSettings((s) => ({ ...s, loginBackgroundEnabled }))
-                  }
-                  source="Arda"
-                />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Thương hiệu và hiển thị
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <TextInput
+                      label="Tên ứng dụng"
+                      value={settings.appName}
+                      onChange={(appName) =>
+                        setSettings((s) => ({ ...s, appName }))
+                      }
+                    />
+                    <TextInput
+                      label="Tên rút gọn"
+                      value={settings.shortName}
+                      onChange={(shortName) =>
+                        setSettings((s) => ({ ...s, shortName }))
+                      }
+                    />
+                    <TextInput
+                      label="Tổ chức"
+                      value={settings.organizationName}
+                      onChange={(organizationName) =>
+                        setSettings((s) => ({ ...s, organizationName }))
+                      }
+                    />
+                    <TextInput
+                      label="Email hỗ trợ"
+                      value={settings.supportEmail}
+                      onChange={(supportEmail) =>
+                        setSettings((s) => ({ ...s, supportEmail }))
+                      }
+                    />
+                    <TextInput
+                      label="Số điện thoại hỗ trợ"
+                      value={settings.supportPhone}
+                      onChange={(supportPhone) =>
+                        setSettings((s) => ({ ...s, supportPhone }))
+                      }
+                    />
+                    <TextInput
+                      label="Help center URL"
+                      value={settings.helpUrl}
+                      onChange={(helpUrl) =>
+                        setSettings((s) => ({ ...s, helpUrl }))
+                      }
+                    />
+                    <TextInput
+                      label="Login logo URL"
+                      value={settings.loginLogoUrl}
+                      onChange={(loginLogoUrl) =>
+                        setSettings((s) => ({ ...s, loginLogoUrl }))
+                      }
+                    />
+                    <TextInput
+                      label="Dashboard logo URL"
+                      value={settings.dashboardLogoUrl}
+                      onChange={(dashboardLogoUrl) =>
+                        setSettings((s) => ({ ...s, dashboardLogoUrl }))
+                      }
+                    />
+                    <TextInput
+                      label="Favicon URL"
+                      value={settings.faviconUrl}
+                      onChange={(faviconUrl) =>
+                        setSettings((s) => ({ ...s, faviconUrl }))
+                      }
+                    />
+                    <TextInput
+                      label="Login background URL"
+                      value={settings.loginBackgroundUrl}
+                      onChange={(loginBackgroundUrl) =>
+                        setSettings((s) => ({ ...s, loginBackgroundUrl }))
+                      }
+                    />
+                    <TextInput
+                      label="Tiêu đề login"
+                      value={settings.loginWelcomeTitle}
+                      onChange={(loginWelcomeTitle) =>
+                        setSettings((s) => ({ ...s, loginWelcomeTitle }))
+                      }
+                    />
+                    <TextInput
+                      label="Mô tả login"
+                      value={settings.loginWelcomeSubtitle}
+                      onChange={(loginWelcomeSubtitle) =>
+                        setSettings((s) => ({ ...s, loginWelcomeSubtitle }))
+                      }
+                    />
+                    <SettingSwitch
+                      className="md:col-span-2"
+                      label="Bật ảnh nền login"
+                      checked={settings.loginBackgroundEnabled}
+                      onCheckedChange={(loginBackgroundEnabled) =>
+                        setSettings((s) => ({ ...s, loginBackgroundEnabled }))
+                      }
+                      source="Arda"
+                    />
+                  </div>
+                  <BrandingPreview settings={settings} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="password" className="space-y-4">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      Quy định mật khẩu
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <NumberInput
+                      label="Độ dài tối thiểu"
+                      min={8}
+                      value={settings.minPasswordLength}
+                      onChange={(minPasswordLength) =>
+                        setSettings((s) => ({ ...s, minPasswordLength }))
+                      }
+                    />
+                    <SettingSwitch
+                      label="Chặn mật khẩu đã bị lộ"
+                      checked={settings.blockPwnedPassword}
+                      onCheckedChange={(blockPwnedPassword) =>
+                        setSettings((s) => ({ ...s, blockPwnedPassword }))
+                      }
+                      source="Kratos"
+                    />
+                    <SettingSwitch
+                      label="Chặn mật khẩu giống email/tên đăng nhập"
+                      checked={settings.blockIdentifierSimilarity}
+                      onCheckedChange={(blockIdentifierSimilarity) =>
+                        setSettings((s) => ({
+                          ...s,
+                          blockIdentifierSimilarity,
+                        }))
+                      }
+                      source="Kratos"
+                    />
+                    <SettingSwitch
+                      label="Bắt buộc có chữ hoa"
+                      checked={settings.requireUppercase}
+                      onCheckedChange={(requireUppercase) =>
+                        setSettings((s) => ({ ...s, requireUppercase }))
+                      }
+                      source="Arda"
+                    />
+                    <SettingSwitch
+                      label="Bắt buộc có chữ số"
+                      checked={settings.requireNumber}
+                      onCheckedChange={(requireNumber) =>
+                        setSettings((s) => ({ ...s, requireNumber }))
+                      }
+                      source="Arda"
+                    />
+                    <SettingSwitch
+                      label="Bắt buộc có ký tự đặc biệt"
+                      checked={settings.requireSymbol}
+                      onCheckedChange={(requireSymbol) =>
+                        setSettings((s) => ({ ...s, requireSymbol }))
+                      }
+                      source="Arda"
+                    />
+                    <NumberInput
+                      label="Số ngày phải đổi mật khẩu"
+                      min={0}
+                      value={settings.passwordMaxAgeDays}
+                      onChange={(passwordMaxAgeDays) =>
+                        setSettings((s) => ({ ...s, passwordMaxAgeDays }))
+                      }
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <LockKeyhole className="size-4" />
+                      Tóm tắt
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <SummaryRow
+                      label="Độ dài"
+                      value={`${settings.minPasswordLength}+ ký tự`}
+                    />
+                    <SummaryRow
+                      label="Rule đang bật"
+                      value={`${passwordRuleCount}/5`}
+                    />
+                    <SummaryRow
+                      label="Đổi định kỳ"
+                      value={
+                        settings.passwordMaxAgeDays > 0
+                          ? `${settings.passwordMaxAgeDays} ngày`
+                          : "Tắt"
+                      }
+                    />
+                  </CardContent>
+                </Card>
               </div>
-              <BrandingPreview settings={settings} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </TabsContent>
 
-        <TabsContent value="password" className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Quy định mật khẩu</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <NumberInput
-                  label="Độ dài tối thiểu"
-                  min={8}
-                  value={settings.minPasswordLength}
-                  onChange={(minPasswordLength) =>
-                    setSettings((s) => ({ ...s, minPasswordLength }))
-                  }
-                />
-                <SettingSwitch
-                  label="Chặn mật khẩu đã bị lộ"
-                  checked={settings.blockPwnedPassword}
-                  onCheckedChange={(blockPwnedPassword) =>
-                    setSettings((s) => ({ ...s, blockPwnedPassword }))
-                  }
-                  source="Kratos"
-                />
-                <SettingSwitch
-                  label="Chặn mật khẩu giống email/tên đăng nhập"
-                  checked={settings.blockIdentifierSimilarity}
-                  onCheckedChange={(blockIdentifierSimilarity) =>
-                    setSettings((s) => ({ ...s, blockIdentifierSimilarity }))
-                  }
-                  source="Kratos"
-                />
-                <SettingSwitch
-                  label="Bắt buộc có chữ hoa"
-                  checked={settings.requireUppercase}
-                  onCheckedChange={(requireUppercase) =>
-                    setSettings((s) => ({ ...s, requireUppercase }))
-                  }
-                  source="Arda"
-                />
-                <SettingSwitch
-                  label="Bắt buộc có chữ số"
-                  checked={settings.requireNumber}
-                  onCheckedChange={(requireNumber) =>
-                    setSettings((s) => ({ ...s, requireNumber }))
-                  }
-                  source="Arda"
-                />
-                <SettingSwitch
-                  label="Bắt buộc có ký tự đặc biệt"
-                  checked={settings.requireSymbol}
-                  onCheckedChange={(requireSymbol) =>
-                    setSettings((s) => ({ ...s, requireSymbol }))
-                  }
-                  source="Arda"
-                />
-                <NumberInput
-                  label="Số ngày phải đổi mật khẩu"
-                  min={0}
-                  value={settings.passwordMaxAgeDays}
-                  onChange={(passwordMaxAgeDays) =>
-                    setSettings((s) => ({ ...s, passwordMaxAgeDays }))
-                  }
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <LockKeyhole className="size-4" />
-                  Tóm tắt
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <SummaryRow
-                  label="Độ dài"
-                  value={`${settings.minPasswordLength}+ ký tự`}
-                />
-                <SummaryRow
-                  label="Rule đang bật"
-                  value={`${passwordRuleCount}/5`}
-                />
-                <SummaryRow
-                  label="Đổi định kỳ"
-                  value={
-                    settings.passwordMaxAgeDays > 0
-                      ? `${settings.passwordMaxAgeDays} ngày`
-                      : "Tắt"
-                  }
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="login" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Bảo mật đăng nhập và phiên
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <SettingSwitch
-                className="md:col-span-2"
-                label="Chỉ cho phép 1 thiết bị đăng nhập"
-                checked={settings.loginSingleDevice}
-                onCheckedChange={(loginSingleDevice) =>
-                  setSettings((s) => ({ ...s, loginSingleDevice }))
-                }
-                source="Arda"
-              />
-              <NumberInput
-                label="Số lần đăng nhập sai tối đa"
-                min={1}
-                value={settings.maxFailedAttempts}
-                onChange={(maxFailedAttempts) =>
-                  setSettings((s) => ({ ...s, maxFailedAttempts }))
-                }
-              />
-              <NumberInput
-                label="Khóa đăng nhập trong bao nhiêu phút"
-                min={1}
-                value={settings.lockoutMinutes}
-                onChange={(lockoutMinutes) =>
-                  setSettings((s) => ({ ...s, lockoutMinutes }))
-                }
-              />
-              <NumberInput
-                label="Cửa sổ đếm lỗi đăng nhập (phút)"
-                min={1}
-                value={settings.attemptWindowMinutes}
-                onChange={(attemptWindowMinutes) =>
-                  setSettings((s) => ({ ...s, attemptWindowMinutes }))
-                }
-              />
-              <NumberInput
-                label="Thời hạn phiên đăng nhập (giờ)"
-                min={1}
-                value={settings.sessionLifespanHours}
-                onChange={(sessionLifespanHours) =>
-                  setSettings((s) => ({ ...s, sessionLifespanHours }))
-                }
-              />
-              <NumberInput
-                label="Recent-auth cho thao tác nhạy cảm (phút)"
-                min={1}
-                value={settings.privilegedSessionMaxAgeMinutes}
-                onChange={(privilegedSessionMaxAgeMinutes) =>
-                  setSettings((s) => ({ ...s, privilegedSessionMaxAgeMinutes }))
-                }
-              />
-            </CardContent>
-          </Card>
+            <TabsContent value="login" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Bảo mật đăng nhập và phiên
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                  <SettingSwitch
+                    className="md:col-span-2"
+                    label="Chỉ cho phép 1 thiết bị đăng nhập"
+                    checked={settings.loginSingleDevice}
+                    onCheckedChange={(loginSingleDevice) =>
+                      setSettings((s) => ({ ...s, loginSingleDevice }))
+                    }
+                    source="Arda"
+                  />
+                  <NumberInput
+                    label="Số lần đăng nhập sai tối đa"
+                    min={1}
+                    value={settings.maxFailedAttempts}
+                    onChange={(maxFailedAttempts) =>
+                      setSettings((s) => ({ ...s, maxFailedAttempts }))
+                    }
+                  />
+                  <NumberInput
+                    label="Khóa đăng nhập trong bao nhiêu phút"
+                    min={1}
+                    value={settings.lockoutMinutes}
+                    onChange={(lockoutMinutes) =>
+                      setSettings((s) => ({ ...s, lockoutMinutes }))
+                    }
+                  />
+                  <NumberInput
+                    label="Cửa sổ đếm lỗi đăng nhập (phút)"
+                    min={1}
+                    value={settings.attemptWindowMinutes}
+                    onChange={(attemptWindowMinutes) =>
+                      setSettings((s) => ({ ...s, attemptWindowMinutes }))
+                    }
+                  />
+                  <NumberInput
+                    label="Thời hạn phiên đăng nhập (giờ)"
+                    min={1}
+                    value={settings.sessionLifespanHours}
+                    onChange={(sessionLifespanHours) =>
+                      setSettings((s) => ({ ...s, sessionLifespanHours }))
+                    }
+                  />
+                  <NumberInput
+                    label="Recent-auth cho thao tác nhạy cảm (phút)"
+                    min={1}
+                    value={settings.privilegedSessionMaxAgeMinutes}
+                    onChange={(privilegedSessionMaxAgeMinutes) =>
+                      setSettings((s) => ({
+                        ...s,
+                        privilegedSessionMaxAgeMinutes,
+                      }))
+                    }
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
           </div>
         </Tabs>
@@ -586,7 +598,7 @@ function BrandingPreview({ settings }: { settings: SystemSettings }) {
         <p className="font-semibold text-balance">
           {settings.loginWelcomeTitle}
         </p>
-        <p className="mt-1 text-xs opacity-80 text-pretty">
+        <p className="mt-1 text-xs text-pretty opacity-80">
           {settings.loginWelcomeSubtitle}
         </p>
       </div>

@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+} from "react"
 import type { Group, Role } from "@/features/iam"
 import { adminApi } from "@/features/iam"
 import { translateApiError, useI18n } from "@workspace/i18n"
@@ -88,12 +96,17 @@ export function GroupRolesDialog({
     if (!open || !groupId || assignedLoadedForRef.current === groupId) return
     let cancelled = false
     setAssignedLoading(true)
-    void adminApi.listGroupRoles(groupId)
+    void adminApi
+      .listGroupRoles(groupId)
       .then((res) => {
         if (!cancelled) setAssignedRoles(res.roles)
       })
       .catch((err) => {
-        if (!cancelled) notify.error(t("admin.groups.roles.update_failed"), translateApiError(err))
+        if (!cancelled)
+          notify.error(
+            t("admin.groups.roles.update_failed"),
+            translateApiError(err)
+          )
       })
       .finally(() => {
         if (!cancelled) setAssignedLoading(false)
@@ -109,7 +122,8 @@ export function GroupRolesDialog({
     if (!open) return
     let cancelled = false
     setPickerLoading(true)
-    void adminApi.listRoles({ page: 1, perPage: 500, q: search || undefined })
+    void adminApi
+      .listRoles({ page: 1, perPage: 500, q: search || undefined })
       .then((res) => {
         if (cancelled) return
         setPickerRoles(res.items)
@@ -117,7 +131,10 @@ export function GroupRolesDialog({
       })
       .catch((err) => {
         if (cancelled) return
-        notify.error(t("admin.groups.roles.update_failed"), translateApiError(err))
+        notify.error(
+          t("admin.groups.roles.update_failed"),
+          translateApiError(err)
+        )
       })
       .finally(() => {
         if (cancelled) return
@@ -162,30 +179,33 @@ export function GroupRolesDialog({
     )
   }, [visibleRoles])
 
-  const toggleRole = useCallback((role: Role, assigned: boolean) => {
-    if (!groupId) return
-    setBusyRoleId(role.id)
-    startRoleTransition(async () => {
-      applyOptimisticAssigned({ roleId: role.id, assigned: !assigned })
-      try {
-        if (assigned) {
-          await adminApi.unassignGroupRole(groupId, role.id)
-          setAssignedRoles((prev) => prev.filter((r) => r.id !== role.id))
-        } else {
-          await adminApi.assignGroupRole(groupId, role.id)
-          setAssignedRoles((prev) => [...prev, role])
+  const toggleRole = useCallback(
+    (role: Role, assigned: boolean) => {
+      if (!groupId) return
+      setBusyRoleId(role.id)
+      startRoleTransition(async () => {
+        applyOptimisticAssigned({ roleId: role.id, assigned: !assigned })
+        try {
+          if (assigned) {
+            await adminApi.unassignGroupRole(groupId, role.id)
+            setAssignedRoles((prev) => prev.filter((r) => r.id !== role.id))
+          } else {
+            await adminApi.assignGroupRole(groupId, role.id)
+            setAssignedRoles((prev) => [...prev, role])
+          }
+          notify.success(t("admin.groups.roles.update_success"))
+        } catch (err) {
+          notify.error(
+            t("admin.groups.roles.update_failed"),
+            translateApiError(err)
+          )
+        } finally {
+          setBusyRoleId(null)
         }
-        notify.success(t("admin.groups.roles.update_success"))
-      } catch (err) {
-        notify.error(
-          t("admin.groups.roles.update_failed"),
-          translateApiError(err)
-        )
-      } finally {
-        setBusyRoleId(null)
-      }
-    })
-  }, [groupId, applyOptimisticAssigned, t])
+      })
+    },
+    [groupId, applyOptimisticAssigned, t]
+  )
 
   const loading = assignedLoading || pickerLoading
   const assignedCount = assignedRoles.length
@@ -229,7 +249,10 @@ export function GroupRolesDialog({
               setFilter(value as RoleFilter)
             }}
           >
-            <ToggleGroupItem value="all" aria-label={t("admin.groups.roles.filter.all")}>
+            <ToggleGroupItem
+              value="all"
+              aria-label={t("admin.groups.roles.filter.all")}
+            >
               {t("admin.groups.roles.filter.all")}
             </ToggleGroupItem>
             <ToggleGroupItem

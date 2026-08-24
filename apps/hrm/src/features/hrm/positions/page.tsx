@@ -105,31 +105,54 @@ export function PositionsPage() {
     <section className="space-y-4 p-4">
       <PageTitle title="Chuc vu" count={items.length} onCreate={openCreate} />
       <DataTable
-        columns={["Ma chuc vu", "Ten chuc vu", "Trang thai", "Cap quan ly", "Mo ta"]}
+        columns={[
+          "Ma chuc vu",
+          "Ten chuc vu",
+          "Trang thai",
+          "Cap quan ly",
+          "Mo ta",
+        ]}
         empty="Chua co chuc vu."
       >
         {items.map((item) => (
           <TableRow key={item.id}>
             <TableCell className="font-mono text-xs">{item.code}</TableCell>
             <TableCell className="font-medium">{item.name}</TableCell>
-            <TableCell><StatusBadge status={item.status} /></TableCell>
+            <TableCell>
+              <StatusBadge status={item.status} />
+            </TableCell>
             <TableCell>{item.is_manager ? "Co" : "Khong"}</TableCell>
-            <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
-            <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />
+            <TableCell className="text-muted-foreground">
+              {item.description || "-"}
+            </TableCell>
+            <RowActions
+              onEdit={() => openEdit(item)}
+              onDelete={() => setDeleteTarget(item)}
+            />
           </TableRow>
         ))}
       </DataTable>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Sua chuc vu" : "Them chuc vu"}</DialogTitle>
-            <DialogDescription>Ma va ten chuc vu la bat buoc.</DialogDescription>
+            <DialogTitle>
+              {editing ? "Sua chuc vu" : "Them chuc vu"}
+            </DialogTitle>
+            <DialogDescription>
+              Ma va ten chuc vu la bat buoc.
+            </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={submit}>
-            <FormField label="Ma chuc vu (*)" error={form.formState.errors.code?.message}>
+            <FormField
+              label="Ma chuc vu (*)"
+              error={form.formState.errors.code?.message}
+            >
               <Input {...form.register("code")} placeholder="GIDO" />
             </FormField>
-            <FormField label="Ten chuc vu (*)" error={form.formState.errors.name?.message}>
+            <FormField
+              label="Ten chuc vu (*)"
+              error={form.formState.errors.name?.message}
+            >
               <Input {...form.register("name")} placeholder="Giam doc" />
             </FormField>
             <FormField label="Trang thai (*)">
@@ -141,14 +164,18 @@ export function PositionsPage() {
             <label className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={isManager}
-                onCheckedChange={(value) => form.setValue("is_manager", Boolean(value))}
+                onCheckedChange={(value) =>
+                  form.setValue("is_manager", Boolean(value))
+                }
               />
               Co phai la cap quan ly
             </label>
             <FormField label="Mo ta">
               <Textarea {...form.register("description")} />
             </FormField>
-            <DialogActions pending={form.formState.isSubmitting || submitting} />
+            <DialogActions
+              pending={form.formState.isSubmitting || submitting}
+            />
           </form>
         </DialogContent>
       </Dialog>

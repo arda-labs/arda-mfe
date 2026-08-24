@@ -16,20 +16,15 @@ export function SlaStatus({
     <div className="space-y-1">
       <span
         className={cn(
-          "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium leading-none",
+          "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs leading-none font-medium",
           sla.className
         )}
       >
-        <span
-          className={cn(
-            "size-1.5 rounded-full",
-            sla.dotColor
-          )}
-        />
+        <span className={cn("size-1.5 rounded-full", sla.dotColor)} />
         {sla.label}
       </span>
       {sla.detail && (
-        <p className="text-[11px] text-muted-foreground tabular-nums leading-tight">
+        <p className="text-[11px] leading-tight text-muted-foreground tabular-nums">
           <span>{detailPrimary}</span>
           {detailSecondary ? (
             <span className="mt-0.5 block">{detailSecondary}</span>
@@ -47,7 +42,10 @@ function splitSlaDetail(detail: string) {
 
 type BadgeVariant = "default" | "secondary" | "outline" | "destructive"
 
-const statusMeta: Record<string, { label: string; variant: BadgeVariant; className: string }> = {
+const statusMeta: Record<
+  string,
+  { label: string; variant: BadgeVariant; className: string }
+> = {
   SUBMITTED: {
     label: "Đã gửi",
     variant: "secondary",
@@ -99,7 +97,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium leading-none",
+        "inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] leading-none font-medium",
         meta.className
       )}
     >
@@ -108,17 +106,27 @@ export function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export function TimeProgress({ item }: { item: { status?: string; slaStatus?: SlaStatusValue; createdAt?: string; slaDueAt?: string } }) {
-  const sla = item.slaDueAt && item.slaStatus !== "NONE"
-    ? slaInfo(item.slaDueAt, item.slaStatus)
-    : null
+export function TimeProgress({
+  item,
+}: {
+  item: {
+    status?: string
+    slaStatus?: SlaStatusValue
+    createdAt?: string
+    slaDueAt?: string
+  }
+}) {
+  const sla =
+    item.slaDueAt && item.slaStatus !== "NONE"
+      ? slaInfo(item.slaDueAt, item.slaStatus)
+      : null
 
   const progress = calcProgress(item.createdAt, item.slaDueAt, item.slaStatus)
 
   return (
     <div className="space-y-2 py-1">
       {/* Bar */}
-      <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+      <div className="relative h-2 overflow-hidden rounded-full bg-muted">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
@@ -136,25 +144,25 @@ export function TimeProgress({ item }: { item: { status?: string; slaStatus?: Sl
       <div className="flex items-start justify-between gap-4">
         {/* Start */}
         <div className="min-w-0">
-          <p className="text-[11px] font-medium text-foreground leading-tight">
+          <p className="text-[11px] leading-tight font-medium text-foreground">
             {formatTime(item.createdAt)}
           </p>
-          <p className="text-[10px] text-muted-foreground tabular-nums leading-tight">
+          <p className="text-[10px] leading-tight text-muted-foreground tabular-nums">
             {formatDate(item.createdAt)}
           </p>
-          <p className="text-[9px] text-muted-foreground/60 mt-0.5">Bắt đầu</p>
+          <p className="mt-0.5 text-[9px] text-muted-foreground/60">Bắt đầu</p>
         </div>
 
         {/* SLA duration */}
         {item.createdAt && item.slaDueAt ? (
           <div className="shrink-0 text-center">
-            <span className="inline-flex items-center rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px] font-medium leading-none tabular-nums text-foreground">
+            <span className="inline-flex items-center rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px] leading-none font-medium text-foreground tabular-nums">
               {slaDurationLabel(item.createdAt, item.slaDueAt)}
             </span>
           </div>
         ) : (
           <div className="shrink-0 text-center">
-            <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground bg-muted/30">
+            <span className="inline-flex items-center rounded-md bg-muted/30 px-1.5 py-0.5 text-[11px] text-muted-foreground">
               Chưa có SLA
             </span>
           </div>
@@ -162,20 +170,26 @@ export function TimeProgress({ item }: { item: { status?: string; slaStatus?: Sl
 
         {/* Deadline */}
         <div className="min-w-0 text-right">
-          <p className="text-[11px] font-medium text-foreground leading-tight">
+          <p className="text-[11px] leading-tight font-medium text-foreground">
             {formatTime(item.slaDueAt)}
           </p>
-          <p className="text-[10px] text-muted-foreground tabular-nums leading-tight">
+          <p className="text-[10px] leading-tight text-muted-foreground tabular-nums">
             {formatDate(item.slaDueAt)}
           </p>
-          <p className="text-[9px] text-muted-foreground/60 mt-0.5">Hạn xử lý</p>
+          <p className="mt-0.5 text-[9px] text-muted-foreground/60">
+            Hạn xử lý
+          </p>
         </div>
       </div>
     </div>
   )
 }
 
-function calcProgress(createdAt?: string, slaDueAt?: string, slaStatus?: SlaStatusValue): number {
+function calcProgress(
+  createdAt?: string,
+  slaDueAt?: string,
+  slaStatus?: SlaStatusValue
+): number {
   if (!createdAt || !slaDueAt) return 0
   const start = new Date(createdAt).getTime()
   const end = new Date(slaDueAt).getTime()
@@ -197,7 +211,11 @@ function formatDate(value?: string) {
   if (!value) return "-"
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
 }
 
 function slaDurationLabel(createdAt: string, slaDueAt: string) {

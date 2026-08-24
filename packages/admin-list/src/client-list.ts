@@ -36,7 +36,10 @@ export function useClientListTable<T>({
     [columns]
   )
   const page = parsePositiveInteger(searchParams.get("page"), 1)
-  const perPage = parsePositiveInteger(searchParams.get("perPage"), defaultPageSize)
+  const perPage = parsePositiveInteger(
+    searchParams.get("perPage"),
+    defaultPageSize
+  )
   const sortParam = searchParams.get("sort")
   const sorting = useMemo(
     () => parseSortingState<T>(sortParam, columnIds),

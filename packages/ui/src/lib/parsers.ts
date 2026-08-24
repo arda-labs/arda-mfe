@@ -13,7 +13,7 @@ const sortingItemSchema = z.object({
 
 export function parseSortingState<TData>(
   value: string | null,
-  columnIds?: string[] | Set<string>,
+  columnIds?: string[] | Set<string>
 ): ExtendedColumnSort<TData>[] {
   if (!value) return []
 
@@ -35,7 +35,9 @@ export function parseSortingState<TData>(
   }
 }
 
-export function serializeSortingState<TData>(value: ExtendedColumnSort<TData>[]) {
+export function serializeSortingState<TData>(
+  value: ExtendedColumnSort<TData>[]
+) {
   return JSON.stringify(value)
 }
 
@@ -51,7 +53,7 @@ export type FilterItemSchema = z.infer<typeof filterItemSchema>
 
 export function parseFiltersState<TData>(
   value: string | null,
-  columnIds?: string[] | Set<string>,
+  columnIds?: string[] | Set<string>
 ): ExtendedColumnFilter<TData>[] {
   if (!value) return []
 
@@ -73,6 +75,8 @@ export function parseFiltersState<TData>(
   }
 }
 
-export function serializeFiltersState<TData>(value: ExtendedColumnFilter<TData>[]) {
+export function serializeFiltersState<TData>(
+  value: ExtendedColumnFilter<TData>[]
+) {
   return JSON.stringify(value)
 }

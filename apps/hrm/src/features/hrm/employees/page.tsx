@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
-import { hrmApi, type Employee, type JobTitle, type OrgUnit, type Position } from "../api"
+import {
+  hrmApi,
+  type Employee,
+  type JobTitle,
+  type OrgUnit,
+  type Position,
+} from "../api"
 import { DataTable, StatusBadge } from "../shared/ui"
 
 export function EmployeesPage() {
@@ -47,15 +53,42 @@ export function EmployeesPage() {
         <h1 className="text-xl font-semibold">Thong tin nhan su</h1>
         <Badge variant="secondary">{items.length}</Badge>
       </div>
-      <DataTable columns={["Ma nhan su", "Ho ten", "Phong ban", "Chuc vu", "Chuc danh", "Trang thai"]} empty="Chua co nhan su.">
+      <DataTable
+        columns={[
+          "Ma nhan su",
+          "Ho ten",
+          "Phong ban",
+          "Chuc vu",
+          "Chuc danh",
+          "Trang thai",
+        ]}
+        empty="Chua co nhan su."
+      >
         {items.map((item) => (
           <TableRow key={item.id}>
-            <TableCell className="font-mono text-xs">{item.employee_code}</TableCell>
+            <TableCell className="font-mono text-xs">
+              {item.employee_code}
+            </TableCell>
             <TableCell className="font-medium">{item.full_name}</TableCell>
-            <TableCell>{item.org_unit_id ? itemMap.orgUnits.get(item.org_unit_id) ?? item.org_unit_id : "-"}</TableCell>
-            <TableCell>{item.position_id ? itemMap.positions.get(item.position_id) ?? item.position_id : "-"}</TableCell>
-            <TableCell>{item.job_title_id ? itemMap.jobTitles.get(item.job_title_id) ?? item.job_title_id : "-"}</TableCell>
-            <TableCell><StatusBadge status={item.status} /></TableCell>
+            <TableCell>
+              {item.org_unit_id
+                ? (itemMap.orgUnits.get(item.org_unit_id) ?? item.org_unit_id)
+                : "-"}
+            </TableCell>
+            <TableCell>
+              {item.position_id
+                ? (itemMap.positions.get(item.position_id) ?? item.position_id)
+                : "-"}
+            </TableCell>
+            <TableCell>
+              {item.job_title_id
+                ? (itemMap.jobTitles.get(item.job_title_id) ??
+                  item.job_title_id)
+                : "-"}
+            </TableCell>
+            <TableCell>
+              <StatusBadge status={item.status} />
+            </TableCell>
             <TableCell />
           </TableRow>
         ))}

@@ -1,10 +1,7 @@
 import "@workspace/i18n/apps/hrm"
 import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
-import {
-  attachPreload,
-  lazyWithPreload,
-} from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const PositionsPage = lazyWithPreload(() =>
   import("@/features/hrm/positions/page").then((m) => ({

@@ -18,27 +18,47 @@ export function SlaPoliciesPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [sl, ct] = await Promise.all([workflowApi.listSlaPolicies(), workflowApi.listCaseTypes()])
+      const [sl, ct] = await Promise.all([
+        workflowApi.listSlaPolicies(),
+        workflowApi.listCaseTypes(),
+      ])
       setItems(sl)
       setCaseTypes(ct)
-    } finally { setLoading(false) }
+    } finally {
+      setLoading(false)
+    }
   }, [])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
-  const roleOptions = uniqueOptions(items.map((item) => item.escalationRole), [])
+  const roleOptions = uniqueOptions(
+    items.map((item) => item.escalationRole),
+    []
+  )
   const [editing, setEditing] = useState<SlaPolicy | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  function onSaved() { void load() }
+  function onSaved() {
+    void load()
+  }
 
   return (
     <WorkflowFrame
       title="Cấu hình SLA"
       description="Định nghĩa thời hạn xử lý, ngưỡng cảnh báo và role escalations cho từng nghiệp vụ."
       source="api"
-      action={<Button type="button" size="sm" onClick={() => setCreateOpen(true)}>Tạo SLA</Button>}
+      action={
+        <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+          Tạo SLA
+        </Button>
+      }
     >
-      {loading ? <LoadingBlock /> : <SlaTable items={items} onEdit={setEditing} />}
+      {loading ? (
+        <LoadingBlock />
+      ) : (
+        <SlaTable items={items} onEdit={setEditing} />
+      )}
       {createOpen ? (
         <SlaPolicyDialog
           open

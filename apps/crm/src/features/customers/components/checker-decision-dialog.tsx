@@ -89,8 +89,7 @@ export function CheckerDecisionDialog({
           <AlertDialogAction
             disabled={submitting || !trimmed}
             className={cn(
-              copy?.destructive &&
-                buttonVariants({ variant: "destructive" })
+              copy?.destructive && buttonVariants({ variant: "destructive" })
             )}
             onClick={(e) => {
               e.preventDefault()

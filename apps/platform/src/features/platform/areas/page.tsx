@@ -21,7 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import {
   Dialog,
   DialogContent,
@@ -48,12 +52,18 @@ import {
   selectFilterMeta,
   textSearchMeta,
 } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildAreaSchema(t: TranslateFn) {
   return z.object({
@@ -131,12 +141,19 @@ export function AreasPage() {
     else setRefreshing(true)
     setLoadError(null)
     try {
-      const [areasResult, areaTypesResult, provinces, wards] = await Promise.all([
-        platformApi.listAreas(),
-        platformApi.listLookupValues("AREA_TYPE").catch(() => [] as LookupValue[]),
-        platformApi.listGeoAdminUnits(undefined, 1).catch(() => [] as GeoAdminUnit[]),
-        platformApi.listGeoAdminUnits(undefined, 2).catch(() => [] as GeoAdminUnit[]),
-      ])
+      const [areasResult, areaTypesResult, provinces, wards] =
+        await Promise.all([
+          platformApi.listAreas(),
+          platformApi
+            .listLookupValues("AREA_TYPE")
+            .catch(() => [] as LookupValue[]),
+          platformApi
+            .listGeoAdminUnits(undefined, 1)
+            .catch(() => [] as GeoAdminUnit[]),
+          platformApi
+            .listGeoAdminUnits(undefined, 2)
+            .catch(() => [] as GeoAdminUnit[]),
+        ])
       setItems(areasResult)
       setAreaTypes(areaTypesResult)
       setAdminUnits([...provinces, ...wards])
@@ -232,7 +249,10 @@ export function AreasPage() {
       setDeleteTarget(null)
       await loadAreas()
     } catch (err) {
-      notify.error("Cap nhat trang thai khu vuc that bai", translateApiError(err))
+      notify.error(
+        "Cap nhat trang thai khu vuc that bai",
+        translateApiError(err)
+      )
     } finally {
       setDeleting(false)
     }
@@ -243,7 +263,10 @@ export function AreasPage() {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.areas.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.areas.field.code")}
+          />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.code}</span>
@@ -253,7 +276,10 @@ export function AreasPage() {
         id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.areas.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.areas.field.name")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
@@ -273,7 +299,10 @@ export function AreasPage() {
         id: "area_type_code",
         accessorKey: "area_type_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.areas.field.area_type")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.areas.field.area_type")}
+          />
         ),
         enableColumnFilter: true,
         meta: selectFilterMeta(
@@ -310,7 +339,10 @@ export function AreasPage() {
         id: "status",
         accessorKey: "status",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.areas.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.areas.field.status")}
+          />
         ),
         enableColumnFilter: true,
         meta: multiSelectFilterMeta(t("platform.areas.field.status"), [
@@ -318,7 +350,9 @@ export function AreasPage() {
           { label: t("platform.areas.status.inactive"), value: "inactive" },
         ]),
         cell: ({ row }) => (
-          <Status variant={row.original.status === "active" ? "success" : "default"}>
+          <Status
+            variant={row.original.status === "active" ? "success" : "default"}
+          >
             <StatusIndicator />
             <StatusLabel>
               {row.original.status === "active"
@@ -370,14 +404,16 @@ export function AreasPage() {
     items,
     filterBy: {
       name: (item, value) => matchTextColumnFilter(value, item.code, item.name),
-      area_type_code: (item, value) => matchSelectFilter(item.area_type_code, value),
+      area_type_code: (item, value) =>
+        matchSelectFilter(item.area_type_code, value),
       status: (item, value) => matchSelectFilter(item.status, value),
     },
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
         name: (a, b) => a.name.localeCompare(b.name),
-        area_type_code: (a, b) => a.area_type_code.localeCompare(b.area_type_code),
+        area_type_code: (a, b) =>
+          a.area_type_code.localeCompare(b.area_type_code),
         status: (a, b) => a.status.localeCompare(b.status),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
@@ -393,10 +429,16 @@ export function AreasPage() {
                 ? t("platform.areas.edit")
                 : t("platform.areas.create_title")}
             </DialogTitle>
-            <DialogDescription>{t("platform.areas.dialog_description")}</DialogDescription>
+            <DialogDescription>
+              {t("platform.areas.dialog_description")}
+            </DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={submitArea} className="space-y-4 py-2">
+          <form
+            autoComplete="off"
+            onSubmit={submitArea}
+            className="space-y-4 py-2"
+          >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 label={t("platform.areas.field.code")}
@@ -415,7 +457,11 @@ export function AreasPage() {
                 htmlFor="area_name"
                 error={errors.name?.message}
               >
-                <Input id="area_name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+                <Input
+                  id="area_name"
+                  aria-invalid={Boolean(errors.name)}
+                  {...register("name")}
+                />
               </FormField>
             </div>
 
@@ -434,7 +480,11 @@ export function AreasPage() {
                         id="area_type_code"
                         aria-invalid={Boolean(errors.area_type_code)}
                       >
-                        <SelectValue placeholder={t("platform.areas.placeholder.area_type")} />
+                        <SelectValue
+                          placeholder={t(
+                            "platform.areas.placeholder.area_type"
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {areaTypes.map((item) => (
@@ -462,15 +512,24 @@ export function AreasPage() {
                         field.onChange(value === "none" ? "" : value)
                       }
                     >
-                      <SelectTrigger id="area_parent_id" aria-invalid={Boolean(errors.parent_id)}>
-                        <SelectValue placeholder={t("platform.areas.placeholder.parent_none")} />
+                      <SelectTrigger
+                        id="area_parent_id"
+                        aria-invalid={Boolean(errors.parent_id)}
+                      >
+                        <SelectValue
+                          placeholder={t(
+                            "platform.areas.placeholder.parent_none"
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">
                           {t("platform.areas.placeholder.parent_none")}
                         </SelectItem>
                         {items
-                          .filter((item) => !editingItem || item.id !== editingItem.id)
+                          .filter(
+                            (item) => !editingItem || item.id !== editingItem.id
+                          )
                           .map((item) => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.name}
@@ -500,7 +559,11 @@ export function AreasPage() {
                         id="area_admin_unit_code"
                         aria-invalid={Boolean(errors.admin_unit_code)}
                       >
-                        <SelectValue placeholder={t("platform.areas.placeholder.admin_unit_none")} />
+                        <SelectValue
+                          placeholder={t(
+                            "platform.areas.placeholder.admin_unit_none"
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">
@@ -529,7 +592,10 @@ export function AreasPage() {
                   name="status"
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="area_status" aria-invalid={Boolean(errors.status)}>
+                      <SelectTrigger
+                        id="area_status"
+                        aria-invalid={Boolean(errors.status)}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -598,23 +664,36 @@ export function AreasPage() {
             </FormField>
 
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleDialogOpenChange(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting || saving}>
-                {isSubmitting || saving ? t("common.action.saving") : t("common.action.save")}
+                {isSubmitting || saving
+                  ? t("common.action.saving")
+                  : t("common.action.save")}
               </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.areas.delete.title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.areas.delete.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("platform.areas.delete.description", { name: deleteTarget?.name ?? "" })}
+              {t("platform.areas.delete.description", {
+                name: deleteTarget?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

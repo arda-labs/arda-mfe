@@ -56,19 +56,25 @@ export function GlobalErrorDialog() {
     <AlertDialog open={open} onOpenChange={(o) => !o && dismiss()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{title ?? t("common.error.page_load_title")}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {title ?? t("common.error.page_load_title")}
+          </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="flex flex-col gap-2">
               <span>{message}</span>
               {traceId ? (
                 <div className="flex items-center gap-2 rounded border bg-muted px-2 py-1 text-xs">
-                  <span className="font-mono">{t("common.error.trace_id")}: {traceId}</span>
+                  <span className="font-mono">
+                    {t("common.error.trace_id")}: {traceId}
+                  </span>
                   <button
                     type="button"
                     onClick={copyTrace}
                     className="text-xs underline"
                   >
-                    {copied ? t("common.action.copied") : t("common.action.copy")}
+                    {copied
+                      ? t("common.action.copied")
+                      : t("common.action.copy")}
                   </button>
                 </div>
               ) : null}

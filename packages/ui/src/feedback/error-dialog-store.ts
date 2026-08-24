@@ -10,7 +10,10 @@ export type ErrorDialogState = {
   error: unknown
   title?: string
   retry?: () => void | Promise<void>
-  show: (error: unknown, opts?: { title?: string; retry?: () => void | Promise<void> }) => void
+  show: (
+    error: unknown,
+    opts?: { title?: string; retry?: () => void | Promise<void> }
+  ) => void
   dismiss: () => void
 }
 
@@ -29,7 +32,7 @@ export const useErrorDialogStore = create<ErrorDialogState>((set) => ({
 // Imperative helper — gọi từ catch không cần hook.
 export function showErrorDialog(
   error: unknown,
-  opts?: { title?: string; retry?: () => void | Promise<void> },
+  opts?: { title?: string; retry?: () => void | Promise<void> }
 ) {
   useErrorDialogStore.getState().show(error, opts)
 }

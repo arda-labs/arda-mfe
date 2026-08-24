@@ -1,8 +1,5 @@
 import { api } from "@workspace/api"
-import type {
-  NotificationListResponse,
-  UnreadCountResponse,
-} from "./types"
+import type { NotificationListResponse, UnreadCountResponse } from "./types"
 
 export const notificationsApi = {
   list: (limit = 20) =>
@@ -15,8 +12,7 @@ export const notificationsApi = {
     api.post<{ ok: boolean }>(
       `/api/notifications/${encodeURIComponent(id)}/read`
     ),
-  markAllRead: () =>
-    api.post<{ ok: boolean }>("/api/notifications/read-all"),
+  markAllRead: () => api.post<{ ok: boolean }>("/api/notifications/read-all"),
   pushPublicKey: () =>
     api.get<{ publicKey: string }>("/api/notifications/push/vapid-public-key"),
   subscribePush: (input: {

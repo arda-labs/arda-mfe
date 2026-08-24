@@ -7,11 +7,7 @@ export {
   requestBrowserNotificationPermission,
   showBrowserNotification,
 } from "./browser-notification"
-export {
-  disableWebPush,
-  enableWebPush,
-  webPushSupported,
-} from "./web-push"
+export { disableWebPush, enableWebPush, webPushSupported } from "./web-push"
 export type {
   NotificationItem,
   NotificationKind,

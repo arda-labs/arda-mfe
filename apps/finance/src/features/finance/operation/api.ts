@@ -211,7 +211,9 @@ export const financeOperationApi = {
         | FinanceTransaction[]
         | { transactions?: FinanceTransaction[]; items?: FinanceTransaction[] }
       >(`/api/finance/${operation}-transactions?${p.toString()}`)
-      const items = normalizeItems(data, "transactions").map(caseFromTransaction)
+      const items = normalizeItems(data, "transactions").map(
+        caseFromTransaction
+      )
       return {
         items: filterCases(items, operation, view),
         source: "api",

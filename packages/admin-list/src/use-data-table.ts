@@ -111,7 +111,10 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const joinOperatorKey = queryKeys?.joinOperator ?? JOIN_OPERATOR_KEY
   const defaultPerPage = initialState?.pagination?.pageSize ?? 10
   const page = parsePositiveInteger(searchParams.get(pageKey), 1)
-  const perPage = parsePositiveInteger(searchParams.get(perPageKey), defaultPerPage)
+  const perPage = parsePositiveInteger(
+    searchParams.get(perPageKey),
+    defaultPerPage
+  )
 
   const updateSearch = React.useCallback(
     (update: (params: URLSearchParams) => void) => {

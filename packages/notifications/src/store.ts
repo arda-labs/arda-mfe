@@ -35,7 +35,9 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
   setConnected: (connected) => set({ connected }),
   markRead: (id) =>
     set((state) => {
-      const item = state.notifications.find((notification) => notification.id === id)
+      const item = state.notifications.find(
+        (notification) => notification.id === id
+      )
       if (!item || item.readAt) return state
       return {
         notifications: state.notifications.map((notification) =>

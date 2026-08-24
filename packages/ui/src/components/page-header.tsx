@@ -34,7 +34,9 @@ export function PageHeader({
               <Icon className="size-4" />
             </div>
           ) : null}
-          <h1 className="truncate text-xl font-semibold tracking-[-0.01em]">{title}</h1>
+          <h1 className="truncate text-xl font-semibold tracking-[-0.01em]">
+            {title}
+          </h1>
           {meta}
         </div>
         {description ? (

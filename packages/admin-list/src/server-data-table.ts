@@ -6,10 +6,7 @@ import {
   type ServerListDefinition,
   type ServerListQueryFn,
 } from "./server-list"
-import {
-  useDataTable,
-  type UseDataTableProps,
-} from "./use-data-table"
+import { useDataTable, type UseDataTableProps } from "./use-data-table"
 
 type UseServerDataTableOptions<TItem> = ServerListDefinition & {
   columns: ColumnDef<TItem>[]

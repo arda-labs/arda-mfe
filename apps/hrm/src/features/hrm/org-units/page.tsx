@@ -64,7 +64,8 @@ export function OrgUnitsPage() {
     const org = orgs.find((item) => item.id === id)
     return org ? `${org.code} - ${org.name}` : id
   }
-  const parentName = (id?: string) => items.find((item) => item.id === id)?.name ?? "-"
+  const parentName = (id?: string) =>
+    items.find((item) => item.id === id)?.name ?? "-"
 
   const openCreate = () => {
     setEditing(null)
@@ -116,9 +117,21 @@ export function OrgUnitsPage() {
 
   return (
     <section className="space-y-4 p-4">
-      <PageTitle title="Co cau to chuc" count={items.length} onCreate={openCreate} />
+      <PageTitle
+        title="Co cau to chuc"
+        count={items.length}
+        onCreate={openCreate}
+      />
       <DataTable
-        columns={["Ma phong ban", "Ten phong ban", "Don vi", "Cap", "Cap cha", "Loai", "Trang thai"]}
+        columns={[
+          "Ma phong ban",
+          "Ten phong ban",
+          "Don vi",
+          "Cap",
+          "Cap cha",
+          "Loai",
+          "Trang thai",
+        ]}
         empty="Chua co phong ban."
       >
         {items.map((item) => (
@@ -129,23 +142,41 @@ export function OrgUnitsPage() {
             <TableCell>{item.org_level}</TableCell>
             <TableCell>{parentName(item.parent_id)}</TableCell>
             <TableCell>{item.department_type}</TableCell>
-            <TableCell><StatusBadge status={item.status} /></TableCell>
-            <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />
+            <TableCell>
+              <StatusBadge status={item.status} />
+            </TableCell>
+            <RowActions
+              onEdit={() => openEdit(item)}
+              onDelete={() => setDeleteTarget(item)}
+            />
           </TableRow>
         ))}
       </DataTable>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Sua phong ban" : "Them phong ban"}</DialogTitle>
-            <DialogDescription>Ma don vi lay tu platform.organizations.</DialogDescription>
+            <DialogTitle>
+              {editing ? "Sua phong ban" : "Them phong ban"}
+            </DialogTitle>
+            <DialogDescription>
+              Ma don vi lay tu platform.organizations.
+            </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={submit}>
-            <FormField label="Ma phong ban (*)" error={form.formState.errors.code?.message}>
+            <FormField
+              label="Ma phong ban (*)"
+              error={form.formState.errors.code?.message}
+            >
               <Input {...form.register("code")} />
             </FormField>
-            <FormField label="Ma don vi (*)" error={form.formState.errors.organization_id?.message}>
-              <select className={fieldClass} {...form.register("organization_id")}>
+            <FormField
+              label="Ma don vi (*)"
+              error={form.formState.errors.organization_id?.message}
+            >
+              <select
+                className={fieldClass}
+                {...form.register("organization_id")}
+              >
                 <option value="">Chon don vi</option>
                 {orgs.map((org) => (
                   <option key={org.id} value={org.id}>
@@ -154,11 +185,20 @@ export function OrgUnitsPage() {
                 ))}
               </select>
             </FormField>
-            <FormField label="Ten phong ban (*)" error={form.formState.errors.name?.message}>
+            <FormField
+              label="Ten phong ban (*)"
+              error={form.formState.errors.name?.message}
+            >
               <Input {...form.register("name")} />
             </FormField>
-            <FormField label="Cap to chuc (*)" error={form.formState.errors.org_level?.message}>
-              <Input {...form.register("org_level")} placeholder="HOI_SO, PHONG, TO" />
+            <FormField
+              label="Cap to chuc (*)"
+              error={form.formState.errors.org_level?.message}
+            >
+              <Input
+                {...form.register("org_level")}
+                placeholder="HOI_SO, PHONG, TO"
+              />
             </FormField>
             <FormField label="Ma cap cha">
               <select className={fieldClass} {...form.register("parent_id")}>
@@ -172,8 +212,14 @@ export function OrgUnitsPage() {
                   ))}
               </select>
             </FormField>
-            <FormField label="Loai phong ban (*)" error={form.formState.errors.department_type?.message}>
-              <Input {...form.register("department_type")} placeholder="PHONG_BAN" />
+            <FormField
+              label="Loai phong ban (*)"
+              error={form.formState.errors.department_type?.message}
+            >
+              <Input
+                {...form.register("department_type")}
+                placeholder="PHONG_BAN"
+              />
             </FormField>
             <FormField label="Trang thai (*)">
               <select className={fieldClass} {...form.register("status")}>
@@ -184,7 +230,9 @@ export function OrgUnitsPage() {
             <FormField label="Mo ta">
               <Textarea {...form.register("description")} />
             </FormField>
-            <DialogActions pending={form.formState.isSubmitting || submitting} />
+            <DialogActions
+              pending={form.formState.isSubmitting || submitting}
+            />
           </form>
         </DialogContent>
       </Dialog>

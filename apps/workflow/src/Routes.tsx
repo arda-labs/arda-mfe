@@ -1,10 +1,7 @@
 import "@workspace/i18n/apps/workflow"
 import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
-import {
-  attachPreload,
-  lazyWithPreload,
-} from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const WorkflowAdminPage = lazyWithPreload(() =>
   import("@/features/workflow/page").then((m) => ({

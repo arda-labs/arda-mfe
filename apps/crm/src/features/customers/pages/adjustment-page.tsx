@@ -124,7 +124,10 @@ export function CustomerAdjustmentPage({
         if (!cancelled) {
           setCustomer(null)
           setCustomerError(err)
-          notify.error("Không tải được thông tin khách hàng", translateApiError(err))
+          notify.error(
+            "Không tải được thông tin khách hàng",
+            translateApiError(err)
+          )
         }
       })
       .finally(() => {
@@ -209,7 +212,10 @@ export function CustomerAdjustmentPage({
   async function completeCurrentTask(decision: string) {
     setIsSubmitting(true)
     try {
-      const resolved = await resolveWorkflowJobKey(taskContext, customer?.status)
+      const resolved = await resolveWorkflowJobKey(
+        taskContext,
+        customer?.status
+      )
       if (!resolved) return
       const variables =
         resolved.role === "CUSTOMER_RISK_CHECKER"
@@ -217,10 +223,13 @@ export function CustomerAdjustmentPage({
           : resolved.role === "CUSTOMER_MAKER"
             ? { revisionSubmitted: true }
             : { reviewDecision: decision }
-      await runMutation(() => customerApi.completeTask({...resolved, variables}), {
-        success: "Đã hoàn tất task quy trình",
-        error: "Hoàn tất task thất bại",
-      })
+      await runMutation(
+        () => customerApi.completeTask({ ...resolved, variables }),
+        {
+          success: "Đã hoàn tất task quy trình",
+          error: "Hoàn tất task thất bại",
+        }
+      )
       navigateTo(postTaskWorkbenchHref())
     } finally {
       setIsSubmitting(false)
@@ -259,10 +268,7 @@ export function CustomerAdjustmentPage({
 
         navigateTo(await adjustmentMakerEditHref(result))
       } catch (error) {
-        notify.error(
-          "Không thể khởi tạo điều chỉnh",
-          translateApiError(error)
-        )
+        notify.error("Không thể khởi tạo điều chỉnh", translateApiError(error))
         setAutoStarting(false)
         setAutoStartFailed(true)
       }
@@ -321,7 +327,7 @@ export function CustomerAdjustmentPage({
   if (taskContextLoading) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter-stable]">
+        <div className="[scrollbar-gutter-stable] min-h-0 flex-1 overflow-y-auto p-4">
           <PageTitle title={pageTitle} description={pageDescription} />
           <div className="mt-4 rounded-md border px-4 py-3 text-sm text-muted-foreground">
             Đang tải ngữ cảnh giao dịch...
@@ -335,7 +341,7 @@ export function CustomerAdjustmentPage({
   if (!customerId) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 [scrollbar-gutter-stable]">
+        <div className="[scrollbar-gutter-stable] min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
           <PageTitle title={pageTitle} description={pageDescription} />
           <EmptyState text="Thiếu customerId trên URL." />
         </div>
@@ -353,7 +359,7 @@ export function CustomerAdjustmentPage({
         className="flex min-h-0 flex-1 flex-col"
         onSubmit={form.handleSubmit((values) => handleSaveDraft(values))}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter-stable]">
+        <div className="[scrollbar-gutter-stable] min-h-0 flex-1 overflow-y-auto">
           <Tabs defaultValue="general" className="flex flex-col">
             <div className="space-y-4 p-4 pb-3">
               <PageTitle
@@ -378,7 +384,8 @@ export function CustomerAdjustmentPage({
                 </div>
               ) : hasCustomerError ? (
                 <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                  Không tải được thông tin khách hàng. Vui lòng thử lại hoặc kiểm tra customerId.
+                  Không tải được thông tin khách hàng. Vui lòng thử lại hoặc
+                  kiểm tra customerId.
                 </div>
               ) : null}
 
@@ -411,7 +418,12 @@ export function CustomerAdjustmentPage({
                 </div>
               ) : null}
 
-              {!customerFetching && !hasCustomerError && customer && !amendment?.id && !autoStarting && !autoStartFailed ? (
+              {!customerFetching &&
+              !hasCustomerError &&
+              customer &&
+              !amendment?.id &&
+              !autoStarting &&
+              !autoStartFailed ? (
                 <div className="rounded-md border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
                   {customer.status === "ACTIVE"
                     ? "Khách hàng này chưa có phiên điều chỉnh. Hệ thống sẽ tự động khởi tạo..."
@@ -481,9 +493,7 @@ export function CustomerAdjustmentPage({
           onBack={goBack}
           onCompleteTask={completeCurrentTask}
           onSaveDraft={form.handleSubmit((values) => handleSaveDraft(values))}
-          onSaveAndComplete={form.handleSubmit(
-            handleSaveAndComplete
-          )}
+          onSaveAndComplete={form.handleSubmit(handleSaveAndComplete)}
           onCancelDraft={handleCancelDraft}
         />
       </form>
@@ -491,7 +501,9 @@ export function CustomerAdjustmentPage({
   )
 }
 
-async function adjustmentMakerEditHref(amendment: CustomerAmendment): Promise<string> {
+async function adjustmentMakerEditHref(
+  amendment: CustomerAmendment
+): Promise<string> {
   const caseId = amendment.workflowCaseId?.trim()
   if (!caseId) return postTaskWorkbenchHref()
 

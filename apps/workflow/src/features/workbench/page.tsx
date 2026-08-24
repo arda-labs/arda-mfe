@@ -18,8 +18,7 @@ export function WorkbenchPage({ pathname }: { pathname: string }) {
   const route = routeFromPath(pathname)
   if (pathname.startsWith("/workbench/my-tasks")) return null
   if (route === "incoming") return <TransactionWorkbench direction="incoming" />
-  if (route === "outgoing")
-    return <TransactionWorkbench direction="outgoing" />
+  if (route === "outgoing") return <TransactionWorkbench direction="outgoing" />
   if (route === "search") return <TransactionSearchPage />
   return <DraftWorkbenchPage />
 }

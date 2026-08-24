@@ -123,7 +123,8 @@ export const sessionApi = {
           res.current_session_id ?? res.currentSessionId ?? undefined,
       })),
   revoke: (id: string) => api.delete(`/api/iam/me/sessions/${id}`),
-  revokeOthers: (keep: string) => api.delete(`/api/iam/me/sessions?keep=${keep}`),
+  revokeOthers: (keep: string) =>
+    api.delete(`/api/iam/me/sessions?keep=${keep}`),
   devices: () =>
     api
       .get<{ devices: DeviceApiItem[] }>("/api/iam/me/devices")
@@ -153,7 +154,10 @@ export interface MFAStatus {
 export const mfaApi = {
   getSecret: () => api.post<MFASecret>("/api/iam/me/mfa/enroll"),
   verifyEnroll: (code: string) =>
-    api.post<{ status: string; backup_codes: string[] }>("/api/iam/me/mfa/verify-enroll", { code }),
+    api.post<{ status: string; backup_codes: string[] }>(
+      "/api/iam/me/mfa/verify-enroll",
+      { code }
+    ),
   status: () => api.get<MFAStatus>("/api/iam/me/mfa/status"),
   reset: () => api.post<{ status: string }>("/api/iam/me/mfa/reset"),
   verifyCode: (userId: string, code: string) =>

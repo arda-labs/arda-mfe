@@ -1,9 +1,6 @@
 import "@workspace/i18n/apps/account"
 import { useLocation, useNavigate } from "react-router-dom"
-import {
-  attachPreload,
-  lazyWithPreload,
-} from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const AppearancePage = lazyWithPreload(() =>
   import("@/features/settings/appearance/page").then((m) => ({

@@ -26,7 +26,9 @@ function FormField({
       {description && !error ? (
         <p className="text-xs text-muted-foreground">{description}</p>
       ) : null}
-      {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-xs font-medium text-destructive">{error}</p>
+      ) : null}
     </div>
   )
 }

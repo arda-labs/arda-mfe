@@ -15,7 +15,7 @@ export function CustomerRegistrationTabsList({
       className={cn(
         "flex h-auto justify-start",
         compact
-          ? "max-w-full flex-nowrap overflow-x-auto scrollbar-none"
+          ? "scrollbar-none max-w-full flex-nowrap overflow-x-auto"
           : "flex-wrap"
       )}
     >

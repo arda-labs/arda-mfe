@@ -9,7 +9,11 @@ import { translateApiError } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
@@ -43,13 +47,26 @@ const POS = (value: string | null, fallback: number) => {
 }
 
 const parseArrayParam = (raw: string | null) =>
-  raw ? raw.split(",").map((item) => item.trim()).filter(Boolean) : []
+  raw
+    ? raw
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : []
 
 const DEFAULT_PAGE_SIZE = 10
 
 const roleFormSchema = z.object({
-  code: z.string().trim().min(1, "Code is required").max(64, "Code is too long"),
-  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long"),
+  code: z
+    .string()
+    .trim()
+    .min(1, "Code is required")
+    .max(64, "Code is too long"),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(255, "Name is too long"),
 })
 
 type RoleFormValues = z.infer<typeof roleFormSchema>
@@ -190,13 +207,21 @@ export function RolesPage() {
     }
   }
 
-  const togglePermission = async (permission: Permission, assigned: boolean) => {
+  const togglePermission = async (
+    permission: Permission,
+    assigned: boolean
+  ) => {
     if (!permissionTarget) return
     setBusyPermissionID(permission.id)
     try {
       if (assigned) {
-        await adminApi.unassignRolePermission(permissionTarget.id, permission.id)
-        setRolePermissions((prev) => prev.filter((item) => item.id !== permission.id))
+        await adminApi.unassignRolePermission(
+          permissionTarget.id,
+          permission.id
+        )
+        setRolePermissions((prev) =>
+          prev.filter((item) => item.id !== permission.id)
+        )
       } else {
         await adminApi.assignRolePermission(permissionTarget.id, permission.id)
         setRolePermissions((prev) => [...prev, permission])
@@ -209,99 +234,119 @@ export function RolesPage() {
     }
   }
 
-  const columns = useMemo<ColumnDef<Role>[]>(() => [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label={t("common.action.select_all")}
-          className="translate-y-[2px]"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label={t("common.action.select_row")}
-          className="translate-y-[2px]"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      id: "code",
-      accessorKey: "code",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("common.field.code")} />
-      ),
-      enableColumnFilter: true,
-      meta: {
-        label: t("common.field.code"),
-        variant: "text",
-        placeholder: t("common.field.code"),
+  const columns = useMemo<ColumnDef<Role>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label={t("common.action.select_all")}
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label={t("common.action.select_row")}
+            className="translate-y-[2px]"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
       },
-      cell: ({ row }) => <span className="font-mono text-sm">{row.original.code}</span>,
-    },
-    {
-      accessorKey: "name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("common.field.name")} />
-      ),
-    },
-    {
-      id: "status",
-      accessorKey: "status",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label={t("common.field.status")} />
-      ),
-      enableColumnFilter: true,
-      meta: {
-        label: t("common.field.status"),
-        variant: "multiSelect",
-        options: [
-          { label: t("admin.users.status.active"), value: "ACTIVE" },
-          { label: t("admin.users.status.disabled"), value: "DISABLED" },
-        ],
+      {
+        id: "code",
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.code")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: {
+          label: t("common.field.code"),
+          variant: "text",
+          placeholder: t("common.field.code"),
+        },
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">{row.original.code}</span>
+        ),
       },
-      cell: ({ row }) => (
-        <Status variant={row.original.status === "ACTIVE" ? "success" : "default"}>
-          <StatusIndicator />
-          <StatusLabel>{row.original.status || "-"}</StatusLabel>
-        </Status>
-      ),
-    },
-    {
-      id: "actions",
-      header: () => <div className="text-right">{t("common.field.action")}</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 text-muted-foreground"
-            onClick={() => setPermissionTarget(row.original)}
-            title="Phân quyền"
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.name")}
+          />
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: {
+          label: t("common.field.status"),
+          variant: "multiSelect",
+          options: [
+            { label: t("admin.users.status.active"), value: "ACTIVE" },
+            { label: t("admin.users.status.disabled"), value: "DISABLED" },
+          ],
+        },
+        cell: ({ row }) => (
+          <Status
+            variant={row.original.status === "ACTIVE" ? "success" : "default"}
           >
-            <ShieldCheck className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
-            onClick={() => setDeleteTarget(row.original)}
-            title={t("common.action.delete")}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-  ], [t])
+            <StatusIndicator />
+            <StatusLabel>{row.original.status || "-"}</StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => setPermissionTarget(row.original)}
+              title="Phân quyền"
+            >
+              <ShieldCheck className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              onClick={() => setDeleteTarget(row.original)}
+              title={t("common.action.delete")}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [t]
+  )
 
   const totalPages = Math.max(1, listPageCount(total, pageSizeParam))
 
@@ -334,46 +379,66 @@ export function RolesPage() {
             <DialogTitle>{t("admin.roles.create")}</DialogTitle>
           </DialogHeader>
           <form className="space-y-3" onSubmit={handleCreate}>
-            <FormField label={t("common.field.code")} error={errors.code?.message}>
+            <FormField
+              label={t("common.field.code")}
+              error={errors.code?.message}
+            >
               <Input
                 aria-invalid={Boolean(errors.code)}
                 {...register("code")}
               />
             </FormField>
-            <FormField label={t("common.field.name")} error={errors.name?.message}>
+            <FormField
+              label={t("common.field.name")}
+              error={errors.name?.message}
+            >
               <Input
                 aria-invalid={Boolean(errors.name)}
                 {...register("name")}
               />
             </FormField>
-            <Button className="w-full" type="submit" disabled={isSubmitting || creating}>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isSubmitting || creating}
+            >
               {t("common.action.create")}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={permissionTarget !== null} onOpenChange={(nextOpen) => !nextOpen && setPermissionTarget(null)}>
+      <Dialog
+        open={permissionTarget !== null}
+        onOpenChange={(nextOpen) => !nextOpen && setPermissionTarget(null)}
+      >
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              Phân quyền cho {permissionTarget?.name || permissionTarget?.code || ""}
+              Phân quyền cho{" "}
+              {permissionTarget?.name || permissionTarget?.code || ""}
             </DialogTitle>
           </DialogHeader>
           <div className="max-h-[65vh] space-y-4 overflow-auto pr-1">
             {permissionsLoading ? (
-              <div className="text-sm text-muted-foreground">Đang tải quyền...</div>
+              <div className="text-sm text-muted-foreground">
+                Đang tải quyền...
+              </div>
             ) : allPermissions.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Chưa có quyền để gán.</div>
+              <div className="text-sm text-muted-foreground">
+                Chưa có quyền để gán.
+              </div>
             ) : (
               permissionsByModule.map(([module, items]) => (
                 <section key={module} className="space-y-2">
-                  <div className="text-xs font-semibold uppercase text-muted-foreground">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase">
                     {module}
                   </div>
                   <div className="grid gap-2 md:grid-cols-2">
                     {items.map((permission) => {
-                      const assigned = rolePermissions.some((item) => item.id === permission.id)
+                      const assigned = rolePermissions.some(
+                        (item) => item.id === permission.id
+                      )
                       return (
                         <label
                           key={permission.id}
@@ -382,10 +447,14 @@ export function RolesPage() {
                           <Checkbox
                             checked={assigned}
                             disabled={busyPermissionID === permission.id}
-                            onCheckedChange={() => togglePermission(permission, assigned)}
+                            onCheckedChange={() =>
+                              togglePermission(permission, assigned)
+                            }
                           />
                           <span className="min-w-0 flex-1">
-                            <span className="block font-medium">{permission.name}</span>
+                            <span className="block font-medium">
+                              {permission.name}
+                            </span>
                             <span className="block truncate font-mono text-xs text-muted-foreground">
                               {permission.code}
                             </span>
@@ -401,7 +470,10 @@ export function RolesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteTarget !== null} onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}>
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <DialogTitle>{t("common.confirm.delete_title")}</DialogTitle>
@@ -431,7 +503,10 @@ export function RolesPage() {
       title={t("admin.roles.title")}
       totalRows={total}
       meta={
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
           {t("admin.roles.count", { count: total })}
         </Badge>
       }

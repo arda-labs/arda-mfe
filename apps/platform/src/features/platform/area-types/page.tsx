@@ -15,7 +15,11 @@ import { DataTableKeyCell } from "@workspace/ui/components/data-table/data-table
 import { createActionsColumn } from "@workspace/admin-list/table-columns"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import {
   Dialog,
   DialogContent,
@@ -40,7 +44,10 @@ import {
   matchTextColumnFilter,
   textSearchMeta,
 } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
@@ -57,7 +64,10 @@ async function ensureAreaTypeCategory() {
 
 const DEFAULT_PAGE_SIZE = 10
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildAreaTypeSchema(t: TranslateFn) {
   return z.object({
@@ -152,7 +162,10 @@ export function AreaTypesPage() {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.area_types.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.area_types.field.code")}
+          />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.code}</span>
@@ -162,7 +175,10 @@ export function AreaTypesPage() {
         id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.area_types.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.area_types.field.name")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
@@ -178,14 +194,20 @@ export function AreaTypesPage() {
       {
         accessorKey: "sort_order",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.area_types.field.sort_order")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.area_types.field.sort_order")}
+          />
         ),
       },
       {
         id: "is_active",
         accessorKey: "is_active",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.area_types.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.area_types.field.status")}
+          />
         ),
         enableColumnFilter: true,
         meta: activeStatusMeta(
@@ -297,9 +319,15 @@ export function AreaTypesPage() {
                 ? t("platform.area_types.edit")
                 : t("platform.area_types.create_title")}
             </DialogTitle>
-            <DialogDescription>{t("platform.area_types.dialog_description")}</DialogDescription>
+            <DialogDescription>
+              {t("platform.area_types.dialog_description")}
+            </DialogDescription>
           </DialogHeader>
-          <form autoComplete="off" onSubmit={submitAreaType} className="space-y-4 py-2">
+          <form
+            autoComplete="off"
+            onSubmit={submitAreaType}
+            className="space-y-4 py-2"
+          >
             <FormField
               label={t("platform.area_types.field.code")}
               htmlFor="area_type_code"
@@ -318,7 +346,11 @@ export function AreaTypesPage() {
               htmlFor="area_type_name"
               error={errors.name?.message}
             >
-              <Input id="area_type_name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+              <Input
+                id="area_type_name"
+                aria-invalid={Boolean(errors.name)}
+                {...register("name")}
+              />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -341,17 +373,26 @@ export function AreaTypesPage() {
                     <Checkbox
                       id="area_type_active"
                       checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked === true)
+                      }
                     />
                   )}
                 />
-                <label htmlFor="area_type_active" className="cursor-pointer select-none text-sm font-medium">
+                <label
+                  htmlFor="area_type_active"
+                  className="cursor-pointer text-sm font-medium select-none"
+                >
                   {t("platform.area_types.field.is_active")}
                 </label>
               </div>
             </div>
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleDialogOpenChange(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting || saving}>
@@ -364,12 +405,19 @@ export function AreaTypesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.area_types.delete.title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.area_types.delete.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("platform.area_types.delete.description", { name: deleteTarget?.name ?? "" })}
+              {t("platform.area_types.delete.description", {
+                name: deleteTarget?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

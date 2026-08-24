@@ -23,7 +23,10 @@ export async function waitForWorkflowStepChange({
   intervalMs = DEFAULT_INTERVAL_MS,
   wait = delay,
   now = Date.now,
-}: WaitForWorkflowStepChangeInput): Promise<{ step: string | null; timedOut: boolean }> {
+}: WaitForWorkflowStepChangeInput): Promise<{
+  step: string | null
+  timedOut: boolean
+}> {
   const normalizedCaseId = caseId?.trim()
   if (!normalizedCaseId) return { step: null, timedOut: false }
 
@@ -36,7 +39,8 @@ export async function waitForWorkflowStepChange({
       const currentStep = normalizeUserTaskElementId(
         workflowCase.currentStep ?? ""
       )
-      if (currentStep && currentStep !== completedStep) return { step: currentStep, timedOut: false }
+      if (currentStep && currentStep !== completedStep)
+        return { step: currentStep, timedOut: false }
     } catch {
       // Completion already succeeded; tolerate transient projection/API reads.
     }
@@ -64,7 +68,10 @@ function delay(delayMs: number) {
 export type WaitForTaskReadyInput = {
   caseId: string | null | undefined
   stepCode: string
-  getReadiness: (caseId: string, stepCode: string) => Promise<{ ready: boolean; status: string }>
+  getReadiness: (
+    caseId: string,
+    stepCode: string
+  ) => Promise<{ ready: boolean; status: string }>
   timeoutMs?: number
   intervalMs?: number
   wait?: (delayMs: number) => Promise<void>

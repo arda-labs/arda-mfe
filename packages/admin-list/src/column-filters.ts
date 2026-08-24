@@ -2,7 +2,10 @@ import { useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 
-export function matchTextQuery(needle: string, ...values: Array<string | undefined | null>) {
+export function matchTextQuery(
+  needle: string,
+  ...values: Array<string | undefined | null>
+) {
   const q = needle.trim().toLowerCase()
   if (!q) return true
   return values.some((value) => value?.toLowerCase().includes(q))
@@ -62,15 +65,18 @@ export type ColumnFilterValues = Record<string, string | string[] | null>
 /** Reads table-managed filters; `useDataTable` is the sole URL writer. */
 export function useColumnFilterParams<T>(columns: ColumnDef<T>[]) {
   const [searchParams] = useSearchParams()
-  const filterableColumns = useMemo(() => getFilterableColumns(columns), [columns])
+  const filterableColumns = useMemo(
+    () => getFilterableColumns(columns),
+    [columns]
+  )
   const values = useMemo(() => {
     return filterableColumns.reduce<ColumnFilterValues>((result, column) => {
       const id = column.id
       if (!id) return result
       const raw = searchParams.get(id)
       result[id] = column.meta?.options
-        ? raw?.split(",").filter(Boolean) ?? []
-        : raw ?? ""
+        ? (raw?.split(",").filter(Boolean) ?? [])
+        : (raw ?? "")
       return result
     }, {})
   }, [filterableColumns, searchParams])
@@ -78,12 +84,16 @@ export function useColumnFilterParams<T>(columns: ColumnDef<T>[]) {
   return [values] as const
 }
 
-export function getTextFilterValue(value: string | string[] | null | undefined) {
+export function getTextFilterValue(
+  value: string | string[] | null | undefined
+) {
   const raw = Array.isArray(value) ? value[0] : value
   return typeof raw === "string" ? raw.trim() : ""
 }
 
-export function getSingleSelectValue(value: string | string[] | null | undefined) {
+export function getSingleSelectValue(
+  value: string | string[] | null | undefined
+) {
   const values = Array.isArray(value) ? value : value ? [value] : []
   return values.length === 1 ? values[0] : undefined
 }
@@ -92,7 +102,7 @@ export function matchTextColumnFilter(
   value: string | string[],
   ...fields: Array<string | undefined | null>
 ) {
-  const needle = Array.isArray(value) ? value[0] ?? "" : value
+  const needle = Array.isArray(value) ? (value[0] ?? "") : value
   return matchTextQuery(needle, ...fields)
 }
 
@@ -105,7 +115,10 @@ export function matchBooleanActiveFilter(
   return item.is_active === (selected === "true")
 }
 
-export function matchStringFieldFilter(itemValue: string, value: string | string[]) {
+export function matchStringFieldFilter(
+  itemValue: string,
+  value: string | string[]
+) {
   const selected = getSingleSelectValue(value)
   if (!selected) return true
   return itemValue === selected

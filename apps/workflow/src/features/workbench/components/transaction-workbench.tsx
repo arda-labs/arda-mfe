@@ -8,7 +8,12 @@ import { PageHeader } from "@workspace/ui/components/page-header"
 import { PageSubmenu } from "@workspace/ui/components/page-submenu"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { WorkbenchDirection, WorkItem, WorkItemFilter, WorkItemSummaryNode } from "../api"
+import type {
+  WorkbenchDirection,
+  WorkItem,
+  WorkItemFilter,
+  WorkItemSummaryNode,
+} from "../api"
 import { workbenchApi } from "../api"
 import { WorkItemTree } from "./workbench-tree"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
@@ -98,7 +103,9 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
   useEffect(() => {
     mountedRef.current = true
     void reload()
-    return () => { mountedRef.current = false }
+    return () => {
+      mountedRef.current = false
+    }
   }, [reload])
 
   return { items, summary, fetching, error, reload }
@@ -138,9 +145,21 @@ function TransactionWorkbenchInner({
     if (filters.slaStatus)
       next.slaStatus = filters.slaStatus as WorkItemFilter["slaStatus"]
     return next
-  }, [baseFilter, debouncedKeyword, filters.fromDate, filters.toDate, filters.accounting, filters.slaStatus])
+  }, [
+    baseFilter,
+    debouncedKeyword,
+    filters.fromDate,
+    filters.toDate,
+    filters.accounting,
+    filters.slaStatus,
+  ])
 
-  const { items: allItems, summary: summaryData, fetching, reload } = useWorkbenchData(queryFilter, baseFilter)
+  const {
+    items: allItems,
+    summary: summaryData,
+    fetching,
+    reload,
+  } = useWorkbenchData(queryFilter, baseFilter)
   const [claimPending, setClaimPending] = useState(false)
 
   const items = useMemo(
@@ -201,7 +220,9 @@ function TransactionWorkbenchInner({
       if (item.canClaim) {
         setClaimPending(true)
         try {
-          const { workItem } = await workbenchApi.claimWorkItem({ workItemId: item.id })
+          const { workItem } = await workbenchApi.claimWorkItem({
+            workItemId: item.id,
+          })
           await reload()
           navigateTo(workItemHref(workItem, direction))
         } catch (error) {
@@ -285,8 +306,14 @@ function TransactionWorkbenchInner({
           {items.length === 0 && expectCaseCode && !fetching ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-              <p className="text-sm">Đang xử lý hồ sơ, vui lòng đợi trong giây lát...</p>
-              <Button variant="outline" className="mt-4" onClick={() => void reload()}>
+              <p className="text-sm">
+                Đang xử lý hồ sơ, vui lòng đợi trong giây lát...
+              </p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => void reload()}
+              >
                 <RefreshCw className="size-4" />
                 Làm mới ngay
               </Button>
@@ -326,10 +353,18 @@ export function TransactionSearchPage() {
     if (debouncedKeyword) next.keyword = debouncedKeyword
     if (filters.fromDate) next.fromDate = filters.fromDate
     if (filters.toDate) next.toDate = filters.toDate
-    if (filters.transactionStatus) next.transactionStatus = filters.transactionStatus
-    if (filters.slaStatus) next.slaStatus = filters.slaStatus as WorkItemFilter["slaStatus"]
+    if (filters.transactionStatus)
+      next.transactionStatus = filters.transactionStatus
+    if (filters.slaStatus)
+      next.slaStatus = filters.slaStatus as WorkItemFilter["slaStatus"]
     return next
-  }, [debouncedKeyword, filters.fromDate, filters.toDate, filters.transactionStatus, filters.slaStatus])
+  }, [
+    debouncedKeyword,
+    filters.fromDate,
+    filters.toDate,
+    filters.transactionStatus,
+    filters.slaStatus,
+  ])
 
   const filterStable = JSON.stringify(queryFilter)
   const expectCaseCode = workbenchExpectCaseCode()

@@ -81,83 +81,93 @@ export function CustomerTable({
           Đang tải...
         </div>
       ) : (
-      <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {mode === "profiles" ? <TableHead>{t("crm.common.select")}</TableHead> : null}
-              <TableHead>{t("crm.common.index")}</TableHead>
-              <TableHead>{t("crm.customers.columns.customer_code")}</TableHead>
-              <TableHead>{t("crm.customers.columns.customer_name")}</TableHead>
-              {mode === "profiles" ? (
-                <TableHead>{t("crm.customers.columns.segment")}</TableHead>
-              ) : null}
-              <TableHead>{t("crm.customers.columns.customer_type")}</TableHead>
-              {mode === "profiles" ? (
-                <TableHead>{t("crm.customers.columns.rank")}</TableHead>
-              ) : (
-                <TableHead>{t("crm.customers.columns.risk_level")}</TableHead>
-              )}
-              <TableHead>{t("crm.customers.columns.mobile")}</TableHead>
-              <TableHead>{t("crm.customers.columns.identity_no")}</TableHead>
-              <TableHead>{t("crm.customers.columns.address")}</TableHead>
-              {mode === "profiles" ? <TableHead>{t("crm.common.actions")}</TableHead> : null}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item, index) => (
-              <TableRow key={item.id}>
+        <div className="overflow-hidden rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
                 {mode === "profiles" ? (
-                  <TableCell>
-                    <input aria-label={`Chọn ${item.id}`} type="checkbox" />
-                  </TableCell>
+                  <TableHead>{t("crm.common.select")}</TableHead>
                 ) : null}
-                <TableCell>{index + 1}</TableCell>
-                <TableCell className="font-mono text-xs">
-                  {item.customerCode || item.id}
-                </TableCell>
-                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableHead>{t("crm.common.index")}</TableHead>
+                <TableHead>
+                  {t("crm.customers.columns.customer_code")}
+                </TableHead>
+                <TableHead>
+                  {t("crm.customers.columns.customer_name")}
+                </TableHead>
                 {mode === "profiles" ? (
-                  <TableCell>{item.segment || "-"}</TableCell>
+                  <TableHead>{t("crm.customers.columns.segment")}</TableHead>
                 ) : null}
-                <TableCell>{customerTypeLabel(item.customerType)}</TableCell>
-                <TableCell>
-                  {mode === "profiles"
-                    ? item.rank || "-"
-                    : item.riskLevel || "-"}
-                </TableCell>
-                <TableCell>{item.mobile || "-"}</TableCell>
-                <TableCell>{item.identityNo || "-"}</TableCell>
-                <TableCell className="max-w-72 truncate">
-                  {item.address || "-"}
-                </TableCell>
+                <TableHead>
+                  {t("crm.customers.columns.customer_type")}
+                </TableHead>
                 {mode === "profiles" ? (
-                  <TableCell>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        navigateTo(
-                          `/customers/adjustments?customerId=${encodeURIComponent(item.id)}`
-                        )
-                      }
-                    >
-                      {t("crm.customers.adjustments.action")}
-                    </Button>
-                  </TableCell>
+                  <TableHead>{t("crm.customers.columns.rank")}</TableHead>
+                ) : (
+                  <TableHead>{t("crm.customers.columns.risk_level")}</TableHead>
+                )}
+                <TableHead>{t("crm.customers.columns.mobile")}</TableHead>
+                <TableHead>{t("crm.customers.columns.identity_no")}</TableHead>
+                <TableHead>{t("crm.customers.columns.address")}</TableHead>
+                {mode === "profiles" ? (
+                  <TableHead>{t("crm.common.actions")}</TableHead>
                 ) : null}
               </TableRow>
-            ))}
-            {!items.length ? (
-              <EmptyTable
-                colSpan={mode === "profiles" ? 11 : 8}
-                text={t("crm.customers.empty")}
-              />
-            ) : null}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {items.map((item, index) => (
+                <TableRow key={item.id}>
+                  {mode === "profiles" ? (
+                    <TableCell>
+                      <input aria-label={`Chọn ${item.id}`} type="checkbox" />
+                    </TableCell>
+                  ) : null}
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {item.customerCode || item.id}
+                  </TableCell>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  {mode === "profiles" ? (
+                    <TableCell>{item.segment || "-"}</TableCell>
+                  ) : null}
+                  <TableCell>{customerTypeLabel(item.customerType)}</TableCell>
+                  <TableCell>
+                    {mode === "profiles"
+                      ? item.rank || "-"
+                      : item.riskLevel || "-"}
+                  </TableCell>
+                  <TableCell>{item.mobile || "-"}</TableCell>
+                  <TableCell>{item.identityNo || "-"}</TableCell>
+                  <TableCell className="max-w-72 truncate">
+                    {item.address || "-"}
+                  </TableCell>
+                  {mode === "profiles" ? (
+                    <TableCell>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          navigateTo(
+                            `/customers/adjustments?customerId=${encodeURIComponent(item.id)}`
+                          )
+                        }
+                      >
+                        {t("crm.customers.adjustments.action")}
+                      </Button>
+                    </TableCell>
+                  ) : null}
+                </TableRow>
+              ))}
+              {!items.length ? (
+                <EmptyTable
+                  colSpan={mode === "profiles" ? 11 : 8}
+                  text={t("crm.customers.empty")}
+                />
+              ) : null}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </section>
   )

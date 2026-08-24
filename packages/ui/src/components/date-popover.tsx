@@ -54,7 +54,7 @@ export function DatePopover({
         value: i,
         label: new Date(2000, i).toLocaleString("default", { month: "long" }),
       })),
-    [],
+    []
   )
 
   function isSelected(d: number) {
@@ -80,18 +80,20 @@ export function DatePopover({
           variant="outline"
           className={cn(
             "h-8 min-w-[130px] justify-start gap-2 px-3 font-normal",
-            !selected && "border-dashed text-muted-foreground",
+            !selected && "border-dashed text-muted-foreground"
           )}
         >
           <CalendarIcon className="size-4 shrink-0" />
           {selected ? (
             <>
-              <span className="truncate">{label}: {format(selected, "dd/MM/yyyy")}</span>
+              <span className="truncate">
+                {label}: {format(selected, "dd/MM/yyyy")}
+              </span>
               <div
                 role="button"
                 aria-label="Clear date"
                 tabIndex={0}
-                className="ml-auto rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="ml-auto rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                 onClick={(e) => {
                   e.stopPropagation()
                   onChange(undefined)
@@ -160,17 +162,17 @@ export function DatePopover({
                 className={cn(
                   "flex h-8 w-full items-center justify-center rounded-md text-sm transition-colors",
                   isSelected(d)
-                    ? "bg-primary text-primary-foreground font-medium"
+                    ? "bg-primary font-medium text-primary-foreground"
                     : isToday(d)
                       ? "bg-accent text-accent-foreground"
-                      : "hover:bg-muted text-foreground",
+                      : "text-foreground hover:bg-muted"
                 )}
               >
                 {d}
               </button>
             ) : (
               <div key={i} />
-            ),
+            )
           )}
         </div>
 

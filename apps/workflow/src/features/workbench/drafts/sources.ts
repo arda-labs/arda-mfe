@@ -1,6 +1,10 @@
 import { api } from "@workspace/api"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
-import { customerDraftApi, type Customer, type CustomerStatus } from "./customer-client"
+import {
+  customerDraftApi,
+  type Customer,
+  type CustomerStatus,
+} from "./customer-client"
 import type {
   PlatformDraft,
   PlatformDraftDomain,
@@ -53,10 +57,7 @@ function isFinanceDraft(item: FinanceTransaction) {
 
 function financeDraft(
   item: FinanceTransaction,
-  domain: Extract<
-    PlatformDraftDomain,
-    "finance_incoming" | "finance_outgoing"
-  >
+  domain: Extract<PlatformDraftDomain, "finance_incoming" | "finance_outgoing">
 ): PlatformDraft {
   const isOutgoing = domain === "finance_outgoing"
   const code = item.sourceRef || item.id
@@ -122,13 +123,9 @@ function hrmDraft(item: EmployeeRegistration): PlatformDraft {
 async function fetchCrmDrafts(): Promise<PlatformDraft[]> {
   const statuses: CustomerStatus[] = ["DRAFT", "NEEDS_CHANGES"]
   const groups = await Promise.all(
-    statuses.map((status) =>
-      customerDraftApi.list(status)
-    )
+    statuses.map((status) => customerDraftApi.list(status))
   )
-  return groups
-    .flat()
-    .map(crmDraft)
+  return groups.flat().map(crmDraft)
 }
 
 async function fetchFinanceDrafts(
@@ -157,7 +154,11 @@ async function fetchHrmDrafts(): Promise<PlatformDraft[]> {
 async function loadSource(
   source: PlatformDraftSource,
   loader: () => Promise<PlatformDraft[]>
-): Promise<{ source: PlatformDraftSource; items: PlatformDraft[]; error?: string }> {
+): Promise<{
+  source: PlatformDraftSource
+  items: PlatformDraft[]
+  error?: string
+}> {
   try {
     const items = await loader()
     return { source, items }
@@ -187,8 +188,7 @@ export async function fetchPlatformDrafts(): Promise<PlatformDraftsResult> {
   }
 
   items.sort(
-    (a, b) =>
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   )
 
   return { items, errors }

@@ -1,12 +1,8 @@
-import {
-  lazy,
-  type ComponentType,
-} from "react"
+import { lazy, type ComponentType } from "react"
 
-export type PreloadableComponent<T extends ComponentType<never>> =
-  T & {
-    preload: () => Promise<void>
-  }
+export type PreloadableComponent<T extends ComponentType<never>> = T & {
+  preload: () => Promise<void>
+}
 
 export type PreloadableRemoteComponent<T extends ComponentType<never>> = T & {
   preload: (pathname?: string) => Promise<void>

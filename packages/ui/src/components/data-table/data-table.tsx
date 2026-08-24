@@ -222,7 +222,7 @@ export function DataTable<TData>({
             <>
               <div
                 ref={headerScrollRef}
-                className="shrink-0 border-b bg-muted/80 [scrollbar-width:none] overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
+                className="shrink-0 [scrollbar-width:none] overflow-x-auto overflow-y-hidden border-b bg-muted/80 [&::-webkit-scrollbar]:hidden"
               >
                 <table
                   className={tableClassName}
@@ -259,7 +259,11 @@ export function DataTable<TData>({
             </div>
           )}
           <div className="shrink-0 border-t bg-muted/35 px-3 py-2">
-            <DataTablePagination table={table} totalRows={totalRows} className="p-0" />
+            <DataTablePagination
+              table={table}
+              totalRows={totalRows}
+              className="p-0"
+            />
             {actionBar &&
               table.getFilteredSelectedRowModel().rows.length > 0 &&
               actionBar}

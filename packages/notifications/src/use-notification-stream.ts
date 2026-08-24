@@ -6,7 +6,6 @@ import { maybeShowBrowserNotification } from "./browser-notification"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem, UnreadCountResponse } from "./types"
 
-const STREAM_URL = apiUrl("/api/notifications/stream")
 const MAX_RECONNECT_DELAY_MS = 30_000
 const UNREAD_POLL_MS = 15_000
 
@@ -55,7 +54,9 @@ export function useNotificationStream(enabled: boolean) {
 
     const connect = () => {
       source?.close()
-      source = new EventSource(STREAM_URL, { withCredentials: true })
+      source = new EventSource(apiUrl("/api/notifications/stream"), {
+        withCredentials: true,
+      })
 
       source.onopen = () => {
         reconnectDelay = 1_000

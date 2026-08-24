@@ -10,8 +10,8 @@ export function Dashboard() {
           {branding.appName} workspace
         </h1>
         <p className="text-pretty text-muted-foreground">
-          Auth, layout, i18n, theme, and notifications live in the shell.
-          Domain pages load as runtime micro frontends.
+          Auth, layout, i18n, theme, and notifications live in the shell. Domain
+          pages load as runtime micro frontends.
         </p>
       </section>
     </div>

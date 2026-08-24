@@ -13,7 +13,11 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { MaskInput } from "@workspace/ui/components/mask-input"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import {
   Dialog,
   DialogContent,
@@ -40,12 +44,18 @@ import {
   textSearchMeta,
   useColumnFilterParams,
 } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildWardSchema(t: TranslateFn) {
   return z.object({
@@ -64,7 +74,10 @@ function buildWardSchema(t: TranslateFn) {
       .trim()
       .max(255, t("platform.wards.validation.full_name_too_long"))
       .optional(),
-    parent_code: z.string().trim().min(1, t("platform.wards.validation.parent_required")),
+    parent_code: z
+      .string()
+      .trim()
+      .min(1, t("platform.wards.validation.parent_required")),
     unit_type: z
       .string()
       .trim()
@@ -148,7 +161,10 @@ export function WardsPage() {
   }, [loadWards])
 
   const provinceNameByCode = useMemo(
-    () => Object.fromEntries(provinces.map((province) => [province.code, province.name])),
+    () =>
+      Object.fromEntries(
+        provinces.map((province) => [province.code, province.name])
+      ),
     [provinces]
   )
 
@@ -195,7 +211,11 @@ export function WardsPage() {
         effective_to: values.effective_to || undefined,
         is_active: true,
       })
-      notify.success(isEditing ? "Cap nhat phuong xa thanh cong" : "Them phuong xa thanh cong")
+      notify.success(
+        isEditing
+          ? "Cap nhat phuong xa thanh cong"
+          : "Them phuong xa thanh cong"
+      )
       setDialogOpen(false)
       reset(wardDefaultValues)
       await loadWards()
@@ -211,7 +231,10 @@ export function WardsPage() {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.code")}
+          />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.code}</span>
@@ -221,7 +244,10 @@ export function WardsPage() {
         id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.name")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
@@ -232,7 +258,9 @@ export function WardsPage() {
           <div className="space-y-1">
             <div className="font-medium">{row.original.name}</div>
             {row.original.full_name ? (
-              <div className="text-xs text-muted-foreground">{row.original.full_name}</div>
+              <div className="text-xs text-muted-foreground">
+                {row.original.full_name}
+              </div>
             ) : null}
           </div>
         ),
@@ -241,12 +269,18 @@ export function WardsPage() {
         id: "parent_code",
         accessorKey: "parent_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.parent")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.parent")}
+          />
         ),
         enableColumnFilter: true,
         meta: selectFilterMeta(
           t("platform.wards.field.parent"),
-          provinces.map((province) => ({ label: province.name, value: province.code }))
+          provinces.map((province) => ({
+            label: province.name,
+            value: province.code,
+          }))
         ),
         cell: ({ row }) =>
           provinceNameByCode[row.original.parent_code ?? ""] ||
@@ -256,13 +290,19 @@ export function WardsPage() {
       {
         accessorKey: "unit_type",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.unit_type")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.unit_type")}
+          />
         ),
       },
       {
         accessorKey: "country_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.country_code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.country_code")}
+          />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.country_code}</span>
@@ -271,21 +311,30 @@ export function WardsPage() {
       {
         accessorKey: "region_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.region_code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.region_code")}
+          />
         ),
         cell: ({ row }) => row.original.region_code || "-",
       },
       {
         accessorKey: "effective_from",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.effective_from")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.effective_from")}
+          />
         ),
         cell: ({ row }) => row.original.effective_from || "-",
       },
       {
         accessorKey: "effective_to",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.effective_to")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.effective_to")}
+          />
         ),
         cell: ({ row }) => row.original.effective_to || "-",
       },
@@ -293,7 +342,10 @@ export function WardsPage() {
         id: "is_active",
         accessorKey: "is_active",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.wards.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.wards.field.status")}
+          />
         ),
         enableColumnFilter: true,
         meta: activeStatusMeta(
@@ -314,7 +366,9 @@ export function WardsPage() {
       },
       {
         id: "actions",
-        header: () => <span className="sr-only">{t("platform.wards.field.actions")}</span>,
+        header: () => (
+          <span className="sr-only">{t("platform.wards.field.actions")}</span>
+        ),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
@@ -359,14 +413,18 @@ export function WardsPage() {
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
         name: (a, b) => a.name.localeCompare(b.name),
-        full_name: (a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? ""),
-        parent_code: (a, b) => (a.parent_code ?? "").localeCompare(b.parent_code ?? ""),
+        full_name: (a, b) =>
+          (a.full_name ?? "").localeCompare(b.full_name ?? ""),
+        parent_code: (a, b) =>
+          (a.parent_code ?? "").localeCompare(b.parent_code ?? ""),
         unit_type: (a, b) => a.unit_type.localeCompare(b.unit_type),
         country_code: (a, b) => a.country_code.localeCompare(b.country_code),
-        region_code: (a, b) => (a.region_code ?? "").localeCompare(b.region_code ?? ""),
+        region_code: (a, b) =>
+          (a.region_code ?? "").localeCompare(b.region_code ?? ""),
         effective_from: (a, b) =>
           (a.effective_from ?? "").localeCompare(b.effective_from ?? ""),
-        effective_to: (a, b) => (a.effective_to ?? "").localeCompare(b.effective_to ?? ""),
+        effective_to: (a, b) =>
+          (a.effective_to ?? "").localeCompare(b.effective_to ?? ""),
         is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
@@ -377,11 +435,19 @@ export function WardsPage() {
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            {editingItem ? t("platform.wards.edit") : t("platform.wards.create_title")}
+            {editingItem
+              ? t("platform.wards.edit")
+              : t("platform.wards.create_title")}
           </DialogTitle>
-          <DialogDescription>{t("platform.wards.dialog_description")}</DialogDescription>
+          <DialogDescription>
+            {t("platform.wards.dialog_description")}
+          </DialogDescription>
         </DialogHeader>
-        <form autoComplete="off" onSubmit={submitWard} className="space-y-4 py-2">
+        <form
+          autoComplete="off"
+          onSubmit={submitWard}
+          className="space-y-4 py-2"
+        >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               label={t("platform.wards.field.code")}
@@ -400,7 +466,11 @@ export function WardsPage() {
               htmlFor="ward_name"
               error={errors.name?.message}
             >
-              <Input id="ward_name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+              <Input
+                id="ward_name"
+                aria-invalid={Boolean(errors.name)}
+                {...register("name")}
+              />
             </FormField>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -426,8 +496,13 @@ export function WardsPage() {
                 name="parent_code"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="ward_parent" aria-invalid={Boolean(errors.parent_code)}>
-                      <SelectValue placeholder={t("platform.wards.placeholder.parent")} />
+                    <SelectTrigger
+                      id="ward_parent"
+                      aria-invalid={Boolean(errors.parent_code)}
+                    >
+                      <SelectValue
+                        placeholder={t("platform.wards.placeholder.parent")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {provinces.map((province) => (
@@ -504,11 +579,17 @@ export function WardsPage() {
             </FormField>
           </div>
           <div className="flex gap-2 sm:justify-end">
-            <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => handleDialogOpenChange(false)}
+            >
               {t("common.action.cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting || saving}>
-              {isSubmitting || saving ? t("common.action.saving") : t("common.action.save")}
+              {isSubmitting || saving
+                ? t("common.action.saving")
+                : t("common.action.save")}
             </Button>
           </div>
         </form>

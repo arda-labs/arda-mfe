@@ -2,7 +2,10 @@ import { apiUrl } from "@workspace/api/url"
 
 export const HYDRA_PUBLIC_URL = "https://auth.arda.io.vn"
 export const OAUTH_CLIENT_ID = "arda-shell"
-export const BFF_API = apiUrl("/api/auth")
+
+function getBffApi(): string {
+  return apiUrl("/api/auth")
+}
 
 function getOrigin(): string {
   if (typeof window !== "undefined") return window.location.origin
@@ -22,14 +25,14 @@ export async function redirectToHydraLogin(returnTo?: string): Promise<void> {
         window.location.pathname
       )
     const params = new URLSearchParams({ return_to: authRoute ? "/" : next })
-    window.location.href = `${BFF_API}/start?${params.toString()}`
+    window.location.href = `${getBffApi()}/start?${params.toString()}`
   }
 }
 
 export async function acceptHydraConsent(
   consentChallenge: string
 ): Promise<string> {
-  const res = await fetch(`${BFF_API}/accept-consent`, {
+  const res = await fetch(`${getBffApi()}/accept-consent`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -60,7 +63,7 @@ export async function exchangeCode(
     orgIds?: string[]
   }
 }> {
-  const res = await fetch(`${BFF_API}/callback`, {
+  const res = await fetch(`${getBffApi()}/callback`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },

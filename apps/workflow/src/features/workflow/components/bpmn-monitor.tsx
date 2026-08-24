@@ -14,20 +14,50 @@ import {
 } from "@workspace/ui/components/accordion"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../api"
-import type { ElementInstanceStat, WorkflowCase, WorkflowProcessDefinition } from "../api"
+import type {
+  ElementInstanceStat,
+  WorkflowCase,
+  WorkflowProcessDefinition,
+} from "../api"
 
 type BpmnOverlays = {
-  add: (elementId: string, options: { position: Record<string, string | number>; html: HTMLElement }) => void
+  add: (
+    elementId: string,
+    options: { position: Record<string, string | number>; html: HTMLElement }
+  ) => void
   remove: (elementId: string) => void
   clear: () => void
 }
@@ -87,11 +117,17 @@ type BpmnElementRegistry = {
 }
 
 type BpmnModeling = {
-  updateProperties: (element: BpmnElement, properties: Record<string, unknown>) => void
+  updateProperties: (
+    element: BpmnElement,
+    properties: Record<string, unknown>
+  ) => void
 }
 
 type BpmnModdle = {
-  create: (type: string, properties: Record<string, unknown>) => BpmnModdleElement
+  create: (
+    type: string,
+    properties: Record<string, unknown>
+  ) => BpmnModdleElement
 }
 
 type BpmnModdleElement = Record<string, unknown> & {
@@ -163,23 +199,26 @@ export function BpmnViewerPanel({
 
     frame = window.requestAnimationFrame(() => {
       viewer
-      .importXML(xml)
-      .then(() => {
-        if (disposed) return
-        const canvas = viewer.get("canvas") as BpmnCanvas
-        fitCanvasViewport(canvas)
-        if (highlightId) {
-          try {
-            canvas.addMarker(highlightId, "highlight-current")
-          } catch {
-            setError(`Không tìm thấy BPMN element "${highlightId}" để highlight.`)
+        .importXML(xml)
+        .then(() => {
+          if (disposed) return
+          const canvas = viewer.get("canvas") as BpmnCanvas
+          fitCanvasViewport(canvas)
+          if (highlightId) {
+            try {
+              canvas.addMarker(highlightId, "highlight-current")
+            } catch {
+              setError(
+                `Không tìm thấy BPMN element "${highlightId}" để highlight.`
+              )
+            }
           }
-        }
-      })
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : "Không đọc được BPMN XML."
-        setError(message)
-      })
+        })
+        .catch((err: unknown) => {
+          const message =
+            err instanceof Error ? err.message : "Không đọc được BPMN XML."
+          setError(message)
+        })
     })
 
     return () => {
@@ -194,7 +233,10 @@ export function BpmnViewerPanel({
   }, [xml, highlightId])
 
   if (loading) return <LoadingBlock />
-  if (!xml) return <EmptyState text="Chọn hoặc import một định nghĩa BPMN để xem sơ đồ." />
+  if (!xml)
+    return (
+      <EmptyState text="Chọn hoặc import một định nghĩa BPMN để xem sơ đồ." />
+    )
 
   return (
     <div className={cn("overflow-hidden rounded-lg border", className)}>
@@ -202,20 +244,32 @@ export function BpmnViewerPanel({
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold">{title}</h2>
           {highlightId ? (
-            <p className="font-mono text-xs text-muted-foreground">current: {highlightId}</p>
+            <p className="font-mono text-xs text-muted-foreground">
+              current: {highlightId}
+            </p>
           ) : null}
         </div>
       </div>
-      <div className={cn("grid min-h-[34rem]", side && "xl:grid-cols-[minmax(0,1fr)_22rem]")}>
+      <div
+        className={cn(
+          "grid min-h-[34rem]",
+          side && "xl:grid-cols-[minmax(0,1fr)_22rem]"
+        )}
+      >
         <div className={cn("relative min-h-[34rem]", canvasClassName)}>
-          <div ref={containerRef} className="h-full min-h-[34rem] w-full bg-background" />
+          <div
+            ref={containerRef}
+            className="h-full min-h-[34rem] w-full bg-background"
+          />
           {error ? (
-            <div className="absolute bottom-3 left-3 right-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
+            <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
               {error}
             </div>
           ) : null}
         </div>
-        {side ? <div className="border-t p-3 xl:border-l xl:border-t-0">{side}</div> : null}
+        {side ? (
+          <div className="border-t p-3 xl:border-t-0 xl:border-l">{side}</div>
+        ) : null}
       </div>
       <style>{`
         .highlight-current:not(.djs-connection) .djs-visual > :nth-child(1) {
@@ -265,58 +319,61 @@ export function OperateBpmnViewer({
 
     frame = window.requestAnimationFrame(() => {
       viewer
-      .importXML(xml)
-      .then(() => {
-        if (disposed) return
-        const canvas = viewer.get("canvas") as BpmnCanvas
-        const overlays = viewer.get("overlays") as BpmnOverlays
+        .importXML(xml)
+        .then(() => {
+          if (disposed) return
+          const canvas = viewer.get("canvas") as BpmnCanvas
+          const overlays = viewer.get("overlays") as BpmnOverlays
 
-        fitCanvasViewport(canvas)
+          fitCanvasViewport(canvas)
 
-        // Highlight current element
-        if (highlightId) {
-          try {
-            canvas.addMarker(highlightId, "highlight-current")
-          } catch {
-            setError(`Không tìm thấy BPMN element "${highlightId}" để highlight.`)
+          // Highlight current element
+          if (highlightId) {
+            try {
+              canvas.addMarker(highlightId, "highlight-current")
+            } catch {
+              setError(
+                `Không tìm thấy BPMN element "${highlightId}" để highlight.`
+              )
+            }
           }
-        }
 
-        // Add element count overlays
-        if (elementStats && elementStats.size > 0) {
-          for (const [elementId, stat] of elementStats) {
-            if (stat.totalCount === 0 && stat.incidentCount === 0) continue
+          // Add element count overlays
+          if (elementStats && elementStats.size > 0) {
+            for (const [elementId, stat] of elementStats) {
+              if (stat.totalCount === 0 && stat.incidentCount === 0) continue
 
-            const badge = document.createElement("div")
-            badge.className = "operate-element-badge"
-            badge.title = `${stat.elementName || elementId}: ${stat.activeCount} active, ${stat.incidentCount} incidents, ${stat.completedCount} completed`
+              const badge = document.createElement("div")
+              badge.className = "operate-element-badge"
+              badge.title = `${stat.elementName || elementId}: ${stat.activeCount} active, ${stat.incidentCount} incidents, ${stat.completedCount} completed`
 
-            if (stat.incidentCount > 0) {
-              badge.innerHTML = `
+              if (stat.incidentCount > 0) {
+                badge.innerHTML = `
                 <span class="badge-incident">${stat.incidentCount}</span>
                 ${stat.activeCount > 0 ? `<span class="badge-active">${stat.activeCount}</span>` : ""}
               `
-            } else if (stat.activeCount > 0) {
-              badge.innerHTML = `<span class="badge-active">${stat.activeCount}</span>`
-            } else if (stat.completedCount > 0) {
-              badge.innerHTML = `<span class="badge-completed">${stat.completedCount}</span>`
-            }
+              } else if (stat.activeCount > 0) {
+                badge.innerHTML = `<span class="badge-active">${stat.activeCount}</span>`
+              } else if (stat.completedCount > 0) {
+                badge.innerHTML = `<span class="badge-completed">${stat.completedCount}</span>`
+              }
 
-            try {
-              overlays.add(elementId, {
-                position: { bottom: -8, right: -8 },
-                html: badge,
-              })
-            } catch {
-              // Element might not be on the current diagram
+              try {
+                overlays.add(elementId, {
+                  position: { bottom: -8, right: -8 },
+                  html: badge,
+                })
+              } catch {
+                // Element might not be on the current diagram
+              }
             }
           }
-        }
-      })
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : "Không đọc được BPMN XML."
-        setError(message)
-      })
+        })
+        .catch((err: unknown) => {
+          const message =
+            err instanceof Error ? err.message : "Không đọc được BPMN XML."
+          setError(message)
+        })
     })
 
     return () => {
@@ -331,7 +388,10 @@ export function OperateBpmnViewer({
   }, [xml, highlightId, elementStats])
 
   if (loading) return <LoadingBlock />
-  if (!xml) return <EmptyState text="Chọn hoặc import một định nghĩa BPMN để xem sơ đồ." />
+  if (!xml)
+    return (
+      <EmptyState text="Chọn hoặc import một định nghĩa BPMN để xem sơ đồ." />
+    )
 
   return (
     <div className={cn("overflow-hidden rounded-lg border", className)}>
@@ -339,14 +399,19 @@ export function OperateBpmnViewer({
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold">{title}</h2>
           {highlightId ? (
-            <p className="font-mono text-xs text-muted-foreground">current: {highlightId}</p>
+            <p className="font-mono text-xs text-muted-foreground">
+              current: {highlightId}
+            </p>
           ) : null}
         </div>
       </div>
       <div className="relative min-h-[34rem]">
-        <div ref={containerRef} className="h-full min-h-[34rem] w-full bg-background" />
+        <div
+          ref={containerRef}
+          className="h-full min-h-[34rem] w-full bg-background"
+        />
         {error ? (
-          <div className="absolute bottom-3 left-3 right-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
+          <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
             {error}
           </div>
         ) : null}
@@ -445,7 +510,12 @@ export function BpmnDefinitionViewerDialog({
             </span>
           </DialogTitle>
         </DialogHeader>
-        <BpmnModelerWorkspace item={item} cases={cases} xml={xml} loading={loading} />
+        <BpmnModelerWorkspace
+          item={item}
+          cases={cases}
+          xml={xml}
+          loading={loading}
+        />
       </DialogContent>
     </Dialog>
   )
@@ -464,7 +534,9 @@ function BpmnModelerWorkspace({
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const modelerRef = useRef<BpmnSaveCapable | null>(null)
-  const [selectedElement, setSelectedElement] = useState<BpmnElement | null>(null)
+  const [selectedElement, setSelectedElement] = useState<BpmnElement | null>(
+    null
+  )
   const [zoom, setZoom] = useState(1)
   const [error, setError] = useState("")
   const [elementCount, setElementCount] = useState(0)
@@ -502,7 +574,9 @@ function BpmnModelerWorkspace({
     }
     const syncElements = () => {
       const registry = modeler.get("elementRegistry") as BpmnElementRegistry
-      const elements = registry.getAll().filter((element) => !element.type.includes("Label"))
+      const elements = registry
+        .getAll()
+        .filter((element) => !element.type.includes("Label"))
       setModelElements(elements)
       setElementCount(elements.length)
       setFileInfo(analyzeBpmnFile(elements))
@@ -526,7 +600,8 @@ function BpmnModelerWorkspace({
           syncElements()
         })
         .catch((err: unknown) => {
-          const message = err instanceof Error ? err.message : "Không đọc được BPMN XML."
+          const message =
+            err instanceof Error ? err.message : "Không đọc được BPMN XML."
           setError(message)
         })
     })
@@ -616,7 +691,10 @@ function BpmnModelerWorkspace({
     updateSelectedProperties({ $attrs: attrs })
   }
 
-  function updateTaskDefinition(properties: { type?: string; retries?: string }) {
+  function updateTaskDefinition(properties: {
+    type?: string
+    retries?: string
+  }) {
     const modeler = modelerRef.current
     if (!modeler || !selectedElement) return
     const moddle = modeler.get("moddle") as BpmnModdle
@@ -658,9 +736,13 @@ function BpmnModelerWorkspace({
       normalizeModelBeforeSave(modeler)
       const result = await modeler.saveXML({ format: true })
       const nextXml = result.xml ?? ""
-      const file = new File([nextXml], item.resourceName || `${item.bpmnProcessId}.bpmn`, {
-        type: "application/xml",
-      })
+      const file = new File(
+        [nextXml],
+        item.resourceName || `${item.bpmnProcessId}.bpmn`,
+        {
+          type: "application/xml",
+        }
+      )
       await workflowApi.updateProcessDefinition(item.id, {
         name: item.name,
         status: item.status,
@@ -668,7 +750,10 @@ function BpmnModelerWorkspace({
       })
       notify.success("Đã lưu BPMN")
     } catch (error) {
-      notify.error("Lưu BPMN thất bại", error instanceof Error ? error.message : undefined)
+      notify.error(
+        "Lưu BPMN thất bại",
+        error instanceof Error ? error.message : undefined
+      )
     } finally {
       setSaving(false)
     }
@@ -679,7 +764,11 @@ function BpmnModelerWorkspace({
     if (!modeler) return
     normalizeModelBeforeSave(modeler)
     const result = await modeler.saveXML({ format: true })
-    downloadText(result.xml ?? "", item.resourceName || `${item.bpmnProcessId}.bpmn`, "application/xml")
+    downloadText(
+      result.xml ?? "",
+      item.resourceName || `${item.bpmnProcessId}.bpmn`,
+      "application/xml"
+    )
   }
 
   async function exportSvg() {
@@ -690,12 +779,14 @@ function BpmnModelerWorkspace({
   }
 
   function undo() {
-    const commandStack = modelerRef.current?.get("commandStack") as BpmnCommandStack | undefined
+    const commandStack = modelerRef.current?.get("commandStack") as
+      BpmnCommandStack | undefined
     if (commandStack?.canUndo()) commandStack.undo()
   }
 
   function redo() {
-    const commandStack = modelerRef.current?.get("commandStack") as BpmnCommandStack | undefined
+    const commandStack = modelerRef.current?.get("commandStack") as
+      BpmnCommandStack | undefined
     if (commandStack?.canRedo()) commandStack.redo()
   }
 
@@ -711,7 +802,9 @@ function BpmnModelerWorkspace({
     document.body.style.userSelect = "none"
 
     const onMove = (moveEvent: PointerEvent) => {
-      setSidebarWidth(clampNumber(startWidth + moveEvent.clientX - startX, 240, 560))
+      setSidebarWidth(
+        clampNumber(startWidth + moveEvent.clientX - startX, 240, 560)
+      )
     }
     const cleanup = () => {
       window.removeEventListener("pointermove", onMove)
@@ -741,7 +834,11 @@ function BpmnModelerWorkspace({
     document.body.style.userSelect = "none"
 
     const onMove = (moveEvent: PointerEvent) => {
-      const nextHeight = clampNumber(startHeight + startY - moveEvent.clientY, 144, 680)
+      const nextHeight = clampNumber(
+        startHeight + startY - moveEvent.clientY,
+        144,
+        680
+      )
       window.cancelAnimationFrame(frame)
       frame = window.requestAnimationFrame(() => setDockHeight(nextHeight))
     }
@@ -761,8 +858,18 @@ function BpmnModelerWorkspace({
     window.addEventListener("blur", cleanup)
   }
 
-  if (loading) return <div className="p-4"><LoadingBlock /></div>
-  if (!xml) return <div className="p-4"><EmptyState text="Chưa có XML để mở modeler." /></div>
+  if (loading)
+    return (
+      <div className="p-4">
+        <LoadingBlock />
+      </div>
+    )
+  if (!xml)
+    return (
+      <div className="p-4">
+        <EmptyState text="Chưa có XML để mở modeler." />
+      </div>
+    )
 
   return (
     <div
@@ -783,46 +890,107 @@ function BpmnModelerWorkspace({
           onUpdateTaskDefinition={updateTaskDefinition}
         />
         <div
-          className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-primary/30"
+          className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-primary/30"
           onPointerDown={startSidebarResize}
         />
       </div>
       <div className="relative flex min-w-0 flex-col bg-background text-foreground">
-        <div className="absolute right-3 top-3 z-10 flex flex-col items-center gap-1 rounded-md border bg-background/95 p-1 text-foreground shadow-sm">
-          <Button type="button" size="icon" variant="ghost" title="Zoom in" aria-label="Zoom in" onClick={() => canvasAction((canvas) => canvas.zoom(zoom + 0.1))}>
+        <div className="absolute top-3 right-3 z-10 flex flex-col items-center gap-1 rounded-md border bg-background/95 p-1 text-foreground shadow-sm">
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Zoom in"
+            aria-label="Zoom in"
+            onClick={() => canvasAction((canvas) => canvas.zoom(zoom + 0.1))}
+          >
             <ZoomIn className="size-4" />
           </Button>
-          <Button type="button" size="icon" variant="ghost" title="Zoom out" aria-label="Zoom out" onClick={() => canvasAction((canvas) => canvas.zoom(Math.max(0.2, zoom - 0.1)))}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Zoom out"
+            aria-label="Zoom out"
+            onClick={() =>
+              canvasAction((canvas) => canvas.zoom(Math.max(0.2, zoom - 0.1)))
+            }
+          >
             <ZoomOut className="size-4" />
           </Button>
-          <Button type="button" size="icon" variant="ghost" title="Fit viewport" aria-label="Fit viewport" onClick={() => canvasAction(fitCanvasViewport)}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Fit viewport"
+            aria-label="Fit viewport"
+            onClick={() => canvasAction(fitCanvasViewport)}
+          >
             <LocateFixed className="size-4" />
           </Button>
           <span className="w-12 text-center font-mono text-[11px] text-muted-foreground">
             {Math.round(zoom * 100)}%
           </span>
           <div className="h-px w-6 bg-border" />
-          <Button type="button" size="icon" variant="ghost" title="Undo" aria-label="Undo" onClick={undo}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Undo"
+            aria-label="Undo"
+            onClick={undo}
+          >
             <Undo2 className="size-4" />
           </Button>
-          <Button type="button" size="icon" variant="ghost" title="Redo" aria-label="Redo" onClick={redo}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Redo"
+            aria-label="Redo"
+            onClick={redo}
+          >
             <Redo2 className="size-4" />
           </Button>
           <div className="h-px w-6 bg-border" />
-          <Button type="button" size="icon" variant="ghost" title="Export XML" aria-label="Export XML" onClick={exportXml}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Export XML"
+            aria-label="Export XML"
+            onClick={exportXml}
+          >
             <span className="text-[10px] font-semibold">XML</span>
           </Button>
-          <Button type="button" size="icon" variant="ghost" title="Export SVG" aria-label="Export SVG" onClick={exportSvg}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Export SVG"
+            aria-label="Export SVG"
+            onClick={exportSvg}
+          >
             <span className="text-[10px] font-semibold">SVG</span>
           </Button>
-          <Button type="button" size="icon" title="Lưu BPMN" aria-label="Lưu BPMN" onClick={saveXml} disabled={saving}>
+          <Button
+            type="button"
+            size="icon"
+            title="Lưu BPMN"
+            aria-label="Lưu BPMN"
+            onClick={saveXml}
+            disabled={saving}
+          >
             <Save className="size-4" />
           </Button>
         </div>
         <div className="relative min-h-0 flex-1">
-          <div ref={containerRef} className="arda-bpmn-canvas h-full min-h-0 w-full cursor-default bg-background" />
+          <div
+            ref={containerRef}
+            className="arda-bpmn-canvas h-full min-h-0 w-full cursor-default bg-background"
+          />
           {error ? (
-            <div className="absolute bottom-3 left-3 right-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
+            <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
               {error}
             </div>
           ) : null}
@@ -867,24 +1035,35 @@ function BpmnInspector({
   onUpdateDocumentation: (value: string) => void
   onUpdateExtensionAttr: (key: string, value: string) => void
   onUpdateFormDefinition: (formKey: string) => void
-  onUpdateTaskDefinition: (properties: { type?: string; retries?: string }) => void
+  onUpdateTaskDefinition: (properties: {
+    type?: string
+    retries?: string
+  }) => void
 }) {
   const businessObject = selectedElement?.businessObject
-  const docs = businessObject?.documentation?.map((item) => item.text ?? "").join("\n") ?? ""
+  const docs =
+    businessObject?.documentation?.map((item) => item.text ?? "").join("\n") ??
+    ""
   const attrs = businessObject?.$attrs ?? {}
   const formDefinition = getZeebeElement(businessObject, "zeebe:FormDefinition")
   const taskDefinition = getZeebeElement(businessObject, "zeebe:TaskDefinition")
   const isProcess = businessObject?.$type === "bpmn:Process"
   const isSequenceFlow = businessObject?.$type === "bpmn:SequenceFlow"
-  const isTask = selectedElement ? bpmnJobTypes.has(selectedElement.type) : false
+  const isTask = selectedElement
+    ? bpmnJobTypes.has(selectedElement.type)
+    : false
 
   return (
     <aside className="h-full min-h-0 overflow-y-auto border-r bg-background p-3 pr-4 text-foreground">
       <div className="space-y-3">
         <div>
           <p className="text-xs font-medium text-foreground/70">Quy trình</p>
-          <h3 className="text-sm font-semibold text-foreground">{item.processCode}</h3>
-          <p className="break-all font-mono text-xs text-foreground/70">{item.bpmnProcessId}</p>
+          <h3 className="text-sm font-semibold text-foreground">
+            {item.processCode}
+          </h3>
+          <p className="font-mono text-xs break-all text-foreground/70">
+            {item.bpmnProcessId}
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-1.5 text-sm">
           <Field label="Version" value={`v${item.version}`} />
@@ -894,119 +1073,155 @@ function BpmnInspector({
         </div>
         <BpmnFileInfoCard info={fileInfo} />
         <div className="rounded-md border bg-card p-2.5 text-card-foreground">
-          <h4 className="mb-2 text-sm font-semibold text-card-foreground">Properties</h4>
+          <h4 className="mb-2 text-sm font-semibold text-card-foreground">
+            Properties
+          </h4>
           {selectedElement ? (
-            <Accordion
-              type="multiple"
-              defaultValue={["general"]}
-            >
+            <Accordion type="multiple" defaultValue={["general"]}>
               <AccordionItem value="general">
-                <AccordionTrigger className="py-2 text-sm">General</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-sm">
+                  General
+                </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
-                <TextInput
-                  label="Element id"
-                  value={businessObject?.id ?? selectedElement.id}
-                  onChange={(id) => onUpdateProperties({ id })}
-                />
-                <TextInput
-                  label="Tên hiển thị"
-                  value={businessObject?.name ?? ""}
-                  onChange={(name) => onUpdateProperties({ name })}
-                />
-                <TextareaInput
-                  label="Documentation"
-                  value={docs}
-                  onChange={onUpdateDocumentation}
-                />
-                <Field label="Loại" value={businessObject?.$type ?? selectedElement.type} />
+                  <TextInput
+                    label="Element id"
+                    value={businessObject?.id ?? selectedElement.id}
+                    onChange={(id) => onUpdateProperties({ id })}
+                  />
+                  <TextInput
+                    label="Tên hiển thị"
+                    value={businessObject?.name ?? ""}
+                    onChange={(name) => onUpdateProperties({ name })}
+                  />
+                  <TextareaInput
+                    label="Documentation"
+                    value={docs}
+                    onChange={onUpdateDocumentation}
+                  />
+                  <Field
+                    label="Loại"
+                    value={businessObject?.$type ?? selectedElement.type}
+                  />
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="execution">
-                <AccordionTrigger className="py-2 text-sm">Execution</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-sm">
+                  Execution
+                </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
-                {isProcess ? (
-                  <SelectInput
-                    label="Executable"
-                    value={String(Boolean(businessObject?.isExecutable))}
-                    options={[
-                      { value: "true", label: "true" },
-                      { value: "false", label: "false" },
-                    ]}
-                    onChange={(value) => onUpdateProperties({ isExecutable: value === "true" })}
-                  />
-                ) : null}
-                {isTask ? (
-                  <>
-                    <TextInput
-                      label="Job type"
-                      value={String(taskDefinition?.type ?? attrs["zeebe:taskDefinition:type"] ?? attrs["taskType"] ?? "")}
-                      onChange={(type) => onUpdateTaskDefinition({ type })}
+                  {isProcess ? (
+                    <SelectInput
+                      label="Executable"
+                      value={String(Boolean(businessObject?.isExecutable))}
+                      options={[
+                        { value: "true", label: "true" },
+                        { value: "false", label: "false" },
+                      ]}
+                      onChange={(value) =>
+                        onUpdateProperties({ isExecutable: value === "true" })
+                      }
                     />
-                    <TextInput
-                      label="Retries"
-                      value={String(taskDefinition?.retries ?? attrs["zeebe:taskDefinition:retries"] ?? "")}
-                      onChange={(retries) => onUpdateTaskDefinition({ retries })}
-                    />
-                    <TextInput
-                      label="Form key"
-                      value={String(formDefinition?.formKey ?? attrs["formKey"] ?? attrs["zeebe:formDefinition:formKey"] ?? "")}
-                      onChange={onUpdateFormDefinition}
-                    />
-                  </>
-                ) : (
-                  <EmptyState text="Chọn task để cấu hình job/form." />
-                )}
+                  ) : null}
+                  {isTask ? (
+                    <>
+                      <TextInput
+                        label="Job type"
+                        value={String(
+                          taskDefinition?.type ??
+                            attrs["zeebe:taskDefinition:type"] ??
+                            attrs["taskType"] ??
+                            ""
+                        )}
+                        onChange={(type) => onUpdateTaskDefinition({ type })}
+                      />
+                      <TextInput
+                        label="Retries"
+                        value={String(
+                          taskDefinition?.retries ??
+                            attrs["zeebe:taskDefinition:retries"] ??
+                            ""
+                        )}
+                        onChange={(retries) =>
+                          onUpdateTaskDefinition({ retries })
+                        }
+                      />
+                      <TextInput
+                        label="Form key"
+                        value={String(
+                          formDefinition?.formKey ??
+                            attrs["formKey"] ??
+                            attrs["zeebe:formDefinition:formKey"] ??
+                            ""
+                        )}
+                        onChange={onUpdateFormDefinition}
+                      />
+                    </>
+                  ) : (
+                    <EmptyState text="Chọn task để cấu hình job/form." />
+                  )}
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="routing">
-                <AccordionTrigger className="py-2 text-sm">Routing</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-sm">
+                  Routing
+                </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
-                {isSequenceFlow ? (
-                  <TextareaInput
-                    label="Condition expression"
-                    value={businessObject?.conditionExpression?.body ?? ""}
-                    onChange={onUpdateCondition}
+                  {isSequenceFlow ? (
+                    <TextareaInput
+                      label="Condition expression"
+                      value={businessObject?.conditionExpression?.body ?? ""}
+                      onChange={onUpdateCondition}
+                    />
+                  ) : (
+                    <EmptyState text="Chọn sequence flow để cấu hình điều kiện rẽ nhánh." />
+                  )}
+                  <Field
+                    label="Incoming"
+                    value={
+                      businessObject?.incoming
+                        ?.map((flow) => flow.id)
+                        .join(", ") || "-"
+                    }
                   />
-                ) : (
-                  <EmptyState text="Chọn sequence flow để cấu hình điều kiện rẽ nhánh." />
-                )}
-                <Field
-                  label="Incoming"
-                  value={businessObject?.incoming?.map((flow) => flow.id).join(", ") || "-"}
-                />
-                <Field
-                  label="Outgoing"
-                  value={businessObject?.outgoing?.map((flow) => flow.id).join(", ") || "-"}
-                />
+                  <Field
+                    label="Outgoing"
+                    value={
+                      businessObject?.outgoing
+                        ?.map((flow) => flow.id)
+                        .join(", ") || "-"
+                    }
+                  />
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="extensions">
-                <AccordionTrigger className="py-2 text-sm">Extensions</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-sm">
+                  Extensions
+                </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
-                <ExtensionAttrInput
-                  label="Assignee"
-                  attrKey="assignee"
-                  attrs={attrs}
-                  onChange={onUpdateExtensionAttr}
-                />
-                <ExtensionAttrInput
-                  label="Candidate groups"
-                  attrKey="candidateGroups"
-                  attrs={attrs}
-                  onChange={onUpdateExtensionAttr}
-                />
-                <ExtensionAttrInput
-                  label="Priority"
-                  attrKey="priority"
-                  attrs={attrs}
-                  onChange={onUpdateExtensionAttr}
-                />
-                <ExtensionAttrInput
-                  label="Custom metadata"
-                  attrKey="arda:metadata"
-                  attrs={attrs}
-                  onChange={onUpdateExtensionAttr}
-                />
+                  <ExtensionAttrInput
+                    label="Assignee"
+                    attrKey="assignee"
+                    attrs={attrs}
+                    onChange={onUpdateExtensionAttr}
+                  />
+                  <ExtensionAttrInput
+                    label="Candidate groups"
+                    attrKey="candidateGroups"
+                    attrs={attrs}
+                    onChange={onUpdateExtensionAttr}
+                  />
+                  <ExtensionAttrInput
+                    label="Priority"
+                    attrKey="priority"
+                    attrs={attrs}
+                    onChange={onUpdateExtensionAttr}
+                  />
+                  <ExtensionAttrInput
+                    label="Custom metadata"
+                    attrKey="arda:metadata"
+                    attrs={attrs}
+                    onChange={onUpdateExtensionAttr}
+                  />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -1035,9 +1250,15 @@ function BpmnOperationsDock({
   onSelectElement: (ref?: string) => void
 }) {
   const [activeTab, setActiveTab] = useState("instances")
-  const incidents = cases.filter((item) => ["FAILED", "SUSPENDED", "INCIDENT"].includes(item.status))
-  const calledInstances = elements.filter((element) => element.type === "bpmn:CallActivity")
-  const jobDefinitions = elements.filter((element) => bpmnJobTypes.has(element.type))
+  const incidents = cases.filter((item) =>
+    ["FAILED", "SUSPENDED", "INCIDENT"].includes(item.status)
+  )
+  const calledInstances = elements.filter(
+    (element) => element.type === "bpmn:CallActivity"
+  )
+  const jobDefinitions = elements.filter((element) =>
+    bpmnJobTypes.has(element.type)
+  )
 
   return (
     <div
@@ -1045,7 +1266,7 @@ function BpmnOperationsDock({
       style={{ height }}
     >
       <div
-        className="group absolute -top-2 left-0 right-0 z-10 flex h-4 cursor-row-resize items-center justify-center bg-transparent"
+        className="group absolute -top-2 right-0 left-0 z-10 flex h-4 cursor-row-resize items-center justify-center bg-transparent"
         onPointerDown={onResizeStart}
       >
         <span className="h-1 w-16 rounded-full bg-border transition-colors group-hover:bg-primary/60" />
@@ -1059,31 +1280,48 @@ function BpmnOperationsDock({
             <TabsTrigger value="jobs">Job definitions</TabsTrigger>
           </TabsList>
           <span className="text-xs text-foreground/70">
-            {cases.length} instance · {incidents.length} incident · {jobDefinitions.length} job
+            {cases.length} instance · {incidents.length} incident ·{" "}
+            {jobDefinitions.length} job
           </span>
         </div>
-        <TabsContent value="instances" className="m-0 overflow-auto" style={{ height: height - 56 }}>
+        <TabsContent
+          value="instances"
+          className="m-0 overflow-auto"
+          style={{ height: height - 56 }}
+        >
           <OperationsCasesTable
             emptyText="Chưa có process instance cho định nghĩa này."
             items={cases}
             onSelectElement={onSelectElement}
           />
         </TabsContent>
-        <TabsContent value="incidents" className="m-0 overflow-auto" style={{ height: height - 56 }}>
+        <TabsContent
+          value="incidents"
+          className="m-0 overflow-auto"
+          style={{ height: height - 56 }}
+        >
           <OperationsCasesTable
             emptyText="Chưa có incident."
             items={incidents}
             onSelectElement={onSelectElement}
           />
         </TabsContent>
-        <TabsContent value="called" className="m-0 overflow-auto" style={{ height: height - 56 }}>
+        <TabsContent
+          value="called"
+          className="m-0 overflow-auto"
+          style={{ height: height - 56 }}
+        >
           <OperationsElementsTable
             emptyText="Không có call activity trong BPMN này."
             items={calledInstances}
             onSelectElement={onSelectElement}
           />
         </TabsContent>
-        <TabsContent value="jobs" className="m-0 overflow-auto" style={{ height: height - 56 }}>
+        <TabsContent
+          value="jobs"
+          className="m-0 overflow-auto"
+          style={{ height: height - 56 }}
+        >
           <OperationsElementsTable
             emptyText="Không có job/task definition trong BPMN này."
             items={jobDefinitions}
@@ -1107,7 +1345,11 @@ function TextareaInput({
   return (
     <label className="grid gap-1 text-sm">
       <span className="text-xs font-medium text-foreground/80">{label}</span>
-      <Textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} />
+      <Textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        rows={3}
+      />
     </label>
   )
 }
@@ -1193,7 +1435,8 @@ function OperationsCasesTable({
   emptyText: string
   onSelectElement: (ref?: string) => void
 }) {
-  if (!items.length) return <div className="p-4 text-sm text-foreground/70">{emptyText}</div>
+  if (!items.length)
+    return <div className="p-4 text-sm text-foreground/70">{emptyText}</div>
 
   return (
     <Table>
@@ -1214,13 +1457,25 @@ function OperationsCasesTable({
             onClick={() => onSelectElement(item.currentStep)}
           >
             <TableCell>
-              <p className="font-mono text-xs text-foreground">{item.processInstanceKey ?? item.caseCode}</p>
-              <p className="truncate text-xs text-foreground/70">{item.title}</p>
+              <p className="font-mono text-xs text-foreground">
+                {item.processInstanceKey ?? item.caseCode}
+              </p>
+              <p className="truncate text-xs text-foreground/70">
+                {item.title}
+              </p>
             </TableCell>
-            <TableCell><StatusBadge status={item.status} /></TableCell>
-            <TableCell className="font-mono text-xs">{item.currentStep || "-"}</TableCell>
-            <TableCell>{item.assignedTo || item.candidateRole || "-"}</TableCell>
-            <TableCell>{item.slaDueAt ? formatDateTime(item.slaDueAt) : "-"}</TableCell>
+            <TableCell>
+              <StatusBadge status={item.status} />
+            </TableCell>
+            <TableCell className="font-mono text-xs">
+              {item.currentStep || "-"}
+            </TableCell>
+            <TableCell>
+              {item.assignedTo || item.candidateRole || "-"}
+            </TableCell>
+            <TableCell>
+              {item.slaDueAt ? formatDateTime(item.slaDueAt) : "-"}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -1237,7 +1492,8 @@ function OperationsElementsTable({
   emptyText: string
   onSelectElement: (ref?: string) => void
 }) {
-  if (!items.length) return <div className="p-4 text-sm text-foreground/70">{emptyText}</div>
+  if (!items.length)
+    return <div className="p-4 text-sm text-foreground/70">{emptyText}</div>
 
   return (
     <Table>
@@ -1251,17 +1507,29 @@ function OperationsElementsTable({
       </TableHeader>
       <TableBody>
         {items.map((item) => (
-          <TableRow key={item.id} className="cursor-pointer" onClick={() => onSelectElement(item.id)}>
+          <TableRow
+            key={item.id}
+            className="cursor-pointer"
+            onClick={() => onSelectElement(item.id)}
+          >
             <TableCell>
-              <p className="font-medium">{item.businessObject?.name || item.id}</p>
+              <p className="font-medium">
+                {item.businessObject?.name || item.id}
+              </p>
               <p className="font-mono text-xs text-foreground/70">{item.id}</p>
             </TableCell>
-            <TableCell className="font-mono text-xs">{item.businessObject?.$type ?? item.type}</TableCell>
             <TableCell className="font-mono text-xs">
-              {item.businessObject?.incoming?.map((flow) => flow.id).join(", ") || "-"}
+              {item.businessObject?.$type ?? item.type}
             </TableCell>
             <TableCell className="font-mono text-xs">
-              {item.businessObject?.outgoing?.map((flow) => flow.id).join(", ") || "-"}
+              {item.businessObject?.incoming
+                ?.map((flow) => flow.id)
+                .join(", ") || "-"}
+            </TableCell>
+            <TableCell className="font-mono text-xs">
+              {item.businessObject?.outgoing
+                ?.map((flow) => flow.id)
+                .join(", ") || "-"}
             </TableCell>
           </TableRow>
         ))}
@@ -1270,15 +1538,19 @@ function OperationsElementsTable({
   )
 }
 
-
 function EmptyState({ text }: { text: string }) {
-  return <div className="rounded-md border p-3 text-sm text-muted-foreground">{text}</div>
+  return (
+    <div className="rounded-md border p-3 text-sm text-muted-foreground">
+      {text}
+    </div>
+  )
 }
 
 function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
   if (!info) return <EmptyState text="Chưa nhận diện được nội dung BPMN." />
 
-  const hasWarnings = info.missingJobTypes.length > 0 || info.legacyConditions.length > 0
+  const hasWarnings =
+    info.missingJobTypes.length > 0 || info.legacyConditions.length > 0
 
   return (
     <div className="rounded-md border bg-card p-2.5 text-card-foreground">
@@ -1288,7 +1560,9 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
           <p className="truncate text-sm font-semibold text-foreground">
             {info.processName || info.processId || "Unnamed process"}
           </p>
-          <p className="break-all font-mono text-[11px] text-foreground/70">{info.processId || "-"}</p>
+          <p className="font-mono text-[11px] break-all text-foreground/70">
+            {info.processId || "-"}
+          </p>
         </div>
         <Badge variant={hasWarnings ? "outline" : "secondary"}>
           {hasWarnings ? "Cần sửa" : "Sẵn sàng"}
@@ -1303,12 +1577,18 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
         <Field label="Calls" value={String(info.callActivities)} />
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <Badge variant="outline">Executable: {String(Boolean(info.executable))}</Badge>
+        <Badge variant="outline">
+          Executable: {String(Boolean(info.executable))}
+        </Badge>
         {info.missingJobTypes.length ? (
-          <Badge variant="outline">{info.missingJobTypes.length} task thiếu job type</Badge>
+          <Badge variant="outline">
+            {info.missingJobTypes.length} task thiếu job type
+          </Badge>
         ) : null}
         {info.legacyConditions.length ? (
-          <Badge variant="outline">{info.legacyConditions.length} condition C7</Badge>
+          <Badge variant="outline">
+            {info.legacyConditions.length} condition C7
+          </Badge>
         ) : null}
       </div>
       {hasWarnings ? (
@@ -1319,7 +1599,9 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
             </p>
           ))}
           {info.legacyConditions.slice(0, 2).map((id) => (
-            <p key={id} className="truncate font-mono">Legacy condition: {id}</p>
+            <p key={id} className="truncate font-mono">
+              Legacy condition: {id}
+            </p>
           ))}
         </div>
       ) : null}
@@ -1331,13 +1613,14 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs font-medium text-foreground/70">{label}</p>
-      <p className="break-words font-medium text-foreground">{value}</p>
+      <p className="font-medium break-words text-foreground">{value}</p>
     </div>
   )
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const variant = status === "ACTIVE" || status === "COMPLETED" ? "secondary" : "outline"
+  const variant =
+    status === "ACTIVE" || status === "COMPLETED" ? "secondary" : "outline"
   return <Badge variant={variant}>{status}</Badge>
 }
 
@@ -1388,15 +1671,23 @@ function findBpmnElement(elements: BpmnElement[], ref: string) {
 }
 
 function analyzeBpmnFile(elements: BpmnElement[]): BpmnFileInfo {
-  const process = elements.find((element) => element.businessObject?.$type === "bpmn:Process")?.businessObject
-  const participant = elements.find((element) => element.businessObject?.$type === "bpmn:Participant")?.businessObject
+  const process = elements.find(
+    (element) => element.businessObject?.$type === "bpmn:Process"
+  )?.businessObject
+  const participant = elements.find(
+    (element) => element.businessObject?.$type === "bpmn:Participant"
+  )?.businessObject
   const processRef = process ?? participant?.processRef
-  const taskElements = elements.filter((element) => bpmnJobTypes.has(element.type))
+  const taskElements = elements.filter((element) =>
+    bpmnJobTypes.has(element.type)
+  )
   const missingJobTypes = taskElements
     .filter((element) => !getTaskDefinitionType(element.businessObject))
     .map((element) => element.businessObject?.id ?? element.id)
   const legacyConditions = elements
-    .filter((element) => element.businessObject?.conditionExpression?.body?.trim().startsWith("${"))
+    .filter((element) =>
+      element.businessObject?.conditionExpression?.body?.trim().startsWith("${")
+    )
     .map((element) => element.businessObject?.id ?? element.id)
 
   return {
@@ -1404,11 +1695,15 @@ function analyzeBpmnFile(elements: BpmnElement[]): BpmnFileInfo {
     processName: processRef?.name ?? participant?.name ?? "",
     executable: processRef?.isExecutable,
     tasks: taskElements.length,
-    gateways: elements.filter((element) => element.type.includes("Gateway")).length,
+    gateways: elements.filter((element) => element.type.includes("Gateway"))
+      .length,
     events: elements.filter((element) => element.type.includes("Event")).length,
-    flows: elements.filter((element) => element.type === "bpmn:SequenceFlow").length,
+    flows: elements.filter((element) => element.type === "bpmn:SequenceFlow")
+      .length,
     jobs: taskElements.length - missingJobTypes.length,
-    callActivities: elements.filter((element) => element.type === "bpmn:CallActivity").length,
+    callActivities: elements.filter(
+      (element) => element.type === "bpmn:CallActivity"
+    ).length,
     missingJobTypes,
     legacyConditions,
   }
@@ -1443,14 +1738,19 @@ function normalizeModelBeforeSave(modeler: BpmnSaveCapable) {
       const nextBody = normalizeZeebeExpression(condition.body)
       if (nextBody !== condition.body) {
         modeling.updateProperties(element, {
-          conditionExpression: moddle.create("bpmn:FormalExpression", { body: nextBody }),
+          conditionExpression: moddle.create("bpmn:FormalExpression", {
+            body: nextBody,
+          }),
         })
       }
     }
 
     const attrs = businessObject.$attrs ?? {}
     const legacyType = String(
-      attrs["zeebe:taskDefinition:type"] ?? attrs["taskType"] ?? attrs["camunda:topic"] ?? ""
+      attrs["zeebe:taskDefinition:type"] ??
+        attrs["taskType"] ??
+        attrs["camunda:topic"] ??
+        ""
     )
     if (!bpmnJobTypes.has(element.type) || !legacyType.trim()) continue
 
@@ -1480,8 +1780,13 @@ function normalizeZeebeExpression(value: string) {
     .replace(/'([^']*)'/g, '"$1"')}`
 }
 
-function getZeebeElement(businessObject: BpmnElement["businessObject"], elementType: string) {
-  return businessObject?.extensionElements?.values?.find((item) => item.$type === elementType)
+function getZeebeElement(
+  businessObject: BpmnElement["businessObject"],
+  elementType: string
+) {
+  return businessObject?.extensionElements?.values?.find(
+    (item) => item.$type === elementType
+  )
 }
 
 function buildZeebeExtensionElements({
@@ -1500,7 +1805,8 @@ function buildZeebeExtensionElements({
   const values = [...(businessObject?.extensionElements?.values ?? [])].filter(
     (item) => item.$type !== elementType
   )
-  if (keep) values.push(moddle.create(elementType, compactStringProperties(properties)))
+  if (keep)
+    values.push(moddle.create(elementType, compactStringProperties(properties)))
   if (!values.length) return undefined
   return moddle.create("bpmn:ExtensionElements", { values })
 }

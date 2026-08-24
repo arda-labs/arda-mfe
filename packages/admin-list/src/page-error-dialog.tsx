@@ -1,4 +1,4 @@
-import { translateApiError, useI18n } from "@workspace/i18n";
+import { translateApiError, useI18n } from "@workspace/i18n"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,14 +8,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@workspace/ui/components/alert-dialog";
+} from "@workspace/ui/components/alert-dialog"
 
 type PageErrorDialogProps = {
-  open: boolean;
-  error: unknown;
-  onRetry?: () => void;
-  title?: string;
-};
+  open: boolean
+  error: unknown
+  onRetry?: () => void
+  title?: string
+}
 
 export function PageErrorDialog({
   open,
@@ -23,8 +23,8 @@ export function PageErrorDialog({
   onRetry,
   title,
 }: PageErrorDialogProps) {
-  const { t } = useI18n();
-  const message = translateApiError(error);
+  const { t } = useI18n()
+  const message = translateApiError(error)
 
   return (
     <AlertDialog open={open} onOpenChange={() => {}}>
@@ -47,5 +47,5 @@ export function PageErrorDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  )
 }

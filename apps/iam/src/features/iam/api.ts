@@ -1,8 +1,5 @@
 import { api } from "@workspace/api"
-import {
-  buildListSearchParams,
-  type ListResponse,
-} from "@workspace/api/list"
+import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import { buildSearchParams } from "@workspace/api/query"
 
 // ── Audit ────────────────────────────────────────────
@@ -69,7 +66,8 @@ const normalizeAuditEvent = (event: AuditEventApiItem): AuditEvent => ({
   clientIp: event.client_ip ?? event.clientIp ?? event.ClientIP ?? "",
   userAgent: event.user_agent ?? event.userAgent ?? event.UserAgent ?? "",
   requestId: event.request_id ?? event.requestId ?? event.RequestID ?? "",
-  serviceName: event.service_name ?? event.serviceName ?? event.ServiceName ?? "",
+  serviceName:
+    event.service_name ?? event.serviceName ?? event.ServiceName ?? "",
   timestamp: event.timestamp ?? event.Timestamp ?? "",
 })
 
@@ -89,7 +87,8 @@ export const auditApi = {
       perPage: params?.perPage,
       sort: params?.sort,
     })
-    if (params?.event_type) params.event_type.forEach((et) => p.append("event_type", et))
+    if (params?.event_type)
+      params.event_type.forEach((et) => p.append("event_type", et))
     if (params?.subject) p.set("subject", params.subject)
     if (params?.result) p.set("result", params.result)
     if (params?.from) p.set("from", params.from)
@@ -314,7 +313,8 @@ const normalizeGroup = (group: GroupApiItem): Group => ({
   status: group.status ?? group.Status ?? "",
   tenantId: group.tenant_id ?? group.tenantId ?? group.TenantID ?? "default",
   isSystem: group.is_system ?? group.isSystem ?? group.IsSystem ?? false,
-  memberCount: group.member_count ?? group.memberCount ?? group.MemberCount ?? 0,
+  memberCount:
+    group.member_count ?? group.memberCount ?? group.MemberCount ?? 0,
   roleCount: group.role_count ?? group.roleCount ?? group.RoleCount ?? 0,
   createdAt: group.created_at ?? group.createdAt ?? group.CreatedAt ?? "",
   updatedAt: group.updated_at ?? group.updatedAt ?? group.UpdatedAt ?? "",
@@ -468,14 +468,16 @@ export const adminApi = {
     api.post<{ status: string }>(`/api/admin/users/${id}/mfa/reset`),
   provisionUserIdentity: (id: string, temporaryPassword: string) =>
     api
-      .post<{ status: string; kratos_identity_id?: string; kratosIdentityId?: string }>(
-        `/api/admin/users/${id}/identity/provision`,
-        { temporary_password: temporaryPassword }
-      )
+      .post<{
+        status: string
+        kratos_identity_id?: string
+        kratosIdentityId?: string
+      }>(`/api/admin/users/${id}/identity/provision`, {
+        temporary_password: temporaryPassword,
+      })
       .then((res) => ({
         status: res.status,
-        kratosIdentityId:
-          res.kratos_identity_id ?? res.kratosIdentityId ?? "",
+        kratosIdentityId: res.kratos_identity_id ?? res.kratosIdentityId ?? "",
       })),
   auditIdentityConsistency: () =>
     api.get<{ ok: boolean; count: number; issues: IdentityConsistencyIssue[] }>(

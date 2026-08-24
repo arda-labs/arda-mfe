@@ -9,7 +9,12 @@ import { Button } from "@workspace/ui/components/button"
 import { PageTitle as CollapsingPageTitle } from "@workspace/ui/components/page-title"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { Plus, Send } from "lucide-react"
-import { hrmApi, type EmployeeRegistration, type OrgUnit, type Position } from "../api"
+import {
+  hrmApi,
+  type EmployeeRegistration,
+  type OrgUnit,
+  type Position,
+} from "../api"
 import {
   registrationDefaults,
   registrationSchema,
@@ -29,7 +34,8 @@ import {
 } from "../shared/ui"
 
 export function RegistrationsPage() {
-  const [savedRegistration, setSavedRegistration] = useState<EmployeeRegistration | null>(null)
+  const [savedRegistration, setSavedRegistration] =
+    useState<EmployeeRegistration | null>(null)
   const [orgUnits, setOrgUnits] = useState<OrgUnit[]>([])
   const [positions, setPositions] = useState<Position[]>([])
   const [saving, setSaving] = useState(false)
@@ -39,7 +45,10 @@ export function RegistrationsPage() {
     resolver: zodResolver(registrationSchema),
     defaultValues: registrationDefaults,
   })
-  const avatarFileId = useWatch({ control: form.control, name: "avatar_file_id" })
+  const avatarFileId = useWatch({
+    control: form.control,
+    name: "avatar_file_id",
+  })
 
   const load = useCallback(async () => {
     try {
@@ -85,7 +94,10 @@ export function RegistrationsPage() {
           notify.success("Da gui dang ky nhan su")
           setSavedRegistration(submitted)
         } catch (reason) {
-          notify.error("Gui dang ky nhan su that bai", translateApiError(reason))
+          notify.error(
+            "Gui dang ky nhan su that bai",
+            translateApiError(reason)
+          )
         } finally {
           setSubmitting(false)
         }
@@ -118,7 +130,12 @@ export function RegistrationsPage() {
     const registrationCode = savedRegistration.registration_code
     setUploadingAvatar(true)
     try {
-      const result = await uploadFile(file, "hrm", "employee_avatar", registrationCode)
+      const result = await uploadFile(
+        file,
+        "hrm",
+        "employee_avatar",
+        registrationCode
+      )
       notify.success("Đã tải ảnh đại diện lên media-service")
       form.setValue("avatar_file_id", result.public_id, { shouldDirty: true })
     } catch (reason) {
@@ -133,7 +150,10 @@ export function RegistrationsPage() {
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
-      <form className="flex min-h-0 flex-1 flex-col" onSubmit={form.handleSubmit((values) => save(values))}>
+      <form
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={form.handleSubmit((values) => save(values))}
+      >
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
           <div className="space-y-4 p-4 pb-3">
             <RegistrationMetaBar registration={savedRegistration} />
@@ -156,7 +176,12 @@ export function RegistrationsPage() {
               }
               actions={
                 savedRegistration ? (
-                  <Button className="h-8" type="button" variant="outline" onClick={resetDraft}>
+                  <Button
+                    className="h-8"
+                    type="button"
+                    variant="outline"
+                    onClick={resetDraft}
+                  >
                     <Plus className="size-4" />
                     Hồ sơ mới
                   </Button>
@@ -175,10 +200,16 @@ export function RegistrationsPage() {
                   form={form}
                   orgUnits={orgUnits}
                   uploadingAvatar={uploadingAvatar}
-                  onClearAvatar={() => form.setValue("avatar_file_id", "", { shouldDirty: true })}
+                  onClearAvatar={() =>
+                    form.setValue("avatar_file_id", "", { shouldDirty: true })
+                  }
                   onUploadAvatar={uploadAvatarFile}
                 />
-                <AssignmentsTable form={form} orgUnits={orgUnits} positions={positions} />
+                <AssignmentsTable
+                  form={form}
+                  orgUnits={orgUnits}
+                  positions={positions}
+                />
                 <EducationsTable form={form} />
               </TabsContent>
               <TabsContent value="family" className="mt-0">
@@ -202,7 +233,8 @@ export function RegistrationsPage() {
                 form.formState.isSubmitting ||
                 saving ||
                 submitting ||
-                (savedRegistration !== null && savedRegistration.status !== "draft")
+                (savedRegistration !== null &&
+                  savedRegistration.status !== "draft")
               }
             >
               Lưu nháp

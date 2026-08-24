@@ -1,11 +1,11 @@
-import { cva } from "class-variance-authority";
-import type { VariantProps } from "class-variance-authority";
-import { Slot as SlotPrimitive } from "radix-ui";
-import type * as React from "react";
-import { cn } from "@workspace/ui/lib/utils";
+import { cva } from "class-variance-authority"
+import type { VariantProps } from "class-variance-authority"
+import { Slot as SlotPrimitive } from "radix-ui"
+import type * as React from "react"
+import { cn } from "@workspace/ui/lib/utils"
 
 const statusVariants = cva(
-  "inline-flex w-fit shrink-0 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border px-2 py-0.5 font-medium text-xs transition-colors",
+  "inline-flex w-fit shrink-0 items-center gap-1.5 overflow-hidden rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-colors",
   {
     variants: {
       variant: {
@@ -17,26 +17,24 @@ const statusVariants = cva(
           "border-destructive/20 bg-destructive/10 text-destructive **:data-[slot=status-indicator]:bg-destructive",
         warning:
           "border-warning/25 bg-warning/15 text-warning **:data-[slot=status-indicator]:bg-warning",
-        info:
-          "border-info/20 bg-info/10 text-info **:data-[slot=status-indicator]:bg-info",
+        info: "border-info/20 bg-info/10 text-info **:data-[slot=status-indicator]:bg-info",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  },
-);
+  }
+)
 
 interface StatusProps
-  extends VariantProps<typeof statusVariants>,
-    React.ComponentProps<"div"> {
-  asChild?: boolean;
+  extends VariantProps<typeof statusVariants>, React.ComponentProps<"div"> {
+  asChild?: boolean
 }
 
 function Status(props: StatusProps) {
-  const { className, variant = "default", asChild, ...rootProps } = props;
+  const { className, variant = "default", asChild, ...rootProps } = props
 
-  const RootPrimitive = asChild ? SlotPrimitive.Slot : "div";
+  const RootPrimitive = asChild ? SlotPrimitive.Slot : "div"
 
   return (
     <RootPrimitive
@@ -45,11 +43,11 @@ function Status(props: StatusProps) {
       {...rootProps}
       className={cn(statusVariants({ variant }), className)}
     />
-  );
+  )
 }
 
 function StatusIndicator(props: React.ComponentProps<"div">) {
-  const { className, ...indicatorProps } = props;
+  const { className, ...indicatorProps } = props
 
   return (
     <div
@@ -59,14 +57,14 @@ function StatusIndicator(props: React.ComponentProps<"div">) {
         "relative flex size-2 shrink-0 rounded-full",
         "before:absolute before:inset-0 before:rounded-full before:bg-inherit before:opacity-25",
         "after:absolute after:inset-[2px] after:rounded-full after:bg-inherit",
-        className,
+        className
       )}
     />
-  );
+  )
 }
 
 function StatusLabel(props: React.ComponentProps<"div">) {
-  const { className, ...labelProps } = props;
+  const { className, ...labelProps } = props
 
   return (
     <div
@@ -74,7 +72,7 @@ function StatusLabel(props: React.ComponentProps<"div">) {
       {...labelProps}
       className={cn("leading-none", className)}
     />
-  );
+  )
 }
 
-export { Status, StatusIndicator, StatusLabel, statusVariants };
+export { Status, StatusIndicator, StatusLabel, statusVariants }

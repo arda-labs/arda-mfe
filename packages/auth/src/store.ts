@@ -3,7 +3,6 @@ import { apiUrl } from "@workspace/api/url"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
-
 export interface AuthUser {
   userId?: string
   username?: string

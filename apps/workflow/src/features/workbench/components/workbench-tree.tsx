@@ -16,7 +16,9 @@ export function WorkItemTree({
   const visibleNodes = nodes.length
     ? nodes
     : [{ id: "ALL", label: "Tất cả việc được phép nhận", count: 0 }]
-  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({})
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>(
+    {}
+  )
 
   function toggleNode(nodeId: string) {
     setExpandedNodes((current) => ({

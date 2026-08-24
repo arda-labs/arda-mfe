@@ -1,10 +1,7 @@
 import "@workspace/i18n/apps/iam"
 import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
-import {
-  attachPreload,
-  lazyWithPreload,
-} from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const UsersPage = lazyWithPreload(() =>
   import("@/features/iam/users/page").then((m) => ({ default: m.UsersPage }))

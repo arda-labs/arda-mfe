@@ -1,16 +1,16 @@
-import { Loader2 } from "lucide-react";
-import { cn } from "@workspace/ui/lib/utils";
+import { Loader2 } from "lucide-react"
+import { cn } from "@workspace/ui/lib/utils"
 
 type PageLoadOverlayProps = {
-  className?: string;
-};
+  className?: string
+}
 
 export function PageLoadOverlay({ className }: PageLoadOverlayProps) {
   return (
     <div
       className={cn(
         "absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-[1px]",
-        className,
+        className
       )}
       aria-live="polite"
       aria-busy="true"
@@ -19,5 +19,5 @@ export function PageLoadOverlay({ className }: PageLoadOverlayProps) {
         <Loader2 className="size-8 animate-spin text-primary" />
       </div>
     </div>
-  );
+  )
 }

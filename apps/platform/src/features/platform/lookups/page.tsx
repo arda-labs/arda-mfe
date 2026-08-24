@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -23,9 +30,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,14 +60,26 @@ import {
   matchTextColumnFilter,
   textSearchMeta,
 } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 
-const scopeTypeValues = ["global", "tenant", "org", "branch", "department"] as const
+const scopeTypeValues = [
+  "global",
+  "tenant",
+  "org",
+  "branch",
+  "department",
+] as const
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildCategorySchema(t: TranslateFn) {
   return z
@@ -166,10 +195,14 @@ export function LookupsPage() {
   const [selectedCat, setSelectedCat] = useState<LookupCategory | null>(null)
   const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [editingCat, setEditingCat] = useState<LookupCategory | null>(null)
-  const [deleteCatTarget, setDeleteCatTarget] = useState<LookupCategory | null>(null)
+  const [deleteCatTarget, setDeleteCatTarget] = useState<LookupCategory | null>(
+    null
+  )
   const [valDialogOpen, setValDialogOpen] = useState(false)
   const [editingVal, setEditingVal] = useState<LookupValue | null>(null)
-  const [deleteValTarget, setDeleteValTarget] = useState<LookupValue | null>(null)
+  const [deleteValTarget, setDeleteValTarget] = useState<LookupValue | null>(
+    null
+  )
   const [categories, setCategories] = useState<LookupCategory[]>([])
   const [values, setValues] = useState<LookupValue[]>([])
   const [loadingCats, setLoadingCats] = useState(true)
@@ -391,29 +424,42 @@ export function LookupsPage() {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.lookups.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.lookups.field.code")}
+          />
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-primary">{row.original.code}</span>
+          <span className="font-mono text-xs text-primary">
+            {row.original.code}
+          </span>
         ),
       },
       {
         id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.lookups.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.lookups.field.name")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
           t("platform.lookups.field.name"),
           t("platform.lookups.placeholder.search")
         ),
-        cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
+        cell: ({ row }) => (
+          <span className="font-semibold">{row.original.name}</span>
+        ),
       },
       {
         accessorKey: "sort_order",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.lookups.field.sort_order")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.lookups.field.sort_order")}
+          />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.sort_order}</span>
@@ -423,7 +469,10 @@ export function LookupsPage() {
         id: "is_active",
         accessorKey: "is_active",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.lookups.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.lookups.field.status")}
+          />
         ),
         enableColumnFilter: true,
         meta: activeStatusMeta(
@@ -501,7 +550,12 @@ export function LookupsPage() {
       {t("platform.lookups.values.select_category")}
     </div>
   ) : loadingValues && values.length === 0 ? (
-    <DataTableSkeleton className="min-h-0 flex-1" columnCount={5} rowCount={8} filterCount={1} />
+    <DataTableSkeleton
+      className="min-h-0 flex-1"
+      columnCount={5}
+      rowCount={8}
+      filterCount={1}
+    />
   ) : (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <div className="flex shrink-0 items-center justify-between gap-3">
@@ -510,14 +564,24 @@ export function LookupsPage() {
             {t("platform.lookups.values.title", { name: selectedCat.name })}
           </p>
           {selectedCat.description && (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">{selectedCat.description}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {selectedCat.description}
+            </p>
           )}
-          <Badge variant="secondary" className="mt-1.5 px-2 py-0 text-[10px] font-bold">
+          <Badge
+            variant="secondary"
+            className="mt-1.5 px-2 py-0 text-[10px] font-bold"
+          >
             {t("platform.lookups.values.count", { count: valuesTotal })}
           </Badge>
         </div>
       </div>
-      <DataTable layout="panel" table={table} totalRows={valuesTotal} className="min-h-0 flex-1">
+      <DataTable
+        layout="panel"
+        table={table}
+        totalRows={valuesTotal}
+        className="min-h-0 flex-1"
+      >
         <ListTableToolbar
           table={table}
           onCreate={openCreateVal}
@@ -537,10 +601,16 @@ export function LookupsPage() {
                 ? t("platform.lookups.category.edit")
                 : t("platform.lookups.category.create_title")}
             </DialogTitle>
-            <DialogDescription>{t("platform.lookups.category.dialog_description")}</DialogDescription>
+            <DialogDescription>
+              {t("platform.lookups.category.dialog_description")}
+            </DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={submitCategory} className="space-y-4 py-2">
+          <form
+            autoComplete="off"
+            onSubmit={submitCategory}
+            className="space-y-4 py-2"
+          >
             <FormField
               label={t("platform.lookups.field.code")}
               htmlFor="cat_code"
@@ -555,7 +625,9 @@ export function LookupsPage() {
                 spellCheck={false}
                 {...registerCat("code", {
                   onChange: (event) => {
-                    event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "_")
+                    event.target.value = event.target.value
+                      .toUpperCase()
+                      .replace(/\s+/g, "_")
                   },
                 })}
               />
@@ -587,10 +659,16 @@ export function LookupsPage() {
                       value={field.value}
                       onValueChange={(value) => {
                         field.onChange(value)
-                        setCatValue("scope_id", "", { shouldDirty: true, shouldValidate: true })
+                        setCatValue("scope_id", "", {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }}
                     >
-                      <SelectTrigger id="cat_scope_type" aria-invalid={Boolean(catErrors.scope_type)}>
+                      <SelectTrigger
+                        id="cat_scope_type"
+                        aria-invalid={Boolean(catErrors.scope_type)}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -635,10 +713,17 @@ export function LookupsPage() {
             </FormField>
 
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleCatDialogOpenChange(false)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleCatDialogOpenChange(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isCatSubmitting || catSavePending}>
+              <Button
+                type="submit"
+                disabled={isCatSubmitting || catSavePending}
+              >
                 {isCatSubmitting || catSavePending
                   ? t("common.action.saving")
                   : t("common.action.save")}
@@ -656,10 +741,16 @@ export function LookupsPage() {
                 ? t("platform.lookups.value.edit")
                 : t("platform.lookups.value.create_title")}
             </DialogTitle>
-            <DialogDescription>{t("platform.lookups.value.dialog_description")}</DialogDescription>
+            <DialogDescription>
+              {t("platform.lookups.value.dialog_description")}
+            </DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={submitValue} className="space-y-4 py-2">
+          <form
+            autoComplete="off"
+            onSubmit={submitValue}
+            className="space-y-4 py-2"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 label={t("platform.lookups.field.code")}
@@ -675,7 +766,9 @@ export function LookupsPage() {
                   spellCheck={false}
                   {...registerVal("code", {
                     onChange: (event) => {
-                      event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "_")
+                      event.target.value = event.target.value
+                        .toUpperCase()
+                        .replace(/\s+/g, "_")
                     },
                   })}
                 />
@@ -716,9 +809,14 @@ export function LookupsPage() {
                     <Checkbox
                       id="val_active"
                       checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked === true)
+                      }
                     />
-                    <label htmlFor="val_active" className="cursor-pointer select-none text-sm font-medium">
+                    <label
+                      htmlFor="val_active"
+                      className="cursor-pointer text-sm font-medium select-none"
+                    >
                       {t("platform.lookups.field.is_active")}
                     </label>
                   </div>
@@ -742,10 +840,17 @@ export function LookupsPage() {
             </FormField>
 
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleValDialogOpenChange(false)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleValDialogOpenChange(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
-              <Button type="submit" disabled={isValSubmitting || valSavePending}>
+              <Button
+                type="submit"
+                disabled={isValSubmitting || valSavePending}
+              >
                 {isValSubmitting || valSavePending
                   ? t("common.action.saving")
                   : t("common.action.save")}
@@ -755,10 +860,15 @@ export function LookupsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteCatTarget} onOpenChange={() => setDeleteCatTarget(null)}>
+      <AlertDialog
+        open={!!deleteCatTarget}
+        onOpenChange={() => setDeleteCatTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.lookups.delete.category_title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.lookups.delete.category_title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("platform.lookups.delete.category_description", {
                 name: deleteCatTarget?.name ?? "",
@@ -778,10 +888,15 @@ export function LookupsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!deleteValTarget} onOpenChange={() => setDeleteValTarget(null)}>
+      <AlertDialog
+        open={!!deleteValTarget}
+        onOpenChange={() => setDeleteValTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.lookups.delete.value_title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.lookups.delete.value_title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("platform.lookups.delete.value_description", {
                 name: deleteValTarget?.name ?? "",
@@ -808,7 +923,10 @@ export function LookupsPage() {
       <PageHeader
         title={t("platform.lookups.title")}
         meta={
-          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+          <Badge
+            variant="secondary"
+            className="px-2.5 py-0.5 text-xs font-bold"
+          >
             {t("platform.lookups.count", { count: categories.length })}
           </Badge>
         }
@@ -817,7 +935,9 @@ export function LookupsPage() {
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-3">
         <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-muted/50 md:col-span-1">
           <div className="flex shrink-0 items-center justify-between border-b border-muted bg-muted/5 p-4">
-            <span className="text-sm font-bold">{t("platform.lookups.categories.title")}</span>
+            <span className="text-sm font-bold">
+              {t("platform.lookups.categories.title")}
+            </span>
             <Button
               size="sm"
               variant="outline"
@@ -852,7 +972,11 @@ export function LookupsPage() {
                     <div className="max-w-[70%] space-y-1">
                       <div className="flex items-center gap-1.5 truncate text-sm font-semibold">
                         <Tag className="size-3.5 shrink-0 text-muted-foreground" />
-                        <span className={isSelected ? "text-primary" : "text-foreground"}>
+                        <span
+                          className={
+                            isSelected ? "text-primary" : "text-foreground"
+                          }
+                        >
                           {cat.name}
                         </span>
                       </div>

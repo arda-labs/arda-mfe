@@ -86,7 +86,10 @@ export const hrmApi = {
   listOrgUnits: async (organizationId?: string) =>
     (
       await api.get<ListResponse<OrgUnit>>(
-        withParams("/api/hrm/org-units", { organization_id: organizationId, all: "1" })
+        withParams("/api/hrm/org-units", {
+          organization_id: organizationId,
+          all: "1",
+        })
       )
     ).items,
   createOrgUnit: (payload: Partial<OrgUnit>) =>
@@ -107,13 +110,16 @@ export const hrmApi = {
   createEmployeeRegistration: (payload: {
     registration_code?: string
     payload: Record<string, unknown>
-  }) => api.post<EmployeeRegistration>("/api/hrm/employee-registrations", payload),
+  }) =>
+    api.post<EmployeeRegistration>("/api/hrm/employee-registrations", payload),
   updateEmployeeRegistration: (id: string, payload: Record<string, unknown>) =>
     api.put<EmployeeRegistration>(`/api/hrm/employee-registrations/${id}`, {
       payload,
     }),
   submitEmployeeRegistration: (id: string) =>
-    api.post<EmployeeRegistration>(`/api/hrm/employee-registrations/${id}/submit`),
+    api.post<EmployeeRegistration>(
+      `/api/hrm/employee-registrations/${id}/submit`
+    ),
 
   listOrganizations: () =>
     api.get<ListResponse<PlatformOrganization>>(

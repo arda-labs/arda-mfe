@@ -35,7 +35,10 @@ export function WorkbenchToolbar({
     (v) => v !== undefined && v !== null && v !== ""
   )
 
-  const setFilter = (key: keyof FilterState, value: string | null | undefined) => {
+  const setFilter = (
+    key: keyof FilterState,
+    value: string | null | undefined
+  ) => {
     onChange({ ...filters, [key]: value || null })
   }
 
@@ -49,7 +52,9 @@ export function WorkbenchToolbar({
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder={keywordPlaceholder ?? t("workflow.workbench.keyword_placeholder")}
+            placeholder={
+              keywordPlaceholder ?? t("workflow.workbench.keyword_placeholder")
+            }
             value={filters.keyword ?? ""}
             onChange={(e) => setFilter("keyword", e.target.value || null)}
             className="h-8 w-56 pl-8"

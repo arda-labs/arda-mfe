@@ -1,21 +1,21 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table"
 
-export const SELECT_COLUMN_ID = "select";
-export const ROW_INDEX_COLUMN_ID = "row_index";
-export const ACTIONS_COLUMN_ID = "actions";
+export const SELECT_COLUMN_ID = "select"
+export const ROW_INDEX_COLUMN_ID = "row_index"
+export const ACTIONS_COLUMN_ID = "actions"
 
 /** Fixed width for checkbox selection column (px). */
-export const SELECT_COLUMN_SIZE = 40;
+export const SELECT_COLUMN_SIZE = 40
 /** Fixed width for row index / STT column (px). */
-export const ROW_INDEX_COLUMN_SIZE = 44;
+export const ROW_INDEX_COLUMN_SIZE = 44
 /** Fixed width for trailing edit/delete actions (px). */
-export const ACTIONS_COLUMN_SIZE = 72;
+export const ACTIONS_COLUMN_SIZE = 72
 
 type InjectRowIndexColumnOptions = {
-  pageIndex: number;
-  pageSize: number;
-  label?: string;
-};
+  pageIndex: number
+  pageSize: number
+  label?: string
+}
 
 export function fixedColumnSize(size: number) {
   return {
@@ -23,18 +23,18 @@ export function fixedColumnSize(size: number) {
     minSize: size,
     maxSize: size,
     enableResizing: false as const,
-  };
+  }
 }
 
 export function normalizeSelectColumn<TData>(
-  columns: ColumnDef<TData>[],
+  columns: ColumnDef<TData>[]
 ): ColumnDef<TData>[] {
   return columns.map((column) => {
     if (column.id === SELECT_COLUMN_ID) {
       return {
         ...column,
         ...fixedColumnSize(SELECT_COLUMN_SIZE),
-      };
+      }
     }
     if (column.id === ACTIONS_COLUMN_ID) {
       return {
@@ -42,23 +42,22 @@ export function normalizeSelectColumn<TData>(
         enableSorting: column.enableSorting ?? false,
         enableHiding: column.enableHiding ?? false,
         ...fixedColumnSize(ACTIONS_COLUMN_SIZE),
-      };
+      }
     }
-    return column;
-  });
+    return column
+  })
 }
 
 export function injectRowIndexColumn<TData>(
   columns: ColumnDef<TData>[],
-  { pageIndex, pageSize, label = "STT" }: InjectRowIndexColumnOptions,
+  { pageIndex, pageSize, label = "STT" }: InjectRowIndexColumnOptions
 ): ColumnDef<TData>[] {
   if (
     columns.some(
-      (column) =>
-        column.id === ROW_INDEX_COLUMN_ID || column.id === "stt",
+      (column) => column.id === ROW_INDEX_COLUMN_ID || column.id === "stt"
     )
   ) {
-    return columns;
+    return columns
   }
 
   const rowIndexColumn: ColumnDef<TData> = {
@@ -71,18 +70,18 @@ export function injectRowIndexColumn<TData>(
     meta: {
       label,
     },
-  };
+  }
 
   const selectIndex = columns.findIndex(
-    (column) => column.id === SELECT_COLUMN_ID,
-  );
-  const insertAt = selectIndex >= 0 ? selectIndex + 1 : 0;
+    (column) => column.id === SELECT_COLUMN_ID
+  )
+  const insertAt = selectIndex >= 0 ? selectIndex + 1 : 0
 
   return [
     ...columns.slice(0, insertAt),
     rowIndexColumn,
     ...columns.slice(insertAt),
-  ];
+  ]
 }
 
 export function isUtilityTableColumn(columnId: string) {
@@ -90,18 +89,18 @@ export function isUtilityTableColumn(columnId: string) {
     columnId === SELECT_COLUMN_ID ||
     columnId === ROW_INDEX_COLUMN_ID ||
     columnId === ACTIONS_COLUMN_ID
-  );
+  )
 }
 
 export function utilityTableColumnClassName(columnId: string) {
   if (columnId === SELECT_COLUMN_ID) {
-    return "w-8 max-w-8 px-2 text-center";
+    return "w-8 max-w-8 px-2 text-center"
   }
   if (columnId === ROW_INDEX_COLUMN_ID) {
-    return "w-8 max-w-8 p-0 text-center tabular-nums text-muted-foreground";
+    return "w-8 max-w-8 p-0 text-center tabular-nums text-muted-foreground"
   }
   if (columnId === ACTIONS_COLUMN_ID) {
-    return "w-[4.5rem] max-w-[4.5rem] px-1";
+    return "w-[4.5rem] max-w-[4.5rem] px-1"
   }
-  return undefined;
+  return undefined
 }

@@ -15,7 +15,7 @@ export function Page({
       <section
         className={cn(
           "flex h-full min-h-0 flex-col gap-3 overflow-hidden p-4",
-          className,
+          className
         )}
       >
         {children}

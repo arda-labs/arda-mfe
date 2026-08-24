@@ -5,7 +5,12 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { AlertTriangle, CheckCircle2, Clock, SlidersHorizontal } from "lucide-react"
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  SlidersHorizontal,
+} from "lucide-react"
 import { platformApi, type SystemDate } from "../api"
 
 interface CutoffDisplay {
@@ -17,9 +22,27 @@ interface CutoffDisplay {
 }
 
 const CUTOFFS: CutoffDisplay[] = [
-  { id: "1", channelCode: "CITAD", transactionType: "TRANSFER", cutoffTime: "16:30:00", isActive: true },
-  { id: "2", channelCode: "NAPAS", transactionType: "TRANSFER", cutoffTime: "17:00:00", isActive: true },
-  { id: "3", channelCode: "COUNTER", transactionType: "DEPOSIT", cutoffTime: "17:00:00", isActive: true },
+  {
+    id: "1",
+    channelCode: "CITAD",
+    transactionType: "TRANSFER",
+    cutoffTime: "16:30:00",
+    isActive: true,
+  },
+  {
+    id: "2",
+    channelCode: "NAPAS",
+    transactionType: "TRANSFER",
+    cutoffTime: "17:00:00",
+    isActive: true,
+  },
+  {
+    id: "3",
+    channelCode: "COUNTER",
+    transactionType: "DEPOSIT",
+    cutoffTime: "17:00:00",
+    isActive: true,
+  },
 ]
 
 export function CutoffPage() {
@@ -37,7 +60,10 @@ export function CutoffPage() {
       const result = await platformApi.getCalendarStatus("HEAD_OFFICE")
       setStatus(result)
     } catch (err) {
-      notify.error("Khong the tai thong tin ngay he thong", translateApiError(err))
+      notify.error(
+        "Khong the tai thong tin ngay he thong",
+        translateApiError(err)
+      )
     } finally {
       setLoading(false)
     }
@@ -81,10 +107,12 @@ export function CutoffPage() {
             Quan ly Cut-off
           </Badge>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Cau hinh gio chot so (Cut-off Time)</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Cau hinh gio chot so (Cut-off Time)
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Thiet lap thoi gian chot giao dich trong ngay cho cac kenh thanh toan, chuyen tien lien ngan hang va gia
-          lap ngay hach toan.
+          Thiet lap thoi gian chot giao dich trong ngay cho cac kenh thanh toan,
+          chuyen tien lien ngan hang va gia lap ngay hach toan.
         </p>
       </div>
 
@@ -107,12 +135,24 @@ export function CutoffPage() {
               </thead>
               <tbody>
                 {CUTOFFS.map((cutoff) => (
-                  <tr key={cutoff.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="p-3 font-semibold text-primary">{cutoff.channelCode}</td>
-                    <td className="p-3 text-muted-foreground">{cutoff.transactionType}</td>
-                    <td className="p-3 font-mono font-medium text-destructive">{cutoff.cutoffTime}</td>
+                  <tr
+                    key={cutoff.id}
+                    className="border-b last:border-0 hover:bg-muted/30"
+                  >
+                    <td className="p-3 font-semibold text-primary">
+                      {cutoff.channelCode}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {cutoff.transactionType}
+                    </td>
+                    <td className="p-3 font-mono font-medium text-destructive">
+                      {cutoff.cutoffTime}
+                    </td>
                     <td className="p-3 text-center">
-                      <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                      <Badge
+                        variant="default"
+                        className="bg-green-500 hover:bg-green-600"
+                      >
                         Hoat dong
                       </Badge>
                     </td>
@@ -122,8 +162,8 @@ export function CutoffPage() {
             </table>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            * Giao dich phat sinh sau gio chot so se duoc chuyen tiep hach toan va doi soat vao ngay lam viec tiep
-            theo (T+1).
+            * Giao dich phat sinh sau gio chot so se duoc chuyen tiep hach toan
+            va doi soat vao ngay lam viec tiep theo (T+1).
           </p>
         </div>
 
@@ -135,11 +175,13 @@ export function CutoffPage() {
 
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Kenh giao dich</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                Kenh giao dich
+              </label>
               <select
                 value={simChannel}
                 onChange={(event) => setSimChannel(event.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 <option value="CITAD">CITAD (Chot: 16:30)</option>
                 <option value="NAPAS">NAPAS (Chot: 17:00)</option>
@@ -148,11 +190,13 @@ export function CutoffPage() {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Loai giao dich</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                Loai giao dich
+              </label>
               <select
                 value={simType}
                 onChange={(event) => setSimType(event.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 <option value="TRANSFER">TRANSFER (Chuyen khoan)</option>
                 <option value="DEPOSIT">DEPOSIT (Nop tien)</option>
@@ -177,17 +221,24 @@ export function CutoffPage() {
               variant="outline"
               disabled={simPending}
             >
-              {simPending ? <Spinner className="size-4" /> : "Kiem tra ngay hach toan"}
+              {simPending ? (
+                <Spinner className="size-4" />
+              ) : (
+                "Kiem tra ngay hach toan"
+              )}
             </Button>
 
             {simResult && (
               <div className="mt-4 space-y-2 rounded-md border bg-muted/50 p-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Ngay hach toan:</span>
-                  <span className="font-semibold text-primary">{new Date(simResult).toLocaleDateString("vi-VN")}</span>
+                  <span className="font-semibold text-primary">
+                    {new Date(simResult).toLocaleDateString("vi-VN")}
+                  </span>
                 </div>
                 <div className="mt-1 border-t pt-2">
-                  {status && simResult === status.next_business_date.split("T")[0] ? (
+                  {status &&
+                  simResult === status.next_business_date.split("T")[0] ? (
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600">
                       <AlertTriangle className="size-4 shrink-0" />
                       <span>Qua gio cut-off. Hach toan T+1.</span>

@@ -26,7 +26,11 @@ import { Plus } from "lucide-react"
 
 const holidayFormSchema = z.object({
   holidayDate: z.string().trim().min(1, "Ngay nghi le la bat buoc"),
-  description: z.string().trim().min(3, "Mo ta phai co it nhat 3 ky tu").max(100, "Mo ta qua dai"),
+  description: z
+    .string()
+    .trim()
+    .min(3, "Mo ta phai co it nhat 3 ky tu")
+    .max(100, "Mo ta qua dai"),
   isRecurring: z.boolean(),
 })
 
@@ -41,7 +45,9 @@ const holidayDefaultValues: HolidayFormValues = {
 export function CalendarPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [selectedHolidayId, setSelectedHolidayId] = useState<string | null>(null)
+  const [selectedHolidayId, setSelectedHolidayId] = useState<string | null>(
+    null
+  )
   const [status, setStatus] = useState<SystemDate | null>(null)
   const [holidays, setHolidays] = useState<HolidayCalendar[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,7 +65,10 @@ export function CalendarPage() {
       setStatus(statusResult)
       setHolidays(holidaysResult)
     } catch (err) {
-      notify.error("Khong the tai thong tin lich lam viec", translateApiError(err))
+      notify.error(
+        "Khong the tai thong tin lich lam viec",
+        translateApiError(err)
+      )
     } finally {
       setLoading(false)
     }
@@ -106,7 +115,11 @@ export function CalendarPage() {
   const calendarEvents = [
     ...holidays.map((holiday) => ({
       id: holiday.id,
-      title: holiday.description + (holiday.is_recurring ? " (Hang nam)" : ` (Le ${holiday.holiday_year || ""})`),
+      title:
+        holiday.description +
+        (holiday.is_recurring
+          ? " (Hang nam)"
+          : ` (Le ${holiday.holiday_year || ""})`),
       start: holiday.holiday_date.split("T")[0],
       allDay: true,
       backgroundColor: holiday.is_recurring ? "#22c55e" : "#f97316",
@@ -139,7 +152,9 @@ export function CalendarPage() {
   const handleEventClick = (clickInfo: any) => {
     const event = clickInfo.event
     if (event.id === "sys_business_date") {
-      notify.info("Day la ngay lam viec he thong hien tai, dung nut Chay EOD de dich chuyen ngay.")
+      notify.info(
+        "Day la ngay lam viec he thong hien tai, dung nut Chay EOD de dich chuyen ngay."
+      )
       return
     }
 
@@ -168,7 +183,9 @@ export function CalendarPage() {
         description: extProps.description,
         isRecurring: extProps.isRecurring,
       })
-      notify.success(`Da doi ngay nghi le sang ${new Date(newDate).toLocaleDateString("vi-VN")}`)
+      notify.success(
+        `Da doi ngay nghi le sang ${new Date(newDate).toLocaleDateString("vi-VN")}`
+      )
       await loadCalendar()
     } catch (error) {
       dropInfo.revert()
@@ -184,7 +201,11 @@ export function CalendarPage() {
         description: values.description.trim(),
         isRecurring: values.isRecurring,
       })
-      notify.success(selectedHolidayId ? "Cap nhat ngay nghi le thanh cong" : "Them ngay nghi le thanh cong")
+      notify.success(
+        selectedHolidayId
+          ? "Cap nhat ngay nghi le thanh cong"
+          : "Them ngay nghi le thanh cong"
+      )
       setModalOpen(false)
       reset(holidayDefaultValues)
       await loadCalendar()
@@ -222,7 +243,9 @@ export function CalendarPage() {
         </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Lich he thong & ngay nghi le</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Lich he thong & ngay nghi le
+            </h1>
             <p className="text-sm text-muted-foreground">
               Xem, cau hinh va keo tha ngay nghi le. Tu dong tinh nam ap dung.
             </p>
@@ -232,15 +255,28 @@ export function CalendarPage() {
               <div className="space-y-0.5 text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full bg-red-500" />
-                  <span className="text-muted-foreground">Ngay hach toan (T):</span>
-                  <span className="font-semibold">{new Date(status.current_business_date).toLocaleDateString("vi-VN")}</span>
+                  <span className="text-muted-foreground">
+                    Ngay hach toan (T):
+                  </span>
+                  <span className="font-semibold">
+                    {new Date(status.current_business_date).toLocaleDateString(
+                      "vi-VN"
+                    )}
+                  </span>
                 </div>
                 <div className="pl-3.5 text-muted-foreground">
-                  Trang thai: <span className="font-semibold text-primary">{status.status}</span>
+                  Trang thai:{" "}
+                  <span className="font-semibold text-primary">
+                    {status.status}
+                  </span>
                 </div>
               </div>
             )}
-            <Button size="sm" onClick={handleRunEOD} disabled={eodPending || status?.status !== "OPEN"}>
+            <Button
+              size="sm"
+              onClick={handleRunEOD}
+              disabled={eodPending || status?.status !== "OPEN"}
+            >
               {eodPending ? <Spinner className="mr-1 size-3" /> : null}
               Chay EOD
             </Button>
@@ -301,21 +337,42 @@ export function CalendarPage() {
           <div className="space-y-4 rounded-lg border bg-card p-4">
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="text-sm font-semibold">Cac ngay nghi le</h3>
-              <Button size="icon" variant="ghost" className="size-7" onClick={() => openCreateHoliday(new Date().toISOString().split("T")[0])}>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                onClick={() =>
+                  openCreateHoliday(new Date().toISOString().split("T")[0])
+                }
+              >
                 <Plus className="size-4" />
               </Button>
             </div>
             <div className="max-h-[300px] space-y-2.5 overflow-y-auto pr-1">
               {holidays.length === 0 ? (
-                <p className="py-4 text-center text-xs text-muted-foreground">Chua co ngay nghi nao.</p>
+                <p className="py-4 text-center text-xs text-muted-foreground">
+                  Chua co ngay nghi nao.
+                </p>
               ) : (
                 holidays.map((holiday) => (
-                  <div key={holiday.id} className="flex items-start justify-between gap-2 rounded-md border bg-muted/40 p-2 text-xs">
+                  <div
+                    key={holiday.id}
+                    className="flex items-start justify-between gap-2 rounded-md border bg-muted/40 p-2 text-xs"
+                  >
                     <div className="space-y-0.5">
                       <div className="font-semibold">{holiday.description}</div>
-                      <div className="font-mono text-muted-foreground">{new Date(holiday.holiday_date).toLocaleDateString("vi-VN")}</div>
-                      <Badge variant="outline" className="h-4 px-1 py-0 text-[10px]">
-                        {holiday.is_recurring ? "Co dinh" : `Nam ${holiday.holiday_year}`}
+                      <div className="font-mono text-muted-foreground">
+                        {new Date(holiday.holiday_date).toLocaleDateString(
+                          "vi-VN"
+                        )}
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="h-4 px-1 py-0 text-[10px]"
+                      >
+                        {holiday.is_recurring
+                          ? "Co dinh"
+                          : `Nam ${holiday.holiday_year}`}
                       </Badge>
                     </div>
                   </div>
@@ -329,14 +386,31 @@ export function CalendarPage() {
       <Dialog open={modalOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedHolidayId ? "Chi tiet ngay nghi le" : `Khai bao ngay nghi le ${selectedDate || ""}`}</DialogTitle>
+            <DialogTitle>
+              {selectedHolidayId
+                ? "Chi tiet ngay nghi le"
+                : `Khai bao ngay nghi le ${selectedDate || ""}`}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={submitHoliday} className="space-y-4 pt-2">
-            <FormField label="Ngay nghi le" htmlFor="holiday_date" error={errors.holidayDate?.message}>
-              <Input id="holiday_date" type="date" aria-invalid={Boolean(errors.holidayDate)} {...register("holidayDate")} />
+            <FormField
+              label="Ngay nghi le"
+              htmlFor="holiday_date"
+              error={errors.holidayDate?.message}
+            >
+              <Input
+                id="holiday_date"
+                type="date"
+                aria-invalid={Boolean(errors.holidayDate)}
+                {...register("holidayDate")}
+              />
             </FormField>
 
-            <FormField label="Ly do nghi le" htmlFor="holiday_description" error={errors.description?.message}>
+            <FormField
+              label="Ly do nghi le"
+              htmlFor="holiday_description"
+              error={errors.description?.message}
+            >
               <Input
                 id="holiday_description"
                 placeholder="Nhap ten ngay le"
@@ -354,24 +428,37 @@ export function CalendarPage() {
                     <Checkbox
                       id="holiday_recurring"
                       checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked === true)
+                      }
                     />
-                    <label htmlFor="holiday_recurring" className="cursor-pointer text-xs font-semibold text-muted-foreground">
+                    <label
+                      htmlFor="holiday_recurring"
+                      className="cursor-pointer text-xs font-semibold text-muted-foreground"
+                    >
                       Ngay nghi le co dinh lap lai hang nam
                     </label>
                   </div>
                   <p className="pl-6 text-[10px] text-muted-foreground">
-                    Neu bat, ngay nghi se ap dung cho moi nam. Neu tat, chi ap dung cho nam da chon.
+                    Neu bat, ngay nghi se ap dung cho moi nam. Neu tat, chi ap
+                    dung cho nam da chon.
                   </p>
                 </div>
               )}
             />
 
             <DialogFooter className="mt-4 border-t pt-3">
-              <Button type="button" variant="outline" onClick={() => handleDialogOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleDialogOpenChange(false)}
+              >
                 Huy
               </Button>
-              <Button type="submit" disabled={isSubmitting || addHolidayPending}>
+              <Button
+                type="submit"
+                disabled={isSubmitting || addHolidayPending}
+              >
                 {isSubmitting ? <Spinner className="mr-1 size-4" /> : null}
                 Luu thong tin
               </Button>

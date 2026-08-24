@@ -61,7 +61,11 @@ export function JobTitlesPage() {
 
   const openEdit = (item: JobTitle) => {
     setEditing(item)
-    form.reset({ code: item.code, name: item.name, description: item.description ?? "" })
+    form.reset({
+      code: item.code,
+      name: item.name,
+      description: item.description ?? "",
+    })
     setDialogOpen(true)
   }
 
@@ -93,33 +97,53 @@ export function JobTitlesPage() {
   return (
     <section className="space-y-4 p-4">
       <PageTitle title="Chuc danh" count={items.length} onCreate={openCreate} />
-      <DataTable columns={["Ma chuc danh", "Ten chuc danh", "Mo ta"]} empty="Chua co chuc danh.">
+      <DataTable
+        columns={["Ma chuc danh", "Ten chuc danh", "Mo ta"]}
+        empty="Chua co chuc danh."
+      >
         {items.map((item) => (
           <TableRow key={item.id}>
             <TableCell className="font-mono text-xs">{item.code}</TableCell>
             <TableCell className="font-medium">{item.name}</TableCell>
-            <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
-            <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />
+            <TableCell className="text-muted-foreground">
+              {item.description || "-"}
+            </TableCell>
+            <RowActions
+              onEdit={() => openEdit(item)}
+              onDelete={() => setDeleteTarget(item)}
+            />
           </TableRow>
         ))}
       </DataTable>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Sua chuc danh" : "Them chuc danh"}</DialogTitle>
-            <DialogDescription>Ma va ten chuc danh la bat buoc.</DialogDescription>
+            <DialogTitle>
+              {editing ? "Sua chuc danh" : "Them chuc danh"}
+            </DialogTitle>
+            <DialogDescription>
+              Ma va ten chuc danh la bat buoc.
+            </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={submit}>
-            <FormField label="Ma chuc danh (*)" error={form.formState.errors.code?.message}>
+            <FormField
+              label="Ma chuc danh (*)"
+              error={form.formState.errors.code?.message}
+            >
               <Input {...form.register("code")} placeholder="KETO" />
             </FormField>
-            <FormField label="Ten chuc danh (*)" error={form.formState.errors.name?.message}>
+            <FormField
+              label="Ten chuc danh (*)"
+              error={form.formState.errors.name?.message}
+            >
               <Input {...form.register("name")} placeholder="Ke toan" />
             </FormField>
             <FormField label="Mo ta">
               <Textarea {...form.register("description")} />
             </FormField>
-            <DialogActions pending={form.formState.isSubmitting || submitting} />
+            <DialogActions
+              pending={form.formState.isSubmitting || submitting}
+            />
           </form>
         </DialogContent>
       </Dialog>

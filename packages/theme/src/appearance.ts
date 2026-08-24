@@ -13,7 +13,8 @@ export type BaseColor =
 export type ChartPalette = "default" | "finance" | "cool" | "warm"
 export type FontPreset = "inter" | "system" | "serif" | "mono"
 export type RadiusPreset = "none" | "sm" | "md" | "lg" | "xl"
-export type LayoutSurface = "background" | "card" | "muted" | "sidebar" | "accent"
+export type LayoutSurface =
+  "background" | "card" | "muted" | "sidebar" | "accent"
 
 export type AppearanceSettings = {
   baseColor: BaseColor
@@ -345,7 +346,10 @@ export const fontPresets: Record<FontPreset, FontDefinition> = {
   },
 }
 
-export const radiusPresets: Record<RadiusPreset, { label: string; value: string }> = {
+export const radiusPresets: Record<
+  RadiusPreset,
+  { label: string; value: string }
+> = {
   none: { label: "None", value: "0rem" },
   sm: { label: "Small", value: "0.375rem" },
   md: { label: "Medium", value: "0.5rem" },
@@ -353,7 +357,10 @@ export const radiusPresets: Record<RadiusPreset, { label: string; value: string 
   xl: { label: "Extra", value: "1rem" },
 }
 
-export const layoutSurfacePresets: Record<LayoutSurface, { label: string; value: string }> = {
+export const layoutSurfacePresets: Record<
+  LayoutSurface,
+  { label: string; value: string }
+> = {
   background: { label: "Background", value: "var(--background)" },
   card: { label: "Card", value: "var(--card)" },
   muted: { label: "Muted", value: "var(--muted)" },
@@ -364,7 +371,9 @@ export const layoutSurfacePresets: Record<LayoutSurface, { label: string; value:
 export function readAppearance(): AppearanceSettings {
   if (typeof localStorage === "undefined") return defaultAppearance
   try {
-    const parsed = JSON.parse(localStorage.getItem(APPEARANCE_STORAGE_KEY) || "{}")
+    const parsed = JSON.parse(
+      localStorage.getItem(APPEARANCE_STORAGE_KEY) || "{}"
+    )
     return normalizeAppearance(parsed)
   } catch {
     return defaultAppearance
@@ -389,29 +398,38 @@ export function applyAppearance(settings: AppearanceSettings) {
   if (typeof document === "undefined") return
   const root = document.documentElement
   const isDark = root.classList.contains("dark")
-  const base = baseColors[settings.baseColor] ?? baseColors[defaultAppearance.baseColor]
+  const base =
+    baseColors[settings.baseColor] ?? baseColors[defaultAppearance.baseColor]
   const baseVars = isDark ? base.dark : base.light
   for (const [name, value] of Object.entries(baseVars)) {
     root.style.setProperty(name, value)
   }
-  const charts = chartPalettes[settings.chartPalette] ?? chartPalettes[defaultAppearance.chartPalette]
+  const charts =
+    chartPalettes[settings.chartPalette] ??
+    chartPalettes[defaultAppearance.chartPalette]
   charts.colors.forEach((color, index) => {
     root.style.setProperty(`--chart-${index + 1}`, color)
   })
-  root.style.setProperty("--radius", radiusPresets[settings.radius]?.value ?? radiusPresets.md.value)
+  root.style.setProperty(
+    "--radius",
+    radiusPresets[settings.radius]?.value ?? radiusPresets.md.value
+  )
   const fontStack = fontPresets[settings.font]?.stack ?? fontPresets.inter.stack
-  const headingStack = fontPresets[settings.headingFont]?.stack ?? fontPresets.inter.stack
+  const headingStack =
+    fontPresets[settings.headingFont]?.stack ?? fontPresets.inter.stack
   root.style.setProperty("--app-font-sans", fontStack)
   root.style.setProperty("--app-font-heading", headingStack)
   root.style.setProperty("--font-sans", fontStack)
   root.style.setProperty("--font-heading", headingStack)
   root.style.setProperty(
     "--layout-header-background",
-    layoutSurfacePresets[settings.headerSurface]?.value ?? layoutSurfacePresets.background.value
+    layoutSurfacePresets[settings.headerSurface]?.value ??
+      layoutSurfacePresets.background.value
   )
   root.style.setProperty(
     "--layout-sidebar-background",
-    layoutSurfacePresets[settings.sidebarSurface]?.value ?? layoutSurfacePresets.sidebar.value
+    layoutSurfacePresets[settings.sidebarSurface]?.value ??
+      layoutSurfacePresets.sidebar.value
   )
 }
 
@@ -427,9 +445,13 @@ export function getAppearanceScript() {
   return `(function(){try{var key=${key};var settings=JSON.parse(localStorage.getItem(key)||'null')||${fallback};var bases=${bases};var charts=${charts};var radii=${radii};var fonts=${fonts};var surfaces=${surfaces};var root=document.documentElement;var base=bases[settings.baseColor]||bases.arda;var vars=root.classList.contains('dark')?base.dark:base.light;for(var name in vars){root.style.setProperty(name,vars[name])}var chart=charts[settings.chartPalette]||charts.default;for(var i=0;i<chart.colors.length;i++){root.style.setProperty('--chart-'+(i+1),chart.colors[i])}root.style.setProperty('--radius',(radii[settings.radius]||radii.md).value);var fontStack=(fonts[settings.font]||fonts.inter).stack;var headingStack=(fonts[settings.headingFont]||fonts.inter).stack;root.style.setProperty('--app-font-sans',fontStack);root.style.setProperty('--app-font-heading',headingStack);root.style.setProperty('--font-sans',fontStack);root.style.setProperty('--font-heading',headingStack);root.style.setProperty('--layout-header-background',(surfaces[settings.headerSurface]||surfaces.background).value);root.style.setProperty('--layout-sidebar-background',(surfaces[settings.sidebarSurface]||surfaces.sidebar).value)}catch(e){}})();`
 }
 
-function normalizeAppearance(value: Partial<AppearanceSettings>): AppearanceSettings {
+function normalizeAppearance(
+  value: Partial<AppearanceSettings>
+): AppearanceSettings {
   return {
-    baseColor: isKey(baseColors, value.baseColor) ? value.baseColor : defaultAppearance.baseColor,
+    baseColor: isKey(baseColors, value.baseColor)
+      ? value.baseColor
+      : defaultAppearance.baseColor,
     chartPalette: isKey(chartPalettes, value.chartPalette)
       ? value.chartPalette
       : defaultAppearance.chartPalette,
@@ -437,7 +459,9 @@ function normalizeAppearance(value: Partial<AppearanceSettings>): AppearanceSett
     headingFont: isKey(fontPresets, value.headingFont)
       ? value.headingFont
       : defaultAppearance.headingFont,
-    radius: isKey(radiusPresets, value.radius) ? value.radius : defaultAppearance.radius,
+    radius: isKey(radiusPresets, value.radius)
+      ? value.radius
+      : defaultAppearance.radius,
     headerSurface: isKey(layoutSurfacePresets, value.headerSurface)
       ? value.headerSurface
       : defaultAppearance.headerSurface,
@@ -447,6 +471,9 @@ function normalizeAppearance(value: Partial<AppearanceSettings>): AppearanceSett
   }
 }
 
-function isKey<T extends Record<string, unknown>>(record: T, key: unknown): key is keyof T {
+function isKey<T extends Record<string, unknown>>(
+  record: T,
+  key: unknown
+): key is keyof T {
   return typeof key === "string" && key in record
 }

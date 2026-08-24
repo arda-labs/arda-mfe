@@ -20,7 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import {
   Dialog,
   DialogContent,
@@ -47,22 +51,34 @@ import {
   multiSelectFilterMeta,
   textSearchMeta,
 } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildCreditInstitutionSchema(t: TranslateFn) {
   const optionalEmailSchema = z.union([
     z.literal(""),
-    z.string().trim().email(t("platform.credit_institutions.validation.email_invalid")),
+    z
+      .string()
+      .trim()
+      .email(t("platform.credit_institutions.validation.email_invalid")),
   ])
 
   const optionalUrlSchema = z.union([
     z.literal(""),
-    z.string().trim().url(t("platform.credit_institutions.validation.website_invalid")),
+    z
+      .string()
+      .trim()
+      .url(t("platform.credit_institutions.validation.website_invalid")),
   ])
 
   return z.object({
@@ -86,7 +102,10 @@ function buildCreditInstitutionSchema(t: TranslateFn) {
     short_name: z
       .string()
       .trim()
-      .max(128, t("platform.credit_institutions.validation.short_name_too_long"))
+      .max(
+        128,
+        t("platform.credit_institutions.validation.short_name_too_long")
+      )
       .optional(),
     phone: z
       .string()
@@ -97,7 +116,10 @@ function buildCreditInstitutionSchema(t: TranslateFn) {
     license_no: z
       .string()
       .trim()
-      .max(128, t("platform.credit_institutions.validation.license_no_too_long"))
+      .max(
+        128,
+        t("platform.credit_institutions.validation.license_no_too_long")
+      )
       .optional(),
     license_date: z.string().trim().optional(),
     tax_code: z
@@ -114,7 +136,9 @@ function buildCreditInstitutionSchema(t: TranslateFn) {
   })
 }
 
-type CreditInstitutionFormValues = z.infer<ReturnType<typeof buildCreditInstitutionSchema>>
+type CreditInstitutionFormValues = z.infer<
+  ReturnType<typeof buildCreditInstitutionSchema>
+>
 
 const creditInstitutionDefaultValues: CreditInstitutionFormValues = {
   code: "",
@@ -132,7 +156,9 @@ const creditInstitutionDefaultValues: CreditInstitutionFormValues = {
   note: "",
 }
 
-function toCreditInstitutionFormValues(item: CreditInstitution): CreditInstitutionFormValues {
+function toCreditInstitutionFormValues(
+  item: CreditInstitution
+): CreditInstitutionFormValues {
   return {
     code: item.code,
     name: item.name,
@@ -154,7 +180,9 @@ export function CreditInstitutionsPage() {
   const { t } = useI18n()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<CreditInstitution | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<CreditInstitution | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<CreditInstitution | null>(
+    null
+  )
   const [items, setItems] = useState<CreditInstitution[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -181,7 +209,10 @@ export function CreditInstitutionsPage() {
     void loadCreditInstitutions(true)
   }, [loadCreditInstitutions])
 
-  const creditInstitutionSchema = useMemo(() => buildCreditInstitutionSchema(t), [t])
+  const creditInstitutionSchema = useMemo(
+    () => buildCreditInstitutionSchema(t),
+    [t]
+  )
   const {
     control,
     formState: { errors, isSubmitting },
@@ -270,15 +301,23 @@ export function CreditInstitutionsPage() {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.credit_institutions.field.code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.credit_institutions.field.code")}
+          />
         ),
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.code}</span>,
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.code}</span>
+        ),
       },
       {
         id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.credit_institutions.field.name")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.credit_institutions.field.name")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
@@ -288,7 +327,9 @@ export function CreditInstitutionsPage() {
         cell: ({ row }) => (
           <div className="space-y-1">
             <div className="font-medium">{row.original.name}</div>
-            <div className="text-xs text-muted-foreground">{row.original.address}</div>
+            <div className="text-xs text-muted-foreground">
+              {row.original.address}
+            </div>
           </div>
         ),
       },
@@ -315,7 +356,10 @@ export function CreditInstitutionsPage() {
       {
         accessorKey: "tax_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.credit_institutions.field.tax_code")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.credit_institutions.field.tax_code")}
+          />
         ),
         cell: ({ row }) => row.original.tax_code || "-",
       },
@@ -323,15 +367,29 @@ export function CreditInstitutionsPage() {
         id: "status",
         accessorKey: "status",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.credit_institutions.field.status")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.credit_institutions.field.status")}
+          />
         ),
         enableColumnFilter: true,
-        meta: multiSelectFilterMeta(t("platform.credit_institutions.field.status"), [
-          { label: t("platform.credit_institutions.status.active"), value: "active" },
-          { label: t("platform.credit_institutions.status.inactive"), value: "inactive" },
-        ]),
+        meta: multiSelectFilterMeta(
+          t("platform.credit_institutions.field.status"),
+          [
+            {
+              label: t("platform.credit_institutions.status.active"),
+              value: "active",
+            },
+            {
+              label: t("platform.credit_institutions.status.inactive"),
+              value: "inactive",
+            },
+          ]
+        ),
         cell: ({ row }) => (
-          <Status variant={row.original.status === "active" ? "success" : "default"}>
+          <Status
+            variant={row.original.status === "active" ? "success" : "default"}
+          >
             <StatusIndicator />
             <StatusLabel>
               {row.original.status === "active"
@@ -354,7 +412,9 @@ export function CreditInstitutionsPage() {
       {
         id: "actions",
         header: () => (
-          <span className="sr-only">{t("platform.credit_institutions.field.actions")}</span>
+          <span className="sr-only">
+            {t("platform.credit_institutions.field.actions")}
+          </span>
         ),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
@@ -394,11 +454,14 @@ export function CreditInstitutionsPage() {
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
         name: (a, b) => a.name.localeCompare(b.name),
-        short_name: (a, b) => (a.short_name ?? "").localeCompare(b.short_name ?? ""),
-        license_no: (a, b) => (a.license_no ?? "").localeCompare(b.license_no ?? ""),
+        short_name: (a, b) =>
+          (a.short_name ?? "").localeCompare(b.short_name ?? ""),
+        license_no: (a, b) =>
+          (a.license_no ?? "").localeCompare(b.license_no ?? ""),
         tax_code: (a, b) => (a.tax_code ?? "").localeCompare(b.tax_code ?? ""),
         status: (a, b) => a.status.localeCompare(b.status),
-        effective_from: (a, b) => (a.effective_from ?? "").localeCompare(b.effective_from ?? ""),
+        effective_from: (a, b) =>
+          (a.effective_from ?? "").localeCompare(b.effective_from ?? ""),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })
@@ -418,7 +481,11 @@ export function CreditInstitutionsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={submitCreditInstitution} className="space-y-4 py-2">
+          <form
+            autoComplete="off"
+            onSubmit={submitCreditInstitution}
+            className="space-y-4 py-2"
+          >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 label={t("platform.credit_institutions.field.code")}
@@ -427,7 +494,9 @@ export function CreditInstitutionsPage() {
               >
                 <Input
                   id="credit_code"
-                  placeholder={t("platform.credit_institutions.placeholder.code")}
+                  placeholder={t(
+                    "platform.credit_institutions.placeholder.code"
+                  )}
                   aria-invalid={Boolean(errors.code)}
                   disabled={!!editingItem}
                   {...register("code")}
@@ -440,7 +509,9 @@ export function CreditInstitutionsPage() {
               >
                 <Input
                   id="credit_name"
-                  placeholder={t("platform.credit_institutions.placeholder.name")}
+                  placeholder={t(
+                    "platform.credit_institutions.placeholder.name"
+                  )}
                   aria-invalid={Boolean(errors.name)}
                   {...register("name")}
                 />
@@ -455,7 +526,9 @@ export function CreditInstitutionsPage() {
               >
                 <Input
                   id="credit_address"
-                  placeholder={t("platform.credit_institutions.placeholder.address")}
+                  placeholder={t(
+                    "platform.credit_institutions.placeholder.address"
+                  )}
                   aria-invalid={Boolean(errors.address)}
                   {...register("address")}
                 />
@@ -470,7 +543,10 @@ export function CreditInstitutionsPage() {
                   name="status"
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="credit_status" aria-invalid={Boolean(errors.status)}>
+                      <SelectTrigger
+                        id="credit_status"
+                        aria-invalid={Boolean(errors.status)}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -512,14 +588,22 @@ export function CreditInstitutionsPage() {
                 htmlFor="credit_short_name"
                 error={errors.short_name?.message}
               >
-                <Input id="credit_short_name" aria-invalid={Boolean(errors.short_name)} {...register("short_name")} />
+                <Input
+                  id="credit_short_name"
+                  aria-invalid={Boolean(errors.short_name)}
+                  {...register("short_name")}
+                />
               </FormField>
               <FormField
                 label={t("platform.credit_institutions.field.phone")}
                 htmlFor="credit_phone"
                 error={errors.phone?.message}
               >
-                <Input id="credit_phone" aria-invalid={Boolean(errors.phone)} {...register("phone")} />
+                <Input
+                  id="credit_phone"
+                  aria-invalid={Boolean(errors.phone)}
+                  {...register("phone")}
+                />
               </FormField>
             </div>
 
@@ -529,14 +613,23 @@ export function CreditInstitutionsPage() {
                 htmlFor="credit_email"
                 error={errors.email?.message}
               >
-                <Input id="credit_email" type="email" aria-invalid={Boolean(errors.email)} {...register("email")} />
+                <Input
+                  id="credit_email"
+                  type="email"
+                  aria-invalid={Boolean(errors.email)}
+                  {...register("email")}
+                />
               </FormField>
               <FormField
                 label={t("platform.credit_institutions.field.license_no")}
                 htmlFor="credit_license_no"
                 error={errors.license_no?.message}
               >
-                <Input id="credit_license_no" aria-invalid={Boolean(errors.license_no)} {...register("license_no")} />
+                <Input
+                  id="credit_license_no"
+                  aria-invalid={Boolean(errors.license_no)}
+                  {...register("license_no")}
+                />
               </FormField>
               <FormField
                 label={t("platform.credit_institutions.field.license_date")}
@@ -565,7 +658,11 @@ export function CreditInstitutionsPage() {
                 htmlFor="credit_tax_code"
                 error={errors.tax_code?.message}
               >
-                <Input id="credit_tax_code" aria-invalid={Boolean(errors.tax_code)} {...register("tax_code")} />
+                <Input
+                  id="credit_tax_code"
+                  aria-invalid={Boolean(errors.tax_code)}
+                  {...register("tax_code")}
+                />
               </FormField>
               <FormField
                 className="md:col-span-2"
@@ -573,7 +670,12 @@ export function CreditInstitutionsPage() {
                 htmlFor="credit_website"
                 error={errors.website?.message}
               >
-                <Input id="credit_website" type="url" aria-invalid={Boolean(errors.website)} {...register("website")} />
+                <Input
+                  id="credit_website"
+                  type="url"
+                  aria-invalid={Boolean(errors.website)}
+                  {...register("website")}
+                />
               </FormField>
             </div>
 
@@ -591,7 +693,11 @@ export function CreditInstitutionsPage() {
             </FormField>
 
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleDialogOpenChange(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting || saving}>
@@ -604,10 +710,15 @@ export function CreditInstitutionsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.credit_institutions.delete.title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.credit_institutions.delete.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("platform.credit_institutions.delete.description", {
                 name: deleteTarget?.name ?? "",

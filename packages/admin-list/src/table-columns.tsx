@@ -1,21 +1,21 @@
-"use client";
+"use client"
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table"
 
-import { DataTableRowActions } from "@workspace/ui/components/data-table/data-table-row-actions";
+import { DataTableRowActions } from "@workspace/ui/components/data-table/data-table-row-actions"
 import {
   ACTIONS_COLUMN_ID,
   ACTIONS_COLUMN_SIZE,
   fixedColumnSize,
-} from "@workspace/ui/lib/inject-row-index-column";
+} from "@workspace/ui/lib/inject-row-index-column"
 
 type CreateActionsColumnOptions<T> = {
-  onEdit?: (row: T) => void;
-  onDelete?: (row: T) => void;
-  editTitle?: string;
-  deleteTitle?: string;
-  headerLabel?: string;
-};
+  onEdit?: (row: T) => void
+  onDelete?: (row: T) => void
+  editTitle?: string
+  deleteTitle?: string
+  headerLabel?: string
+}
 
 export function createActionsColumn<T>({
   onEdit,
@@ -45,5 +45,5 @@ export function createActionsColumn<T>({
     enableSorting: false,
     enableHiding: false,
     ...fixedColumnSize(ACTIONS_COLUMN_SIZE),
-  };
+  }
 }

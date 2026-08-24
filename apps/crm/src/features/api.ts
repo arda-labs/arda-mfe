@@ -1,8 +1,5 @@
 import { api } from "@workspace/api"
-import {
-  buildListSearchParams,
-  type ListResponse,
-} from "@workspace/api/list"
+import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 
 export type CustomerType = "PERSONAL" | "BUSINESS"

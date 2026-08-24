@@ -35,7 +35,12 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
 import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../api"
@@ -51,13 +56,17 @@ import { OperateBpmnViewer } from "../components/bpmn-monitor-lazy"
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
-type OperateTab = "instances" | "incidents" | "jobs" | "job-definitions" | "timeline"
+type OperateTab =
+  "instances" | "incidents" | "jobs" | "job-definitions" | "timeline"
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 
 function formatDateTime(value: string) {
   try {
-    return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value))
+    return new Intl.DateTimeFormat("vi-VN", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(value))
   } catch {
     return value
   }
@@ -80,15 +89,41 @@ function computeRunningTime(startTime: string, endTime?: string) {
 
 function InstanceStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    ACTIVE: { label: "Đang chạy", className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300" },
-    COMPLETED: { label: "Hoàn thành", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
-    CANCELED: { label: "Đã hủy", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
-    SUSPENDED: { label: "Tạm dừng", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
-    INCIDENT: { label: "Lỗi", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
+    ACTIVE: {
+      label: "Đang chạy",
+      className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
+    },
+    COMPLETED: {
+      label: "Hoàn thành",
+      className:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+    },
+    CANCELED: {
+      label: "Đã hủy",
+      className:
+        "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+    },
+    SUSPENDED: {
+      label: "Tạm dừng",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    },
+    INCIDENT: {
+      label: "Lỗi",
+      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    },
   }
-  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
+  const c = config[state] ?? {
+    label: state,
+    className: "bg-muted text-muted-foreground",
+  }
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium", c.className)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        c.className
+      )}
+    >
       {state === "ACTIVE" && <CircleDot className="size-3" />}
       {state === "COMPLETED" && <CheckCircle2 className="size-3" />}
       {state === "CANCELED" && <XCircle className="size-3" />}
@@ -101,33 +136,106 @@ function InstanceStateBadge({ state }: { state: string }) {
 
 function IncidentStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    CREATED: { label: "Mới", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
-    RESOLVED: { label: "Đã xử lý", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
-    PENDING: { label: "Đang chờ", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+    CREATED: {
+      label: "Mới",
+      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    },
+    RESOLVED: {
+      label: "Đã xử lý",
+      className:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+    },
+    PENDING: {
+      label: "Đang chờ",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    },
   }
-  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
-  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c.className)}>{c.label}</span>
+  const c = config[state] ?? {
+    label: state,
+    className: "bg-muted text-muted-foreground",
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        c.className
+      )}
+    >
+      {c.label}
+    </span>
+  )
 }
 
 function JobStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    ACTIVATABLE: { label: "Sẵn sàng", className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300" },
-    ACTIVATED: { label: "Đang chạy", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
-    FAILED: { label: "Thất bại", className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
-    ERROR_THROWN: { label: "Lỗi", className: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300" },
-    SUSPENDED: { label: "Tạm dừng", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+    ACTIVATABLE: {
+      label: "Sẵn sàng",
+      className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
+    },
+    ACTIVATED: {
+      label: "Đang chạy",
+      className:
+        "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+    },
+    FAILED: {
+      label: "Thất bại",
+      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    },
+    ERROR_THROWN: {
+      label: "Lỗi",
+      className:
+        "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
+    },
+    SUSPENDED: {
+      label: "Tạm dừng",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    },
   }
-  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
-  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c.className)}>{c.label}</span>
+  const c = config[state] ?? {
+    label: state,
+    className: "bg-muted text-muted-foreground",
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        c.className
+      )}
+    >
+      {c.label}
+    </span>
+  )
 }
 
 function JobDefStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    ACTIVE: { label: "Hoạt động", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
-    SUSPENDED: { label: "Tạm dừng", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
+    ACTIVE: {
+      label: "Hoạt động",
+      className:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+    },
+    SUSPENDED: {
+      label: "Tạm dừng",
+      className:
+        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    },
   }
-  const c = config[state] ?? { label: state, className: "bg-muted text-muted-foreground" }
-  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c.className)}>{c.label}</span>
+  const c = config[state] ?? {
+    label: state,
+    className: "bg-muted text-muted-foreground",
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        c.className
+      )}
+    >
+      {c.label}
+    </span>
+  )
 }
 
 // ─── Main Page ──────────────────────────────────────────────────────────────────
@@ -178,14 +286,15 @@ export function OperateMonitoringPage() {
 
   const loadAll = useCallback(async () => {
     try {
-      const [defRes, instanceRes, incidentRes, jobsRes, jdRes, statRes] = await Promise.all([
-        workflowApi.listOperateProcessDefinitions(),
-        workflowApi.listOperateProcessInstances(),
-        workflowApi.listOperateIncidents(),
-        workflowApi.listOperateJobs(),
-        workflowApi.listOperateJobDefinitions(),
-        workflowApi.listElementInstanceStats(),
-      ])
+      const [defRes, instanceRes, incidentRes, jobsRes, jdRes, statRes] =
+        await Promise.all([
+          workflowApi.listOperateProcessDefinitions(),
+          workflowApi.listOperateProcessInstances(),
+          workflowApi.listOperateIncidents(),
+          workflowApi.listOperateJobs(),
+          workflowApi.listOperateJobDefinitions(),
+          workflowApi.listElementInstanceStats(),
+        ])
       setDefinitions(defRes)
       setInstances(instanceRes)
       setIncidents(incidentRes)
@@ -204,13 +313,16 @@ export function OperateMonitoringPage() {
   useEffect(() => {
     setLoading(true)
     void loadAll()
-    timerRef.current = setInterval(() => { void loadAll() }, 30000)
+    timerRef.current = setInterval(() => {
+      void loadAll()
+    }, 30000)
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
 
-  const selectedDef = definitions.find((d) => d.id === selectedDefId) ?? definitions[0]
+  const selectedDef =
+    definitions.find((d) => d.id === selectedDefId) ?? definitions[0]
 
   // Compute element stats map for overlays
   const statsByElementId = useMemo(() => {
@@ -232,15 +344,18 @@ export function OperateMonitoringPage() {
     }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
-      list = list.filter((i) =>
-        i.businessKey?.toLowerCase().includes(q) ||
-        i.processInstanceKey.toLowerCase().includes(q)
+      list = list.filter(
+        (i) =>
+          i.businessKey?.toLowerCase().includes(q) ||
+          i.processInstanceKey.toLowerCase().includes(q)
       )
     }
     return list
   }, [instances, selectedDef, instanceFilter, searchQuery])
 
-  const selectedInstance = instances.find((i) => i.processInstanceKey === selectedInstanceKey)
+  const selectedInstance = instances.find(
+    (i) => i.processInstanceKey === selectedInstanceKey
+  )
 
   const metrics = useMemo(() => {
     const total = instances.length
@@ -257,7 +372,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã tạm dừng", `Process instance ${key}`)
       void loadAll()
     } catch (err) {
-      notify.error("Tạm dừng thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Tạm dừng thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -267,7 +385,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã tiếp tục", `Process instance ${key}`)
       void loadAll()
     } catch (err) {
-      notify.error("Tiếp tục thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Tiếp tục thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -277,7 +398,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã hủy", `Process instance ${key}`)
       void loadAll()
     } catch (err) {
-      notify.error("Hủy thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Hủy thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -287,7 +411,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã retry incident")
       void loadAll()
     } catch (err) {
-      notify.error("Retry thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Retry thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -297,7 +424,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã resolve incident")
       void loadAll()
     } catch (err) {
-      notify.error("Resolve thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Resolve thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -307,7 +437,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã cập nhật retries cho job")
       void loadAll()
     } catch (err) {
-      notify.error("Cập nhật retries thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Cập nhật retries thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -317,7 +450,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã tạm dừng job definition")
       void loadAll()
     } catch (err) {
-      notify.error("Tạm dừng thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Tạm dừng thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -327,7 +463,10 @@ export function OperateMonitoringPage() {
       notify.success("Đã kích hoạt job definition")
       void loadAll()
     } catch (err) {
-      notify.error("Kích hoạt thất bại", err instanceof Error ? err.message : undefined)
+      notify.error(
+        "Kích hoạt thất bại",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -354,7 +493,9 @@ export function OperateMonitoringPage() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-semibold">Giám sát quy trình</h1>
-            <Badge variant="outline" className="font-mono text-xs">{metrics.total} instance</Badge>
+            <Badge variant="outline" className="font-mono text-xs">
+              {metrics.total} instance
+            </Badge>
           </div>
           <div className="flex items-center gap-2">
             <Select value={selectedDefId} onValueChange={setSelectedDefId}>
@@ -369,7 +510,12 @@ export function OperateMonitoringPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button" size="sm" variant="outline" onClick={() => void loadAll()}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void loadAll()}
+            >
               <RefreshCw className="size-4" />
               Làm mới
             </Button>
@@ -377,11 +523,32 @@ export function OperateMonitoringPage() {
         </div>
         {/* Metrics strip */}
         <div className="flex gap-4 text-sm">
-          <MetricCard label="Tổng số" value={String(metrics.total)} color="default" />
-          <MetricCard label="Đang chạy" value={String(metrics.active)} color="sky" />
-          <MetricCard label="Lỗi" value={String(metrics.incident)} color="red" highlight />
-          <MetricCard label="Tạm dừng" value={String(metrics.suspended)} color="amber" />
-          <MetricCard label="Hoàn thành" value={String(metrics.completed)} color="emerald" />
+          <MetricCard
+            label="Tổng số"
+            value={String(metrics.total)}
+            color="default"
+          />
+          <MetricCard
+            label="Đang chạy"
+            value={String(metrics.active)}
+            color="sky"
+          />
+          <MetricCard
+            label="Lỗi"
+            value={String(metrics.incident)}
+            color="red"
+            highlight
+          />
+          <MetricCard
+            label="Tạm dừng"
+            value={String(metrics.suspended)}
+            color="amber"
+          />
+          <MetricCard
+            label="Hoàn thành"
+            value={String(metrics.completed)}
+            color="emerald"
+          />
         </div>
       </div>
 
@@ -391,7 +558,7 @@ export function OperateMonitoringPage() {
         <div className="flex w-80 shrink-0 flex-col border-r">
           <div className="border-b p-2">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Tìm instance..."
                 value={searchQuery}
@@ -408,7 +575,11 @@ export function OperateMonitoringPage() {
               </SelectTrigger>
               <SelectContent align="start">
                 {instanceFilterOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    className="text-xs"
+                  >
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -428,25 +599,33 @@ export function OperateMonitoringPage() {
                     type="button"
                     className={cn(
                       "flex w-full flex-col gap-1 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted/50",
-                      inst.processInstanceKey === selectedInstanceKey && "bg-sky-50 dark:bg-sky-950/30"
+                      inst.processInstanceKey === selectedInstanceKey &&
+                        "bg-sky-50 dark:bg-sky-950/30"
                     )}
-                    onClick={() => setSelectedInstanceKey(inst.processInstanceKey)}
+                    onClick={() =>
+                      setSelectedInstanceKey(inst.processInstanceKey)
+                    }
                   >
                     <div className="flex items-center justify-between gap-2">
                       <InstanceStateBadge state={inst.state} />
-                      <span className="font-mono text-xs text-muted-foreground truncate">
+                      <span className="truncate font-mono text-xs text-muted-foreground">
                         {inst.processInstanceKey.slice(-8)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="truncate font-medium text-xs">
-                        {inst.businessKey || `Instance ${inst.processInstanceKey.slice(0, 8)}...`}
+                      <span className="truncate text-xs font-medium">
+                        {inst.businessKey ||
+                          `Instance ${inst.processInstanceKey.slice(0, 8)}...`}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="size-3" />
-                      <span>{computeRunningTime(inst.startTime, inst.endTime)}</span>
-                      <span className="ml-auto">{formatDateTime(inst.startTime)}</span>
+                      <span>
+                        {computeRunningTime(inst.startTime, inst.endTime)}
+                      </span>
+                      <span className="ml-auto">
+                        {formatDateTime(inst.startTime)}
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -512,7 +691,17 @@ export function OperateMonitoringPage() {
 
 // ─── Metric Card ────────────────────────────────────────────────────────────────
 
-function MetricCard({ label, value, color, highlight }: { label: string; value: string; color: string; highlight?: boolean }) {
+function MetricCard({
+  label,
+  value,
+  color,
+  highlight,
+}: {
+  label: string
+  value: string
+  color: string
+  highlight?: boolean
+}) {
   const colors: Record<string, string> = {
     default: "text-foreground",
     sky: "text-sky-600 dark:text-sky-400",
@@ -521,9 +710,21 @@ function MetricCard({ label, value, color, highlight }: { label: string; value: 
     emerald: "text-emerald-600 dark:text-emerald-400",
   }
   return (
-    <div className={cn("flex items-center gap-2 rounded-md border bg-card px-3 py-1.5", highlight && "ring-1 ring-red-300 dark:ring-red-800")}>
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-md border bg-card px-3 py-1.5",
+        highlight && "ring-1 ring-red-300 dark:ring-red-800"
+      )}
+    >
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={cn("text-base font-bold tabular-nums", colors[color] ?? colors.default)}>{value}</span>
+      <span
+        className={cn(
+          "text-base font-bold tabular-nums",
+          colors[color] ?? colors.default
+        )}
+      >
+        {value}
+      </span>
     </div>
   )
 }
@@ -543,7 +744,8 @@ function InstanceDetailPanel({
 }) {
   const canPause = instance.state === "ACTIVE" || instance.state === "INCIDENT"
   const canResume = instance.state === "SUSPENDED"
-  const canCancel = instance.state !== "CANCELED" && instance.state !== "COMPLETED"
+  const canCancel =
+    instance.state !== "CANCELED" && instance.state !== "COMPLETED"
 
   return (
     <div className="flex h-full flex-col">
@@ -552,17 +754,38 @@ function InstanceDetailPanel({
           <h2 className="text-sm font-semibold">Chi tiết instance</h2>
           <div className="flex gap-1">
             {canPause && (
-              <Button type="button" size="icon" variant="ghost" className="size-7" title="Tạm dừng" onClick={() => onPause(instance.processInstanceKey)}>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                title="Tạm dừng"
+                onClick={() => onPause(instance.processInstanceKey)}
+              >
                 <PauseCircle className="size-4 text-amber-600" />
               </Button>
             )}
             {canResume && (
-              <Button type="button" size="icon" variant="ghost" className="size-7" title="Tiếp tục" onClick={() => onResume(instance.processInstanceKey)}>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                title="Tiếp tục"
+                onClick={() => onResume(instance.processInstanceKey)}
+              >
                 <PlayCircle className="size-4 text-emerald-600" />
               </Button>
             )}
             {canCancel && (
-              <Button type="button" size="icon" variant="ghost" className="size-7" title="Hủy instance" onClick={() => onCancel(instance.processInstanceKey)}>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                title="Hủy instance"
+                onClick={() => onCancel(instance.processInstanceKey)}
+              >
                 <Ban className="size-4 text-red-600" />
               </Button>
             )}
@@ -571,22 +794,50 @@ function InstanceDetailPanel({
       </div>
       <div className="flex-1 space-y-4 overflow-y-auto p-4 text-sm">
         <div className="grid grid-cols-2 gap-3">
-          <DetailField label="Trạng thái" value={<InstanceStateBadge state={instance.state} />} />
-          <DetailField label="Process key" value={<span className="font-mono text-xs">{instance.processInstanceKey}</span>} />
-          <DetailField label="Business key" value={instance.businessKey || "—"} />
+          <DetailField
+            label="Trạng thái"
+            value={<InstanceStateBadge state={instance.state} />}
+          />
+          <DetailField
+            label="Process key"
+            value={
+              <span className="font-mono text-xs">
+                {instance.processInstanceKey}
+              </span>
+            }
+          />
+          <DetailField
+            label="Business key"
+            value={instance.businessKey || "—"}
+          />
           <DetailField label="BPMN process" value={instance.bpmnProcessId} />
           <DetailField label="Version" value={`v${instance.version}`} />
           <DetailField label="Element" value={instance.elementId || "—"} />
-          <DetailField label="Bắt đầu" value={formatDateTime(instance.startTime)} />
-          <DetailField label="Thời gian chạy" value={computeRunningTime(instance.startTime, instance.endTime)} />
-          {instance.endTime && <DetailField label="Kết thúc" value={formatDateTime(instance.endTime)} />}
+          <DetailField
+            label="Bắt đầu"
+            value={formatDateTime(instance.startTime)}
+          />
+          <DetailField
+            label="Thời gian chạy"
+            value={computeRunningTime(instance.startTime, instance.endTime)}
+          />
+          {instance.endTime && (
+            <DetailField
+              label="Kết thúc"
+              value={formatDateTime(instance.endTime)}
+            />
+          )}
         </div>
 
         {instance.variables && Object.keys(instance.variables).length > 0 && (
           <div>
-            <h3 className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Variables</h3>
+            <h3 className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              Variables
+            </h3>
             <div className="rounded-md border bg-muted/30 p-2">
-              <pre className="overflow-x-auto text-xs font-mono">{JSON.stringify(instance.variables, null, 2)}</pre>
+              <pre className="overflow-x-auto font-mono text-xs">
+                {JSON.stringify(instance.variables, null, 2)}
+              </pre>
             </div>
           </div>
         )}
@@ -595,7 +846,13 @@ function InstanceDetailPanel({
   )
 }
 
-function DetailField({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailField({
+  label,
+  value,
+}: {
+  label: string
+  value: React.ReactNode
+}) {
   return (
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -638,36 +895,48 @@ function BottomDock({
     ? jobs.filter((j) => j.bpmnProcessId === selectedDef.bpmnProcessId)
     : jobs
   const filteredJd = selectedDef
-    ? jobDefinitions.filter((j) => j.bpmnProcessId === selectedDef.bpmnProcessId)
+    ? jobDefinitions.filter(
+        (j) => j.bpmnProcessId === selectedDef.bpmnProcessId
+      )
     : jobDefinitions
-  const activeIncidents = filteredIncidents.filter((i) => i.state !== "RESOLVED")
-  const failedJobs = filteredJobs.filter((j) => j.state === "FAILED" || j.state === "ERROR_THROWN")
+  const activeIncidents = filteredIncidents.filter(
+    (i) => i.state !== "RESOLVED"
+  )
+  const failedJobs = filteredJobs.filter(
+    (j) => j.state === "FAILED" || j.state === "ERROR_THROWN"
+  )
 
   return (
     <div className="flex h-56 shrink-0 flex-col border-t">
-      <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as OperateTab)}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => onTabChange(v as OperateTab)}
+      >
         <div className="flex items-center justify-between border-b bg-muted/20 px-3 py-1.5">
           <TabsList className="h-8">
-            <TabsTrigger value="incidents" className="relative h-7 text-xs px-3">
+            <TabsTrigger
+              value="incidents"
+              className="relative h-7 px-3 text-xs"
+            >
               Incidents
               {activeIncidents.length > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white leading-tight">
+                <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] leading-tight font-bold text-white">
                   {activeIncidents.length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="jobs" className="relative h-7 text-xs px-3">
+            <TabsTrigger value="jobs" className="relative h-7 px-3 text-xs">
               Jobs
               {failedJobs.length > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white leading-tight">
+                <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] leading-tight font-bold text-white">
                   {failedJobs.length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="job-definitions" className="h-7 text-xs px-3">
+            <TabsTrigger value="job-definitions" className="h-7 px-3 text-xs">
               Job definitions
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="h-7 text-xs px-3">
+            <TabsTrigger value="timeline" className="h-7 px-3 text-xs">
               Timeline
             </TabsTrigger>
           </TabsList>
@@ -676,16 +945,27 @@ function BottomDock({
           </span>
         </div>
         <TabsContent value="incidents" className="m-0 flex-1 overflow-y-auto">
-          <IncidentsTable items={filteredIncidents} onRetry={onRetryIncident} onResolve={onResolveIncident} />
+          <IncidentsTable
+            items={filteredIncidents}
+            onRetry={onRetryIncident}
+            onResolve={onResolveIncident}
+          />
         </TabsContent>
         <TabsContent value="jobs" className="m-0 flex-1 overflow-y-auto">
           <JobsTable items={filteredJobs} onRetry={onRetryJob} />
         </TabsContent>
-        <TabsContent value="job-definitions" className="m-0 flex-1 overflow-y-auto">
-          <JobDefinitionsTable items={filteredJd} onSuspend={onSuspendJobDef} onActivate={onActivateJobDef} />
+        <TabsContent
+          value="job-definitions"
+          className="m-0 flex-1 overflow-y-auto"
+        >
+          <JobDefinitionsTable
+            items={filteredJd}
+            onSuspend={onSuspendJobDef}
+            onActivate={onActivateJobDef}
+          />
         </TabsContent>
         <TabsContent value="timeline" className="m-0 flex-1 overflow-y-auto">
-          <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Timeline tính năng đang phát triển.
           </div>
         </TabsContent>
@@ -707,7 +987,7 @@ function IncidentsTable({
 }) {
   if (items.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
         Không có incident nào.
       </div>
     )
@@ -715,28 +995,42 @@ function IncidentsTable({
 
   return (
     <Table>
-      <TableHeader className="bg-muted/30 sticky top-0">
+      <TableHeader className="sticky top-0 bg-muted/30">
         <TableRow>
-          <TableHead className="text-xs w-24">Trạng thái</TableHead>
+          <TableHead className="w-24 text-xs">Trạng thái</TableHead>
           <TableHead className="text-xs">Element</TableHead>
           <TableHead className="text-xs">Loại lỗi</TableHead>
-          <TableHead className="text-xs max-w-md">Error message</TableHead>
+          <TableHead className="max-w-md text-xs">Error message</TableHead>
           <TableHead className="text-xs">Job key</TableHead>
           <TableHead className="text-xs">Thời gian</TableHead>
-          <TableHead className="text-xs w-28" />
+          <TableHead className="w-28 text-xs" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {items.map((inc) => (
-          <TableRow key={inc.incidentKey} className={inc.state !== "RESOLVED" ? "bg-red-50/30 dark:bg-red-950/10" : ""}>
-            <TableCell><IncidentStateBadge state={inc.state} /></TableCell>
+          <TableRow
+            key={inc.incidentKey}
+            className={
+              inc.state !== "RESOLVED" ? "bg-red-50/30 dark:bg-red-950/10" : ""
+            }
+          >
+            <TableCell>
+              <IncidentStateBadge state={inc.state} />
+            </TableCell>
             <TableCell className="font-mono text-xs">{inc.elementId}</TableCell>
             <TableCell className="font-mono text-xs">{inc.errorType}</TableCell>
-            <TableCell className="max-w-md truncate text-xs text-destructive" title={inc.errorMessage}>
+            <TableCell
+              className="max-w-md truncate text-xs text-destructive"
+              title={inc.errorMessage}
+            >
               {inc.errorMessage}
             </TableCell>
-            <TableCell className="font-mono text-xs">{inc.jobKey || "—"}</TableCell>
-            <TableCell className="text-xs whitespace-nowrap">{formatDateTime(inc.createdAt)}</TableCell>
+            <TableCell className="font-mono text-xs">
+              {inc.jobKey || "—"}
+            </TableCell>
+            <TableCell className="text-xs whitespace-nowrap">
+              {formatDateTime(inc.createdAt)}
+            </TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-1">
                 <Button
@@ -747,7 +1041,7 @@ function IncidentsTable({
                   disabled={inc.state === "RESOLVED"}
                   onClick={() => onRetry(inc.incidentKey)}
                 >
-                  <RotateCcw className="size-3.5 mr-1" />
+                  <RotateCcw className="mr-1 size-3.5" />
                   Retry
                 </Button>
                 {inc.state !== "RESOLVED" && (
@@ -758,7 +1052,7 @@ function IncidentsTable({
                     className="h-7 text-xs"
                     onClick={() => onResolve(inc.incidentKey)}
                   >
-                    <CheckCircle2 className="size-3.5 mr-1" />
+                    <CheckCircle2 className="mr-1 size-3.5" />
                     Resolve
                   </Button>
                 )}
@@ -773,10 +1067,16 @@ function IncidentsTable({
 
 // ─── Jobs Table ─────────────────────────────────────────────────────────────────
 
-function JobsTable({ items, onRetry }: { items: JobState[]; onRetry: (key: string) => void }) {
+function JobsTable({
+  items,
+  onRetry,
+}: {
+  items: JobState[]
+  onRetry: (key: string) => void
+}) {
   if (items.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
         Không có job nào.
       </div>
     )
@@ -784,30 +1084,54 @@ function JobsTable({ items, onRetry }: { items: JobState[]; onRetry: (key: strin
 
   return (
     <Table>
-      <TableHeader className="bg-muted/30 sticky top-0">
+      <TableHeader className="sticky top-0 bg-muted/30">
         <TableRow>
-          <TableHead className="text-xs w-24">Trạng thái</TableHead>
+          <TableHead className="w-24 text-xs">Trạng thái</TableHead>
           <TableHead className="text-xs">Type</TableHead>
           <TableHead className="text-xs">Element</TableHead>
           <TableHead className="text-xs">Job key</TableHead>
           <TableHead className="text-xs">Retries</TableHead>
           <TableHead className="text-xs">Worker</TableHead>
           <TableHead className="text-xs">Thời gian</TableHead>
-          <TableHead className="text-xs w-24" />
+          <TableHead className="w-24 text-xs" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {items.map((job) => (
-          <TableRow key={job.jobKey} className={job.state === "FAILED" || job.state === "ERROR_THROWN" ? "bg-red-50/30 dark:bg-red-950/10" : ""}>
-            <TableCell><JobStateBadge state={job.state} /></TableCell>
-            <TableCell className="font-mono text-xs max-w-40 truncate" title={job.type}>{job.type}</TableCell>
+          <TableRow
+            key={job.jobKey}
+            className={
+              job.state === "FAILED" || job.state === "ERROR_THROWN"
+                ? "bg-red-50/30 dark:bg-red-950/10"
+                : ""
+            }
+          >
+            <TableCell>
+              <JobStateBadge state={job.state} />
+            </TableCell>
+            <TableCell
+              className="max-w-40 truncate font-mono text-xs"
+              title={job.type}
+            >
+              {job.type}
+            </TableCell>
             <TableCell className="font-mono text-xs">{job.elementId}</TableCell>
-            <TableCell className="font-mono text-xs">{job.jobKey.slice(-12)}</TableCell>
+            <TableCell className="font-mono text-xs">
+              {job.jobKey.slice(-12)}
+            </TableCell>
             <TableCell className="text-xs">
-              <span className={job.retries === 0 ? "text-destructive font-semibold" : ""}>{job.retries}/{job.maxRetries}</span>
+              <span
+                className={
+                  job.retries === 0 ? "font-semibold text-destructive" : ""
+                }
+              >
+                {job.retries}/{job.maxRetries}
+              </span>
             </TableCell>
             <TableCell className="text-xs">{job.worker || "—"}</TableCell>
-            <TableCell className="text-xs whitespace-nowrap">{formatDateTime(job.createdAt)}</TableCell>
+            <TableCell className="text-xs whitespace-nowrap">
+              {formatDateTime(job.createdAt)}
+            </TableCell>
             <TableCell className="text-right">
               {(job.state === "FAILED" || job.state === "ERROR_THROWN") && (
                 <Button
@@ -817,7 +1141,7 @@ function JobsTable({ items, onRetry }: { items: JobState[]; onRetry: (key: strin
                   className="h-7 text-xs"
                   onClick={() => onRetry(job.jobKey)}
                 >
-                  <RotateCcw className="size-3.5 mr-1" />
+                  <RotateCcw className="mr-1 size-3.5" />
                   Retry
                 </Button>
               )}
@@ -842,7 +1166,7 @@ function JobDefinitionsTable({
 }) {
   if (items.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
         Không có job definition nào.
       </div>
     )
@@ -850,26 +1174,37 @@ function JobDefinitionsTable({
 
   return (
     <Table>
-      <TableHeader className="bg-muted/30 sticky top-0">
+      <TableHeader className="sticky top-0 bg-muted/30">
         <TableRow>
-          <TableHead className="text-xs w-28">Trạng thái</TableHead>
+          <TableHead className="w-28 text-xs">Trạng thái</TableHead>
           <TableHead className="text-xs">Type</TableHead>
           <TableHead className="text-xs">Job def key</TableHead>
           <TableHead className="text-xs">Worker</TableHead>
           <TableHead className="text-xs">Retries</TableHead>
           <TableHead className="text-xs">Ngày tạo</TableHead>
-          <TableHead className="text-xs w-28" />
+          <TableHead className="w-28 text-xs" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {items.map((jd) => (
           <TableRow key={jd.jobDefinitionKey}>
-            <TableCell><JobDefStateBadge state={jd.state} /></TableCell>
-            <TableCell className="font-mono text-xs max-w-48 truncate" title={jd.type}>{jd.type}</TableCell>
-            <TableCell className="font-mono text-xs">{jd.jobDefinitionKey}</TableCell>
+            <TableCell>
+              <JobDefStateBadge state={jd.state} />
+            </TableCell>
+            <TableCell
+              className="max-w-48 truncate font-mono text-xs"
+              title={jd.type}
+            >
+              {jd.type}
+            </TableCell>
+            <TableCell className="font-mono text-xs">
+              {jd.jobDefinitionKey}
+            </TableCell>
             <TableCell className="text-xs">{jd.worker || "—"}</TableCell>
             <TableCell className="text-xs">{jd.retries}</TableCell>
-            <TableCell className="text-xs whitespace-nowrap">{formatDateTime(jd.createdAt)}</TableCell>
+            <TableCell className="text-xs whitespace-nowrap">
+              {formatDateTime(jd.createdAt)}
+            </TableCell>
             <TableCell className="text-right">
               {jd.state === "ACTIVE" ? (
                 <Button
@@ -879,7 +1214,7 @@ function JobDefinitionsTable({
                   className="h-7 text-xs"
                   onClick={() => onSuspend(jd.jobDefinitionKey)}
                 >
-                  <ZapOff className="size-3.5 mr-1" />
+                  <ZapOff className="mr-1 size-3.5" />
                   Suspend
                 </Button>
               ) : (
@@ -890,7 +1225,7 @@ function JobDefinitionsTable({
                   className="h-7 text-xs"
                   onClick={() => onActivate(jd.jobDefinitionKey)}
                 >
-                  <Zap className="size-3.5 mr-1" />
+                  <Zap className="mr-1 size-3.5" />
                   Activate
                 </Button>
               )}

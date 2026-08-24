@@ -45,17 +45,15 @@ export function PageSubmenu({
         <aside
           className={cn(
             "hidden min-h-0 shrink-0 flex-col md:flex",
-            embedded
-              ? "border-r"
-              : "rounded-md border bg-background",
-            collapsed ? "w-14" : "w-[220px]",
+            embedded ? "border-r" : "rounded-md border bg-background",
+            collapsed ? "w-14" : "w-[220px]"
           )}
           aria-label={title}
         >
           <div
             className={cn(
               "flex h-10 items-center gap-2 border-b",
-              collapsed ? "justify-center px-2" : "justify-between px-2.5",
+              collapsed ? "justify-center px-2" : "justify-between px-2.5"
             )}
           >
             {collapsed ? (
@@ -158,4 +156,3 @@ function SheetSubmenu({
     </div>
   )
 }
-

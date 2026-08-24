@@ -13,11 +13,7 @@ import {
   getBrowserNotificationPermission,
   isBrowserNotificationPreferred,
 } from "./browser-notification"
-import {
-  disableWebPush,
-  enableWebPush,
-  webPushSupported,
-} from "./web-push"
+import { disableWebPush, enableWebPush, webPushSupported } from "./web-push"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem } from "./types"
 
@@ -59,7 +55,9 @@ export function NotificationBell() {
   const handleEnableBrowser = async () => {
     const result = await enableWebPush()
     setBrowserPermission(
-      result === "granted" || result === "denied" ? result : getBrowserNotificationPermission()
+      result === "granted" || result === "denied"
+        ? result
+        : getBrowserNotificationPermission()
     )
     setBrowserPreferred(isBrowserNotificationPreferred())
   }
@@ -85,7 +83,7 @@ export function NotificationBell() {
         >
           <Bell className="size-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-destructive px-0.5 text-[9px] font-medium leading-none text-destructive-foreground">
+            <span className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-destructive px-0.5 text-[9px] leading-none font-medium text-destructive-foreground">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -123,7 +121,9 @@ export function NotificationBell() {
         ) : null}
         {browserPermission === "granted" && browserPreferred ? (
           <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
-            <p className="text-xs text-muted-foreground">{t("browser.enabled")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("browser.enabled")}
+            </p>
             <Button
               type="button"
               size="sm"

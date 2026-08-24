@@ -10,11 +10,22 @@ import { platformApi } from "../api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@workspace/ui/components/command"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@workspace/ui/components/command"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover"
 import {
   Select,
   SelectContent,
@@ -22,7 +33,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertDialog,
@@ -34,20 +49,49 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
-import { Check, ChevronsUpDown, Edit2, Eye, EyeOff, Key, Trash2 } from "lucide-react"
+import {
+  Check,
+  ChevronsUpDown,
+  Edit2,
+  Eye,
+  EyeOff,
+  Key,
+  Trash2,
+} from "lucide-react"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { matchTextColumnFilter, textSearchMeta } from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import {
+  matchTextColumnFilter,
+  textSearchMeta,
+} from "@workspace/admin-list/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 
 const valueTypeValues = ["string", "number", "boolean", "json", "date"] as const
-const scopeTypeValues = ["global", "tenant", "org", "branch", "department"] as const
+const scopeTypeValues = [
+  "global",
+  "tenant",
+  "org",
+  "branch",
+  "department",
+] as const
 
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 function buildParameterSchema(t: TranslateFn) {
   return z
@@ -138,7 +182,9 @@ export function ParametersPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingParam, setEditingParam] = useState<Parameter | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Parameter | null>(null)
-  const [revealedSecrets, setRevealedSecrets] = useState<Record<string, boolean>>({})
+  const [revealedSecrets, setRevealedSecrets] = useState<
+    Record<string, boolean>
+  >({})
   const [params, setParams] = useState<Parameter[]>([])
   const [orgs, setOrgs] = useState<Organization[]>([])
   const [loading, setLoading] = useState(true)
@@ -154,7 +200,9 @@ export function ParametersPage() {
     try {
       const [paramsResult, orgsResult] = await Promise.all([
         platformApi.listParameters(),
-        platformApi.listOrganizations({ view: "options" }).catch(() => ({ items: [] as Organization[] })),
+        platformApi
+          .listOrganizations({ view: "options" })
+          .catch(() => ({ items: [] as Organization[] })),
       ])
       setParams(paramsResult)
       setOrgs(orgsResult.items)
@@ -260,7 +308,10 @@ export function ParametersPage() {
         id: "key",
         accessorKey: "key",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.parameters.field.key")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.parameters.field.key")}
+          />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
@@ -268,13 +319,18 @@ export function ParametersPage() {
           t("platform.parameters.placeholder.search")
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs font-semibold text-primary">{row.original.key}</span>
+          <span className="font-mono text-xs font-semibold text-primary">
+            {row.original.key}
+          </span>
         ),
       },
       {
         accessorKey: "value",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.parameters.field.value")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.parameters.field.value")}
+          />
         ),
         cell: ({ row }) => {
           const param = row.original
@@ -293,7 +349,11 @@ export function ParametersPage() {
                   onClick={() => toggleRevealSecret(param.id)}
                   className="ml-1 text-muted-foreground hover:text-foreground"
                 >
-                  {isRevealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  {isRevealed ? (
+                    <EyeOff className="size-3.5" />
+                  ) : (
+                    <Eye className="size-3.5" />
+                  )}
                 </button>
               </div>
             )
@@ -317,14 +377,21 @@ export function ParametersPage() {
               </code>
             )
           }
-          return <span className="max-w-xs truncate font-mono text-xs">{param.value}</span>
+          return (
+            <span className="max-w-xs truncate font-mono text-xs">
+              {param.value}
+            </span>
+          )
         },
         enableSorting: false,
       },
       {
         accessorKey: "value_type",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.parameters.field.value_type")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.parameters.field.value_type")}
+          />
         ),
         cell: ({ row }) => (
           <Badge variant="outline" className="text-xs font-normal">
@@ -335,14 +402,20 @@ export function ParametersPage() {
       {
         accessorKey: "scope_type",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.parameters.field.scope")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.parameters.field.scope")}
+          />
         ),
         cell: ({ row }) => {
           const param = row.original
-          const scopeLabel = t(`platform.parameters.scope_type.${param.scope_type}`)
+          const scopeLabel = t(
+            `platform.parameters.scope_type.${param.scope_type}`
+          )
           const scopeDetail =
             param.scope_id && param.scope_type === "org"
-              ? orgs.find((org) => org.id === param.scope_id)?.name || param.scope_id
+              ? orgs.find((org) => org.id === param.scope_id)?.name ||
+                param.scope_id
               : param.scope_id
           return (
             <Badge variant="secondary" className="text-xs font-semibold">
@@ -355,7 +428,10 @@ export function ParametersPage() {
       {
         accessorKey: "description",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("platform.parameters.field.description")} />
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.parameters.field.description")}
+          />
         ),
         cell: ({ row }) => (
           <span className="max-w-sm truncate text-xs text-muted-foreground">
@@ -405,7 +481,8 @@ export function ParametersPage() {
     columns,
     items: params,
     filterBy: {
-      key: (item, value) => matchTextColumnFilter(value, item.key, item.description),
+      key: (item, value) =>
+        matchTextColumnFilter(value, item.key, item.description),
     },
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
@@ -426,10 +503,16 @@ export function ParametersPage() {
                 ? t("platform.parameters.edit")
                 : t("platform.parameters.create_title")}
             </DialogTitle>
-            <DialogDescription>{t("platform.parameters.dialog_description")}</DialogDescription>
+            <DialogDescription>
+              {t("platform.parameters.dialog_description")}
+            </DialogDescription>
           </DialogHeader>
 
-          <form autoComplete="off" onSubmit={submitParameter} className="space-y-4 py-2">
+          <form
+            autoComplete="off"
+            onSubmit={submitParameter}
+            className="space-y-4 py-2"
+          >
             <FormField
               label={t("platform.parameters.field.key")}
               htmlFor="param_key"
@@ -444,7 +527,9 @@ export function ParametersPage() {
                 autoComplete="off"
                 {...register("key", {
                   onChange: (event) => {
-                    event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "_")
+                    event.target.value = event.target.value
+                      .toUpperCase()
+                      .replace(/\s+/g, "_")
                   },
                 })}
               />
@@ -464,10 +549,16 @@ export function ParametersPage() {
                       value={field.value}
                       onValueChange={(selectedValue) => {
                         field.onChange(selectedValue)
-                        setValue("value", "", { shouldDirty: true, shouldValidate: true })
+                        setValue("value", "", {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }}
                     >
-                      <SelectTrigger id="param_value_type" aria-invalid={Boolean(errors.value_type)}>
+                      <SelectTrigger
+                        id="param_value_type"
+                        aria-invalid={Boolean(errors.value_type)}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -494,10 +585,16 @@ export function ParametersPage() {
                       value={field.value}
                       onValueChange={(selectedValue) => {
                         field.onChange(selectedValue)
-                        setValue("scope_id", "", { shouldDirty: true, shouldValidate: true })
+                        setValue("scope_id", "", {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }}
                     >
-                      <SelectTrigger id="param_scope_type" aria-invalid={Boolean(errors.scope_type)}>
+                      <SelectTrigger
+                        id="param_scope_type"
+                        aria-invalid={Boolean(errors.scope_type)}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -524,7 +621,10 @@ export function ParametersPage() {
                     control={control}
                     name="scope_id"
                     render={({ field }) => (
-                      <Popover open={orgSearchOpen} onOpenChange={setOrgSearchOpen}>
+                      <Popover
+                        open={orgSearchOpen}
+                        onOpenChange={setOrgSearchOpen}
+                      >
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -533,16 +633,23 @@ export function ParametersPage() {
                             className="h-10 w-full justify-between text-left font-normal"
                           >
                             {field.value
-                              ? orgs.find((org) => org.id === field.value)?.name || field.value
+                              ? orgs.find((org) => org.id === field.value)
+                                  ?.name || field.value
                               : t("platform.parameters.placeholder.org_select")}
                             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[450px] p-0" align="start">
                           <Command>
-                            <CommandInput placeholder={t("platform.parameters.placeholder.org_search")} />
+                            <CommandInput
+                              placeholder={t(
+                                "platform.parameters.placeholder.org_search"
+                              )}
+                            />
                             <CommandList>
-                              <CommandEmpty>{t("platform.parameters.empty_orgs")}</CommandEmpty>
+                              <CommandEmpty>
+                                {t("platform.parameters.empty_orgs")}
+                              </CommandEmpty>
                               <CommandGroup>
                                 {orgs.map((org) => (
                                   <CommandItem
@@ -555,7 +662,9 @@ export function ParametersPage() {
                                     className="flex items-center justify-between"
                                   >
                                     <div className="flex flex-col">
-                                      <span className="text-sm font-medium">{org.name}</span>
+                                      <span className="text-sm font-medium">
+                                        {org.name}
+                                      </span>
                                       <span className="font-mono text-[10px] text-muted-foreground">
                                         {org.code}
                                       </span>
@@ -563,7 +672,9 @@ export function ParametersPage() {
                                     <Check
                                       className={cn(
                                         "size-4 text-primary",
-                                        field.value === org.id ? "opacity-100" : "opacity-0"
+                                        field.value === org.id
+                                          ? "opacity-100"
+                                          : "opacity-0"
                                       )}
                                     />
                                   </CommandItem>
@@ -578,7 +689,9 @@ export function ParametersPage() {
                 ) : (
                   <Input
                     id="param_scope_id"
-                    placeholder={t("platform.parameters.placeholder.scope_id", { scope: scopeType })}
+                    placeholder={t("platform.parameters.placeholder.scope_id", {
+                      scope: scopeType,
+                    })}
                     aria-invalid={Boolean(errors.scope_id)}
                     autoComplete="off"
                     {...register("scope_id")}
@@ -599,7 +712,12 @@ export function ParametersPage() {
                     variant={value === "true" ? "secondary" : "ghost"}
                     size="sm"
                     className="h-8 rounded-md text-xs"
-                    onClick={() => setValue("value", "true", { shouldDirty: true, shouldValidate: true })}
+                    onClick={() =>
+                      setValue("value", "true", {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
                   >
                     {t("platform.parameters.boolean.true")}
                   </Button>
@@ -608,7 +726,12 @@ export function ParametersPage() {
                     variant={value === "false" ? "secondary" : "ghost"}
                     size="sm"
                     className="h-8 rounded-md text-xs"
-                    onClick={() => setValue("value", "false", { shouldDirty: true, shouldValidate: true })}
+                    onClick={() =>
+                      setValue("value", "false", {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
                   >
                     {t("platform.parameters.boolean.false")}
                   </Button>
@@ -624,7 +747,12 @@ export function ParametersPage() {
                   {...register("value")}
                 />
               ) : valueType === "date" ? (
-                <Input id="param_value" type="date" aria-invalid={Boolean(errors.value)} {...register("value")} />
+                <Input
+                  id="param_value"
+                  type="date"
+                  aria-invalid={Boolean(errors.value)}
+                  {...register("value")}
+                />
               ) : (
                 <Input
                   id="param_value"
@@ -660,9 +788,14 @@ export function ParametersPage() {
                   <Checkbox
                     id="param_is_secret"
                     checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
                   />
-                  <label htmlFor="param_is_secret" className="cursor-pointer select-none text-sm font-medium">
+                  <label
+                    htmlFor="param_is_secret"
+                    className="cursor-pointer text-sm font-medium select-none"
+                  >
                     {t("platform.parameters.field.is_secret")}
                   </label>
                 </div>
@@ -670,7 +803,11 @@ export function ParametersPage() {
             />
 
             <div className="flex gap-2 sm:justify-end">
-              <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleDialogOpenChange(false)}
+              >
                 {t("common.action.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting || saving}>
@@ -683,12 +820,19 @@ export function ParametersPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.parameters.delete.title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("platform.parameters.delete.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("platform.parameters.delete.description", { key: deleteTarget?.key ?? "" })}
+              {t("platform.parameters.delete.description", {
+                key: deleteTarget?.key ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

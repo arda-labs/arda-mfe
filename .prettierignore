@@ -1,6 +1,13 @@
 dist/
+dist-ssr/
+.cloudflare/
+.mf/
 node_modules/
 .turbo/
 coverage/
+bun.lock
+bun.lockb
 pnpm-lock.yaml
 .pnpm-store/
+*.tsbuildinfo
+*.log
