@@ -2872,6 +2872,7 @@ function warningUnitOptions(mode: string): SelectOption[] {
 export function caseTypeOptionsFromCaseTypes(
   items: WorkflowCaseType[]
 ): SelectOption[] {
+  if (!Array.isArray(items)) return []
   return items.map((item) => ({
     value: item.caseType,
     label: `${item.caseType} - ${item.operationName}`,
@@ -2882,6 +2883,7 @@ export function caseTypeOptionsFromCaseTypes(
 export function roleOptionsFromCaseTypes(
   items: WorkflowCaseType[]
 ): SelectOption[] {
+  if (!Array.isArray(items)) return []
   return uniqueOptions(
     items.flatMap((item) => [item.makerRole, item.checkerRole]),
     []
@@ -2889,9 +2891,11 @@ export function roleOptionsFromCaseTypes(
 }
 
 export function uniqueOptions(values: string[], presets: SelectOption[]) {
-  const seen = new Set(presets.map((item) => item.value))
-  const out = [...presets]
-  for (const value of values) {
+  const safePresets = Array.isArray(presets) ? presets : []
+  const safeValues = Array.isArray(values) ? values : []
+  const seen = new Set(safePresets.map((item) => item.value))
+  const out = [...safePresets]
+  for (const value of safeValues) {
     if (!value || seen.has(value)) continue
     seen.add(value)
     out.push({ value, label: value })

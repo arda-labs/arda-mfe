@@ -50,7 +50,7 @@ const routeFallback = (
 )
 
 class RemoteErrorBoundary extends Component<
-  { children: ReactNode },
+  { children: ReactNode; resetKey?: string },
   { hasError: boolean; error: Error | null }
 > {
   state = { hasError: false, error: null }
@@ -61,6 +61,12 @@ class RemoteErrorBoundary extends Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("Failed to load remote module:", error, info)
+  }
+
+  componentDidUpdate(prevProps: { resetKey?: string }) {
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false, error: null })
+    }
   }
 
   render() {
@@ -100,8 +106,9 @@ class RemoteErrorBoundary extends Component<
 }
 
 function RemoteRoute({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
   return (
-    <RemoteErrorBoundary>
+    <RemoteErrorBoundary resetKey={pathname}>
       <Suspense fallback={routeFallback}>{children}</Suspense>
     </RemoteErrorBoundary>
   )

@@ -47,20 +47,27 @@ export function ProcessRolesPage() {
     setLoading(true)
     try {
       const [sr, rc, mm, ar, dl, ct] = await Promise.all([
-        workflowApi.listProcessRoles(),
-        workflowApi.listRoleCatalog(),
-        workflowApi.listRoleMemberships(),
-        workflowApi.listAssignmentRules(),
-        workflowApi.listDelegations(),
-        workflowApi.listCaseTypes(),
+        workflowApi.listProcessRoles().catch(() => []),
+        workflowApi.listRoleCatalog().catch(() => []),
+        workflowApi.listRoleMemberships().catch(() => []),
+        workflowApi.listAssignmentRules().catch(() => []),
+        workflowApi.listDelegations().catch(() => []),
+        workflowApi.listCaseTypes().catch(() => []),
       ])
-      setStepRoles(sr)
-      setRoleCatalog(rc)
-      setMemberships(mm)
-      setAssignmentRules(ar)
-      setDelegations(dl)
-      setCaseTypes(ct)
+      setStepRoles(Array.isArray(sr) ? sr : [])
+      setRoleCatalog(Array.isArray(rc) ? rc : [])
+      setMemberships(Array.isArray(mm) ? mm : [])
+      setAssignmentRules(Array.isArray(ar) ? ar : [])
+      setDelegations(Array.isArray(dl) ? dl : [])
+      setCaseTypes(Array.isArray(ct) ? ct : [])
       setSource("api")
+    } catch {
+      setStepRoles([])
+      setRoleCatalog([])
+      setMemberships([])
+      setAssignmentRules([])
+      setDelegations([])
+      setCaseTypes([])
     } finally {
       setLoading(false)
     }
@@ -69,13 +76,16 @@ export function ProcessRolesPage() {
     void load()
   }, [load])
 
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
-  const roleCodeOptions = roleCatalog.map((item) => ({
+  const safeCaseTypes = Array.isArray(caseTypes) ? caseTypes : []
+  const safeRoleCatalog = Array.isArray(roleCatalog) ? roleCatalog : []
+  const safeStepRoles = Array.isArray(stepRoles) ? stepRoles : []
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(safeCaseTypes)
+  const roleCodeOptions = safeRoleCatalog.map((item) => ({
     value: item.roleCode,
     label: `${item.roleCode} - ${item.roleName}`,
   }))
   const iamRoleOptions = uniqueOptions(
-    stepRoles.map((item) => item.iamRole),
+    safeStepRoles.map((item) => item.iamRole),
     roleCodeOptions
   )
   const [activeTab, setActiveTab] = useState("catalog")

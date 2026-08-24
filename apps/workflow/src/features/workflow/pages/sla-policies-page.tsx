@@ -19,11 +19,14 @@ export function SlaPoliciesPage() {
     setLoading(true)
     try {
       const [sl, ct] = await Promise.all([
-        workflowApi.listSlaPolicies(),
-        workflowApi.listCaseTypes(),
+        workflowApi.listSlaPolicies().catch(() => []),
+        workflowApi.listCaseTypes().catch(() => []),
       ])
-      setItems(sl)
-      setCaseTypes(ct)
+      setItems(Array.isArray(sl) ? sl : [])
+      setCaseTypes(Array.isArray(ct) ? ct : [])
+    } catch {
+      setItems([])
+      setCaseTypes([])
     } finally {
       setLoading(false)
     }
@@ -32,9 +35,11 @@ export function SlaPoliciesPage() {
     void load()
   }, [load])
 
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
+  const safeItems = Array.isArray(items) ? items : []
+  const safeCaseTypes = Array.isArray(caseTypes) ? caseTypes : []
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(safeCaseTypes)
   const roleOptions = uniqueOptions(
-    items.map((item) => item.escalationRole),
+    safeItems.map((item) => item.escalationRole),
     []
   )
   const [editing, setEditing] = useState<SlaPolicy | null>(null)

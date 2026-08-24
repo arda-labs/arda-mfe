@@ -19,11 +19,14 @@ export function DescriptionTemplatesPage() {
     setLoading(true)
     try {
       const [dt, ct] = await Promise.all([
-        workflowApi.listDescriptionTemplates(),
-        workflowApi.listCaseTypes(),
+        workflowApi.listDescriptionTemplates().catch(() => []),
+        workflowApi.listCaseTypes().catch(() => []),
       ])
-      setItems(dt)
-      setCaseTypes(ct)
+      setItems(Array.isArray(dt) ? dt : [])
+      setCaseTypes(Array.isArray(ct) ? ct : [])
+    } catch {
+      setItems([])
+      setCaseTypes([])
     } finally {
       setLoading(false)
     }
@@ -32,7 +35,8 @@ export function DescriptionTemplatesPage() {
     void load()
   }, [load])
 
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
+  const safeCaseTypes = Array.isArray(caseTypes) ? caseTypes : []
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(safeCaseTypes)
   const [editing, setEditing] = useState<DescriptionTemplate | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   function onSaved() {
