@@ -9,15 +9,9 @@ import {
   shellOptimizeInclude,
 } from "../../federation.shared"
 
-const backend = {
-  authGateway: "http://localhost:8082",
-  finance: "http://localhost:8090",
-  media: "http://localhost:8092",
-  workflow: "http://localhost:8093",
-  crm: "http://localhost:8094",
-  notification: "http://localhost:8095",
-  hrm: "http://localhost:8097",
-}
+// All /api/* paths route through the auth-gateway BFF, which handles
+// authentication forwarding and service routing internally.
+const BFF_GATEWAY = "http://localhost:8082"
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
@@ -68,21 +62,18 @@ export default defineConfig(({ command }) => {
     },
     server: {
       proxy: {
-        "/api/auth": { target: backend.authGateway, changeOrigin: true },
-        "/api/kratos": { target: backend.authGateway, changeOrigin: true },
-        "/api/iam": { target: backend.authGateway, changeOrigin: true },
-        "/api/admin": { target: backend.authGateway, changeOrigin: true },
-        "/api/platform": { target: backend.authGateway, changeOrigin: true },
-        "/api/identity": { target: backend.authGateway, changeOrigin: true },
-        "/api/finance": { target: backend.authGateway, changeOrigin: true },
-        "/api/media": { target: backend.authGateway, changeOrigin: true },
-        "/api/workflow": { target: backend.authGateway, changeOrigin: true },
-        "/api/crm": { target: backend.authGateway, changeOrigin: true },
-        "/api/hrm": { target: backend.authGateway, changeOrigin: true },
-        "/api/notifications": {
-          target: backend.authGateway,
-          changeOrigin: true,
-        },
+        "/api/auth": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/kratos": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/iam": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/admin": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/platform": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/identity": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/finance": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/media": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/workflow": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/crm": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/hrm": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/notifications": { target: BFF_GATEWAY, changeOrigin: true },
       },
     },
   }

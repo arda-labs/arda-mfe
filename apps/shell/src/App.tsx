@@ -1,5 +1,6 @@
-import { Suspense, useEffect, useRef, useState, type ReactNode } from "react"
+import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from "react"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
+import { AlertCircle, RefreshCw } from "lucide-react"
 import {
   AuthLoadingScreen,
   AuthShellLoadingScreen,
@@ -10,6 +11,7 @@ import { normalizeAuthUser, useAuthStore } from "@workspace/auth/store"
 import * as authShare from "@workspace/auth"
 import { getMediaContentUrl } from "@workspace/media/urls"
 import { apiUrl } from "@workspace/api/url"
+import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Dashboard } from "./dashboard"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
@@ -47,8 +49,62 @@ const routeFallback = (
   </div>
 )
 
+class RemoteErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  state = { hasError: false, error: null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("Failed to load remote module:", error, info)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <AlertCircle className="size-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold">Không thể tải phân hệ</h3>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Đã xảy ra lỗi khi tải module từ máy chủ. Vui lòng kiểm tra kết nối mạng hoặc thử lại.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => this.setState({ hasError: false, error: null })}
+            >
+              <RefreshCw className="mr-1.5 size-3.5" />
+              Thử lại
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
+              Tải lại trang
+            </Button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 function RemoteRoute({ children }: { children: ReactNode }) {
-  return <Suspense fallback={routeFallback}>{children}</Suspense>
+  return (
+    <RemoteErrorBoundary>
+      <Suspense fallback={routeFallback}>{children}</Suspense>
+    </RemoteErrorBoundary>
+  )
 }
 
 export function App() {
@@ -147,94 +203,6 @@ export function App() {
         <Route index element={<Dashboard />} />
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route
-          path="/admin/organizations/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/parameters/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/provinces/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/wards/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/lookups/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/area-types/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/areas/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/credit-institutions/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/templates/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/calendar/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
-          path="/admin/cutoff/*"
-          element={
-            <RemoteRoute>
-              <PlatformRoutes />
-            </RemoteRoute>
-          }
-        />
-        <Route
           path="/admin/users/*"
           element={
             <RemoteRoute>
@@ -279,6 +247,14 @@ export function App() {
           element={
             <RemoteRoute>
               <IamRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
+          path="/admin/*"
+          element={
+            <RemoteRoute>
+              <PlatformRoutes />
             </RemoteRoute>
           }
         />

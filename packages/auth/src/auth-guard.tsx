@@ -1,5 +1,6 @@
 import { getMediaContentUrl } from "@workspace/media/urls"
 import { apiUrl } from "@workspace/api/url"
+import { useI18n } from "@workspace/i18n"
 import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { Building2 } from "lucide-react"
@@ -14,6 +15,7 @@ type Organization = {
 }
 
 export function AuthGuard({ children }: { children: ReactNode }) {
+  const { t } = useI18n()
   const { isAuthenticated, user, logout, updateUser } = useAuthStore()
   const [availableOrgs, setAvailableOrgs] = useState<Organization[] | null>(
     null
@@ -54,11 +56,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
               <Building2 className="size-6" />
             </div>
             <h2 className="text-xl font-bold text-balance">
-              Chọn đơn vị làm việc
+              {t("auth.org_select.title")}
             </h2>
             <p className="text-xs text-pretty text-muted-foreground">
-              Tài khoản của bạn thuộc nhiều đơn vị. Vui lòng chọn một đơn vị để
-              bắt đầu phiên làm việc.
+              {t("auth.org_select.description")}
             </p>
           </div>
 
@@ -66,11 +67,11 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             {availableOrgs === null ? (
               <div className="flex flex-col items-center gap-2 py-6 text-center text-xs text-muted-foreground">
                 <div className="size-4 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-                <span>Đang tải danh sách đơn vị...</span>
+                <span>{t("auth.org_select.loading")}</span>
               </div>
             ) : availableOrgs.length === 0 ? (
               <div className="py-6 text-center text-xs text-muted-foreground">
-                Không tìm thấy thông tin đơn vị được gán.
+                {t("auth.org_select.empty")}
               </div>
             ) : (
               availableOrgs.map((org) => (
@@ -97,7 +98,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
           <div className="pt-2 text-center">
             <Button variant="link" size="sm" onClick={() => logout()}>
-              Đăng xuất
+              {t("common.action.logout")}
             </Button>
           </div>
         </div>

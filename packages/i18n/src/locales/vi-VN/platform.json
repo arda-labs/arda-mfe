@@ -299,6 +299,12 @@
       "description": "Hành động này sẽ xóa hoàn toàn tham số {key} khỏi hệ thống và không thể khôi phục.",
       "confirm": "Xóa bỏ"
     },
+    "toast": {
+      "save_success": "Lưu tham số hệ thống thành công",
+      "save_failed": "Lưu tham số thất bại",
+      "delete_success": "Xóa tham số thành công",
+      "delete_failed": "Xóa tham số thất bại"
+    },
     "empty_orgs": "Không tìm thấy tổ chức nào."
   },
   "lookups": {

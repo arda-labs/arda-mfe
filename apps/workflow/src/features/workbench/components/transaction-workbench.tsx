@@ -67,6 +67,8 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
   const mountedRef = useRef(true)
   const loadingRef = useRef(false)
 
+  const reloadRef = useRef<() => Promise<void>>(async () => {})
+
   const reload = useCallback(async () => {
     if (loadingRef.current) return // no overlap
     loadingRef.current = true
@@ -95,10 +97,14 @@ function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
           JSON.stringify(baseFilterRef.current) !== JSON.stringify(baseAtCall))
       ) {
         loadingRef.current = false
-        void reload()
+        void reloadRef.current()
       }
     }
   }, [])
+
+  useEffect(() => {
+    reloadRef.current = reload
+  }, [reload])
 
   useEffect(() => {
     mountedRef.current = true

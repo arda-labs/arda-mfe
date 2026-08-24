@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { apiUrl } from "@workspace/api/url"
+import { useI18n } from "@workspace/i18n"
 import { ShieldCheck } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -34,6 +35,7 @@ async function loadMFAStatus(): Promise<boolean> {
 }
 
 export function StepUpProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n()
   const [request, setRequest] = useState<StepUpRequest | null>(null)
   const [mfaEnrolled, setMfaEnrolled] = useState(true)
   const [code, setCode] = useState("")
@@ -63,7 +65,7 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
     if (mfaEnrolled) {
       const trimmed = code.trim()
       if (!trimmed) {
-        setError("Nhập mã xác thực để tiếp tục.")
+        setError(t("auth.step_up.error_empty"))
         return
       }
     }
@@ -84,8 +86,8 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
     } catch {
       setError(
         mfaEnrolled
-          ? "Mã xác thực không hợp lệ hoặc đã hết hạn."
-          : "Không xác nhận được. Vui lòng thử lại."
+          ? t("auth.step_up.error_invalid")
+          : t("auth.step_up.error_failed")
       )
     } finally {
       setSubmitting(false)
@@ -103,12 +105,12 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ShieldCheck className="size-5" />
-              Xác minh để tiếp tục
+              {t("auth.step_up.title")}
             </DialogTitle>
             <DialogDescription>
               {mfaEnrolled
-                ? "Thao tác nhạy cảm cần xác thực thêm. Phiên xác minh có hiệu lực trong thời gian ngắn."
-                : "Thao tác nhạy cảm cần xác nhận thêm. Nhấn Tiếp tục để làm mới phiên đăng nhập."}
+                ? t("auth.step_up.desc_mfa")
+                : t("auth.step_up.desc_confirm")}
             </DialogDescription>
           </DialogHeader>
           {mfaEnrolled ? (
@@ -117,7 +119,7 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
                 autoFocus
                 inputMode="numeric"
                 maxLength={6}
-                placeholder="Mã MFA 6 số"
+                placeholder={t("auth.step_up.placeholder_code")}
                 value={code}
                 onChange={(event) => setCode(event.target.value)}
                 onKeyDown={(event) => {
@@ -135,13 +137,13 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
               onClick={() => close(false)}
               disabled={submitting}
             >
-              Hủy
+              {t("common.action.cancel")}
             </Button>
             <Button
               onClick={verify}
               disabled={submitting || (mfaEnrolled && !code.trim())}
             >
-              {submitting ? "Đang xác minh..." : "Tiếp tục"}
+              {submitting ? t("auth.step_up.verifying") : t("auth.step_up.continue")}
             </Button>
           </DialogFooter>
         </DialogContent>

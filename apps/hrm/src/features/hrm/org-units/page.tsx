@@ -37,7 +37,7 @@ export function OrgUnitsPage() {
   const [items, setItems] = useState<OrgUnit[]>([])
   const [orgs, setOrgs] = useState<PlatformOrganization[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [_deleting, setDeleting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const form = useForm<OrgUnitValues>({
     resolver: zodResolver(orgUnitSchema),
     defaultValues: orgUnitDefaults,
@@ -239,6 +239,7 @@ export function OrgUnitsPage() {
       <DeleteDialog
         title="Xoa phong ban"
         open={Boolean(deleteTarget)}
+        pending={deleting}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return

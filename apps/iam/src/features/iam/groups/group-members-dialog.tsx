@@ -12,10 +12,8 @@ import { ensureRecentAuth } from "@workspace/auth/ensure-recent-auth"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { listPageCount } from "@workspace/api/list"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import {
   Dialog,
   DialogContent,
@@ -23,14 +21,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
 import {
   Status,
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
 import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback"
-import { ArrowLeft, Plus, Search, Trash2 } from "lucide-react"
+import { ArrowLeft, Trash2 } from "lucide-react"
+import { GroupMembersTableView } from "./components/GroupMembersTableView"
+import { AddGroupMembersView } from "./components/AddGroupMembersView"
 
 const PAGE_SIZE = 10
 
@@ -109,7 +108,6 @@ export function GroupMembersDialog({
     setAddPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }, 300)
 
-  // Load members when dialog opens
   useEffect(() => {
     if (!open || !groupId || membersLoadedForRef.current === groupId) {
       if (open && !groupId) {
@@ -136,7 +134,6 @@ export function GroupMembersDialog({
     }
   }, [open, groupId])
 
-  // Load picker users when view is "add" and pagination/search changes
   useEffect(() => {
     if (!open || view !== "add") return
     let cancelled = false
@@ -159,7 +156,6 @@ export function GroupMembersDialog({
     }
   }, [open, view, addPagination.pageIndex, addPagination.pageSize, search])
 
-  // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
       setView("members")
@@ -256,22 +252,14 @@ export function GroupMembersDialog({
     backToMembers()
   }
 
-  const ensureRecentAuthDirect = async (): Promise<boolean> => {
-    try {
-      return await ensureRecentAuth()
-    } catch {
-      return false
-    }
-  }
-
   const save = async () => {
     if (!groupId || !isDirty) return
-    const originalIds = originalMemberIds // snapshot before mutation
+    const originalIds = originalMemberIds
     const currentDraftIds = draftMemberIds
     const toAdd = [...currentDraftIds].filter((id) => !originalIds.has(id))
     const toRemove = [...originalIds].filter((id) => !currentDraftIds.has(id))
     if (toAdd.length === 0 && toRemove.length === 0) return
-    const verified = await ensureRecentAuthDirect()
+    const verified = await ensureRecentAuth().catch(() => false)
     if (!verified) {
       throw new ApiClientError(
         "recent_auth_required",
@@ -517,70 +505,39 @@ export function GroupMembersDialog({
 
         {view === "members" ? (
           <>
-            <div className="flex flex-wrap items-center gap-3 border-b px-6 py-3">
-              <div className="relative min-w-[220px] flex-1">
-                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchInput}
-                  onChange={(event) => {
-                    const value = event.target.value
-                    setSearchInput(value)
-                    debouncedMemberSearch(value)
-                  }}
-                  placeholder={t("admin.groups.members.search_current")}
-                  className="pl-9"
-                />
-              </div>
-              <Button type="button" size="sm" onClick={openAddView}>
-                <Plus className="size-4" />
-                {t("admin.groups.members.add_button")}
-              </Button>
-              {selectedRemoveIds.size > 0 ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => removeFromDraft([...selectedRemoveIds])}
-                >
-                  <Trash2 className="size-4" />
-                  {t("admin.groups.members.remove_selected", {
-                    count: selectedRemoveIds.size,
-                  })}
-                </Button>
-              ) : null}
-              <Badge variant="secondary" className="shrink-0">
-                {t("admin.groups.members.assigned_count", {
-                  count: draftMembers.length,
-                })}
-              </Badge>
-              {isDirty ? (
-                <Badge variant="outline" className="shrink-0">
-                  {t("admin.groups.members.unsaved")}
-                </Badge>
-              ) : null}
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-hidden px-6 py-3">
-              {membersLoading ? (
-                <div className="py-8 text-sm text-muted-foreground">
-                  {t("admin.groups.members.loading")}
-                </div>
-              ) : filteredMembers.length === 0 ? (
-                <div className="py-8 text-sm text-muted-foreground">
-                  {draftMembers.length === 0
-                    ? t("admin.groups.members.empty_assigned")
-                    : t("admin.groups.members.empty_search")}
-                </div>
-              ) : (
-                <DataTable
-                  table={membersTable}
-                  defaultDensity="compact"
-                  className="min-h-0"
-                />
-              )}
-            </div>
-
+            <GroupMembersTableView
+              table={membersTable}
+              searchInput={searchInput}
+              onSearchChange={(val) => {
+                setSearchInput(val)
+                debouncedMemberSearch(val)
+              }}
+              onOpenAdd={openAddView}
+              onRemoveSelected={() => removeFromDraft([...selectedRemoveIds])}
+              selectedRemoveCount={selectedRemoveIds.size}
+              draftMembersCount={draftMembers.length}
+              isDirty={isDirty}
+              loading={membersLoading}
+              filteredMembersCount={filteredMembers.length}
+              onRemoveSingle={(id) => removeFromDraft([id])}
+              selectedRemoveIds={selectedRemoveIds}
+              onToggleRemoveSelection={toggleRemoveSelection}
+              onToggleSelectAll={(checked) => {
+                if (checked) {
+                  setSelectedRemoveIds(new Set(filteredMembers.map((u) => u.id)))
+                } else {
+                  setSelectedRemoveIds(new Set())
+                }
+              }}
+              isAllSelected={
+                filteredMembers.length > 0 &&
+                filteredMembers.every((u) => selectedRemoveIds.has(u.id))
+              }
+              isSomeSelected={
+                filteredMembers.some((u) => selectedRemoveIds.has(u.id)) &&
+                !filteredMembers.every((u) => selectedRemoveIds.has(u.id))
+              }
+            />
             <DialogFooter className="border-t px-6 py-4">
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
                 {t("common.action.cancel")}
@@ -592,40 +549,16 @@ export function GroupMembersDialog({
           </>
         ) : (
           <>
-            <div className="border-b px-6 py-3">
-              <div className="relative">
-                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchInput}
-                  onChange={(event) => {
-                    const value = event.target.value
-                    setSearchInput(value)
-                    debouncedAddSearch(value)
-                  }}
-                  placeholder={t("admin.groups.members.add_dialog.search")}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-hidden px-6 py-3">
-              {pickerLoading ? (
-                <div className="py-8 text-sm text-muted-foreground">
-                  {t("admin.groups.members.loading")}
-                </div>
-              ) : availableUsers.length === 0 ? (
-                <div className="py-8 text-sm text-muted-foreground">
-                  {t("admin.groups.members.add_dialog.empty")}
-                </div>
-              ) : (
-                <DataTable
-                  table={addTable}
-                  defaultDensity="compact"
-                  className="min-h-0"
-                />
-              )}
-            </div>
-
+            <AddGroupMembersView
+              table={addTable}
+              searchInput={searchInput}
+              onSearchChange={(val) => {
+                setSearchInput(val)
+                debouncedAddSearch(val)
+              }}
+              loading={pickerLoading}
+              availableUsersCount={availableUsers.length}
+            />
             <DialogFooter className="border-t px-6 py-4">
               <Button variant="outline" onClick={backToMembers}>
                 {t("common.action.cancel")}

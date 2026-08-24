@@ -25,7 +25,10 @@ export default defineConfig([
       'react-hooks/refs': 'off',
       'react-hooks/purity': 'off',
       'react-hooks/static-components': 'off',
-      'react-refresh/only-export-components': 'off',
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
     },
   },
 ])

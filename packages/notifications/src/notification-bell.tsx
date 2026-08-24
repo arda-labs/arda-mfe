@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
+import { useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { Bell, CheckCheck } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -18,7 +18,7 @@ import { useNotificationsStore } from "./store"
 import type { NotificationItem } from "./types"
 
 export function NotificationBell() {
-  const { t } = useTranslation("notifications")
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [browserPermission, setBrowserPermission] = useState(
     getBrowserNotificationPermission
@@ -29,12 +29,6 @@ export function NotificationBell() {
   const { notifications, unreadCount, setNotifications, markAllRead } =
     useNotificationsStore()
 
-  useEffect(() => {
-    if (!open) return
-    setBrowserPermission(getBrowserNotificationPermission())
-    setBrowserPreferred(isBrowserNotificationPreferred())
-  }, [open])
-
   const loadNotifications = () => {
     notificationsApi
       .list()
@@ -44,7 +38,11 @@ export function NotificationBell() {
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
-    if (nextOpen) loadNotifications()
+    if (nextOpen) {
+      setBrowserPermission(getBrowserNotificationPermission())
+      setBrowserPreferred(isBrowserNotificationPreferred())
+      loadNotifications()
+    }
   }
 
   const handleMarkAllRead = () => {
@@ -167,7 +165,7 @@ function NotificationRow({
   notification: NotificationItem
   close: () => void
 }) {
-  const { t } = useTranslation("notifications")
+  const { t } = useI18n()
   const markRead = useNotificationsStore((state) => state.markRead)
   const unread = !notification.readAt
   const params = notification.params ?? {}

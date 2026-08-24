@@ -867,11 +867,13 @@ export function DialogActions({ pending }: { pending: boolean }) {
 export function DeleteDialog({
   title,
   open,
+  pending = false,
   onOpenChange,
   onConfirm,
 }: {
   title: string
   open: boolean
+  pending?: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => Promise<void>
 }) {
@@ -885,9 +887,12 @@ export function DeleteDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Huy</AlertDialogCancel>
-          <AlertDialogAction onClick={() => void onConfirm()}>
-            Xoa
+          <AlertDialogCancel disabled={pending}>Huy</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={pending}
+            onClick={() => void onConfirm()}
+          >
+            {pending ? "Dang xoa..." : "Xoa"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

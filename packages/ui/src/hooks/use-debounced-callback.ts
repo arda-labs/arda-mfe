@@ -31,18 +31,17 @@ export function useDebouncedCallback<T extends (...args: never[]) => unknown>(
     window.clearTimeout(debounceTimerRef.current)
   }, [])
 
-  const setValue = React.useCallback(
-    (...args: Parameters<T>) => {
+  const setValue = React.useMemo(() => {
+    const fn = ((...args: Parameters<T>) => {
       window.clearTimeout(debounceTimerRef.current)
       debounceTimerRef.current = window.setTimeout(
         () => handleCallback(...args),
         delay
       )
-    },
-    [handleCallback, delay]
-  ) as DebouncedCallback<T>
-
-  setValue.cancel = cancel
+    }) as DebouncedCallback<T>
+    fn.cancel = cancel
+    return fn
+  }, [handleCallback, delay, cancel])
 
   return setValue
 }

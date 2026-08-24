@@ -23,6 +23,11 @@ export default defineConfig([
       'no-empty': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'warn',
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
     },
   },
 ])

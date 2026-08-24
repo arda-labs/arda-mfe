@@ -1,7 +1,5 @@
 import "@workspace/i18n/apps/hrm"
-import { Suspense } from "react"
-import { useLocation } from "react-router-dom"
-import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const PositionsPage = lazyWithPreload(() =>
   import("@/features/hrm/positions/page").then((m) => ({
@@ -29,31 +27,12 @@ const EmployeesPage = lazyWithPreload(() =>
   }))
 )
 
-async function preload(pathname = "") {
-  let page = PositionsPage
-  if (pathname.startsWith("/hrm/job-titles")) page = JobTitlesPage
-  if (pathname.startsWith("/hrm/org-units")) page = OrgUnitsPage
-  if (pathname.startsWith("/hrm/registrations")) page = RegistrationsPage
-  if (pathname.startsWith("/hrm/employees")) page = EmployeesPage
-  await page.preload()
-}
-
-function RemoteRoutes() {
-  const { pathname } = useLocation()
-
-  let page = <PositionsPage />
-  if (pathname.startsWith("/hrm/job-titles")) page = <JobTitlesPage />
-  if (pathname.startsWith("/hrm/org-units")) page = <OrgUnitsPage />
-  if (pathname.startsWith("/hrm/registrations")) page = <RegistrationsPage />
-  if (pathname.startsWith("/hrm/employees")) page = <EmployeesPage />
-
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>{page}</Suspense>
-    </div>
-  )
-}
-
-const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
-
-export default RemoteRoutesWithPreload
+export default createRemoteRoutes({
+  routes: [
+    { prefix: "/hrm/job-titles", component: JobTitlesPage },
+    { prefix: "/hrm/org-units", component: OrgUnitsPage },
+    { prefix: "/hrm/registrations", component: RegistrationsPage },
+    { prefix: "/hrm/employees", component: EmployeesPage },
+  ],
+  defaultComponent: PositionsPage,
+})

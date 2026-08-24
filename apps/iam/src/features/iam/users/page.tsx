@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useSearchParams } from "react-router-dom"
-import { z } from "zod"
-import { FormField } from "@workspace/ui/components/form-field"
 import { sortToApiParams } from "@workspace/api/list"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { adminApi } from "@/features/iam"
@@ -18,9 +14,7 @@ import {
 } from "@workspace/ui/components/status"
 import {
   Dialog,
-  DialogBody,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
@@ -41,8 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
+import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { Checkbox } from "@workspace/ui/components/checkbox"
 import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
@@ -61,92 +55,14 @@ import {
   MoreHorizontal,
 } from "lucide-react"
 import type { IdentityConsistencyIssue } from "@/features/iam"
+import { CreateUserDialog } from "./components/CreateUserDialog"
+import { EditUserDialog } from "./components/EditUserDialog"
+import { UserRolesDialog } from "./components/UserRolesDialog"
+import { UserSessionsDialog } from "./components/UserSessionsDialog"
+import { IdentityAuditDialog } from "./components/IdentityAuditDialog"
+import type { CreateUserValues, EditUserValues } from "./schema"
 
 const DEFAULT_PAGE_SIZE = 10
-
-const createUserSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(1, "Username is required")
-    .max(64, "Username is too long"),
-  email: z.string().trim().email("Enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  firstName: z.string().trim().max(100, "First name is too long").optional(),
-  lastName: z.string().trim().max(100, "Last name is too long").optional(),
-  nickname: z.string().trim().max(100, "Nickname is too long").optional(),
-  gender: z.string().trim().max(32, "Gender is too long").optional(),
-  country: z.string().trim().max(64, "Country is too long").optional(),
-  address: z.string().trim().max(255, "Address is too long").optional(),
-  position: z.string().trim().max(128, "Position is too long").optional(),
-  tenantId: z.string().trim().min(1, "Tenant is required"),
-})
-
-type CreateUserValues = z.infer<typeof createUserSchema>
-
-const editUserSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(1, "Username is required")
-    .max(64, "Username is too long"),
-  email: z.string().trim().email("Enter a valid email"),
-  firstName: z.string().trim().max(100, "First name is too long").optional(),
-  lastName: z.string().trim().max(100, "Last name is too long").optional(),
-  nickname: z.string().trim().max(100, "Nickname is too long").optional(),
-  gender: z.string().trim().max(32, "Gender is too long").optional(),
-  country: z.string().trim().max(64, "Country is too long").optional(),
-  address: z.string().trim().max(255, "Address is too long").optional(),
-  position: z.string().trim().max(128, "Position is too long").optional(),
-  status: z.enum(["ACTIVE", "DISABLED"]),
-  tenantId: z.string().trim().min(1, "Tenant is required"),
-})
-
-type EditUserValues = z.infer<typeof editUserSchema>
-
-const createUserDefaultValues: CreateUserValues = {
-  username: "",
-  email: "",
-  password: "",
-  firstName: "",
-  lastName: "",
-  nickname: "",
-  gender: "",
-  country: "",
-  address: "",
-  position: "",
-  tenantId: "default",
-}
-
-const editUserDefaultValues: EditUserValues = {
-  username: "",
-  email: "",
-  firstName: "",
-  lastName: "",
-  nickname: "",
-  gender: "",
-  country: "",
-  address: "",
-  position: "",
-  status: "ACTIVE",
-  tenantId: "default",
-}
-
-function toEditUserValues(user: User): EditUserValues {
-  return {
-    username: user.username || "",
-    email: user.email || "",
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    nickname: user.nickname || "",
-    gender: user.gender || "",
-    country: user.country || "",
-    address: user.address || "",
-    position: user.position || "",
-    status: user.status === "DISABLED" ? "DISABLED" : "ACTIVE",
-    tenantId: user.tenantId || "default",
-  }
-}
 
 export function UsersPage() {
   const { t, formatDate } = useI18n()
@@ -162,24 +78,6 @@ export function UsersPage() {
     IdentityConsistencyIssue[] | null
   >(null)
   const [identityAuditOpen, setIdentityAuditOpen] = useState(false)
-  const {
-    formState: { errors: createErrors, isSubmitting: isCreating },
-    handleSubmit: handleCreateSubmit,
-    register: registerCreate,
-    reset: resetCreateForm,
-  } = useForm<CreateUserValues>({
-    resolver: zodResolver(createUserSchema),
-    defaultValues: createUserDefaultValues,
-  })
-  const {
-    formState: { errors: editErrors, isSubmitting: isUpdatingUser },
-    handleSubmit: handleEditSubmit,
-    register: registerEdit,
-    reset: resetEditForm,
-  } = useForm<EditUserValues>({
-    resolver: zodResolver(editUserSchema),
-    defaultValues: editUserDefaultValues,
-  })
   const [identityPassword, setIdentityPassword] = useState("")
   const [users, setUsers] = useState<User[]>([])
   const [total, setTotal] = useState(0)
@@ -189,6 +87,7 @@ export function UsersPage() {
   const hasLoadedRef = useRef(false)
   const [busyUserId] = useState<string | null>(null)
   const [busyRoleId, setBusyRoleId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   // Role dialog session state
   const [availableRoles, setAvailableRoles] = useState<Role[]>([])
@@ -291,10 +190,6 @@ export function UsersPage() {
     void loadSessionsForTarget(sessionTarget)
   }, [loadSessionsForTarget, sessionTarget])
 
-  const openRoles = (user: User) => {
-    setRoleTarget(user)
-  }
-
   const toggleRole = async (role: Role, assigned: boolean) => {
     if (!roleTarget) return
     setBusyRoleId(role.id)
@@ -316,62 +211,17 @@ export function UsersPage() {
     }
   }
 
-  const handleCreateOpenChange = (open: boolean) => {
-    setCreateOpen(open)
-    if (!open) resetCreateForm(createUserDefaultValues)
-  }
-
-  const handleCreate = handleCreateSubmit(async (values) => {
+  const handleCreate = async (values: CreateUserValues) => {
     try {
       await adminApi.createUser(values)
       notify.success(t("admin.users.create_success"))
-      setCreateOpen(false)
-      resetCreateForm(createUserDefaultValues)
+      await loadUsers()
     } catch (err) {
       notify.error(t("admin.users.create_failed"), translateApiError(err))
     }
-  })
-
-  const handleSetStatus = async (
-    user: User,
-    nextStatus: "ACTIVE" | "DISABLED"
-  ) => {
-    try {
-      await adminApi.updateUser(user.id, { status: nextStatus } as Record<
-        string,
-        unknown
-      >)
-      notify.success(
-        nextStatus === "ACTIVE"
-          ? t("admin.users.enable_success")
-          : t("admin.users.disable_success")
-      )
-    } catch (err) {
-      notify.error(t("admin.users.update_failed"), translateApiError(err))
-    }
   }
 
-  const [deleting, setDeleting] = useState(false)
-
-  const handleDelete = async (user: User) => {
-    setDeleting(true)
-    try {
-      await adminApi.deleteUser(user.id)
-      notify.success(t("admin.users.delete_success"))
-      setDeleteTarget(null)
-    } catch (err) {
-      notify.error(t("admin.users.delete_failed"), translateApiError(err))
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const openEdit = (user: User) => {
-    setEditTarget(user)
-    resetEditForm(toEditUserValues(user))
-  }
-
-  const handleEdit = handleEditSubmit(async (values) => {
+  const handleEdit = async (values: EditUserValues) => {
     if (!editTarget) return
     try {
       await adminApi.updateUser(editTarget.id, {
@@ -388,12 +238,45 @@ export function UsersPage() {
         tenantId: values.tenantId.trim() || "default",
       })
       notify.success(t("admin.users.update_success"))
-      setEditTarget(null)
-      resetEditForm(editUserDefaultValues)
+      await loadUsers()
     } catch (err) {
       notify.error(t("admin.users.update_failed"), translateApiError(err))
     }
-  })
+  }
+
+  const handleSetStatus = async (
+    user: User,
+    nextStatus: "ACTIVE" | "DISABLED"
+  ) => {
+    try {
+      await adminApi.updateUser(user.id, { status: nextStatus } as Record<
+        string,
+        unknown
+      >)
+      notify.success(
+        nextStatus === "ACTIVE"
+          ? t("admin.users.enable_success")
+          : t("admin.users.disable_success")
+      )
+      await loadUsers()
+    } catch (err) {
+      notify.error(t("admin.users.update_failed"), translateApiError(err))
+    }
+  }
+
+  const handleDelete = async (user: User) => {
+    setDeleting(true)
+    try {
+      await adminApi.deleteUser(user.id)
+      notify.success(t("admin.users.delete_success"))
+      setDeleteTarget(null)
+      await loadUsers()
+    } catch (err) {
+      notify.error(t("admin.users.delete_failed"), translateApiError(err))
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const handleResetPassword = async () => {
     if (!resetTarget) return
@@ -448,27 +331,21 @@ export function UsersPage() {
       setIdentityIssues(res.issues ?? [])
       setIdentityAuditOpen(true)
       if (res.ok) {
-        notify.success(t("admin.users.identity.audit_ok"))
+        notify.success(t("admin.users.identity.audit_clean"))
       } else {
-        notify.warning(t("admin.users.identity.audit_issues"), `${res.count}`)
+        notify.info(t("admin.users.identity.audit_issues_found"))
       }
     } catch (err) {
-      notify.error(
-        t("admin.users.identity.audit_failed"),
-        translateApiError(err)
-      )
+      notify.error(t("admin.users.identity.audit_failed"), translateApiError(err))
     }
-  }
-
-  const openSessions = (user: User) => {
-    setSessionTarget(user)
   }
 
   const revokeSessions = async () => {
     if (!sessionTarget) return
     try {
-      const res = await adminApi.revokeUserSessions(sessionTarget.id)
-      notify.success(t("admin.users.sessions.revoke_success"), `${res.count}`)
+      await adminApi.revokeUserSessions(sessionTarget.id)
+      notify.success(t("admin.users.sessions.revoke_success"))
+      setSessionTarget(null)
     } catch (err) {
       notify.error(
         t("admin.users.sessions.revoke_failed"),
@@ -477,32 +354,8 @@ export function UsersPage() {
     }
   }
 
-  // Reusable Columns with Dice UI filter meta
   const columns = useMemo<ColumnDef<User>[]>(
     () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label={t("common.action.select_all")}
-            className="translate-y-[2px]"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label={t("common.action.select_row")}
-            className="translate-y-[2px]"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
       {
         id: "username",
         accessorKey: "username",
@@ -513,10 +366,24 @@ export function UsersPage() {
           />
         ),
         enableColumnFilter: true,
-        meta: {
-          label: t("admin.users.field.username"),
-          variant: "text",
-          placeholder: t("admin.users.search"),
+        cell: ({ row }) => {
+          const user = row.original
+          const displayName =
+            user.name ||
+            [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+            user.nickname
+          return (
+            <div>
+              <div className="font-medium text-foreground">
+                {user.username || user.email || "-"}
+              </div>
+              {displayName ? (
+                <div className="text-xs text-muted-foreground">
+                  {displayName}
+                </div>
+              ) : null}
+            </div>
+          )
         },
       },
       {
@@ -526,6 +393,9 @@ export function UsersPage() {
             column={column}
             label={t("common.field.email")}
           />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.email}</span>
         ),
       },
       {
@@ -538,33 +408,33 @@ export function UsersPage() {
           />
         ),
         enableColumnFilter: true,
-        meta: {
-          label: t("common.field.status"),
-          variant: "multiSelect",
-          options: [
-            { label: t("admin.users.status.active"), value: "ACTIVE" },
-            { label: t("admin.users.status.disabled"), value: "DISABLED" },
-          ],
-        },
         cell: ({ row }) => {
-          const u = row.original
+          const active = row.original.status === "ACTIVE"
           return (
-            <Status variant={u.status === "ACTIVE" ? "success" : "default"}>
+            <Status variant={active ? "success" : "default"}>
               <StatusIndicator />
-              <StatusLabel>{u.status}</StatusLabel>
+              <StatusLabel>
+                {active
+                  ? t("admin.users.status.active")
+                  : t("admin.users.status.disabled")}
+              </StatusLabel>
             </Status>
           )
         },
       },
       {
-        accessorKey: "roles",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("admin.roles.title")}
-          />
+        id: "roles",
+        header: () => t("admin.users.field.roles"),
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-1">
+            {row.original.roles.map((role) => (
+              <Badge key={role} variant="outline" className="text-xs">
+                {role}
+              </Badge>
+            ))}
+          </div>
         ),
-        cell: ({ row }) => row.original.roles.join(", ") || "-",
+        enableSorting: false,
       },
       {
         accessorKey: "createdAt",
@@ -574,89 +444,77 @@ export function UsersPage() {
             label={t("common.field.created")}
           />
         ),
-        cell: ({ row }) => formatDate(row.original.createdAt),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.createdAt ? formatDate(row.original.createdAt) : "-"}
+          </span>
+        ),
       },
       {
         id: "actions",
         header: () => (
-          <div className="text-right">{t("common.field.action")}</div>
+          <div className="text-right text-xs font-semibold text-foreground/80">
+            {t("common.field.action")}
+          </div>
         ),
         cell: ({ row }) => {
-          const u = row.original
-          const hasKratosIdentity = Boolean(u.kratosIdentityId)
+          const user = row.original
+          const isActive = user.status === "ACTIVE"
           return (
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-muted-foreground hover:text-foreground"
-                    disabled={busyUserId === u.id}
-                  >
+                  <Button variant="ghost" size="icon" className="size-8">
                     <MoreHorizontal className="size-4" />
-                    <span className="sr-only">
-                      {t("admin.users.action.open_actions")}
-                    </span>
+                    <span className="sr-only">Actions</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => openEdit(u)}>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setEditTarget(user)}>
                     <Pencil className="mr-2 size-4" />
-                    {t("admin.users.action.edit")}
+                    {t("common.action.edit")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => openRoles(u)}>
+                  <DropdownMenuItem onClick={() => setRoleTarget(user)}>
                     <ShieldCheck className="mr-2 size-4" />
-                    Phân vai trò
+                    {t("admin.users.action.roles")}
                   </DropdownMenuItem>
-                  {u.status === "ACTIVE" ? (
-                    <DropdownMenuItem
-                      onClick={() => handleSetStatus(u, "DISABLED")}
-                    >
-                      <X className="mr-2 size-4" />
-                      {t("common.action.disable")}
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      onClick={() => handleSetStatus(u, "ACTIVE")}
-                    >
-                      <Check className="mr-2 size-4" />
-                      {t("common.action.enable")}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    disabled={!hasKratosIdentity}
-                    onClick={() => {
-                      setResetTarget(u)
-                      setIdentityPassword("")
-                    }}
-                  >
+                  <DropdownMenuItem onClick={() => setSessionTarget(user)}>
+                    <MonitorCog className="mr-2 size-4" />
+                    {t("admin.users.action.sessions")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setResetTarget(user)}>
                     <KeyRound className="mr-2 size-4" />
                     {t("admin.users.action.reset_password")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setMfaResetTarget(u)}>
+                  <DropdownMenuItem onClick={() => setMfaResetTarget(user)}>
                     <ShieldOff className="mr-2 size-4" />
                     {t("admin.users.action.reset_mfa")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={hasKratosIdentity}
-                    onClick={() => {
-                      setProvisionTarget(u)
-                      setIdentityPassword("")
-                    }}
-                  >
+                  <DropdownMenuItem onClick={() => setProvisionTarget(user)}>
                     <ShieldCheck className="mr-2 size-4" />
                     {t("admin.users.action.provision_identity")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => openSessions(u)}>
-                    <MonitorCog className="mr-2 size-4" />
-                    {t("admin.users.action.manage_sessions")}
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
+                    onClick={() =>
+                      handleSetStatus(user, isActive ? "DISABLED" : "ACTIVE")
+                    }
+                  >
+                    {isActive ? (
+                      <>
+                        <X className="mr-2 size-4" />
+                        {t("admin.users.action.disable")}
+                      </>
+                    ) : (
+                      <>
+                        <Check className="mr-2 size-4" />
+                        {t("admin.users.action.enable")}
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
-                    onClick={() => setDeleteTarget(u)}
+                    onClick={() => setDeleteTarget(user)}
                   >
                     <Trash2 className="mr-2 size-4" />
                     {t("common.action.delete")}
@@ -666,17 +524,17 @@ export function UsersPage() {
             </div>
           )
         },
+        enableSorting: false,
+        enableHiding: false,
       },
     ],
-    [t, formatDate, busyUserId]
+    [formatDate, t]
   )
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
-
-  const { table } = useDataTable<User>({
-    columns,
+  const { table } = useDataTable({
     data: users,
-    pageCount: totalPages,
+    columns,
+    pageCount: Math.ceil(total / pageSizeParam),
     initialState: {
       pagination: {
         pageIndex: 0,
@@ -687,311 +545,29 @@ export function UsersPage() {
 
   const dialogs = (
     <>
-      <Dialog open={createOpen} onOpenChange={handleCreateOpenChange}>
-        <DialogContent className="overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>{t("admin.users.create")}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleCreate}>
-            <DialogBody className="space-y-3">
-              <FormField
-                label={t("admin.users.field.username")}
-                error={createErrors.username?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(createErrors.username)}
-                  {...registerCreate("username")}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.email")}
-                error={createErrors.email?.message}
-              >
-                <Input
-                  type="email"
-                  aria-invalid={Boolean(createErrors.email)}
-                  {...registerCreate("email")}
-                />
-              </FormField>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField
-                  label={t("admin.users.field.first_name")}
-                  error={createErrors.firstName?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(createErrors.firstName)}
-                    {...registerCreate("firstName")}
-                  />
-                </FormField>
-                <FormField
-                  label={t("admin.users.field.last_name")}
-                  error={createErrors.lastName?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(createErrors.lastName)}
-                    {...registerCreate("lastName")}
-                  />
-                </FormField>
-              </div>
-              <FormField
-                label={t("admin.users.field.nickname")}
-                error={createErrors.nickname?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(createErrors.nickname)}
-                  {...registerCreate("nickname")}
-                />
-              </FormField>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField
-                  label={t("admin.users.field.gender")}
-                  error={createErrors.gender?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(createErrors.gender)}
-                    {...registerCreate("gender")}
-                  />
-                </FormField>
-                <FormField
-                  label={t("admin.users.field.country")}
-                  error={createErrors.country?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(createErrors.country)}
-                    {...registerCreate("country")}
-                  />
-                </FormField>
-              </div>
-              <FormField
-                label={t("admin.users.field.address")}
-                error={createErrors.address?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(createErrors.address)}
-                  {...registerCreate("address")}
-                />
-              </FormField>
-              <FormField
-                label={t("admin.users.field.position")}
-                error={createErrors.position?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(createErrors.position)}
-                  {...registerCreate("position")}
-                />
-              </FormField>
-              <FormField
-                label={t("admin.users.field.tenant")}
-                error={createErrors.tenantId?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(createErrors.tenantId)}
-                  {...registerCreate("tenantId")}
-                />
-              </FormField>
-              <FormField
-                label={t("auth.login.field.password")}
-                error={createErrors.password?.message}
-              >
-                <Input
-                  type="password"
-                  aria-invalid={Boolean(createErrors.password)}
-                  {...registerCreate("password")}
-                />
-              </FormField>
-            </DialogBody>
-            <DialogFooter>
-              <Button className="w-full" type="submit" disabled={isCreating}>
-                {t("common.action.create")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <CreateUserDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSubmit={handleCreate}
+      />
 
-      <Dialog
+      <EditUserDialog
+        user={editTarget}
         open={editTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditTarget(null)
-            resetEditForm(editUserDefaultValues)
-          }
-        }}
-      >
-        <DialogContent className="overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>{t("admin.users.edit")}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEdit}>
-            <DialogBody className="space-y-3">
-              <FormField
-                label={t("admin.users.field.username")}
-                error={editErrors.username?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(editErrors.username)}
-                  {...registerEdit("username")}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.email")}
-                error={editErrors.email?.message}
-              >
-                <Input
-                  type="email"
-                  aria-invalid={Boolean(editErrors.email)}
-                  {...registerEdit("email")}
-                />
-              </FormField>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField
-                  label={t("admin.users.field.first_name")}
-                  error={editErrors.firstName?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(editErrors.firstName)}
-                    {...registerEdit("firstName")}
-                  />
-                </FormField>
-                <FormField
-                  label={t("admin.users.field.last_name")}
-                  error={editErrors.lastName?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(editErrors.lastName)}
-                    {...registerEdit("lastName")}
-                  />
-                </FormField>
-              </div>
-              <FormField
-                label={t("admin.users.field.nickname")}
-                error={editErrors.nickname?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(editErrors.nickname)}
-                  {...registerEdit("nickname")}
-                />
-              </FormField>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FormField
-                  label={t("admin.users.field.gender")}
-                  error={editErrors.gender?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(editErrors.gender)}
-                    {...registerEdit("gender")}
-                  />
-                </FormField>
-                <FormField
-                  label={t("admin.users.field.country")}
-                  error={editErrors.country?.message}
-                >
-                  <Input
-                    aria-invalid={Boolean(editErrors.country)}
-                    {...registerEdit("country")}
-                  />
-                </FormField>
-              </div>
-              <FormField
-                label={t("admin.users.field.address")}
-                error={editErrors.address?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(editErrors.address)}
-                  {...registerEdit("address")}
-                />
-              </FormField>
-              <FormField
-                label={t("admin.users.field.position")}
-                error={editErrors.position?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(editErrors.position)}
-                  {...registerEdit("position")}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.status")}
-                error={editErrors.status?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(editErrors.status)}
-                  placeholder="ACTIVE/DISABLED"
-                  {...registerEdit("status", {
-                    onChange: (event) => {
-                      event.target.value = event.target.value.toUpperCase()
-                    },
-                  })}
-                />
-              </FormField>
-              <FormField
-                label={t("admin.users.field.tenant")}
-                error={editErrors.tenantId?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(editErrors.tenantId)}
-                  {...registerEdit("tenantId")}
-                />
-              </FormField>
-            </DialogBody>
-            <DialogFooter>
-              <Button
-                className="w-full"
-                type="submit"
-                disabled={isUpdatingUser || busyUserId === editTarget?.id}
-              >
-                {t("admin.users.action.save_changes")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={(open) => !open && setEditTarget(null)}
+        onSubmit={handleEdit}
+        isBusy={busyUserId === editTarget?.id}
+      />
 
-      <Dialog
+      <UserRolesDialog
+        user={roleTarget}
         open={roleTarget !== null}
         onOpenChange={(open) => !open && setRoleTarget(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Phân vai trò cho {roleTarget?.username || roleTarget?.email || ""}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            {rolesLoading ? (
-              <div className="text-sm text-muted-foreground">
-                Đang tải vai trò...
-              </div>
-            ) : availableRoles.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                Chưa có vai trò để gán.
-              </div>
-            ) : (
-              availableRoles.map((role) => {
-                const assigned = Boolean(roleTarget?.roles.includes(role.code))
-                return (
-                  <label
-                    key={role.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted/50"
-                  >
-                    <Checkbox
-                      checked={assigned}
-                      disabled={busyRoleId === role.id}
-                      onCheckedChange={() => toggleRole(role, assigned)}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-medium">{role.name}</span>
-                      <span className="block truncate font-mono text-xs text-muted-foreground">
-                        {role.code}
-                      </span>
-                    </span>
-                  </label>
-                )
-              })
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+        availableRoles={availableRoles}
+        rolesLoading={rolesLoading}
+        busyRoleId={busyRoleId}
+        onToggleRole={toggleRole}
+      />
 
       <Dialog
         open={resetTarget !== null}
@@ -1083,104 +659,21 @@ export function UsersPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog
+      <UserSessionsDialog
+        user={sessionTarget}
         open={sessionTarget !== null}
         onOpenChange={(open) => !open && setSessionTarget(null)}
-      >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {t("admin.users.sessions.title", {
-                user: sessionTarget?.username || sessionTarget?.email || "",
-              })}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={revokeSessions}
-                disabled={!sessionTarget || busyUserId === sessionTarget?.id}
-              >
-                {t("admin.users.action.revoke_sessions")}
-              </Button>
-            </div>
-            {sessionsLoading ? (
-              <div className="text-sm text-muted-foreground">
-                {t("admin.users.sessions.loading")}
-              </div>
-            ) : sessions.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                {t("admin.users.sessions.empty")}
-              </div>
-            ) : (
-              <div className="max-h-96 space-y-2 overflow-auto">
-                {sessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="rounded-lg border p-3 text-sm"
-                  >
-                    <div className="font-medium">
-                      {session.deviceName || session.deviceId || session.id}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {[
-                        session.browser,
-                        session.os,
-                        session.ipAddress,
-                        session.status,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ") || "-"}
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {t("admin.users.sessions.last_seen")}:{" "}
-                      {session.lastSeenAt
-                        ? formatDate(session.lastSeenAt)
-                        : "-"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+        sessions={sessions}
+        sessionsLoading={sessionsLoading}
+        onRevokeSessions={revokeSessions}
+        isBusy={busyUserId === sessionTarget?.id}
+      />
 
-      <Dialog open={identityAuditOpen} onOpenChange={setIdentityAuditOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{t("admin.users.identity.audit_title")}</DialogTitle>
-          </DialogHeader>
-          {identityIssues?.length === 0 ? (
-            <div className="rounded-lg border border-success/20 bg-success/10 p-3 text-sm text-success">
-              {t("admin.users.identity.audit_empty")}
-            </div>
-          ) : (
-            <div className="max-h-96 space-y-2 overflow-auto">
-              {(identityIssues ?? []).map((issue, index) => (
-                <div
-                  key={`${issue.type}-${issue.userId || issue.kratosIdentityId || index}`}
-                  className="rounded-lg border p-3 text-sm"
-                >
-                  <div className="font-medium">{issue.type}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {[
-                      issue.username,
-                      issue.email,
-                      issue.userId,
-                      issue.kratosIdentityId,
-                      issue.mappingIdentityId,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ") || `count: ${issue.count ?? 0}`}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <IdentityAuditDialog
+        open={identityAuditOpen}
+        onOpenChange={setIdentityAuditOpen}
+        identityIssues={identityIssues}
+      />
 
       <AlertDialog
         open={deleteTarget !== null}
@@ -1239,7 +732,6 @@ export function UsersPage() {
           <Button
             variant="outline"
             onClick={handleAuditIdentity}
-            disabled={false}
             className="h-8 px-3 text-xs font-semibold"
           >
             <SearchCheck className="mr-2 size-3.5" />

@@ -1,8 +1,6 @@
 import "@workspace/i18n/apps/platform"
-import { Suspense } from "react"
-import { useLocation } from "react-router-dom"
 import { QueryProvider } from "@workspace/query/provider"
-import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const AreaTypesPage = lazyWithPreload(() =>
   import("@/features/platform/area-types/page").then((m) => ({
@@ -60,47 +58,19 @@ const WardsPage = lazyWithPreload(() =>
   }))
 )
 
-async function preload(pathname = "") {
-  let page = OrganizationsPage
-  if (pathname.startsWith("/admin/parameters")) page = ParametersPage
-  if (pathname.startsWith("/admin/provinces")) page = ProvincesPage
-  if (pathname.startsWith("/admin/wards")) page = WardsPage
-  if (pathname.startsWith("/admin/lookups")) page = LookupsPage
-  if (pathname.startsWith("/admin/area-types")) page = AreaTypesPage
-  if (pathname.startsWith("/admin/areas")) page = AreasPage
-  if (pathname.startsWith("/admin/credit-institutions"))
-    page = CreditInstitutionsPage
-  if (pathname.startsWith("/admin/templates")) page = TemplatesPage
-  if (pathname.startsWith("/admin/calendar")) page = CalendarPage
-  if (pathname.startsWith("/admin/cutoff")) page = CutoffPage
-  await page.preload()
-}
-
-function RemoteRoutes() {
-  const { pathname } = useLocation()
-
-  let page = <OrganizationsPage />
-  if (pathname.startsWith("/admin/parameters")) page = <ParametersPage />
-  if (pathname.startsWith("/admin/provinces")) page = <ProvincesPage />
-  if (pathname.startsWith("/admin/wards")) page = <WardsPage />
-  if (pathname.startsWith("/admin/lookups")) page = <LookupsPage />
-  if (pathname.startsWith("/admin/area-types")) page = <AreaTypesPage />
-  if (pathname.startsWith("/admin/areas")) page = <AreasPage />
-  if (pathname.startsWith("/admin/credit-institutions"))
-    page = <CreditInstitutionsPage />
-  if (pathname.startsWith("/admin/templates")) page = <TemplatesPage />
-  if (pathname.startsWith("/admin/calendar")) page = <CalendarPage />
-  if (pathname.startsWith("/admin/cutoff")) page = <CutoffPage />
-
-  return (
-    <QueryProvider>
-      <div className="flex h-full min-h-0 flex-col">
-        <Suspense fallback={null}>{page}</Suspense>
-      </div>
-    </QueryProvider>
-  )
-}
-
-const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
-
-export default RemoteRoutesWithPreload
+export default createRemoteRoutes({
+  routes: [
+    { prefix: "/admin/parameters", component: ParametersPage },
+    { prefix: "/admin/provinces", component: ProvincesPage },
+    { prefix: "/admin/wards", component: WardsPage },
+    { prefix: "/admin/lookups", component: LookupsPage },
+    { prefix: "/admin/area-types", component: AreaTypesPage },
+    { prefix: "/admin/areas", component: AreasPage },
+    { prefix: "/admin/credit-institutions", component: CreditInstitutionsPage },
+    { prefix: "/admin/templates", component: TemplatesPage },
+    { prefix: "/admin/calendar", component: CalendarPage },
+    { prefix: "/admin/cutoff", component: CutoffPage },
+  ],
+  defaultComponent: OrganizationsPage,
+  wrapper: QueryProvider,
+})

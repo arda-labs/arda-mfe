@@ -11,7 +11,7 @@ export interface AuditEvent {
   action: string
   resource: string
   result: string
-  details: Record<string, any>
+  details: Record<string, unknown>
   clientIp: string
   userAgent: string
   requestId: string
@@ -31,7 +31,7 @@ type AuditEventApiItem = Partial<AuditEvent> & {
   Action?: string
   Resource?: string
   Result?: string
-  Details?: Record<string, any>
+  Details?: Record<string, unknown>
   ClientIP?: string
   UserAgent?: string
   RequestID?: string
@@ -55,6 +55,12 @@ export interface ChainVerification {
   tampered?: string[]
 }
 
+/**
+ * Normalizes backend AuditEvent API payloads across different casing conventions:
+ * - snake_case (standard Go backend / v2 format)
+ * - camelCase (Node gateway proxy format)
+ * - PascalCase (legacy Go struct JSON tag export)
+ */
 const normalizeAuditEvent = (event: AuditEventApiItem): AuditEvent => ({
   id: event.id ?? event.ID ?? "",
   eventType: event.event_type ?? event.eventType ?? event.EventType ?? "",

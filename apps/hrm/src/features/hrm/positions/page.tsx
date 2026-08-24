@@ -37,7 +37,7 @@ export function PositionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Position | null>(null)
   const [items, setItems] = useState<Position[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [_deleting, setDeleting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const form = useForm<PositionValues>({
     resolver: zodResolver(positionSchema),
     defaultValues: positionDefaults,
@@ -182,6 +182,7 @@ export function PositionsPage() {
       <DeleteDialog
         title="Xoa chuc vu"
         open={Boolean(deleteTarget)}
+        pending={deleting}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return

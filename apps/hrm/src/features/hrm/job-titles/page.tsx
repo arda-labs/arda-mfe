@@ -34,7 +34,7 @@ export function JobTitlesPage() {
   const [deleteTarget, setDeleteTarget] = useState<JobTitle | null>(null)
   const [items, setItems] = useState<JobTitle[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [_deleting, setDeleting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const form = useForm<JobTitleValues>({
     resolver: zodResolver(jobTitleSchema),
     defaultValues: jobTitleDefaults,
@@ -150,6 +150,7 @@ export function JobTitlesPage() {
       <DeleteDialog
         title="Xoa chuc danh"
         open={Boolean(deleteTarget)}
+        pending={deleting}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return

@@ -1,7 +1,5 @@
 import "@workspace/i18n/apps/iam"
-import { Suspense } from "react"
-import { useLocation } from "react-router-dom"
-import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const UsersPage = lazyWithPreload(() =>
   import("@/features/iam/users/page").then((m) => ({ default: m.UsersPage }))
@@ -26,33 +24,13 @@ const SystemSettingsPage = lazyWithPreload(() =>
   }))
 )
 
-async function preload(pathname = "") {
-  let page = UsersPage
-  if (pathname.startsWith("/admin/groups")) page = GroupsPage
-  if (pathname.startsWith("/admin/roles")) page = RolesPage
-  if (pathname.startsWith("/admin/permissions")) page = PermissionsPage
-  if (pathname.startsWith("/admin/audit")) page = AuditPage
-  if (pathname.startsWith("/admin/settings")) page = SystemSettingsPage
-  await page.preload()
-}
-
-function RemoteRoutes() {
-  const { pathname } = useLocation()
-
-  let page = <UsersPage />
-  if (pathname.startsWith("/admin/groups")) page = <GroupsPage />
-  if (pathname.startsWith("/admin/roles")) page = <RolesPage />
-  if (pathname.startsWith("/admin/permissions")) page = <PermissionsPage />
-  if (pathname.startsWith("/admin/audit")) page = <AuditPage />
-  if (pathname.startsWith("/admin/settings")) page = <SystemSettingsPage />
-
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>{page}</Suspense>
-    </div>
-  )
-}
-
-const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
-
-export default RemoteRoutesWithPreload
+export default createRemoteRoutes({
+  routes: [
+    { prefix: "/admin/groups", component: GroupsPage },
+    { prefix: "/admin/roles", component: RolesPage },
+    { prefix: "/admin/permissions", component: PermissionsPage },
+    { prefix: "/admin/audit", component: AuditPage },
+    { prefix: "/admin/settings", component: SystemSettingsPage },
+  ],
+  defaultComponent: UsersPage,
+})
