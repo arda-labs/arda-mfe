@@ -5,38 +5,7 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { remoteSharedDeps, remotePorts, shellOptimizeInclude } from "../../federation.shared"
 
-const packagesRoot = path.resolve(__dirname, "../../packages")
 
-// Shell host bundles selected workspace shared modules directly — avoids MF
-// loadShare returning undefined on hard refresh before mfCache is warm (F5 race).
-// Exact matches are required: a root alias must never swallow package subpaths
-// such as @workspace/theme/branding.
-const shellWorkspaceAliases = [
-  {
-    find: /^@workspace\/auth\/store$/,
-    replacement: path.resolve(packagesRoot, "auth/src/store.ts"),
-  },
-  {
-    find: /^@workspace\/auth\/step-up-channel$/,
-    replacement: path.resolve(packagesRoot, "auth/src/step-up-channel.ts"),
-  },
-  {
-    find: /^@workspace\/i18n\/apps/,
-    replacement: path.resolve(packagesRoot, "i18n/src/apps"),
-  },
-  {
-    find: /^@workspace\/i18n$/,
-    replacement: path.resolve(packagesRoot, "i18n/src/index.tsx"),
-  },
-  {
-    find: /^@workspace\/notifications$/,
-    replacement: path.resolve(packagesRoot, "notifications/src/index.ts"),
-  },
-  {
-    find: /^@workspace\/theme$/,
-    replacement: path.resolve(packagesRoot, "theme/src/index.tsx"),
-  },
-]
 
 const backend = {
   authGateway: "http://localhost:8082",
@@ -81,7 +50,6 @@ export default defineConfig(({ command }) => {
     ],
     resolve: {
       alias: [
-        ...shellWorkspaceAliases,
         { find: /^@\//, replacement: `${path.resolve(__dirname, "./src")}/` },
       ],
     },

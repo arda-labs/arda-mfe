@@ -317,8 +317,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 export function TransactionSearchPage() {
   const { t } = useI18n()
   const [filters, setFilters] = useState<FilterState>({})
-  const [items, setItems] = useState<WorkItem[]>([])
-  const [_fetching, setFetching] = useState(false)
+  const [, setFetching] = useState(false)
 
   const debouncedKeyword = useDebouncedValue(filters.keyword ?? "", 300)
 

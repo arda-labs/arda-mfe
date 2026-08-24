@@ -51,7 +51,6 @@ for (const [name, workspace] of workspaces) {
     const relativeFile = path.relative(repoRoot, file).replaceAll("\\", "/")
 
     if (
-      relativeFile !== "apps/shell/src/mf-share-init.ts" &&
       /(?:^|["'])[^"'\n]*packages[\\/][^\\/]+[\\/]src[\\/]/m.test(source)
     ) {
       errors.push(`${relativeFile}: imports another workspace's src directory`)

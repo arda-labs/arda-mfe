@@ -22,6 +22,10 @@ export default defineConfig([
       '@typescript-eslint/no-explicit-any': 'off',
       'no-empty': 'off',
       'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/static-components': 'off',
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

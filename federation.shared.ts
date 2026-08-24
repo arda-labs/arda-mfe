@@ -11,24 +11,24 @@
 // only its own locale JSON, then registers it into the shared i18n singleton.
 
 export const remoteSharedDeps = {
-  react: { singleton: true },
-  "react-dom": { singleton: true },
-  "react-dom/client": { singleton: true },
-  "react/jsx-runtime": { singleton: true },
-  "react/jsx-dev-runtime": { singleton: true },
-  "react-router-dom": { singleton: true },
-  "@workspace/i18n": { singleton: true },
-  "@workspace/api": { singleton: true },
-  "@workspace/api/": { singleton: true },
-  "@workspace/theme": { singleton: true },
-  "@workspace/theme/": { singleton: true },
-  "@workspace/auth": { singleton: true },
-  "@workspace/auth/": { singleton: true },
-  "@workspace/notifications": { singleton: true },
-  "@workspace/notifications/": { singleton: true },
+  react: { singleton: true, requiredVersion: false },
+  "react-dom": { singleton: true, requiredVersion: false },
+  "react-dom/client": { singleton: true, requiredVersion: false },
+  "react/jsx-runtime": { singleton: true, requiredVersion: false },
+  "react/jsx-dev-runtime": { singleton: true, requiredVersion: false },
+  "react-router-dom": { singleton: true, requiredVersion: false },
+  "@workspace/i18n": { singleton: true, requiredVersion: false },
+  "@workspace/api": { singleton: true, requiredVersion: false },
+  "@workspace/api/": { singleton: true, requiredVersion: false },
+  "@workspace/theme": { singleton: true, requiredVersion: false },
+  "@workspace/theme/": { singleton: true, requiredVersion: false },
+  "@workspace/auth": { singleton: true, requiredVersion: false },
+  "@workspace/auth/": { singleton: true, requiredVersion: false },
+  "@workspace/notifications": { singleton: true, requiredVersion: false },
+  "@workspace/notifications/": { singleton: true, requiredVersion: false },
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
   // ToastContainer từ cùng instance — thiếu share = toast remote không hiện UI shell.
-  "react-toastify": { singleton: true },
+  "react-toastify": { singleton: true, requiredVersion: false },
 } as const
 
 // Port cố định từng remote. app shell hardcode entry URL theo các port này,

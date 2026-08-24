@@ -1,4 +1,3 @@
-import "./mf-share-init"
 import "@workspace/auth/api-bridge"
 import "@workspace/i18n/apps/shell"
 
