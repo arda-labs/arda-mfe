@@ -2,7 +2,9 @@ FROM oven/bun:1.3.14-alpine AS build
 
 WORKDIR /app
 COPY . .
-ARG VITE_AI_ENABLED=false
+# AI is part of the approved production shell. CI may still pass false for a
+# deliberately disabled build, but a normal production image must expose /ai.
+ARG VITE_AI_ENABLED=true
 ENV VITE_AI_ENABLED=$VITE_AI_ENABLED
 RUN bun install --frozen-lockfile && bun run build
 
