@@ -70,7 +70,6 @@ export function UserSessionsDialog({
                       session.browser,
                       session.os,
                       session.ipAddress,
-                      session.status,
                     ]
                       .filter(Boolean)
                       .join(" · ") || "-"}

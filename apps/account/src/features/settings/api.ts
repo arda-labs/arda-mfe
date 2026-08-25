@@ -45,6 +45,8 @@ type SessionApiItem = {
   device_id?: string
   device_name?: string
   device_type?: string
+  os?: string
+  browser?: string
   is_trusted?: boolean
   trusted_until?: string | null
   ip_address?: string
@@ -61,6 +63,9 @@ type DeviceApiItem = {
   user_id?: string
   device_name?: string
   device_type?: string
+  os?: string
+  browser?: string
+  fingerprint?: string
   is_trusted?: boolean
   trusted_until?: string | null
   first_seen_at?: string

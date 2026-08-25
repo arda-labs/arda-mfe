@@ -147,7 +147,6 @@ export interface AdminUserSession {
   os?: string
   ipAddress?: string
   userAgent?: string
-  status?: string
   createdAt?: string
   lastSeenAt?: string
   expiresAt?: string
@@ -158,6 +157,8 @@ type AdminUserSessionApiItem = {
   device_id?: string
   device_name?: string
   device_type?: string
+  os?: string
+  browser?: string
   ip_address?: string
   user_agent?: string
   created_at?: string
@@ -175,8 +176,7 @@ const normalizeAdminUserSession = (
   browser: session.browser,
   os: session.os,
   ipAddress: session.ip_address,
-  userAgent: session.user_agent ?? session.userAgent,
-  status: session.status,
+  userAgent: session.user_agent,
   createdAt: session.created_at,
   lastSeenAt: session.last_seen_at,
   expiresAt: session.expires_at,
