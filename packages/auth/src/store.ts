@@ -36,6 +36,10 @@ export interface AuthUser {
   activeOrgId?: string
   roles?: string[]
   permissions?: string[]
+  globalRoles?: string[]
+  globalPermissions?: string[]
+  isGlobalAdmin?: boolean
+  globalCapabilitiesLoaded?: boolean
   authVersion?: number
 }
 
@@ -115,6 +119,12 @@ export function normalizeAuthUser(
     activeOrgId: source.activeOrgId || "",
     roles: Array.isArray(source.roles) ? source.roles : [],
     permissions: Array.isArray(source.permissions) ? source.permissions : [],
+    globalRoles: Array.isArray(source.globalRoles) ? source.globalRoles : [],
+    globalPermissions: Array.isArray(source.globalPermissions)
+      ? source.globalPermissions
+      : [],
+    isGlobalAdmin: Boolean(source.isGlobalAdmin),
+    globalCapabilitiesLoaded: Boolean(source.globalCapabilitiesLoaded),
     authVersion: source.authVersion || 0,
   }
 }
@@ -124,6 +134,7 @@ export function hasPermission(
   code: string
 ): boolean {
   if (!user) return false
+  if (user.isGlobalAdmin) return true
   if (user.roles?.includes("SUPER_ADMIN")) return true
   return Boolean(
     user.permissions?.includes("superadmin") || user.permissions?.includes(code)

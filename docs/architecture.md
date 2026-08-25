@@ -39,6 +39,18 @@ After a successful switch, the auth store replaces the user context so all
 subsequent API calls use the server-side active tenant session. Tenant-scoped
 roles, permissions, groups and organizations come from that context.
 
+Global administration is represented separately by `globalRoles`,
+`globalPermissions`, and `isGlobalAdmin`. The frontend may use
+`isGlobalAdmin` for navigation and access-denied presentation, but it must not
+construct authorization headers or infer target tenant IDs from it. A 403
+should preserve the API `code` and `request_id`, avoid logout loops, and offer a
+tenant switch only when the user has another verified membership.
+
+All cookie-backed auth calls, including `/api/auth/me`, tenant switching and
+logout, must keep `credentials: "include"`. The API client must use the same
+origin resolver for these calls so the BFF cookie is sent to
+`api.arda.io.vn` in production.
+
 ### 2.1. Single Source of Shared Dependencies
 Toàn bộ hợp đồng chia sẻ (shared dependencies) giữa Host và các Remote được quản lý tập trung tại [`federation.shared.ts`](file:///d:/github/arda/arda-mfe/federation.shared.ts).
 - Các thư viện React và UI Core (`react`, `react-dom`, `react-router-dom`, `react-toastify`) bắt buộc phải là **Singleton** để tránh hiện tượng duplicate context hoặc render lỗi.
