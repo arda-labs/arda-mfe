@@ -26,6 +26,7 @@ export function AppHeader({
   initials,
   displayUserName,
   logout,
+  switchTenant,
   navigate,
 }: {
   pageTitle: ShellPageTitleState | null
