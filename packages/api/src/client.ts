@@ -1,6 +1,14 @@
 import { createRequestId } from "./list"
 import { getApiBaseURL } from "./url"
 
+const AUTHENTICATION_FAILURE_CODES = new Set([
+  "auth.error.unauthorized",
+  "auth.error.session_expired",
+  "common.error.session_expired",
+  "not_authenticated",
+  "session_expired",
+])
+
 export interface ApiClientErrorPayload {
   code: string
   message: string
@@ -127,11 +135,17 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     })
 
     if (res.status === 401) {
-      await options.onUnauthorized?.()
+      const payload = await parseApiClientError(res)
+      if (isAuthenticationFailureCode(payload.code)) {
+        await options.onUnauthorized?.()
+      }
       throw new ApiClientError(
-        "common.error.session_expired",
-        "Session expired",
-        res.status
+        payload.code,
+        payload.message,
+        res.status,
+        payload.fields,
+        payload.request_id ?? res.headers.get("X-Request-Id") ?? undefined,
+        payload.errors
       )
     }
 
@@ -207,6 +221,10 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     delete: <T = unknown>(path: string, requestOptions?: ApiRequestOptions) =>
       request<T>("DELETE", path, undefined, false, requestOptions),
   }
+}
+
+function isAuthenticationFailureCode(code: string): boolean {
+  return AUTHENTICATION_FAILURE_CODES.has(code)
 }
 
 async function parseApiClientError(
