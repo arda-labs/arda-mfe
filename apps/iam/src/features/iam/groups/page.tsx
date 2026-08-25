@@ -41,6 +41,7 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { useSearchParams } from "react-router-dom"
+import { useAuthStore } from "@workspace/auth/store"
 
 const POS = (value: string | null, fallback: number) => {
   const n = Number.parseInt(value ?? "", 10)
@@ -85,7 +86,7 @@ const groupDefaultValues: GroupFormValues = {
   name: "",
   description: "",
   status: "ACTIVE",
-  tenantId: "default",
+  tenantId: "",
 }
 
 function toGroupValues(group: Group): GroupFormValues {
@@ -94,12 +95,13 @@ function toGroupValues(group: Group): GroupFormValues {
     name: group.name,
     description: group.description ?? "",
     status: group.status === "DISABLED" ? "DISABLED" : "ACTIVE",
-    tenantId: group.tenantId || "default",
+    tenantId: group.tenantId || "",
   }
 }
 
 export function GroupsPage() {
   const { t, formatDate } = useI18n()
+  const actorTenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const [open, setOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Group | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Group | null>(null)
@@ -144,6 +146,7 @@ export function GroupsPage() {
         perPage: pageSizeParam,
         q: searchParam || undefined,
         status: statusParam.length === 1 ? statusParam[0] : undefined,
+        tenantId: actorTenantId,
       })
       setGroups(result.items)
       setTotal(result.total)
@@ -154,7 +157,7 @@ export function GroupsPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [pageParam, pageSizeParam, searchParam, statusParam])
+  }, [actorTenantId, pageParam, pageSizeParam, searchParam, statusParam])
 
   useEffect(() => {
     void loadGroups()
@@ -187,7 +190,7 @@ export function GroupsPage() {
       name: values.name.trim(),
       description: values.description?.trim() || "",
       status: values.status,
-      tenantId: values.tenantId.trim() || "default",
+      tenantId: values.tenantId.trim(),
     }
     setSaving(true)
     try {
@@ -210,7 +213,7 @@ export function GroupsPage() {
   const handleDelete = async (group: Group) => {
     setDeleting(true)
     try {
-      await adminApi.deleteGroup(group.id)
+      await adminApi.deleteGroup(group.id, group.tenantId)
       notify.success(t("admin.groups.delete_success"))
       setDeleteTarget(null)
       await loadGroups()

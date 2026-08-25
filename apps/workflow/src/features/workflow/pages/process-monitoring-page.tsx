@@ -136,7 +136,7 @@ export function ProcessMonitoringPage() {
       ])
       setCases(c)
       setCaseTypes(ct)
-      setDefinitions(Array.isArray(d) ? d : [])
+      setDefinitions(d)
       setHasLoaded(true)
     } catch (reason) {
       setLoadError(reason)

@@ -2,6 +2,7 @@ import {
   useSystemBranding,
   type BrandingSettings,
 } from "@workspace/theme/branding"
+import { api, type ApiSuccess } from "@workspace/api"
 import { apiUrl } from "@workspace/api/url"
 import { getMediaContentUrl } from "@workspace/media/urls"
 import { translateApiError, useI18n } from "@workspace/i18n"
@@ -48,7 +49,7 @@ import {
 import { useTheme } from "@workspace/theme"
 import { AuthLoadingScreen } from "./loading-screen"
 import { acceptHydraConsent, exchangeCode, redirectToHydraLogin } from "./oauth"
-import { normalizeAuthUser, useAuthStore } from "./store"
+import { normalizeAuthUser, useAuthStore, type AuthUserSource } from "./store"
 
 function getSearch() {
   if (typeof window === "undefined") return new URLSearchParams()
@@ -510,12 +511,8 @@ export function CallbackPage() {
       }
       exchangeCode(code, verifier, state)
         .then(async () => {
-          const meRes = await fetch(apiUrl("/api/auth/me"), {
-            credentials: "include",
-          })
-          if (!meRes.ok) throw new Error("failed to load current user")
-          const me = await meRes.json()
-          login(normalizeAuthUser(me, getMediaContentUrl))
+          const me = await api.get<ApiSuccess<AuthUserSource>>("/api/auth/me")
+          login(normalizeAuthUser(me.result, getMediaContentUrl))
           sessionStorage.removeItem("hydra_state")
           sessionStorage.removeItem("hydra_code_verifier")
           window.history.pushState(null, "", "/")

@@ -1,6 +1,7 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import { buildSearchParams } from "@workspace/api/query"
+import type { IamPermission } from "@workspace/api/generated/iam-v1"
 
 // ── Audit ────────────────────────────────────────────
 
@@ -19,24 +20,19 @@ export interface AuditEvent {
   timestamp: string
 }
 
-type AuditEventApiItem = Partial<AuditEvent> & {
-  event_type?: string
-  client_ip?: string
-  user_agent?: string
-  request_id?: string
-  service_name?: string
-  ID?: string
-  EventType?: string
-  Subject?: string
-  Action?: string
-  Resource?: string
-  Result?: string
-  Details?: Record<string, unknown>
-  ClientIP?: string
-  UserAgent?: string
-  RequestID?: string
-  ServiceName?: string
-  Timestamp?: string
+type AuditEventApiItem = {
+  id: string
+  event_type: string
+  subject: string
+  action: string
+  resource: string
+  result: string
+  details: Record<string, unknown>
+  client_ip: string
+  user_agent: string
+  request_id: string
+  service_name: string
+  timestamp: string
 }
 
 export interface AuditStats {
@@ -55,26 +51,19 @@ export interface ChainVerification {
   tampered?: string[]
 }
 
-/**
- * Normalizes backend AuditEvent API payloads across different casing conventions:
- * - snake_case (standard Go backend / v2 format)
- * - camelCase (Node gateway proxy format)
- * - PascalCase (legacy Go struct JSON tag export)
- */
 const normalizeAuditEvent = (event: AuditEventApiItem): AuditEvent => ({
-  id: event.id ?? event.ID ?? "",
-  eventType: event.event_type ?? event.eventType ?? event.EventType ?? "",
-  subject: event.subject ?? event.Subject ?? "",
-  action: event.action ?? event.Action ?? "",
-  resource: event.resource ?? event.Resource ?? "",
-  result: event.result ?? event.Result ?? "",
-  details: event.details ?? event.Details ?? {},
-  clientIp: event.client_ip ?? event.clientIp ?? event.ClientIP ?? "",
-  userAgent: event.user_agent ?? event.userAgent ?? event.UserAgent ?? "",
-  requestId: event.request_id ?? event.requestId ?? event.RequestID ?? "",
-  serviceName:
-    event.service_name ?? event.serviceName ?? event.ServiceName ?? "",
-  timestamp: event.timestamp ?? event.Timestamp ?? "",
+  id: event.id,
+  eventType: event.event_type,
+  subject: event.subject,
+  action: event.action,
+  resource: event.resource,
+  result: event.result,
+  details: event.details,
+  clientIp: event.client_ip,
+  userAgent: event.user_agent,
+  requestId: event.request_id,
+  serviceName: event.service_name,
+  timestamp: event.timestamp,
 })
 
 export const auditApi = {
@@ -99,8 +88,9 @@ export const auditApi = {
     if (params?.result) p.set("result", params.result)
     if (params?.from) p.set("from", params.from)
     if (params?.to) p.set("to", params.to)
-    return api
-      .get<ListResponse<AuditEventApiItem>>(`/api/admin/audit?${p.toString()}`)
+    return getAdmin<ListResponse<AuditEventApiItem>>(
+      `/api/admin/audit?${p.toString()}`
+    )
       .then((res) => ({
         ...res,
         items: res.items.map(normalizeAuditEvent),
@@ -109,12 +99,12 @@ export const auditApi = {
 
   stats: (from?: string, to?: string) => {
     const p = buildSearchParams({ from, to })
-    return api.get<AuditStats>(`/api/admin/audit/stats?${p.toString()}`)
+    return getAdmin<AuditStats>(`/api/admin/audit/stats?${p.toString()}`)
   },
 
   verify: (from?: string, to?: string) => {
     const p = buildSearchParams({ from, to })
-    return api.get<ChainVerification>(`/api/admin/audit/verify?${p.toString()}`)
+    return getAdmin<ChainVerification>(`/api/admin/audit/verify?${p.toString()}`)
   },
 }
 
@@ -163,7 +153,8 @@ export interface AdminUserSession {
   expiresAt?: string
 }
 
-type AdminUserSessionApiItem = Partial<AdminUserSession> & {
+type AdminUserSessionApiItem = {
+  id: string
   device_id?: string
   device_name?: string
   device_type?: string
@@ -177,55 +168,59 @@ type AdminUserSessionApiItem = Partial<AdminUserSession> & {
 const normalizeAdminUserSession = (
   session: AdminUserSessionApiItem
 ): AdminUserSession => ({
-  id: session.id ?? "",
-  deviceId: session.device_id ?? session.deviceId,
-  deviceName: session.device_name ?? session.deviceName,
-  deviceType: session.device_type ?? session.deviceType,
+  id: session.id,
+  deviceId: session.device_id,
+  deviceName: session.device_name,
+  deviceType: session.device_type,
   browser: session.browser,
   os: session.os,
-  ipAddress: session.ip_address ?? session.ipAddress,
+  ipAddress: session.ip_address,
   userAgent: session.user_agent ?? session.userAgent,
   status: session.status,
-  createdAt: session.created_at ?? session.createdAt,
-  lastSeenAt: session.last_seen_at ?? session.lastSeenAt,
-  expiresAt: session.expires_at ?? session.expiresAt,
+  createdAt: session.created_at,
+  lastSeenAt: session.last_seen_at,
+  expiresAt: session.expires_at,
 })
 
-type UserApiItem = Partial<User> & {
+type UserApiItem = {
+  id: string
+  username: string
+  email: string
+  name: string
+  nickname?: string
   first_name?: string
   last_name?: string
+  gender?: string
+  country?: string
+  address?: string
+  position?: string
+  status: string
+  source?: string
   kratos_identity_id?: string
-  tenant_id?: string
-  created_at?: string
+  roles: string[]
+  tenant_id: string
+  created_at: string
   updated_at?: string
-  roles?: string[]
-  // legacy camelCase fallback
-  firstName?: string
-  lastName?: string
-  kratosIdentityId?: string
-  tenantId?: string
-  createdAt?: string
-  updatedAt?: string
 }
 
 const normalizeUser = (user: UserApiItem): User => ({
-  id: user.id ?? "",
-  username: user.username ?? "",
-  email: user.email ?? "",
-  name: user.name ?? "",
+  id: user.id,
+  username: user.username,
+  email: user.email,
+  name: user.name,
   nickname: user.nickname,
-  firstName: user.first_name ?? user.firstName,
-  lastName: user.last_name ?? user.lastName,
+  firstName: user.first_name,
+  lastName: user.last_name,
   gender: user.gender,
   country: user.country,
   address: user.address,
   position: user.position,
-  status: user.status ?? "",
+  status: user.status,
   source: user.source,
-  kratosIdentityId: user.kratos_identity_id ?? user.kratosIdentityId,
-  roles: user.roles ?? [],
-  tenantId: user.tenant_id ?? user.tenantId ?? "default",
-  createdAt: user.created_at ?? user.createdAt ?? "",
+  kratosIdentityId: user.kratos_identity_id,
+  roles: user.roles,
+  tenantId: user.tenant_id,
+  createdAt: user.created_at,
 })
 
 export interface Role {
@@ -233,6 +228,7 @@ export interface Role {
   code: string
   name: string
   status: string
+  tenantId: string
   permissions?: Permission[]
 }
 
@@ -259,80 +255,61 @@ export interface Permission {
   operation: string
 }
 
-type RoleApiItem = Partial<Role> & {
-  tenant_id?: string
-  created_at?: string
-  updated_at?: string
-  ID?: string
-  Code?: string
-  Name?: string
-  Status?: string
-  TenantID?: string
-  CreatedAt?: string
-  UpdatedAt?: string
+type RoleApiItem = {
+  id: string
+  code: string
+  name: string
+  status: string
+  tenant_id: string
+  permissions?: PermissionApiItem[]
 }
 
-type PermissionApiItem = Partial<Permission> & {
-  created_at?: string
-  ID?: string
-  Code?: string
-  Name?: string
-  Module?: string
-  Resource?: string
-  Operation?: string
-  CreatedAt?: string
-}
+type PermissionApiItem = IamPermission
 
-type GroupApiItem = Partial<Group> & {
-  tenant_id?: string
-  is_system?: boolean
-  member_count?: number
-  role_count?: number
-  created_at?: string
-  updated_at?: string
-  ID?: string
-  Code?: string
-  Name?: string
-  Description?: string
-  Status?: string
-  TenantID?: string
-  IsSystem?: boolean
-  MemberCount?: number
-  RoleCount?: number
-  CreatedAt?: string
-  UpdatedAt?: string
+type GroupApiItem = {
+  id: string
+  code: string
+  name: string
+  description?: string
+  status: string
+  tenant_id: string
+  is_system: boolean
+  member_count: number
+  role_count: number
+  created_at: string
+  updated_at: string
 }
 
 const normalizeRole = (role: RoleApiItem): Role => ({
-  id: role.id ?? role.ID ?? "",
-  code: role.code ?? role.Code ?? "",
-  name: role.name ?? role.Name ?? "",
-  status: role.status ?? role.Status ?? "",
+  id: role.id,
+  code: role.code,
+  name: role.name,
+  status: role.status,
+  tenantId: role.tenant_id,
   permissions: role.permissions?.map(normalizePermission),
 })
 
 const normalizeGroup = (group: GroupApiItem): Group => ({
-  id: group.id ?? group.ID ?? "",
-  code: group.code ?? group.Code ?? "",
-  name: group.name ?? group.Name ?? "",
-  description: group.description ?? group.Description ?? "",
-  status: group.status ?? group.Status ?? "",
-  tenantId: group.tenant_id ?? group.tenantId ?? group.TenantID ?? "default",
-  isSystem: group.is_system ?? group.isSystem ?? group.IsSystem ?? false,
-  memberCount:
-    group.member_count ?? group.memberCount ?? group.MemberCount ?? 0,
-  roleCount: group.role_count ?? group.roleCount ?? group.RoleCount ?? 0,
-  createdAt: group.created_at ?? group.createdAt ?? group.CreatedAt ?? "",
-  updatedAt: group.updated_at ?? group.updatedAt ?? group.UpdatedAt ?? "",
+  id: group.id,
+  code: group.code,
+  name: group.name,
+  description: group.description,
+  status: group.status,
+  tenantId: group.tenant_id,
+  isSystem: group.is_system,
+  memberCount: group.member_count,
+  roleCount: group.role_count,
+  createdAt: group.created_at,
+  updatedAt: group.updated_at,
 })
 
 const normalizePermission = (permission: PermissionApiItem): Permission => ({
-  id: permission.id ?? permission.ID ?? "",
-  code: permission.code ?? permission.Code ?? "",
-  name: permission.name ?? permission.Name ?? "",
-  module: permission.module ?? permission.Module ?? "",
-  resource: permission.resource ?? permission.Resource ?? "",
-  operation: permission.operation ?? permission.Operation ?? "",
+  id: permission.id,
+  code: permission.code,
+  name: permission.name,
+  module: permission.module,
+  resource: permission.resource,
+  operation: permission.operation,
 })
 
 type AdminListInput = {
@@ -365,6 +342,31 @@ function buildAdminListQuery(params?: AdminListInput): URLSearchParams {
   })
 }
 
+function targetPath(path: string, tenantId: string): string {
+  const separator = path.includes("?") ? "&" : "?"
+  return `${path}${separator}tenant_id=${encodeURIComponent(tenantId)}`
+}
+
+async function getAdmin<T>(path: string): Promise<T> {
+  const response = await api.get<ApiSuccess<T>>(path)
+  return response.result
+}
+
+async function postAdmin<T = unknown>(path: string, body?: unknown): Promise<T> {
+  const response = await api.post<ApiSuccess<T>>(path, body)
+  return response.result
+}
+
+async function putAdmin<T = unknown>(path: string, body?: unknown): Promise<T> {
+  const response = await api.put<ApiSuccess<T>>(path, body)
+  return response.result
+}
+
+async function deleteAdmin<T = undefined>(path: string): Promise<T | undefined> {
+  const response = await api.delete<ApiSuccess<T>>(path)
+  return response?.result
+}
+
 type CreateUserInput = {
   username: string
   email: string
@@ -377,7 +379,7 @@ type CreateUserInput = {
   country?: string
   address?: string
   position?: string
-  tenantId?: string
+  tenantId: string
   role_ids?: string[]
 }
 
@@ -446,39 +448,53 @@ function toUpdateGroupBody(data: {
 export const adminApi = {
   // Users
   listUsers: (params?: AdminListInput) =>
-    api
-      .get<ListResponse<UserApiItem>>(
-        `/api/admin/users?${buildAdminListQuery(params).toString()}`
-      )
+    getAdmin<ListResponse<UserApiItem>>(
+      `/api/admin/users?${buildAdminListQuery(params).toString()}`
+    )
       .then((res) => ({
         ...res,
         items: res.items.map(normalizeUser),
       })),
-  getUser: (id: string) =>
-    api.get<UserApiItem>(`/api/admin/users/${id}`).then(normalizeUser),
+  getUser: (id: string, tenantId: string) =>
+    getAdmin<UserApiItem>(targetPath(`/api/admin/users/${id}`, tenantId)).then(
+      normalizeUser
+    ),
   createUser: (data: CreateUserInput) =>
-    api.post("/api/admin/users", toCreateUserBody(data)),
-  updateUser: (id: string, data: Record<string, unknown>) =>
-    api.put(`/api/admin/users/${id}`, toUpdateUserBody(data)),
-  deleteUser: (id: string) => api.delete(`/api/admin/users/${id}`),
-  disableUser: (id: string) =>
-    api.put(`/api/admin/users/${id}/status`, { status: "DISABLED" }),
-  enableUser: (id: string) =>
-    api.put(`/api/admin/users/${id}/status`, { status: "ACTIVE" }),
-  resetUserPassword: (id: string, password: string) =>
-    api.post<{ status: string }>(
-      `/api/admin/users/${id}/identity/password/reset`,
+    postAdmin("/api/admin/users", toCreateUserBody(data)),
+  updateUser: (id: string, tenantId: string, data: Record<string, unknown>) =>
+    putAdmin(
+      targetPath(`/api/admin/users/${id}`, tenantId),
+      toUpdateUserBody(data)
+    ),
+  deleteUser: (id: string, tenantId: string) =>
+    deleteAdmin(targetPath(`/api/admin/users/${id}`, tenantId)),
+  disableUser: (id: string, tenantId: string) =>
+    putAdmin(targetPath(`/api/admin/users/${id}/status`, tenantId), {
+      status: "DISABLED",
+    }),
+  enableUser: (id: string, tenantId: string) =>
+    putAdmin(targetPath(`/api/admin/users/${id}/status`, tenantId), {
+      status: "ACTIVE",
+    }),
+  resetUserPassword: (id: string, tenantId: string, password: string) =>
+    postAdmin<{ status: string }>(
+      targetPath(`/api/admin/users/${id}/identity/password/reset`, tenantId),
       { password }
     ),
-  resetUserMFA: (id: string) =>
-    api.post<{ status: string }>(`/api/admin/users/${id}/mfa/reset`),
-  provisionUserIdentity: (id: string, temporaryPassword: string) =>
-    api
-      .post<{
+  resetUserMFA: (id: string, tenantId: string) =>
+    postAdmin<{ status: string }>(
+      targetPath(`/api/admin/users/${id}/mfa/reset`, tenantId)
+    ),
+  provisionUserIdentity: (
+    id: string,
+    tenantId: string,
+    temporaryPassword: string
+  ) =>
+    postAdmin<{
         status: string
         kratos_identity_id?: string
         kratosIdentityId?: string
-      }>(`/api/admin/users/${id}/identity/provision`, {
+      }>(targetPath(`/api/admin/users/${id}/identity/provision`, tenantId), {
         temporary_password: temporaryPassword,
       })
       .then((res) => ({
@@ -486,35 +502,37 @@ export const adminApi = {
         kratosIdentityId: res.kratos_identity_id ?? res.kratosIdentityId ?? "",
       })),
   auditIdentityConsistency: () =>
-    api.get<{ ok: boolean; count: number; issues: IdentityConsistencyIssue[] }>(
+    getAdmin<{ ok: boolean; count: number; issues: IdentityConsistencyIssue[] }>(
       "/api/admin/identity/consistency"
     ),
-  listUserSessions: (id: string) =>
-    api
-      .get<{ sessions: AdminUserSessionApiItem[] }>(
-        `/api/admin/users/${id}/sessions`
-      )
+  listUserSessions: (id: string, tenantId: string) =>
+    getAdmin<{ sessions: AdminUserSessionApiItem[] }>(
+      targetPath(`/api/admin/users/${id}/sessions`, tenantId)
+    )
       .then((res) => ({
         sessions: (res.sessions ?? []).map(normalizeAdminUserSession),
       })),
-  revokeUserSessions: (id: string, reason = "admin_revoked") =>
-    api.delete<{ status: string; count: number }>(
-      `/api/admin/users/${id}/sessions?reason=${encodeURIComponent(reason)}`
+  revokeUserSessions: (id: string, tenantId: string, reason = "admin_revoked") =>
+    deleteAdmin<{ status: string; count: number }>(
+      targetPath(
+        `/api/admin/users/${id}/sessions?reason=${encodeURIComponent(reason)}`,
+        tenantId
+      )
     ),
 
   // Groups
   listGroups: (params?: AdminListInput) =>
-    api
-      .get<ListResponse<GroupApiItem>>(
-        `/api/admin/groups?${buildAdminListQuery(params).toString()}`
-      )
+    getAdmin<ListResponse<GroupApiItem>>(
+      `/api/admin/groups?${buildAdminListQuery(params).toString()}`
+    )
       .then((res) => ({
         ...res,
         items: res.items.map(normalizeGroup),
       })),
-  getGroup: (id: string) =>
-    api
-      .get<{ group: GroupApiItem }>(`/api/admin/groups/${id}`)
+  getGroup: (id: string, tenantId: string) =>
+    getAdmin<{ group: GroupApiItem }>(
+      targetPath(`/api/admin/groups/${id}`, tenantId)
+    )
       .then((res) => ({ group: normalizeGroup(res.group) })),
   createGroup: (data: {
     code: string
@@ -522,85 +540,105 @@ export const adminApi = {
     description?: string
     status: string
     tenantId: string
-  }) => api.post("/api/admin/groups", toCreateGroupBody(data)),
+  }) => postAdmin("/api/admin/groups", toCreateGroupBody(data)),
   updateGroup: (
     id: string,
     data: {
       name?: string
       description?: string
       status?: string
-      tenantId?: string
+      tenantId: string
     }
-  ) => api.put(`/api/admin/groups/${id}`, toUpdateGroupBody(data)),
-  deleteGroup: (id: string) => api.delete(`/api/admin/groups/${id}`),
-  listGroupMembers: (id: string) =>
-    api
-      .get<{ items: UserApiItem[] }>(`/api/admin/groups/${id}/members`)
+  ) =>
+    putAdmin(
+      targetPath(`/api/admin/groups/${id}`, data.tenantId),
+      toUpdateGroupBody(data)
+    ),
+  deleteGroup: (id: string, tenantId: string) =>
+    deleteAdmin(targetPath(`/api/admin/groups/${id}`, tenantId)),
+  listGroupMembers: (id: string, tenantId: string) =>
+    getAdmin<{ items: UserApiItem[] }>(
+      targetPath(`/api/admin/groups/${id}/members`, tenantId)
+    )
       .then((res) => ({
         items: (res.items ?? []).map(normalizeUser),
       })),
-  addGroupMember: (groupId: string, userId: string) =>
-    api.post(`/api/admin/groups/${groupId}/members`, { user_id: userId }),
-  removeGroupMember: (groupId: string, userId: string) =>
-    api.delete(`/api/admin/groups/${groupId}/members/${userId}`),
-  listGroupRoles: (id: string) =>
-    api
-      .get<{ roles: RoleApiItem[] }>(`/api/admin/groups/${id}/roles`)
+  addGroupMember: (groupId: string, userId: string, tenantId: string) =>
+    postAdmin(
+      targetPath(`/api/admin/groups/${groupId}/members`, tenantId),
+      { user_id: userId }
+    ),
+  removeGroupMember: (groupId: string, userId: string, tenantId: string) =>
+    deleteAdmin(
+      targetPath(`/api/admin/groups/${groupId}/members/${userId}`, tenantId)
+    ),
+  listGroupRoles: (id: string, tenantId: string) =>
+    getAdmin<{ roles: RoleApiItem[] }>(
+      targetPath(`/api/admin/groups/${id}/roles`, tenantId)
+    )
       .then((res) => ({ roles: (res.roles ?? []).map(normalizeRole) })),
-  assignGroupRole: (groupId: string, roleId: string) =>
-    api.post(`/api/admin/groups/${groupId}/roles`, { role_id: roleId }),
-  unassignGroupRole: (groupId: string, roleId: string) =>
-    api.delete(`/api/admin/groups/${groupId}/roles/${roleId}`),
+  assignGroupRole: (groupId: string, roleId: string, tenantId: string) =>
+    postAdmin(
+      targetPath(`/api/admin/groups/${groupId}/roles`, tenantId),
+      { role_id: roleId }
+    ),
+  unassignGroupRole: (groupId: string, roleId: string, tenantId: string) =>
+    deleteAdmin(
+      targetPath(`/api/admin/groups/${groupId}/roles/${roleId}`, tenantId)
+    ),
 
   // Roles
   listRoles: (params?: AdminListInput) =>
-    api
-      .get<ListResponse<RoleApiItem>>(
-        `/api/admin/roles?${buildAdminListQuery(params).toString()}`
-      )
+    getAdmin<ListResponse<RoleApiItem>>(
+      `/api/admin/roles?${buildAdminListQuery(params).toString()}`
+    )
       .then((res) => ({
         ...res,
         items: res.items.map(normalizeRole),
       })),
-  getRole: (id: string) =>
-    api
-      .get<{ role: RoleApiItem; permissions: PermissionApiItem[] }>(
-        `/api/admin/roles/${id}`
-      )
+  getRole: (id: string, tenantId: string) =>
+    getAdmin<{ role: RoleApiItem; permissions: PermissionApiItem[] }>(
+      targetPath(`/api/admin/roles/${id}`, tenantId)
+    )
       .then((res) => ({
         role: normalizeRole(res.role),
         permissions: (res.permissions ?? []).map(normalizePermission),
       })),
-  createRole: (data: { code: string; name: string; tenantId?: string }) =>
-    api.post("/api/admin/roles", {
+  createRole: (data: { code: string; name: string; tenantId: string }) =>
+    postAdmin("/api/admin/roles", {
       code: data.code,
       name: data.name,
       tenant_id: data.tenantId,
     }),
-  updateRole: (id: string, data: { name?: string }) =>
-    api.put(`/api/admin/roles/${id}`, data),
-  deleteRole: (id: string) => api.delete(`/api/admin/roles/${id}`),
-  listRolePermissions: (roleId: string) =>
-    api
-      .get<{ permissions: PermissionApiItem[] }>(
-        `/api/admin/roles/${roleId}/permissions`
-      )
+  updateRole: (id: string, tenantId: string, data: { name?: string }) =>
+    putAdmin(targetPath(`/api/admin/roles/${id}`, tenantId), data),
+  deleteRole: (id: string, tenantId: string) =>
+    deleteAdmin(targetPath(`/api/admin/roles/${id}`, tenantId)),
+  listRolePermissions: (roleId: string, tenantId: string) =>
+    getAdmin<{ permissions: PermissionApiItem[] }>(
+      targetPath(`/api/admin/roles/${roleId}/permissions`, tenantId)
+    )
       .then((res) => ({
         permissions: (res.permissions ?? []).map(normalizePermission),
       })),
-  assignRolePermission: (roleId: string, permissionId: string) =>
-    api.post(`/api/admin/roles/${roleId}/permissions/assign`, {
-      permission_id: permissionId,
-    }),
-  unassignRolePermission: (roleId: string, permissionId: string) =>
-    api.delete(`/api/admin/roles/${roleId}/permissions/${permissionId}`),
+  assignRolePermission: (roleId: string, permissionId: string, tenantId: string) =>
+    postAdmin(
+      targetPath(`/api/admin/roles/${roleId}/permissions/assign`, tenantId),
+      { permission_id: permissionId }
+    ),
+  unassignRolePermission: (roleId: string, permissionId: string, tenantId: string) =>
+    deleteAdmin(
+      targetPath(
+        `/api/admin/roles/${roleId}/permissions/${permissionId}`,
+        tenantId
+      )
+    ),
 
   // Permissions
   listPermissions: (params?: AdminListInput) =>
-    api
-      .get<ListResponse<PermissionApiItem>>(
-        `/api/admin/permissions?${buildAdminListQuery(params).toString()}`
-      )
+    getAdmin<ListResponse<PermissionApiItem>>(
+      `/api/admin/permissions?${buildAdminListQuery(params).toString()}`
+    )
       .then((res) => ({
         ...res,
         items: res.items.map(normalizePermission),
@@ -611,12 +649,16 @@ export const adminApi = {
     module: string
     resource: string
     operation: string
-  }) => api.post("/api/admin/permissions", data),
-  deletePermission: (id: string) => api.delete(`/api/admin/permissions/${id}`),
+  }) => postAdmin("/api/admin/permissions", data),
+  deletePermission: (id: string) => deleteAdmin(`/api/admin/permissions/${id}`),
 
   // Role assignments
-  assignRole: (userId: string, roleId: string) =>
-    api.post(`/api/admin/users/${userId}/roles`, { role_id: roleId }),
-  unassignRole: (userId: string, roleId: string) =>
-    api.delete(`/api/admin/users/${userId}/roles/${roleId}`),
+  assignRole: (userId: string, roleId: string, tenantId: string) =>
+    postAdmin(targetPath(`/api/admin/users/${userId}/roles`, tenantId), {
+      role_id: roleId,
+    }),
+  unassignRole: (userId: string, roleId: string, tenantId: string) =>
+    deleteAdmin(
+      targetPath(`/api/admin/users/${userId}/roles/${roleId}`, tenantId)
+    ),
 }

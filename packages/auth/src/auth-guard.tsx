@@ -1,5 +1,6 @@
 import { getMediaContentUrl } from "@workspace/media/urls"
-import { apiUrl } from "@workspace/api/url"
+import { api, type ApiSuccess } from "@workspace/api"
+import type { ListResponse } from "@workspace/api/list"
 import { useI18n } from "@workspace/i18n"
 import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
@@ -20,6 +21,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const [availableOrgs, setAvailableOrgs] = useState<Organization[] | null>(
     null
   )
+  const [orgLoadError, setOrgLoadError] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated || !user?.orgIds) return
@@ -28,14 +30,20 @@ export function AuthGuard({ children }: { children: ReactNode }) {
       return
     }
     if (user.orgIds.length > 1 && !user.activeOrgId && availableOrgs === null) {
-      fetch(apiUrl("/api/platform/organizations"), { credentials: "include" })
-        .then((res) => (res.ok ? res.json() : []))
-        .then((orgList: Organization[]) => {
+      api
+        .get<ApiSuccess<ListResponse<Organization>>>(
+          "/api/platform/organizations"
+        )
+        .then(({ result }) => {
+          const orgList = result.items
+          setOrgLoadError(false)
           setAvailableOrgs(
             orgList.filter((org) => user.orgIds?.includes(org.id))
           )
         })
-        .catch(() => setAvailableOrgs([]))
+        .catch(() => {
+          setOrgLoadError(true)
+        })
     }
   }, [availableOrgs, isAuthenticated, updateUser, user])
 
@@ -64,7 +72,22 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           </div>
 
           <div className="space-y-3">
-            {availableOrgs === null ? (
+            {orgLoadError ? (
+              <div className="space-y-3 py-6 text-center text-xs text-muted-foreground">
+                <p>{t("auth.org_select.load_failed")}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setOrgLoadError(false)
+                    setAvailableOrgs(null)
+                  }}
+                >
+                  {t("common.action.retry")}
+                </Button>
+              </div>
+            ) : availableOrgs === null ? (
               <div className="flex flex-col items-center gap-2 py-6 text-center text-xs text-muted-foreground">
                 <div className="size-4 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
                 <span>{t("auth.org_select.loading")}</span>

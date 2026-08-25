@@ -4,7 +4,7 @@ import {
   defaultBranding,
   isSafeBrandImageUrl,
 } from "@workspace/theme/branding"
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { notify } from "@workspace/ui/feedback/notify"
 
 type Parameter = {
@@ -195,7 +195,10 @@ export function SystemSettingsPage() {
   const loadParameters = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await api.get<Parameter[]>("/api/platform/parameters")
+      const response = await api.get<ApiSuccess<Parameter[]>>(
+        "/api/platform/parameters"
+      )
+      const data = response.result
       setParameters(data)
       setSettings(readSettingsFromList(data))
     } catch {
@@ -234,7 +237,7 @@ export function SystemSettingsPage() {
 
     setSaving(true)
     try {
-      await api.post<Parameter>("/api/platform/parameters", {
+      await api.post<ApiSuccess<Parameter>>("/api/platform/parameters", {
         id: parametersByKey[SYSTEM_SETTINGS_KEY]?.id,
         key: SYSTEM_SETTINGS_KEY,
         value: JSON.stringify(settings),

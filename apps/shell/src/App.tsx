@@ -10,8 +10,9 @@ import { redirectToHydraLogin } from "@workspace/auth/oauth"
 import { normalizeAuthUser, useAuthStore } from "@workspace/auth/store"
 import * as authShare from "@workspace/auth"
 import { getMediaContentUrl } from "@workspace/media/urls"
-import { apiUrl } from "@workspace/api/url"
+import { api, type ApiSuccess } from "@workspace/api"
 import { Button } from "@workspace/ui/components/button"
+import { reportBrowserError } from "@workspace/ui/observability/browser-telemetry"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Dashboard } from "./dashboard"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
@@ -60,7 +61,11 @@ class RemoteErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("Failed to load remote module:", error, info)
+    reportBrowserError({
+      kind: "remote-module",
+      error: `${error.message}\n${info.componentStack ?? ""}`,
+      route: window.location.pathname,
+    })
   }
 
   componentDidUpdate(prevProps: { resetKey?: string }) {
@@ -151,12 +156,9 @@ export function App() {
     let cancelled = false
     sessionCheckInFlight.current = true
 
-    fetch(apiUrl("/api/auth/me"), { credentials: "include" })
-      .then((res) => {
-        if (res.ok) return res.json()
-        throw new Error("session expired")
-      })
-      .then((userData) => {
+    api
+      .get<ApiSuccess<Parameters<typeof normalizeAuthUser>[0]>>("/api/auth/me")
+      .then(({ result: userData }) => {
         if (cancelled) return
         login(normalizeAuthUser(userData, getMediaContentUrl))
         setSessionStatus("authenticated")

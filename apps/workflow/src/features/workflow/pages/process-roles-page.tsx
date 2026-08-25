@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
+import { useAuthStore } from "@workspace/auth"
 import type {
   ProcessRole,
   WorkflowAssignmentRule,
@@ -30,9 +31,10 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@workspace/ui/components/tabs"
+  } from "@workspace/ui/components/tabs"
 
 export function ProcessRolesPage() {
+  const tenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const [stepRoles, setStepRoles] = useState<ProcessRole[]>([])
   const [roleCatalog, setRoleCatalog] = useState<WorkflowRoleCatalog[]>([])
   const [memberships, setMemberships] = useState<WorkflowRoleMembership[]>([])
@@ -41,51 +43,54 @@ export function ProcessRolesPage() {
   >([])
   const [delegations, setDelegations] = useState<WorkflowDelegation[]>([])
   const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
-  const [source, setSource] = useState<"api" | "mock">("mock")
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
+    if (!tenantId) {
+      setLoading(false)
+      setError("Không xác định được tenant hiện tại để quản lý role workflow")
+      return
+    }
     try {
       const [sr, rc, mm, ar, dl, ct] = await Promise.all([
-        workflowApi.listProcessRoles().catch(() => []),
-        workflowApi.listRoleCatalog().catch(() => []),
-        workflowApi.listRoleMemberships().catch(() => []),
-        workflowApi.listAssignmentRules().catch(() => []),
-        workflowApi.listDelegations().catch(() => []),
-        workflowApi.listCaseTypes().catch(() => []),
+        workflowApi.listProcessRoles(),
+        workflowApi.listRoleCatalog(),
+        workflowApi.listRoleMemberships(tenantId),
+        workflowApi.listAssignmentRules(),
+        workflowApi.listDelegations(tenantId),
+        workflowApi.listCaseTypes(),
       ])
-      setStepRoles(Array.isArray(sr) ? sr : [])
-      setRoleCatalog(Array.isArray(rc) ? rc : [])
-      setMemberships(Array.isArray(mm) ? mm : [])
-      setAssignmentRules(Array.isArray(ar) ? ar : [])
-      setDelegations(Array.isArray(dl) ? dl : [])
-      setCaseTypes(Array.isArray(ct) ? ct : [])
-      setSource("api")
-    } catch {
+      setStepRoles(sr)
+      setRoleCatalog(rc)
+      setMemberships(mm)
+      setAssignmentRules(ar)
+      setDelegations(dl)
+      setCaseTypes(ct)
+    } catch (cause) {
       setStepRoles([])
       setRoleCatalog([])
       setMemberships([])
       setAssignmentRules([])
       setDelegations([])
       setCaseTypes([])
+      setError(cause instanceof Error ? cause.message : "Không tải được dữ liệu workflow")
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [tenantId])
   useEffect(() => {
     void load()
   }, [load])
 
-  const safeCaseTypes = Array.isArray(caseTypes) ? caseTypes : []
-  const safeRoleCatalog = Array.isArray(roleCatalog) ? roleCatalog : []
-  const safeStepRoles = Array.isArray(stepRoles) ? stepRoles : []
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(safeCaseTypes)
-  const roleCodeOptions = safeRoleCatalog.map((item) => ({
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
+  const roleCodeOptions = roleCatalog.map((item) => ({
     value: item.roleCode,
     label: `${item.roleCode} - ${item.roleName}`,
   }))
   const iamRoleOptions = uniqueOptions(
-    safeStepRoles.map((item) => item.iamRole),
+    stepRoles.map((item) => item.iamRole),
     roleCodeOptions
   )
   const [activeTab, setActiveTab] = useState("catalog")
@@ -116,7 +121,6 @@ export function ProcessRolesPage() {
     <WorkflowFrame
       title="Vai trò quy trình"
       description="Quản lý role vận hành, thành viên, luật phân công, ủy quyền và mapping từng bước quy trình."
-      source={source}
       metrics={[
         { label: "Role", value: String(roleCatalog.length), tone: "default" },
         {
@@ -141,6 +145,13 @@ export function ProcessRolesPage() {
     >
       {loading ? (
         <LoadingBlock />
+      ) : error ? (
+        <div className="space-y-3">
+          <EmptyState text={error} />
+          <Button type="button" variant="outline" onClick={() => void load()}>
+            Thử lại
+          </Button>
+        </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex h-auto flex-wrap justify-start">
@@ -203,6 +214,7 @@ export function ProcessRolesPage() {
       {createOpen && activeTab === "delegation" ? (
         <DelegationDialog
           open
+          tenantId={tenantId}
           roleOptions={roleCodeOptions}
           onOpenChange={setCreateOpen}
           onSaved={onSaved}
@@ -248,6 +260,7 @@ export function ProcessRolesPage() {
         <DelegationDialog
           item={editingDelegation}
           open
+          tenantId={tenantId}
           roleOptions={roleCodeOptions}
           onOpenChange={(open) => !open && setEditingDelegation(null)}
           onSaved={onSaved}

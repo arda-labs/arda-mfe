@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { getMediaContentUrl, getMediaDownloadUrl } from "./urls"
 
 type IAMUserContext = {
@@ -24,18 +24,19 @@ export async function uploadFile(
   formData.append("entity_type", entityType)
   formData.append("entity_id", entityId)
 
-  const res = await api.post<{
+  const res = await api.post<ApiSuccess<{
     public_id: string
     file_name: string
     mime_type: string
     size: number
     created_at: string
-  }>("/api/media", formData)
+  }>>("/api/media", formData)
+  const result = res.result
 
   return {
-    public_id: res.public_id,
-    file_name: res.file_name,
-    url: getMediaContentUrl(res.public_id),
+    public_id: result.public_id,
+    file_name: result.file_name,
+    url: getMediaContentUrl(result.public_id),
   }
 }
 
@@ -46,15 +47,17 @@ export async function uploadAvatar(file: File, userId: string) {
   formData.append("entity_type", "iam_user")
   formData.append("entity_id", userId)
 
-  const res = await api.post<{ public_id: string }>("/api/media", formData)
-  const profile = await api.post<IAMUserContext>("/api/iam/me/profile/avatar", {
-    avatar_file_id: res.public_id,
-  })
+  const res = await api.post<ApiSuccess<{ public_id: string }>>("/api/media", formData)
+  const result = res.result
+  const profileResponse = await api.post<ApiSuccess<IAMUserContext>>(
+    "/api/iam/me/profile/avatar",
+    { avatar_file_id: result.public_id }
+  )
 
   return {
-    public_id: res.public_id,
-    url: getMediaContentUrl(res.public_id),
-    profile,
+    public_id: result.public_id,
+    url: getMediaContentUrl(result.public_id),
+    profile: profileResponse.result,
   }
 }
 
@@ -65,15 +68,19 @@ export async function uploadCover(file: File, userId: string) {
   formData.append("entity_type", "iam_user_cover")
   formData.append("entity_id", userId)
 
-  const res = await api.post<{ public_id: string }>("/api/media", formData)
-  const profile = await api.post<IAMUserContext>("/api/iam/me/profile/cover", {
-    cover_file_id: res.public_id,
-    cover_image_url: getMediaContentUrl(res.public_id),
-  })
+  const res = await api.post<ApiSuccess<{ public_id: string }>>("/api/media", formData)
+  const result = res.result
+  const profileResponse = await api.post<ApiSuccess<IAMUserContext>>(
+    "/api/iam/me/profile/cover",
+    {
+      cover_file_id: result.public_id,
+      cover_image_url: getMediaContentUrl(result.public_id),
+    }
+  )
 
   return {
-    public_id: res.public_id,
-    url: getMediaContentUrl(res.public_id),
-    profile,
+    public_id: result.public_id,
+    url: getMediaContentUrl(result.public_id),
+    profile: profileResponse.result,
   }
 }

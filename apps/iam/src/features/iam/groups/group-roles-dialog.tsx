@@ -97,7 +97,7 @@ export function GroupRolesDialog({
     let cancelled = false
     setAssignedLoading(true)
     void adminApi
-      .listGroupRoles(groupId)
+      .listGroupRoles(groupId, group?.tenantId ?? "")
       .then((res) => {
         if (!cancelled) setAssignedRoles(res.roles)
       })
@@ -123,7 +123,12 @@ export function GroupRolesDialog({
     let cancelled = false
     setPickerLoading(true)
     void adminApi
-      .listRoles({ page: 1, perPage: 500, q: search || undefined })
+      .listRoles({
+        page: 1,
+        perPage: 500,
+        q: search || undefined,
+        tenantId: group?.tenantId,
+      })
       .then((res) => {
         if (cancelled) return
         setPickerRoles(res.items)
@@ -144,7 +149,7 @@ export function GroupRolesDialog({
     return () => {
       cancelled = true
     }
-  }, [open, search, t])
+  }, [group?.tenantId, open, search, t])
 
   const assignedRoleIDs = useMemo(
     () => new Set(assignedRoles.map((role) => role.id)),
@@ -187,10 +192,18 @@ export function GroupRolesDialog({
         applyOptimisticAssigned({ roleId: role.id, assigned: !assigned })
         try {
           if (assigned) {
-            await adminApi.unassignGroupRole(groupId, role.id)
+            await adminApi.unassignGroupRole(
+              groupId,
+              role.id,
+              group?.tenantId ?? ""
+            )
             setAssignedRoles((prev) => prev.filter((r) => r.id !== role.id))
           } else {
-            await adminApi.assignGroupRole(groupId, role.id)
+            await adminApi.assignGroupRole(
+              groupId,
+              role.id,
+              group?.tenantId ?? ""
+            )
             setAssignedRoles((prev) => [...prev, role])
           }
           notify.success(t("admin.groups.roles.update_success"))

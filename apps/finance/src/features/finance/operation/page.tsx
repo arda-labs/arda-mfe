@@ -7,14 +7,8 @@ import {
   Eye,
   Search,
   Settings,
-  SlidersHorizontal,
 } from "lucide-react"
 import { z } from "zod"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -167,7 +161,6 @@ export function AccountingConfigPage() {
       title="Cấu hình kế toán"
       description="Quản lý ánh xạ quy trình, phân loại tài khoản, mẫu bút toán và tài khoản phục vụ hạch toán."
     >
-      {result?.source === "mock" ? <MockDataNotice /> : null}
       {loading ? (
         <LoadingBlock />
       ) : (
@@ -234,7 +227,6 @@ export function FinanceTransactionSearchPage() {
       title="Tìm kiếm giao dịch"
       description="Tra cứu giao dịch đến và giao dịch đi theo mã hồ sơ, đối tượng, trạng thái và khoảng ngày."
     >
-      {result?.source === "mock" ? <MockDataNotice /> : null}
       <form className="rounded-lg border p-4" onSubmit={onSubmit}>
         <div className="grid gap-3 md:grid-cols-[minmax(12rem,1.4fr)_10rem_10rem_9rem_9rem_auto]">
           <FormField
@@ -341,7 +333,6 @@ function FinanceOperationPage({ operation }: { operation: FinanceOperation }) {
       title={meta.title}
       description={meta.description}
     >
-      {result?.source === "mock" ? <MockDataNotice /> : null}
       <div className="flex flex-wrap items-center gap-2">
         {views.map((item) => (
           <Button
@@ -689,19 +680,6 @@ function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
         </TableBody>
       </Table>
     </div>
-  )
-}
-
-function MockDataNotice() {
-  return (
-    <Alert>
-      <SlidersHorizontal className="size-4" />
-      <AlertTitle>Đang dùng dữ liệu mẫu</AlertTitle>
-      <AlertDescription>
-        Các endpoint workflow/finance operation chưa sẵn sàng; UI đang chạy bằng
-        fallback local trong app finance.
-      </AlertDescription>
-    </Alert>
   )
 }
 

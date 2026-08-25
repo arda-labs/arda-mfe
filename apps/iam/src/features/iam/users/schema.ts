@@ -52,7 +52,7 @@ export const createUserDefaultValues: CreateUserValues = {
   country: "",
   address: "",
   position: "",
-  tenantId: "default",
+  tenantId: "",
 }
 
 export const editUserDefaultValues: EditUserValues = {
@@ -66,7 +66,7 @@ export const editUserDefaultValues: EditUserValues = {
   address: "",
   position: "",
   status: "ACTIVE",
-  tenantId: "default",
+  tenantId: "",
 }
 
 export function toEditUserValues(user: User): EditUserValues {
@@ -81,6 +81,6 @@ export function toEditUserValues(user: User): EditUserValues {
     address: user.address || "",
     position: user.position || "",
     status: user.status === "DISABLED" ? "DISABLED" : "ACTIVE",
-    tenantId: user.tenantId || "default",
+    tenantId: user.tenantId || "",
   }
 }

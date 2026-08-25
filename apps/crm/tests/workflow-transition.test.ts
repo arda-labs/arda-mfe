@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { waitForWorkflowStepChange } from "../src/features/customers/shared/workflow-transition"
+import { waitForWorkflowStepChange } from "../src/features/customers/utils/workflow-transition"
 
 describe("waitForWorkflowStepChange", () => {
   test("waits until the case leaves the completed maker step", async () => {

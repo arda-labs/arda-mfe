@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
+import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
 import type { DescriptionTemplate, WorkflowCaseType } from "../api"
 import { workflowApi } from "../api"
 import {
@@ -15,18 +16,19 @@ export function DescriptionTemplatesPage() {
   const [items, setItems] = useState<DescriptionTemplate[]>([])
   const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<unknown>(null)
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const [dt, ct] = await Promise.all([
-        workflowApi.listDescriptionTemplates().catch(() => []),
-        workflowApi.listCaseTypes().catch(() => []),
+        workflowApi.listDescriptionTemplates(),
+        workflowApi.listCaseTypes(),
       ])
-      setItems(Array.isArray(dt) ? dt : [])
-      setCaseTypes(Array.isArray(ct) ? ct : [])
-    } catch {
-      setItems([])
-      setCaseTypes([])
+      setItems(dt)
+      setCaseTypes(ct)
+    } catch (reason) {
+      setError(reason)
     } finally {
       setLoading(false)
     }
@@ -35,8 +37,7 @@ export function DescriptionTemplatesPage() {
     void load()
   }, [load])
 
-  const safeCaseTypes = Array.isArray(caseTypes) ? caseTypes : []
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(safeCaseTypes)
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const [editing, setEditing] = useState<DescriptionTemplate | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   function onSaved() {
@@ -59,6 +60,12 @@ export function DescriptionTemplatesPage() {
       ) : (
         <DescriptionTemplateTable items={items} onEdit={setEditing} />
       )}
+      <PageErrorDialog
+        open={error != null && !loading}
+        error={error}
+        onRetry={() => void load()}
+        title="Không tải được cấu trúc diễn giải"
+      />
       {createOpen ? (
         <DescriptionTemplateDialog
           open

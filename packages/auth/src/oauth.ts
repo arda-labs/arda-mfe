@@ -1,3 +1,4 @@
+import { api } from "@workspace/api"
 import { apiUrl } from "@workspace/api/url"
 
 export const HYDRA_PUBLIC_URL = "https://auth.arda.io.vn"
@@ -32,17 +33,13 @@ export async function redirectToHydraLogin(returnTo?: string): Promise<void> {
 export async function acceptHydraConsent(
   consentChallenge: string
 ): Promise<string> {
-  const res = await fetch(`${getBffApi()}/accept-consent`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  const data = await api.post<{ redirect_url?: string }>(
+    "/api/auth/accept-consent",
+    {
       consent_challenge: consentChallenge,
       remember: true,
-    }),
-  })
-  if (!res.ok) throw new Error("accept consent failed")
-  const data = await res.json()
+    }
+  )
   if (!data.redirect_url)
     throw new Error("accept consent returned empty redirect_url")
   return data.redirect_url
@@ -63,17 +60,10 @@ export async function exchangeCode(
     orgIds?: string[]
   }
 }> {
-  const res = await fetch(`${getBffApi()}/callback`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  return api.post("/api/auth/callback", {
       code,
       code_verifier: codeVerifier,
       state,
       redirect_uri: getOAuthRedirectUri(),
-    }),
   })
-  if (!res.ok) throw new Error("token exchange failed")
-  return res.json()
 }

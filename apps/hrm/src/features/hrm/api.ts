@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import type { ListResponse } from "@workspace/api/list"
 import { buildSearchParams } from "@workspace/api/query"
 
@@ -66,63 +66,105 @@ function withParams(path: string, params: Record<string, string | undefined>) {
 
 export const hrmApi = {
   listPositions: async () =>
-    (await api.get<ListResponse<Position>>("/api/hrm/positions?all=1")).items,
+    (
+      await api.get<ApiSuccess<ListResponse<Position>>>(
+        "/api/hrm/positions?all=1"
+      )
+    ).result.items,
   createPosition: (payload: Partial<Position>) =>
-    api.post<Position>("/api/hrm/positions", payload),
+    api
+      .post<ApiSuccess<Position>>("/api/hrm/positions", payload)
+      .then((res) => res.result),
   updatePosition: (id: string, payload: Partial<Position>) =>
-    api.put<Position>(`/api/hrm/positions/${id}`, payload),
+    api
+      .put<ApiSuccess<Position>>(`/api/hrm/positions/${id}`, payload)
+      .then((res) => res.result),
   deletePosition: (id: string) =>
-    api.delete<{ ok: boolean }>(`/api/hrm/positions/${id}`),
+    api
+      .delete<ApiSuccess<{ ok: boolean }>>(`/api/hrm/positions/${id}`)
+      .then((res) => res.result),
 
   listJobTitles: async () =>
-    (await api.get<ListResponse<JobTitle>>("/api/hrm/job-titles?all=1")).items,
+    (
+      await api.get<ApiSuccess<ListResponse<JobTitle>>>(
+        "/api/hrm/job-titles?all=1"
+      )
+    ).result.items,
   createJobTitle: (payload: Partial<JobTitle>) =>
-    api.post<JobTitle>("/api/hrm/job-titles", payload),
+    api
+      .post<ApiSuccess<JobTitle>>("/api/hrm/job-titles", payload)
+      .then((res) => res.result),
   updateJobTitle: (id: string, payload: Partial<JobTitle>) =>
-    api.put<JobTitle>(`/api/hrm/job-titles/${id}`, payload),
+    api
+      .put<ApiSuccess<JobTitle>>(`/api/hrm/job-titles/${id}`, payload)
+      .then((res) => res.result),
   deleteJobTitle: (id: string) =>
-    api.delete<{ ok: boolean }>(`/api/hrm/job-titles/${id}`),
+    api
+      .delete<ApiSuccess<{ ok: boolean }>>(`/api/hrm/job-titles/${id}`)
+      .then((res) => res.result),
 
   listOrgUnits: async (organizationId?: string) =>
     (
-      await api.get<ListResponse<OrgUnit>>(
+      await api.get<ApiSuccess<ListResponse<OrgUnit>>>(
         withParams("/api/hrm/org-units", {
           organization_id: organizationId,
           all: "1",
         })
       )
-    ).items,
+    ).result.items,
   createOrgUnit: (payload: Partial<OrgUnit>) =>
-    api.post<OrgUnit>("/api/hrm/org-units", payload),
+    api
+      .post<ApiSuccess<OrgUnit>>("/api/hrm/org-units", payload)
+      .then((res) => res.result),
   updateOrgUnit: (id: string, payload: Partial<OrgUnit>) =>
-    api.put<OrgUnit>(`/api/hrm/org-units/${id}`, payload),
+    api
+      .put<ApiSuccess<OrgUnit>>(`/api/hrm/org-units/${id}`, payload)
+      .then((res) => res.result),
   deleteOrgUnit: (id: string) =>
-    api.delete<{ ok: boolean }>(`/api/hrm/org-units/${id}`),
+    api
+      .delete<ApiSuccess<{ ok: boolean }>>(`/api/hrm/org-units/${id}`)
+      .then((res) => res.result),
 
   listEmployees: async () =>
-    (await api.get<ListResponse<Employee>>("/api/hrm/employees?all=1")).items,
+    (
+      await api.get<ApiSuccess<ListResponse<Employee>>>(
+        "/api/hrm/employees?all=1"
+      )
+    ).result.items,
   listEmployeeRegistrations: async () =>
     (
-      await api.get<ListResponse<EmployeeRegistration>>(
+      await api.get<ApiSuccess<ListResponse<EmployeeRegistration>>>(
         "/api/hrm/employee-registrations?all=1"
       )
-    ).items,
+    ).result.items,
   createEmployeeRegistration: (payload: {
     registration_code?: string
     payload: Record<string, unknown>
   }) =>
-    api.post<EmployeeRegistration>("/api/hrm/employee-registrations", payload),
+    api
+      .post<ApiSuccess<EmployeeRegistration>>(
+        "/api/hrm/employee-registrations",
+        payload
+      )
+      .then((res) => res.result),
   updateEmployeeRegistration: (id: string, payload: Record<string, unknown>) =>
-    api.put<EmployeeRegistration>(`/api/hrm/employee-registrations/${id}`, {
-      payload,
-    }),
+    api
+      .put<ApiSuccess<EmployeeRegistration>>(
+        `/api/hrm/employee-registrations/${id}`,
+        { payload }
+      )
+      .then((res) => res.result),
   submitEmployeeRegistration: (id: string) =>
-    api.post<EmployeeRegistration>(
-      `/api/hrm/employee-registrations/${id}/submit`
-    ),
+    api
+      .post<ApiSuccess<EmployeeRegistration>>(
+        `/api/hrm/employee-registrations/${id}/submit`
+      )
+      .then((res) => res.result),
 
   listOrganizations: () =>
-    api.get<ListResponse<PlatformOrganization>>(
-      "/api/platform/organizations?all=1&is_active=true"
-    ),
+    api
+      .get<ApiSuccess<ListResponse<PlatformOrganization>>>(
+        "/api/platform/organizations?all=1&is_active=true"
+      )
+      .then((res) => res.result),
 }

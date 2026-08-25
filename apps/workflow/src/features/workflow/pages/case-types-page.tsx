@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
+import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
 import type { WorkflowCaseType } from "../api"
 import { workflowApi } from "../api"
 import {
@@ -15,10 +16,14 @@ import {
 export function CaseTypesPage() {
   const [items, setItems] = useState<WorkflowCaseType[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<unknown>(null)
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       setItems(await workflowApi.listCaseTypes())
+    } catch (reason) {
+      setError(reason)
     } finally {
       setLoading(false)
     }
@@ -70,6 +75,12 @@ export function CaseTypesPage() {
       ) : (
         <CaseTypeTable items={items} mode="catalog" onEdit={setEditing} />
       )}
+      <PageErrorDialog
+        open={error != null && !loading}
+        error={error}
+        onRetry={() => void load()}
+        title="Không tải được danh mục loại nghiệp vụ"
+      />
       {createOpen ? (
         <CaseTypeDialog
           open

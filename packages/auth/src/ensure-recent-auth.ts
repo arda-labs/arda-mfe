@@ -1,4 +1,4 @@
-import { apiUrl } from "@workspace/api/url"
+import { api } from "@workspace/api"
 import { requestStepUp } from "./step-up-channel"
 
 type RecentAuthStatus = {
@@ -7,13 +7,8 @@ type RecentAuthStatus = {
 
 export async function ensureRecentAuth(): Promise<boolean> {
   try {
-    const res = await fetch(apiUrl("/api/auth/recent-auth"), {
-      credentials: "include",
-    })
-    if (res.ok) {
-      const data = (await res.json()) as RecentAuthStatus
-      if (data.recentAuthOk) return true
-    }
+    const data = await api.get<RecentAuthStatus>("/api/auth/recent-auth")
+    if (data.recentAuthOk) return true
   } catch {
     // Fall through to interactive step-up.
   }

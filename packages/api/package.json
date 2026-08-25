@@ -21,6 +21,7 @@
     "./client": "./src/client.ts",
     "./list": "./src/list.ts",
     "./query": "./src/query.ts",
-    "./url": "./src/url.ts"
+    "./url": "./src/url.ts",
+    "./generated/iam-v1": "./src/generated/iam-v1.ts"
   }
 }

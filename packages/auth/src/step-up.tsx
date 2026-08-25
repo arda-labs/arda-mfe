@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { apiUrl } from "@workspace/api/url"
+import { api, type ApiSuccess } from "@workspace/api"
 import { useI18n } from "@workspace/i18n"
 import { ShieldCheck } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -23,12 +23,10 @@ type MFAStatus = {
 
 async function loadMFAStatus(): Promise<boolean> {
   try {
-    const res = await fetch(apiUrl("/api/iam/me/mfa/status"), {
-      credentials: "include",
-    })
-    if (!res.ok) return true
-    const data = (await res.json()) as MFAStatus
-    return Boolean(data.is_enrolled)
+    const response = await api.get<ApiSuccess<MFAStatus>>(
+      "/api/iam/me/mfa/status"
+    )
+    return Boolean(response.result.is_enrolled)
   } catch {
     return true
   }
@@ -73,15 +71,10 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
     setSubmitting(true)
     setError("")
     try {
-      const res = await fetch(apiUrl("/api/auth/step-up"), {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          mfaEnrolled ? { code: code.trim() } : { confirm: true }
-        ),
-      })
-      if (!res.ok) throw new Error("verify failed")
+      await api.post(
+        "/api/auth/step-up",
+        mfaEnrolled ? { code: code.trim() } : { confirm: true }
+      )
       close(true)
     } catch {
       setError(

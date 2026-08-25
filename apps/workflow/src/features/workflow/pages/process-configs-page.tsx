@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
 import type { WorkflowCaseType, SlaPolicy } from "../api"
 import { workflowApi } from "../api"
 import {
@@ -13,8 +14,10 @@ export function ProcessConfigsPage() {
   const [items, setItems] = useState<WorkflowCaseType[]>([])
   const [slaItems, setSlaItems] = useState<SlaPolicy[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<unknown>(null)
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const [ct, sl] = await Promise.all([
         workflowApi.listCaseTypes(),
@@ -22,6 +25,8 @@ export function ProcessConfigsPage() {
       ])
       setItems(ct)
       setSlaItems(sl)
+    } catch (reason) {
+      setError(reason)
     } finally {
       setLoading(false)
     }
@@ -65,6 +70,12 @@ export function ProcessConfigsPage() {
       ) : (
         <CaseTypeTable items={items} mode="process" onEdit={setEditing} />
       )}
+      <PageErrorDialog
+        open={error != null && !loading}
+        error={error}
+        onRetry={() => void load()}
+        title="Không tải được cấu hình quy trình"
+      />
       {editing ? (
         <ProcessConfigDialog
           item={editing}

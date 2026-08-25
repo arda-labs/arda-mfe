@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import {
   createContext,
   createElement,
@@ -29,11 +29,6 @@ export type BrandingSettings = {
   loginWelcomeSubtitle: string
 }
 
-type Parameter = {
-  key: string
-  value: string
-}
-
 type SystemBrandingContextValue = {
   branding: BrandingSettings
   loading: boolean
@@ -46,7 +41,6 @@ const SystemBrandingContext = createContext<SystemBrandingContextValue | null>(
 )
 
 const publicBrandingEndpoint = "/api/platform/public/branding"
-const parametersEndpoint = "/api/platform/parameters"
 let brandingRequest: Promise<BrandingSettings> | null = null
 
 export const defaultBranding: BrandingSettings = {
@@ -206,24 +200,8 @@ function readSystemBranding() {
 
 async function fetchSystemBranding() {
   try {
-    return cacheAndReturn(await api.get(publicBrandingEndpoint))
-  } catch {
-    // The authenticated fallback is retained for older deployments where the
-    // public branding endpoint is not available yet.
-  }
-
-  let parameters: Parameter[]
-  try {
-    parameters = await api.get<Parameter[]>(parametersEndpoint)
-  } catch {
-    return defaultBranding
-  }
-  const aggregate = parameters.find(
-    (param) => param.key === SYSTEM_SETTINGS_KEY
-  )
-  if (!aggregate?.value) return defaultBranding
-  try {
-    return cacheAndReturn(JSON.parse(aggregate.value))
+    const response = await api.get<ApiSuccess<unknown>>(publicBrandingEndpoint)
+    return cacheAndReturn(response.result)
   } catch {
     return defaultBranding
   }

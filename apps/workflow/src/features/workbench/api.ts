@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 
 export type WorkbenchDirection = "incoming" | "outgoing"
@@ -271,10 +271,7 @@ export const workbenchApi = {
       role: input.role,
       limit: "10",
     })
-    const data = await request<WorkflowTask[] | { items?: WorkflowTask[] }>(
-      `/api/workflow/tasks?${search.toString()}`
-    )
-    return Array.isArray(data) ? data : (data.items ?? [])
+    return getItems<WorkflowTask>(`/api/workflow/tasks?${search.toString()}`)
   },
 
   claimTask(input: WorkflowTaskRequest) {
@@ -316,13 +313,14 @@ async function listWorkflowCases(params: {
     status: params.status,
     keyword: params.keyword,
   })
-  return request<WorkflowCase[]>(`/api/workflow/cases?${search.toString()}`)
+  return getItems<WorkflowCase>(`/api/workflow/cases?${search.toString()}`)
 }
 
-async function getItems<T>(path: string, key = "items") {
-  const data = await request<T[] | Record<string, T[] | undefined>>(path)
-  if (Array.isArray(data)) return data
-  return data[key] ?? data.items ?? data.data ?? []
+async function getItems<T>(path: string, key = "items"): Promise<T[]> {
+  const result = await request<Record<string, T[]>>(path)
+  const items = result[key]
+  if (!items) throw new Error(`Workflow list response is missing ${key}`)
+  return items
 }
 
 function toWorkItemSearch(filter: WorkItemFilter) {
@@ -355,8 +353,12 @@ async function request<T>(
   options: { method?: "GET" | "POST"; body?: unknown } = {}
 ) {
   return options.method === "POST"
-    ? api.post<T>(path, options.body)
-    : api.get<T>(path)
+    ? api
+        .post<ApiSuccess<T>>(path, options.body)
+        .then((response) => response.result)
+    : api
+        .get<ApiSuccess<T>>(path)
+        .then((response) => response.result)
 }
 
 function sortCases(items: Array<WorkflowCase | null | undefined>) {

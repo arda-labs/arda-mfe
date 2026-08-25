@@ -141,18 +141,12 @@ export function AreasPage() {
     else setRefreshing(true)
     setLoadError(null)
     try {
-      const [areasResult, areaTypesResult, provinces, wards] =
+        const [areasResult, areaTypesResult, provinces, wards] =
         await Promise.all([
           platformApi.listAreas(),
-          platformApi
-            .listLookupValues("AREA_TYPE")
-            .catch(() => [] as LookupValue[]),
-          platformApi
-            .listGeoAdminUnits(undefined, 1)
-            .catch(() => [] as GeoAdminUnit[]),
-          platformApi
-            .listGeoAdminUnits(undefined, 2)
-            .catch(() => [] as GeoAdminUnit[]),
+          platformApi.listLookupValues("AREA_TYPE"),
+          platformApi.listGeoAdminUnits(undefined, 1),
+          platformApi.listGeoAdminUnits(undefined, 2),
         ])
       setItems(areasResult)
       setAreaTypes(areaTypesResult)

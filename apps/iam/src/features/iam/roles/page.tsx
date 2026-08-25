@@ -39,6 +39,7 @@ import { useI18n } from "@workspace/i18n"
 import type { ColumnDef } from "@tanstack/react-table"
 import { listPageCount } from "@workspace/api/list"
 import { useSearchParams } from "react-router-dom"
+import { useAuthStore } from "@workspace/auth/store"
 import { ShieldCheck, Trash2 } from "lucide-react"
 
 const POS = (value: string | null, fallback: number) => {
@@ -67,6 +68,7 @@ const roleFormSchema = z.object({
     .trim()
     .min(1, "Name is required")
     .max(255, "Name is too long"),
+  tenantId: z.string().trim().min(1, "Tenant is required"),
 })
 
 type RoleFormValues = z.infer<typeof roleFormSchema>
@@ -74,10 +76,12 @@ type RoleFormValues = z.infer<typeof roleFormSchema>
 const roleDefaultValues: RoleFormValues = {
   code: "",
   name: "",
+  tenantId: "",
 }
 
 export function RolesPage() {
   const { t } = useI18n()
+  const actorTenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const [open, setOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Role | null>(null)
   const [permissionTarget, setPermissionTarget] = useState<Role | null>(null)
@@ -127,6 +131,7 @@ export function RolesPage() {
         perPage: pageSizeParam,
         q: searchParam || undefined,
         status: statusParam.length === 1 ? statusParam[0] : undefined,
+        tenantId: actorTenantId,
       })
       setRoles(result.items)
       setTotal(result.total)
@@ -137,7 +142,7 @@ export function RolesPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [pageParam, pageSizeParam, searchParam, statusParam])
+  }, [actorTenantId, pageParam, pageSizeParam, searchParam, statusParam])
 
   useEffect(() => {
     void loadRoles()
@@ -154,7 +159,10 @@ export function RolesPage() {
     setPermissionsLoading(true)
     void Promise.all([
       adminApi.listPermissions({ page: 1, perPage: 100 }),
-      adminApi.listRolePermissions(permissionTarget.id),
+      adminApi.listRolePermissions(
+        permissionTarget.id,
+        permissionTarget.tenantId
+      ),
     ])
       .then(([all, assigned]) => {
         if (cancelled) return
@@ -196,7 +204,9 @@ export function RolesPage() {
   const handleDelete = async (id: string) => {
     setDeleting(true)
     try {
-      await adminApi.deleteRole(id)
+      const target = roles.find((role) => role.id === id)
+      if (!target) return
+      await adminApi.deleteRole(id, target.tenantId)
       notify.success("Đã xóa vai trò")
       setDeleteTarget(null)
       await loadRoles()
@@ -217,13 +227,18 @@ export function RolesPage() {
       if (assigned) {
         await adminApi.unassignRolePermission(
           permissionTarget.id,
-          permission.id
+          permission.id,
+          permissionTarget.tenantId
         )
         setRolePermissions((prev) =>
           prev.filter((item) => item.id !== permission.id)
         )
       } else {
-        await adminApi.assignRolePermission(permissionTarget.id, permission.id)
+        await adminApi.assignRolePermission(
+          permissionTarget.id,
+          permission.id,
+          permissionTarget.tenantId
+        )
         setRolePermissions((prev) => [...prev, permission])
       }
       notify.success("Đã cập nhật quyền")
@@ -395,6 +410,15 @@ export function RolesPage() {
               <Input
                 aria-invalid={Boolean(errors.name)}
                 {...register("name")}
+              />
+            </FormField>
+            <FormField
+              label={t("admin.groups.field.tenant")}
+              error={errors.tenantId?.message}
+            >
+              <Input
+                aria-invalid={Boolean(errors.tenantId)}
+                {...register("tenantId")}
               />
             </FormField>
             <Button

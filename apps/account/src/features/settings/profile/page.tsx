@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { uploadAvatar } from "@workspace/media"
 import type { LucideIcon } from "lucide-react"
 import {
@@ -105,10 +105,11 @@ export function ProfilePage() {
     setEmailError(null)
     setUpdatingEmail(true)
     try {
-      const updated = await api.put<{ email: string }>(
+      const response = await api.put<ApiSuccess<{ email: string }>>(
         "/api/identity/me/email",
         { email }
       )
+      const updated = response.result
       updateUser({ email: updated.email })
       setMessage("Email updated")
       setEmailOpen(false)

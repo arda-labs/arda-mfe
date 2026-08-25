@@ -8,8 +8,11 @@ import { BrowserRouter } from "react-router-dom"
 import { SystemBrandingProvider } from "@workspace/theme/branding"
 import { I18nProvider } from "@workspace/i18n"
 import { ThemeProvider } from "@workspace/theme"
+import { installGlobalBrowserErrorHandlers } from "@workspace/ui/observability/browser-telemetry"
 import "@workspace/ui/globals.css"
 import { App } from "./App.tsx"
+
+installGlobalBrowserErrorHandlers()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

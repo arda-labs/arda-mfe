@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 
@@ -168,16 +168,16 @@ export const customerApi = {
       status: params.status,
       risk_only: params.riskOnly,
     })
-    return getItems<Customer>(`/api/crm/customers?${search.toString()}`)
+    return getCanonicalItems<Customer>(`/api/crm/customers?${search.toString()}`)
   },
   get(id: string) {
-    return request<Customer>(`/api/crm/customers/${encodeURIComponent(id)}`, {
+    return requestCanonical<Customer>(`/api/crm/customers/${encodeURIComponent(id)}`, {
       method: "GET",
     })
   },
   save(payload: CustomerPayload) {
     if (payload.id) {
-      return request<Customer>(
+      return requestCanonical<Customer>(
         `/api/crm/customers/${encodeURIComponent(payload.id)}`,
         {
           method: "PUT",
@@ -185,30 +185,30 @@ export const customerApi = {
         }
       )
     }
-    return request<Customer>("/api/crm/customers", {
+    return requestCanonical<Customer>("/api/crm/customers", {
       method: "POST",
       body: payload,
     })
   },
   submit(id: string) {
-    return request<Customer>(
+    return requestCanonical<Customer>(
       `/api/crm/customers/${encodeURIComponent(id)}/submit`,
       { method: "POST" }
     )
   },
   cancel(id: string) {
-    return request<Customer>(
+    return requestCanonical<Customer>(
       `/api/crm/customers/${encodeURIComponent(id)}/cancel`,
       { method: "POST" }
     )
   },
   listRelationships(customerId: string) {
-    return getItems<CustomerRelationship>(
+    return getCanonicalItems<CustomerRelationship>(
       `/api/crm/customers/${encodeURIComponent(customerId)}/relationships`
     )
   },
   createRelationship(customerId: string, payload: CustomerRelationshipPayload) {
-    return request<CustomerRelationship>(
+    return requestCanonical<CustomerRelationship>(
       `/api/crm/customers/${encodeURIComponent(customerId)}/relationships`,
       {
         method: "POST",
@@ -226,35 +226,36 @@ export const customerApi = {
     caseId?: string | null
     elementId?: string | null
   }) {
-    return request<WorkflowTask>("/api/workflow/tasks/claim", {
+    return requestCanonical<WorkflowTask>("/api/workflow/tasks/claim", {
       method: "POST",
       body: input,
     })
   },
   getWorkflowWorkItem(id: string) {
-    return request<WorkflowWorkItem>(
+    return requestCanonical<WorkflowWorkItem>(
       `/api/workflow/work-items/${encodeURIComponent(id)}`,
       { method: "GET" }
     )
   },
   getWorkflowCase(id: string) {
-    return request<WorkflowCase>(
+    return requestCanonical<WorkflowCase>(
       `/api/workflow/cases/${encodeURIComponent(id)}`,
       { method: "GET" }
     )
   },
   getTaskReadiness(caseId: string, stepCode: string) {
-    return request<{ ready: boolean; status: string }>(
+    return requestCanonical<{ ready: boolean; status: string }>(
       `/api/workflow/cases/${encodeURIComponent(caseId)}/task-readiness?stepCode=${encodeURIComponent(stepCode)}`,
       { method: "GET" }
     )
   },
   getWorkflowCaseTimeline(id: string) {
-    return request<
-      { items?: WorkflowTimelineEvent[] } | WorkflowTimelineEvent[]
-    >(`/api/workflow/cases/${encodeURIComponent(id)}/timeline`, {
+    return requestCanonical<WorkflowTimelineEvent[]>(
+      `/api/workflow/cases/${encodeURIComponent(id)}/timeline`,
+      {
       method: "GET",
-    }).then((res) => (Array.isArray(res) ? res : (res.items ?? [])))
+      }
+    )
   },
   completeTask(input: {
     jobKey: string
@@ -262,7 +263,7 @@ export const customerApi = {
     elementId: string
     variables: Record<string, unknown>
   }) {
-    return request<{ status: string }>(
+    return requestCanonical<{ status: string }>(
       `/api/workflow/tasks/${encodeURIComponent(input.jobKey)}/complete`,
       {
         method: "POST",
@@ -275,13 +276,13 @@ export const customerApi = {
     )
   },
   getCurrentAmendment(customerId: string) {
-    return request<CustomerAmendment | null>(
+    return requestCanonical<CustomerAmendment | null>(
       `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments`,
       { method: "GET" }
     )
   },
   startAdjustment(customerId: string) {
-    return request<CustomerAmendment>(
+    return requestCanonical<CustomerAmendment>(
       `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments`,
       { method: "POST" }
     )
@@ -291,19 +292,19 @@ export const customerApi = {
     amendmentId: string,
     payload: AmendmentUpsertPayload
   ) {
-    return request<CustomerAmendment>(
+    return requestCanonical<CustomerAmendment>(
       `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments/${encodeURIComponent(amendmentId)}`,
       { method: "PUT", body: payload }
     )
   },
   submitAmendment(customerId: string, amendmentId: string) {
-    return request<CustomerAmendment>(
+    return requestCanonical<CustomerAmendment>(
       `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments/${encodeURIComponent(amendmentId)}/submit`,
       { method: "POST" }
     )
   },
   cancelAmendment(customerId: string, amendmentId: string) {
-    return request<{ status: string }>(
+    return requestCanonical<{ status: string }>(
       `/api/crm/customers/${encodeURIComponent(customerId)}/adjustments/${encodeURIComponent(amendmentId)}/cancel`,
       { method: "POST" }
     )
@@ -343,7 +344,9 @@ export const platformReferenceApi = {
       level: params?.level,
     })
     const suffix = q.size ? `?${q.toString()}` : ""
-    return api.get<GeoAdminUnit[]>(`/api/platform/geo/admin-units${suffix}`)
+    return api
+      .get<ApiSuccess<GeoAdminUnit[]>>(`/api/platform/geo/admin-units${suffix}`)
+      .then((res) => res.result)
   },
   listAreas(params?: { status?: string; q?: string; adminUnitCode?: string }) {
     const q = buildSearchParams({
@@ -352,7 +355,9 @@ export const platformReferenceApi = {
       admin_unit_code: params?.adminUnitCode,
     })
     const suffix = q.size ? `?${q.toString()}` : ""
-    return api.get<PlatformArea[]>(`/api/platform/areas${suffix}`)
+    return api
+      .get<ApiSuccess<PlatformArea[]>>(`/api/platform/areas${suffix}`)
+      .then((res) => res.result)
   },
   listOrganizations(params?: { all?: boolean; is_active?: boolean }) {
     const q = buildSearchParams({
@@ -360,33 +365,52 @@ export const platformReferenceApi = {
       is_active: params?.is_active,
     })
     const suffix = q.size ? `?${q.toString()}` : ""
-    return api.get<ListResponse<PlatformOrganization>>(
-      `/api/platform/organizations${suffix}`
-    )
+    return api
+      .get<ApiSuccess<ListResponse<PlatformOrganization>>>(
+        `/api/platform/organizations${suffix}`
+      )
+      .then((res) => res.result)
   },
 }
 
 async function getItems<T>(path: string, params: SearchParams = {}) {
   const search = buildSearchParams(params)
   const suffix = search.size ? `?${search.toString()}` : ""
-  const data = await request<T[] | { items?: T[] }>(`${path}${suffix}`, {
+  const data = await requestCanonical<{ items: T[] }>(`${path}${suffix}`, {
     method: "GET",
   })
-  return Array.isArray(data) ? data : (data.items ?? [])
+  return data.items
 }
 
-async function request<T>(
+type CanonicalMethod = "GET" | "POST" | "PUT" | "DELETE"
+
+async function requestCanonical<T>(
   path: string,
-  options: { method: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown }
-) {
+  options: { method: CanonicalMethod; body?: unknown }
+): Promise<T> {
+  let response: ApiSuccess<T>
   switch (options.method) {
     case "GET":
-      return api.get<T>(path)
+      response = await api.get<ApiSuccess<T>>(path)
+      break
     case "POST":
-      return api.post<T>(path, options.body)
+      response = await api.post<ApiSuccess<T>>(path, options.body)
+      break
     case "PUT":
-      return api.put<T>(path, options.body)
+      response = await api.put<ApiSuccess<T>>(path, options.body)
+      break
     case "DELETE":
-      return api.delete<T>(path)
+      response = await api.delete<ApiSuccess<T>>(path)
+      break
   }
+  return response.result
+}
+
+async function getCanonicalItems<T>(path: string, params: SearchParams = {}) {
+  const search = buildSearchParams(params)
+  const suffix = search.size ? `?${search.toString()}` : ""
+  const result = await requestCanonical<ListResponse<T>>(`${path}${suffix}`, {
+    method: "GET",
+  })
+  return result.items
 }

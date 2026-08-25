@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react"
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { uploadAvatar, uploadCover } from "@workspace/media"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -216,23 +216,27 @@ export function ProfilePage() {
 
     setSavingProfile(true)
     try {
-      const updated = await api.put<Partial<AuthUser>>("/api/iam/me/profile", {
-        name: finalDisplayName,
-        nickname: values.nickname,
-        first_name: values.firstName,
-        last_name: values.lastName,
-        phone_number: values.phoneNumber,
-        birthdate: values.birthdate,
-        gender: values.gender,
-        address: values.address,
-        country: values.country,
-        headline: values.headline,
-        department: values.department,
-        employee_id: values.employeeId,
-        approval_level: values.approvalLevel,
-        daily_limit: values.dailyLimit,
-        bio: values.bio,
-      })
+      const response = await api.put<ApiSuccess<Partial<AuthUser>>>(
+        "/api/iam/me/profile",
+        {
+          name: finalDisplayName,
+          nickname: values.nickname,
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone_number: values.phoneNumber,
+          birthdate: values.birthdate,
+          gender: values.gender,
+          address: values.address,
+          country: values.country,
+          headline: values.headline,
+          department: values.department,
+          employee_id: values.employeeId,
+          approval_level: values.approvalLevel,
+          daily_limit: values.dailyLimit,
+          bio: values.bio,
+        }
+      )
+      const updated = response.result
       updateUser({
         name: finalDisplayName,
         displayName: finalDisplayName,

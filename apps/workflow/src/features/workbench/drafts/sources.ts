@@ -1,4 +1,5 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
+import type { ListResponse } from "@workspace/api/list"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 import {
   customerDraftApi,
@@ -39,14 +40,6 @@ function withQuery(path: string, params: SearchParams) {
   const search = buildSearchParams(params)
   const suffix = search.size ? `?${search.toString()}` : ""
   return `${path}${suffix}`
-}
-
-function normalizeItems<T>(
-  data: T[] | Record<string, T[] | undefined>,
-  key: string
-): T[] {
-  if (Array.isArray(data)) return data
-  return data.items ?? data[key as keyof typeof data] ?? []
 }
 
 function isFinanceDraft(item: FinanceTransaction) {
@@ -133,22 +126,21 @@ async function fetchFinanceDrafts(
 ): Promise<PlatformDraft[]> {
   const domain =
     operation === "incoming" ? "finance_incoming" : "finance_outgoing"
-  const data = await api.get<
-    | FinanceTransaction[]
-    | { transactions?: FinanceTransaction[]; items?: FinanceTransaction[] }
-  >(withQuery(`/api/finance/${operation}-transactions`, { size: 100 }))
+  const data = await api.get<ApiSuccess<ListResponse<FinanceTransaction>>>(
+    withQuery(`/api/finance/${operation}-transactions`, { size: 100 })
+  )
 
-  return normalizeItems(data, "transactions")
+  return data.result.items
     .filter(isFinanceDraft)
     .map((item) => financeDraft(item, domain))
 }
 
 async function fetchHrmDrafts(): Promise<PlatformDraft[]> {
-  const data = await api.get<
-    EmployeeRegistration[] | { items?: EmployeeRegistration[] }
-  >(withQuery("/api/hrm/employee-registrations", { status: "draft" }))
+  const data = await api.get<ApiSuccess<ListResponse<EmployeeRegistration>>>(
+    withQuery("/api/hrm/employee-registrations", { status: "draft" })
+  )
 
-  return normalizeItems(data, "items").map(hrmDraft)
+  return data.result.items.map(hrmDraft)
 }
 
 async function loadSource(

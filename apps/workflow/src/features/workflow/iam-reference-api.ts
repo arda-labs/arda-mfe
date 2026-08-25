@@ -3,7 +3,7 @@ import {
   listPageCount,
   type ListResponse,
 } from "@workspace/api/list"
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 
 export type IamPrincipalUser = {
   id: string
@@ -35,7 +35,8 @@ export type IamPrincipalGroup = {
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  return api.get<T>(path)
+  const response = await api.get<ApiSuccess<T>>(path)
+  return response.result
 }
 
 export function listIamUsers(params: {

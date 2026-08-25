@@ -118,7 +118,7 @@ export function GroupMembersDialog({
     let cancelled = false
     setMembersLoading(true)
     void adminApi
-      .listGroupMembers(groupId)
+      .listGroupMembers(groupId, group?.tenantId ?? "")
       .then((res) => {
         if (!cancelled) {
           setDraftMembers(res.items)
@@ -144,6 +144,7 @@ export function GroupMembersDialog({
         page: addPagination.pageIndex + 1,
         perPage: addPagination.pageSize,
         q,
+        tenantId: group?.tenantId,
       })
       .then((res) => {
         if (!cancelled) setPickerData(res)
@@ -154,7 +155,7 @@ export function GroupMembersDialog({
     return () => {
       cancelled = true
     }
-  }, [open, view, addPagination.pageIndex, addPagination.pageSize, search])
+  }, [open, view, group?.tenantId, addPagination.pageIndex, addPagination.pageSize, search])
 
   useEffect(() => {
     if (!open) {
@@ -270,10 +271,10 @@ export function GroupMembersDialog({
     setSaving(true)
     try {
       for (const userId of toRemove) {
-        await adminApi.removeGroupMember(groupId, userId)
+        await adminApi.removeGroupMember(groupId, userId, group?.tenantId ?? "")
       }
       for (const userId of toAdd) {
-        await adminApi.addGroupMember(groupId, userId)
+        await adminApi.addGroupMember(groupId, userId, group?.tenantId ?? "")
       }
       notify.success(t("admin.groups.members.save_success"))
       onOpenChange(false)

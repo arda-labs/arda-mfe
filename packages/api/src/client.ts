@@ -6,13 +6,50 @@ export interface ApiClientErrorPayload {
   message: string
   fields?: Record<string, string>
   request_id?: string
+  trace_id?: string
+  errors?: Array<ApiClientValidationError>
+}
+
+export interface ApiClientValidationError {
+  code?: string
+  message: string
+  field?: string
+  path?: string
+}
+
+export interface ApiResponseMeta {
+  request_id: string
+  trace_id?: string
+  timestamp?: string
+}
+
+/** Canonical success envelope for migrated JSON endpoints. Domain adapters must
+ * declare their result profile; the transport does not guess response shapes. */
+export interface ApiSuccess<T> {
+  result: T
+  success: true
+  errors: []
+  messages: string[]
+  meta?: ApiResponseMeta
+}
+
+export interface ApiProblem {
+  type?: string
+  title?: string
+  status?: number
+  code: string
+  message: string
+  errors?: Array<ApiClientValidationError>
+  request_id?: string
+  trace_id?: string
 }
 
 export class ApiClientError extends Error {
   code: string
   status: number
   fields?: Record<string, string>
-  // BE `error.request_id` — trace correlation cho dev debug. Parse ở
+  errors?: Array<ApiClientValidationError>
+  // Canonical Problem.request_id — trace correlation cho dev debug. Parse ở
   // parseApiClientError, lưu vào đây để dialog lỗi hiển thị + copy.
   requestId?: string
 
@@ -21,7 +58,8 @@ export class ApiClientError extends Error {
     message: string,
     status: number,
     fields?: Record<string, string>,
-    requestId?: string
+    requestId?: string,
+    errors?: Array<ApiClientValidationError>
   ) {
     super(message)
     this.name = "ApiClientError"
@@ -29,18 +67,22 @@ export class ApiClientError extends Error {
     this.status = status
     this.fields = fields
     this.requestId = requestId
+    this.errors = errors
   }
 }
 
 export interface CreateApiClientOptions {
   baseURL?: string
   getLocale?: () => string
+  getActiveOrgId?: () => string | undefined
   onUnauthorized?: () => void | Promise<void>
   onRecentAuthRequired?: () => boolean | void | Promise<boolean | void>
 }
 
 export interface ApiRequestOptions {
   signal?: AbortSignal
+  /** Standard command retry key; sent as Idempotency-Key, never as a body guess. */
+  idempotencyKey?: string
 }
 
 export function createApiClient(options: CreateApiClientOptions = {}) {
@@ -53,13 +95,18 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     body?: unknown,
     didStepUp = false,
     requestOptions: ApiRequestOptions = {},
-    responseType: "json" | "text" = "json"
+    responseType: "json" | "text" = "json",
+    requestId = createRequestId()
   ): Promise<T> => {
     const headers: Record<string, string> = {
-      "X-Request-Id": createRequestId(),
+      "X-Request-Id": requestId,
     }
     const locale = options.getLocale?.()
     if (locale) headers["Accept-Language"] = locale
+    const activeOrgId = options.getActiveOrgId?.()?.trim()
+    if (activeOrgId) headers["X-Org-Id"] = activeOrgId
+    const idempotencyKey = requestOptions.idempotencyKey?.trim()
+    if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey
 
     let requestBody: BodyInit | undefined = undefined
     if (body !== undefined) {
@@ -91,16 +138,19 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     if (!res.ok) {
       const payload = await parseApiClientError(res)
       if (res.status === 403 && payload.code === "recent_auth_required") {
-        const verified = await options.onRecentAuthRequired?.()
-        if (!didStepUp && verified !== false) {
-          return request<T>(
-            method,
-            path,
-            body,
-            true,
-            requestOptions,
-            responseType
-          )
+        if (!didStepUp) {
+          const verified = await options.onRecentAuthRequired?.()
+          if (verified !== false) {
+            return request<T>(
+              method,
+              path,
+              body,
+              true,
+              requestOptions,
+              responseType,
+              requestId
+            )
+          }
         }
       }
       throw new ApiClientError(
@@ -108,7 +158,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
         payload.message,
         res.status,
         payload.fields,
-        payload.request_id
+        payload.request_id ?? res.headers.get("X-Request-Id") ?? undefined,
+        payload.errors
       )
     }
 
@@ -127,7 +178,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     }
 
     const locale = options.getLocale?.() ?? ""
-    const key = `${baseURL}${path}|${locale}`
+    const activeOrgId = options.getActiveOrgId?.() ?? ""
+    const key = `${baseURL}${path}|${locale}|${activeOrgId}`
     const existing = inflightGet.get(key)
     if (existing) return existing as Promise<T>
 
@@ -164,31 +216,66 @@ async function parseApiClientError(
     code: "common.error.api_failed",
     message: `Request failed with status ${res.status}`,
     fields: undefined,
+    request_id: res.headers.get("X-Request-Id") ?? undefined,
   }
   const text = await res.text().catch(() => "")
   if (!text) return fallback
 
+  const contentType = res.headers.get("Content-Type")?.split(";", 1)[0].trim().toLowerCase()
+  if (contentType !== "application/problem+json") return fallback
+
   try {
     const json = JSON.parse(text)
-    if (json?.error && typeof json.error === "object") {
-      return {
-        code: String(json.error.code ?? json.error.error ?? fallback.code),
-        message: String(
-          json.error.message ?? json.error.error ?? fallback.message
-        ),
-        fields: json.error.fields as Record<string, string> | undefined,
-        request_id:
-          typeof json.error.request_id === "string"
-            ? json.error.request_id
-            : undefined,
-      }
+    if (!json || typeof json !== "object" || Array.isArray(json)) {
+      return fallback
     }
-    if (typeof json?.error === "string") {
-      return { code: json.error, message: json.error, fields: undefined }
+    if (typeof json.type !== "string" || typeof json.status !== "number") {
+      return fallback
+    }
+
+    const code = typeof json.code === "string" ? json.code : undefined
+    const message = typeof json.message === "string" ? json.message : undefined
+    if (!code || !message) return fallback
+
+    const errors = normalizeValidationErrors(json.errors)
+    return {
+      code,
+      message,
+      request_id:
+        typeof json.request_id === "string"
+          ? json.request_id
+          : fallback.request_id,
+      trace_id: typeof json.trace_id === "string" ? json.trace_id : undefined,
+      errors,
     }
   } catch {
     return { code: fallback.code, message: text, fields: undefined }
   }
 
   return fallback
+}
+
+function normalizeValidationErrors(value: unknown): Array<ApiClientValidationError> | undefined {
+  if (!Array.isArray(value)) return undefined
+  const errors = value.flatMap((item) => {
+    if (typeof item === "string") return [{ message: item }]
+    if (!item || typeof item !== "object") return []
+    const record = item as Record<string, unknown>
+    const message = typeof record.message === "string" ? record.message : undefined
+    if (!message) return []
+    return [
+      {
+        message,
+        code: typeof record.code === "string" ? record.code : undefined,
+        field:
+          typeof record.field === "string"
+            ? record.field
+            : typeof record.path === "string"
+              ? record.path
+              : undefined,
+        path: typeof record.path === "string" ? record.path : undefined,
+      },
+    ]
+  })
+  return errors.length > 0 ? errors : undefined
 }

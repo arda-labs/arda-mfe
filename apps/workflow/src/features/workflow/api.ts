@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 
 export interface WorkflowCaseType {
   caseType: string
@@ -170,6 +170,7 @@ export interface WorkflowAssignmentRule {
 
 export interface WorkflowDelegation {
   id: string
+  tenantId: string
   fromPrincipalId: string
   toPrincipalId: string
   roleCode: string
@@ -304,14 +305,26 @@ async function request<T>(
   const method = options?.method ?? "GET"
   switch (method) {
     case "GET":
-      return api.get<T>(path)
+      return api.get<ApiSuccess<T>>(path).then((response) => response.result)
     case "POST":
-      return api.post<T>(path, options?.body)
+      return api
+        .post<ApiSuccess<T>>(path, options?.body)
+        .then((response) => response.result)
     case "PUT":
-      return api.put<T>(path, options?.body)
+      return api
+        .put<ApiSuccess<T>>(path, options?.body)
+        .then((response) => response.result)
     case "DELETE":
-      return api.delete<T>(path)
+      return api.delete<ApiSuccess<T>>(path).then((response) => response.result)
   }
+}
+
+async function requestList<T>(
+  path: string,
+  options?: { method?: "GET"; body?: unknown }
+): Promise<T[]> {
+  const result = await request<{ items: T[] }>(path, options)
+  return result.items
 }
 
 async function requestText(path: string) {
@@ -330,18 +343,18 @@ async function uploadProcessDefinition(
   body.set("file", payload.file)
 
   return method === "POST"
-    ? api.post<WorkflowProcessDefinition>(path, body)
-    : api.put<WorkflowProcessDefinition>(path, body)
+    ? request<WorkflowProcessDefinition>(path, { method, body })
+    : request<WorkflowProcessDefinition>(path, { method, body })
 }
 
 // ─── API methods ─────────────────────────────────────────────────────────────────
 
 export const workflowApi = {
   async listCaseTypes() {
-    return request<WorkflowCaseType[]>("/api/workflow/case-types")
+    return requestList<WorkflowCaseType>("/api/workflow/case-types")
   },
   async listCases() {
-    return request<WorkflowCase[]>("/api/workflow/cases?limit=100")
+    return requestList<WorkflowCase>("/api/workflow/cases?limit=100")
   },
   getProcessInstanceRuntime(processInstanceKey: string | number) {
     return request<ProcessInstanceRuntime>(
@@ -361,28 +374,32 @@ export const workflowApi = {
     )
   },
   async listSlaPolicies() {
-    return request<SlaPolicy[]>("/api/workflow/sla-policies")
+    return requestList<SlaPolicy>("/api/workflow/sla-policies")
   },
   async listDescriptionTemplates() {
-    return request<DescriptionTemplate[]>("/api/workflow/description-templates")
+    return requestList<DescriptionTemplate>("/api/workflow/description-templates")
   },
   async listProcessRoles() {
-    return request<ProcessRole[]>("/api/workflow/roles")
+    return requestList<ProcessRole>("/api/workflow/roles")
   },
   async listRoleCatalog() {
-    return request<WorkflowRoleCatalog[]>("/api/workflow/role-catalog")
+    return requestList<WorkflowRoleCatalog>("/api/workflow/role-catalog")
   },
-  async listRoleMemberships() {
-    return request<WorkflowRoleMembership[]>("/api/workflow/role-memberships")
+  async listRoleMemberships(tenantId: string) {
+    return requestList<WorkflowRoleMembership>(
+      `/api/workflow/role-memberships?tenant_id=${encodeURIComponent(tenantId)}`
+    )
   },
   async listAssignmentRules() {
-    return request<WorkflowAssignmentRule[]>("/api/workflow/assignment-rules")
+    return requestList<WorkflowAssignmentRule>("/api/workflow/assignment-rules")
   },
-  async listDelegations() {
-    return request<WorkflowDelegation[]>("/api/workflow/delegations")
+  async listDelegations(tenantId: string) {
+    return requestList<WorkflowDelegation>(
+      `/api/workflow/delegations?tenant_id=${encodeURIComponent(tenantId)}`
+    )
   },
   async listProcessDefinitions() {
-    return request<WorkflowProcessDefinition[]>(
+    return requestList<WorkflowProcessDefinition>(
       "/api/workflow/process-definitions"
     )
   },
@@ -616,18 +633,22 @@ export const workflowApi = {
       { method: "PUT", body: payload }
     )
   },
-  createRoleMembership(payload: Omit<WorkflowRoleMembership, "id">) {
-    return request<WorkflowRoleMembership>("/api/workflow/role-memberships", {
-      method: "POST",
-      body: payload,
-    })
+  createRoleMembership(
+    tenantId: string,
+    payload: Omit<WorkflowRoleMembership, "id">
+  ) {
+    return request<WorkflowRoleMembership>(
+      `/api/workflow/role-memberships?tenant_id=${encodeURIComponent(tenantId)}`,
+      { method: "POST", body: payload }
+    )
   },
   updateRoleMembership(
+    tenantId: string,
     id: string,
     payload: Omit<WorkflowRoleMembership, "id">
   ) {
     return request<WorkflowRoleMembership>(
-      `/api/workflow/role-memberships/${encodeURIComponent(id)}`,
+      `/api/workflow/role-memberships/${encodeURIComponent(id)}?tenant_id=${encodeURIComponent(tenantId)}`,
       { method: "PUT", body: payload }
     )
   },
@@ -646,15 +667,22 @@ export const workflowApi = {
       { method: "PUT", body: payload }
     )
   },
-  createDelegation(payload: Omit<WorkflowDelegation, "id">) {
-    return request<WorkflowDelegation>("/api/workflow/delegations", {
+  createDelegation(tenantId: string, payload: Omit<WorkflowDelegation, "id">) {
+    return request<WorkflowDelegation>(
+      `/api/workflow/delegations?tenant_id=${encodeURIComponent(tenantId)}`,
+      {
       method: "POST",
       body: payload,
-    })
+      }
+    )
   },
-  updateDelegation(id: string, payload: Omit<WorkflowDelegation, "id">) {
+  updateDelegation(
+    tenantId: string,
+    id: string,
+    payload: Omit<WorkflowDelegation, "id">
+  ) {
     return request<WorkflowDelegation>(
-      `/api/workflow/delegations/${encodeURIComponent(id)}`,
+      `/api/workflow/delegations/${encodeURIComponent(id)}?tenant_id=${encodeURIComponent(tenantId)}`,
       { method: "PUT", body: payload }
     )
   },

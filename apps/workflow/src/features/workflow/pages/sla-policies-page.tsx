@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
+import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
 import type { SlaPolicy, WorkflowCaseType } from "../api"
 import { workflowApi } from "../api"
 import {
@@ -15,18 +16,19 @@ export function SlaPoliciesPage() {
   const [items, setItems] = useState<SlaPolicy[]>([])
   const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<unknown>(null)
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const [sl, ct] = await Promise.all([
-        workflowApi.listSlaPolicies().catch(() => []),
-        workflowApi.listCaseTypes().catch(() => []),
+        workflowApi.listSlaPolicies(),
+        workflowApi.listCaseTypes(),
       ])
-      setItems(Array.isArray(sl) ? sl : [])
-      setCaseTypes(Array.isArray(ct) ? ct : [])
-    } catch {
-      setItems([])
-      setCaseTypes([])
+      setItems(sl)
+      setCaseTypes(ct)
+    } catch (reason) {
+      setError(reason)
     } finally {
       setLoading(false)
     }
@@ -35,11 +37,9 @@ export function SlaPoliciesPage() {
     void load()
   }, [load])
 
-  const safeItems = Array.isArray(items) ? items : []
-  const safeCaseTypes = Array.isArray(caseTypes) ? caseTypes : []
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(safeCaseTypes)
+  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
   const roleOptions = uniqueOptions(
-    safeItems.map((item) => item.escalationRole),
+    items.map((item) => item.escalationRole),
     []
   )
   const [editing, setEditing] = useState<SlaPolicy | null>(null)
@@ -64,6 +64,12 @@ export function SlaPoliciesPage() {
       ) : (
         <SlaTable items={items} onEdit={setEditing} />
       )}
+      <PageErrorDialog
+        open={error != null && !loading}
+        error={error}
+        onRetry={() => void load()}
+        title="Không tải được cấu hình SLA"
+      />
       {createOpen ? (
         <SlaPolicyDialog
           open

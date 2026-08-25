@@ -84,6 +84,7 @@
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
     "./hooks/*": "./src/hooks/*.ts",
+    "./observability/browser-telemetry": "./src/lib/browser-telemetry.ts",
     "./shell/page-title": "./src/shell/page-title.ts",
     "./shell/routing": "./src/shell/routing.ts",
     "./types/*": "./src/types/*.ts"

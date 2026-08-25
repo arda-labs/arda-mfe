@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import type { ApiRequestOptions } from "@workspace/api/client"
 import {
   buildListSearchParams,
@@ -131,6 +131,36 @@ export type OrganizationsListParams = ListQueryInput & {
   is_active?: string
 }
 
+function getCanonical<T>(path: string, options?: ApiRequestOptions) {
+  return api
+    .get<ApiSuccess<T>>(path, options)
+    .then((response) => response.result)
+}
+
+function postCanonical<T>(path: string, body?: unknown) {
+  return api
+    .post<ApiSuccess<T>>(path, body)
+    .then((response) => response.result)
+}
+
+function putCanonical<T>(path: string, body?: unknown) {
+  return api
+    .put<ApiSuccess<T>>(path, body)
+    .then((response) => response.result)
+}
+
+function deleteCanonical<T>(path: string) {
+  return api
+    .delete<ApiSuccess<T>>(path)
+    .then((response) => response?.result)
+}
+
+function getCanonicalList<T>(path: string, options?: ApiRequestOptions) {
+  return api
+    .get<ApiSuccess<ListResponse<T>>>(path, options)
+    .then((response) => response.result)
+}
+
 export const platformApi = {
   // Organizations
   listOrganizations: (
@@ -147,195 +177,184 @@ export const platformApi = {
       all: params.all,
       is_active: params.is_active,
     })
-    return api.get<ListResponse<Organization>>(
+    return getCanonicalList<Organization>(
       `/api/platform/organizations?${search.toString()}`,
       requestOptions
     )
   },
   getOrganization: (id: string) => {
-    return api.get<Organization>(`/api/platform/organizations/${id}`)
+    return getCanonical<Organization>(`/api/platform/organizations/${id}`)
   },
   createOrganization: (data: Partial<Organization>) => {
-    return api.post<Organization>("/api/platform/organizations", data)
+    return postCanonical<Organization>("/api/platform/organizations", data)
   },
   updateOrganization: (id: string, data: Partial<Organization>) => {
-    return api.put<Organization>(`/api/platform/organizations/${id}`, data)
+    return putCanonical<Organization>(`/api/platform/organizations/${id}`, data)
   },
   deleteOrganization: (id: string) => {
-    return api.delete<{ ok: boolean }>(`/api/platform/organizations/${id}`)
+    return deleteCanonical<{ ok: boolean }>(`/api/platform/organizations/${id}`)
   },
 
   // Parameters
   listParameters: (params?: {
-    tenantId?: string
     scopeType?: string
     scopeId?: string
   }) => {
     const q = buildSearchParams({
-      tenant_id: params?.tenantId,
       scope_type: params?.scopeType,
       scope_id: params?.scopeId,
     })
-    return api.get<Parameter[]>(`/api/platform/parameters?${q.toString()}`)
+    return getCanonical<Parameter[]>(`/api/platform/parameters?${q.toString()}`)
   },
   upsertParameter: (data: Partial<Parameter>) => {
-    return api.post<Parameter>("/api/platform/parameters", data)
+    return postCanonical<Parameter>("/api/platform/parameters", data)
   },
   deleteParameter: (id: string) => {
-    return api.delete<{ ok: boolean }>(`/api/platform/parameters/${id}`)
+    return deleteCanonical<{ ok: boolean }>(`/api/platform/parameters/${id}`)
   },
 
   // Lookup Categories
   listLookupCategories: (params?: {
-    tenantId?: string
     scopeType?: string
     scopeId?: string
   }) => {
     const q = buildSearchParams({
-      tenant_id: params?.tenantId,
       scope_type: params?.scopeType,
       scope_id: params?.scopeId,
     })
-    return api.get<LookupCategory[]>(`/api/platform/lookups?${q.toString()}`)
+    return getCanonical<LookupCategory[]>(`/api/platform/lookups?${q.toString()}`)
   },
   upsertLookupCategory: (data: Partial<LookupCategory>) => {
-    return api.post<LookupCategory>("/api/platform/lookups", data)
+    return postCanonical<LookupCategory>("/api/platform/lookups", data)
   },
   deleteLookupCategory: (id: string) => {
-    return api.delete<{ ok: boolean }>(`/api/platform/lookups/${id}/delete`)
+    return deleteCanonical<{ ok: boolean }>(`/api/platform/lookups/${id}/delete`)
   },
 
   // Lookup Values
   listLookupValues: (categoryCode: string) => {
-    return api.get<LookupValue[]>(
+    return getCanonical<LookupValue[]>(
       `/api/platform/lookups/${categoryCode}/values`
     )
   },
   createLookupValue: (categoryCode: string, data: Partial<LookupValue>) => {
-    return api.post<LookupValue>(
+    return postCanonical<LookupValue>(
       `/api/platform/lookups/${categoryCode}/values`,
       data
     )
   },
   upsertLookupValue: (categoryCode: string, data: Partial<LookupValue>) => {
-    return api.post<LookupValue>(
+    return postCanonical<LookupValue>(
       `/api/platform/lookups/${categoryCode}/values`,
       data
     )
   },
   deleteLookupValue: (id: string) => {
-    return api.delete<{ ok: boolean }>(`/api/platform/lookup-values/${id}`)
+    return deleteCanonical<{ ok: boolean }>(`/api/platform/lookup-values/${id}`)
   },
 
   // Geo Admin Units
   listGeoAdminUnits: (parentCode?: string, level?: number) => {
     const q = buildSearchParams({ parent_code: parentCode, level })
-    return api.get<GeoAdminUnit[]>(
+    return getCanonical<GeoAdminUnit[]>(
       `/api/platform/geo/admin-units?${q.toString()}`
     )
   },
   upsertGeoAdminUnit: (data: Partial<GeoAdminUnit>) => {
-    return api.post<GeoAdminUnit>("/api/platform/geo/admin-units", data)
+    return postCanonical<GeoAdminUnit>("/api/platform/geo/admin-units", data)
   },
 
   // Credit Institutions
   listCreditInstitutions: (params?: {
-    tenantId?: string
     status?: string
     q?: string
   }) => {
     const q = buildSearchParams({
-      tenant_id: params?.tenantId,
       status: params?.status,
       q: params?.q,
     })
-    return api.get<CreditInstitution[]>(
+    return getCanonical<CreditInstitution[]>(
       `/api/platform/credit-institutions?${q.toString()}`
     )
   },
   getCreditInstitution: (id: string) => {
-    return api.get<CreditInstitution>(`/api/platform/credit-institutions/${id}`)
+    return getCanonical<CreditInstitution>(`/api/platform/credit-institutions/${id}`)
   },
   createCreditInstitution: (data: Partial<CreditInstitution>) => {
-    return api.post<CreditInstitution>(
+    return postCanonical<CreditInstitution>(
       "/api/platform/credit-institutions",
       data
     )
   },
   updateCreditInstitution: (id: string, data: Partial<CreditInstitution>) => {
-    return api.put<CreditInstitution>(
+    return putCanonical<CreditInstitution>(
       `/api/platform/credit-institutions/${id}`,
       data
     )
   },
   deleteCreditInstitution: (id: string) => {
-    return api.delete<{ ok: boolean }>(
+    return deleteCanonical<{ ok: boolean }>(
       `/api/platform/credit-institutions/${id}`
     )
   },
 
   // Areas
   listAreas: (params?: {
-    tenantId?: string
     status?: string
     areaTypeCode?: string
     parentId?: string
     q?: string
   }) => {
     const q = buildSearchParams({
-      tenant_id: params?.tenantId,
       status: params?.status,
       area_type_code: params?.areaTypeCode,
       parent_id: params?.parentId,
       q: params?.q,
     })
-    return api.get<Area[]>(`/api/platform/areas?${q.toString()}`)
+    return getCanonical<Area[]>(`/api/platform/areas?${q.toString()}`)
   },
   getArea: (id: string) => {
-    return api.get<Area>(`/api/platform/areas/${id}`)
+    return getCanonical<Area>(`/api/platform/areas/${id}`)
   },
   createArea: (data: Partial<Area>) => {
-    return api.post<Area>("/api/platform/areas", data)
+    return postCanonical<Area>("/api/platform/areas", data)
   },
   updateArea: (id: string, data: Partial<Area>) => {
-    return api.put<Area>(`/api/platform/areas/${id}`, data)
+    return putCanonical<Area>(`/api/platform/areas/${id}`, data)
   },
   deleteArea: (id: string) => {
-    return api.delete<{ ok: boolean }>(`/api/platform/areas/${id}`)
+    return deleteCanonical<{ ok: boolean }>(`/api/platform/areas/${id}`)
   },
 
   // File Templates
-  listFileTemplates: (tenantId?: string) => {
-    const params = buildSearchParams({ tenant_id: tenantId })
-    return api.get<FileTemplate[]>(
-      `/api/platform/templates?${params.toString()}`
-    )
+  listFileTemplates: () => {
+    return getCanonical<FileTemplate[]>("/api/platform/templates")
   },
   getFileTemplate: (id: string) => {
-    return api.get<FileTemplate>(`/api/platform/templates/${id}`)
+    return getCanonical<FileTemplate>(`/api/platform/templates/${id}`)
   },
   createFileTemplate: (data: Partial<FileTemplate>) => {
-    return api.post<FileTemplate>("/api/platform/templates", data)
+    return postCanonical<FileTemplate>("/api/platform/templates", data)
   },
   updateFileTemplate: (id: string, data: Partial<FileTemplate>) => {
-    return api.put<FileTemplate>(`/api/platform/templates/${id}`, data)
+    return putCanonical<FileTemplate>(`/api/platform/templates/${id}`, data)
   },
   deleteFileTemplate: (id: string) => {
-    return api.delete<{ ok: boolean }>(`/api/platform/templates/${id}`)
+    return deleteCanonical<{ ok: boolean }>(`/api/platform/templates/${id}`)
   },
 
   // Calendar & Cut-off
   getCalendarStatus: (branchCode?: string) =>
-    api.get<SystemDate>(
+    getCanonical<SystemDate>(
       `/api/platform/calendar/status?branchCode=${branchCode || "HEAD_OFFICE"}`
     ),
   triggerEOD: (branchCode?: string) =>
-    api.post<{ message: string; data: SystemDate }>(
+    postCanonical<{ message: string; data: SystemDate }>(
       `/api/platform/calendar/eod?branchCode=${branchCode || "HEAD_OFFICE"}`
     ),
   evaluateDate: (channel: string, type: string, time?: string) => {
     const p = buildSearchParams({ channel, type, time })
-    return api.get<{
+    return getCanonical<{
       channel: string
       type: string
       executionTime: string
@@ -343,12 +362,12 @@ export const platformApi = {
     }>(`/api/platform/calendar/evaluate?${p.toString()}`)
   },
   listHolidays: () =>
-    api.get<HolidayCalendar[]>("/api/platform/calendar/holidays"),
+    getCanonical<HolidayCalendar[]>("/api/platform/calendar/holidays"),
   addHoliday: (data: {
     date: string
     description: string
     isRecurring: boolean
-  }) => api.post<HolidayCalendar>("/api/platform/calendar/holidays", data),
+  }) => postCanonical<HolidayCalendar>("/api/platform/calendar/holidays", data),
 }
 
 export interface SystemDate {

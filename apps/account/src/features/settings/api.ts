@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 
 // ── Sessions & Devices ──────────────────────────────
 
@@ -40,7 +40,8 @@ export interface SessionConfig {
   sessionTtl: string
 }
 
-type SessionApiItem = Partial<Session> & {
+type SessionApiItem = {
+  id: string
   device_id?: string
   device_name?: string
   device_type?: string
@@ -55,7 +56,8 @@ type SessionApiItem = Partial<Session> & {
   is_current?: boolean
 }
 
-type DeviceApiItem = Partial<Device> & {
+type DeviceApiItem = {
+  id: string
   user_id?: string
   device_name?: string
   device_type?: string
@@ -65,78 +67,83 @@ type DeviceApiItem = Partial<Device> & {
   last_seen_at?: string
 }
 
-type SessionConfigApi = Partial<SessionConfig> & {
+type SessionConfigApi = {
   max_concurrent?: number
   max_devices?: number
   session_ttl?: string
 }
 
 const normalizeSession = (session: SessionApiItem): Session => ({
-  id: session.id ?? "",
-  deviceId: session.device_id ?? session.deviceId ?? "",
-  deviceName: session.device_name ?? session.deviceName ?? "",
-  deviceType: session.device_type ?? session.deviceType ?? "",
+  id: session.id,
+  deviceId: session.device_id ?? "",
+  deviceName: session.device_name ?? "",
+  deviceType: session.device_type ?? "",
   os: session.os ?? "",
   browser: session.browser ?? "",
-  isTrusted: session.is_trusted ?? session.isTrusted ?? false,
-  trustedUntil: session.trusted_until ?? session.trustedUntil,
-  ipAddress: session.ip_address ?? session.ipAddress ?? "",
-  userAgent: session.user_agent ?? session.userAgent ?? "",
-  createdAt: session.created_at ?? session.createdAt ?? "",
-  lastSeenAt: session.last_seen_at ?? session.lastSeenAt ?? "",
-  expiresAt: session.expires_at ?? session.expiresAt ?? "",
-  isActive: session.is_active ?? session.isActive ?? false,
-  isCurrent: session.is_current ?? session.isCurrent ?? false,
+  isTrusted: session.is_trusted ?? false,
+  trustedUntil: session.trusted_until,
+  ipAddress: session.ip_address ?? "",
+  userAgent: session.user_agent ?? "",
+  createdAt: session.created_at ?? "",
+  lastSeenAt: session.last_seen_at ?? "",
+  expiresAt: session.expires_at ?? "",
+  isActive: session.is_active ?? false,
+  isCurrent: session.is_current ?? false,
 })
 
 const normalizeDevice = (device: DeviceApiItem): Device => ({
-  id: device.id ?? "",
-  userId: device.user_id ?? device.userId ?? "",
-  deviceName: device.device_name ?? device.deviceName ?? "",
-  deviceType: device.device_type ?? device.deviceType ?? "",
+  id: device.id,
+  userId: device.user_id ?? "",
+  deviceName: device.device_name ?? "",
+  deviceType: device.device_type ?? "",
   os: device.os ?? "",
   browser: device.browser ?? "",
   fingerprint: device.fingerprint ?? "",
-  isTrusted: device.is_trusted ?? device.isTrusted ?? false,
-  trustedUntil: device.trusted_until ?? device.trustedUntil,
-  firstSeenAt: device.first_seen_at ?? device.firstSeenAt ?? "",
-  lastSeenAt: device.last_seen_at ?? device.lastSeenAt ?? "",
+  isTrusted: device.is_trusted ?? false,
+  trustedUntil: device.trusted_until,
+  firstSeenAt: device.first_seen_at ?? "",
+  lastSeenAt: device.last_seen_at ?? "",
 })
 
 const normalizeSessionConfig = (config: SessionConfigApi): SessionConfig => ({
-  maxConcurrent: config.max_concurrent ?? config.maxConcurrent ?? 0,
-  maxDevices: config.max_devices ?? config.maxDevices ?? 0,
-  sessionTtl: config.session_ttl ?? config.sessionTtl ?? "",
+  maxConcurrent: config.max_concurrent ?? 0,
+  maxDevices: config.max_devices ?? 0,
+  sessionTtl: config.session_ttl ?? "",
 })
 
 export const sessionApi = {
   list: () =>
     api
-      .get<{
+      .get<ApiSuccess<{
         sessions: SessionApiItem[]
         current_session_id?: string
         currentSessionId?: string
-      }>("/api/iam/me/sessions")
-      .then((res) => ({
-        sessions: (res.sessions ?? []).map(normalizeSession),
+      }>>("/api/iam/me/sessions")
+      .then(({ result }) => ({
+        sessions: (result.sessions ?? []).map(normalizeSession),
         currentSessionId:
-          res.current_session_id ?? res.currentSessionId ?? undefined,
+          result.current_session_id ?? result.currentSessionId ?? undefined,
       })),
-  revoke: (id: string) => api.delete(`/api/iam/me/sessions/${id}`),
+  revoke: (id: string) =>
+    api.delete<ApiSuccess<{ status: string }>>(`/api/iam/me/sessions/${id}`),
   revokeOthers: (keep: string) =>
-    api.delete(`/api/iam/me/sessions?keep=${keep}`),
+    api.delete<ApiSuccess<{ status: string; count: number }>>(
+      `/api/iam/me/sessions?keep=${keep}`
+    ),
   devices: () =>
     api
-      .get<{ devices: DeviceApiItem[] }>("/api/iam/me/devices")
-      .then((res) => ({
-        devices: (res.devices ?? []).map(normalizeDevice),
+      .get<ApiSuccess<{ devices: DeviceApiItem[] }>>("/api/iam/me/devices")
+      .then(({ result }) => ({
+        devices: (result.devices ?? []).map(normalizeDevice),
       })),
-  deleteDevice: (id: string) => api.delete(`/api/iam/me/devices/${id}`),
-  trustDevice: (id: string) => api.post(`/api/iam/me/devices/${id}/trust`),
+  deleteDevice: (id: string) =>
+    api.delete<ApiSuccess<{ status: string }>>(`/api/iam/me/devices/${id}`),
+  trustDevice: (id: string) =>
+    api.post<ApiSuccess<{ status: string }>>(`/api/iam/me/devices/${id}/trust`),
   config: () =>
     api
-      .get<SessionConfigApi>("/api/iam/session/config")
-      .then(normalizeSessionConfig),
+      .get<ApiSuccess<SessionConfigApi>>("/api/iam/session/config")
+      .then(({ result }) => normalizeSessionConfig(result)),
 }
 
 // ── MFA ──────────────────────────────────────────────
@@ -152,16 +159,37 @@ export interface MFAStatus {
 }
 
 export const mfaApi = {
-  getSecret: () => api.post<MFASecret>("/api/iam/me/mfa/enroll"),
+  getSecret: () =>
+    api
+      .post<ApiSuccess<MFASecret>>("/api/iam/me/mfa/enroll")
+      .then((res) => res.result),
   verifyEnroll: (code: string) =>
-    api.post<{ status: string; backup_codes: string[] }>(
-      "/api/iam/me/mfa/verify-enroll",
-      { code }
-    ),
-  status: () => api.get<MFAStatus>("/api/iam/me/mfa/status"),
-  reset: () => api.post<{ status: string }>("/api/iam/me/mfa/reset"),
+    api
+      .post<ApiSuccess<{ status: string; backup_codes: string[] }>>(
+        "/api/iam/me/mfa/verify-enroll",
+        { code }
+      )
+      .then((res) => res.result),
+  status: () =>
+    api
+      .get<ApiSuccess<MFAStatus>>("/api/iam/me/mfa/status")
+      .then((res) => res.result),
+  reset: () =>
+    api
+      .post<ApiSuccess<{ status: string }>>("/api/iam/me/mfa/reset")
+      .then((res) => res.result),
   verifyCode: (userId: string, code: string) =>
-    api.post("/api/iam/me/mfa/verify", { userId, code }),
+    api
+      .post<ApiSuccess<{ status: string; mfaToken: string }>>(
+        "/api/iam/me/mfa/verify",
+        { userId, code }
+      )
+      .then((res) => res.result),
   verifyBackup: (userId: string, code: string) =>
-    api.post("/api/iam/me/mfa/backup", { userId, backup_code: code }),
+    api
+      .post<ApiSuccess<{ status: string; mfaToken: string }>>(
+        "/api/iam/me/mfa/backup",
+        { userId, backup_code: code }
+      )
+      .then((res) => res.result),
 }

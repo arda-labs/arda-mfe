@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { sortToApiParams } from "@workspace/api/list"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { useAuthStore } from "@workspace/auth/store"
 import { adminApi } from "@/features/iam"
 import type { AdminUserSession, Role, User } from "@/features/iam"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -66,6 +67,7 @@ const DEFAULT_PAGE_SIZE = 10
 
 export function UsersPage() {
   const { t, formatDate } = useI18n()
+  const actorTenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<User | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
@@ -134,6 +136,7 @@ export function UsersPage() {
         status: statusParam,
         sort: sortApi.sort,
         order: sortApi.order,
+        tenantId: actorTenantId,
       })
       setUsers(result.items)
       setTotal(result.total)
@@ -144,7 +147,7 @@ export function UsersPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [pageParam, pageSizeParam, searchParam, statusParam, sortParam])
+  }, [actorTenantId, pageParam, pageSizeParam, searchParam, statusParam, sortParam])
 
   useEffect(() => {
     void loadUsers()
@@ -157,7 +160,11 @@ export function UsersPage() {
     }
     setRolesLoading(true)
     try {
-      const result = await adminApi.listRoles({ page: 1, perPage: 100 })
+      const result = await adminApi.listRoles({
+        page: 1,
+        perPage: 100,
+        tenantId: target.tenantId,
+      })
       setAvailableRoles(result.items ?? [])
     } catch {
       setAvailableRoles([])
@@ -177,7 +184,7 @@ export function UsersPage() {
     }
     setSessionsLoading(true)
     try {
-      const result = await adminApi.listUserSessions(target.id)
+      const result = await adminApi.listUserSessions(target.id, target.tenantId)
       setSessions(result.sessions ?? [])
     } catch {
       setSessions([])
@@ -195,9 +202,13 @@ export function UsersPage() {
     setBusyRoleId(role.id)
     try {
       if (assigned) {
-        await adminApi.unassignRole(roleTarget.id, role.id)
+        await adminApi.unassignRole(
+          roleTarget.id,
+          role.id,
+          roleTarget.tenantId
+        )
       } else {
-        await adminApi.assignRole(roleTarget.id, role.id)
+        await adminApi.assignRole(roleTarget.id, role.id, roleTarget.tenantId)
       }
       const nextRoles = assigned
         ? roleTarget.roles.filter((code) => code !== role.code)
@@ -224,7 +235,7 @@ export function UsersPage() {
   const handleEdit = async (values: EditUserValues) => {
     if (!editTarget) return
     try {
-      await adminApi.updateUser(editTarget.id, {
+      await adminApi.updateUser(editTarget.id, editTarget.tenantId, {
         username: values.username.trim(),
         email: values.email.trim(),
         firstName: values.firstName?.trim() || "",
@@ -235,7 +246,7 @@ export function UsersPage() {
         address: values.address?.trim() || "",
         position: values.position?.trim() || "",
         status: values.status,
-        tenantId: values.tenantId.trim() || "default",
+        tenantId: values.tenantId.trim(),
       })
       notify.success(t("admin.users.update_success"))
       await loadUsers()
@@ -249,7 +260,7 @@ export function UsersPage() {
     nextStatus: "ACTIVE" | "DISABLED"
   ) => {
     try {
-      await adminApi.updateUser(user.id, { status: nextStatus } as Record<
+      await adminApi.updateUser(user.id, user.tenantId, { status: nextStatus } as Record<
         string,
         unknown
       >)
@@ -267,7 +278,7 @@ export function UsersPage() {
   const handleDelete = async (user: User) => {
     setDeleting(true)
     try {
-      await adminApi.deleteUser(user.id)
+      await adminApi.deleteUser(user.id, user.tenantId)
       notify.success(t("admin.users.delete_success"))
       setDeleteTarget(null)
       await loadUsers()
@@ -281,7 +292,11 @@ export function UsersPage() {
   const handleResetPassword = async () => {
     if (!resetTarget) return
     try {
-      await adminApi.resetUserPassword(resetTarget.id, identityPassword)
+      await adminApi.resetUserPassword(
+        resetTarget.id,
+        resetTarget.tenantId,
+        identityPassword
+      )
       notify.success(t("admin.users.identity.reset_success"))
       setResetTarget(null)
       setIdentityPassword("")
@@ -296,7 +311,7 @@ export function UsersPage() {
   const handleResetMFA = async () => {
     if (!mfaResetTarget) return
     try {
-      await adminApi.resetUserMFA(mfaResetTarget.id)
+      await adminApi.resetUserMFA(mfaResetTarget.id, mfaResetTarget.tenantId)
       notify.success(t("admin.users.mfa.reset_success"))
       setMfaResetTarget(null)
     } catch (err) {
@@ -309,6 +324,7 @@ export function UsersPage() {
     try {
       const res = await adminApi.provisionUserIdentity(
         provisionTarget.id,
+        provisionTarget.tenantId,
         identityPassword
       )
       notify.success(
@@ -343,7 +359,10 @@ export function UsersPage() {
   const revokeSessions = async () => {
     if (!sessionTarget) return
     try {
-      await adminApi.revokeUserSessions(sessionTarget.id)
+      await adminApi.revokeUserSessions(
+        sessionTarget.id,
+        sessionTarget.tenantId
+      )
       notify.success(t("admin.users.sessions.revoke_success"))
       setSessionTarget(null)
     } catch (err) {

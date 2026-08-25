@@ -1,4 +1,4 @@
-import { api } from "@workspace/api"
+import { api, type ApiSuccess } from "@workspace/api"
 import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import { buildSearchParams } from "@workspace/api/query"
 
@@ -71,8 +71,16 @@ export interface ApprovalStep {
 }
 
 export const financeApi = {
-  listAccounts: () => api.get<{ accounts: Account[] }>("/api/finance/accounts"),
-  getAccount: (id: string) => api.get(`/api/finance/accounts/${id}`),
+  listAccounts: () =>
+    api
+      .get<ApiSuccess<{ accounts: Account[] }>>("/api/finance/accounts")
+      .then((res) => res.result),
+  getAccount: (id: string) =>
+    api
+      .get<ApiSuccess<{ account: Account; balance: AccountBalance }>>(
+        `/api/finance/accounts/${id}`
+      )
+      .then((res) => res.result),
   createAccount: (data: {
     code: string
     name: string
@@ -80,7 +88,10 @@ export const financeApi = {
     normalBalance: string
     currency?: string
     parentId?: string
-  }) => api.post("/api/finance/accounts", data),
+  }) =>
+    api
+      .post<ApiSuccess<Account>>("/api/finance/accounts", data)
+      .then((res) => res.result),
   listTransactions: (params?: {
     page?: number
     perPage?: number
@@ -95,12 +106,16 @@ export const financeApi = {
       from: params?.from,
       to: params?.to,
     })
-    return api.get<ListResponse<Transaction>>(
-      `/api/finance/transactions?${p.toString()}`
-    )
+    return api
+      .get<ApiSuccess<ListResponse<Transaction>>>(
+        `/api/finance/transactions?${p.toString()}`
+      )
+      .then((res) => res.result)
   },
   getTransaction: (id: string) =>
-    api.get<Transaction>(`/api/finance/transactions/${id}`),
+    api
+      .get<ApiSuccess<Transaction>>(`/api/finance/transactions/${id}`)
+      .then((res) => res.result),
   createTransaction: (data: {
     txnType: string
     txnDate?: string
@@ -112,57 +127,100 @@ export const financeApi = {
       amount: string
       currency?: string
     }[]
-  }) => api.post<Transaction>("/api/finance/transactions", data),
+  }) =>
+    api
+      .post<ApiSuccess<Transaction>>("/api/finance/transactions", data, {
+        idempotencyKey: data.idempotencyKey,
+      })
+      .then((res) => res.result),
   reverseTransaction: (id: string, reason: string) =>
-    api.post(`/api/finance/transactions/${id}/reverse`, { reason }),
+    api
+      .post<ApiSuccess<Transaction>>(`/api/finance/transactions/${id}/reverse`, {
+        reason,
+      })
+      .then((res) => res.result),
   createApproval: (data: {
     refId: string
     requestType: string
     amount?: string
     note?: string
-  }) => api.post<ApprovalRequest>("/api/finance/approvals", data),
+  }) =>
+    api
+      .post<ApiSuccess<ApprovalRequest>>("/api/finance/approvals", data)
+      .then((res) => res.result),
   listPendingApprovals: (level?: number) =>
-    api.get<{ approvals: ApprovalRequest[] }>(
-      `/api/finance/approvals?level=${level || 1}`
-    ),
+    api
+      .get<ApiSuccess<{ approvals: ApprovalRequest[] }>>(
+        `/api/finance/approvals?level=${level || 1}`
+      )
+      .then((res) => res.result),
   getApproval: (id: string) =>
-    api.get<ApprovalRequest>(`/api/finance/approvals/${id}`),
+    api
+      .get<ApiSuccess<ApprovalRequest>>(`/api/finance/approvals/${id}`)
+      .then((res) => res.result),
   approveApproval: (id: string, note?: string) =>
-    api.post(`/api/finance/approvals/${id}/approve`, { note }),
+    api
+      .post<ApiSuccess<ApprovalRequest>>(
+        `/api/finance/approvals/${id}/approve`,
+        { note }
+      )
+      .then((res) => res.result),
   rejectApproval: (id: string, note?: string) =>
-    api.post(`/api/finance/approvals/${id}/reject`, { note }),
+    api
+      .post<ApiSuccess<ApprovalRequest>>(
+        `/api/finance/approvals/${id}/reject`,
+        { note }
+      )
+      .then((res) => res.result),
   cancelApproval: (id: string) =>
-    api.post(`/api/finance/approvals/${id}/cancel`),
+    api
+      .post<ApiSuccess<ApprovalRequest>>(`/api/finance/approvals/${id}/cancel`)
+      .then((res) => res.result),
   trialBalance: () =>
-    api.get<{ entries: { account: Account; balance: AccountBalance }[] }>(
-      "/api/finance/trial-balance"
-    ),
+    api
+      .get<ApiSuccess<{ tenantId: string; entries: { account: Account; balance: AccountBalance }[] }>>(
+        "/api/finance/trial-balance"
+      )
+      .then((res) => res.result),
 
   // ── Calendar & Cut-off ──
   getCalendarStatus: (branchCode?: string) =>
-    api.get<SystemDate>(
-      `/api/finance/calendar/status?branchCode=${branchCode || "HEAD_OFFICE"}`
-    ),
+    api
+      .get<ApiSuccess<SystemDate>>(
+        `/api/finance/calendar/status?branchCode=${branchCode || "HEAD_OFFICE"}`
+      )
+      .then((res) => res.result),
   triggerEOD: (branchCode?: string) =>
-    api.post<{ message: string; data: SystemDate }>(
-      `/api/finance/calendar/eod?branchCode=${branchCode || "HEAD_OFFICE"}`
-    ),
+    api
+      .post<ApiSuccess<{ message: string; data: SystemDate }>>(
+        `/api/finance/calendar/eod?branchCode=${branchCode || "HEAD_OFFICE"}`
+      )
+      .then((res) => res.result),
   evaluateDate: (channel: string, type: string, time?: string) => {
     const p = buildSearchParams({ channel, type, time })
-    return api.get<{
-      channel: string
-      type: string
-      executionTime: string
-      accountingDate: string
-    }>(`/api/finance/calendar/evaluate?${p.toString()}`)
+    return api
+      .get<
+        ApiSuccess<{
+          channel: string
+          type: string
+          executionTime: string
+          accountingDate: string
+        }>
+      >(`/api/finance/calendar/evaluate?${p.toString()}`)
+      .then((res) => res.result)
   },
   listHolidays: () =>
-    api.get<HolidayCalendar[]>("/api/finance/calendar/holidays"),
+    api
+      .get<ApiSuccess<HolidayCalendar[]>>("/api/finance/calendar/holidays")
+      .then((res) => res.result),
   addHoliday: (data: {
     date: string
     description: string
     isRecurring: boolean
-  }) => api.post<HolidayCalendar>("/api/finance/calendar/holidays", data),
+  }) =>
+    api
+      .post<ApiSuccess<HolidayCalendar>>("/api/finance/calendar/holidays", data)
+      .then((res) => res.result),
 }
 
 export interface SystemDate {

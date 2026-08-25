@@ -89,14 +89,12 @@ import type {
 export function WorkflowFrame({
   title,
   description,
-  source,
   metrics,
   action,
   children,
 }: {
   title: string
   description: string
-  source?: "api" | "mock"
   metrics?: {
     label: string
     value: string
@@ -116,7 +114,6 @@ export function WorkflowFrame({
         </div>
         {action ? <div className="flex flex-wrap gap-2">{action}</div> : null}
       </div>
-      {source === "mock" ? <MockNotice /> : null}
       {metrics?.length ? <MetricStrip metrics={metrics} /> : null}
       {children}
     </div>
@@ -1101,6 +1098,7 @@ export function CaseTypeDialog({
     setSaving(true)
     try {
       const payload = {
+        tenantId,
         ...form,
         bpmnVersion: Number(form.bpmnVersion) || 1,
       }
@@ -2042,9 +2040,9 @@ export function RoleMembershipDialog({
         effectiveTo: fromDateInputValue(form.effectiveTo),
       }
       if (item?.id) {
-        await workflowApi.updateRoleMembership(item.id, payload)
+        await workflowApi.updateRoleMembership(payload.tenantId, item.id, payload)
       } else {
-        await workflowApi.createRoleMembership(payload)
+        await workflowApi.createRoleMembership(payload.tenantId, payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -2278,6 +2276,7 @@ export function DelegationDialog({
   onSaved,
 }: {
   item?: WorkflowDelegation | null
+  tenantId: string
   open: boolean
   roleOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
@@ -2305,9 +2304,9 @@ export function DelegationDialog({
         effectiveTo: fromDateInputValue(form.effectiveTo),
       }
       if (item?.id) {
-        await workflowApi.updateDelegation(item.id, payload)
+        await workflowApi.updateDelegation(tenantId, item.id, payload)
       } else {
-        await workflowApi.createDelegation(payload)
+        await workflowApi.createDelegation(tenantId, payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -2672,19 +2671,6 @@ function MetricStrip({
         </div>
       ))}
     </div>
-  )
-}
-
-function MockNotice() {
-  return (
-    <Alert>
-      <AlertCircle className="size-4" />
-      <AlertTitle>Đang dùng dữ liệu mẫu cho phần chưa có API</AlertTitle>
-      <AlertDescription>
-        Các màn đã cố đọc workflow-service trước; endpoint nào chưa tồn tại mới
-        dùng seed local để giữ trải nghiệm vận hành.
-      </AlertDescription>
-    </Alert>
   )
 }
 

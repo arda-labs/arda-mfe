@@ -1,5 +1,5 @@
 import type { PersistStorage } from "zustand/middleware"
-import { apiUrl } from "@workspace/api/url"
+import { api, configureApiContext } from "@workspace/api"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
@@ -36,7 +36,7 @@ export interface AuthUser {
   authVersion?: number
 }
 
-type AuthUserSource = Partial<AuthUser> & {
+export type AuthUserSource = Partial<AuthUser> & {
   subject?: string
 }
 
@@ -96,10 +96,8 @@ export function normalizeAuthUser(
     tenantId: source.tenantId || "",
     orgIds: source.orgIds || [],
     activeOrgId: source.activeOrgId || "",
-    roles: Array.isArray(source.roles) ? source.roles : undefined,
-    permissions: Array.isArray(source.permissions)
-      ? source.permissions
-      : undefined,
+    roles: Array.isArray(source.roles) ? source.roles : [],
+    permissions: Array.isArray(source.permissions) ? source.permissions : [],
     authVersion: source.authVersion || 0,
   }
 }
@@ -120,8 +118,6 @@ export function hasAnyPermission(
   codes: string[]
 ): boolean {
   if (codes.length === 0) return true
-  if (user && user.roles === undefined && user.permissions === undefined)
-    return true
   return codes.some((code) => hasPermission(user, code))
 }
 
@@ -170,10 +166,7 @@ export const useAuthStore = create<AuthState>()(
       clearSession: () => set({ user: null, isAuthenticated: false }),
       logout: async () => {
         if (typeof window !== "undefined") {
-          await fetch(apiUrl("/api/auth/logout"), {
-            method: "POST",
-            credentials: "include",
-          }).catch(() => {})
+          await api.post("/api/auth/logout").catch(() => {})
         }
         set({ user: null, isAuthenticated: false })
       },
@@ -201,3 +194,9 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 )
+
+// Keep the selected organization explicit on every API request. The gateway
+// validates membership; the browser never supplies tenant or actor identity.
+configureApiContext({
+  getActiveOrgId: () => useAuthStore.getState().user?.activeOrgId,
+})

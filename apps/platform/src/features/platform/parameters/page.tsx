@@ -59,9 +59,7 @@ export function ParametersPage() {
     try {
       const [paramsResult, orgsResult] = await Promise.all([
         platformApi.listParameters(),
-        platformApi
-          .listOrganizations({ view: "options" })
-          .catch(() => ({ items: [] as Organization[] })),
+        platformApi.listOrganizations({ view: "options" }),
       ])
       setParams(paramsResult)
       setOrgs(orgsResult.items)
