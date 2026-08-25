@@ -1,4 +1,9 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import {
+  CopilotKitProvider,
+  UseAgentUpdate,
+  useAgent,
+} from "@copilotkit/react-core/v2"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -19,24 +24,45 @@ import {
 
 type ToolResult = Record<string, unknown>
 
-type AgentEvent = {
-  type: string
-  delta?: string
-  toolName?: string
-  result?: ToolResult
-  error?: string
-}
-
-type ChatMessage = {
+type RenderMessage = {
   id: string
-  role: "user" | "assistant"
-  content: string
-  toolName?: string
-  toolResult?: ToolResult
+  role: string
+  content?: unknown
 }
 
 function textValue(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value : fallback
+}
+
+function messageText(content: unknown) {
+  if (typeof content === "string") return content
+  if (!Array.isArray(content)) return ""
+  return content
+    .filter(
+      (part): part is { type: "text"; text: string } =>
+        typeof part === "object" &&
+        part !== null &&
+        "type" in part &&
+        part.type === "text" &&
+        "text" in part &&
+        typeof part.text === "string"
+    )
+    .map((part) => part.text)
+    .join("")
+}
+
+function parsedToolResult(message: RenderMessage): ToolResult | undefined {
+  if (message.role !== "tool") return undefined
+  const content = messageText(message.content)
+  if (!content) return undefined
+  try {
+    const result = JSON.parse(content) as unknown
+    return typeof result === "object" && result !== null
+      ? (result as ToolResult)
+      : undefined
+  } catch {
+    return undefined
+  }
 }
 
 function citationsFrom(result: ToolResult | undefined) {
@@ -85,18 +111,40 @@ function AssistantToolResult({ result }: { result: ToolResult }) {
   )
 }
 
-export function AiAssistantPage() {
+function AiAssistantSurface() {
   const [prompt, setPrompt] = useState("Tra cứu thông tin khách hàng")
   const [customerId, setCustomerId] = useState("")
   const [knowledgeQuery, setKnowledgeQuery] = useState("")
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [status, setStatus] = useState("Sẵn sàng")
   const [error, setError] = useState("")
+  const { agent, isReady } = useAgent({
+    agentId: "arda-assistant",
+    updates: [
+      UseAgentUpdate.OnMessagesChanged,
+      UseAgentUpdate.OnRunStatusChanged,
+    ],
+  })
+
+  const messages = agent.messages as unknown as RenderMessage[]
+  const isRunning = agent.isRunning
+  const status = !isReady
+    ? "Đang kết nối..."
+    : isRunning
+      ? "Đang xử lý..."
+      : error
+        ? "Không thể kết nối"
+        : messages.length > 0
+          ? "Hoàn tất"
+          : "Sẵn sàng"
+
+  const displayMessages = useMemo(
+    () => messages.filter((message) => ["user", "assistant", "tool"].includes(message.role)),
+    [messages]
+  )
 
   async function runAssistant() {
-    const threadId = crypto.randomUUID()
-    const runId = crypto.randomUUID()
-    const assistantMessageId = `${runId}-assistant`
+    const content = prompt.trim()
+    if (!content || isRunning || !isReady) return
+
     const selectedCustomerId = customerId.trim()
     const selectedKnowledgeQuery = knowledgeQuery.trim()
     const tool = selectedCustomerId
@@ -113,72 +161,15 @@ export function AiAssistantPage() {
           }
         : undefined
 
-    setMessages((current) => [
-      ...current,
-      { id: `${threadId}-user`, role: "user", content: prompt.trim() },
-      { id: assistantMessageId, role: "assistant", content: "" },
-    ])
     setError("")
-    setStatus("Đang xử lý...")
+    agent.addMessage({ id: crypto.randomUUID(), role: "user", content })
 
     try {
-      const response = await fetch("/api/ai/agent", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          threadId,
-          runId,
-          messages: [{ role: "user", content: prompt.trim() }],
-          ...(tool ? { tool } : {}),
-        }),
+      await agent.runAgent({
+        runId: crypto.randomUUID(),
+        forwardedProps: tool ? { ardaTool: tool } : {},
       })
-
-      if (!response.ok) throw new Error(await response.text())
-      if (!response.body) throw new Error("Server không trả về stream")
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ""
-
-      while (true) {
-        const chunk = await reader.read()
-        if (chunk.done) break
-        buffer += decoder.decode(chunk.value, { stream: true })
-
-        const blocks = buffer.split("\n\n")
-        buffer = blocks.pop() ?? ""
-        for (const block of blocks) {
-          const dataLine = block
-            .split("\n")
-            .find((line) => line.startsWith("data: "))
-          if (!dataLine) continue
-          const event = JSON.parse(dataLine.slice("data: ".length)) as AgentEvent
-          if (event.type === "TEXT_MESSAGE_CONTENT") {
-            setMessages((current) =>
-              current.map((message) =>
-                message.id === assistantMessageId
-                  ? { ...message, content: message.content + (event.delta ?? "") }
-                  : message
-              )
-            )
-          }
-          if (event.type === "TOOL_CALL_END" && event.result) {
-            setMessages((current) =>
-              current.map((message) =>
-                message.id === assistantMessageId
-                  ? { ...message, toolName: event.toolName, toolResult: event.result }
-                  : message
-              )
-            )
-          }
-          if (event.type === "RUN_FINISHED") {
-            setStatus(event.error ? "Không hoàn tất" : "Hoàn tất")
-          }
-        }
-      }
     } catch (caught) {
-      setStatus("Không thể kết nối")
       setError(caught instanceof Error ? caught.message : "Không thể kết nối")
     }
   }
@@ -187,12 +178,9 @@ export function AiAssistantPage() {
     <section className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto p-4 sm:p-6">
       <div className="mx-auto w-full max-w-6xl space-y-2">
         <p className="text-sm font-medium text-primary">Arda AI</p>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          Trợ lý trong workspace
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Trợ lý trong workspace</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-          Chat có kiểm soát trong tenant hiện tại. Phase này chỉ đọc dữ liệu CRM
-          đã được cấp quyền và không thực hiện thay đổi.
+          Chat có kiểm soát trong tenant hiện tại. Phase này chỉ đọc dữ liệu CRM đã được cấp quyền và không thực hiện thay đổi.
         </p>
       </div>
 
@@ -201,58 +189,44 @@ export function AiAssistantPage() {
           <MessageScrollerProvider autoScroll defaultScrollPosition="last-anchor">
             <MessageScroller className="flex-1">
               <MessageScrollerViewport aria-label="Lịch sử hội thoại Arda AI">
-                <MessageScrollerContent
-                  className="p-4 sm:p-6"
-                  aria-busy={status === "Đang xử lý..."}
-                >
-                  {messages.length === 0 ? (
+                <MessageScrollerContent className="p-4 sm:p-6" aria-busy={isRunning}>
+                  {displayMessages.length === 0 ? (
                     <div className="flex min-h-64 items-center justify-center text-center text-sm text-muted-foreground">
                       Gửi yêu cầu đầu tiên để bắt đầu cuộc hội thoại.
                     </div>
                   ) : (
-                    messages.map((message) => (
-                      <MessageScrollerItem
-                        key={message.id}
-                        messageId={message.id}
-                        scrollAnchor={message.role === "user"}
-                      >
-                        <Message align={message.role === "user" ? "end" : "start"}>
-                          <MessageAvatar>
-                            <Avatar className="size-8">
-                              <AvatarFallback>
-                                {message.role === "user" ? "Bạn" : "AI"}
-                              </AvatarFallback>
-                            </Avatar>
-                          </MessageAvatar>
-                          <MessageContent className="max-w-[85%]">
-                            <MessageHeader>
-                              {message.role === "user" ? "Bạn" : "Arda AI"}
-                            </MessageHeader>
-                            <div
-                              className={
-                                message.role === "user"
-                                  ? "rounded-2xl rounded-br-md bg-primary px-4 py-3 whitespace-pre-wrap text-primary-foreground"
-                                  : "rounded-2xl rounded-bl-md border bg-muted/50 px-4 py-3 whitespace-pre-wrap leading-6"
-                              }
-                            >
-                              {message.content || (
-                                <span className="text-muted-foreground" role="status">
-                                  Đang chuẩn bị câu trả lời...
-                                </span>
-                              )}
-                              {message.toolResult && (
-                                <AssistantToolResult result={message.toolResult} />
-                              )}
-                            </div>
-                            <MessageFooter>
-                              {message.role === "assistant" && message.toolName
-                                ? `Tool: ${message.toolName}`
-                                : undefined}
-                            </MessageFooter>
-                          </MessageContent>
-                        </Message>
-                      </MessageScrollerItem>
-                    ))
+                    displayMessages.map((message) => {
+                      const isUser = message.role === "user"
+                      const toolResult = parsedToolResult(message)
+                      const content = messageText(message.content)
+                      return (
+                        <MessageScrollerItem key={message.id} messageId={message.id} scrollAnchor={isUser}>
+                          <Message align={isUser ? "end" : "start"}>
+                            <MessageAvatar>
+                              <Avatar className="size-8">
+                                <AvatarFallback>{isUser ? "Bạn" : "AI"}</AvatarFallback>
+                              </Avatar>
+                            </MessageAvatar>
+                            <MessageContent className="max-w-[85%]">
+                              <MessageHeader>
+                                {isUser ? "Bạn" : message.role === "tool" ? "Arda AI · tool" : "Arda AI"}
+                              </MessageHeader>
+                              <div
+                                className={
+                                  isUser
+                                    ? "rounded-2xl rounded-br-md bg-primary px-4 py-3 whitespace-pre-wrap text-primary-foreground"
+                                    : "rounded-2xl rounded-bl-md border bg-muted/50 px-4 py-3 whitespace-pre-wrap leading-6"
+                                }
+                              >
+                                {content || (message.role === "assistant" ? "Đang chuẩn bị câu trả lời..." : "")}
+                                {toolResult && <AssistantToolResult result={toolResult} />}
+                              </div>
+                              <MessageFooter />
+                            </MessageContent>
+                          </Message>
+                        </MessageScrollerItem>
+                      )
+                    })
                   )}
                 </MessageScrollerContent>
               </MessageScrollerViewport>
@@ -261,9 +235,7 @@ export function AiAssistantPage() {
           </MessageScrollerProvider>
 
           <div className="border-t bg-background p-4 sm:p-6">
-            <label className="sr-only" htmlFor="ai-prompt">
-              Yêu cầu cho Arda AI
-            </label>
+            <label className="sr-only" htmlFor="ai-prompt">Yêu cầu cho Arda AI</label>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <textarea
                 id="ai-prompt"
@@ -278,31 +250,19 @@ export function AiAssistantPage() {
                 }}
                 placeholder="Bạn muốn Arda AI tra cứu gì?"
               />
-              <Button
-                className="min-h-11"
-                disabled={!prompt.trim() || status === "Đang xử lý..."}
-                onClick={() => void runAssistant()}
-              >
-                {status === "Đang xử lý..." ? "Đang xử lý..." : "Gửi yêu cầu"}
+              <Button className="min-h-11" disabled={!prompt.trim() || isRunning || !isReady} onClick={() => void runAssistant()}>
+                {isRunning ? "Đang xử lý..." : "Gửi yêu cầu"}
               </Button>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Ctrl/Cmd + Enter để gửi · Trạng thái: {status}
-            </p>
-            {error && (
-              <p className="mt-2 text-sm text-destructive" role="alert">
-                {error}
-              </p>
-            )}
+            <p className="mt-2 text-xs text-muted-foreground">Ctrl/Cmd + Enter để gửi · Trạng thái: {status}</p>
+            {error && <p className="mt-2 text-sm text-destructive" role="alert">{error}</p>}
           </div>
         </div>
 
         <aside className="h-fit space-y-4 rounded-xl border bg-muted/30 p-4 text-sm">
           <div>
             <h2 className="font-semibold">Nguồn tra cứu</h2>
-            <p className="mt-1 leading-5 text-muted-foreground">
-              Chọn một tool đọc dữ liệu cho lượt chat tiếp theo.
-            </p>
+            <p className="mt-1 leading-5 text-muted-foreground">Chọn một tool đọc dữ liệu cho lượt chat tiếp theo.</p>
           </div>
           <label className="block space-y-2 font-medium" htmlFor="ai-customer-id">
             Mã khách hàng
@@ -334,6 +294,14 @@ export function AiAssistantPage() {
         </aside>
       </div>
     </section>
+  )
+}
+
+export function AiAssistantPage() {
+  return (
+    <CopilotKitProvider runtimeUrl="/api/copilotkit" useSingleEndpoint>
+      <AiAssistantSurface />
+    </CopilotKitProvider>
   )
 }
 
