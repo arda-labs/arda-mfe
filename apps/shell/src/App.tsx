@@ -26,6 +26,9 @@ import {
   WorkflowRoutes,
 } from "./remote-routes"
 import { ShellLayout } from "./ShellLayout"
+import { AiProtocolSpikePage } from "./features/ai/ai-protocol-spike"
+
+const aiProtocolSpikeEnabled = import.meta.env.VITE_AI_PROTOCOL_SPIKE === "true"
 
 const routeFallback = (
   <div
@@ -198,6 +201,12 @@ export function App() {
       <Route path="/consent" element={<ConsentPage />} />
       <Route path="/404" element={<NotFoundPage />} />
       <Route path="/502" element={<BadGatewayPage />} />
+      <Route
+        path="/ai-protocol-spike"
+        element={
+          aiProtocolSpikeEnabled ? <AiProtocolSpikePage /> : <NotFoundPage />
+        }
+      />
       <Route
         element={
           <Suspense fallback={<AuthLoadingScreen />}>

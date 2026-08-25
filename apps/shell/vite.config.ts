@@ -74,6 +74,7 @@ export default defineConfig(({ command }) => {
         "/api/crm": { target: BFF_GATEWAY, changeOrigin: true },
         "/api/hrm": { target: BFF_GATEWAY, changeOrigin: true },
         "/api/notifications": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/ai": { target: BFF_GATEWAY, changeOrigin: true },
       },
     },
   }
