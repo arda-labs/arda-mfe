@@ -26,9 +26,10 @@ import {
   WorkflowRoutes,
 } from "./remote-routes"
 import { ShellLayout } from "./ShellLayout"
-import { AiProtocolSpikePage } from "./features/ai/ai-protocol-spike"
+import { AiAssistantPage, AiProtocolSpikePage } from "./features/ai/ai-protocol-spike"
 
 const aiProtocolSpikeEnabled = import.meta.env.VITE_AI_PROTOCOL_SPIKE === "true"
+const aiAssistantEnabled = import.meta.env.VITE_AI_ENABLED === "true"
 
 const routeFallback = (
   <div
@@ -219,6 +220,10 @@ export function App() {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route
+          path="/ai"
+          element={aiAssistantEnabled ? <AiAssistantPage /> : <NotFoundPage />}
+        />
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route
           path="/admin/users/*"

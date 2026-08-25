@@ -2,6 +2,8 @@ FROM oven/bun:1.3.14-alpine AS build
 
 WORKDIR /app
 COPY . .
+ARG VITE_AI_ENABLED=false
+ENV VITE_AI_ENABLED=$VITE_AI_ENABLED
 RUN bun install --frozen-lockfile && bun run build
 
 FROM nginx:1.29-alpine

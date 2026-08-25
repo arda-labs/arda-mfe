@@ -9,6 +9,7 @@ import {
   Settings,
   ShieldCheck,
   SlidersHorizontal,
+  Sparkles,
   Users,
   Wallet,
 } from "lucide-react"
@@ -27,6 +28,12 @@ export type NavNode = {
 
 export const navItems: NavNode[] = [
   { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  {
+    href: "/ai",
+    labelKey: "nav.ai",
+    icon: Sparkles,
+    permissions: ["ai.assistant.use"],
+  },
   {
     labelKey: "nav.admin",
     icon: Users,

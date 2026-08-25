@@ -1,5 +1,6 @@
 {
   "dashboard": "Dashboard",
+  "ai": "AI assistant",
   "admin": {
     "_self": "Admin",
     "users": "Users",

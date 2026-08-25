@@ -45,6 +45,8 @@ jobs:
         with:
           context: .
           file: Dockerfile
+          build-args: |
+            VITE_AI_ENABLED=true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
