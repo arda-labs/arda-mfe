@@ -48,7 +48,6 @@ export function ProcessConfigsPage() {
     <WorkflowFrame
       title="Cấu hình quy trình"
       description="Ánh xạ từng loại nghiệp vụ tới BPMN process id, version, SLA mặc định và role xử lý."
-      source="api"
       metrics={[
         {
           label: "Loại nghiệp vụ",

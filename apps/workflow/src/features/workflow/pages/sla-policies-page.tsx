@@ -52,7 +52,6 @@ export function SlaPoliciesPage() {
     <WorkflowFrame
       title="Cấu hình SLA"
       description="Định nghĩa thời hạn xử lý, ngưỡng cảnh báo và role escalations cho từng nghiệp vụ."
-      source="api"
       action={
         <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
           Tạo SLA

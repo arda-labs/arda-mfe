@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
+import { useAuthStore } from "@workspace/auth"
 import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
 import type { WorkflowCaseType } from "../api"
 import { workflowApi } from "../api"
@@ -14,6 +15,7 @@ import {
 } from "../shared/admin-ui"
 
 export function CaseTypesPage() {
+  const tenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const [items, setItems] = useState<WorkflowCaseType[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
@@ -48,7 +50,6 @@ export function CaseTypesPage() {
     <WorkflowFrame
       title="Danh mục loại nghiệp vụ"
       description="Quản lý mã nghiệp vụ, khu vực menu, service sở hữu và trạng thái áp dụng."
-      source="api"
       metrics={[
         {
           label: "Loại nghiệp vụ",
@@ -84,6 +85,7 @@ export function CaseTypesPage() {
       {createOpen ? (
         <CaseTypeDialog
           open
+          tenantId={tenantId}
           businessAreaOptions={businessAreaOptions}
           roleOptions={roleOptions}
           onOpenChange={setCreateOpen}
@@ -94,6 +96,7 @@ export function CaseTypesPage() {
         <CaseTypeDialog
           item={editing}
           open
+          tenantId={tenantId}
           businessAreaOptions={businessAreaOptions}
           roleOptions={roleOptions}
           onOpenChange={(open) => !open && setEditing(null)}

@@ -1058,12 +1058,14 @@ export function ProcessDefinitionDialog({
 export function CaseTypeDialog({
   item,
   open,
+  tenantId,
   businessAreaOptions,
   roleOptions,
   onOpenChange,
   onSaved,
 }: {
   item?: WorkflowCaseType | null
+  tenantId: string
   open: boolean
   businessAreaOptions: SelectOption[]
   roleOptions: SelectOption[]
@@ -2271,6 +2273,7 @@ export function AssignmentRuleDialog({
 export function DelegationDialog({
   item,
   open,
+  tenantId,
   roleOptions,
   onOpenChange,
   onSaved,
@@ -2300,6 +2303,7 @@ export function DelegationDialog({
     try {
       const payload = {
         ...form,
+        tenantId,
         effectiveFrom: fromDateInputValue(form.effectiveFrom),
         effectiveTo: fromDateInputValue(form.effectiveTo),
       }

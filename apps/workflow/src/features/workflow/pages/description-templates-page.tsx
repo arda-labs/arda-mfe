@@ -48,7 +48,6 @@ export function DescriptionTemplatesPage() {
     <WorkflowFrame
       title="Cấu trúc diễn giải"
       description="Chuẩn hóa cách sinh tiêu đề, mô tả và dòng timeline để các danh sách dễ quét."
-      source="api"
       action={
         <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
           Tạo cấu trúc
