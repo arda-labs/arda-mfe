@@ -23,6 +23,9 @@ const SystemSettingsPage = lazyWithPreload(() =>
     default: m.SystemSettingsPage,
   }))
 )
+const TenantsPage = lazyWithPreload(() =>
+  import("@/features/iam/tenants/page").then((m) => ({ default: m.TenantsPage }))
+)
 
 export default createRemoteRoutes({
   routes: [
@@ -31,6 +34,7 @@ export default createRemoteRoutes({
     { prefix: "/admin/permissions", component: PermissionsPage },
     { prefix: "/admin/audit", component: AuditPage },
     { prefix: "/admin/settings", component: SystemSettingsPage },
+    { prefix: "/admin/tenants", component: TenantsPage },
   ],
   defaultComponent: UsersPage,
 })

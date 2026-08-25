@@ -1,5 +1,5 @@
 import type { PersistStorage } from "zustand/middleware"
-import { api, configureApiContext } from "@workspace/api"
+import { api, configureApiContext, type ApiSuccess } from "@workspace/api"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
@@ -29,11 +29,23 @@ export interface AuthUser {
   dailyLimit?: string
   bio?: string
   tenantId?: string
+  activeTenantId?: string
+  tenantMemberships?: TenantMembership[]
+  tenantSelectionRequired?: boolean
   orgIds?: string[]
   activeOrgId?: string
   roles?: string[]
   permissions?: string[]
   authVersion?: number
+}
+
+export interface TenantMembership {
+  tenantId: string
+  tenantCode: string
+  tenantName: string
+  tenantStatus: string
+  status: string
+  isDefault: boolean
 }
 
 export type AuthUserSource = Partial<AuthUser> & {
@@ -94,6 +106,11 @@ export function normalizeAuthUser(
     dailyLimit: source.dailyLimit || "",
     bio: source.bio || "",
     tenantId: source.tenantId || "",
+    activeTenantId: source.activeTenantId || source.tenantId || "",
+    tenantMemberships: Array.isArray(source.tenantMemberships)
+      ? source.tenantMemberships
+      : [],
+    tenantSelectionRequired: Boolean(source.tenantSelectionRequired),
     orgIds: source.orgIds || [],
     activeOrgId: source.activeOrgId || "",
     roles: Array.isArray(source.roles) ? source.roles : [],
@@ -126,6 +143,7 @@ interface AuthState {
   isAuthenticated: boolean
   login: (user: AuthUser) => void
   updateUser: (patch: Partial<AuthUser>) => void
+  switchTenant: (tenantId: string) => Promise<void>
   setActiveOrgId: (orgId: string) => void
   clearSession: () => void
   logout: () => Promise<void>
@@ -159,6 +177,16 @@ export const useAuthStore = create<AuthState>()(
           }
           return { user: mergedUser }
         }),
+      switchTenant: async (tenantId) => {
+        const response = await api.post<ApiSuccess<AuthUserSource>>(
+          "/api/auth/tenant/switch",
+          { tenant_id: tenantId }
+        )
+        set({
+          user: normalizeAuthUser(response.result),
+          isAuthenticated: true,
+        })
+      },
       setActiveOrgId: (orgId) =>
         set((state) => ({
           user: state.user ? { ...state.user, activeOrgId: orgId } : null,

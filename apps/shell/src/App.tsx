@@ -260,6 +260,14 @@ export function App() {
           }
         />
         <Route
+          path="/admin/tenants/*"
+          element={
+            <RemoteRoute>
+              <IamRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
           path="/admin/*"
           element={
             <RemoteRoute>

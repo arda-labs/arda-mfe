@@ -1,4 +1,5 @@
-import { Moon, Sun } from "lucide-react"
+import { Building2, Check, Moon, Sun } from "lucide-react"
+import { useState } from "react"
 import {
   SHELL_PAGE_HEADER_SLOT_ID,
   type ShellPageTitleState,
@@ -10,6 +11,14 @@ import { NotificationBell } from "@workspace/notifications"
 import { useTheme } from "@workspace/theme"
 import type { AuthUser } from "@workspace/auth/store"
 import { UserMenu } from "./UserMenu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 
 export function AppHeader({
   pageTitle,
@@ -24,10 +33,12 @@ export function AppHeader({
   initials: string
   displayUserName: string
   logout: () => Promise<void>
+  switchTenant: (tenantId: string) => Promise<void>
   navigate: (pathname: string) => void
 }) {
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useI18n()
+  const [switchingTenant, setSwitchingTenant] = useState(false)
 
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light")
   const ThemeIcon = theme === "dark" ? Sun : Moon
@@ -53,6 +64,52 @@ export function AppHeader({
         />
       </div>
       <div className="flex items-center gap-2">
+        {user?.tenantMemberships && user.tenantMemberships.length > 1 ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="max-w-48 gap-2">
+                <Building2 className="size-3.5" />
+                <span className="truncate">
+                  {user.tenantMemberships.find(
+                    (membership) =>
+                      membership.tenantId ===
+                      (user.activeTenantId || user.tenantId)
+                  )?.tenantName || "Select tenant"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Workspace</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {user.tenantMemberships.map((membership) => (
+                <DropdownMenuItem
+                  key={membership.tenantId}
+                  disabled={switchingTenant}
+                  onClick={() => {
+                    if (
+                      membership.tenantId ===
+                      (user.activeTenantId || user.tenantId)
+                    ) {
+                      return
+                    }
+                    setSwitchingTenant(true)
+                    void switchTenant(membership.tenantId).finally(() =>
+                      setSwitchingTenant(false)
+                    )
+                  }}
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    {membership.tenantName}
+                  </span>
+                  {membership.tenantId ===
+                  (user.activeTenantId || user.tenantId) ? (
+                    <Check className="size-4" />
+                  ) : null}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
         <NotificationBell />
         <Button
           variant="ghost"

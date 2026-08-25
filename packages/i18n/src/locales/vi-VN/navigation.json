@@ -7,7 +7,8 @@
     "permissions": "Quyền",
     "audit": "Nhật ký",
     "system_settings": "Cài đặt hệ thống",
-    "groups": "Nhóm người dùng"
+    "groups": "Nhóm người dùng",
+    "tenants": "Tenant"
   },
   "finance": {
     "_self": "Tài chính",

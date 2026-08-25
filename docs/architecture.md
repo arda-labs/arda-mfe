@@ -27,6 +27,18 @@ Hệ thống được thiết kế theo mô hình **Distributed Micro-Frontends*
 
 ## 2. Core Architectural Principles
 
+### 2.0. Tenant context
+
+The browser session receives the authenticated Arda user together with
+`tenantMemberships` and `activeTenantId` from `/api/auth/me`. The frontend may
+display memberships and request a switch through the BFF endpoint
+`POST /api/auth/tenant/switch`; it never sends `X-Tenant-Id` as an authority
+header. `credentials: "include"` remains enabled for these cookie-backed calls.
+
+After a successful switch, the auth store replaces the user context so all
+subsequent API calls use the server-side active tenant session. Tenant-scoped
+roles, permissions, groups and organizations come from that context.
+
 ### 2.1. Single Source of Shared Dependencies
 Toàn bộ hợp đồng chia sẻ (shared dependencies) giữa Host và các Remote được quản lý tập trung tại [`federation.shared.ts`](file:///d:/github/arda/arda-mfe/federation.shared.ts).
 - Các thư viện React và UI Core (`react`, `react-dom`, `react-router-dom`, `react-toastify`) bắt buộc phải là **Singleton** để tránh hiện tượng duplicate context hoặc render lỗi.

@@ -20,6 +20,7 @@ const remoteRoutes: Array<{
       "/admin/permissions",
       "/admin/audit",
       "/admin/settings",
+      "/admin/tenants",
     ],
     component: IamRoutes,
   },

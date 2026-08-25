@@ -67,6 +67,12 @@ export const navItems: NavNode[] = [
         icon: Settings,
         permissions: ["platform.manage"],
       },
+      {
+        href: "/admin/tenants",
+        labelKey: "nav.admin.tenants",
+        icon: Building2,
+        permissions: ["superadmin"],
+      },
     ],
   },
   {

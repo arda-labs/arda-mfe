@@ -44,7 +44,7 @@ export function ShellLayout() {
   const [authHydrated, setAuthHydrated] = useState(() =>
     useAuthStore.persist.hasHydrated()
   )
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { user, isAuthenticated, logout, switchTenant } = useAuthStore()
   const { t } = useI18n()
   const { branding } = useSystemBranding()
   const visibleNavItems = filterNavItems(navItems, user)
@@ -151,6 +151,7 @@ export function ShellLayout() {
           initials={initials}
           displayUserName={displayUserName}
           logout={logout}
+          switchTenant={switchTenant}
           navigate={navigate}
         />
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">

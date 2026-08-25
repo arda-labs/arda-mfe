@@ -128,6 +128,24 @@ export interface User {
   createdAt: string
 }
 
+export interface Tenant {
+  id: string
+  code: string
+  name: string
+  status: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface TenantMember {
+  userId: string
+  username: string
+  email: string
+  displayName: string
+  status: string
+  isDefault: boolean
+}
+
 export interface IdentityConsistencyIssue {
   type: string
   userId?: string
@@ -446,6 +464,28 @@ function toUpdateGroupBody(data: {
 }
 
 export const adminApi = {
+  // Tenant registry
+  listTenants: () => getAdmin<Tenant[]>('/api/admin/tenants'),
+  createTenant: (data: { code: string; name: string; ownerUserId?: string }) =>
+    postAdmin<Tenant>('/api/admin/tenants', {
+      code: data.code,
+      name: data.name,
+      owner_user_id: data.ownerUserId,
+    }),
+  listTenantMembers: (tenantId: string) =>
+    getAdmin<TenantMember[]>(
+      `/api/admin/tenants/${encodeURIComponent(tenantId)}/members`
+    ),
+  addTenantMember: (tenantId: string, userId: string, isDefault = false) =>
+    postAdmin(`/api/admin/tenants/${encodeURIComponent(tenantId)}/members`, {
+      user_id: userId,
+      is_default: isDefault,
+    }),
+  removeTenantMember: (tenantId: string, userId: string) =>
+    deleteAdmin(
+      `/api/admin/tenants/${encodeURIComponent(tenantId)}/members/${encodeURIComponent(userId)}`
+    ),
+
   // Users
   listUsers: (params?: AdminListInput) =>
     getAdmin<ListResponse<UserApiItem>>(

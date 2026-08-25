@@ -7,7 +7,8 @@
     "roles": "Roles",
     "permissions": "Permissions",
     "audit": "Audit",
-    "system_settings": "System Settings"
+    "system_settings": "System Settings",
+    "tenants": "Tenants"
   },
   "finance": {
     "_self": "Finance",
