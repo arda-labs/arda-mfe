@@ -215,7 +215,7 @@ type UserApiItem = {
   status: string
   source?: string
   kratos_identity_id?: string
-  roles: string[]
+  roles?: string[] | null
   tenant_id: string
   created_at: string
   updated_at?: string
@@ -236,7 +236,7 @@ const normalizeUser = (user: UserApiItem): User => ({
   status: user.status,
   source: user.source,
   kratosIdentityId: user.kratos_identity_id,
-  roles: user.roles,
+  roles: Array.isArray(user.roles) ? user.roles : [],
   tenantId: user.tenant_id,
   createdAt: user.created_at,
 })
