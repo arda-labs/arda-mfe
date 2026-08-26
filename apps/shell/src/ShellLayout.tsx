@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate, Outlet } from "react-router-dom"
-import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
+import { Maximize2, PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
 import { useSystemBranding } from "@workspace/theme/branding"
 import {
   SHELL_PAGE_TITLE_EVENT,
@@ -26,6 +26,21 @@ import { AppHeader } from "./components/AppHeader"
 
 const aiEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
 
+const AI_PANEL_WIDTH_KEY = "arda-ai-panel-width"
+const AI_PANEL_MIN_WIDTH = 320
+const AI_PANEL_MAX_WIDTH = 720
+const AI_PANEL_DEFAULT_WIDTH = 380
+
+function loadAiPanelWidth(): number {
+  if (typeof localStorage === "undefined") return AI_PANEL_DEFAULT_WIDTH
+  const stored = Number(localStorage.getItem(AI_PANEL_WIDTH_KEY))
+  if (!Number.isFinite(stored)) return AI_PANEL_DEFAULT_WIDTH
+  return Math.min(
+    AI_PANEL_MAX_WIDTH,
+    Math.max(AI_PANEL_MIN_WIDTH, Math.round(stored))
+  )
+}
+
 function formatUserLabel(name: string, nickname?: string) {
   const cleanNickname = nickname?.trim()
   return cleanNickname ? `${name} (${cleanNickname})` : name
@@ -45,6 +60,8 @@ export function ShellLayout() {
   })
   const [pageTitle, setPageTitle] = useState<ShellPageTitleState | null>(null)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [aiPanelWidth, setAiPanelWidth] = useState(loadAiPanelWidth)
+  const aiPanelResizing = useRef(false)
   const [authHydrated, setAuthHydrated] = useState(() =>
     useAuthStore.persist.hasHydrated()
   )
@@ -83,6 +100,40 @@ export function ShellLayout() {
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
+  const startAiPanelResize = useCallback((event: React.MouseEvent) => {
+    event.preventDefault()
+    aiPanelResizing.current = true
+    document.body.style.cursor = "col-resize"
+    document.body.style.userSelect = "none"
+  }, [])
+
+  useEffect(() => {
+    function onMove(event: MouseEvent) {
+      if (!aiPanelResizing.current) return
+      const width = Math.min(
+        AI_PANEL_MAX_WIDTH,
+        Math.max(AI_PANEL_MIN_WIDTH, window.innerWidth - event.clientX)
+      )
+      setAiPanelWidth(width)
+    }
+    function onUp() {
+      if (!aiPanelResizing.current) return
+      aiPanelResizing.current = false
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+      setAiPanelWidth((width) => {
+        localStorage.setItem(AI_PANEL_WIDTH_KEY, String(width))
+        return width
+      })
+    }
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
+    return () => {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+    }
   }, [])
 
   const displayUserName = user
@@ -180,8 +231,13 @@ export function ShellLayout() {
       {aiEnabled && aiPanelOpen ? (
         <aside
           aria-label={t("ai.name")}
-          className="hidden w-[380px] shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
+          style={{ width: aiPanelWidth }}
+          className="hidden shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
         >
+          <div
+            onMouseDown={startAiPanelResize}
+            className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize hover:bg-primary/20"
+          />
           <div className="flex h-[52px] shrink-0 items-center gap-2 border-b px-3">
             <p className="min-w-0 flex-1 truncate text-sm font-semibold">
               {t("ai.name")}
@@ -189,6 +245,19 @@ export function ShellLayout() {
                 {t("ai.tagline")}
               </span>
             </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("ai.panel.expand")}
+              title={t("ai.panel.expand")}
+              onClick={() => {
+                setAiPanelOpen(false)
+                navigate("/ai")
+              }}
+              className="size-8"
+            >
+              <Maximize2 className="size-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

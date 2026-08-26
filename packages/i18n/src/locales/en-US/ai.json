@@ -76,6 +76,7 @@
     "open": "Open Olorin",
     "close": "Close Olorin",
     "ask": "Ask AI",
+    "expand": "Expand to full page",
     "shortcut_hint": "Ctrl+J"
   }
 }
