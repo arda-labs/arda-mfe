@@ -1,0 +1,71 @@
+{
+  "name": "Olorin",
+  "tagline": "Arda Assistant",
+  "status": {
+    "connecting": "Connecting…",
+    "working": "Working…",
+    "error": "Connection failed",
+    "done": "Done",
+    "ready": "Ready"
+  },
+  "composer": {
+    "label": "Ask Olorin",
+    "placeholder": "Ask Olorin anything…",
+    "send": "Send message",
+    "hint": "Enter to send · Shift+Enter for a new line"
+  },
+  "transcript": {
+    "label": "Conversation history with Olorin"
+  },
+  "message": {
+    "header": "Olorin · Arda Assistant",
+    "thinking": "Preparing an answer…"
+  },
+  "error": {
+    "connection": "Could not connect. Please try again."
+  },
+  "empty": {
+    "title": "Ask Olorin anything about data you are allowed to see",
+    "hint": "Olorin only reads data in the current tenant and always waits for your approval before making changes."
+  },
+  "suggestions": {
+    "customer": "Look up a customer",
+    "knowledge": "Search internal knowledge"
+  },
+  "tool": {
+    "unparsed": "Tool result could not be read.",
+    "details": "Result details",
+    "customer": {
+      "code": "Customer code",
+      "segment": "Segment",
+      "rank": "Rank",
+      "risk": "Risk level",
+      "status": "{status}"
+    },
+    "citations": {
+      "title": "References",
+      "details": "Lookup result details",
+      "fallback": "Arda knowledge"
+    }
+  },
+  "approval": {
+    "badge": "Proposed by AI",
+    "title": "Awaiting your approval",
+    "description": "Olorin will not perform this action on its own. Review and decide before it runs.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "saving": "Submitting…",
+    "expires": "Expires at {time}",
+    "error": "Could not submit the decision. Please try again."
+  },
+  "fixture": {
+    "notice": "Preview mode with sample data"
+  },
+  "panel": {
+    "open": "Open Olorin",
+    "close": "Close Olorin",
+    "shortcut_hint": "Ctrl+J"
+  }
+}

@@ -24,6 +24,8 @@ export const remoteSharedDeps = {
   "@workspace/theme/": { singleton: true, requiredVersion: false },
   "@workspace/auth": { singleton: true, requiredVersion: false },
   "@workspace/auth/": { singleton: true, requiredVersion: false },
+  "@workspace/ai": { singleton: true, requiredVersion: false },
+  "@workspace/ai/": { singleton: true, requiredVersion: false },
   "@workspace/notifications": { singleton: true, requiredVersion: false },
   "@workspace/notifications/": { singleton: true, requiredVersion: false },
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render

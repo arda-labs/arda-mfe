@@ -1,0 +1,71 @@
+{
+  "name": "Olorin",
+  "tagline": "Trợ lý Arda",
+  "status": {
+    "connecting": "Đang kết nối…",
+    "working": "Đang xử lý…",
+    "error": "Không thể kết nối",
+    "done": "Hoàn tất",
+    "ready": "Sẵn sàng"
+  },
+  "composer": {
+    "label": "Nội dung hỏi Olorin",
+    "placeholder": "Hỏi Olorin bất cứ điều gì…",
+    "send": "Gửi câu hỏi",
+    "hint": "Enter để gửi · Shift+Enter để xuống dòng"
+  },
+  "transcript": {
+    "label": "Lịch sử hội thoại với Olorin"
+  },
+  "message": {
+    "header": "Olorin · Trợ lý Arda",
+    "thinking": "Đang chuẩn bị câu trả lời…"
+  },
+  "error": {
+    "connection": "Không thể kết nối. Vui lòng thử lại."
+  },
+  "empty": {
+    "title": "Hỏi Olorin bất cứ điều gì về dữ liệu bạn được phân quyền",
+    "hint": "Olorin chỉ đọc dữ liệu trong tenant hiện tại và luôn chờ bạn phê duyệt trước khi thực hiện thay đổi."
+  },
+  "suggestions": {
+    "customer": "Tra cứu thông tin khách hàng",
+    "knowledge": "Tìm trong tri thức nội bộ"
+  },
+  "tool": {
+    "unparsed": "Kết quả công cụ không đọc được.",
+    "details": "Chi tiết kết quả",
+    "customer": {
+      "code": "Mã khách hàng",
+      "segment": "Phân khúc",
+      "rank": "Xếp hạng",
+      "risk": "Mức độ rủi ro",
+      "status": "{status}"
+    },
+    "citations": {
+      "title": "Nguồn tham khảo",
+      "details": "Chi tiết kết quả tra cứu",
+      "fallback": "Tri thức Arda"
+    }
+  },
+  "approval": {
+    "badge": "Đề xuất bởi AI",
+    "title": "Chờ bạn phê duyệt",
+    "description": "Olorin không tự thực hiện hành động này. Bạn cần xem xét và quyết định.",
+    "approve": "Duyệt",
+    "reject": "Từ chối",
+    "approved": "Đã duyệt",
+    "rejected": "Đã từ chối",
+    "saving": "Đang gửi…",
+    "expires": "Hết hạn lúc {time}",
+    "error": "Không gửi được quyết định. Vui lòng thử lại."
+  },
+  "fixture": {
+    "notice": "Chế độ xem trước với dữ liệu mẫu"
+  },
+  "panel": {
+    "open": "Mở Olorin",
+    "close": "Đóng Olorin",
+    "shortcut_hint": "Ctrl+J"
+  }
+}

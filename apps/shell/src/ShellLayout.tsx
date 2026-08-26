@@ -14,6 +14,7 @@ import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { useAuthStore } from "@workspace/auth"
 import { useNotificationStream } from "@workspace/notifications"
+import { OlorinDock } from "./features/ai/olorin-dock"
 import { GlobalErrorDialog } from "@workspace/ui/feedback/global-error-dialog"
 import {
   navItems,
@@ -22,6 +23,8 @@ import {
 } from "./config/nav-config"
 import { SidebarNode } from "./components/SidebarNav"
 import { AppHeader } from "./components/AppHeader"
+
+const aiEnabled = import.meta.env.VITE_AI_ENABLED === "true"
 
 function formatUserLabel(name: string, nickname?: string) {
   const cleanNickname = nickname?.trim()
@@ -158,6 +161,7 @@ export function ShellLayout() {
           <Outlet />
           <Toaster />
           <GlobalErrorDialog />
+          {aiEnabled && <OlorinDock />}
         </main>
       </div>
     </div>

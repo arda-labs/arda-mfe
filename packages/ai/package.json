@@ -1,0 +1,29 @@
+{
+  "name": "@workspace/ai",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@copilotkit/react-core": "1.69.0",
+    "@workspace/api": "workspace:*",
+    "@workspace/i18n": "workspace:*",
+    "@workspace/ui": "workspace:*",
+    "lucide-react": "^1.22.0",
+    "react": "^19.2.6",
+    "react-i18next": "^17.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "eslint": "^10",
+    "typescript": "~6"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

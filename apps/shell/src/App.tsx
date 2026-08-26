@@ -26,7 +26,7 @@ import {
   WorkflowRoutes,
 } from "./remote-routes"
 import { ShellLayout } from "./ShellLayout"
-import { AiAssistantPage, AiProtocolSpikePage } from "./features/ai/ai-protocol-spike"
+import { OlorinPage } from "./features/ai/olorin-page"
 
 const aiProtocolSpikeEnabled = import.meta.env.VITE_AI_PROTOCOL_SPIKE === "true"
 const aiAssistantEnabled = import.meta.env.VITE_AI_ENABLED === "true"
@@ -205,7 +205,11 @@ export function App() {
       <Route
         path="/ai-protocol-spike"
         element={
-          aiProtocolSpikeEnabled ? <AiProtocolSpikePage /> : <NotFoundPage />
+          aiProtocolSpikeEnabled || aiAssistantEnabled ? (
+            <OlorinPage />
+          ) : (
+            <NotFoundPage />
+          )
         }
       />
       <Route
@@ -222,7 +226,7 @@ export function App() {
         <Route index element={<Dashboard />} />
         <Route
           path="/ai"
-          element={aiAssistantEnabled ? <AiAssistantPage /> : <NotFoundPage />}
+          element={aiAssistantEnabled ? <OlorinPage /> : <NotFoundPage />}
         />
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route
