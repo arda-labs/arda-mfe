@@ -87,6 +87,13 @@ export {
 } from "./components/data-table-view"
 export {
   AISettingsDialog,
-  type AISettings,
   type AISettingsDialogProps,
 } from "./components/ai-settings-dialog"
+export {
+  fetchAISettings,
+  saveAISettings,
+  testAIConnection,
+  type AISettings,
+  type TestConnectionRequest,
+  type TestConnectionResult,
+} from "./settings"

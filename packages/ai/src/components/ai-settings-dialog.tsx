@@ -22,14 +22,13 @@ import {
   XCircle,
 } from "lucide-react"
 
-export type AISettings = {
-  providerType: string
-  baseUrl: string
-  apiKey: string
-  modelId: string
-  temperature?: number
-  hasApiKey?: boolean
-}
+import {
+  fetchAISettings,
+  saveAISettings,
+  testAIConnection,
+  type AISettings,
+  type TestConnectionResult,
+} from "../settings"
 
 type ProviderPreset = {
   id: string
@@ -99,27 +98,26 @@ const PRESETS: ProviderPreset[] = [
 export type AISettingsDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSaved?: () => void
 }
 
-export function AISettingsDialog({ open, onOpenChange }: AISettingsDialogProps) {
+export function AISettingsDialog({
+  open,
+  onOpenChange,
+  onSaved,
+}: AISettingsDialogProps) {
   const { t } = useI18n()
-  const [loading, setLoading] = React.useState(false)
-  const [saving, setSaving] = React.useState(false)
-  const [testing, setTesting] = React.useState(false)
-  const [showKey, setShowKey] = React.useState(false)
-
   const [providerType, setProviderType] = React.useState("openai")
   const [baseUrl, setBaseUrl] = React.useState("https://api.openai.com/v1")
-  const [modelId, setModelId] = React.useState("gpt-4o-mini")
   const [apiKey, setApiKey] = React.useState("")
+  const [modelId, setModelId] = React.useState("gpt-4o")
+  const [showKey, setShowKey] = React.useState(false)
   const [hasExistingKey, setHasExistingKey] = React.useState(false)
 
-  const [testResult, setTestResult] = React.useState<{
-    success: boolean
-    message?: string
-    error?: string
-    latencyMs?: number
-  } | null>(null)
+  const [loading, setLoading] = React.useState(false)
+  const [testing, setTesting] = React.useState(false)
+  const [saving, setSaving] = React.useState(false)
+  const [testResult, setTestResult] = React.useState<TestConnectionResult | null>(null)
   const [saveSuccess, setSaveSuccess] = React.useState(false)
 
   // Load existing settings on open
@@ -131,14 +129,7 @@ export function AISettingsDialog({ open, onOpenChange }: AISettingsDialogProps) 
     }
 
     setLoading(true)
-    fetch("/api/ai/settings", {
-      credentials: "include",
-      headers: { Accept: "application/json" },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load settings")
-        return res.json()
-      })
+    fetchAISettings()
       .then((data: AISettings) => {
         if (data.providerType) setProviderType(data.providerType)
         if (data.baseUrl) setBaseUrl(data.baseUrl)
@@ -171,19 +162,12 @@ export function AISettingsDialog({ open, onOpenChange }: AISettingsDialogProps) 
     setSaveSuccess(false)
 
     try {
-      const res = await fetch("/api/ai/settings/test", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerType,
-          baseUrl,
-          apiKey,
-          modelId,
-        }),
+      const data = await testAIConnection({
+        providerType,
+        baseUrl,
+        apiKey,
+        modelId,
       })
-
-      const data = await res.json()
       setTestResult(data)
     } catch (err) {
       setTestResult({
@@ -201,33 +185,24 @@ export function AISettingsDialog({ open, onOpenChange }: AISettingsDialogProps) 
     setTestResult(null)
 
     try {
-      const res = await fetch("/api/ai/settings", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerType,
-          baseUrl,
-          apiKey,
-          modelId,
-          temperature: 0.2,
-          isActive: true,
-        }),
+      await saveAISettings({
+        providerType,
+        baseUrl,
+        apiKey,
+        modelId,
+        temperature: 0.2,
+        isActive: true,
       })
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.code || "Failed to save settings")
-      }
-
       setSaveSuccess(true)
+      setHasExistingKey(true)
+      onSaved?.()
       setTimeout(() => {
         onOpenChange(false)
-      }, 1200)
+      }, 1000)
     } catch (err) {
       setTestResult({
         success: false,
-        error: err instanceof Error ? err.message : "Lưu thất bại",
+        error: err instanceof Error ? err.message : "Lỗi lưu cấu hình",
       })
     } finally {
       setSaving(false)

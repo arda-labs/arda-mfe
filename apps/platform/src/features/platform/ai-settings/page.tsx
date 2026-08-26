@@ -36,23 +36,10 @@ import {
   Zap,
 } from "lucide-react"
 
-interface AISettings {
-  providerType: string
-  baseUrl: string
-  apiKey: string
-  modelId: string
-  temperature: number
-  isActive: boolean
-  hasApiKey?: boolean
-}
-
-interface TestResult {
-  success: boolean
-  latencyMs?: number
-  modelId?: string
-  message?: string
-  error?: string
-}
+import {
+  platformApi,
+  type TestConnectionResult,
+} from "../api"
 
 const PRESETS = [
   {
@@ -123,24 +110,18 @@ export function AISettingsPage() {
   const [loading, setLoading] = React.useState<boolean>(true)
   const [testing, setTesting] = React.useState<boolean>(false)
   const [saving, setSaving] = React.useState<boolean>(false)
-  const [testResult, setTestResult] = React.useState<TestResult | null>(null)
+  const [testResult, setTestResult] = React.useState<TestConnectionResult | null>(null)
 
   const loadSettings = React.useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch("/api/ai/settings", {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      })
-      if (res.ok) {
-        const data: AISettings = await res.json()
-        if (data.providerType) setProviderType(data.providerType)
-        if (data.baseUrl) setBaseUrl(data.baseUrl)
-        if (data.modelId) setModelId(data.modelId)
-        if (data.apiKey) setApiKey(data.apiKey)
-        if (data.temperature) setTemperature(data.temperature)
-        setHasExistingKey(Boolean(data.hasApiKey || data.apiKey))
-      }
+      const data = await platformApi.getAISettings()
+      if (data.providerType) setProviderType(data.providerType)
+      if (data.baseUrl) setBaseUrl(data.baseUrl)
+      if (data.modelId) setModelId(data.modelId)
+      if (data.apiKey) setApiKey(data.apiKey)
+      if (data.temperature) setTemperature(data.temperature)
+      setHasExistingKey(Boolean(data.hasApiKey || data.apiKey))
     } catch {
       // Use defaults
     } finally {
@@ -169,18 +150,12 @@ export function AISettingsPage() {
     setTesting(true)
     setTestResult(null)
     try {
-      const res = await fetch("/api/ai/settings/test", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerType,
-          baseUrl,
-          apiKey,
-          modelId,
-        }),
+      const data = await platformApi.testAIConnection({
+        providerType,
+        baseUrl,
+        apiKey,
+        modelId,
       })
-      const data = await res.json()
       setTestResult(data)
       if (data.success) {
         notify.success(`Kết nối thành công tới ${data.modelId} (${data.latencyMs}ms)`)
@@ -199,22 +174,14 @@ export function AISettingsPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const res = await fetch("/api/ai/settings", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerType,
-          baseUrl,
-          apiKey,
-          modelId,
-          temperature,
-          isActive: true,
-        }),
+      await platformApi.updateAISettings({
+        providerType,
+        baseUrl,
+        apiKey,
+        modelId,
+        temperature,
+        isActive: true,
       })
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`)
-      }
       notify.success("Cấu hình AI đã được lưu và kích hoạt tức thì")
       setHasExistingKey(true)
       await loadSettings()

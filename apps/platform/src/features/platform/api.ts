@@ -368,6 +368,38 @@ export const platformApi = {
     description: string
     isRecurring: boolean
   }) => postCanonical<HolidayCalendar>("/api/platform/calendar/holidays", data),
+
+  // AI Assistant Settings
+  getAISettings: () => getCanonical<AISettings>("/api/ai/settings"),
+  updateAISettings: (data: Partial<AISettings>) =>
+    putCanonical<{ saved: boolean }>("/api/ai/settings", data),
+  testAIConnection: (data: TestConnectionRequest) =>
+    postCanonical<TestConnectionResult>("/api/ai/settings/test", data),
+}
+
+export interface AISettings {
+  providerType: string
+  baseUrl: string
+  apiKey: string
+  modelId: string
+  temperature: number
+  isActive: boolean
+  hasApiKey?: boolean
+}
+
+export interface TestConnectionRequest {
+  providerType: string
+  baseUrl: string
+  apiKey: string
+  modelId: string
+}
+
+export interface TestConnectionResult {
+  success: boolean
+  latencyMs?: number
+  modelId?: string
+  message?: string
+  error?: string
 }
 
 export interface SystemDate {
