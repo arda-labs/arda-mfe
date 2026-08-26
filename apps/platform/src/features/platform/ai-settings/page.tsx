@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -26,13 +25,11 @@ import {
   Cpu,
   Eye,
   EyeOff,
-  Flame,
   Globe,
   Key,
   Layers,
   Lock,
   RefreshCw,
-  Server,
   Shield,
   ShieldCheck,
   Sparkles,
@@ -115,7 +112,6 @@ const PRESETS = [
 ]
 
 export function AISettingsPage() {
-  const { t } = useI18n()
   const [providerType, setProviderType] = React.useState<string>("openai")
   const [baseUrl, setBaseUrl] = React.useState<string>("https://api.openai.com/v1")
   const [apiKey, setApiKey] = React.useState<string>("")
