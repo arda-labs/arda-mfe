@@ -85,3 +85,8 @@ export {
   DataTableView,
   isArrayResult,
 } from "./components/data-table-view"
+export {
+  AISettingsDialog,
+  type AISettings,
+  type AISettingsDialogProps,
+} from "./components/ai-settings-dialog"

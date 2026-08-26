@@ -124,5 +124,18 @@
     "expand": "Expand to full page",
     "minimize": "Collapse to panel",
     "shortcut_hint": "Ctrl+J"
+  },
+  "settings": {
+    "title": "Configure AI Provider (BYOK)",
+    "description": "Set up your custom LLM API Token and Model ID for Olorin assistant.",
+    "preset": "Popular Providers",
+    "baseUrl": "Base URL (OpenAI-compatible)",
+    "modelId": "Model ID",
+    "apiKey": "API Key",
+    "test_connection": "Test Connection",
+    "testing": "Testing...",
+    "save": "Save Settings",
+    "saving": "Saving...",
+    "close": "Close"
   }
 }

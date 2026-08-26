@@ -124,5 +124,18 @@
     "expand": "Mở toàn màn hình",
     "minimize": "Thu nhỏ về thanh bên",
     "shortcut_hint": "Ctrl+J"
+  },
+  "settings": {
+    "title": "Cấu hình AI Provider (BYOK)",
+    "description": "Thiết lập nguồn API Token và Model ID sử dụng cho trợ lý Olorin.",
+    "preset": "Nhà cung cấp phổ biến",
+    "baseUrl": "Base URL (OpenAI-compatible)",
+    "modelId": "Model ID",
+    "apiKey": "API Key",
+    "test_connection": "Kiểm tra kết nối",
+    "testing": "Đang test...",
+    "save": "Lưu cấu hình",
+    "saving": "Đang lưu...",
+    "close": "Đóng"
   }
 }

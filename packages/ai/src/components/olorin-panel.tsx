@@ -1,3 +1,4 @@
+import * as React from "react"
 import {
   ThreadPrimitive,
   MessagePrimitive,
@@ -21,6 +22,7 @@ import {
   Plus,
   RefreshCw,
   Send,
+  Settings,
   Sparkles,
   Square,
   Trash2,
@@ -41,6 +43,7 @@ import {
   ExecuteMetaToolUI,
   GenericToolView,
 } from "./tool-ui"
+import { AISettingsDialog } from "./ai-settings-dialog"
 import { useOlorinContext } from "../context"
 import { collectOlorinContext } from "../registry"
 
@@ -65,6 +68,7 @@ export function OlorinPanel({
   const { t, formatDate } = useI18n()
   const { newThread, switchToThread, threadId } = useOlorinContext()
   const conversations = useOlorinConversations(true)
+  const [settingsOpen, setSettingsOpen] = React.useState(false)
 
   return (
     <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col bg-background text-foreground", className)}>
@@ -72,10 +76,18 @@ export function OlorinPanel({
         <div className="flex h-11 shrink-0 items-center justify-between border-b px-3 bg-muted/20">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-xs font-medium">
-                <History className="size-3.5 text-muted-foreground" />
-                <span className="max-w-[140px] truncate">{t("ai.threads.title")}</span>
-                <ChevronDown className="size-3 text-muted-foreground" />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1.5 px-2 text-xs font-medium max-w-[220px]"
+              >
+                <History className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate">
+                  {conversations.conversations.find((c) => c.threadId === threadId)?.title ||
+                    t("ai.threads.history")}
+                </span>
+                <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72">
@@ -127,16 +139,30 @@ export function OlorinPanel({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => newThread()}
-            className="h-7 gap-1 px-2 text-xs rounded-md shadow-2xs"
-          >
-            <Plus className="size-3.5" />
-            <span>{t("ai.threads.new")}</span>
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => newThread()}
+              className="h-7 gap-1 px-2 text-xs rounded-md shadow-2xs"
+            >
+              <Plus className="size-3.5" />
+              <span>{t("ai.threads.new")}</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setSettingsOpen(true)}
+              aria-label={t("ai.settings.title") || "Cài đặt AI"}
+              title={t("ai.settings.title") || "Cài đặt AI"}
+              className="size-7 rounded-md text-muted-foreground hover:text-foreground"
+            >
+              <Settings className="size-3.5" />
+            </Button>
+          </div>
         </div>
       )}
 
@@ -198,6 +224,8 @@ export function OlorinPanel({
           </div>
         </ComposerPrimitive.Root>
       </ThreadPrimitive.Root>
+
+      <AISettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   )
 }
