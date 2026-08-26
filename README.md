@@ -77,13 +77,27 @@ CopilotKit must stay inside the package; apps import only `@workspace/ai`.
 - Enabled by default. Set `VITE_AI_ENABLED=false` (build variable) to disable.
   Legacy route `/ai-protocol-spike` follows `VITE_AI_PROTOCOL_SPIKE` with the
   same default-on rule. Full page: `/ai`.
+- **Docked side panel** (`ShellLayout`): opens from the "Ask AI" header button,
+  resizes by dragging its left edge (320–720px, persisted in
+  `localStorage["arda-ai-panel-width"]`), and offers an expand action that
+  switches to the full-screen workspace dialog (`OlorinWorkspace`) with a
+  ChatGPT-style thread sidebar (switch/delete threads) and Escape to exit.
+- Markdown rendering for assistant messages (react-markdown + remark-gfm with
+  a hover copy button), typing indicator, and a rounded Cloudflare-style
+  composer.
+- Threads are real: list/switch/delete via the backend conversations API
+  (`useOlorinConversations`, auto-refresh after each run); new conversations
+  get server-side titles from the first user message.
+- Runtime URL is always `apiUrl() + "/api/copilotkit"` with
+  `credentials: "include"` so session cookies ride on the correct host.
 - Offline previews without a backend:
   `/ai?olorin-fixture=customerLookup|knowledgeCitations|approvalPending`.
 - Tool renderers and page context are registered by remotes through
   `registerToolRenderer` / `registerOlorinContext`; nothing registers yet —
   CRM is the first candidate.
 - Backend requirements live in `arda-be/apps/ai-service/README.md`
-  (`AI_ENABLE_AGENT`, HITL flags, conversation APIs).
+  (`AI_ENABLE_AGENT`, HITL flags, conversation APIs) and the Go-native
+  envelope contract in `arda-be/docs/ai/go-native-copilotkit.md`.
 
 ## Commands
 
