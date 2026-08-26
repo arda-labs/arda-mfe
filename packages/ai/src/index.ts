@@ -1,4 +1,5 @@
 export { OlorinProvider, type OlorinProviderProps } from "./provider"
+export { OlorinWorkspace } from "./components/olorin-workspace"
 export { OLORIN_AGENT_ID, useOlorin, type ArdaToolHint } from "./use-olorin"
 export {
   OlorinPanel,

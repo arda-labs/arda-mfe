@@ -71,6 +71,7 @@ import { useOlorin } from "../use-olorin"
 export type OlorinPanelProps = {
   className?: string
   fixtureKey?: string
+  showHeader?: boolean
 }
 
 if (!areDefaultRenderersRegistered()) {
@@ -81,7 +82,7 @@ if (!areDefaultRenderersRegistered()) {
 
 const suggestionKeys = ["customer", "knowledge"] as const
 
-export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
+export function OlorinPanel({ className, fixtureKey, showHeader = true }: OlorinPanelProps) {
   const { t, formatDate } = useI18n()
   const { messages, isReady, isRunning, send, newThread, switchToThread } = useOlorin()
   const [input, setInput] = useState("")
@@ -137,7 +138,7 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
 
   return (
     <div className={cn("flex min-h-0 min-w-0 flex-col", className)}>
-      {!fixtureMessages && (
+      {showHeader && !fixtureMessages && (
         <div className="flex items-center gap-1.5 border-b px-3 py-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

@@ -14,7 +14,7 @@ import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { useAuthStore } from "@workspace/auth"
 import { useNotificationStream } from "@workspace/notifications"
-import { OlorinPanel, OlorinProvider } from "@workspace/ai"
+import { OlorinPanel, OlorinProvider, OlorinWorkspace } from "@workspace/ai"
 import { GlobalErrorDialog } from "@workspace/ui/feedback/global-error-dialog"
 import {
   navItems,
@@ -46,6 +46,8 @@ function formatUserLabel(name: string, nickname?: string) {
   return cleanNickname ? `${name} (${cleanNickname})` : name
 }
 
+type AiView = "closed" | "panel" | "full"
+
 export function ShellLayout() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -59,7 +61,7 @@ export function ShellLayout() {
     "nav.workflow": true,
   })
   const [pageTitle, setPageTitle] = useState<ShellPageTitleState | null>(null)
-  const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [aiView, setAiView] = useState<AiView>("closed")
   const [aiPanelWidth, setAiPanelWidth] = useState(loadAiPanelWidth)
   const aiPanelResizing = useRef(false)
   const [authHydrated, setAuthHydrated] = useState(() =>
@@ -95,7 +97,7 @@ export function ShellLayout() {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "j") {
         event.preventDefault()
-        setAiPanelOpen((value) => !value)
+        setAiView((current) => (current === "closed" ? "panel" : "closed"))
       }
     }
     window.addEventListener("keydown", onKeyDown)
@@ -219,8 +221,15 @@ export function ShellLayout() {
           logout={logout}
           switchTenant={switchTenant}
           navigate={navigate}
-          aiPanelOpen={aiEnabled && aiPanelOpen}
-          onToggleAiPanel={aiEnabled ? () => setAiPanelOpen((v) => !v) : undefined}
+          aiPanelOpen={aiEnabled && aiView !== "closed"}
+          onToggleAiPanel={
+            aiEnabled
+              ? () =>
+                  setAiView((current) =>
+                    current === "panel" ? "closed" : "panel"
+                  )
+              : undefined
+          }
         />
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Outlet />
@@ -228,11 +237,11 @@ export function ShellLayout() {
           <GlobalErrorDialog />
         </main>
       </div>
-      {aiEnabled && aiPanelOpen ? (
+      {aiEnabled && aiView === "panel" ? (
         <aside
           aria-label={t("ai.name")}
           style={{ width: aiPanelWidth }}
-          className="hidden shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
+          className="relative hidden shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
         >
           <div
             onMouseDown={startAiPanelResize}
@@ -250,10 +259,7 @@ export function ShellLayout() {
               size="icon"
               aria-label={t("ai.panel.expand")}
               title={t("ai.panel.expand")}
-              onClick={() => {
-                setAiPanelOpen(false)
-                navigate("/ai")
-              }}
+              onClick={() => setAiView("full")}
               className="size-8"
             >
               <Maximize2 className="size-4" />
@@ -262,7 +268,7 @@ export function ShellLayout() {
               variant="ghost"
               size="icon"
               aria-label={t("ai.panel.close")}
-              onClick={() => setAiPanelOpen(false)}
+              onClick={() => setAiView("closed")}
               className="size-8"
             >
               <X className="size-4" />
@@ -272,6 +278,9 @@ export function ShellLayout() {
             <OlorinPanel className="min-h-0 flex-1" />
           </OlorinProvider>
         </aside>
+      ) : null}
+      {aiEnabled && aiView === "full" ? (
+        <OlorinWorkspace onExit={() => setAiView("closed")} />
       ) : null}
     </div>
   )
