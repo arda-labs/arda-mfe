@@ -80,6 +80,7 @@
     "close": "Close Olorin",
     "ask": "Ask AI",
     "expand": "Expand to full page",
+    "minimize": "Collapse to panel",
     "shortcut_hint": "Ctrl+J"
   }
 }

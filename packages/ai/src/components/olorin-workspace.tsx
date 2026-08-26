@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
-import { Plus, Trash2, X } from "lucide-react"
+import { Minimize2, Plus, Trash2 } from "lucide-react"
 import {
   deleteConversation,
   useOlorinConversations,
@@ -11,45 +11,50 @@ import { useOlorinContext } from "../context"
 import { OlorinProvider } from "../provider"
 import { OlorinPanel } from "./olorin-panel"
 
-export function OlorinWorkspace({ onExit }: { onExit: () => void }) {
+export type OlorinWorkspaceProps = {
+  onMinimize?: () => void
+  onExit?: () => void
+}
+
+export function OlorinWorkspace({ onMinimize, onExit }: OlorinWorkspaceProps) {
   return (
     <div className="fixed inset-0 z-[70] flex bg-background text-foreground">
       <OlorinProvider>
-        <OlorinWorkspaceSurface onExit={onExit} />
+        <OlorinWorkspaceSurface onMinimize={onMinimize} onExit={onExit} />
       </OlorinProvider>
     </div>
   )
 }
 
-function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
+function OlorinWorkspaceSurface({
+  onMinimize,
+  onExit,
+}: {
+  onMinimize?: () => void
+  onExit?: () => void
+}) {
   const { t, formatDate } = useI18n()
   const { newThread, switchToThread, threadId } = useOlorinContext()
   const conversations = useOlorinConversations(true)
+  const handleMinimize = onMinimize ?? onExit
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onExit()
+      if (event.key === "Escape") {
+        handleMinimize?.()
+      }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [onExit])
+  }, [handleMinimize])
 
   return (
     <>
       <aside className="hidden w-72 shrink-0 flex-col overflow-hidden border-r bg-muted/20 md:flex">
-        <div className="flex h-[52px] shrink-0 items-center justify-between border-b px-4">
+        <div className="flex h-[52px] shrink-0 items-center border-b px-4">
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">
             {t("ai.name")}
           </p>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t("ai.panel.close")}
-            onClick={onExit}
-            className="size-8"
-          >
-            <X className="size-4" />
-          </Button>
         </div>
         <div className="p-3">
           <Button
@@ -75,11 +80,11 @@ function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
               key={conversation.threadId}
               role="button"
               tabIndex={0}
-              onClick={() => switchToThread(conversation.threadId)}
+              onClick={() => void switchToThread(conversation.threadId)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault()
-                  switchToThread(conversation.threadId)
+                  void switchToThread(conversation.threadId)
                 }
               }}
               className={cn(
@@ -122,11 +127,25 @@ function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
         </div>
       </aside>
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex h-[52px] shrink-0 items-center gap-2 border-b px-4 md:hidden">
-          <p className="flex-1 truncate text-sm font-semibold">{t("ai.name")}</p>
-          <Button variant="ghost" size="icon" onClick={onExit} className="size-8">
-            <X className="size-4" />
-          </Button>
+        <div className="flex h-[52px] shrink-0 items-center justify-between border-b px-4 bg-background">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="truncate text-sm font-semibold">{t("ai.name")}</p>
+            <span className="text-xs text-muted-foreground hidden sm:inline">
+              · {t("ai.tagline")}
+            </span>
+          </div>
+          {handleMinimize && (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("ai.panel.minimize")}
+              title={t("ai.panel.minimize")}
+              onClick={handleMinimize}
+              className="size-8 text-muted-foreground hover:text-foreground"
+            >
+              <Minimize2 className="size-4" />
+            </Button>
+          )}
         </div>
         <OlorinPanel className="min-h-0 flex-1" showHeader={false} />
       </main>

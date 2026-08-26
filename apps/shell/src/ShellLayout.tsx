@@ -280,7 +280,10 @@ export function ShellLayout() {
         </aside>
       ) : null}
       {aiEnabled && aiView === "full" ? (
-        <OlorinWorkspace onExit={() => setAiView("closed")} />
+        <OlorinWorkspace
+          onMinimize={() => setAiView("panel")}
+          onExit={() => setAiView("panel")}
+        />
       ) : null}
     </div>
   )

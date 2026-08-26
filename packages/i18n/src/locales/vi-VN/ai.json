@@ -80,6 +80,7 @@
     "close": "Đóng Olorin",
     "ask": "Hỏi AI",
     "expand": "Mở toàn màn hình",
+    "minimize": "Thu nhỏ về thanh bên",
     "shortcut_hint": "Ctrl+J"
   }
 }

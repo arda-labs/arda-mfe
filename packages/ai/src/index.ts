@@ -7,7 +7,10 @@ export {
   useOlorinContext,
   type OlorinContextValue,
 } from "./context"
-export { OlorinWorkspace } from "./components/olorin-workspace"
+export {
+  OlorinWorkspace,
+  type OlorinWorkspaceProps,
+} from "./components/olorin-workspace"
 export { OLORIN_AGENT_ID, useOlorin, type ArdaToolHint } from "./use-olorin"
 export {
   OlorinPanel,
