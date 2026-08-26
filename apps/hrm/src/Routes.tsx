@@ -2,27 +2,27 @@ import "@workspace/i18n/apps/hrm"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const PositionsPage = lazyWithPreload(() =>
-  import("@/features/hrm/positions/page").then((m) => ({
+  import("@/features/positions/page").then((m) => ({
     default: m.PositionsPage,
   }))
 )
 const JobTitlesPage = lazyWithPreload(() =>
-  import("@/features/hrm/job-titles/page").then((m) => ({
+  import("@/features/job-titles/page").then((m) => ({
     default: m.JobTitlesPage,
   }))
 )
 const OrgUnitsPage = lazyWithPreload(() =>
-  import("@/features/hrm/org-units/page").then((m) => ({
+  import("@/features/org-units/page").then((m) => ({
     default: m.OrgUnitsPage,
   }))
 )
 const RegistrationsPage = lazyWithPreload(() =>
-  import("@/features/hrm/registrations/page").then((m) => ({
+  import("@/features/registrations/page").then((m) => ({
     default: m.RegistrationsPage,
   }))
 )
 const EmployeesPage = lazyWithPreload(() =>
-  import("@/features/hrm/employees/page").then((m) => ({
+  import("@/features/employees/page").then((m) => ({
     default: m.EmployeesPage,
   }))
 )

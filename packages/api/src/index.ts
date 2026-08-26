@@ -13,6 +13,13 @@ export type {
   CreateApiClientOptions,
 } from "./client"
 export { ApiClientError } from "./client"
+export {
+  getCanonical,
+  postCanonical,
+  putCanonical,
+  deleteCanonical,
+  getCanonicalList,
+} from "./canonical"
 
 export type ApiAuthHandlers = {
   onUnauthorized?: () => void | Promise<void>
