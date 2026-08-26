@@ -116,3 +116,27 @@ Do hệ thống backend OAuth/Ory Kratos không có chế độ mock trong môi 
 1. Chạy Host Shell: `bun run --filter shell dev` (:5000). Shell reverse-proxy tất cả `/api/*` về `http://localhost:8082`.
 2. Chạy Remote cần phát triển: `bun run --filter platform dev` (:5102).
 3. Đảm bảo cổng `8082` trả về user info hợp lệ cho endpoint `GET /api/auth/me` (`roles: ["SUPER_ADMIN"]`, `permissions: ["superadmin"]`) để vượt qua `AuthGuard`.
+
+---
+
+## 7. AI assistant (Olorin) UI knowledge
+
+* `@workspace/ai` exports: `OlorinProvider` (CopilotKit v2 headless, runtime
+  URL = `apiUrl() + "/api/copilotkit"`, credentials include), `OlorinPanel`
+  (props: `className`, `fixtureKey`, `showHeader` - set false inside
+  workspace), `OlorinWorkspace` (full-screen dialog, ChatGPT-style thread
+  sidebar, Escape to exit, prop `onExit`), `useOlorin` (send/newThread/
+  switchToThread), `useOlorinConversations`.
+* Shell integration lives in `apps/shell/src/ShellLayout.tsx`: state
+  `aiView: "closed" | "panel" | "full"`. Header "Ask AI" toggles panel; the
+  panel header has expand (Maximize2 -> full) and close buttons; resize handle
+  persists width in localStorage `arda-ai-panel-width`; Ctrl/Cmd+J toggles.
+* React Compiler lint (`react-hooks/immutability`) forbids mutating hook-owned
+  objects (e.g. `agent.threadId = x`). Use module-scope helper functions that
+  perform the assignment instead.
+* Locale JSON files contain Vietnamese text: NEVER edit them via PowerShell
+  `Set-Content/-Encoding UTF8` (mojibake/BOM). Use the Edit tool or a small
+  `node -e` fs script.
+* When adding dependencies to any package: run `bun install` and COMMIT the
+  root `bun.lock` in the same PR - Cloudflare Workers Builds runs
+  `bun install --frozen-lockfile` and fails otherwise.
