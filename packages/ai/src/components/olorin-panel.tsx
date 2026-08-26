@@ -1,6 +1,8 @@
-import { useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import { useI18n } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
@@ -33,8 +35,18 @@ import {
 } from "@workspace/ui/components/message-scroller"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { ArrowLeft, ChevronDown, History, Send, Sparkles } from "lucide-react"
 import {
+  Check,
+  ChevronDown,
+  Copy,
+  History,
+  Plus,
+  Send,
+  Sparkles,
+  Trash2,
+} from "lucide-react"
+import {
+  deleteConversation as apiDeleteConversation,
   fetchConversationMessages,
   useOlorinConversations,
 } from "../conversations"
@@ -71,14 +83,18 @@ const suggestionKeys = ["customer", "knowledge"] as const
 
 export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
   const { t, formatDate } = useI18n()
-  const { messages, isReady, isRunning, send } = useOlorin()
+  const { messages, isReady, isRunning, send, newThread, switchToThread } = useOlorin()
   const [input, setInput] = useState("")
   const [error, setError] = useState("")
-  const [viewer, setViewer] = useState<{
-    title: string
-    items: OlorinMessage[]
-  } | null>(null)
   const conversations = useOlorinConversations(!fixtureKey)
+  const prevRunningRef = useRef(false)
+
+  useEffect(() => {
+    if (prevRunningRef.current && !isRunning) {
+      void conversations.refresh()
+    }
+    prevRunningRef.current = isRunning
+  }, [isRunning, conversations])
 
   const fixtureMessages = useMemo<FixtureMessage[] | undefined>(() => {
     if (!fixtureKey) return undefined
@@ -86,7 +102,7 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
   }, [fixtureKey])
 
   const displayMessages: Array<OlorinMessage | FixtureMessage> =
-    viewer?.items ?? fixtureMessages ?? messages
+    fixtureMessages ?? messages
 
   const statusLabel = fixtureMessages
     ? t("ai.fixture.notice")
@@ -101,7 +117,7 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
             : t("ai.status.ready")
 
   async function submit() {
-    if (fixtureMessages || viewer) return
+    if (fixtureMessages) return
     const content = input.trim()
     if (!content || isRunning || !isReady) return
     setInput("")
@@ -122,56 +138,46 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
   return (
     <div className={cn("flex min-h-0 min-w-0 flex-col", className)}>
       {!fixtureMessages && (
-        <div className="flex items-center gap-2 border-b px-3 py-2">
-          {viewer ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setViewer(null)}
-            >
-              <ArrowLeft className="mr-1.5 size-3.5" />
-              {t("ai.threads.back")}
-            </Button>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="sm">
-                  <History className="mr-1.5 size-3.5" />
-                  {t("ai.threads.title")}
-                  <ChevronDown className="ml-1 size-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-72">
-                <DropdownMenuLabel>{t("ai.threads.title")}</DropdownMenuLabel>
-                {conversations.conversations.length === 0 && !conversations.loading && (
-                  <DropdownMenuItem disabled>
-                    {t("ai.threads.empty")}
-                  </DropdownMenuItem>
-                )}
-                {conversations.conversations.map((conversation) => (
-                  <DropdownMenuItem
-                    key={conversation.threadId}
-                    onSelect={() => {
-                      void fetchConversationMessages(conversation.threadId)
-                        .then((items) =>
-                          setViewer({
-                            title: conversation.title || conversation.threadId,
-                            items: items.map((item) => ({
-                              id: `history-${item.sequence}`,
-                              role: item.role,
-                              content: item.content,
-                            })),
-                          })
+        <div className="flex items-center gap-1.5 border-b px-3 py-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="ghost" size="sm">
+                <History className="mr-1.5 size-3.5" />
+                {t("ai.threads.title")}
+                <ChevronDown className="ml-1 size-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-80">
+              <DropdownMenuLabel>{t("ai.threads.title")}</DropdownMenuLabel>
+              {conversations.conversations.length === 0 && !conversations.loading && (
+                <DropdownMenuItem disabled>
+                  {t("ai.threads.empty")}
+                </DropdownMenuItem>
+              )}
+              {conversations.conversations.map((conversation) => (
+                <DropdownMenuItem
+                  key={conversation.threadId}
+                  onSelect={() => {
+                    void fetchConversationMessages(conversation.threadId)
+                      .then((items) =>
+                        switchToThread(
+                          conversation.threadId,
+                          items.map((item) => ({
+                            id: `history-${item.sequence}`,
+                            role: item.role,
+                            content: item.content,
+                          }))
                         )
-                        .catch(() => undefined)
-                    }}
-                    className="flex-col items-start gap-0.5"
-                  >
-                    <span className="w-full truncate text-sm font-medium">
+                      )
+                      .catch(() => undefined)
+                  }}
+                  className="items-center gap-2"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block w-full truncate text-sm font-medium">
                       {conversation.title || conversation.threadId}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="block text-xs text-muted-foreground">
                       {conversation.messageCount} {t("ai.threads.messages_suffix")}
                       {conversation.lastMessageAt &&
                         ` · ${formatDate(conversation.lastMessageAt, {
@@ -181,25 +187,56 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
                           month: "2-digit",
                         })}`}
                     </span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  </span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={t("ai.threads.delete")}
+                    className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      void apiDeleteConversation(conversation.threadId)
+                        .then(() => conversations.refresh())
+                        .catch(() => undefined)
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.stopPropagation()
+                        void apiDeleteConversation(conversation.threadId)
+                          .then(() => conversations.refresh())
+                          .catch(() => undefined)
+                      }
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => newThread()}
+          >
+            <Plus className="mr-1 size-3.5" />
+            {t("ai.threads.new")}
+          </Button>
         </div>
       )}
       <MessageScrollerProvider autoScroll defaultScrollPosition="last-anchor">
         <MessageScroller className="min-h-0 flex-1">
           <MessageScrollerViewport aria-label={t("ai.transcript.label")}>
-            <MessageScrollerContent className="p-4" aria-busy={isRunning}>
-              {!viewer && displayMessages.length === 0 ? (
-                <OlorinEmptyState onSuggestion={(value) => void send(value)} />
-              ) : (
-                displayMessages.map((message) => (
-                  <OlorinRow key={message.id} message={message} />
-                ))
-              )}
-            </MessageScrollerContent>
+          <MessageScrollerContent className="p-4" aria-busy={isRunning}>
+            {!fixtureMessages && displayMessages.length === 0 ? (
+              <OlorinEmptyState onSuggestion={(value) => void send(value)} />
+            ) : (
+              displayMessages.map((message) => (
+                <OlorinRow key={message.id} message={message} />
+              ))
+            )}
+          </MessageScrollerContent>
           </MessageScrollerViewport>
           <MessageScrollerButton />
         </MessageScroller>
@@ -211,7 +248,7 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <div className="flex items-end gap-2">
+        <div className="rounded-2xl border bg-card transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/30">
           <Textarea
             aria-label={t("ai.composer.label")}
             value={input}
@@ -223,31 +260,27 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
               }
             }}
             placeholder={t("ai.composer.placeholder")}
-            disabled={!isReady || isRunning || Boolean(fixtureMessages) || Boolean(viewer)}
-            className="max-h-40 min-h-11 flex-1 resize-none"
+            disabled={!isReady || isRunning || Boolean(fixtureMessages)}
+            className="max-h-40 min-h-11 flex-1 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
             rows={1}
           />
-          <Button
-            type="submit"
-            size="icon"
-            aria-label={t("ai.composer.send")}
-            disabled={
-              !input.trim() ||
-              isRunning ||
-              !isReady ||
-              Boolean(fixtureMessages) ||
-              Boolean(viewer)
-            }
-            className="size-11 shrink-0"
-          >
-            {isRunning ? <Spinner /> : <Send />}
-          </Button>
+          <div className="flex items-center justify-between gap-2 px-2.5 pb-2">
+            <p className="min-w-0 truncate text-[11px] text-muted-foreground">
+              {statusLabel}
+              {" · "}
+              {t("ai.composer.hint")}
+            </p>
+            <Button
+              type="submit"
+              size="icon"
+              aria-label={t("ai.composer.send")}
+              disabled={!input.trim() || isRunning || !isReady || Boolean(fixtureMessages)}
+              className="size-8 shrink-0 rounded-full"
+            >
+              {isRunning ? <Spinner /> : <Send />}
+            </Button>
+          </div>
         </div>
-        <p className="mt-1.5 px-1 text-xs text-muted-foreground">
-          {statusLabel}
-          {" · "}
-          {t("ai.composer.hint")}
-        </p>
       </form>
     </div>
   )
@@ -295,7 +328,7 @@ function OlorinRow({
 
   return (
     <MessageScrollerItem messageId={message.id} scrollAnchor={isUser}>
-      <Message align={isUser ? "end" : "start"} className="py-2">
+      <Message align={isUser ? "end" : "start"} className="group/message py-2">
         <MessageAvatar>
           <Avatar className="size-8">
             <AvatarFallback>{isUser ? "Bạn" : "OL"}</AvatarFallback>
@@ -307,19 +340,80 @@ function OlorinRow({
           )}
           {message.role === "tool" ? (
             <ToolResultBody result={toolResult} messageId={message.id} />
+          ) : isUser ? (
+            <Bubble isUser>{content}</Bubble>
+          ) : content ? (
+            <AssistantBubble content={content} />
           ) : (
-            <Bubble isUser={isUser}>
-              {content ||
-                (!isUser ? t("ai.message.thinking") : "")}
-            </Bubble>
+            <TypingDots />
           )}
           {toolResult && message.role === "tool" && (
             <ApprovalSection result={toolResult} />
           )}
-          {!isUser && message.role !== "tool" && <MessageFooter />}
+          {!isUser && message.role !== "tool" && (
+            <MessageFooter className="gap-2 opacity-0 transition-opacity group-hover/message:opacity-100">
+              <CopyButton text={content} />
+            </MessageFooter>
+          )}
         </MessageContent>
       </Message>
     </MessageScrollerItem>
+  )
+}
+
+function AssistantBubble({ content }: { content: string }) {
+  return (
+    <div className="rounded-2xl rounded-bl-md border bg-muted/50 px-4 py-3 text-sm leading-6">
+      <MarkdownContent content={content} />
+    </div>
+  )
+}
+
+function TypingDots() {
+  const { t } = useI18n()
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md border bg-muted/50 px-4 py-3.5"
+      role="status"
+      aria-label={t("ai.message.thinking")}
+    >
+      {[0, 150, 300].map((delay) => (
+        <span
+          key={delay}
+          style={{ animationDelay: `${delay}ms` }}
+          className="size-1.5 animate-bounce rounded-full bg-muted-foreground/70 motion-reduce:animate-none"
+        />
+      ))}
+    </span>
+  )
+}
+
+function MarkdownContent({ content }: { content: string }) {
+  return (
+    <div className="space-y-2 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_h1]:text-base [&_h1]:font-semibold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_li]:ml-4 [&_li]:list-disc [&_ol_li]:list-decimal [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-xs [&_table]:w-full [&_td]:border [&_th]:border [&_th]:px-2 [&_td]:px-2">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    </div>
+  )
+}
+
+function CopyButton({ text }: { text: string }) {
+  const { t } = useI18n()
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      aria-label={t("ai.message.copy")}
+      title={t("ai.message.copy")}
+      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+      onClick={() => {
+        void navigator.clipboard.writeText(text).then(() => {
+          setCopied(true)
+          setTimeout(() => setCopied(false), 1500)
+        })
+      }}
+    >
+      {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+    </button>
   )
 }
 

@@ -71,3 +71,9 @@ export async function executeApprovedProposal(
   }>(`/api/ai/approvals/${encodeURIComponent(approvalId)}/execution`)
   return response.result
 }
+
+export async function deleteConversation(threadId: string): Promise<void> {
+  await api.delete(
+    `/api/ai/conversations/${encodeURIComponent(threadId)}`
+  )
+}

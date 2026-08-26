@@ -19,7 +19,8 @@
   },
   "message": {
     "header": "Olorin · Arda Assistant",
-    "thinking": "Preparing an answer…"
+    "thinking": "Preparing an answer…",
+    "copy": "Copy"
   },
   "error": {
     "connection": "Could not connect. Please try again."
@@ -67,7 +68,9 @@
     "open": "View past conversations",
     "back": "Back to the current conversation",
     "empty": "No conversations yet",
-    "messages_suffix": "messages"
+    "messages_suffix": "messages",
+    "new": "New chat",
+    "delete": "Delete conversation"
   },
   "fixture": {
     "notice": "Preview mode with sample data"
