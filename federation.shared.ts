@@ -24,8 +24,11 @@ export const remoteSharedDeps = {
   "@workspace/theme/": { singleton: true, requiredVersion: false },
   "@workspace/auth": { singleton: true, requiredVersion: false },
   "@workspace/auth/": { singleton: true, requiredVersion: false },
-  "@workspace/ai": { singleton: true, requiredVersion: false },
-  "@workspace/ai/": { singleton: true, requiredVersion: false },
+  // @workspace/ai CHƯA share: chỉ shell dùng. Khi một remote bắt đầu import nó,
+  // phải thêm cả hai mục "@workspace/ai" + "@workspace/ai/" vào đây VÀ khai báo
+  // dependency trong package.json của TẤT CẢ apps (remote không khai báo =
+  // build lỗi resolve như account từng gặp). Thiếu share khi nhiều bên dùng =
+  // 2 instance registry/renderer của AI.
   "@workspace/notifications": { singleton: true, requiredVersion: false },
   "@workspace/notifications/": { singleton: true, requiredVersion: false },
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
