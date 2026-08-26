@@ -56,9 +56,18 @@
     "reject": "Từ chối",
     "approved": "Đã duyệt",
     "rejected": "Đã từ chối",
+    "executed": "Đã thực hiện",
+    "executing": "Đang thực hiện hành động đã duyệt…",
     "saving": "Đang gửi…",
     "expires": "Hết hạn lúc {time}",
     "error": "Không gửi được quyết định. Vui lòng thử lại."
+  },
+  "threads": {
+    "title": "Hội thoại",
+    "open": "Xem hội thoại cũ",
+    "back": "Quay lại hội thoại hiện tại",
+    "empty": "Chưa có hội thoại nào",
+    "messages_suffix": "tin nhắn"
   },
   "fixture": {
     "notice": "Chế độ xem trước với dữ liệu mẫu"

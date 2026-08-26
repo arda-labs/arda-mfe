@@ -4,6 +4,9 @@ import { api, ApiClientError } from "@workspace/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { ShieldCheck } from "lucide-react"
+import {
+  executeApprovedProposal,
+} from "../conversations"
 import { textValue, type ApprovalProposalView } from "../messages"
 
 type ApprovalDecisionResponse = {
@@ -13,12 +16,16 @@ type ApprovalDecisionResponse = {
 
 export function ApprovalCard({
   proposal,
+  resume = true,
 }: {
   proposal: ApprovalProposalView
+  resume?: boolean
 }) {
   const { t, formatDate } = useI18n()
   const [status, setStatus] = useState(proposal.status)
   const [pending, setPending] = useState<"approve" | "reject" | null>(null)
+  const [executing, setExecuting] = useState(false)
+  const [executedSummary, setExecutedSummary] = useState("")
   const [error, setError] = useState("")
 
   async function decide(decision: "approve" | "reject") {
@@ -29,7 +36,21 @@ export function ApprovalCard({
         `/api/ai/approvals/${encodeURIComponent(proposal.id)}/decision`,
         { decision }
       )
-      setStatus(textValue(record.status, decision === "approve" ? "APPROVED" : "REJECTED"))
+      const nextStatus = textValue(
+        record.status,
+        decision === "approve" ? "APPROVED" : "REJECTED"
+      )
+      setStatus(nextStatus)
+      if (nextStatus === "APPROVED" && resume) {
+        setExecuting(true)
+        try {
+          const executed = await executeApprovedProposal(proposal.id)
+          setStatus("EXECUTED")
+          setExecutedSummary(executed.summary)
+        } finally {
+          setExecuting(false)
+        }
+      }
     } catch (caught) {
       setError(
         caught instanceof ApiClientError && caught.message
@@ -72,32 +93,46 @@ export function ApprovalCard({
           {error}
         </p>
       )}
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button
           size="sm"
-          disabled={decided || pending !== null}
+          disabled={decided || pending !== null || executing}
           onClick={() => void decide("approve")}
         >
-          {pending === "approve" ? t("ai.approval.saving") : t("ai.approval.approve")}
+          {pending === "approve" || executing
+            ? t("ai.approval.saving")
+            : t("ai.approval.approve")}
         </Button>
         <Button
           size="sm"
           variant="outline"
-          disabled={decided || pending !== null}
+          disabled={decided || pending !== null || executing}
           onClick={() => void decide("reject")}
         >
           {pending === "reject" ? t("ai.approval.saving") : t("ai.approval.reject")}
         </Button>
         {decided && (
-          <Badge variant="outline" className="self-center">
+          <Badge variant="outline">
             {status === "APPROVED"
               ? t("ai.approval.approved")
               : status === "REJECTED"
                 ? t("ai.approval.rejected")
-                : status}
+                : status === "EXECUTED"
+                  ? t("ai.approval.executed")
+                  : status}
           </Badge>
         )}
       </div>
+      {executing && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {t("ai.approval.executing")}
+        </p>
+      )}
+      {executedSummary && (
+        <p className="mt-2 rounded-md bg-background p-2 text-xs leading-5">
+          {executedSummary}
+        </p>
+      )}
     </div>
   )
 }

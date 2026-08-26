@@ -56,9 +56,18 @@
     "reject": "Reject",
     "approved": "Approved",
     "rejected": "Rejected",
+    "executed": "Executed",
+    "executing": "Executing the approved action…",
     "saving": "Submitting…",
     "expires": "Expires at {time}",
     "error": "Could not submit the decision. Please try again."
+  },
+  "threads": {
+    "title": "Conversations",
+    "open": "View past conversations",
+    "back": "Back to the current conversation",
+    "empty": "No conversations yet",
+    "messages_suffix": "messages"
   },
   "fixture": {
     "notice": "Preview mode with sample data"

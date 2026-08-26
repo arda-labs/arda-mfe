@@ -10,6 +10,13 @@ import {
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible"
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
+import {
   Message,
   MessageAvatar,
   MessageContent,
@@ -26,7 +33,11 @@ import {
 } from "@workspace/ui/components/message-scroller"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { ChevronDown, Send, Sparkles } from "lucide-react"
+import { ArrowLeft, ChevronDown, History, Send, Sparkles } from "lucide-react"
+import {
+  fetchConversationMessages,
+  useOlorinConversations,
+} from "../conversations"
 import { olorinFixtures, type FixtureMessage } from "../fixtures"
 import {
   extractApprovalProposal,
@@ -59,10 +70,15 @@ if (!areDefaultRenderersRegistered()) {
 const suggestionKeys = ["customer", "knowledge"] as const
 
 export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
-  const { t } = useI18n()
+  const { t, formatDate } = useI18n()
   const { messages, isReady, isRunning, send } = useOlorin()
   const [input, setInput] = useState("")
   const [error, setError] = useState("")
+  const [viewer, setViewer] = useState<{
+    title: string
+    items: OlorinMessage[]
+  } | null>(null)
+  const conversations = useOlorinConversations(!fixtureKey)
 
   const fixtureMessages = useMemo<FixtureMessage[] | undefined>(() => {
     if (!fixtureKey) return undefined
@@ -70,7 +86,7 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
   }, [fixtureKey])
 
   const displayMessages: Array<OlorinMessage | FixtureMessage> =
-    fixtureMessages ?? messages
+    viewer?.items ?? fixtureMessages ?? messages
 
   const statusLabel = fixtureMessages
     ? t("ai.fixture.notice")
@@ -85,7 +101,7 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
             : t("ai.status.ready")
 
   async function submit() {
-    if (fixtureMessages) return
+    if (fixtureMessages || viewer) return
     const content = input.trim()
     if (!content || isRunning || !isReady) return
     setInput("")
@@ -105,11 +121,78 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
 
   return (
     <div className={cn("flex min-h-0 min-w-0 flex-col", className)}>
+      {!fixtureMessages && (
+        <div className="flex items-center gap-2 border-b px-3 py-2">
+          {viewer ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewer(null)}
+            >
+              <ArrowLeft className="mr-1.5 size-3.5" />
+              {t("ai.threads.back")}
+            </Button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="sm">
+                  <History className="mr-1.5 size-3.5" />
+                  {t("ai.threads.title")}
+                  <ChevronDown className="ml-1 size-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72">
+                <DropdownMenuLabel>{t("ai.threads.title")}</DropdownMenuLabel>
+                {conversations.conversations.length === 0 && !conversations.loading && (
+                  <DropdownMenuItem disabled>
+                    {t("ai.threads.empty")}
+                  </DropdownMenuItem>
+                )}
+                {conversations.conversations.map((conversation) => (
+                  <DropdownMenuItem
+                    key={conversation.threadId}
+                    onSelect={() => {
+                      void fetchConversationMessages(conversation.threadId)
+                        .then((items) =>
+                          setViewer({
+                            title: conversation.title || conversation.threadId,
+                            items: items.map((item) => ({
+                              id: `history-${item.sequence}`,
+                              role: item.role,
+                              content: item.content,
+                            })),
+                          })
+                        )
+                        .catch(() => undefined)
+                    }}
+                    className="flex-col items-start gap-0.5"
+                  >
+                    <span className="w-full truncate text-sm font-medium">
+                      {conversation.title || conversation.threadId}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {conversation.messageCount} {t("ai.threads.messages_suffix")}
+                      {conversation.lastMessageAt &&
+                        ` · ${formatDate(conversation.lastMessageAt, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                        })}`}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      )}
       <MessageScrollerProvider autoScroll defaultScrollPosition="last-anchor">
         <MessageScroller className="min-h-0 flex-1">
           <MessageScrollerViewport aria-label={t("ai.transcript.label")}>
             <MessageScrollerContent className="p-4" aria-busy={isRunning}>
-              {displayMessages.length === 0 ? (
+              {!viewer && displayMessages.length === 0 ? (
                 <OlorinEmptyState onSuggestion={(value) => void send(value)} />
               ) : (
                 displayMessages.map((message) => (
@@ -140,7 +223,7 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
               }
             }}
             placeholder={t("ai.composer.placeholder")}
-            disabled={!isReady || isRunning || Boolean(fixtureMessages)}
+            disabled={!isReady || isRunning || Boolean(fixtureMessages) || Boolean(viewer)}
             className="max-h-40 min-h-11 flex-1 resize-none"
             rows={1}
           />
@@ -149,7 +232,11 @@ export function OlorinPanel({ className, fixtureKey }: OlorinPanelProps) {
             size="icon"
             aria-label={t("ai.composer.send")}
             disabled={
-              !input.trim() || isRunning || !isReady || Boolean(fixtureMessages)
+              !input.trim() ||
+              isRunning ||
+              !isReady ||
+              Boolean(fixtureMessages) ||
+              Boolean(viewer)
             }
             className="size-11 shrink-0"
           >
