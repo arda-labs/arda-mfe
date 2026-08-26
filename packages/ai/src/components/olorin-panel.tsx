@@ -40,9 +40,12 @@ import {
   CustomerSummaryToolUI,
   KnowledgeCitationToolUI,
   CustomerExportPrepareToolUI,
+  SearchMetaToolUI,
+  ExecuteMetaToolUI,
   GenericToolView,
 } from "./tool-ui"
 import { useOlorinContext } from "../context"
+import { collectOlorinContext } from "../registry"
 
 export type OlorinPanelProps = {
   className?: string
@@ -237,11 +240,18 @@ function OlorinEmptyState() {
 }
 
 function UserMessage() {
+  const context = collectOlorinContext()
+  const displayName = typeof context.userDisplayName === "string" ? context.userDisplayName : ""
+  const initials = getInitials(displayName) || "U"
+
   return (
-    <MessagePrimitive.Root className="group/message flex w-full justify-end py-1.5">
+    <MessagePrimitive.Root className="group/message flex w-full justify-end py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
       <div className="flex max-w-[85%] items-end gap-2 flex-row-reverse">
-        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-2xs">
-          U
+        <div
+          title={displayName || "Người dùng"}
+          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-2xs select-none"
+        >
+          {initials}
         </div>
         <div className="rounded-2xl rounded-br-xs bg-primary px-3.5 py-2 text-sm leading-relaxed text-primary-foreground shadow-2xs wrap-break-word">
           <MessagePrimitive.Content />
@@ -251,9 +261,16 @@ function UserMessage() {
   )
 }
 
+function getInitials(name?: string): string | undefined {
+  if (!name?.trim()) return undefined
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
 function AssistantMessage() {
   return (
-    <MessagePrimitive.Root className="group/message flex w-full justify-start py-1.5">
+    <MessagePrimitive.Root className="group/message flex w-full justify-start py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
       <div className="flex max-w-[90%] items-start gap-2.5">
         <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground text-xs font-bold shadow-2xs ring-1 ring-primary/20">
           <Sparkles className="size-3.5" />
@@ -268,6 +285,8 @@ function AssistantMessage() {
                     "crm.customer.get": CustomerSummaryToolUI,
                     "knowledge.search": KnowledgeCitationToolUI,
                     "crm.customer.export.prepare": CustomerExportPrepareToolUI,
+                    search: SearchMetaToolUI,
+                    execute: ExecuteMetaToolUI,
                   },
                   Fallback: ({ toolName, result }) => (
                     <GenericToolView

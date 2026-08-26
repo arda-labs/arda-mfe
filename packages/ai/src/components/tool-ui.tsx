@@ -11,6 +11,10 @@ import { resolveToolRenderer } from "../registry"
 import { ApprovalCard } from "./approval-card"
 import { CustomerSummaryCard } from "./customer-summary-card"
 import { KnowledgeCitationList } from "./citation-list"
+import { SearchMetaToolUI, ExecuteMetaToolUI } from "./meta-tool-ui"
+import { DataTableView, isArrayResult } from "./data-table-view"
+
+export { SearchMetaToolUI, ExecuteMetaToolUI }
 
 export const CustomerSummaryToolUI = makeAssistantToolUI<
   Record<string, unknown>,
@@ -68,6 +72,11 @@ export function GenericToolView({
   const proposal = extractApprovalProposal(result)
   if (proposal) {
     return <ApprovalCard proposal={proposal} />
+  }
+
+  // If result is an array of objects, render DataTableView
+  if (isArrayResult(result)) {
+    return <DataTableView data={result as Array<Record<string, unknown>>} />
   }
 
   return (

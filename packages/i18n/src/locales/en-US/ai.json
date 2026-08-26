@@ -6,13 +6,19 @@
     "working": "Working…",
     "error": "Connection failed",
     "done": "Done",
-    "ready": "Ready"
+    "ready": "Ready",
+    "thinking": "Olorin is analyzing your request...",
+    "searching": "Searching for relevant APIs...",
+    "executing": "Querying and processing data...",
+    "responding": "Preparing response..."
   },
   "composer": {
     "label": "Ask Olorin",
     "placeholder": "Ask Olorin anything…",
     "send": "Send message",
-    "hint": "Enter to send · Shift+Enter for a new line"
+    "hint": "Enter to send · Shift+Enter for a new line",
+    "stop": "Stop generating",
+    "rate_limit_countdown": "Retry in {seconds}s"
   },
   "transcript": {
     "label": "Conversation history with Olorin"
@@ -23,7 +29,25 @@
     "copy": "Copy"
   },
   "error": {
-    "connection": "Could not connect. Please try again."
+    "connection": "Could not connect. Please try again.",
+    "model_unavailable": "AI assistant is temporarily unavailable. Please try again in a moment.",
+    "tool_forbidden": "You do not have permission to perform this action.",
+    "tool_not_found": "Requested tool not found.",
+    "tool_invalid": "Invalid request arguments. Please try rephrasing your prompt.",
+    "step_limit": "The request is too complex for a single turn. Please split it into smaller steps.",
+    "run_replay": "Session expired or replay detected. Please try again.",
+    "persistence_unavailable": "Storage service is temporarily unavailable. Please try again.",
+    "sandbox_quota": "Task exceeded execution resource limits. Please narrow down the query scope.",
+    "sandbox_rejected": "Execution script did not pass security checks.",
+    "rate_limited": "System is receiving too many requests. Please try again shortly.",
+    "budget_exceeded": "Account has reached monthly AI usage limits.",
+    "unknown": "An unknown error occurred. Please try again."
+  },
+  "action": {
+    "retry": "Retry",
+    "rephrase": "Rephrase query",
+    "split_query": "Split query",
+    "contact_admin": "Contact administrator"
   },
   "empty": {
     "title": "Ask Olorin anything about data you are allowed to see",
@@ -36,6 +60,15 @@
   "tool": {
     "unparsed": "Tool result could not be read.",
     "details": "Result details",
+    "search": {
+      "title": "API Discovery",
+      "pending": "Searching APIs for:",
+      "methods": "methods"
+    },
+    "execute": {
+      "title": "Data Processing",
+      "pending": "Executing sandboxed script in secure runtime..."
+    },
     "customer": {
       "code": "Customer code",
       "segment": "Segment",
@@ -49,10 +82,15 @@
       "fallback": "Arda knowledge"
     }
   },
+  "table": {
+    "result_title": "Data ({count} records)",
+    "show_more": "Show {count} more records",
+    "show_less": "Collapse"
+  },
   "approval": {
-    "badge": "Proposed by AI",
-    "title": "Awaiting your approval",
-    "description": "Olorin will not perform this action on its own. Review and decide before it runs.",
+    "badge": "Approval Required",
+    "title": "Action Approval Required",
+    "description": "The AI assistant proposes an action with side effects. Please confirm before execution.",
     "approve": "Approve",
     "reject": "Reject",
     "approved": "Approved",
@@ -61,6 +99,10 @@
     "executing": "Executing the approved action…",
     "saving": "Submitting…",
     "expires": "Expires at {time}",
+    "expires_in": "Expires in {minutes} minutes",
+    "expired": "Expired",
+    "expired_notice": "This request has expired and can no longer be executed.",
+    "approve_aria": "Confirm action approval",
     "error": "Could not submit the decision. Please try again."
   },
   "threads": {

@@ -6,13 +6,19 @@
     "working": "Đang xử lý…",
     "error": "Không thể kết nối",
     "done": "Hoàn tất",
-    "ready": "Sẵn sàng"
+    "ready": "Sẵn sàng",
+    "thinking": "Olorin đang phân tích yêu cầu...",
+    "searching": "Đang tìm kiếm API phù hợp...",
+    "executing": "Đang truy vấn và xử lý dữ liệu...",
+    "responding": "Đang soạn câu trả lời..."
   },
   "composer": {
     "label": "Nội dung hỏi Olorin",
     "placeholder": "Hỏi Olorin bất cứ điều gì…",
     "send": "Gửi câu hỏi",
-    "hint": "Enter để gửi · Shift+Enter để xuống dòng"
+    "hint": "Enter để gửi · Shift+Enter để xuống dòng",
+    "stop": "Dừng tạo",
+    "rate_limit_countdown": "Thử lại sau {seconds}s"
   },
   "transcript": {
     "label": "Lịch sử hội thoại với Olorin"
@@ -23,7 +29,25 @@
     "copy": "Sao chép"
   },
   "error": {
-    "connection": "Không thể kết nối. Vui lòng thử lại."
+    "connection": "Không thể kết nối. Vui lòng thử lại.",
+    "model_unavailable": "Trợ lý AI tạm thời không phản hồi. Vui lòng thử lại sau giây lát.",
+    "tool_forbidden": "Bạn không có quyền thực hiện thao tác này.",
+    "tool_not_found": "Không tìm thấy công cụ yêu cầu.",
+    "tool_invalid": "Tham số yêu cầu không hợp lệ. Vui lòng thử lại với câu hỏi khác.",
+    "step_limit": "Yêu cầu quá phức tạp để xử lý trong một lần. Hãy chia nhỏ câu hỏi thành các bước riêng biệt.",
+    "run_replay": "Phiên làm việc đã hết hạn hoặc bị trùng lặp. Vui lòng thử lại.",
+    "persistence_unavailable": "Dịch vụ lưu trữ tạm thời gián đoạn. Vui lòng thử lại.",
+    "sandbox_quota": "Tác vụ vượt quá giới hạn tài nguyên xử lý. Vui lòng thu hẹp phạm vi yêu cầu.",
+    "sandbox_rejected": "Kịch bản thực thi không vượt qua kiểm tra an toàn.",
+    "rate_limited": "Hệ thống đang nhận quá nhiều yêu cầu. Vui lòng thử lại sau.",
+    "budget_exceeded": "Tài khoản đã đạt hạn mức sử dụng AI trong tháng.",
+    "unknown": "Đã xảy ra lỗi không xác định. Vui lòng thử lại."
+  },
+  "action": {
+    "retry": "Thử lại",
+    "rephrase": "Sửa câu hỏi",
+    "split_query": "Chia nhỏ yêu cầu",
+    "contact_admin": "Liên hệ quản trị viên"
   },
   "empty": {
     "title": "Hỏi Olorin bất cứ điều gì về dữ liệu bạn được phân quyền",
@@ -36,6 +60,15 @@
   "tool": {
     "unparsed": "Kết quả công cụ không đọc được.",
     "details": "Chi tiết kết quả",
+    "search": {
+      "title": "Khám phá API",
+      "pending": "Đang tìm kiếm API:",
+      "methods": "phương thức"
+    },
+    "execute": {
+      "title": "Xử lý dữ liệu",
+      "pending": "Đang thực thi kịch bản xử lý trong sandbox an toàn..."
+    },
     "customer": {
       "code": "Mã khách hàng",
       "segment": "Phân khúc",
@@ -49,18 +82,27 @@
       "fallback": "Tri thức Arda"
     }
   },
+  "table": {
+    "result_title": "Dữ liệu ({count} bản ghi)",
+    "show_more": "Xem thêm {count} bản ghi",
+    "show_less": "Thu gọn"
+  },
   "approval": {
-    "badge": "Đề xuất bởi AI",
-    "title": "Chờ bạn phê duyệt",
-    "description": "Olorin không tự thực hiện hành động này. Bạn cần xem xét và quyết định.",
-    "approve": "Duyệt",
+    "badge": "Cần phê duyệt",
+    "title": "Yêu cầu phê duyệt hành động",
+    "description": "Trợ lý AI đề xuất một thao tác có ảnh hưởng đến dữ liệu. Vui lòng xác nhận trước khi hệ thống thực thi.",
+    "approve": "Phê duyệt",
     "reject": "Từ chối",
-    "approved": "Đã duyệt",
+    "approved": "Đã phê duyệt",
     "rejected": "Đã từ chối",
-    "executed": "Đã thực hiện",
-    "executing": "Đang thực hiện hành động đã duyệt…",
+    "executed": "Đã thực thi",
+    "executing": "Đang thực thi thao tác đã phê duyệt…",
     "saving": "Đang gửi…",
     "expires": "Hết hạn lúc {time}",
+    "expires_in": "Hết hạn sau {minutes} phút",
+    "expired": "Đã hết hạn",
+    "expired_notice": "Yêu cầu đã hết hạn và không thể thực thi.",
+    "approve_aria": "Xác nhận phê duyệt thao tác",
     "error": "Không gửi được quyết định. Vui lòng thử lại."
   },
   "threads": {
