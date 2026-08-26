@@ -74,8 +74,9 @@ The shell ships a global assistant dock (Ctrl/Cmd+J) backed by
 `@workspace/ai`, which wraps CopilotKit headless state behind Arda-owned UI.
 CopilotKit must stay inside the package; apps import only `@workspace/ai`.
 
-- Enable with `VITE_AI_ENABLED=true` (legacy flag `VITE_AI_PROTOCOL_SPIKE`
-  still opens `/ai-protocol-spike`). Full page: `/ai`.
+- Enabled by default. Set `VITE_AI_ENABLED=false` (build variable) to disable.
+  Legacy route `/ai-protocol-spike` follows `VITE_AI_PROTOCOL_SPIKE` with the
+  same default-on rule. Full page: `/ai`.
 - Offline previews without a backend:
   `/ai?olorin-fixture=customerLookup|knowledgeCitations|approvalPending`.
 - Tool renderers and page context are registered by remotes through

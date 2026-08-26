@@ -24,7 +24,7 @@ import {
 import { SidebarNode } from "./components/SidebarNav"
 import { AppHeader } from "./components/AppHeader"
 
-const aiEnabled = import.meta.env.VITE_AI_ENABLED === "true"
+const aiEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
 
 function formatUserLabel(name: string, nickname?: string) {
   const cleanNickname = nickname?.trim()

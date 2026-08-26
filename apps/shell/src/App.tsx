@@ -28,8 +28,8 @@ import {
 import { ShellLayout } from "./ShellLayout"
 import { OlorinPage } from "./features/ai/olorin-page"
 
-const aiProtocolSpikeEnabled = import.meta.env.VITE_AI_PROTOCOL_SPIKE === "true"
-const aiAssistantEnabled = import.meta.env.VITE_AI_ENABLED === "true"
+const aiProtocolSpikeEnabled = import.meta.env.VITE_AI_PROTOCOL_SPIKE !== "false"
+const aiAssistantEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
 
 const routeFallback = (
   <div
