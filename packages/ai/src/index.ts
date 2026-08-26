@@ -1,4 +1,12 @@
-export { OlorinProvider, type OlorinProviderProps } from "./provider"
+export {
+  OlorinProvider,
+  type OlorinProviderProps,
+} from "./provider"
+export {
+  OlorinContext,
+  useOlorinContext,
+  type OlorinContextValue,
+} from "./context"
 export { OlorinWorkspace } from "./components/olorin-workspace"
 export { OLORIN_AGENT_ID, useOlorin, type ArdaToolHint } from "./use-olorin"
 export {
@@ -14,6 +22,13 @@ export {
   KnowledgeCitationList,
   registerKnowledgeCitationRenderer,
 } from "./components/citation-list"
+export {
+  CustomerSummaryToolUI,
+  KnowledgeCitationToolUI,
+  CustomerExportPrepareToolUI,
+  GenericToolView,
+} from "./components/tool-ui"
+export { MarkdownMessage } from "./components/markdown"
 export {
   collectOlorinContext,
   registerOlorinContext,
@@ -38,3 +53,8 @@ export {
   type OlorinConversation,
   type OlorinConversationMessage,
 } from "./conversations"
+export {
+  createArdaChatModelAdapter,
+  type ArdaSSEEvent,
+  type ArdaChatModelAdapterOptions,
+} from "./adapter"

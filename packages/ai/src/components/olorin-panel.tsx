@@ -1,16 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
+import {
+  ThreadPrimitive,
+  MessagePrimitive,
+  ComposerPrimitive,
+  ActionBarPrimitive,
+} from "@assistant-ui/react"
 import { useI18n } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
-import { Alert, AlertDescription } from "@workspace/ui/components/alert"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,54 +15,34 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import {
-  Message,
-  MessageAvatar,
-  MessageContent,
-  MessageFooter,
-  MessageHeader,
-} from "@workspace/ui/components/message"
-import {
-  MessageScroller,
-  MessageScrollerButton,
-  MessageScrollerContent,
-  MessageScrollerItem,
-  MessageScrollerProvider,
-  MessageScrollerViewport,
-} from "@workspace/ui/components/message-scroller"
-import { Spinner } from "@workspace/ui/components/spinner"
-import { Textarea } from "@workspace/ui/components/textarea"
-import {
-  Check,
   ChevronDown,
   Copy,
   History,
   Plus,
+  RefreshCw,
   Send,
   Sparkles,
+  Square,
   Trash2,
 } from "lucide-react"
 import {
   deleteConversation as apiDeleteConversation,
-  fetchConversationMessages,
   useOlorinConversations,
 } from "../conversations"
-import { olorinFixtures, type FixtureMessage } from "../fixtures"
-import {
-  extractApprovalProposal,
-  messageText,
-  parseToolResult,
-  type OlorinMessage,
-  type ToolResultPayload,
-} from "../messages"
 import {
   areDefaultRenderersRegistered,
   markDefaultRenderersRegistered,
-  resolveToolRenderer,
 } from "../registry"
 import { registerCustomerSummaryRenderer } from "./customer-summary-card"
 import { registerKnowledgeCitationRenderer } from "./citation-list"
-import { ApprovalCard } from "./approval-card"
-import { useOlorin } from "../use-olorin"
+import { MarkdownMessage } from "./markdown"
+import {
+  CustomerSummaryToolUI,
+  KnowledgeCitationToolUI,
+  CustomerExportPrepareToolUI,
+  GenericToolView,
+} from "./tool-ui"
+import { useOlorinContext } from "../context"
 
 export type OlorinPanelProps = {
   className?: string
@@ -82,103 +58,47 @@ if (!areDefaultRenderersRegistered()) {
 
 const suggestionKeys = ["customer", "knowledge"] as const
 
-export function OlorinPanel({ className, fixtureKey, showHeader = true }: OlorinPanelProps) {
+export function OlorinPanel({
+  className,
+  showHeader = true,
+}: OlorinPanelProps) {
   const { t, formatDate } = useI18n()
-  const { messages, isReady, isRunning, send, newThread, switchToThread } = useOlorin()
-  const [input, setInput] = useState("")
-  const [error, setError] = useState("")
-  const conversations = useOlorinConversations(!fixtureKey)
-  const prevRunningRef = useRef(false)
-
-  useEffect(() => {
-    if (prevRunningRef.current && !isRunning) {
-      void conversations.refresh()
-    }
-    prevRunningRef.current = isRunning
-  }, [isRunning, conversations])
-
-  const fixtureMessages = useMemo<FixtureMessage[] | undefined>(() => {
-    if (!fixtureKey) return undefined
-    return olorinFixtures[fixtureKey]
-  }, [fixtureKey])
-
-  const displayMessages: Array<OlorinMessage | FixtureMessage> =
-    fixtureMessages ?? messages
-
-  const statusLabel = fixtureMessages
-    ? t("ai.fixture.notice")
-    : !isReady
-      ? t("ai.status.connecting")
-      : isRunning
-        ? t("ai.status.working")
-        : error
-          ? t("ai.status.error")
-          : displayMessages.length > 0
-            ? t("ai.status.done")
-            : t("ai.status.ready")
-
-  async function submit() {
-    if (fixtureMessages) return
-    const content = input.trim()
-    if (!content || isRunning || !isReady) return
-    setInput("")
-    setError("")
-    try {
-      await send(content)
-    } catch (caught) {
-      setInput(content)
-      setError(caught instanceof Error ? caught.message : t("ai.error.connection"))
-    }
-  }
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    void submit()
-  }
+  const { newThread, switchToThread, threadId } = useOlorinContext()
+  const conversations = useOlorinConversations(true)
 
   return (
-    <div className={cn("flex min-h-0 min-w-0 flex-col", className)}>
-      {showHeader && !fixtureMessages && (
-        <div className="flex items-center gap-1.5 border-b px-3 py-2">
+    <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col bg-background text-foreground", className)}>
+      {showHeader && (
+        <div className="flex h-11 shrink-0 items-center justify-between border-b px-3 bg-muted/20">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="sm">
-                <History className="mr-1.5 size-3.5" />
-                {t("ai.threads.title")}
-                <ChevronDown className="ml-1 size-3" />
+              <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-xs font-medium">
+                <History className="size-3.5 text-muted-foreground" />
+                <span className="max-w-[140px] truncate">{t("ai.threads.title")}</span>
+                <ChevronDown className="size-3 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-80">
-              <DropdownMenuLabel>{t("ai.threads.title")}</DropdownMenuLabel>
+            <DropdownMenuContent align="start" className="w-72">
+              <DropdownMenuLabel className="text-xs">{t("ai.threads.title")}</DropdownMenuLabel>
               {conversations.conversations.length === 0 && !conversations.loading && (
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem disabled className="text-xs text-muted-foreground">
                   {t("ai.threads.empty")}
                 </DropdownMenuItem>
               )}
               {conversations.conversations.map((conversation) => (
                 <DropdownMenuItem
                   key={conversation.threadId}
-                  onSelect={() => {
-                    void fetchConversationMessages(conversation.threadId)
-                      .then((items) =>
-                        switchToThread(
-                          conversation.threadId,
-                          items.map((item) => ({
-                            id: `history-${item.sequence}`,
-                            role: item.role,
-                            content: item.content,
-                          }))
-                        )
-                      )
-                      .catch(() => undefined)
-                  }}
-                  className="items-center gap-2"
+                  onSelect={() => switchToThread(conversation.threadId)}
+                  className={cn(
+                    "flex items-center gap-2 text-xs py-2",
+                    conversation.threadId === threadId && "bg-accent text-accent-foreground font-medium"
+                  )}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block w-full truncate text-sm font-medium">
+                    <span className="block truncate font-medium">
                       {conversation.title || conversation.threadId}
                     </span>
-                    <span className="block text-xs text-muted-foreground">
+                    <span className="block text-[11px] text-muted-foreground">
                       {conversation.messageCount} {t("ai.threads.messages_suffix")}
                       {conversation.lastMessageAt &&
                         ` · ${formatDate(conversation.lastMessageAt, {
@@ -189,296 +109,202 @@ export function OlorinPanel({ className, fixtureKey, showHeader = true }: Olorin
                         })}`}
                     </span>
                   </span>
-                  <span
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     aria-label={t("ai.threads.delete")}
-                    className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                     onClick={(event) => {
                       event.stopPropagation()
                       void apiDeleteConversation(conversation.threadId)
                         .then(() => conversations.refresh())
                         .catch(() => undefined)
                     }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.stopPropagation()
-                        void apiDeleteConversation(conversation.threadId)
-                          .then(() => conversations.refresh())
-                          .catch(() => undefined)
-                      }
-                    }}
                   >
                     <Trash2 className="size-3.5" />
-                  </span>
+                  </button>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => newThread()}
+            className="h-7 gap-1 px-2 text-xs rounded-md shadow-2xs"
           >
-            <Plus className="mr-1 size-3.5" />
-            {t("ai.threads.new")}
+            <Plus className="size-3.5" />
+            <span>{t("ai.threads.new")}</span>
           </Button>
         </div>
       )}
-      <MessageScrollerProvider autoScroll defaultScrollPosition="last-anchor">
-        <MessageScroller className="min-h-0 flex-1">
-          <MessageScrollerViewport aria-label={t("ai.transcript.label")}>
-          <MessageScrollerContent className="p-4" aria-busy={isRunning}>
-            {!fixtureMessages && displayMessages.length === 0 ? (
-              <OlorinEmptyState onSuggestion={(value) => void send(value)} />
-            ) : (
-              displayMessages.map((message) => (
-                <OlorinRow key={message.id} message={message} />
-              ))
-            )}
-          </MessageScrollerContent>
-          </MessageScrollerViewport>
-          <MessageScrollerButton />
-        </MessageScroller>
-      </MessageScrollerProvider>
 
-      <form onSubmit={onSubmit} className="border-t bg-background p-3">
-        {error && (
-          <Alert variant="destructive" className="mb-2">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        <div className="rounded-2xl border bg-card transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/30">
-          <Textarea
-            aria-label={t("ai.composer.label")}
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault()
-                void submit()
-              }
+      <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth">
+          <ThreadPrimitive.Empty>
+            <OlorinEmptyState />
+          </ThreadPrimitive.Empty>
+
+          <ThreadPrimitive.Messages
+            components={{
+              UserMessage,
+              AssistantMessage,
             }}
-            placeholder={t("ai.composer.placeholder")}
-            disabled={!isReady || isRunning || Boolean(fixtureMessages)}
-            className="max-h-40 min-h-11 flex-1 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
-            rows={1}
           />
-          <div className="flex items-center justify-between gap-2 px-2.5 pb-2">
-            <p className="min-w-0 truncate text-[11px] text-muted-foreground">
-              {statusLabel}
-              {" · "}
-              {t("ai.composer.hint")}
-            </p>
-            <Button
-              type="submit"
-              size="icon"
-              aria-label={t("ai.composer.send")}
-              disabled={!input.trim() || isRunning || !isReady || Boolean(fixtureMessages)}
-              className="size-8 shrink-0 rounded-full"
-            >
-              {isRunning ? <Spinner /> : <Send />}
-            </Button>
+        </ThreadPrimitive.Viewport>
+
+        <ComposerPrimitive.Root className="border-t bg-background p-3">
+          <div className="rounded-2xl border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
+            <ComposerPrimitive.Input
+              rows={1}
+              autoFocus
+              placeholder={t("ai.composer.placeholder")}
+              className="max-h-40 min-h-10 w-full resize-none border-0 bg-transparent px-2.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground"
+            />
+            <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-0.5">
+              <span className="text-[11px] text-muted-foreground">
+                {t("ai.composer.hint")}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <ThreadPrimitive.If running={false}>
+                  <ComposerPrimitive.Send asChild>
+                    <Button
+                      type="submit"
+                      size="icon"
+                      aria-label={t("ai.composer.send")}
+                      className="size-7.5 rounded-full shadow-2xs"
+                    >
+                      <Send className="size-3.5" />
+                    </Button>
+                  </ComposerPrimitive.Send>
+                </ThreadPrimitive.If>
+                <ThreadPrimitive.If running={true}>
+                  <ComposerPrimitive.Cancel asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="destructive"
+                      aria-label="Dừng tạo"
+                      title="Dừng tạo"
+                      className="size-7.5 rounded-full shadow-2xs"
+                    >
+                      <Square className="size-3 fill-current" />
+                    </Button>
+                  </ComposerPrimitive.Cancel>
+                </ThreadPrimitive.If>
+              </div>
+            </div>
           </div>
-        </div>
-      </form>
+        </ComposerPrimitive.Root>
+      </ThreadPrimitive.Root>
     </div>
   )
 }
 
-function OlorinEmptyState({ onSuggestion }: { onSuggestion: (value: string) => void }) {
+function OlorinEmptyState() {
   const { t } = useI18n()
   return (
-    <div className="flex min-h-full flex-col items-center justify-center gap-4 py-10 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+    <div className="flex min-h-[280px] flex-1 flex-col items-center justify-center p-6 text-center">
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3 shadow-xs ring-1 ring-primary/20">
         <Sparkles className="size-6" />
       </div>
-      <div className="space-y-1.5">
-        <p className="font-semibold">{t("ai.empty.title")}</p>
-        <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">
-          {t("ai.empty.hint")}
-        </p>
-      </div>
-      <div className="flex flex-wrap justify-center gap-2">
+      <p className="text-sm font-semibold tracking-tight">{t("ai.empty.title")}</p>
+      <p className="mt-1 max-w-xs text-xs text-muted-foreground leading-relaxed">
+        {t("ai.empty.hint")}
+      </p>
+      <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-sm">
         {suggestionKeys.map((key) => (
-          <Button
+          <ThreadPrimitive.Suggestion
             key={key}
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onSuggestion(t(`ai.suggestions.${key}`))}
+            prompt={t(`ai.suggestions.${key}`)}
+            method="replace"
+            autoSend
+            asChild
           >
-            {t(`ai.suggestions.${key}`)}
-          </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7.5 rounded-full px-3 text-xs font-normal hover:bg-accent/80 transition-colors shadow-2xs"
+            >
+              {t(`ai.suggestions.${key}`)}
+            </Button>
+          </ThreadPrimitive.Suggestion>
         ))}
       </div>
     </div>
   )
 }
 
-function OlorinRow({
-  message,
-}: {
-  message: OlorinMessage | FixtureMessage
-}) {
-  const { t } = useI18n()
-  const isUser = message.role === "user"
-  const toolResult = parseToolResult(message as OlorinMessage)
-  const content = messageText(message.content)
-
+function UserMessage() {
   return (
-    <MessageScrollerItem messageId={message.id} scrollAnchor={isUser}>
-      <Message align={isUser ? "end" : "start"} className="group/message py-2">
-        <MessageAvatar>
-          <Avatar className="size-8">
-            <AvatarFallback>{isUser ? "Bạn" : "OL"}</AvatarFallback>
-          </Avatar>
-        </MessageAvatar>
-        <MessageContent className="max-w-[85%]">
-          {!isUser && (
-            <MessageHeader>{t("ai.message.header")}</MessageHeader>
-          )}
-          {message.role === "tool" ? (
-            <ToolResultBody result={toolResult} messageId={message.id} />
-          ) : isUser ? (
-            <Bubble isUser>{content}</Bubble>
-          ) : content ? (
-            <AssistantBubble content={content} />
-          ) : (
-            <TypingDots />
-          )}
-          {toolResult && message.role === "tool" && (
-            <ApprovalSection result={toolResult} />
-          )}
-          {!isUser && message.role !== "tool" && (
-            <MessageFooter className="gap-2 opacity-0 transition-opacity group-hover/message:opacity-100">
-              <CopyButton text={content} />
-            </MessageFooter>
-          )}
-        </MessageContent>
-      </Message>
-    </MessageScrollerItem>
+    <MessagePrimitive.Root className="group/message flex w-full justify-end py-1.5">
+      <div className="flex max-w-[85%] items-end gap-2 flex-row-reverse">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-2xs">
+          U
+        </div>
+        <div className="rounded-2xl rounded-br-xs bg-primary px-3.5 py-2 text-sm leading-relaxed text-primary-foreground shadow-2xs wrap-break-word">
+          <MessagePrimitive.Content />
+        </div>
+      </div>
+    </MessagePrimitive.Root>
   )
 }
 
-function AssistantBubble({ content }: { content: string }) {
+function AssistantMessage() {
   return (
-    <div className="rounded-2xl rounded-bl-md border bg-muted/50 px-4 py-3 text-sm leading-6">
-      <MarkdownContent content={content} />
-    </div>
+    <MessagePrimitive.Root className="group/message flex w-full justify-start py-1.5">
+      <div className="flex max-w-[90%] items-start gap-2.5">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground text-xs font-bold shadow-2xs ring-1 ring-primary/20">
+          <Sparkles className="size-3.5" />
+        </div>
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 text-sm leading-relaxed shadow-2xs text-foreground">
+            <MessagePrimitive.Parts
+              components={{
+                Text: ({ text }) => <MarkdownMessage content={text} />,
+                tools: {
+                  by_name: {
+                    "crm.customer.get": CustomerSummaryToolUI,
+                    "knowledge.search": KnowledgeCitationToolUI,
+                    "crm.customer.export.prepare": CustomerExportPrepareToolUI,
+                  },
+                  Fallback: ({ toolName, result }) => (
+                    <GenericToolView
+                      toolName={toolName}
+                      result={result as Record<string, unknown>}
+                    />
+                  ),
+                },
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover/message:opacity-100 pl-1">
+            <ActionBarPrimitive.Root className="flex items-center gap-0.5">
+              <ActionBarPrimitive.Copy asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 text-muted-foreground hover:text-foreground rounded"
+                  title="Sao chép"
+                >
+                  <Copy className="size-3" />
+                </Button>
+              </ActionBarPrimitive.Copy>
+              <ActionBarPrimitive.Reload asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 text-muted-foreground hover:text-foreground rounded"
+                  title="Tạo lại"
+                >
+                  <RefreshCw className="size-3" />
+                </Button>
+              </ActionBarPrimitive.Reload>
+            </ActionBarPrimitive.Root>
+          </div>
+        </div>
+      </div>
+    </MessagePrimitive.Root>
   )
-}
-
-function TypingDots() {
-  const { t } = useI18n()
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md border bg-muted/50 px-4 py-3.5"
-      role="status"
-      aria-label={t("ai.message.thinking")}
-    >
-      {[0, 150, 300].map((delay) => (
-        <span
-          key={delay}
-          style={{ animationDelay: `${delay}ms` }}
-          className="size-1.5 animate-bounce rounded-full bg-muted-foreground/70 motion-reduce:animate-none"
-        />
-      ))}
-    </span>
-  )
-}
-
-function MarkdownContent({ content }: { content: string }) {
-  return (
-    <div className="space-y-2 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_h1]:text-base [&_h1]:font-semibold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-medium [&_li]:ml-4 [&_li]:list-disc [&_ol_li]:list-decimal [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-xs [&_table]:w-full [&_td]:border [&_th]:border [&_th]:px-2 [&_td]:px-2">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-    </div>
-  )
-}
-
-function CopyButton({ text }: { text: string }) {
-  const { t } = useI18n()
-  const [copied, setCopied] = useState(false)
-  return (
-    <button
-      type="button"
-      aria-label={t("ai.message.copy")}
-      title={t("ai.message.copy")}
-      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-      onClick={() => {
-        void navigator.clipboard.writeText(text).then(() => {
-          setCopied(true)
-          setTimeout(() => setCopied(false), 1500)
-        })
-      }}
-    >
-      {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-    </button>
-  )
-}
-
-function Bubble({
-  isUser,
-  children,
-}: {
-  isUser: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl px-4 py-3 leading-6 whitespace-pre-wrap",
-        isUser
-          ? "rounded-br-md bg-primary text-primary-foreground"
-          : "rounded-bl-md border bg-muted/50"
-      )}
-    >
-      {children}
-    </div>
-  )
-}
-
-function ToolResultBody({
-  result,
-  messageId,
-}: {
-  result?: ToolResultPayload
-  messageId: string
-}) {
-  const { t } = useI18n()
-
-  if (!result) {
-    return (
-      <Bubble isUser={false}>
-        <span className="text-muted-foreground">{t("ai.tool.unparsed")}</span>
-      </Bubble>
-    )
-  }
-
-  const entry = resolveToolRenderer(result)
-  if (entry) {
-    const Renderer = entry.component
-    return <Renderer result={result} messageId={messageId} />
-  }
-
-  return (
-    <Collapsible className="mt-1 w-full">
-      <CollapsibleTrigger className="group flex items-center gap-1 rounded-md border bg-muted/50 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">
-        <ChevronDown className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
-        {t("ai.tool.details")}
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-md bg-muted/60 p-2 text-xs leading-5 text-muted-foreground">
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      </CollapsibleContent>
-    </Collapsible>
-  )
-}
-
-function ApprovalSection({ result }: { result: ToolResultPayload }) {
-  const proposal = extractApprovalProposal(result)
-  if (!proposal || proposal.status !== "PENDING") return null
-  return <ApprovalCard proposal={proposal} />
 }

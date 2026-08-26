@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copilotkit/react-core": "1.69.0",
+    "@assistant-ui/react": "^0.15.16",
+    "@assistant-ui/react-markdown": "^0.14.12",
     "@workspace/api": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/ui": "workspace:*",

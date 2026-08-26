@@ -3,7 +3,7 @@ import type { ToolResultPayload } from "./messages"
 
 export type ToolResultViewProps = {
   result: ToolResultPayload
-  messageId: string
+  messageId?: string
 }
 
 export type ToolRendererEntry = {

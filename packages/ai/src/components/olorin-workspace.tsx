@@ -1,13 +1,13 @@
-﻿import { useEffect } from "react"
+import { useEffect } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Trash2, X } from "lucide-react"
+import { cn } from "@workspace/ui/lib/utils"
+import { Plus, Trash2, X } from "lucide-react"
 import {
   deleteConversation,
-  fetchConversationMessages,
   useOlorinConversations,
 } from "../conversations"
-import { useOlorin } from "../use-olorin"
+import { useOlorinContext } from "../context"
 import { OlorinProvider } from "../provider"
 import { OlorinPanel } from "./olorin-panel"
 
@@ -23,7 +23,7 @@ export function OlorinWorkspace({ onExit }: { onExit: () => void }) {
 
 function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
   const { t, formatDate } = useI18n()
-  const { newThread, switchToThread } = useOlorin()
+  const { newThread, switchToThread, threadId } = useOlorinContext()
   const conversations = useOlorinConversations(true)
 
   useEffect(() => {
@@ -36,8 +36,8 @@ function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
 
   return (
     <>
-      <aside className="hidden w-72 shrink-0 flex-col overflow-hidden border-r bg-muted/30 md:flex">
-        <div className="flex h-[52px] shrink-0 items-center gap-2 border-b px-3">
+      <aside className="hidden w-72 shrink-0 flex-col overflow-hidden border-r bg-muted/20 md:flex">
+        <div className="flex h-[52px] shrink-0 items-center justify-between border-b px-4">
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">
             {t("ai.name")}
           </p>
@@ -51,21 +51,22 @@ function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
             <X className="size-4" />
           </Button>
         </div>
-        <div className="p-2">
+        <div className="p-3">
           <Button
             variant="outline"
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-xs h-9 shadow-2xs"
             onClick={() => newThread()}
           >
-            {t("ai.threads.new")}
+            <Plus className="size-4" />
+            <span>{t("ai.threads.new")}</span>
           </Button>
         </div>
-        <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
-          <p className="px-2 pb-1 pt-2 text-xs font-medium text-muted-foreground">
+        <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-3">
+          <p className="px-2 pb-1 pt-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
             {t("ai.threads.title")}
           </p>
           {conversations.conversations.length === 0 && !conversations.loading && (
-            <p className="px-2 py-1 text-sm text-muted-foreground">
+            <p className="px-2 py-2 text-xs text-muted-foreground">
               {t("ai.threads.empty")}
             </p>
           )}
@@ -74,47 +75,28 @@ function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
               key={conversation.threadId}
               role="button"
               tabIndex={0}
-              onClick={() => {
-                void fetchConversationMessages(conversation.threadId)
-                  .then((items) =>
-                    switchToThread(
-                      conversation.threadId,
-                      items.map((item) => ({
-                        id: `history-${item.sequence}`,
-                        role: item.role,
-                        content: item.content,
-                      }))
-                    )
-                  )
-                  .catch(() => undefined)
-              }}
+              onClick={() => switchToThread(conversation.threadId)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault()
-                  void fetchConversationMessages(conversation.threadId)
-                    .then((items) =>
-                      switchToThread(
-                        conversation.threadId,
-                        items.map((item) => ({
-                          id: `history-${item.sequence}`,
-                          role: item.role,
-                          content: item.content,
-                        }))
-                      )
-                    )
-                    .catch(() => undefined)
+                  switchToThread(conversation.threadId)
                 }
               }}
-              className="group flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 hover:bg-accent hover:text-accent-foreground"
+              className={cn(
+                "group flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 transition-colors text-xs",
+                conversation.threadId === threadId
+                  ? "bg-accent text-accent-foreground font-medium"
+                  : "hover:bg-muted/70 text-foreground"
+              )}
             >
               <span className="min-w-0 flex-1">
-                <span className="block w-full truncate text-sm font-medium">
+                <span className="block w-full truncate font-medium">
                   {conversation.title || conversation.threadId}
                 </span>
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-[11px] text-muted-foreground mt-0.5">
                   {conversation.messageCount} {t("ai.threads.messages_suffix")}
                   {conversation.lastMessageAt &&
-                    ` Â· ${formatDate(conversation.lastMessageAt, {
+                    ` · ${formatDate(conversation.lastMessageAt, {
                       hour: "2-digit",
                       minute: "2-digit",
                       day: "2-digit",
@@ -133,7 +115,7 @@ function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
                     .catch(() => undefined)
                 }}
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
               </button>
             </div>
           ))}
@@ -151,4 +133,3 @@ function OlorinWorkspaceSurface({ onExit }: { onExit: () => void }) {
     </>
   )
 }
-
