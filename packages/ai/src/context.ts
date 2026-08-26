@@ -4,7 +4,7 @@ import type { AssistantRuntime } from "@assistant-ui/react"
 export type OlorinContextValue = {
   threadId: string
   newThread: () => void
-  switchToThread: (threadId: string) => void
+  switchToThread: (threadId: string) => Promise<void> | void
   runtime: AssistantRuntime
 }
 
