@@ -37,9 +37,6 @@ import { registerCustomerSummaryRenderer } from "./customer-summary-card"
 import { registerKnowledgeCitationRenderer } from "./citation-list"
 import { MarkdownMessage } from "./markdown"
 import {
-  CustomerSummaryToolUI,
-  KnowledgeCitationToolUI,
-  CustomerExportPrepareToolUI,
   SearchMetaToolUI,
   ExecuteMetaToolUI,
   GenericToolView,
@@ -282,9 +279,6 @@ function AssistantMessage() {
                 Text: ({ text }) => <MarkdownMessage content={text} />,
                 tools: {
                   by_name: {
-                    "crm.customer.get": CustomerSummaryToolUI,
-                    "knowledge.search": KnowledgeCitationToolUI,
-                    "crm.customer.export.prepare": CustomerExportPrepareToolUI,
                     search: SearchMetaToolUI,
                     execute: ExecuteMetaToolUI,
                   },

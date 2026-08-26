@@ -1,4 +1,3 @@
-import { makeAssistantToolUI } from "@assistant-ui/react"
 import { useI18n } from "@workspace/i18n"
 import {
   Collapsible,
@@ -9,47 +8,10 @@ import { ChevronDown, Wrench } from "lucide-react"
 import { extractApprovalProposal, type ToolResultPayload } from "../messages"
 import { resolveToolRenderer } from "../registry"
 import { ApprovalCard } from "./approval-card"
-import { CustomerSummaryCard } from "./customer-summary-card"
-import { KnowledgeCitationList } from "./citation-list"
 import { SearchMetaToolUI, ExecuteMetaToolUI } from "./meta-tool-ui"
 import { DataTableView, isArrayResult } from "./data-table-view"
 
 export { SearchMetaToolUI, ExecuteMetaToolUI }
-
-export const CustomerSummaryToolUI = makeAssistantToolUI<
-  Record<string, unknown>,
-  Record<string, unknown>
->({
-  toolName: "crm.customer.get",
-  render: ({ result }) => {
-    if (!result) return null
-    return <CustomerSummaryCard result={result} />
-  },
-})
-
-export const KnowledgeCitationToolUI = makeAssistantToolUI<
-  Record<string, unknown>,
-  Record<string, unknown>
->({
-  toolName: "knowledge.search",
-  render: ({ result }) => {
-    if (!result) return null
-    return <KnowledgeCitationList result={result} />
-  },
-})
-
-export const CustomerExportPrepareToolUI = makeAssistantToolUI<
-  Record<string, unknown>,
-  Record<string, unknown>
->({
-  toolName: "crm.customer.export.prepare",
-  render: ({ result }) => {
-    if (!result) return null
-    const proposal = extractApprovalProposal(result)
-    if (!proposal) return <GenericToolView result={result} toolName="crm.customer.export.prepare" />
-    return <ApprovalCard proposal={proposal} />
-  },
-})
 
 export function GenericToolView({
   toolName,
@@ -61,7 +23,7 @@ export function GenericToolView({
   const { t } = useI18n()
   if (!result) return null
 
-  // Check custom registry first
+  // Check custom registry first (dynamic domain MFE renderers)
   const entry = resolveToolRenderer(result)
   if (entry) {
     const CustomComponent = entry.component
