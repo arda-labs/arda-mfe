@@ -75,6 +75,12 @@ export const navItems: NavNode[] = [
         permissions: ["platform.manage"],
       },
       {
+        href: "/admin/ai-settings",
+        labelKey: "nav.admin.ai_settings",
+        icon: Sparkles,
+        permissions: ["ai.admin", "superadmin", "platform.manage"],
+      },
+      {
         href: "/admin/tenants",
         labelKey: "nav.admin.tenants",
         icon: Building2,

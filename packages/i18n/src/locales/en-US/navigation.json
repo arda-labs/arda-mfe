@@ -9,6 +9,7 @@
     "permissions": "Permissions",
     "audit": "Audit",
     "system_settings": "System Settings",
+    "ai_settings": "AI Assistant Settings",
     "tenants": "Tenants"
   },
   "finance": {

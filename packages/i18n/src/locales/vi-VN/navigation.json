@@ -8,6 +8,7 @@
     "permissions": "Quyền",
     "audit": "Nhật ký",
     "system_settings": "Cài đặt hệ thống",
+    "ai_settings": "Cấu hình Trợ lý AI",
     "groups": "Nhóm người dùng",
     "tenants": "Tenant"
   },
