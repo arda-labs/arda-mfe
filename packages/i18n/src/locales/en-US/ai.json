@@ -75,6 +75,7 @@
   "panel": {
     "open": "Open Olorin",
     "close": "Close Olorin",
+    "ask": "Ask AI",
     "shortcut_hint": "Ctrl+J"
   }
 }

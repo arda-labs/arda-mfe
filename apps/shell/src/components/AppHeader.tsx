@@ -1,4 +1,4 @@
-import { Building2, Check, Moon, Sun } from "lucide-react"
+import { Building2, Check, Moon, Sparkles, Sun } from "lucide-react"
 import { useState } from "react"
 import {
   SHELL_PAGE_HEADER_SLOT_ID,
@@ -28,6 +28,8 @@ export function AppHeader({
   logout,
   switchTenant,
   navigate,
+  aiPanelOpen = false,
+  onToggleAiPanel,
 }: {
   pageTitle: ShellPageTitleState | null
   user: AuthUser | null
@@ -36,6 +38,8 @@ export function AppHeader({
   logout: () => Promise<void>
   switchTenant: (tenantId: string) => Promise<void>
   navigate: (pathname: string) => void
+  aiPanelOpen?: boolean
+  onToggleAiPanel?: () => void
 }) {
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useI18n()
@@ -110,6 +114,20 @@ export function AppHeader({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+        ) : null}
+        {onToggleAiPanel ? (
+          <Button
+            variant={aiPanelOpen ? "secondary" : "outline"}
+            size="sm"
+            aria-label={t("ai.panel.open")}
+            aria-pressed={aiPanelOpen}
+            title={`${t("ai.panel.ask")} · ${t("ai.panel.shortcut_hint")}`}
+            onClick={onToggleAiPanel}
+            className="h-8 gap-1.5 px-2.5"
+          >
+            <Sparkles className="size-3.5" />
+            <span className="hidden lg:inline">{t("ai.panel.ask")}</span>
+          </Button>
         ) : null}
         <NotificationBell />
         <Button

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate, Outlet } from "react-router-dom"
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
 import { useSystemBranding } from "@workspace/theme/branding"
 import {
   SHELL_PAGE_TITLE_EVENT,
@@ -14,7 +14,7 @@ import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { useAuthStore } from "@workspace/auth"
 import { useNotificationStream } from "@workspace/notifications"
-import { OlorinDock } from "./features/ai/olorin-dock"
+import { OlorinPanel, OlorinProvider } from "@workspace/ai"
 import { GlobalErrorDialog } from "@workspace/ui/feedback/global-error-dialog"
 import {
   navItems,
@@ -44,6 +44,7 @@ export function ShellLayout() {
     "nav.workflow": true,
   })
   const [pageTitle, setPageTitle] = useState<ShellPageTitleState | null>(null)
+  const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [authHydrated, setAuthHydrated] = useState(() =>
     useAuthStore.persist.hasHydrated()
   )
@@ -71,6 +72,17 @@ export function ShellLayout() {
     window.addEventListener(SHELL_PAGE_TITLE_EVENT, handlePageTitle)
     return () =>
       window.removeEventListener(SHELL_PAGE_TITLE_EVENT, handlePageTitle)
+  }, [])
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "j") {
+        event.preventDefault()
+        setAiPanelOpen((value) => !value)
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
   }, [])
 
   const displayUserName = user
@@ -156,14 +168,42 @@ export function ShellLayout() {
           logout={logout}
           switchTenant={switchTenant}
           navigate={navigate}
+          aiPanelOpen={aiEnabled && aiPanelOpen}
+          onToggleAiPanel={aiEnabled ? () => setAiPanelOpen((v) => !v) : undefined}
         />
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Outlet />
           <Toaster />
           <GlobalErrorDialog />
-          {aiEnabled && <OlorinDock />}
         </main>
       </div>
+      {aiEnabled && aiPanelOpen ? (
+        <aside
+          aria-label={t("ai.name")}
+          className="hidden w-[380px] shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
+        >
+          <div className="flex h-[52px] shrink-0 items-center gap-2 border-b px-3">
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold">
+              {t("ai.name")}
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                {t("ai.tagline")}
+              </span>
+            </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("ai.panel.close")}
+              onClick={() => setAiPanelOpen(false)}
+              className="size-8"
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+          <OlorinProvider>
+            <OlorinPanel className="min-h-0 flex-1" />
+          </OlorinProvider>
+        </aside>
+      ) : null}
     </div>
   )
 }

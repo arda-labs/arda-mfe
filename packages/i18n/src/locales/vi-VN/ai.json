@@ -75,6 +75,7 @@
   "panel": {
     "open": "Mở Olorin",
     "close": "Đóng Olorin",
+    "ask": "Hỏi AI",
     "shortcut_hint": "Ctrl+J"
   }
 }
