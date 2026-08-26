@@ -1,4 +1,5 @@
-import { api, type ApiRequestOptions, type ApiSuccess } from "./index"
+import { api } from "./instance"
+import type { ApiRequestOptions, ApiSuccess } from "./client"
 import type { ListResponse } from "./list"
 
 /**
