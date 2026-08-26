@@ -26,8 +26,9 @@ Bun + Vite micro frontend workspace for Arda.
 | `@workspace/auth`          | Session, step-up, auth store and API auth bridge    |
 | `@workspace/i18n`          | Locales and `translateApiError`                     |
 | `@workspace/notifications` | Notification inbox, stream and browser push         |
-| `@workspace/theme`         | Theme, appearance and branding                     |
+| `@workspace/theme`         | Theme, appearance and branding                      |
 | `@workspace/media`         | Media API and URL helpers                           |
+| `@workspace/ai`            | Olorin assistant panel: provider wrapper, tool renderer registry, approval card, fixtures |
 
 Dependency direction is enforced by `bun run check:packages`. Workspace code
 must import package exports, never another package's `src` directory. The only
@@ -66,6 +67,22 @@ apps/<remote>/src/features/<domain>/
 - **CRM** — customers, workbench (transaction ops, drafts)
 
 Workflow admin lives in `apps/workflow` (not shell). BPMN viewer/modeler: `apps/workflow/src/features/workflow/components/bpmn-monitor.tsx`.
+
+## AI assistant (Olorin)
+
+The shell ships a global assistant dock (Ctrl/Cmd+J) backed by
+`@workspace/ai`, which wraps CopilotKit headless state behind Arda-owned UI.
+CopilotKit must stay inside the package; apps import only `@workspace/ai`.
+
+- Enable with `VITE_AI_ENABLED=true` (legacy flag `VITE_AI_PROTOCOL_SPIKE`
+  still opens `/ai-protocol-spike`). Full page: `/ai`.
+- Offline previews without a backend:
+  `/ai?olorin-fixture=customerLookup|knowledgeCitations|approvalPending`.
+- Tool renderers and page context are registered by remotes through
+  `registerToolRenderer` / `registerOlorinContext`; nothing registers yet —
+  CRM is the first candidate.
+- Backend requirements live in `arda-be/apps/ai-service/README.md`
+  (`AI_ENABLE_AGENT`, HITL flags, conversation APIs).
 
 ## Commands
 

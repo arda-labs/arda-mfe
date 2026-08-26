@@ -27,6 +27,7 @@ Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host S
 * Tất cả cấu hình chia sẻ thư viện dùng chung **phải khai báo tại `federation.shared.ts`** ở thư mục gốc.
 * **Tuyệt đối không sửa riêng lẻ `shared` trong từng `apps/<remote>/vite.config.ts`**.
 * Các thư viện bắt buộc là singleton: `react`, `react-dom`, `react-router-dom`, `@workspace/auth`, `@workspace/theme`, `@workspace/notifications`, `@workspace/i18n`, `react-toastify`.
+* **`@workspace/ai` CHƯA nằm trong shared map** — hiện chỉ shell dùng. Khi một remote cần import nó: thêm `"@workspace/ai"` + `"@workspace/ai/"` vào `remoteSharedDeps` VÀ khai báo dependency trong package.json của **tất cả** apps (bỏ qua bước 2 sẽ gây lỗi resolve khi build remote, ví dụ `account`). Thiếu share khi nhiều bên dùng = 2 instance registry/renderer của AI.
 
 ### 2.2. Chuẩn hoá Remote Router với `createRemoteRoutes`
 * Mọi remote đều export một file duy nhất [`src/Routes.tsx`](file:///d:/github/arda/arda-mfe/apps/platform/src/Routes.tsx) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.
