@@ -91,7 +91,11 @@ const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
  */
 const RemoteRoutesWithProviders = Object.assign(
   function ProvidedRoutes() {
-    return <QueryProvider>{RemoteRoutesWithPreload}</QueryProvider>
+    return (
+      <QueryProvider>
+        <RemoteRoutesWithPreload />
+      </QueryProvider>
+    )
   },
   { preload: RemoteRoutesWithPreload.preload }
 )

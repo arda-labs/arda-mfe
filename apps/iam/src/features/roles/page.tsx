@@ -22,7 +22,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  DialogTitle,
+  AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { useServerDataTable } from "@workspace/admin-list/server-data-table"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
@@ -225,7 +225,7 @@ export function RolesPage() {
           <CreateRoleDialog
             open={createOpen}
             onOpenChange={setCreateOpen}
-            onCreated={() => refetch()}
+            onCreated={() => void refetch()}
           />
           <RolePermissionsDialog
             role={permissionTarget}
@@ -237,7 +237,7 @@ export function RolesPage() {
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <DialogTitle>{t("common.confirm.delete_title")}</DialogTitle>
+                <AlertDialogTitle>{t("common.confirm.delete_title")}</AlertDialogTitle>
                 <AlertDialogDescription>
                   {t("common.confirm.delete_description", {
                     item: deleteTarget?.code || deleteTarget?.name || "",

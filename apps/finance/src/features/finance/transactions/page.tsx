@@ -175,7 +175,7 @@ export function TransactionsPage() {
         <PostTransactionDialog
           open={createOpen}
           onOpenChange={setCreateOpen}
-          onPosted={() => refetch()}
+          onPosted={() => void refetch()}
         />
       }
     />
