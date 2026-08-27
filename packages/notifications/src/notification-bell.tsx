@@ -76,7 +76,7 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          title={t("open")}
+          title={t("notifications.open")}
           className="relative size-8"
         >
           <Bell className="size-4" />
@@ -89,7 +89,7 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-96 p-0">
         <div className="flex h-11 items-center justify-between border-b px-3">
-          <p className="text-sm font-semibold">{t("title")}</p>
+          <p className="text-sm font-semibold">{t("notifications.title")}</p>
           <Button
             variant="ghost"
             size="sm"
@@ -98,7 +98,7 @@ export function NotificationBell() {
             className="h-8 gap-1.5 px-2 text-xs"
           >
             <CheckCheck className="size-3.5" />
-            {t("mark_all_read")}
+            {t("notifications.mark_all_read")}
           </Button>
         </div>
         {showBrowserPrompt ? (
@@ -113,14 +113,14 @@ export function NotificationBell() {
               className="h-7 shrink-0 text-xs"
               onClick={() => void handleEnableBrowser()}
             >
-              {t("browser.enable")}
+              {t("notifications.browser.enable")}
             </Button>
           </div>
         ) : null}
         {browserPermission === "granted" && browserPreferred ? (
           <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
             <p className="text-xs text-muted-foreground">
-              {t("browser.enabled")}
+              {t("notifications.browser.enabled")}
             </p>
             <Button
               type="button"
@@ -135,12 +135,12 @@ export function NotificationBell() {
         ) : null}
         {browserPermission === "denied" ? (
           <div className="border-b px-3 py-2 text-xs text-muted-foreground">
-            {t("browser.denied")}
+            {t("notifications.browser.denied")}
           </div>
         ) : null}
         {notifications.length === 0 ? (
           <div className="px-3 py-8 text-center text-sm text-muted-foreground">
-            {t("empty")}
+            {t("notifications.empty")}
           </div>
         ) : (
           <div className="max-h-80 overflow-y-auto overscroll-contain p-1">

@@ -113,41 +113,92 @@ export function translateApiError(
   return fallback
 }
 
+const KNOWN_NAMESPACES = new Set([
+  "admin",
+  "auth",
+  "common",
+  "navigation",
+  "notifications",
+  "profile",
+  "user",
+  "validation",
+  "iam",
+  "crm",
+  "finance",
+  "hrm",
+  "platform",
+  "workflow",
+  "ai",
+  "account",
+])
+
 function translate(
   key: string,
   locale: Locale,
   params?: Record<string, string | number>
 ): string {
-  const nextKey = normalizeKey(key)
-  const translated = i18n.t(nextKey, {
+  if (!key) return ""
+
+  const opts = {
     lng: locale,
     ...params,
     defaultValue: "",
-  })
-  if (typeof translated === "string" && translated) return translated
-  if (translated && typeof translated === "object") {
-    const selfVal = (translated as { _self?: unknown })._self
-    if (typeof selfVal === "string" && selfVal) return selfVal
   }
+
+  // 1. Direct namespace key with colon (e.g. "common:feedback.save_success" or "navigation:dashboard")
+  if (key.includes(":")) {
+    const directRes = tryI18nTranslate(key, opts)
+    if (directRes) return directRes
+    return key
+  }
+
+  // 2. Navigation shorthand (e.g. "nav.dashboard", "nav.ai", "nav.admin", "nav.admin.users")
+  if (key.startsWith("nav.") || key.startsWith("navigation.")) {
+    const subKey = key.startsWith("nav.") ? key.slice(4) : key.slice(11)
+    const navRes =
+      tryI18nTranslate(`navigation:${subKey}`, opts) ||
+      tryI18nTranslate(`navigation:${subKey}._self`, opts)
+    if (navRes) return navRes
+  }
+
+  // 3. Known namespace dot-notation (e.g. "admin.users.field.roles" -> "admin:users.field.roles")
+  const firstDot = key.indexOf(".")
+  if (firstDot > 0) {
+    const namespace = key.slice(0, firstDot)
+    const rest = key.slice(firstDot + 1)
+    if (KNOWN_NAMESPACES.has(namespace)) {
+      const nsRes =
+        tryI18nTranslate(`${namespace}:${rest}`, opts) ||
+        tryI18nTranslate(`${namespace}:${rest}._self`, opts)
+      if (nsRes) return nsRes
+    }
+  }
+
+  // 4. Fallback to common namespace (e.g. "action.export_excel", "export.title", "loading")
+  const commonRes =
+    tryI18nTranslate(`common:${key}`, opts) ||
+    tryI18nTranslate(`common:${key}._self`, opts) ||
+    tryI18nTranslate(key, opts)
+  if (commonRes) return commonRes
 
   return key
 }
 
-function normalizeKey(key: string) {
-  if (key.includes(":")) return key
-  if (key.startsWith("nav.")) {
-    return `navigation:${normalizeNavigationKey(key.slice(4))}`
+function tryI18nTranslate(
+  formattedKey: string,
+  opts: Record<string, unknown>
+): string | null {
+  const translated = i18n.t(formattedKey, opts)
+  if (typeof translated === "string" && translated && translated !== formattedKey) {
+    return translated
   }
-  const firstDot = key.indexOf(".")
-  if (firstDot < 0) return key
-  const namespace = key.slice(0, firstDot)
-  const rest = key.slice(firstDot + 1)
-  return `${namespace}:${rest}`
-}
-
-function normalizeNavigationKey(key: string) {
-  if (key.includes(".")) return key
-  return `${key}._self`
+  if (translated && typeof translated === "object") {
+    const selfVal = (translated as { _self?: unknown })._self
+    if (typeof selfVal === "string" && selfVal) {
+      return selfVal
+    }
+  }
+  return null
 }
 
 function getStoredLocale(): Locale {

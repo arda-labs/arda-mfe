@@ -17,7 +17,8 @@
     "accounts": "Tài khoản",
     "transactions": "Giao dịch",
     "approvals": "Phê duyệt",
-    "trial_balance": "Bảng cân đối thử"
+    "trial_balance": "Bảng cân đối thử",
+    "accounting_config": "Cấu hình kế toán"
   },
   "hrm": {
     "_self": "Nhân sự",
@@ -71,5 +72,11 @@
     "description_templates": "Mẫu mô tả",
     "roles": "Vai trò quy trình",
     "monitoring": "Giám sát quy trình"
+  },
+  "tenant": {
+    "switch": "Chuyển đơn vị / Workspace"
+  },
+  "profile": {
+    "title": "Tài khoản & Hồ sơ"
   }
 }

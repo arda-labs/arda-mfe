@@ -17,7 +17,8 @@
     "accounts": "Accounts",
     "transactions": "Transactions",
     "approvals": "Approvals",
-    "trial_balance": "Trial Balance"
+    "trial_balance": "Trial Balance",
+    "accounting_config": "Accounting Configuration"
   },
   "hrm": {
     "_self": "HRM",
@@ -71,5 +72,11 @@
     "description_templates": "Description Templates",
     "roles": "Workflow Roles",
     "monitoring": "Process Monitoring"
+  },
+  "tenant": {
+    "switch": "Switch Workspace / Tenant"
+  },
+  "profile": {
+    "title": "Account & Profile"
   }
 }

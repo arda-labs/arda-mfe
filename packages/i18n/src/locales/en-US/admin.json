@@ -120,7 +120,8 @@
       "country": "Country",
       "address": "Address",
       "position": "Position / Title",
-      "tenant": "Tenant"
+      "tenant": "Tenant",
+      "roles": "Roles"
     },
     "status": {
       "active": "Active",
@@ -135,7 +136,11 @@
       "provision_identity": "Provision Kratos identity",
       "manage_sessions": "Manage sessions",
       "save_changes": "Save changes",
-      "revoke_sessions": "Revoke all sessions"
+      "revoke_sessions": "Revoke all sessions",
+      "roles": "Manage roles",
+      "sessions": "Manage sessions",
+      "disable": "Disable",
+      "enable": "Enable"
     },
     "identity": {
       "reset_success": "Password reset successfully",
@@ -150,7 +155,9 @@
       "new_password": "New password",
       "temporary_password": "Temporary password",
       "reset_description": "Set a new Kratos password for {user}.",
-      "provision_description": "Create or link a Kratos identity for {user}."
+      "provision_description": "Create or link a Kratos identity for {user}.",
+      "audit_clean": "Identity consistency OK",
+      "audit_issues_found": "Identity consistency issues found"
     },
     "mfa": {
       "reset_title": "Reset multi-factor authentication?",

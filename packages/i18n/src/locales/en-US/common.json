@@ -165,5 +165,6 @@
     "export": "Export Excel ({count})",
     "delete": "Delete selected",
     "clear_selection": "Clear selection"
-  }
+  },
+  "loading": "Loading..."
 }

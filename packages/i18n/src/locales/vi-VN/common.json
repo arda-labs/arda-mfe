@@ -165,5 +165,6 @@
     "export": "Xuất Excel ({count})",
     "delete": "Xóa đã chọn",
     "clear_selection": "Bỏ chọn"
-  }
+  },
+  "loading": "Đang tải..."
 }

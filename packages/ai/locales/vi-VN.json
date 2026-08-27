@@ -80,7 +80,8 @@
       "title": "Nguồn tham khảo",
       "details": "Chi tiết kết quả tra cứu",
       "fallback": "Tri thức Arda"
-    }
+    },
+    "executed": "Thực thi công cụ: {name}"
   },
   "table": {
     "result_title": "Dữ liệu ({count} bản ghi)",
@@ -112,7 +113,8 @@
     "empty": "Chưa có hội thoại nào",
     "messages_suffix": "tin nhắn",
     "new": "Hội thoại mới",
-    "delete": "Xóa hội thoại"
+    "delete": "Xóa hội thoại",
+    "history": "Lịch sử hội thoại"
   },
   "fixture": {
     "notice": "Chế độ xem trước với dữ liệu mẫu"

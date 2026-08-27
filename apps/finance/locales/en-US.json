@@ -1,12 +1,28 @@
 {
   "title": "Finance",
   "accounts": {
-    "title": "Chart of accounts"
+    "title": "Chart of accounts",
+    "count": "{count} accounts",
+    "create": "Create Account",
+    "field": {
+      "normal_balance": "Normal Balance"
+    }
   },
   "transactions": {
     "title": "Transaction ledger"
   },
   "approvals": {
     "title": "Approval requests"
+  },
+  "account_type": {
+    "asset": "Asset",
+    "liability": "Liability",
+    "equity": "Equity",
+    "income": "Income",
+    "expense": "Expense"
+  },
+  "entry": {
+    "debit": "Debit",
+    "credit": "Credit"
   }
 }

@@ -120,7 +120,8 @@
       "country": "Quốc gia",
       "address": "Địa chỉ",
       "position": "Chức vụ",
-      "tenant": "Tenant"
+      "tenant": "Tenant",
+      "roles": "Vai trò"
     },
     "status": {
       "active": "Đang hoạt động",
@@ -129,6 +130,10 @@
     "action": {
       "open_actions": "Mở thao tác người dùng",
       "edit": "Sửa người dùng",
+      "roles": "Phân vai trò",
+      "sessions": "Quản lý phiên",
+      "disable": "Vô hiệu hóa",
+      "enable": "Kích hoạt",
       "audit_identity": "Kiểm tra định danh",
       "reset_password": "Đặt lại mật khẩu",
       "reset_mfa": "Đặt lại MFA",
@@ -143,7 +148,9 @@
       "provision_success": "Đã tạo định danh Kratos",
       "provision_failed": "Tạo định danh thất bại",
       "audit_ok": "Định danh nhất quán",
+      "audit_clean": "Định danh nhất quán",
       "audit_issues": "Phát hiện vấn đề định danh",
+      "audit_issues_found": "Phát hiện vấn đề định danh",
       "audit_failed": "Kiểm tra định danh thất bại",
       "audit_title": "Kiểm tra nhất quán định danh",
       "audit_empty": "Tất cả ánh xạ định danh Kratos đều nhất quán.",

@@ -1,12 +1,28 @@
 {
   "title": "Tài chính",
   "accounts": {
-    "title": "Tài khoản kế toán"
+    "title": "Tài khoản kế toán",
+    "count": "{count} tài khoản",
+    "create": "Tạo tài khoản",
+    "field": {
+      "normal_balance": "Số dư thông thường"
+    }
   },
   "transactions": {
     "title": "Hạch toán giao dịch"
   },
   "approvals": {
     "title": "Duyệt giao dịch"
+  },
+  "account_type": {
+    "asset": "Tài sản (Asset)",
+    "liability": "Nợ phải trả (Liability)",
+    "equity": "Vốn chủ sở hữu (Equity)",
+    "income": "Doanh thu (Income)",
+    "expense": "Chi phí (Expense)"
+  },
+  "entry": {
+    "debit": "Nợ (Debit)",
+    "credit": "Có (Credit)"
   }
 }

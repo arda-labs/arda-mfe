@@ -80,7 +80,8 @@
       "title": "References",
       "details": "Lookup result details",
       "fallback": "Arda knowledge"
-    }
+    },
+    "executed": "Executed tool: {name}"
   },
   "table": {
     "result_title": "Data ({count} records)",
@@ -112,7 +113,8 @@
     "empty": "No conversations yet",
     "messages_suffix": "messages",
     "new": "New chat",
-    "delete": "Delete conversation"
+    "delete": "Delete conversation",
+    "history": "Chat History"
   },
   "fixture": {
     "notice": "Preview mode with sample data"
