@@ -1,5 +1,10 @@
 import { api, type ApiSuccess } from "@workspace/api"
-import { getMediaContentUrl, getMediaDownloadUrl } from "./urls"
+import {
+  getMediaContentUrl,
+  getMediaDownloadUrl,
+  getPrivateMediaContentUrl,
+  getPrivateMediaDownloadUrl,
+} from "./urls"
 
 type IAMUserContext = {
   userId: string
@@ -10,19 +15,26 @@ type IAMUserContext = {
   avatarFileId?: string
 }
 
-export { getMediaContentUrl, getMediaDownloadUrl }
+export {
+  getMediaContentUrl,
+  getMediaDownloadUrl,
+  getPrivateMediaContentUrl,
+  getPrivateMediaDownloadUrl,
+}
 
 export async function uploadFile(
   file: File,
   module: string,
   entityType: string,
-  entityId: string
+  entityId: string,
+  visibility = "private"
 ) {
   const formData = new FormData()
   formData.append("file", file)
   formData.append("module", module)
   formData.append("entity_type", entityType)
   formData.append("entity_id", entityId)
+  formData.append("visibility", visibility)
 
   const res = await api.post<ApiSuccess<{
     public_id: string
@@ -36,7 +48,7 @@ export async function uploadFile(
   return {
     public_id: result.public_id,
     file_name: result.file_name,
-    url: getMediaContentUrl(result.public_id),
+    url: visibility === "public" ? getMediaContentUrl(result.public_id) : getPrivateMediaContentUrl(result.public_id),
   }
 }
 
@@ -46,12 +58,16 @@ export async function uploadAvatar(file: File, userId: string) {
   formData.append("module", "iam")
   formData.append("entity_type", "iam_user")
   formData.append("entity_id", userId)
+  formData.append("visibility", "public")
 
   const res = await api.post<ApiSuccess<{ public_id: string }>>("/api/media", formData)
   const result = res.result
   const profileResponse = await api.post<ApiSuccess<IAMUserContext>>(
     "/api/iam/me/profile/avatar",
-    { avatar_file_id: result.public_id }
+    {
+      avatar_file_id: result.public_id,
+      picture_url: getMediaContentUrl(result.public_id),
+    }
   )
 
   return {
@@ -67,6 +83,7 @@ export async function uploadCover(file: File, userId: string) {
   formData.append("module", "iam")
   formData.append("entity_type", "iam_user_cover")
   formData.append("entity_id", userId)
+  formData.append("visibility", "public")
 
   const res = await api.post<ApiSuccess<{ public_id: string }>>("/api/media", formData)
   const result = res.result
