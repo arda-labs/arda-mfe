@@ -62,9 +62,77 @@ for (const app of appNames) {
   }
 }
 
+// ── Shared workspace-dependency policy ──────────────────────────────────────
+// Singleton registry keys and documented exemptions are parsed directly from
+// federation.shared.ts so this script has a single source of truth. Any
+// workspace package imported by two or more deployment units must either be a
+// Module Federation singleton or be listed in sharedWorkspaceExemptions with a
+// non-empty justification.
+function extractBlock(name) {
+  const block = shared.match(new RegExp(`export const ${name} = \\{([\\s\\S]*?)\\} as const`))
+  return block ? block[1] : ""
+}
+const sharedDepsBlock = extractBlock("remoteSharedDeps")
+const exemptionsBlock = extractBlock("sharedWorkspaceExemptions")
+
+const sharedPackages = new Set(
+  [...sharedDepsBlock.matchAll(/^\s*"@workspace\/([a-z0-9-]+)(\/)?"\s*:/gm)].map(([, name]) => name)
+)
+const exemptReasons = new Map()
+for (const [, name, reason] of exemptionsBlock.matchAll(
+  /"@workspace\/([a-z0-9-]+)":\s*"([^"]*)"/g
+)) {
+  exemptReasons.set(name, reason.trim())
+}
+if (!exemptionsBlock && shared.includes("@workspace/ai")) {
+  violations.push("federation.shared.ts: sharedWorkspaceExemptions export missing")
+}
+for (const [name, reason] of exemptReasons) {
+  if (!reason) {
+    violations.push(`federation.shared.ts: ${name} exemption requires a justification string`)
+  }
+}
+
+const IMPORT_PATTERN = /(?:from\s+|import\s*\(\s*|require\s*\(\s*)['"]@workspace\/([a-z0-9-]+)/g
+const importers = new Map()
+let scannedFiles = 0
+async function scanSources(dir, unit) {
+  let entries = []
+  try {
+    entries = await readdir(dir, { withFileTypes: true, recursive: true })
+  } catch {
+    return
+  }
+  for (const entry of entries) {
+    if (!entry.isFile() || !/\.(ts|tsx)$/.test(entry.name)) continue
+    const content = await readFile(join(entry.parentPath ?? dir, entry.name), "utf8")
+    scannedFiles += 1
+    for (const [, name] of content.matchAll(IMPORT_PATTERN)) {
+      if (!importers.has(name)) importers.set(name, new Set())
+      importers.get(name).add(unit)
+    }
+  }
+}
+await scanSources(join(root, "apps/shell/src"), "shell")
+for (const app of appNames) {
+  await scanSources(join(root, `apps/${app}/src`), app)
+}
+
+for (const [name, units] of importers) {
+  if (units.size >= 2 && !sharedPackages.has(name) && !exemptReasons.has(name)) {
+    violations.push(
+      `${units.size} deployment units import @workspace/${name} (${[...units]
+        .sort()
+        .join(", ")}) but it is neither in remoteSharedDeps nor justified in sharedWorkspaceExemptions`
+    )
+  }
+}
+
 if (violations.length) {
   console.error(violations.join("\n"))
   process.exit(1)
 }
 
-console.log(`Federation compatibility invariant OK (${appNames.length} remotes)`)
+console.log(
+  `Federation compatibility invariant OK (${appNames.length} remotes, shared-dep policy checked over ${scannedFiles} sources)`
+)

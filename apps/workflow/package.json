@@ -14,11 +14,13 @@
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-table": "^8.21.3",
+    "@workspace/admin-list": "workspace:*",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
     "@workspace/i18n": "workspace:*",
-    "@workspace/notifications": "workspace:*",
     "@workspace/media": "workspace:*",
+    "@workspace/notifications": "workspace:*",
+    "@workspace/query": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
     "bpmn-js": "^18.9.1",
@@ -26,12 +28,11 @@
     "lucide-react": "^1.22.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.18.1",
     "react-hook-form": "^7.80.0",
+    "react-router-dom": "^7.18.1",
     "react-toastify": "^11.1.0",
     "zeebe-bpmn-moddle": "^1.16.0",
-    "zod": "^4.4.3",
-    "@workspace/admin-list": "workspace:*"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10",

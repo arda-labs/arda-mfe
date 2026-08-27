@@ -1,4 +1,5 @@
 import "@workspace/i18n/apps/iam"
+import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const UsersPage = lazyWithPreload(() =>
@@ -37,4 +38,5 @@ export default createRemoteRoutes({
     { prefix: "/admin/tenants", component: TenantsPage },
   ],
   defaultComponent: UsersPage,
+  wrapper: QueryProvider,
 })

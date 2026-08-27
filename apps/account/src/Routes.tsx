@@ -1,5 +1,6 @@
 import "@workspace/i18n/apps/account"
 import { useLocation, useNavigate } from "react-router-dom"
+import { QueryProvider } from "@workspace/query/provider"
 import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const AppearancePage = lazyWithPreload(() =>
@@ -84,4 +85,15 @@ function RemoteRoutes() {
 
 const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
 
-export default RemoteRoutesWithPreload
+/**
+ * Every remote mounts the shared TanStack Query client at its route root so
+ * server-list pages can adopt @workspace/admin-list without per-page wiring.
+ */
+const RemoteRoutesWithProviders = Object.assign(
+  function ProvidedRoutes() {
+    return <QueryProvider>{RemoteRoutesWithPreload}</QueryProvider>
+  },
+  { preload: RemoteRoutesWithPreload.preload }
+)
+
+export default RemoteRoutesWithProviders

@@ -269,8 +269,6 @@ async function parseApiClientError(
   } catch {
     return { code: fallback.code, message: text, fields: undefined }
   }
-
-  return fallback
 }
 
 function normalizeValidationErrors(value: unknown): Array<ApiClientValidationError> | undefined {

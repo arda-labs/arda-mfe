@@ -2,6 +2,12 @@
 
 Bun + Vite micro frontend workspace for Arda.
 
+## Docs index
+
+- Conventions: structure/rules lives at repo-level `../docs/conventions/mfe-structure.md`;
+  server-list migration guide: [docs/conventions/server-list-migration.md](docs/conventions/server-list-migration.md)
+- Architecture/refactor program: [docs/architecture.md](docs/architecture.md), [docs/refactor-program.md](docs/refactor-program.md)
+
 ## Apps
 
 | App        | Port | Role                                          |
@@ -53,6 +59,8 @@ apps/<remote>/src/features/<domain>/
 - Heavy dependencies (BPMN, large forms): `lazy()` at tab/dialog open.
 - Server state: `@workspace/query`; server-backed lists use
   `@workspace/admin-list/server-list` instead of page-local fetch effects.
+  Migration checklist: [docs/conventions/server-list-migration.md](docs/conventions/server-list-migration.md);
+  working exemplar: `apps/finance/src/features/finance/transactions/page.tsx`.
 - List URL state: declare one filter/search mapping with `defineServerList` and
   reuse it for table filters and advanced search.
 

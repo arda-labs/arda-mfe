@@ -24,11 +24,8 @@ export const remoteSharedDeps = {
   "@workspace/theme/": { singleton: true, requiredVersion: false },
   "@workspace/auth": { singleton: true, requiredVersion: false },
   "@workspace/auth/": { singleton: true, requiredVersion: false },
-  // @workspace/ai CHƯA share: chỉ shell dùng. Khi một remote bắt đầu import nó,
-  // phải thêm cả hai mục "@workspace/ai" + "@workspace/ai/" vào đây VÀ khai báo
-  // dependency trong package.json của TẤT CẢ apps (remote không khai báo =
-  // build lỗi resolve như account từng gặp). Thiếu share khi nhiều bên dùng =
-  // 2 instance registry/renderer của AI.
+  // AI panel is currently shell-only; enforcement of that decision lives in
+  // sharedWorkspaceExemptions below + check:federation (automated).
   "@workspace/notifications": { singleton: true, requiredVersion: false },
   "@workspace/notifications/": { singleton: true, requiredVersion: false },
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
@@ -52,3 +49,26 @@ export const remotePorts = {
 // Vendor lớn để shell pre-bundle 1 lần ở boot, không ở first navigation
 // (giảm độ trễ lần đầu load một remote/page).
 export const shellOptimizeInclude = ["react-toastify"]
+
+/**
+ * Workspace packages deliberately NOT registered as Module Federation
+ * singletons. Every key must carry a non-empty justification — check:federation
+ * fails otherwise and also fails when an unshared workspace package is imported
+ * by two or more deployment units without being exempted here.
+ *
+ * Policy:
+ * - Singleton packages own their global stores (auth/session, notifications,
+ *   i18n registry): react-query/zustand copies bundled inside them are fine.
+ * - Per-remote caches are intentional: each remote keeps its own TanStack
+ *   QueryClient via QueryProvider in src/Routes.tsx; sharing would couple
+ *   invalidation timing across independently released units.
+ */
+export const sharedWorkspaceExemptions = {
+  "@workspace/ui": "presentational-only; no cross-tree state",
+  "@workspace/admin-list": "per-remote list isolation",
+  "@workspace/query": "per-remote cache isolation",
+  "@workspace/media": "stateless protocol helpers",
+  // When a second remote needs the panel: move "@workspace/ai" out of this map
+  // into remoteSharedDeps AND declare it in every app's package.json.
+  "@workspace/ai": "shell-only until CRM tool-renderer integration lands",
+} as const

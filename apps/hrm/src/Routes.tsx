@@ -1,4 +1,5 @@
 import "@workspace/i18n/apps/hrm"
+import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
 const PositionsPage = lazyWithPreload(() =>
@@ -35,4 +36,5 @@ export default createRemoteRoutes({
     { prefix: "/hrm/employees", component: EmployeesPage },
   ],
   defaultComponent: PositionsPage,
+  wrapper: QueryProvider,
 })

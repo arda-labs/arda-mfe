@@ -12,10 +12,11 @@
     "check:credentials": "bun ./scripts/check-credentialed-fetch.mjs",
     "check:fallbacks": "bun ./scripts/check-no-fail-open-fallbacks.mjs",
     "check:federation": "bun ./scripts/check-federation-compat.mjs",
+    "check:pages": "bun ./scripts/check-page-size.mjs",
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
     "format": "bun run --workspaces --parallel format",
-    "typecheck": "bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run --filter './apps/*' --filter './packages/*' typecheck"
+    "typecheck": "bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run check:pages && bun run --filter './apps/*' --filter './packages/*' typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

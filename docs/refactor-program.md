@@ -42,6 +42,14 @@ IAM type surface is the first checked-in generated reference; expanding the
 same generation/drift gate to every public OpenAPI document is still a QA-02
 release gate.
 
+Server-state adoption status (tracked by `bun run check:pages` baseline):
+`finance/transactions` is migrated to `defineServerList` +
+`useServerDataTable` as the working exemplar; every remote now mounts
+`QueryProvider` at its route root, so remaining large list pages can migrate
+one-by-one following
+[docs/conventions/server-list-migration.md](./conventions/server-list-migration.md)
+without transport/provider plumbing.
+
 ## 3. Required feature layering
 
 ```text
