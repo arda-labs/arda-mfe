@@ -67,12 +67,11 @@ export type CreateRemoteRoutesOptions = {
  * Creates a micro-frontend remote entry router component with automatic
  * path-based component selection and preloading support.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createRemoteRoutes({
   routes,
   defaultComponent,
   wrapper: Wrapper,
-}: CreateRemoteRoutesOptions): PreloadableRemoteComponent<ComponentType<any>> {
+}: CreateRemoteRoutesOptions): PreloadableRemoteComponent<ComponentType<Record<string, unknown>>> {
   async function preload(pathname = "") {
     const match = routes.find((r) => pathname.startsWith(r.prefix))
     const target = match?.component ?? defaultComponent
