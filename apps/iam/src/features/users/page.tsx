@@ -572,6 +572,7 @@ export function UsersPage() {
   const { table } = useDataTable({
     data: users,
     columns,
+    rowCount: total,
     pageCount: Math.ceil(total / pageSizeParam),
     initialState: {
       pagination: {

@@ -89,12 +89,17 @@ export interface UseDataTableProps<TData>
   /** Prepends row index column (STT). Default true. Placed after `select` when present. */
   showRowIndex?: boolean
   rowIndexLabel?: string
+  /** Total count of all filtered rows across all pages */
+  rowCount?: number
+  totalRows?: number
 }
 
 export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const {
     columns: inputColumns,
     pageCount = -1,
+    rowCount: inputRowCount,
+    totalRows: inputTotalRows,
     initialState,
     queryKeys,
     debounceMs = DEBOUNCE_MS,
@@ -292,11 +297,14 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     showRowIndex,
   ])
 
+  const resolvedRowCount = inputRowCount ?? inputTotalRows
+
   const table = useReactTable({
     ...tableProps,
     columns,
     initialState,
     pageCount,
+    ...(resolvedRowCount !== undefined ? { rowCount: resolvedRowCount } : {}),
     state: {
       pagination,
       sorting,
@@ -326,6 +334,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     manualFiltering: true,
     meta: {
       ...tableProps.meta,
+      totalRows: resolvedRowCount,
       queryKeys: {
         page: pageKey,
         perPage: perPageKey,

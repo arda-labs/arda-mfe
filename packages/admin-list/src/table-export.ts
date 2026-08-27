@@ -1,4 +1,4 @@
-import type { Column, RowData, Table } from "@tanstack/react-table"
+import type { Column, Table } from "@tanstack/react-table"
 import * as XLSX from "xlsx"
 
 export type ExportScope = "all" | "selected" | "current_page"
@@ -10,16 +10,6 @@ export interface ExportFormatHelpers {
   formatNumber?: (value: number, options?: Intl.NumberFormatOptions) => string
   formatCurrency?: (value: number, currency?: string) => string
   locale?: string
-}
-
-declare module "@tanstack/react-table" {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends RowData, TValue> {
-    title?: string
-    label?: string
-    exportValue?: (item: TData, helpers?: ExportFormatHelpers) => string | number | boolean | null
-    exportType?: "text" | "number" | "date" | "currency" | "code"
-  }
 }
 
 export interface TableExportOptions<TData> {

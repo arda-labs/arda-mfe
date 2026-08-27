@@ -154,9 +154,24 @@ function TableExportDialogContent<TData>({
   const { t, formatDate, formatNumber, formatCurrency, locale } = i18nContext
 
   const selectedCount = table.getFilteredSelectedRowModel().rows.length
+  const metaTotalRows = (table.options.meta as { totalRows?: number })?.totalRows
+  const tableRowCount =
+    typeof table.getRowCount === "function" ? table.getRowCount() : undefined
+  const pageCount = table.getPageCount()
+  const pageSize = table.getState().pagination?.pageSize || 10
+  const pageCountEstimated =
+    pageCount > 1 ? pageCount * pageSize : undefined
+
   const totalFilteredCount =
     externalTotalRows !== undefined
       ? externalTotalRows
+      : metaTotalRows !== undefined
+      ? metaTotalRows
+      : tableRowCount !== undefined &&
+        tableRowCount > table.getRowModel().rows.length
+      ? tableRowCount
+      : pageCountEstimated !== undefined
+      ? pageCountEstimated
       : table.getFilteredRowModel().rows.length
   const currentPageCount = table.getRowModel().rows.length
 
@@ -306,45 +321,45 @@ function TableExportDialogContent<TData>({
     abortControllerRef.current = controller
 
     try {
-      if (onServerExport) {
+      let fullData: TData[] | undefined = undefined
+
+      if (scope === "all" && typeof fetchAllRows === "function") {
+        setFetchProgress({ loaded: 0, total: targetRowCount || 100 })
+        fullData = await fetchAllRows((loaded, total) => {
+          setFetchProgress({ loaded, total })
+        }, controller.signal)
+      } else if (scope === "all" && onServerExport) {
         await onServerExport({
           scope,
           format,
           columnIds: selectedColumnIds,
           filename: exportName,
         })
-      } else {
-        let fullData: TData[] | undefined = undefined
-
-        if (scope === "all" && typeof fetchAllRows === "function") {
-          setFetchProgress({ loaded: 0, total: targetRowCount || 100 })
-          fullData = await fetchAllRows((loaded, total) => {
-            setFetchProgress({ loaded, total })
-          }, controller.signal)
-        }
-
-        const helpers = { t, formatDate, formatNumber, formatCurrency, locale }
-
-        const options = {
-          table,
-          data: fullData,
-          scope,
-          format,
-          columnIds: selectedColumnIds,
-          filename: exportName,
-          sheetName,
-          reportTitle: reportTitle || initialFilename,
-          helpers,
-        }
-
-        if (format === "xlsx") {
-          exportTableToXlsx(options)
-        } else {
-          exportTableToCsv(options)
-        }
-
-        notify.success(t("export.success"))
+        onOpenChange(false)
+        return
       }
+
+      const helpers = { t, formatDate, formatNumber, formatCurrency, locale }
+
+      const options = {
+        table,
+        data: fullData,
+        scope,
+        format,
+        columnIds: selectedColumnIds,
+        filename: exportName,
+        sheetName,
+        reportTitle: reportTitle || initialFilename,
+        helpers,
+      }
+
+      if (format === "xlsx") {
+        exportTableToXlsx(options)
+      } else {
+        exportTableToCsv(options)
+      }
+
+      notify.success(t("export.success"))
       onOpenChange(false)
     } catch (err: unknown) {
       if ((err as Error)?.name === "AbortError") {
