@@ -319,6 +319,8 @@ export function AccountsPage() {
           table={table}
           onCreate={() => setOpen(true)}
           createLabel={t("finance.accounts.create")}
+          exportFilename={t("finance.accounts.title")}
+          sheetName={t("finance.accounts.title")}
         />
       }
       dialogs={

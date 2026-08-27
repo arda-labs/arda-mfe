@@ -537,6 +537,8 @@ export function GroupsPage() {
           table={table}
           onCreate={openCreate}
           createLabel={t("admin.groups.create")}
+          exportFilename={t("admin.groups.title")}
+          sheetName={t("admin.groups.title")}
         />
       }
       dialogs={dialogs}

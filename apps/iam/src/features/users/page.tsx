@@ -789,6 +789,8 @@ export function UsersPage() {
           table={table}
           onCreate={() => setCreateOpen(true)}
           createLabel={t("admin.users.create")}
+          exportFilename={t("admin.users.title")}
+          sheetName={t("admin.users.title")}
         >
           <Button
             variant="outline"

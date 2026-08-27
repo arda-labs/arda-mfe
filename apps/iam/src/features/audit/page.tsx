@@ -412,7 +412,11 @@ export function AuditPage() {
         ) : undefined
       }
       toolbar={
-        <ListTableToolbar table={table}>
+        <ListTableToolbar
+          table={table}
+          exportFilename={t("admin.audit.title")}
+          sheetName={t("admin.audit.title")}
+        >
           <Button
             variant="outline"
             size="sm"

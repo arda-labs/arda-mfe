@@ -218,6 +218,8 @@ export function RolesPage() {
           table={table}
           onCreate={() => setCreateOpen(true)}
           createLabel={t("admin.roles.create")}
+          exportFilename={t("admin.roles.title")}
+          sheetName={t("admin.roles.title")}
         />
       }
       dialogs={

@@ -169,6 +169,8 @@ export function TransactionsPage() {
           table={table}
           onCreate={() => setCreateOpen(true)}
           createLabel={t("common.action.create")}
+          exportFilename={t("finance.transactions.title")}
+          sheetName={t("finance.transactions.title")}
         />
       }
       dialogs={

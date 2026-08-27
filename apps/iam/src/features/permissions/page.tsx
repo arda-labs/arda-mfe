@@ -44,31 +44,11 @@ const POS = (value: string | null, fallback: number) => {
 }
 
 const permissionFormSchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .min(1, "Code is required")
-    .max(128, "Code is too long"),
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required")
-    .max(255, "Name is too long"),
-  module: z
-    .string()
-    .trim()
-    .min(1, "Module is required")
-    .max(64, "Module is too long"),
-  resource: z
-    .string()
-    .trim()
-    .min(1, "Resource is required")
-    .max(64, "Resource is too long"),
-  operation: z
-    .string()
-    .trim()
-    .min(1, "Operation is required")
-    .max(64, "Operation is too long"),
+  code: z.string().trim().min(1, "Code is required").max(128, "Code is too long"),
+  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long"),
+  module: z.string().trim().min(1, "Module is required").max(64, "Module is too long"),
+  resource: z.string().trim().min(1, "Resource is required").max(64, "Resource is too long"),
+  operation: z.string().trim().min(1, "Operation is required").max(64, "Operation is too long"),
 })
 
 type PermissionFormValues = z.infer<typeof permissionFormSchema>
@@ -390,6 +370,8 @@ export function PermissionsPage() {
           table={table}
           onCreate={() => setOpen(true)}
           createLabel={t("admin.permissions.create")}
+          exportFilename={t("admin.permissions.title")}
+          sheetName={t("admin.permissions.title")}
         />
       }
       dialogs={dialogs}
