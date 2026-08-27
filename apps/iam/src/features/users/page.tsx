@@ -44,7 +44,7 @@ import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
-import { exportTableToXlsx } from "@workspace/admin-list/table-export"
+import { exportTableToXlsx, generateExportFilename } from "@workspace/admin-list/table-export"
 import type { ColumnDef } from "@tanstack/react-table"
 import {
   Check,
@@ -58,6 +58,7 @@ import {
   Pencil,
   MoreHorizontal,
   Download,
+  FileSpreadsheet,
 } from "lucide-react"
 import { CreateUserDialog } from "./components/CreateUserDialog"
 import { EditUserDialog } from "./components/EditUserDialog"
@@ -750,18 +751,23 @@ export function UsersPage() {
           <Button
             size="sm"
             variant="outline"
-            className="h-7 px-2.5 text-xs font-medium"
+            className="h-7 px-2.5 text-xs font-semibold border-emerald-600/30 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
             onClick={() => {
+              const selectedCount = tbl.getSelectedRowModel().rows.length
+              const filename = generateExportFilename("users", {
+                scope: "selected",
+                selectedCount,
+              })
               exportTableToXlsx({
                 table: tbl,
                 scope: "selected",
-                filename: "users_selected",
+                filename,
                 sheetName: "Users",
               })
-              notify.success(`Đã xuất ${tbl.getSelectedRowModel().rows.length} người dùng đã chọn.`)
+              notify.success(`Đã xuất ${selectedCount} người dùng đã chọn.`)
             }}
           >
-            <Download className="mr-1.5 size-3.5" />
+            <FileSpreadsheet className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
             Xuất Excel ({tbl.getSelectedRowModel().rows.length})
           </Button>
           <Button

@@ -13,6 +13,54 @@ export interface TableExportOptions<TData> {
   sheetName?: string
 }
 
+/**
+ * Generates an enterprise-standard context-aware export filename:
+ * Format: {entity}_{scope}_{YYYYMMDD_HHmm}
+ * Example: users_export_20260827_1457 or users_selected_5_20260827_1457
+ */
+export function generateExportFilename(
+  customName?: string,
+  options?: {
+    scope?: ExportScope
+    selectedCount?: number
+    date?: Date
+  }
+): string {
+  const date = options?.date || new Date()
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+  const dateSuffix = `${year}${month}${day}_${hours}${minutes}`
+
+  let base = "data"
+  if (customName && customName.trim() && customName !== "export") {
+    base = slugify(customName)
+  } else if (typeof window !== "undefined" && window.location.pathname) {
+    const segments = window.location.pathname.split("/").filter(Boolean)
+    if (segments.length > 0) {
+      base = slugify(segments[segments.length - 1])
+    }
+  }
+
+  if (options?.scope === "selected" && options.selectedCount && options.selectedCount > 0) {
+    return `${base}_selected_${options.selectedCount}_${dateSuffix}`
+  }
+
+  return `${base}_export_${dateSuffix}`
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+}
+
 export interface ExportableColumn {
   id: string
   title: string

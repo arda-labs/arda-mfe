@@ -29,6 +29,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import {
   exportTableToCsv,
   exportTableToXlsx,
+  generateExportFilename,
   getExportableColumns,
   type ExportFormat,
   type ExportScope,
@@ -105,8 +106,23 @@ function TableExportDialogContent<TData>({
   )
   const [format, setFormat] = React.useState<ExportFormat>("xlsx")
   const [isExporting, setIsExporting] = React.useState(false)
-  const [customFilename, setCustomFilename] = React.useState(initialFilename)
+  const [customFilename, setCustomFilename] = React.useState(() =>
+    generateExportFilename(initialFilename, {
+      scope: selectedCount > 0 ? "selected" : "all",
+      selectedCount,
+    })
+  )
   const [columnSearch, setColumnSearch] = React.useState("")
+
+  const handleScopeChange = (newScope: ExportScope) => {
+    setScope(newScope)
+    setCustomFilename(
+      generateExportFilename(initialFilename, {
+        scope: newScope,
+        selectedCount,
+      })
+    )
+  }
 
   // Columns state initialized from visible columns
   const exportableColumns = React.useMemo(() => getExportableColumns(table), [table])
@@ -284,12 +300,12 @@ function TableExportDialogContent<TData>({
           </Label>
           <RadioGroup
             value={scope}
-            onValueChange={(val) => setScope(val as ExportScope)}
+            onValueChange={(val) => handleScopeChange(val as ExportScope)}
             className="flex flex-col gap-2 rounded-xl border p-2.5 bg-muted/20"
           >
             {/* Scope: All */}
             <div
-              onClick={() => setScope("all")}
+              onClick={() => handleScopeChange("all")}
               className={cn(
                 "flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors text-xs",
                 scope === "all" ? "bg-background shadow-xs font-medium border" : "hover:bg-muted/40"
@@ -308,7 +324,7 @@ function TableExportDialogContent<TData>({
 
             {/* Scope: Selected */}
             <div
-              onClick={() => selectedCount > 0 && setScope("selected")}
+              onClick={() => selectedCount > 0 && handleScopeChange("selected")}
               className={cn(
                 "flex items-center justify-between p-2.5 rounded-lg transition-colors text-xs",
                 selectedCount === 0
@@ -344,7 +360,7 @@ function TableExportDialogContent<TData>({
 
             {/* Scope: Current Page */}
             <div
-              onClick={() => setScope("current_page")}
+              onClick={() => handleScopeChange("current_page")}
               className={cn(
                 "flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors text-xs",
                 scope === "current_page" ? "bg-background shadow-xs font-medium border" : "hover:bg-muted/40"
