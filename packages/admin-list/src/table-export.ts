@@ -1,4 +1,4 @@
-import type { Column, Row, Table } from "@tanstack/react-table"
+import type { Column, RowData, Table } from "@tanstack/react-table"
 import * as XLSX from "xlsx"
 
 export type ExportScope = "all" | "selected" | "current_page"
@@ -10,6 +10,16 @@ export interface ExportFormatHelpers {
   formatNumber?: (value: number, options?: Intl.NumberFormatOptions) => string
   formatCurrency?: (value: number, currency?: string) => string
   locale?: string
+}
+
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    title?: string
+    label?: string
+    exportValue?: (item: TData, helpers?: ExportFormatHelpers) => string | number | boolean | null
+    exportType?: "text" | "number" | "date" | "currency" | "code"
+  }
 }
 
 export interface TableExportOptions<TData> {
@@ -384,7 +394,7 @@ export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): vo
   }
 
   // Auto-fit column widths
-  const colWidths = columns.map((col, cIdx) => {
+  const colWidths = columns.map((col) => {
     let maxLen = Math.max(col.title.length, 10)
     for (let r = 0; r < Math.min(records.length, 200); r++) {
       const item = records[r]
@@ -419,7 +429,7 @@ export const exportTableToExcelXml = exportTableToXlsx
  * Banking-Grade CSV Export with UTF-8 BOM and metadata comments.
  */
 export function exportTableToCsv<TData>(options: TableExportOptions<TData>): void {
-  const { table, columnIds, filename = "export.csv", sheetName = "Report", helpers } = options
+  const { table, columnIds, filename = "export.csv", helpers } = options
   const exportable = getExportableColumns(table)
   const columns = columnIds
     ? exportable.filter((c) => columnIds.includes(c.id))

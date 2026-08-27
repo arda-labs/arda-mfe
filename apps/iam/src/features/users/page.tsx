@@ -447,10 +447,10 @@ export function UsersPage() {
           )
         },
         meta: {
-          exportValue: (user: User, helpers) =>
+          exportValue: (user: User) =>
             user.status === "ACTIVE"
-              ? helpers?.t?.("admin.users.status.active") || "Đang hoạt động"
-              : helpers?.t?.("admin.users.status.disabled") || "Đã vô hiệu",
+              ? t("admin.users.status.active")
+              : t("admin.users.status.disabled"),
         },
       },
       {
@@ -484,10 +484,8 @@ export function UsersPage() {
           </span>
         ),
         meta: {
-          exportValue: (user: User, helpers) =>
-            user.createdAt && helpers?.formatDate
-              ? helpers.formatDate(user.createdAt)
-              : user.createdAt || "-",
+          exportValue: (user: User) =>
+            user.createdAt ? formatDate(user.createdAt) : "-",
         },
       },
       {
@@ -811,12 +809,24 @@ export function UsersPage() {
           reportTitle="DANH SÁCH NGƯỜI DÙNG HỆ THỐNG / USERS AUDIT REPORT"
           totalRowsCount={total}
           onServerExport={async ({ format, filename }) => {
-            const { sort, order } = sortToApiParams(sortParam)
+            const sortApi = sortParam
+              ? (() => {
+                  try {
+                    const parsed = JSON.parse(sortParam) as Array<{
+                      id: string
+                      desc: boolean
+                    }>
+                    return sortToApiParams(parsed)
+                  } catch {
+                    return {}
+                  }
+                })()
+              : {}
             const exportUrl = usersApi.getExportUrl({
               search: searchParam,
               status: statusParam,
-              sort,
-              order,
+              sort: sortApi.sort,
+              order: sortApi.order,
               format,
               tenantId: actorTenantId,
             })
@@ -831,20 +841,33 @@ export function UsersPage() {
             const all: User[] = []
             let p = 1
             const limit = 100
-            const { sort, order } = sortToApiParams(sortParam)
+            const sortApi = sortParam
+              ? (() => {
+                  try {
+                    const parsed = JSON.parse(sortParam) as Array<{
+                      id: string
+                      desc: boolean
+                    }>
+                    return sortToApiParams(parsed)
+                  } catch {
+                    return {}
+                  }
+                })()
+              : {}
             while (!signal?.aborted) {
-              const res = await usersApi.list({
+              const res = await usersApi.listUsers({
                 page: p,
-                limit,
-                search: searchParam,
+                perPage: limit,
+                q: searchParam,
                 status: statusParam,
-                sort,
-                order,
+                sort: sortApi.sort,
+                order: sortApi.order,
+                tenantId: actorTenantId,
               })
               if (signal?.aborted) break
-              all.push(...res.users)
+              all.push(...res.items)
               if (onProgress) onProgress(all.length, res.total)
-              if (all.length >= res.total || res.users.length === 0) break
+              if (all.length >= res.total || res.items.length === 0) break
               p++
             }
             return all
