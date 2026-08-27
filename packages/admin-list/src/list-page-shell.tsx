@@ -4,6 +4,7 @@ import { PageErrorDialog } from "./page-error-dialog"
 import { PageLoadOverlay } from "./page-load-overlay"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { FloatingBatchActionBar } from "@workspace/ui/components/data-table/floating-batch-action-bar"
 import { useDelayedBusy } from "@workspace/ui/hooks/use-delayed-busy"
 
 type ListPageShellProps<TData> = {
@@ -11,6 +12,8 @@ type ListPageShellProps<TData> = {
   meta?: ReactNode
   totalRows?: number
   actions?: ReactNode
+  /** Actions rendered inside the floating batch bar when rows are selected. */
+  batchActions?: ReactNode | ((table: TanstackTable<TData>) => ReactNode)
   /** Critical APIs still loading on first paint (list + required lookups). */
   criticalPending: boolean
   /** Blocking load error when critical data never arrived. */
@@ -31,6 +34,7 @@ export function ListPageShell<TData>({
   meta,
   totalRows,
   actions,
+  batchActions,
   criticalPending,
   criticalError = null,
   onRetry,
@@ -61,6 +65,11 @@ export function ListPageShell<TData>({
           {toolbar}
         </DataTable>
         {showOverlay ? <PageLoadOverlay /> : null}
+        {batchActions ? (
+          <FloatingBatchActionBar table={table}>
+            {typeof batchActions === "function" ? batchActions(table) : batchActions}
+          </FloatingBatchActionBar>
+        ) : null}
       </div>
       <PageErrorDialog
         open={showErrorDialog}

@@ -56,6 +56,7 @@ import {
   SearchCheck,
   Pencil,
   MoreHorizontal,
+  Download,
 } from "lucide-react"
 import { CreateUserDialog } from "./components/CreateUserDialog"
 import { EditUserDialog } from "./components/EditUserDialog"
@@ -743,6 +744,34 @@ export function UsersPage() {
       loadErrorTitle={t("admin.users.load_failed")}
       fetching={refreshing}
       table={table}
+      batchActions={(tbl) => (
+        <>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 px-2.5 text-xs font-medium"
+            onClick={() => {
+              const count = tbl.getSelectedRowModel().rows.length
+              notify.info(`Đang xuất dữ liệu ${count} người dùng đã chọn...`)
+            }}
+          >
+            <Download className="mr-1.5 size-3.5" />
+            Xuất Excel ({tbl.getSelectedRowModel().rows.length})
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="h-7 px-2.5 text-xs font-medium"
+            onClick={() => {
+              const count = tbl.getSelectedRowModel().rows.length
+              notify.info(`Đã kích hoạt xóa hàng loạt ${count} người dùng`)
+            }}
+          >
+            <Trash2 className="mr-1.5 size-3.5" />
+            Xóa đã chọn
+          </Button>
+        </>
+      )}
       toolbar={
         <ListTableToolbar
           table={table}

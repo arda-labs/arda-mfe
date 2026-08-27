@@ -84,6 +84,7 @@
     "./config/*": "./src/config/*.ts",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
+    "./components/data-table/*": "./src/components/data-table/*.tsx",
     "./hooks/*": "./src/hooks/*.ts",
     "./observability/browser-telemetry": "./src/lib/browser-telemetry.ts",
     "./shell/page-title": "./src/shell/page-title.ts",

@@ -23,6 +23,7 @@ import {
 } from "./config/nav-config"
 import { SidebarNode } from "./components/SidebarNav"
 import { AppHeader } from "./components/AppHeader"
+import { CommandPalette } from "./components/CommandPalette"
 
 const aiEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
 
@@ -61,6 +62,7 @@ export function ShellLayout() {
     "nav.workflow": true,
   })
   const [pageTitle, setPageTitle] = useState<ShellPageTitleState | null>(null)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [aiView, setAiView] = useState<AiView>("closed")
   const [aiPanelWidth, setAiPanelWidth] = useState(loadAiPanelWidth)
   const aiPanelResizing = useRef(false)
@@ -95,7 +97,13 @@ export function ShellLayout() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "j") {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        setCommandPaletteOpen((current) => !current)
+      } else if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === "j"
+      ) {
         event.preventDefault()
         setAiView((current) => (current === "closed" ? "panel" : "closed"))
       }
@@ -221,6 +229,7 @@ export function ShellLayout() {
           logout={logout}
           switchTenant={switchTenant}
           navigate={navigate}
+          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           aiPanelOpen={aiEnabled && aiView !== "closed"}
           onToggleAiPanel={
             aiEnabled
@@ -237,6 +246,18 @@ export function ShellLayout() {
           <GlobalErrorDialog />
         </main>
       </div>
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        onToggleAi={
+          aiEnabled
+            ? () =>
+                setAiView((current) =>
+                  current === "panel" ? "closed" : "panel"
+                )
+            : undefined
+        }
+      />
       {aiEnabled && aiView === "panel" ? (
         <aside
           aria-label={t("ai.name")}
