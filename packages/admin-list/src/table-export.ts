@@ -4,19 +4,31 @@ import * as XLSX from "xlsx"
 export type ExportScope = "all" | "selected" | "current_page"
 export type ExportFormat = "xlsx" | "csv"
 
+export interface ExportFormatHelpers {
+  t?: (key: string, params?: Record<string, string | number>) => string
+  formatDate?: (value: Date | string | number, options?: Intl.DateTimeFormatOptions) => string
+  formatNumber?: (value: number, options?: Intl.NumberFormatOptions) => string
+  formatCurrency?: (value: number, currency?: string) => string
+  locale?: string
+}
+
 export interface TableExportOptions<TData> {
   table: Table<TData>
+  data?: TData[]
   scope?: ExportScope
   format?: ExportFormat
   columnIds?: string[]
   filename?: string
   sheetName?: string
+  reportTitle?: string
+  metadata?: Record<string, string | number>
+  helpers?: ExportFormatHelpers
 }
 
 /**
  * Generates an enterprise-standard context-aware export filename:
- * Format: {entity}_{scope}_{YYYYMMDD_HHmm}
- * Example: users_export_20260827_1457 or users_selected_5_20260827_1457
+ * Format: {entity}_{scope}_{YYYYMMDD_HHmmss}
+ * Example: users_all_20260827_214530 or users_selected_5_20260827_214530
  */
 export function generateExportFilename(
   customName?: string,
@@ -32,7 +44,8 @@ export function generateExportFilename(
   const day = String(date.getDate()).padStart(2, "0")
   const hours = String(date.getHours()).padStart(2, "0")
   const minutes = String(date.getMinutes()).padStart(2, "0")
-  const dateSuffix = `${year}${month}${day}_${hours}${minutes}`
+  const seconds = String(date.getSeconds()).padStart(2, "0")
+  const dateSuffix = `${year}${month}${day}_${hours}${minutes}${seconds}`
 
   let base = "data"
   if (customName && customName.trim() && customName !== "export") {
@@ -48,7 +61,7 @@ export function generateExportFilename(
     return `${base}_selected_${options.selectedCount}_${dateSuffix}`
   }
 
-  return `${base}_export_${dateSuffix}`
+  return `${base}_${options?.scope || "all"}_${dateSuffix}`
 }
 
 function slugify(text: string): string {
@@ -65,6 +78,7 @@ export interface ExportableColumn {
   id: string
   title: string
   isVisible: boolean
+  columnDef: unknown
 }
 
 /**
@@ -75,7 +89,7 @@ export function getExportableColumns<TData>(table: Table<TData>): ExportableColu
     .getAllLeafColumns()
     .filter((col) => {
       const id = col.id.toLowerCase()
-      if (id === "select" || id === "actions" || id === "action" || id === "_select" || id === "row-index") {
+      if (id === "select" || id === "actions" || id === "action" || id === "_select") {
         return false
       }
       return true
@@ -86,6 +100,7 @@ export function getExportableColumns<TData>(table: Table<TData>): ExportableColu
         id: col.id,
         title,
         isVisible: col.getIsVisible(),
+        columnDef: col.columnDef,
       }
     })
 }
@@ -99,7 +114,16 @@ function getColumnHeaderTitle<TData>(column: Column<TData, unknown>): string {
   if (meta?.title) return meta.title
   if (meta?.label) return meta.label
 
-  // Prettify column ID fallback
+  if (typeof header === "function") {
+    try {
+      // @ts-expect-error tanstack column header invoke simulation
+      const rendered = header({ column })
+      if (typeof rendered === "string" && rendered) return rendered
+    } catch {
+      // fallback
+    }
+  }
+
   return column.id
     .replace(/_/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -107,112 +131,279 @@ function getColumnHeaderTitle<TData>(column: Column<TData, unknown>): string {
 }
 
 /**
- * Gets target rows for export based on the chosen scope.
+ * Gets target records for export based on chosen scope or explicit data.
  */
-export function getExportRows<TData>(table: Table<TData>, scope: ExportScope = "all"): Row<TData>[] {
+export function getExportData<TData>(options: TableExportOptions<TData>): TData[] {
+  if (options.data && Array.isArray(options.data) && options.data.length > 0) {
+    return options.data
+  }
+
+  const { table, scope = "all" } = options
   if (scope === "selected") {
     const selected = table.getFilteredSelectedRowModel().rows
-    return selected.length > 0 ? selected : table.getFilteredRowModel().rows
+    return (selected.length > 0 ? selected : table.getFilteredRowModel().rows).map((r) => r.original)
   }
   if (scope === "current_page") {
-    return table.getRowModel().rows
+    return table.getRowModel().rows.map((r) => r.original)
   }
-  return table.getFilteredRowModel().rows
+  return table.getFilteredRowModel().rows.map((r) => r.original)
 }
 
 /**
- * Formats a raw cell value into an export-safe string or number.
+ * Banking-Grade Formatter: Transforms raw DB value into an audit-compliant display value
+ * ensuring identification numbers, codes, dates, statuses, and currency amounts are correctly represented.
  */
-function formatCellValue(value: unknown): { text: string; type: "String" | "Number" | "Boolean" } {
+export function formatExportValue<TData>(
+  col: ExportableColumn,
+  item: TData,
+  rowIndex: number,
+  helpers?: ExportFormatHelpers
+): { text: string; raw: string | number | boolean | null; isNumeric: boolean; isCodeString: boolean } {
+  const columnDef = col.columnDef as {
+    meta?: {
+      exportValue?: (item: TData, helpers?: ExportFormatHelpers) => string | number | boolean | null
+      exportType?: "text" | "number" | "date" | "currency"
+    }
+    accessorFn?: (item: TData, index: number) => unknown
+    accessorKey?: string
+  }
+
+  let value: unknown = undefined
+
+  // 1. Custom column meta export formatter (Highest precedence)
+  if (typeof columnDef?.meta?.exportValue === "function") {
+    value = columnDef.meta.exportValue(item, helpers)
+  } else if (typeof columnDef?.accessorFn === "function") {
+    value = columnDef.accessorFn(item, rowIndex)
+  } else if (columnDef?.accessorKey) {
+    value = getNestedValue(item as Record<string, unknown>, columnDef.accessorKey)
+  } else if (col.id) {
+    value = (item as Record<string, unknown>)[col.id]
+  }
+
   if (value === null || value === undefined) {
-    return { text: "", type: "String" }
+    return { text: "", raw: "", isNumeric: false, isCodeString: false }
   }
-  if (typeof value === "number") {
-    return { text: Number.isFinite(value) ? String(value) : "", type: "Number" }
-  }
+
+  const isEn = helpers?.locale === "en-US"
+
+  // 2. Boolean handling
   if (typeof value === "boolean") {
-    return { text: value ? "True" : "False", type: "Boolean" }
+    const text = value ? (isEn ? "Yes" : "Có") : (isEn ? "No" : "Không")
+    return { text, raw: text, isNumeric: false, isCodeString: false }
   }
+
+  // 3. Array handling (e.g. roles: ["ADMIN", "MANAGER"])
+  if (Array.isArray(value)) {
+    const text = value
+      .map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v)))
+      .join(", ")
+    return { text, raw: text, isNumeric: false, isCodeString: false }
+  }
+
+  // 4. Date handling (Date instance or ISO string)
   if (value instanceof Date) {
-    return { text: value.toISOString().replace("T", " ").substring(0, 19), type: "String" }
+    const text = formatDateISO(value, helpers)
+    return { text, raw: text, isNumeric: false, isCodeString: false }
   }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim()
+
+    // ISO timestamp detector: "2026-08-27T14:28:51Z"
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(trimmed)) {
+      const parsedDate = new Date(trimmed)
+      if (!isNaN(parsedDate.getTime())) {
+        const text = formatDateISO(parsedDate, helpers)
+        return { text, raw: text, isNumeric: false, isCodeString: false }
+      }
+    }
+
+    // Identification number / Code / Account / Phone preservation
+    // (Strings with leading zeros, e.g. "00123456", CIF, card tokens, citizen ID)
+    const isIdentifierCol =
+      /code|account|cif|phone|mobile|identity|cccd|cmnd|serial|id_no|stt/i.test(col.id) ||
+      /^0\d+$/.test(trimmed)
+    if (isIdentifierCol) {
+      return { text: trimmed, raw: trimmed, isNumeric: false, isCodeString: true }
+    }
+
+    // Enum / Status auto-resolution fallback
+    if (/^[A-Z_]{3,30}$/.test(trimmed) && helpers?.t) {
+      const localized =
+        helpers.t(`status.${trimmed.toLowerCase()}`) ||
+        helpers.t(`common.status.${trimmed.toLowerCase()}`) ||
+        helpers.t(trimmed.toLowerCase())
+      if (localized && localized !== trimmed.toLowerCase()) {
+        return { text: localized, raw: localized, isNumeric: false, isCodeString: false }
+      }
+    }
+
+    return { text: trimmed, raw: trimmed, isNumeric: false, isCodeString: false }
+  }
+
+  // 5. Numeric handling
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return { text: "", raw: "", isNumeric: false, isCodeString: false }
+    const text = helpers?.formatNumber ? helpers.formatNumber(value) : String(value)
+    return { text, raw: value, isNumeric: true, isCodeString: false }
+  }
+
+  // 6. Object handling
   if (typeof value === "object") {
     try {
-      return { text: JSON.stringify(value), type: "String" }
+      const text = JSON.stringify(value)
+      return { text, raw: text, isNumeric: false, isCodeString: false }
     } catch {
-      return { text: String(value), type: "String" }
+      const text = String(value)
+      return { text, raw: text, isNumeric: false, isCodeString: false }
     }
   }
-  return { text: String(value).trim(), type: "String" }
+
+  return { text: String(value), raw: String(value), isNumeric: false, isCodeString: false }
 }
 
-/**
- * Escapes text for CSV according to RFC 4180.
- */
-function escapeCsvValue(value: string): string {
-  if (value.includes('"') || value.includes(",") || value.includes("\n") || value.includes("\r")) {
-    return `"${value.replace(/"/g, '""')}"`
+function formatDateISO(date: Date, helpers?: ExportFormatHelpers): string {
+  if (helpers?.formatDate) {
+    return helpers.formatDate(date, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    })
   }
-  return value
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  const hh = String(date.getHours()).padStart(2, "0")
+  const mm = String(date.getMinutes()).padStart(2, "0")
+  const ss = String(date.getSeconds()).padStart(2, "0")
+  return `${d}/${m}/${y} ${hh}:${mm}:${ss}`
+}
+
+function getNestedValue(obj: Record<string, unknown>, pathStr: string): unknown {
+  const parts = pathStr.split(".")
+  let curr: unknown = obj
+  for (const part of parts) {
+    if (curr === null || curr === undefined) return undefined
+    curr = (curr as Record<string, unknown>)[part]
+  }
+  return curr
 }
 
 /**
- * Exports table data as a modern OpenXML Excel spreadsheet (.xlsx).
+ * Banking-Grade XLSX Export:
+ * Includes audit watermark headers, auto-freeze panes, explicit cell formatting,
+ * and column auto-sizing.
  */
 export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): void {
-  const { table, scope = "all", columnIds, filename = "export.xlsx", sheetName = "Sheet1" } = options
+  const {
+    table,
+    columnIds,
+    filename = "export.xlsx",
+    sheetName = "Report",
+    reportTitle,
+    helpers,
+    scope = "all",
+  } = options
+
   const exportable = getExportableColumns(table)
   const columns = columnIds
     ? exportable.filter((c) => columnIds.includes(c.id))
     : exportable.filter((c) => c.isVisible)
 
-  const rows = getExportRows(table, scope)
+  const records = getExportData(options)
 
-  // Build matrix data array of arrays (AOA)
-  const matrix: (string | number | boolean | null)[][] = []
+  const title = (reportTitle || sheetName || "BÁO CÁO DỮ LIỆU").toUpperCase()
+  const isEn = helpers?.locale === "en-US"
+  const now = new Date()
+  const exportTimeStr = formatDateISO(now, helpers)
 
-  // 1. Header row
-  matrix.push(columns.map((c) => c.title))
+  const scopeTextMap: Record<ExportScope, string> = {
+    all: isEn ? "All filtered records" : "Tất cả kết quả lọc",
+    selected: isEn ? "Selected rows" : "Dòng đã chọn",
+    current_page: isEn ? "Current page" : "Trang hiện tại",
+  }
+  const scopeLabel = scopeTextMap[scope] || scope
 
-  // 2. Data rows
-  for (const row of rows) {
+  // Construct Sheet Data (AOA) with Banking Header
+  const aoa: unknown[][] = []
+
+  // Row 1: Report Title
+  aoa.push([title])
+
+  // Row 2: Audit Metadata
+  const metadataLine = isEn
+    ? `Exported at: ${exportTimeStr}  |  Scope: ${scopeLabel}  |  Total records: ${records.length}`
+    : `Thời gian trích xuất: ${exportTimeStr}  |  Phạm vi: ${scopeLabel}  |  Tổng số bản ghi: ${records.length}`
+  aoa.push([metadataLine])
+
+  // Row 3: Blank separator
+  aoa.push([])
+
+  // Row 4: Column Header Row
+  aoa.push(columns.map((c) => c.title))
+
+  // Rows 5+: Data records
+  for (let r = 0; r < records.length; r++) {
+    const item = records[r]
     const rowValues = columns.map((col) => {
-      const raw = row.getValue(col.id)
-      if (raw === null || raw === undefined) return ""
-      if (typeof raw === "number") return raw
-      if (typeof raw === "boolean") return raw ? "True" : "False"
-      if (raw instanceof Date) return raw.toISOString().replace("T", " ").substring(0, 19)
-      if (typeof raw === "object") {
-        try {
-          return JSON.stringify(raw)
-        } catch {
-          return String(raw)
-        }
-      }
-      return String(raw).trim()
+      const formatted = formatExportValue(col, item, r, helpers)
+      return formatted.raw
     })
-    matrix.push(rowValues)
+    aoa.push(rowValues)
   }
 
   // Create worksheet
-  const worksheet = XLSX.utils.aoa_to_sheet(matrix)
+  const worksheet = XLSX.utils.aoa_to_sheet(aoa)
+
+  // Explicitly tag Code / Identification Number cells as type 's' (string)
+  // to guarantee Microsoft Excel NEVER truncates leading zeroes.
+  for (let r = 0; r < records.length; r++) {
+    const item = records[r]
+    const rowIdx = r + 4 // Header is at row index 3 (0-indexed)
+    for (let c = 0; c < columns.map((x) => x.id).length; c++) {
+      const col = columns[c]
+      const formatted = formatExportValue(col, item, r, helpers)
+      const cellRef = XLSX.utils.encode_cell({ r: rowIdx, c })
+      const cell = worksheet[cellRef]
+      if (cell) {
+        if (formatted.isCodeString) {
+          cell.t = "s"
+          cell.v = String(formatted.text)
+        } else if (formatted.isNumeric) {
+          cell.t = "n"
+          cell.v = Number(formatted.raw)
+          cell.z = Number.isInteger(Number(formatted.raw)) ? "#,##0" : "#,##0.00"
+        }
+      }
+    }
+  }
 
   // Auto-fit column widths
-  const colWidths = columns.map((col, idx) => {
-    let maxLen = col.title.length
-    for (let r = 1; r < Math.min(matrix.length, 100); r++) {
-      const cellVal = String(matrix[r]?.[idx] ?? "")
-      if (cellVal.length > maxLen) maxLen = cellVal.length
+  const colWidths = columns.map((col, cIdx) => {
+    let maxLen = Math.max(col.title.length, 10)
+    for (let r = 0; r < Math.min(records.length, 200); r++) {
+      const item = records[r]
+      const formatted = formatExportValue(col, item, r, helpers)
+      const cellLen = formatted.text.length
+      if (cellLen > maxLen) maxLen = cellLen
     }
-    return { wch: Math.min(Math.max(maxLen + 4, 12), 50) }
+    return { wch: Math.min(Math.max(maxLen + 3, 12), 60) }
   })
   worksheet["!cols"] = colWidths
+
+  // Freeze Header Panes at Row 4 (Data begins at Row 5)
+  worksheet["!freeze"] = { xSplit: 0, ySplit: 4 }
 
   // Create workbook
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.substring(0, 31))
 
-  // Write binary array
+  // Write binary array & trigger download
   const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
   const blob = new Blob([wbout], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -222,38 +413,32 @@ export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): vo
   triggerDownload(blob, finalFilename)
 }
 
-/**
- * Legacy alias for backwards compatibility.
- */
 export const exportTableToExcelXml = exportTableToXlsx
 
 /**
- * Exports table data as a UTF-8 CSV file with BOM.
+ * Banking-Grade CSV Export with UTF-8 BOM and metadata comments.
  */
 export function exportTableToCsv<TData>(options: TableExportOptions<TData>): void {
-  const { table, scope = "all", columnIds, filename = "export.csv" } = options
+  const { table, columnIds, filename = "export.csv", sheetName = "Report", helpers } = options
   const exportable = getExportableColumns(table)
   const columns = columnIds
     ? exportable.filter((c) => columnIds.includes(c.id))
     : exportable.filter((c) => c.isVisible)
 
-  const rows = getExportRows(table, scope)
+  const records = getExportData(options)
 
-  // Header row
   const headerRow = columns.map((col) => escapeCsvValue(col.title)).join(",")
 
-  // Data rows
-  const dataRows = rows.map((row) =>
+  const dataRows = records.map((item, rIdx) =>
     columns
       .map((col) => {
-        const rawValue = row.getValue(col.id)
-        const { text } = formatCellValue(rawValue)
-        return escapeCsvValue(text)
+        const formatted = formatExportValue(col, item, rIdx, helpers)
+        return escapeCsvValue(formatted.text)
       })
       .join(",")
   )
 
-  // Prepend UTF-8 BOM for Microsoft Excel Vietnamese language compatibility
+  // Prepend UTF-8 BOM for Excel Vietnamese language compatibility
   const csvContent = "\uFEFF" + [headerRow, ...dataRows].join("\r\n")
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
   const finalFilename = filename.endsWith(".csv") ? filename : `${filename}.csv`
@@ -261,9 +446,13 @@ export function exportTableToCsv<TData>(options: TableExportOptions<TData>): voi
   triggerDownload(blob, finalFilename)
 }
 
-/**
- * Triggers a browser download using an anchor element.
- */
+function escapeCsvValue(value: string): string {
+  if (value.includes('"') || value.includes(",") || value.includes("\n") || value.includes("\r")) {
+    return `"${value.replace(/"/g, '""')}"`
+  }
+  return value
+}
+
 export function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement("a")

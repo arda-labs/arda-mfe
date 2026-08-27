@@ -407,6 +407,9 @@ export function UsersPage() {
             </div>
           )
         },
+        meta: {
+          exportValue: (user: User) => user.username || user.email || "-",
+        },
       },
       {
         accessorKey: "email",
@@ -443,6 +446,12 @@ export function UsersPage() {
             </Status>
           )
         },
+        meta: {
+          exportValue: (user: User, helpers) =>
+            user.status === "ACTIVE"
+              ? helpers?.t?.("admin.users.status.active") || "Đang hoạt động"
+              : helpers?.t?.("admin.users.status.disabled") || "Đã vô hiệu",
+        },
       },
       {
         id: "roles",
@@ -457,6 +466,9 @@ export function UsersPage() {
           </div>
         ),
         enableSorting: false,
+        meta: {
+          exportValue: (user: User) => (user.roles || []).join(", "),
+        },
       },
       {
         accessorKey: "createdAt",
@@ -471,6 +483,12 @@ export function UsersPage() {
             {row.original.createdAt ? formatDate(row.original.createdAt) : "-"}
           </span>
         ),
+        meta: {
+          exportValue: (user: User, helpers) =>
+            user.createdAt && helpers?.formatDate
+              ? helpers.formatDate(user.createdAt)
+              : user.createdAt || "-",
+        },
       },
       {
         id: "actions",
@@ -790,6 +808,47 @@ export function UsersPage() {
           createLabel={t("admin.users.create")}
           exportFilename={t("admin.users.title")}
           sheetName={t("admin.users.title")}
+          reportTitle="DANH SÁCH NGƯỜI DÙNG HỆ THỐNG / USERS AUDIT REPORT"
+          totalRowsCount={total}
+          onServerExport={async ({ format, filename }) => {
+            const { sort, order } = sortToApiParams(sortParam)
+            const exportUrl = usersApi.getExportUrl({
+              search: searchParam,
+              status: statusParam,
+              sort,
+              order,
+              format,
+              tenantId: actorTenantId,
+            })
+            const link = document.createElement("a")
+            link.href = exportUrl
+            link.download = filename || "users_export"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          }}
+          fetchAllRows={async (onProgress, signal) => {
+            const all: User[] = []
+            let p = 1
+            const limit = 100
+            const { sort, order } = sortToApiParams(sortParam)
+            while (!signal?.aborted) {
+              const res = await usersApi.list({
+                page: p,
+                limit,
+                search: searchParam,
+                status: statusParam,
+                sort,
+                order,
+              })
+              if (signal?.aborted) break
+              all.push(...res.users)
+              if (onProgress) onProgress(all.length, res.total)
+              if (all.length >= res.total || res.users.length === 0) break
+              p++
+            }
+            return all
+          }}
         >
           <Button
             variant="outline"

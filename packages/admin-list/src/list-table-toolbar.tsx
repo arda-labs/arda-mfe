@@ -14,6 +14,19 @@ type ListTableToolbarProps<TData> = {
   children?: ReactNode
   exportFilename?: string
   sheetName?: string
+  reportTitle?: string
+  totalRowsCount?: number
+  fetchAllRows?: (
+    onProgress?: (loaded: number, total: number) => void,
+    signal?: AbortSignal
+  ) => Promise<TData[]>
+  createExportJob?: (options: {
+    scope: ExportScope
+    format: ExportFormat
+    columnIds: string[]
+    filename: string
+    totalCount: number
+  }) => Promise<{ jobId: string; message?: string }>
   onExport?: () => void
   onServerExport?: (options: {
     scope: ExportScope
@@ -30,6 +43,10 @@ export function ListTableToolbar<TData>({
   children,
   exportFilename,
   sheetName,
+  reportTitle,
+  totalRowsCount,
+  fetchAllRows,
+  createExportJob,
   onExport,
   onServerExport,
 }: ListTableToolbarProps<TData>) {
@@ -71,6 +88,10 @@ export function ListTableToolbar<TData>({
         table={table}
         filename={exportFilename}
         sheetName={sheetName}
+        reportTitle={reportTitle}
+        totalRowsCount={totalRowsCount}
+        fetchAllRows={fetchAllRows}
+        createExportJob={createExportJob}
         onServerExport={onServerExport}
       />
     </>

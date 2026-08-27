@@ -129,7 +129,19 @@
     "success": "Data exported successfully",
     "failed": "Failed to export data",
     "select_at_least_one_column": "Please select at least one column to export.",
-    "no_columns_found": "No matching columns found"
+    "no_columns_found": "No matching columns found",
+    "large_dataset_warning": "Large dataset ({count} records). We recommend creating a background export job.",
+    "mode": "Export Mode",
+    "mode_instant": "Direct Download",
+    "mode_instant_desc": "Instant client download (recommended for < 5,000 rows)",
+    "mode_background": "Background Job (Recommended)",
+    "mode_background_desc": "Processed asynchronously with notification when ready",
+    "create_job": "Create Background Job",
+    "cancel_export": "Cancel Export",
+    "background_job_created": "Export request submitted. You will be notified once it is ready.",
+    "background_job_id": "Job ID: {jobId}",
+    "csv_recommendation": "For > 50,000 rows, CSV format provides maximum processing speed and memory efficiency.",
+    "fetching_data": "Fetching data from server: {loaded} / {total} records ({percent}%)..."
   },
   "preview": {
     "title": "File Preview",

@@ -195,4 +195,21 @@ export const usersApi = {
     deleteCanonical(
       targetPath(`/api/admin/users/${userId}/roles/${roleId}`, tenantId)
     ),
+  getExportUrl: (params?: {
+    search?: string
+    status?: string
+    sort?: string
+    order?: string
+    format?: "xlsx" | "csv"
+    tenantId?: string
+  }) => {
+    const sp = new URLSearchParams()
+    if (params?.search) sp.set("q", params.search)
+    if (params?.status) sp.set("status", params.status)
+    if (params?.sort) sp.set("sort", params.sort)
+    if (params?.order) sp.set("order", params.order)
+    if (params?.format) sp.set("format", params.format)
+    if (params?.tenantId) sp.set("tenant_id", params.tenantId)
+    return `/api/admin/users/export?${sp.toString()}`
+  },
 }

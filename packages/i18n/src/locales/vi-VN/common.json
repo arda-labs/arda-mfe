@@ -129,7 +129,19 @@
     "success": "Đã xuất dữ liệu thành công",
     "failed": "Không thể xuất file dữ liệu",
     "select_at_least_one_column": "Vui lòng chọn ít nhất một cột để xuất.",
-    "no_columns_found": "Không tìm thấy cột phù hợp"
+    "no_columns_found": "Không tìm thấy cột phù hợp",
+    "large_dataset_warning": "Dữ liệu lớn ({count} bản ghi). Hệ thống khuyến nghị tạo tác vụ xuất ngầm để không làm gián đoạn công việc.",
+    "mode": "Phương thức xuất",
+    "mode_instant": "Tải trực tiếp ngay",
+    "mode_instant_desc": "Tải tức thì trên trình duyệt (thích hợp < 5.000 dòng)",
+    "mode_background": "Tác vụ xuất ngầm (Khuyến nghị)",
+    "mode_background_desc": "Xử lý ngầm trên máy chủ và gửi thông báo khi sẵn sàng",
+    "create_job": "Tạo tác vụ xuất ngầm",
+    "cancel_export": "Hủy xuất",
+    "background_job_created": "Đã tiếp nhận yêu cầu xuất ngầm. Bạn sẽ nhận được thông báo khi hoàn tất.",
+    "background_job_id": "Mã tác vụ: {jobId}",
+    "csv_recommendation": "Với dữ liệu > 50.000 dòng, định dạng CSV sẽ đạt tốc độ tối đa và tối ưu dung lượng.",
+    "fetching_data": "Đang nạp dữ liệu từ máy chủ: {loaded} / {total} bản ghi ({percent}%)..."
   },
   "preview": {
     "title": "Xem trước tệp",
