@@ -1,4 +1,5 @@
 import type { Column, Row, Table } from "@tanstack/react-table"
+import * as XLSX from "xlsx"
 
 export type ExportScope = "all" | "selected" | "current_page"
 export type ExportFormat = "xlsx" | "csv"
@@ -108,16 +109,75 @@ function escapeCsvValue(value: string): string {
 }
 
 /**
- * Escapes text for XML.
+ * Exports table data as a modern OpenXML Excel spreadsheet (.xlsx).
  */
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
+export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): void {
+  const { table, scope = "all", columnIds, filename = "export.xlsx", sheetName = "Sheet1" } = options
+  const exportable = getExportableColumns(table)
+  const columns = columnIds
+    ? exportable.filter((c) => columnIds.includes(c.id))
+    : exportable.filter((c) => c.isVisible)
+
+  const rows = getExportRows(table, scope)
+
+  // Build matrix data array of arrays (AOA)
+  const matrix: (string | number | boolean | null)[][] = []
+
+  // 1. Header row
+  matrix.push(columns.map((c) => c.title))
+
+  // 2. Data rows
+  for (const row of rows) {
+    const rowValues = columns.map((col) => {
+      const raw = row.getValue(col.id)
+      if (raw === null || raw === undefined) return ""
+      if (typeof raw === "number") return raw
+      if (typeof raw === "boolean") return raw ? "True" : "False"
+      if (raw instanceof Date) return raw.toISOString().replace("T", " ").substring(0, 19)
+      if (typeof raw === "object") {
+        try {
+          return JSON.stringify(raw)
+        } catch {
+          return String(raw)
+        }
+      }
+      return String(raw).trim()
+    })
+    matrix.push(rowValues)
+  }
+
+  // Create worksheet
+  const worksheet = XLSX.utils.aoa_to_sheet(matrix)
+
+  // Auto-fit column widths
+  const colWidths = columns.map((col, idx) => {
+    let maxLen = col.title.length
+    for (let r = 1; r < Math.min(matrix.length, 100); r++) {
+      const cellVal = String(matrix[r]?.[idx] ?? "")
+      if (cellVal.length > maxLen) maxLen = cellVal.length
+    }
+    return { wch: Math.min(Math.max(maxLen + 4, 12), 50) }
+  })
+  worksheet["!cols"] = colWidths
+
+  // Create workbook
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.substring(0, 31))
+
+  // Write binary array
+  const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
+  const blob = new Blob([wbout], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  })
+
+  const finalFilename = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+  triggerDownload(blob, finalFilename)
 }
+
+/**
+ * Legacy alias for backwards compatibility.
+ */
+export const exportTableToExcelXml = exportTableToXlsx
 
 /**
  * Exports table data as a UTF-8 CSV file with BOM.
@@ -149,76 +209,6 @@ export function exportTableToCsv<TData>(options: TableExportOptions<TData>): voi
   const csvContent = "\uFEFF" + [headerRow, ...dataRows].join("\r\n")
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
   const finalFilename = filename.endsWith(".csv") ? filename : `${filename}.csv`
-
-  triggerDownload(blob, finalFilename)
-}
-
-/**
- * Exports table data as Microsoft Excel XML Spreadsheet (.xls).
- */
-export function exportTableToExcelXml<TData>(options: TableExportOptions<TData>): void {
-  const { table, scope = "all", columnIds, filename = "export.xls", sheetName = "Data" } = options
-  const exportable = getExportableColumns(table)
-  const columns = columnIds
-    ? exportable.filter((c) => columnIds.includes(c.id))
-    : exportable.filter((c) => c.isVisible)
-
-  const rows = getExportRows(table, scope)
-
-  const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- <Styles>
-  <Style ss:ID="Header">
-   <Font ss:Bold="1" ss:Color="#FFFFFF" ss:FontName="Arial" ss:Size="11"/>
-   <Interior ss:Color="#1E293B" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
-   <Borders>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#0F172A"/>
-   </Borders>
-  </Style>
-  <Style ss:ID="DataCell">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Color="#0F172A"/>
-   <Alignment ss:Vertical="Center"/>
-  </Style>
-  <Style ss:ID="NumberCell">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Color="#0F172A"/>
-   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
-  </Style>
- </Styles>
- <Worksheet ss:Name="${escapeXml(sheetName)}">
-  <Table ss:DefaultRowHeight="20">
-`
-
-  let xmlBody = '   <Row ss:Height="24">\n'
-  for (const col of columns) {
-    xmlBody += `    <Cell ss:StyleID="Header"><Data ss:Type="String">${escapeXml(col.title)}</Data></Cell>\n`
-  }
-  xmlBody += "   </Row>\n"
-
-  for (const row of rows) {
-    xmlBody += '   <Row ss:Height="20">\n'
-    for (const col of columns) {
-      const rawValue = row.getValue(col.id)
-      const { text, type } = formatCellValue(rawValue)
-      const styleId = type === "Number" ? "NumberCell" : "DataCell"
-      const dataType = type === "Number" ? "Number" : "String"
-      xmlBody += `    <Cell ss:StyleID="${styleId}"><Data ss:Type="${dataType}">${escapeXml(text)}</Data></Cell>\n`
-    }
-    xmlBody += "   </Row>\n"
-  }
-
-  const xmlFooter = `  </Table>
- </Worksheet>
-</Workbook>`
-
-  const fullXml = xmlHeader + xmlBody + xmlFooter
-  const blob = new Blob([fullXml], { type: "application/vnd.ms-excel;charset=utf-8;" })
-  const finalFilename = filename.endsWith(".xls") || filename.endsWith(".xlsx") ? filename : `${filename}.xls`
 
   triggerDownload(blob, finalFilename)
 }

@@ -99,7 +99,7 @@
     "title": "Export Data",
     "description": "Configure file format, scope, and target columns to extract.",
     "format": "File Format",
-    "format_xlsx": "Excel Spreadsheet (.xls)",
+    "format_xlsx": "Excel Spreadsheet (.xlsx)",
     "format_xlsx_desc": "Structured spreadsheet with typed numbers and dates",
     "format_csv": "CSV (UTF-8)",
     "format_csv_desc": "Plain text with UTF-8 BOM, optimal for data exchange",

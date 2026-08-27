@@ -51,7 +51,7 @@ import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 ```
 
 Khi người dùng click vào nút, hệ thống sẽ mở hộp thoại **`TableExportDialog`** cho phép:
-1. **Chọn định dạng:** Excel Spreadsheet (`.xls`) hoặc CSV UTF-8 (`.csv`).
+1. **Chọn định dạng:** Excel Spreadsheet (`.xlsx`) hoặc CSV UTF-8 (`.csv`).
 2. **Chọn phạm vi:** *Tất cả kết quả lọc* vs *Các dòng đang tick chọn* vs *Trang hiện tại*.
 3. **Chọn cột dữ liệu:** Bật/tắt các cột cần xuất (mặc định lấy theo các cột đang hiển thị).
 
@@ -59,11 +59,11 @@ Khi người dùng click vào nút, hệ thống sẽ mở hộp thoại **`Tabl
 
 ### 2.2. Xuất Trực Tiếp Dòng Đã Chọn qua `FloatingBatchActionBar`
 
-Khi người dùng tick chọn các checkbox trên bảng, nút xuất hàng loạt có thể gọi trực tiếp hàm tiện ích `exportTableToExcelXml` hoặc `exportTableToCsv`:
+Khi người dùng tick chọn các checkbox trên bảng, nút xuất hàng loạt có thể gọi trực tiếp hàm tiện ích `exportTableToXlsx` hoặc `exportTableToCsv`:
 
 ```tsx
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { exportTableToExcelXml } from "@workspace/admin-list/table-export"
+import { exportTableToXlsx } from "@workspace/admin-list/table-export"
 
 <ListPageShell
   title={t("admin.users.title")}
@@ -73,7 +73,7 @@ import { exportTableToExcelXml } from "@workspace/admin-list/table-export"
       size="sm"
       variant="outline"
       onClick={() => {
-        exportTableToExcelXml({
+        exportTableToXlsx({
           table: tbl,
           scope: "selected",
           filename: "users_selected",
@@ -99,7 +99,7 @@ import { exportTableToExcelXml } from "@workspace/admin-list/table-export"
 <ListTableToolbar
   table={table}
   exportFilename="bao_cao_giao_dich"
-  onServerExport={async ({ scope, format, columnIds }) => {
+  onServerExport={async ({ scope, format, columnIds, filename }) => {
     await transactionApi.requestExport({
       scope,
       format,
@@ -118,12 +118,11 @@ import { exportTableToExcelXml } from "@workspace/admin-list/table-export"
 1. **Chuẩn CSV UTF-8:**
    - Mọi tệp CSV xuất ra từ `exportTableToCsv` đều được đính kèm **Byte Order Mark (BOM `\uFEFF`)** ở đầu tệp.
    - Giúp Microsoft Excel trên cả Windows và macOS tự động nhận diện bảng mã UTF-8, hiển thị tiếng Việt có dấu hoàn hảo mà không bị lỗi font (mojibake).
-2. **Chuẩn Excel XML Spreadsheet:**
-   - Sử dụng định dạng chuẩn Microsoft Office XML Spreadsheet (`application/vnd.ms-excel`).
-   - Hỗ trợ phân định kiểu dữ liệu:
-     - Số $\rightarrow$ `ss:Type="Number"` (cho phép người dùng áp dụng hàm `SUM`, `AVERAGE` ngay lập tức).
-     - Ngày tháng / Chuỗi $\rightarrow$ `ss:Type="String"`.
-   - Header được định dạng in đậm và bo viền chuyên nghiệp.
+2. **Chuẩn Excel OpenXML (.xlsx):**
+   - Sử dụng định dạng chuẩn hiện đại **Office OpenXML Spreadsheet (.xlsx)** với thư viện SheetJS.
+   - Tự động căn chỉnh độ rộng cột (`colWidths`) theo độ dài nội dung thực tế.
+   - Tự động bảo toàn kiểu dữ liệu số (`number`), ngày tháng (`Date`) và chuỗi (`string`) để người dùng có thể thực hiện công thức Excel ngay lập tức.
+   - Tương thích 100% không hiện cảnh báo bảo mật khi mở trên Microsoft Excel 2010 – 365, Apple Numbers, Google Sheets.
 
 ---
 

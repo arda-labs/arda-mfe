@@ -99,7 +99,7 @@
     "title": "Xuất Dữ Liệu",
     "description": "Tùy chọn định dạng tệp, phạm vi và các trường dữ liệu cần trích xuất.",
     "format": "Định dạng tệp",
-    "format_xlsx": "Excel Spreadsheet (.xls)",
+    "format_xlsx": "Excel Spreadsheet (.xlsx)",
     "format_xlsx_desc": "Bảng tính phân loại cột, số và ngày tháng",
     "format_csv": "CSV (UTF-8)",
     "format_csv_desc": "Tệp văn bản thuần có BOM tiếng Việt, tối ưu chia sẻ",

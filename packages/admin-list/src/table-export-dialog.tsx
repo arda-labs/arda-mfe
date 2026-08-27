@@ -28,7 +28,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import {
   exportTableToCsv,
-  exportTableToExcelXml,
+  exportTableToXlsx,
   getExportableColumns,
   type ExportFormat,
   type ExportScope,
@@ -170,7 +170,7 @@ function TableExportDialogContent<TData>({
         }
 
         if (format === "xlsx") {
-          exportTableToExcelXml(options)
+          exportTableToXlsx(options)
         } else {
           exportTableToCsv(options)
         }
@@ -377,7 +377,7 @@ function TableExportDialogContent<TData>({
               className="h-8 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3"
             />
             <span className="bg-muted px-2.5 py-1 text-[11px] font-mono text-muted-foreground border-l shrink-0">
-              .{format === "xlsx" ? "xls" : "csv"}
+              .{format === "xlsx" ? "xlsx" : "csv"}
             </span>
           </div>
         </div>

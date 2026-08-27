@@ -44,7 +44,7 @@ import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
-import { exportTableToExcelXml } from "@workspace/admin-list/table-export"
+import { exportTableToXlsx } from "@workspace/admin-list/table-export"
 import type { ColumnDef } from "@tanstack/react-table"
 import {
   Check,
@@ -752,7 +752,7 @@ export function UsersPage() {
             variant="outline"
             className="h-7 px-2.5 text-xs font-medium"
             onClick={() => {
-              exportTableToExcelXml({
+              exportTableToXlsx({
                 table: tbl,
                 scope: "selected",
                 filename: "users_selected",
