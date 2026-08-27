@@ -27,6 +27,9 @@
     "select_row": "Chọn dòng",
     "retry": "Thử lại",
     "close": "Đóng",
+    "clear": "Xóa",
+    "clear_filters": "Xóa bộ lọc",
+    "clear_date": "Xóa ngày",
     "copy": "Sao chép",
     "copied": "Đã sao chép"
   },
@@ -101,7 +104,21 @@
     "sort_ascending": "Tăng dần",
     "sort_descending": "Giảm dần",
     "reset_sorting": "Bỏ sắp xếp",
-    "hide_column": "Ẩn cột"
+    "hide_column": "Ẩn cột",
+    "density": "Mật độ bảng",
+    "density_compact": "Thu gọn",
+    "density_comfortable": "Vừa phải",
+    "density_spacious": "Rộng rãi",
+    "selected_count": "{count} đã chọn",
+    "no_results": "Không tìm thấy kết quả",
+    "visible_columns": "Cột hiển thị",
+    "search_columns": "Tìm kiếm cột..."
+  },
+  "date": {
+    "today": "Hôm nay",
+    "select_date": "Chọn ngày",
+    "from": "Từ",
+    "to": "Đến"
   },
   "status": {
     "active": "Đang hoạt động",

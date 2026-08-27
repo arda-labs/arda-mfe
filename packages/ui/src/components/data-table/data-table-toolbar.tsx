@@ -4,6 +4,7 @@ import type { Column, Table } from "@tanstack/react-table"
 import { Check, SlidersHorizontal, XCircle } from "lucide-react"
 import * as React from "react"
 
+import { useI18n } from "@workspace/i18n"
 import { DataTableDateFilter } from "@workspace/ui/components/data-table/data-table-date-filter"
 import { DataTableFacetedFilter } from "@workspace/ui/components/data-table/data-table-faceted-filter"
 import { DataTableSliderFilter } from "@workspace/ui/components/data-table/data-table-slider-filter"
@@ -35,6 +36,7 @@ export function DataTableToolbar<TData>({
   className,
   ...props
 }: DataTableToolbarProps<TData>) {
+  const { t } = useI18n()
   const isFiltered = table.getState().columnFilters.length > 0
 
   const columns = React.useMemo(
@@ -62,13 +64,13 @@ export function DataTableToolbar<TData>({
         ))}
         {isFiltered && (
           <Button
-            aria-label="Reset filters"
+            aria-label={t("action.clear_filters") || "Reset filters"}
             variant="ghost"
             className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
             onClick={onReset}
           >
             <XCircle className="size-3.5" />
-            Xoá bộ lọc
+            {t("action.clear_filters") || "Xoá bộ lọc"}
           </Button>
         )}
       </div>
@@ -81,26 +83,39 @@ export function DataTableToolbar<TData>({
   )
 }
 
-const densityOptions: Array<{
-  label: string
-  value: DataTableDensity
-}> = [
-  { label: "Compact", value: "compact" },
-  { label: "Comfortable", value: "comfortable" },
-  { label: "Spacious", value: "spacious" },
-]
-
 function DataTableDensityOptions() {
+  const { t } = useI18n()
   const { density, setDensity } = useDataTableDensity()
+
+  const densityOptions: Array<{
+    label: string
+    value: DataTableDensity
+  }> = React.useMemo(
+    () => [
+      {
+        label: t("table.density_compact") || "Compact",
+        value: "compact",
+      },
+      {
+        label: t("table.density_comfortable") || "Comfortable",
+        value: "comfortable",
+      },
+      {
+        label: t("table.density_spacious") || "Spacious",
+        value: "spacious",
+      },
+    ],
+    [t]
+  )
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          aria-label="Table density"
+          aria-label={t("table.density") || "Table density"}
           variant="outline"
           className="hidden size-8 p-0 lg:flex"
-          title="Table density"
+          title={t("table.density") || "Table density"}
         >
           <SlidersHorizontal className="text-muted-foreground" />
         </Button>
@@ -108,7 +123,7 @@ function DataTableDensityOptions() {
       <PopoverContent align="end" className="w-48 p-0">
         <Command>
           <CommandList>
-            <CommandGroup heading="Density">
+            <CommandGroup heading={t("table.density") || "Density"}>
               {densityOptions.map((option) => (
                 <CommandItem
                   key={option.value}

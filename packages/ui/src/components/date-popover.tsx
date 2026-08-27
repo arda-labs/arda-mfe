@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { format } from "date-fns"
 import { CalendarIcon, XCircle } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import {
   Popover,
@@ -18,9 +19,30 @@ export function DatePopover({
   onChange: (value: string | undefined) => void
   label: string
 }) {
+  const { t, locale, formatDate } = useI18n()
+  const isVi = locale === "vi-VN" || locale?.startsWith("vi")
+
   const [open, setOpen] = useState(false)
-  const [viewDate, setViewDate] = useState(() => new Date())
-  const selected = value ? new Date(value + "T00:00:00") : undefined
+  const selected = useMemo(
+    () => (value ? new Date(value + "T00:00:00") : undefined),
+    [value]
+  )
+  const [viewDate, setViewDate] = useState(() => selected ?? new Date())
+
+  // Khi mở Popover, tự động đồng bộ viewDate theo ngày đang chọn (hoặc hôm nay)
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setViewDate(selected ?? new Date())
+    }
+    setOpen(nextOpen)
+  }
+
+  // Cập nhật viewDate khi selected bên ngoài thay đổi
+  useEffect(() => {
+    if (selected) {
+      setViewDate(selected)
+    }
+  }, [selected])
 
   const today = useMemo(() => new Date(), [])
   const year = viewDate.getFullYear()
@@ -44,17 +66,32 @@ export function DatePopover({
   }
 
   const years = useMemo(() => {
+    const currentY = new Date().getFullYear()
     const ys: number[] = []
-    for (let y = 2020; y <= 2030; y++) ys.push(y)
+    for (let y = currentY - 10; y <= currentY + 10; y++) ys.push(y)
     return ys
   }, [])
+
   const months = useMemo(
     () =>
-      Array.from({ length: 12 }, (_, i) => ({
-        value: i,
-        label: new Date(2000, i).toLocaleString("default", { month: "long" }),
-      })),
-    []
+      Array.from({ length: 12 }, (_, i) => {
+        const d = new Date(2020, i, 1)
+        return {
+          value: i,
+          label: isVi
+            ? `Tháng ${i + 1}`
+            : d.toLocaleString(locale || "en-US", { month: "long" }),
+        }
+      }),
+    [isVi, locale]
+  )
+
+  const weekdays = useMemo(
+    () =>
+      isVi
+        ? ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
+        : ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+    [isVi]
   )
 
   function isSelected(d: number) {
@@ -65,6 +102,7 @@ export function DatePopover({
       selected.getDate() === d
     )
   }
+
   function isToday(d: number) {
     return (
       today.getFullYear() === year &&
@@ -73,8 +111,27 @@ export function DatePopover({
     )
   }
 
+  const handleSelectToday = () => {
+    const now = new Date()
+    setViewDate(now)
+    onChange(format(now, "yyyy-MM-dd"))
+    setOpen(false)
+  }
+
+  const formattedDisplay = useMemo(() => {
+    if (!selected) return null
+    if (formatDate) {
+      return formatDate(selected, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    }
+    return format(selected, "dd/MM/yyyy")
+  }, [selected, formatDate])
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -87,11 +144,11 @@ export function DatePopover({
           {selected ? (
             <>
               <span className="truncate">
-                {label}: {format(selected, "dd/MM/yyyy")}
+                {label}: {formattedDisplay}
               </span>
               <div
                 role="button"
-                aria-label="Clear date"
+                aria-label={t("action.clear_date") || "Clear date"}
                 tabIndex={0}
                 className="ml-auto rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                 onClick={(e) => {
@@ -115,7 +172,7 @@ export function DatePopover({
             onChange={(e) =>
               setViewDate(new Date(year, Number(e.target.value)))
             }
-            className="h-8 flex-1 rounded-md border bg-background px-2 text-sm font-medium"
+            className="h-8 flex-1 rounded-md border bg-background px-2 text-sm font-medium focus-visible:ring-1 focus-visible:ring-ring"
           >
             {months.map((m) => (
               <option key={m.value} value={m.value}>
@@ -128,7 +185,7 @@ export function DatePopover({
             onChange={(e) =>
               setViewDate(new Date(Number(e.target.value), month))
             }
-            className="h-8 w-20 rounded-md border bg-background px-2 text-sm font-medium"
+            className="h-8 w-24 rounded-md border bg-background px-2 text-sm font-medium focus-visible:ring-1 focus-visible:ring-ring"
           >
             {years.map((y) => (
               <option key={y} value={y}>
@@ -140,7 +197,7 @@ export function DatePopover({
 
         {/* Thứ */}
         <div className="mb-1 grid grid-cols-7 text-center text-xs font-medium text-muted-foreground">
-          {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((d) => (
+          {weekdays.map((d) => (
             <div key={d} className="py-1">
               {d}
             </div>
@@ -164,7 +221,7 @@ export function DatePopover({
                   isSelected(d)
                     ? "bg-primary font-medium text-primary-foreground"
                     : isToday(d)
-                      ? "bg-accent text-accent-foreground"
+                      ? "bg-accent font-semibold text-accent-foreground border border-primary/40"
                       : "text-foreground hover:bg-muted"
                 )}
               >
@@ -187,18 +244,15 @@ export function DatePopover({
               setOpen(false)
             }}
           >
-            Clear
+            {t("action.clear") || (isVi ? "Xoá" : "Clear")}
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={() => {
-              onChange(format(today, "yyyy-MM-dd"))
-              setOpen(false)
-            }}
+            className="h-7 px-2.5 text-xs font-medium"
+            onClick={handleSelectToday}
           >
-            Hôm nay
+            {t("date.today") || (isVi ? "Hôm nay" : "Today")}
           </Button>
         </div>
       </PopoverContent>

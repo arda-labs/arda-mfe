@@ -5,6 +5,7 @@ import { CalendarIcon, XCircle } from "lucide-react"
 import * as React from "react"
 import type { DateRange } from "react-day-picker"
 
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Calendar } from "@workspace/ui/components/calendar"
 import {
@@ -61,6 +62,7 @@ export function DataTableDateFilter<TData>({
   title,
   multiple,
 }: DataTableDateFilterProps<TData>) {
+  const { t } = useI18n()
   const columnFilterValue = column.getFilterValue()
 
   const selectedDates = React.useMemo<DateSelection>(() => {
@@ -138,7 +140,7 @@ export function DataTableDateFilter<TData>({
               </span>
               <div
                 role="button"
-                aria-label={`Clear ${title} filter`}
+                aria-label={t("action.clear_date") || `Clear ${title} filter`}
                 tabIndex={0}
                 onClick={onReset}
                 className="ml-0.5 rounded-sm opacity-60 transition-opacity hover:opacity-100 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
@@ -149,7 +151,7 @@ export function DataTableDateFilter<TData>({
           ) : (
             <span className="flex items-center gap-1">
               <CalendarIcon className="size-3.5" />
-              <span>{title || "Select date"}</span>
+              <span>{title || t("date.select_date") || "Select date"}</span>
             </span>
           )}
         </Button>

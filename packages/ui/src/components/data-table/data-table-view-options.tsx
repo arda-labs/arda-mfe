@@ -3,6 +3,7 @@
 import type { Table } from "@tanstack/react-table"
 import { Check, Settings2 } from "lucide-react"
 import * as React from "react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import {
   Command,
@@ -32,6 +33,8 @@ export function DataTableViewOptions<TData>({
   className,
   ...props
 }: DataTableViewOptionsProps<TData>) {
+  const { t } = useI18n()
+
   const columns = React.useMemo(
     () =>
       table
@@ -46,22 +49,28 @@ export function DataTableViewOptions<TData>({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          aria-label="Toggle columns"
+          aria-label={t("table.column_options") || "Toggle columns"}
           role="combobox"
           variant="outline"
           className="ml-auto hidden size-8 p-0 lg:flex"
           disabled={disabled}
-          title="Columns"
+          title={t("table.column_options") || "Columns"}
         >
           <Settings2 className="text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className={cn("w-56 p-0", className)} {...props}>
         <Command>
-          <CommandInput placeholder="Search columns..." />
+          <CommandInput
+            placeholder={t("table.search_columns") || "Search columns..."}
+          />
           <CommandList>
-            <CommandEmpty>No columns found.</CommandEmpty>
-            <CommandGroup heading="Visible columns">
+            <CommandEmpty>
+              {t("export.no_columns_found") || "No columns found."}
+            </CommandEmpty>
+            <CommandGroup
+              heading={t("table.visible_columns") || "Visible columns"}
+            >
               {columns.map((column) => (
                 <CommandItem
                   key={column.id}

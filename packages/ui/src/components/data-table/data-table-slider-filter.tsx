@@ -3,6 +3,7 @@
 import type { Column } from "@tanstack/react-table"
 import { PlusCircle, XCircle } from "lucide-react"
 import * as React from "react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
@@ -55,6 +56,7 @@ export function DataTableSliderFilter<TData>({
   column,
   title,
 }: DataTableSliderFilterProps<TData>) {
+  const { t } = useI18n()
   const id = React.useId()
 
   const columnFilterValue = parseValuesAsNumbers(column.getFilterValue())
@@ -181,7 +183,7 @@ export function DataTableSliderFilter<TData>({
           </p>
           <div className="flex items-center gap-4">
             <Label htmlFor={`${id}-from`} className="sr-only">
-              From
+              {t("date.from") || "From"}
             </Label>
             <div className="relative">
               <Input
@@ -205,7 +207,7 @@ export function DataTableSliderFilter<TData>({
               )}
             </div>
             <Label htmlFor={`${id}-to`} className="sr-only">
-              to
+              {t("date.to") || "To"}
             </Label>
             <div className="relative">
               <Input
@@ -242,12 +244,12 @@ export function DataTableSliderFilter<TData>({
           />
         </div>
         <Button
-          aria-label={`Clear ${title} filter`}
+          aria-label={t("action.clear_filters") || `Clear ${title} filter`}
           variant="outline"
           size="sm"
           onClick={onReset}
         >
-          Clear
+          {t("action.clear") || "Clear"}
         </Button>
       </PopoverContent>
     </Popover>

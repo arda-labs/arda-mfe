@@ -27,6 +27,9 @@
     "select_row": "Select row",
     "retry": "Try again",
     "close": "Close",
+    "clear": "Clear",
+    "clear_filters": "Clear filters",
+    "clear_date": "Clear date",
     "copy": "Copy",
     "copied": "Copied"
   },
@@ -101,7 +104,21 @@
     "sort_ascending": "Ascending",
     "sort_descending": "Descending",
     "reset_sorting": "Reset sorting",
-    "hide_column": "Hide column"
+    "hide_column": "Hide column",
+    "density": "Table density",
+    "density_compact": "Compact",
+    "density_comfortable": "Comfortable",
+    "density_spacious": "Spacious",
+    "selected_count": "{count} selected",
+    "no_results": "No results found.",
+    "visible_columns": "Visible columns",
+    "search_columns": "Search columns..."
+  },
+  "date": {
+    "today": "Today",
+    "select_date": "Select date",
+    "from": "From",
+    "to": "To"
   },
   "status": {
     "active": "Active",
