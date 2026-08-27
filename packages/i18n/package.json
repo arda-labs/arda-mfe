@@ -22,7 +22,6 @@
   },
   "exports": {
     ".": "./src/index.tsx",
-    "./config": "./src/config.ts",
-    "./apps/*": "./src/apps/*.ts"
+    "./config": "./src/config.ts"
   }
 }

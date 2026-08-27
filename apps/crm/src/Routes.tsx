@@ -1,4 +1,11 @@
-import "@workspace/i18n/apps/crm"
+import { registerAppLocales } from "@workspace/i18n"
+import enCrm from "../locales/en-US.json"
+import viCrm from "../locales/vi-VN.json"
+
+registerAppLocales("crm", {
+  "vi-VN": viCrm,
+  "en-US": enCrm,
+})
 import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
 import { QueryProvider } from "@workspace/query/provider"

@@ -1,4 +1,11 @@
-import "@workspace/i18n/apps/finance"
+import { registerAppLocales } from "@workspace/i18n"
+import enFinance from "../locales/en-US.json"
+import viFinance from "../locales/vi-VN.json"
+
+registerAppLocales("finance", {
+  "vi-VN": viFinance,
+  "en-US": enFinance,
+})
 import { Suspense, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { QueryProvider } from "@workspace/query/provider"

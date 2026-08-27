@@ -9,7 +9,15 @@ import {
   useLocalRuntime,
   type ThreadMessage,
 } from "@assistant-ui/react"
-import "@workspace/i18n/apps/ai"
+import { registerAppLocales } from "@workspace/i18n"
+import enAi from "../locales/en-US.json"
+import viAi from "../locales/vi-VN.json"
+
+registerAppLocales("ai", {
+  "vi-VN": viAi,
+  "en-US": enAi,
+})
+
 import { createArdaChatModelAdapter } from "./adapter"
 import { OlorinContext } from "./context"
 import {

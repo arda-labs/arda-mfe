@@ -1,4 +1,11 @@
-import "@workspace/i18n/apps/hrm"
+import { registerAppLocales } from "@workspace/i18n"
+import enHrm from "../locales/en-US.json"
+import viHrm from "../locales/vi-VN.json"
+
+registerAppLocales("user", {
+  "vi-VN": viHrm,
+  "en-US": enHrm,
+})
 import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 

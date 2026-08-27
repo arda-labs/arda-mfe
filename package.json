@@ -10,6 +10,7 @@
     "cf:build:all": "bun ./scripts/build-cloudflare-app.mjs all",
     "cf:deploy": "bun ./scripts/deploy-cloudflare-app.mjs",
     "clear:dev-ports": "bun ./scripts/clear-dev-ports.mjs",
+    "check:i18n": "bun ./scripts/check-i18n.mjs",
     "check:packages": "bun ./scripts/check-package-boundaries.mjs",
     "check:credentials": "bun ./scripts/check-credentialed-fetch.mjs",
     "check:fallbacks": "bun ./scripts/check-no-fail-open-fallbacks.mjs",
@@ -18,7 +19,7 @@
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
     "format": "bun run --workspaces --parallel format",
-    "typecheck": "bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run check:pages && bun run --filter './apps/*' --filter './packages/*' typecheck"
+    "typecheck": "bun run check:i18n && bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run check:pages && bun run --filter './apps/*' --filter './packages/*' typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

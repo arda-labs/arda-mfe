@@ -37,7 +37,8 @@
       "save": "Lưu thay đổi",
       "submit": "Hoàn thành",
       "cancel_draft": "Hủy nháp",
-      "action": "Điều chỉnh"
+      "action": "Điều chỉnh",
+      "init_failed": "Không thể khởi tạo điều chỉnh"
     },
     "search_placeholder": "Tìm theo mã, tên, số di động, CCCD/CMND",
     "columns": {

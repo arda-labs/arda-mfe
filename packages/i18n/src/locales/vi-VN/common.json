@@ -34,6 +34,18 @@
     "delete_title": "Xác nhận xóa",
     "delete_description": "Hành động này không thể hoàn tác. Bạn có chắc muốn xóa {item}?"
   },
+  "feedback": {
+    "save_success": "Lưu thành công",
+    "save_failed": "Lưu thất bại",
+    "create_success": "Tạo mới thành công",
+    "create_failed": "Tạo mới thất bại",
+    "update_success": "Cập nhật thành công",
+    "update_failed": "Cập nhật thất bại",
+    "delete_success": "Xóa thành công",
+    "delete_failed": "Xóa thất bại",
+    "action_success": "Thao tác thành công",
+    "action_failed": "Thao tác thất bại"
+  },
   "error": {
     "session_expired": "Phiên đăng nhập đã hết hạn",
     "unknown": "Đã có lỗi xảy ra",

@@ -1,4 +1,11 @@
-import "@workspace/i18n/apps/iam"
+import { registerAppLocales } from "@workspace/i18n"
+import enIam from "../locales/en-US.json"
+import viIam from "../locales/vi-VN.json"
+
+registerAppLocales("iam", {
+  "vi-VN": viIam,
+  "en-US": enIam,
+})
 import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 

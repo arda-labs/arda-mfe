@@ -1,4 +1,11 @@
-import "@workspace/i18n/apps/platform"
+import { registerAppLocales } from "@workspace/i18n"
+import enPlatform from "../locales/en-US.json"
+import viPlatform from "../locales/vi-VN.json"
+
+registerAppLocales("platform", {
+  "vi-VN": viPlatform,
+  "en-US": enPlatform,
+})
 import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 

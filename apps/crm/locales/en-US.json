@@ -37,7 +37,8 @@
       "save": "Save changes",
       "submit": "Complete",
       "cancel_draft": "Cancel draft",
-      "action": "Adjust"
+      "action": "Adjust",
+      "init_failed": "Failed to initialize adjustment"
     },
     "search_placeholder": "Search by code, name, mobile, or identity number",
     "columns": {

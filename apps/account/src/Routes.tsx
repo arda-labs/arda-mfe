@@ -1,4 +1,11 @@
-import "@workspace/i18n/apps/account"
+import { registerAppLocales } from "@workspace/i18n"
+import enProfile from "../locales/en-US.json"
+import viProfile from "../locales/vi-VN.json"
+
+registerAppLocales("profile", {
+  "vi-VN": viProfile,
+  "en-US": enProfile,
+})
 import { useLocation, useNavigate } from "react-router-dom"
 import { QueryProvider } from "@workspace/query/provider"
 import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"

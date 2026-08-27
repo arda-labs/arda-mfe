@@ -7,11 +7,13 @@ import {
   STORAGE_KEY,
   supportedLocales,
   registerResourceBundles,
+  registerAppLocales,
+  loadRemoteAppLocale,
   type Locale,
   type ResourceBundles,
 } from "./config"
 
-export { registerResourceBundles }
+export { registerResourceBundles, registerAppLocales, loadRemoteAppLocale }
 export type { ResourceBundles }
 
 export type MessageKey = string & {}
@@ -88,22 +90,25 @@ export function getCurrentLocale(): Locale {
 
 export function translateApiError(
   input: unknown,
-  fallbackKey: MessageKey = "common.error.unknown"
+  fallbackKey: MessageKey = "common.error.unknown",
+  params?: Record<string, string | number>
 ) {
   const locale = getCurrentLocale()
-  const fallback = translate(fallbackKey, locale)
+  const fallback = translate(fallbackKey, locale, params)
 
   if (input instanceof Error) {
     const code = (input as { code?: unknown }).code
+    const errParams = (input as { params?: Record<string, string | number> }).params || params
     if (typeof code === "string" && code) {
-      const translated = translate(code, locale)
+      const translated = translate(code, locale, errParams)
       if (translated && translated !== code) return translated
     }
-    return translate(input.message, locale) || input.message || fallback
+    return translate(input.message, locale, errParams) || input.message || fallback
   }
   if (input && typeof input === "object" && "code" in input) {
     const code = String((input as { code?: unknown }).code ?? "")
-    return translate(code, locale) || fallback
+    const errParams = (input as { params?: Record<string, string | number> }).params || params
+    return translate(code, locale, errParams) || fallback
   }
   return fallback
 }
@@ -137,7 +142,6 @@ function normalizeKey(key: string) {
   if (firstDot < 0) return key
   const namespace = key.slice(0, firstDot)
   const rest = key.slice(firstDot + 1)
-  if (namespace === "iam") return `iam:${rest}`
   return `${namespace}:${rest}`
 }
 

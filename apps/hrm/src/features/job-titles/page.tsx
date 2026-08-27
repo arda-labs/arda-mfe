@@ -82,13 +82,13 @@ export function JobTitlesPage() {
         notify.success("Da cap nhat chuc danh")
       } else {
         await hrmApi.createJobTitle(payload)
-        notify.success("Da luu chuc danh")
+        notify.saveSuccess()
       }
       setDialogOpen(false)
       form.reset(jobTitleDefaults)
       await load()
     } catch (reason) {
-      notify.error("Luu chuc danh that bai", translateApiError(reason))
+      notify.saveFailed(reason)
     } finally {
       setSubmitting(false)
     }
@@ -157,11 +157,11 @@ export function JobTitlesPage() {
           setDeleting(true)
           try {
             await hrmApi.deleteJobTitle(deleteTarget.id)
-            notify.success("Da xoa chuc danh")
+            notify.deleteSuccess()
             setDeleteTarget(null)
             await load()
           } catch (reason) {
-            notify.error("Xoa chuc danh that bai", translateApiError(reason))
+            notify.deleteFailed(reason)
           } finally {
             setDeleting(false)
           }

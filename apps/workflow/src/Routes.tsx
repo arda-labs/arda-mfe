@@ -1,4 +1,11 @@
-import "@workspace/i18n/apps/workflow"
+import { registerAppLocales } from "@workspace/i18n"
+import enWorkflow from "../locales/en-US.json"
+import viWorkflow from "../locales/vi-VN.json"
+
+registerAppLocales("workflow", {
+  "vi-VN": viWorkflow,
+  "en-US": enWorkflow,
+})
 import { Suspense } from "react"
 import { useLocation } from "react-router-dom"
 import { QueryProvider } from "@workspace/query/provider"

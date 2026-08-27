@@ -268,7 +268,7 @@ export function CustomerAdjustmentPage({
 
         navigateTo(await adjustmentMakerEditHref(result))
       } catch (error) {
-        notify.error("Không thể khởi tạo điều chỉnh", translateApiError(error))
+        notify.error(t("crm:customers.adjustments.init_failed"), translateApiError(error))
         setAutoStarting(false)
         setAutoStartFailed(true)
       }
