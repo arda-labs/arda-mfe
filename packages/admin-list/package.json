@@ -33,6 +33,8 @@
     "./server-data-table": "./src/server-data-table.ts",
     "./server-list": "./src/server-list.ts",
     "./table-columns": "./src/table-columns.tsx",
+    "./table-export": "./src/table-export.ts",
+    "./table-export-dialog": "./src/table-export-dialog.tsx",
     "./use-data-table": "./src/use-data-table.ts"
   }
 }

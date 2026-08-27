@@ -44,6 +44,7 @@ import { useDataTable } from "@workspace/admin-list/use-data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { exportTableToExcelXml } from "@workspace/admin-list/table-export"
 import type { ColumnDef } from "@tanstack/react-table"
 import {
   Check,
@@ -751,8 +752,13 @@ export function UsersPage() {
             variant="outline"
             className="h-7 px-2.5 text-xs font-medium"
             onClick={() => {
-              const count = tbl.getSelectedRowModel().rows.length
-              notify.info(`Đang xuất dữ liệu ${count} người dùng đã chọn...`)
+              exportTableToExcelXml({
+                table: tbl,
+                scope: "selected",
+                filename: "users_selected",
+                sheetName: "Users",
+              })
+              notify.success(`Đã xuất ${tbl.getSelectedRowModel().rows.length} người dùng đã chọn.`)
             }}
           >
             <Download className="mr-1.5 size-3.5" />
