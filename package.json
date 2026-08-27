@@ -4,8 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "bun run --filter './apps/*' build",
+    "build": "bun ./scripts/build-cloudflare-app.mjs all",
+    "build:apps": "bun run --filter './apps/*' build",
     "cf:build": "bun ./scripts/build-cloudflare-app.mjs",
+    "cf:build:all": "bun ./scripts/build-cloudflare-app.mjs all",
     "cf:deploy": "bun ./scripts/deploy-cloudflare-app.mjs",
     "clear:dev-ports": "bun ./scripts/clear-dev-ports.mjs",
     "check:packages": "bun ./scripts/check-package-boundaries.mjs",
