@@ -39,19 +39,22 @@ export function SidebarNode({
   const nodeId = getNavNodeId(item)
   const isExpanded = openGroups[nodeId] ?? hasActiveChild
   const open = sidebarOpen && isExpanded
+
+  const isChild = depth > 0
+
   const itemClassName = cn(
-    "relative flex h-9 w-full items-center gap-3 rounded-md px-3 text-sm transition-colors before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:transition-colors",
-    isActive || hasActiveChild
-      ? "bg-primary/10 font-medium text-primary before:bg-primary"
-      : "text-muted-foreground before:bg-transparent hover:bg-muted/80 hover:text-foreground"
+    "flex w-full items-center gap-2.5 rounded-md transition-colors select-none",
+    isChild ? "h-8 px-2.5 text-[13px]" : "h-9 px-3 text-sm",
+    isActive
+      ? "bg-primary/10 font-medium text-primary"
+      : hasActiveChild
+        ? "font-medium text-foreground hover:bg-muted/80"
+        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
   )
-  const style = sidebarOpen
-    ? { paddingLeft: `${0.75 + depth * 0.9}rem` }
-    : undefined
 
   if (hasChildren) {
     return (
-      <div>
+      <div className="w-full">
         <button
           type="button"
           onClick={() =>
@@ -61,25 +64,24 @@ export function SidebarNode({
             })
           }
           className={itemClassName}
-          style={style}
           title={!sidebarOpen ? label : undefined}
           aria-expanded={open}
         >
-          <item.icon className="size-4 shrink-0" />
+          <item.icon className={cn("shrink-0", isChild ? "size-3.5" : "size-4")} />
           {sidebarOpen && (
             <>
               <span className="min-w-0 flex-1 truncate text-left">{label}</span>
               <ChevronRight
                 className={cn(
-                  "size-3.5 transition-transform",
-                  open && "rotate-90"
+                  "size-3.5 shrink-0 text-muted-foreground/70 transition-transform duration-200",
+                  open && "rotate-90 text-foreground"
                 )}
               />
             </>
           )}
         </button>
         {open && (
-          <div className="mt-0.5 space-y-0.5">
+          <div className="relative ml-[19px] mt-0.5 space-y-0.5 border-l border-border/70 pl-2">
             {item.children?.map((child) => (
               <SidebarNode
                 key={getNavNodeId(child)}
@@ -109,12 +111,11 @@ export function SidebarNode({
       onPointerDown={() => void preloadRemoteForPath(item.href!)}
       onPointerEnter={() => void preloadRemoteForPath(item.href!)}
       className={itemClassName}
-      style={style}
       title={!sidebarOpen ? label : undefined}
       aria-current={isActive ? "page" : undefined}
     >
-      <item.icon className="size-4 shrink-0" />
-      {sidebarOpen && <span className="truncate">{label}</span>}
+      <item.icon className={cn("shrink-0", isChild ? "size-3.5" : "size-4")} />
+      {sidebarOpen && <span className="min-w-0 flex-1 truncate text-left">{label}</span>}
     </button>
   )
 }
