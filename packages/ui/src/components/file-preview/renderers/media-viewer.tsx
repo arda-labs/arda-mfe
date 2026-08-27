@@ -1,4 +1,5 @@
 import { Download, Music, Video } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
@@ -12,6 +13,8 @@ interface MediaViewerProps {
 }
 
 export function MediaViewer({ src, filename, isVideo, onDownload, className }: MediaViewerProps) {
+  const { t } = useI18n()
+
   return (
     <div className={cn("flex flex-col h-full overflow-hidden border rounded-lg bg-card text-card-foreground", className)}>
       {/* Media Header */}
@@ -34,7 +37,7 @@ export function MediaViewer({ src, filename, isVideo, onDownload, className }: M
             onClick={onDownload}
           >
             <Download className="size-3.5 mr-1" />
-            Download
+            {t("preview.download")}
           </Button>
         )}
       </div>

@@ -48,7 +48,7 @@ export function FloatingBatchActionBar<TData>({
           {selectedCount}
         </span>
         <span className="text-xs font-medium text-foreground whitespace-nowrap">
-          {t("common.selected_count", { count: selectedCount }) || `${selectedCount} đã chọn`}
+          {t("batch_actions.selected_count", { count: selectedCount })}
         </span>
       </div>
 
@@ -61,8 +61,8 @@ export function FloatingBatchActionBar<TData>({
         size="icon"
         onClick={handleClear}
         className="size-7 rounded-full text-muted-foreground hover:text-foreground"
-        title={t("common.action.clear_selection") || "Bỏ chọn"}
-        aria-label={t("common.action.clear_selection") || "Bỏ chọn"}
+        title={t("batch_actions.clear_selection")}
+        aria-label={t("batch_actions.clear_selection")}
       >
         <X className="size-3.5" />
       </Button>

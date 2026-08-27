@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Download, ImageIcon, RotateCw, ZoomIn, ZoomOut } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
@@ -12,6 +13,7 @@ interface ImageViewerProps {
 }
 
 export function ImageViewer({ src, filename, onDownload, className }: ImageViewerProps) {
+  const { t } = useI18n()
   const [zoom, setZoom] = React.useState(1)
   const [rotation, setRotation] = React.useState(0)
 
@@ -44,7 +46,7 @@ export function ImageViewer({ src, filename, onDownload, className }: ImageViewe
             className="size-7"
             onClick={handleZoomOut}
             disabled={zoom <= 0.25}
-            title="Zoom Out"
+            title="Thu nhỏ (-25%)"
           >
             <ZoomOut className="size-3.5" />
           </Button>
@@ -52,8 +54,8 @@ export function ImageViewer({ src, filename, onDownload, className }: ImageViewe
           <button
             type="button"
             onClick={handleReset}
-            className="text-[11px] font-mono px-1.5 py-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
-            title="Reset Zoom"
+            className="text-[11px] font-mono px-1.5 py-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Đặt lại kích thước (100%)"
           >
             {Math.round(zoom * 100)}%
           </button>
@@ -64,7 +66,7 @@ export function ImageViewer({ src, filename, onDownload, className }: ImageViewe
             className="size-7"
             onClick={handleZoomIn}
             disabled={zoom >= 5}
-            title="Zoom In"
+            title="Phóng to (+25%)"
           >
             <ZoomIn className="size-3.5" />
           </Button>
@@ -74,7 +76,7 @@ export function ImageViewer({ src, filename, onDownload, className }: ImageViewe
             size="icon"
             className="size-7"
             onClick={handleRotate}
-            title="Rotate 90°"
+            title="Xoay 90 độ"
           >
             <RotateCw className="size-3.5" />
           </Button>
@@ -87,7 +89,7 @@ export function ImageViewer({ src, filename, onDownload, className }: ImageViewe
               onClick={onDownload}
             >
               <Download className="size-3.5 mr-1" />
-              Download
+              {t("preview.download")}
             </Button>
           )}
         </div>

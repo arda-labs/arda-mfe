@@ -94,5 +94,64 @@
   "status": {
     "active": "Đang hoạt động",
     "inactive": "Ngưng hoạt động"
+  },
+  "export": {
+    "title": "Xuất Dữ Liệu",
+    "description": "Tùy chọn định dạng tệp, phạm vi và các trường dữ liệu cần trích xuất.",
+    "format": "Định dạng tệp",
+    "format_xlsx": "Excel Spreadsheet (.xls)",
+    "format_xlsx_desc": "Bảng tính phân loại cột, số và ngày tháng",
+    "format_csv": "CSV (UTF-8)",
+    "format_csv_desc": "Tệp văn bản thuần có BOM tiếng Việt, tối ưu chia sẻ",
+    "scope": "Phạm vi trích xuất",
+    "scope_all": "Tất cả kết quả lọc",
+    "scope_selected": "Chỉ các dòng đang chọn",
+    "scope_page": "Trang hiện tại",
+    "columns": "Cột dữ liệu",
+    "search_columns": "Tìm cột...",
+    "filename": "Tên tệp xuất",
+    "filename_placeholder": "Nhập tên tệp...",
+    "summary": "Xuất {rows} bản ghi • {cols} cột",
+    "download": "Tải xuống",
+    "processing": "Đang xuất...",
+    "success": "Đã xuất dữ liệu thành công",
+    "failed": "Không thể xuất file dữ liệu",
+    "select_at_least_one_column": "Vui lòng chọn ít nhất một cột để xuất.",
+    "no_columns_found": "Không tìm thấy cột phù hợp"
+  },
+  "preview": {
+    "title": "Xem trước tệp",
+    "download": "Tải về",
+    "open_new_tab": "Mở tab mới",
+    "fullscreen": "Toàn màn hình",
+    "minimize": "Thu nhỏ",
+    "loading": "Đang nạp dữ liệu tệp...",
+    "load_failed": "Không thể tải nội dung tệp",
+    "unsupported_message": "Định dạng tệp này không hỗ trợ xem trực tiếp trên trình duyệt. Vui lòng tải xuống để mở trên ứng dụng máy tính.",
+    "format_code": "Định dạng",
+    "toggle_wrap": "Ngắt dòng",
+    "search_in_file": "Tìm trong file...",
+    "hits": "kết quả",
+    "lines": "dòng",
+    "chars": "ký tự",
+    "rows": "dòng",
+    "columns": "cột"
+  },
+  "command_palette": {
+    "placeholder": "Tìm kiếm trang, chức năng hoặc lệnh...",
+    "navigation": "Điều hướng & Phân hệ",
+    "actions": "Thao tác nhanh",
+    "preferences": "Tùy chọn & Giao diện",
+    "dark_mode": "Chuyển sang Chế độ Tối",
+    "light_mode": "Chuyển sang Chế độ Sáng",
+    "ai_assistant": "Mở AI Trợ lý",
+    "switch_language": "Đổi ngôn ngữ (Tiếng Việt / English)",
+    "no_results": "Không tìm thấy kết quả phù hợp"
+  },
+  "batch_actions": {
+    "selected_count": "Đã chọn {count} dòng",
+    "export": "Xuất Excel ({count})",
+    "delete": "Xóa đã chọn",
+    "clear_selection": "Bỏ chọn"
   }
 }

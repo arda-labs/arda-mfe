@@ -1,4 +1,5 @@
 import { Download, ExternalLink, Eye, X } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import {
@@ -27,6 +28,7 @@ export function FilePreviewDrawer({
   source,
   width = "sm:max-w-2xl w-[90vw]",
 }: FilePreviewDrawerProps) {
+  const { t } = useI18n()
   if (!source) return null
 
   const category = detectFileCategory(source.filename, source.mimeType)
@@ -81,7 +83,7 @@ export function FilePreviewDrawer({
                 size="icon"
                 className="size-7"
                 onClick={handleOpenNewTab}
-                title="Mở trong tab mới"
+                title={t("preview.open_new_tab")}
               >
                 <ExternalLink className="size-3.5" />
               </Button>
@@ -94,7 +96,7 @@ export function FilePreviewDrawer({
               onClick={handleDownload}
             >
               <Download className="size-3.5" />
-              <span className="hidden sm:inline">Tải về</span>
+              <span className="hidden sm:inline">{t("preview.download")}</span>
             </Button>
 
             <Button
@@ -102,6 +104,7 @@ export function FilePreviewDrawer({
               size="icon"
               className="size-7 text-muted-foreground hover:text-foreground ml-1"
               onClick={() => onOpenChange(false)}
+              title={t("action.close")}
             >
               <X className="size-4" />
             </Button>

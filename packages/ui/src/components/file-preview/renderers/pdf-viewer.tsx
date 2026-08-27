@@ -1,4 +1,5 @@
 import { Download, ExternalLink, FileText, Printer } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
@@ -11,6 +12,8 @@ interface PdfViewerProps {
 }
 
 export function PdfViewer({ src, filename, onDownload, className }: PdfViewerProps) {
+  const { t } = useI18n()
+
   const handleOpenNewTab = () => {
     window.open(src, "_blank", "noopener,noreferrer")
   }
@@ -44,7 +47,7 @@ export function PdfViewer({ src, filename, onDownload, className }: PdfViewerPro
             size="icon"
             className="size-7"
             onClick={handlePrint}
-            title="Print PDF"
+            title="In tài liệu (Print)"
           >
             <Printer className="size-3.5" />
           </Button>
@@ -54,7 +57,7 @@ export function PdfViewer({ src, filename, onDownload, className }: PdfViewerPro
             size="icon"
             className="size-7"
             onClick={handleOpenNewTab}
-            title="Open in new window"
+            title={t("preview.open_new_tab")}
           >
             <ExternalLink className="size-3.5" />
           </Button>
@@ -67,7 +70,7 @@ export function PdfViewer({ src, filename, onDownload, className }: PdfViewerPro
               onClick={onDownload}
             >
               <Download className="size-3.5 mr-1" />
-              Download
+              {t("preview.download")}
             </Button>
           )}
         </div>

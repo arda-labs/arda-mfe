@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Check, Copy, FileCode2, Search, WrapText } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
@@ -13,6 +14,7 @@ interface CodeViewerProps {
 }
 
 export function CodeViewer({ content, filename, className }: CodeViewerProps) {
+  const { t } = useI18n()
   const language = detectCodeLanguage(filename)
   const [copied, setCopied] = React.useState(false)
   const [wrap, setWrap] = React.useState(false)
@@ -77,7 +79,7 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
             {language}
           </Badge>
           <span className="text-xs text-muted-foreground font-mono">
-            {lines.length} lines · {content.length} chars
+            {lines.length} {t("preview.lines")} · {content.length} {t("preview.chars")}
           </span>
         </div>
 
@@ -89,13 +91,13 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
                 size={undefined}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Find in file..."
+                placeholder={t("preview.search_in_file")}
                 className="h-7 w-40 text-xs pl-7 pr-2"
                 autoFocus
               />
               {searchQuery && (
                 <span className="ml-1.5 text-[11px] text-muted-foreground font-mono">
-                  {matchCount} hits
+                  {matchCount} {t("preview.hits")}
                 </span>
               )}
             </div>
@@ -105,7 +107,7 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
               size="icon"
               className="size-7"
               onClick={() => setShowSearch(true)}
-              title="Search (Ctrl+F)"
+              title={t("preview.search_in_file")}
             >
               <Search className="size-3.5" />
             </Button>
@@ -117,10 +119,10 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
               size="sm"
               className="h-7 px-2 text-xs"
               onClick={handleFormat}
-              title="Prettify JSON"
+              title={t("preview.format_code")}
             >
               <FileCode2 className="size-3.5 mr-1" />
-              Format
+              {t("preview.format_code")}
             </Button>
           )}
 
@@ -129,7 +131,7 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
             size="icon"
             className="size-7"
             onClick={() => setWrap(!wrap)}
-            title="Toggle Word Wrap"
+            title={t("preview.toggle_wrap")}
           >
             <WrapText className="size-3.5" />
           </Button>
@@ -139,7 +141,7 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
             size="icon"
             className="size-7"
             onClick={handleCopy}
-            title="Copy to Clipboard"
+            title={t("action.copy")}
           >
             {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
           </Button>

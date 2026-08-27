@@ -1,11 +1,21 @@
 import * as React from "react"
 import type { Table } from "@tanstack/react-table"
-import { Download, FileSpreadsheet, FileText } from "lucide-react"
+import {
+  Check,
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Layers,
+  Search,
+} from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
+import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { Badge } from "@workspace/ui/components/badge"
 import { RadioGroup, RadioGroupItem } from "@workspace/ui/components/radio-group"
 import {
   Dialog,
@@ -15,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   exportTableToCsv,
   exportTableToExcelXml,
@@ -37,6 +48,7 @@ export interface TableExportDialogProps<TData> {
     scope: ExportScope
     format: ExportFormat
     columnIds: string[]
+    filename: string
   }) => Promise<void>
 }
 
@@ -45,7 +57,7 @@ export function TableExportDialog<TData>({
   onOpenChange,
   table,
   filename = "export",
-  sheetName = "Sheet1",
+  sheetName = "Data",
   onServerExport,
 }: TableExportDialogProps<TData>) {
   return (
@@ -72,12 +84,13 @@ interface TableExportDialogContentProps<TData> {
     scope: ExportScope
     format: ExportFormat
     columnIds: string[]
+    filename: string
   }) => Promise<void>
 }
 
 function TableExportDialogContent<TData>({
   table,
-  filename,
+  filename: initialFilename,
   sheetName,
   onOpenChange,
   onServerExport,
@@ -92,19 +105,25 @@ function TableExportDialogContent<TData>({
   )
   const [format, setFormat] = React.useState<ExportFormat>("xlsx")
   const [isExporting, setIsExporting] = React.useState(false)
+  const [customFilename, setCustomFilename] = React.useState(initialFilename)
+  const [columnSearch, setColumnSearch] = React.useState("")
 
-  // Columns state initialized from visible columns on mount
+  // Columns state initialized from visible columns
   const exportableColumns = React.useMemo(() => getExportableColumns(table), [table])
   const [selectedColumnIds, setSelectedColumnIds] = React.useState<string[]>(() => {
     const visibleCols = exportableColumns.filter((col) => col.isVisible).map((col) => col.id)
     return visibleCols.length > 0 ? visibleCols : exportableColumns.map((c) => c.id)
   })
 
+  const filteredColumns = React.useMemo(() => {
+    if (!columnSearch.trim()) return exportableColumns
+    const q = columnSearch.toLowerCase()
+    return exportableColumns.filter((c) => c.title.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
+  }, [exportableColumns, columnSearch])
+
   const toggleColumn = (columnId: string) => {
     setSelectedColumnIds((prev) =>
-      prev.includes(columnId)
-        ? prev.filter((id) => id !== columnId)
-        : [...prev, columnId]
+      prev.includes(columnId) ? prev.filter((id) => id !== columnId) : [...prev, columnId]
     )
   }
 
@@ -116,11 +135,20 @@ function TableExportDialogContent<TData>({
     setSelectedColumnIds([])
   }
 
+  // Calculate estimated record count based on scope
+  const targetRowCount = React.useMemo(() => {
+    if (scope === "selected") return selectedCount
+    if (scope === "current_page") return currentPageCount
+    return totalFilteredCount
+  }, [scope, selectedCount, currentPageCount, totalFilteredCount])
+
   const handleExport = async () => {
     if (selectedColumnIds.length === 0) {
-      notify.warning(t("common.export.select_at_least_one_column") || "Vui lòng chọn ít nhất một cột để xuất.")
+      notify.warning(t("export.select_at_least_one_column"))
       return
     }
+
+    const exportName = customFilename.trim() || initialFilename
 
     setIsExporting(true)
     try {
@@ -129,6 +157,7 @@ function TableExportDialogContent<TData>({
           scope,
           format,
           columnIds: selectedColumnIds,
+          filename: exportName,
         })
       } else {
         const options = {
@@ -136,7 +165,7 @@ function TableExportDialogContent<TData>({
           scope,
           format,
           columnIds: selectedColumnIds,
-          filename,
+          filename: exportName,
           sheetName,
         }
 
@@ -146,33 +175,40 @@ function TableExportDialogContent<TData>({
           exportTableToCsv(options)
         }
 
-        notify.success(t("common.export.success") || "Đã xuất dữ liệu thành công.")
+        notify.success(t("export.success"))
       }
       onOpenChange(false)
     } catch (err) {
-      notify.error(t("common.export.failed") || "Không thể xuất file dữ liệu", String(err))
+      notify.error(t("export.failed"), String(err))
     } finally {
       setIsExporting(false)
     }
   }
 
   return (
-    <DialogContent className="sm:max-w-[480px]">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
-          <Download className="size-5 text-primary" />
-          {t("common.export.title") || "Xuất Dữ Liệu"}
-        </DialogTitle>
-        <DialogDescription>
-          {t("common.export.description") || "Tùy chọn phạm vi, định dạng và các cột dữ liệu cần trích xuất."}
-        </DialogDescription>
+    <DialogContent className="sm:max-w-[540px] p-0 gap-0 overflow-hidden rounded-2xl border bg-card shadow-2xl">
+      {/* Header */}
+      <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/20">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/20 shrink-0">
+            <Download className="size-5" />
+          </div>
+          <div>
+            <DialogTitle className="text-base font-semibold tracking-tight">
+              {t("export.title")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+              {t("export.description")}
+            </DialogDescription>
+          </div>
+        </div>
       </DialogHeader>
 
-      <div className="flex flex-col gap-5 py-2">
-        {/* Format selection */}
-        <div className="flex flex-col gap-2.5">
-          <Label className="text-xs font-semibold text-foreground">
-            {t("common.export.format") || "Định dạng tệp"}
+      <div className="flex flex-col gap-5 px-6 py-5 max-h-[70vh] overflow-y-auto">
+        {/* 1. Format Selection */}
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-foreground flex items-center justify-between">
+            <span>{t("export.format")}</span>
           </Label>
           <RadioGroup
             value={format}
@@ -180,93 +216,181 @@ function TableExportDialogContent<TData>({
             className="grid grid-cols-2 gap-3"
           >
             <div>
-              <RadioGroupItem
-                value="xlsx"
-                id="format-xlsx"
-                className="peer sr-only"
-              />
+              <RadioGroupItem value="xlsx" id="format-xlsx" className="peer sr-only" />
               <Label
                 htmlFor="format-xlsx"
-                className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer text-center"
+                className={cn(
+                  "flex flex-col p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-150 relative bg-card hover:bg-accent/40",
+                  format === "xlsx"
+                    ? "border-primary bg-primary/[0.04] shadow-sm"
+                    : "border-muted/80 hover:border-muted-foreground/30"
+                )}
               >
-                <FileSpreadsheet className="mb-2 size-5 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-semibold">Excel (.xls)</span>
-                <span className="text-[11px] text-muted-foreground mt-0.5">
-                  Chuẩn bảng tính
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="size-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <FileSpreadsheet className="size-4" />
+                  </div>
+                  {format === "xlsx" && (
+                    <div className="size-4 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                      <Check className="size-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-semibold text-foreground">
+                  {t("export.format_xlsx")}
+                </span>
+                <span className="text-[11px] text-muted-foreground mt-0.5 leading-normal">
+                  {t("export.format_xlsx_desc")}
                 </span>
               </Label>
             </div>
 
             <div>
-              <RadioGroupItem
-                value="csv"
-                id="format-csv"
-                className="peer sr-only"
-              />
+              <RadioGroupItem value="csv" id="format-csv" className="peer sr-only" />
               <Label
                 htmlFor="format-csv"
-                className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer text-center"
+                className={cn(
+                  "flex flex-col p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-150 relative bg-card hover:bg-accent/40",
+                  format === "csv"
+                    ? "border-primary bg-primary/[0.04] shadow-sm"
+                    : "border-muted/80 hover:border-muted-foreground/30"
+                )}
               >
-                <FileText className="mb-2 size-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs font-semibold">CSV (UTF-8)</span>
-                <span className="text-[11px] text-muted-foreground mt-0.5">
-                  Dữ liệu thuần văn bản
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="size-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <FileText className="size-4" />
+                  </div>
+                  {format === "csv" && (
+                    <div className="size-4 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                      <Check className="size-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-semibold text-foreground">
+                  {t("export.format_csv")}
+                </span>
+                <span className="text-[11px] text-muted-foreground mt-0.5 leading-normal">
+                  {t("export.format_csv_desc")}
                 </span>
               </Label>
             </div>
           </RadioGroup>
         </div>
 
-        {/* Scope selection */}
-        <div className="flex flex-col gap-2.5">
+        {/* 2. Scope Selection */}
+        <div className="space-y-2">
           <Label className="text-xs font-semibold text-foreground">
-            {t("common.export.scope") || "Phạm vi xuất"}
+            {t("export.scope")}
           </Label>
           <RadioGroup
             value={scope}
             onValueChange={(val) => setScope(val as ExportScope)}
-            className="flex flex-col gap-2 rounded-lg border p-3 bg-muted/20"
+            className="flex flex-col gap-2 rounded-xl border p-2.5 bg-muted/20"
           >
-            <div className="flex items-center space-x-2.5">
-              <RadioGroupItem value="all" id="scope-all" />
-              <Label htmlFor="scope-all" className="text-xs font-medium cursor-pointer flex-1 flex justify-between">
-                <span>{t("common.export.scope_all") || "Tất cả kết quả lọc"}</span>
-                <span className="text-muted-foreground font-mono">({totalFilteredCount})</span>
-              </Label>
+            {/* Scope: All */}
+            <div
+              onClick={() => setScope("all")}
+              className={cn(
+                "flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors text-xs",
+                scope === "all" ? "bg-background shadow-xs font-medium border" : "hover:bg-muted/40"
+              )}
+            >
+              <div className="flex items-center space-x-2.5">
+                <RadioGroupItem value="all" id="scope-all" />
+                <Label htmlFor="scope-all" className="cursor-pointer font-medium text-xs">
+                  {t("export.scope_all")}
+                </Label>
+              </div>
+              <Badge variant="secondary" className="font-mono text-[11px] font-medium px-2 py-0.5">
+                {totalFilteredCount} {t("preview.rows")}
+              </Badge>
             </div>
 
-            <div className="flex items-center space-x-2.5">
-              <RadioGroupItem
-                value="selected"
-                id="scope-selected"
-                disabled={selectedCount === 0}
-              />
-              <Label
-                htmlFor="scope-selected"
-                className={`text-xs font-medium flex-1 flex justify-between ${
-                  selectedCount === 0 ? "text-muted-foreground cursor-not-allowed" : "cursor-pointer"
-                }`}
+            {/* Scope: Selected */}
+            <div
+              onClick={() => selectedCount > 0 && setScope("selected")}
+              className={cn(
+                "flex items-center justify-between p-2.5 rounded-lg transition-colors text-xs",
+                selectedCount === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : scope === "selected"
+                  ? "bg-background shadow-xs font-medium border cursor-pointer"
+                  : "hover:bg-muted/40 cursor-pointer"
+              )}
+            >
+              <div className="flex items-center space-x-2.5">
+                <RadioGroupItem
+                  value="selected"
+                  id="scope-selected"
+                  disabled={selectedCount === 0}
+                />
+                <Label
+                  htmlFor="scope-selected"
+                  className={cn(
+                    "text-xs font-medium",
+                    selectedCount === 0 ? "cursor-not-allowed" : "cursor-pointer"
+                  )}
+                >
+                  {t("export.scope_selected")}
+                </Label>
+              </div>
+              <Badge
+                variant={selectedCount > 0 ? (scope === "selected" ? "default" : "outline") : "secondary"}
+                className="font-mono text-[11px] font-medium px-2 py-0.5"
               >
-                <span>{t("common.export.scope_selected") || "Các dòng đang chọn"}</span>
-                <span className="text-muted-foreground font-mono">({selectedCount})</span>
-              </Label>
+                {selectedCount} {t("preview.rows")}
+              </Badge>
             </div>
 
-            <div className="flex items-center space-x-2.5">
-              <RadioGroupItem value="current_page" id="scope-page" />
-              <Label htmlFor="scope-page" className="text-xs font-medium cursor-pointer flex-1 flex justify-between">
-                <span>{t("common.export.scope_current_page") || "Trang hiện tại"}</span>
-                <span className="text-muted-foreground font-mono">({currentPageCount})</span>
-              </Label>
+            {/* Scope: Current Page */}
+            <div
+              onClick={() => setScope("current_page")}
+              className={cn(
+                "flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors text-xs",
+                scope === "current_page" ? "bg-background shadow-xs font-medium border" : "hover:bg-muted/40"
+              )}
+            >
+              <div className="flex items-center space-x-2.5">
+                <RadioGroupItem value="current_page" id="scope-page" />
+                <Label htmlFor="scope-page" className="cursor-pointer font-medium text-xs">
+                  {t("export.scope_page")}
+                </Label>
+              </div>
+              <Badge variant="secondary" className="font-mono text-[11px] font-medium px-2 py-0.5">
+                {currentPageCount} {t("preview.rows")}
+              </Badge>
             </div>
           </RadioGroup>
         </div>
 
-        {/* Columns selection */}
-        <div className="flex flex-col gap-2">
+        {/* 3. Filename Customization */}
+        <div className="space-y-1.5">
+          <Label htmlFor="export-filename-input" className="text-xs font-semibold text-foreground">
+            {t("export.filename")}
+          </Label>
+          <div className="flex items-center rounded-lg border bg-background shadow-xs focus-within:ring-1 focus-within:ring-primary overflow-hidden">
+            <Input
+              id="export-filename-input"
+              value={customFilename}
+              onChange={(e) => setCustomFilename(e.target.value)}
+              placeholder={t("export.filename_placeholder")}
+              className="h-8 text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3"
+            />
+            <span className="bg-muted px-2.5 py-1 text-[11px] font-mono text-muted-foreground border-l shrink-0">
+              .{format === "xlsx" ? "xls" : "csv"}
+            </span>
+          </div>
+        </div>
+
+        {/* 4. Column Selection Grid */}
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-semibold text-foreground">
-              {t("common.export.columns") || "Cột xuất dữ liệu"} ({selectedColumnIds.length}/{exportableColumns.length})
+            <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Layers className="size-3.5 text-muted-foreground" />
+              <span>{t("export.columns")}</span>
+              <span className="text-muted-foreground font-mono font-normal">
+                ({selectedColumnIds.length}/{exportableColumns.length})
+              </span>
             </Label>
             <div className="flex items-center gap-2">
               <button
@@ -274,7 +398,7 @@ function TableExportDialogContent<TData>({
                 onClick={selectAllColumns}
                 className="text-[11px] text-primary hover:underline font-medium cursor-pointer"
               >
-                {t("common.action.select_all") || "Chọn tất cả"}
+                {t("action.select_all")}
               </button>
               <span className="text-muted-foreground text-xs">•</span>
               <button
@@ -282,51 +406,95 @@ function TableExportDialogContent<TData>({
                 onClick={deselectAllColumns}
                 className="text-[11px] text-muted-foreground hover:underline font-medium cursor-pointer"
               >
-                {t("common.action.deselect_all") || "Bỏ chọn"}
+                {t("batch_actions.clear_selection")}
               </button>
             </div>
           </div>
 
-          <div className="max-h-36 overflow-y-auto rounded-md border p-2.5 space-y-2 bg-background">
-            {exportableColumns.map((column) => (
-              <div key={column.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`col-${column.id}`}
-                  checked={selectedColumnIds.includes(column.id)}
-                  onCheckedChange={() => toggleColumn(column.id)}
-                />
-                <Label
-                  htmlFor={`col-${column.id}`}
-                  className="text-xs font-normal cursor-pointer select-none truncate"
-                >
-                  {column.title}
-                </Label>
+          {/* Search bar inside columns */}
+          {exportableColumns.length > 6 && (
+            <div className="relative flex items-center">
+              <Search className="absolute left-2.5 size-3.5 text-muted-foreground" />
+              <Input
+                value={columnSearch}
+                onChange={(e) => setColumnSearch(e.target.value)}
+                placeholder={t("export.search_columns")}
+                className="h-7 pl-8 pr-2.5 text-xs rounded-lg"
+              />
+            </div>
+          )}
+
+          <div className="max-h-40 overflow-y-auto rounded-xl border p-2.5 space-y-1.5 bg-background shadow-inner">
+            {filteredColumns.length === 0 ? (
+              <div className="text-center py-4 text-xs text-muted-foreground italic">
+                {t("export.no_columns_found")}
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-2 gap-1.5">
+                {filteredColumns.map((column) => {
+                  const isChecked = selectedColumnIds.includes(column.id)
+                  return (
+                    <div
+                      key={column.id}
+                      onClick={() => toggleColumn(column.id)}
+                      className={cn(
+                        "flex items-center space-x-2 p-1.5 rounded-lg border transition-colors cursor-pointer select-none",
+                        isChecked
+                          ? "bg-primary/[0.04] border-primary/40 text-foreground"
+                          : "border-transparent hover:bg-muted/50 text-muted-foreground"
+                      )}
+                    >
+                      <Checkbox
+                        id={`col-${column.id}`}
+                        checked={isChecked}
+                        onCheckedChange={() => toggleColumn(column.id)}
+                        className="size-3.5 rounded"
+                      />
+                      <span className="text-xs font-medium truncate" title={column.title}>
+                        {column.title}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <DialogFooter className="gap-2 sm:gap-0">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => onOpenChange(false)}
-          disabled={isExporting}
-        >
-          {t("common.action.cancel") || "Hủy"}
-        </Button>
-        <Button
-          type="button"
-          onClick={handleExport}
-          disabled={isExporting || selectedColumnIds.length === 0}
-          className="gap-1.5"
-        >
-          <Download className="size-4" />
-          {isExporting
-            ? t("common.export.processing") || "Đang xuất..."
-            : t("common.export.download") || "Tải xuống"}
-        </Button>
+      {/* Footer with summary badge & actions */}
+      <DialogFooter className="flex items-center justify-between px-6 py-4 border-t bg-muted/20 gap-3">
+        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+          <CheckCircle2 className="size-3.5 text-emerald-500" />
+          <span>
+            {t("export.summary")
+              .replace("{rows}", String(targetRowCount))
+              .replace("{cols}", String(selectedColumnIds.length))}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            disabled={isExporting}
+            className="h-8 px-3 text-xs"
+          >
+            {t("action.cancel")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleExport}
+            disabled={isExporting || selectedColumnIds.length === 0 || targetRowCount === 0}
+            className="h-8 px-3.5 text-xs gap-1.5 font-semibold shadow-sm"
+          >
+            <Download className="size-3.5" />
+            {isExporting ? t("export.processing") : t("export.download")}
+          </Button>
+        </div>
       </DialogFooter>
     </DialogContent>
   )

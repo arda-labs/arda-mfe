@@ -1,5 +1,6 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, Search, Table as TableIcon } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Badge } from "@workspace/ui/components/badge"
@@ -69,6 +70,7 @@ function parseCsv(text: string): { headers: string[]; rows: string[][] } {
 const PAGE_SIZE = 50
 
 export function CsvViewer({ content, filename: _filename, className }: CsvViewerProps) {
+  const { t } = useI18n()
   const { headers, rows } = React.useMemo(() => parseCsv(content), [content])
   const [searchQuery, setSearchQuery] = React.useState("")
   const [page, setPage] = React.useState(1)
@@ -95,7 +97,7 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
             TABLE VIEW
           </Badge>
           <span className="text-xs text-muted-foreground font-mono">
-            {rows.length} rows · {headers.length} columns
+            {rows.length} {t("preview.rows")} · {headers.length} {t("preview.columns")}
           </span>
         </div>
 
@@ -109,7 +111,7 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
                 setSearchQuery(e.target.value)
                 setPage(1)
               }}
-              placeholder="Filter table..."
+              placeholder={t("preview.search_in_file")}
               className="h-7 w-48 text-xs pl-7 pr-2"
             />
           </div>
@@ -121,7 +123,7 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
               className="size-7"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              title="Previous Page"
+              title={t("pagination.previous_page")}
             >
               <ChevronLeft className="size-3.5" />
             </Button>
@@ -134,7 +136,7 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
               className="size-7"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              title="Next Page"
+              title={t("pagination.next_page")}
             >
               <ChevronRight className="size-3.5" />
             </Button>

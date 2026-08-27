@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Download, ExternalLink, Eye, Maximize2, Minimize2, X } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import {
@@ -23,6 +24,7 @@ export interface FilePreviewDialogProps {
 }
 
 export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDialogProps) {
+  const { t } = useI18n()
   const [fullscreen, setFullscreen] = React.useState(false)
 
   if (!source) return null
@@ -83,7 +85,7 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
                 size="icon"
                 className="size-7"
                 onClick={handleOpenNewTab}
-                title="Mở trong tab mới"
+                title={t("preview.open_new_tab")}
               >
                 <ExternalLink className="size-3.5" />
               </Button>
@@ -94,7 +96,7 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
               size="icon"
               className="size-7"
               onClick={() => setFullscreen(!fullscreen)}
-              title={fullscreen ? "Thu nhỏ" : "Toàn màn hình"}
+              title={fullscreen ? t("preview.minimize") : t("preview.fullscreen")}
             >
               {fullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
             </Button>
@@ -106,7 +108,7 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
               onClick={handleDownload}
             >
               <Download className="size-3.5" />
-              <span className="hidden sm:inline">Tải về</span>
+              <span className="hidden sm:inline">{t("preview.download")}</span>
             </Button>
 
             <Button
@@ -114,6 +116,7 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
               size="icon"
               className="size-7 text-muted-foreground hover:text-foreground ml-1"
               onClick={() => onOpenChange(false)}
+              title={t("action.close")}
             >
               <X className="size-4" />
             </Button>

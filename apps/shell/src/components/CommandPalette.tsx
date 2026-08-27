@@ -115,11 +115,11 @@ export function CommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder={t("common.command_palette.placeholder") || "Tìm kiếm trang, chức năng hoặc hành động..."} />
+      <CommandInput placeholder={t("command_palette.placeholder")} />
       <CommandList className="max-h-[360px]">
-        <CommandEmpty>{t("common.no_results") || "Không tìm thấy kết quả phù hợp."}</CommandEmpty>
+        <CommandEmpty>{t("command_palette.no_results")}</CommandEmpty>
 
-        <CommandGroup heading={t("common.command_palette.navigation") || "Điều hướng & Trang"}>
+        <CommandGroup heading={t("command_palette.navigation")}>
           {flatItems.map((item) => {
             const Icon = item.icon
             return (
@@ -148,11 +148,11 @@ export function CommandPalette({
 
         <CommandSeparator />
 
-        <CommandGroup heading={t("common.command_palette.actions") || "Tác vụ nhanh"}>
+        <CommandGroup heading={t("command_palette.actions")}>
           {onToggleAi ? (
             <CommandItem value="Hỏi trợ lý AI Assistant Olorin" onSelect={handleOpenAi} className="cursor-pointer">
               <Sparkles className="mr-2 size-4 text-primary" />
-              <span>{t("ai.panel.ask") || "Hỏi trợ lý AI (Olorin)"}</span>
+              <span>{t("command_palette.ai_assistant")}</span>
               <CommandShortcut>Ctrl+J</CommandShortcut>
             </CommandItem>
           ) : null}
@@ -165,25 +165,21 @@ export function CommandPalette({
             )}
             <span>
               {theme === "dark"
-                ? t("common.theme.switch_to_light") || "Chuyển sang giao diện Sáng"
-                : t("common.theme.switch_to_dark") || "Chuyển sang giao diện Tối"}
+                ? t("command_palette.light_mode")
+                : t("command_palette.dark_mode")}
             </span>
           </CommandItem>
 
           <CommandItem value="Đổi ngôn ngữ Language Tiếng Việt English" onSelect={handleToggleLocale} className="cursor-pointer">
             <Globe className="mr-2 size-4 text-muted-foreground" />
-            <span>
-              {locale === "vi-VN"
-                ? "Switch to English"
-                : "Chuyển sang Tiếng Việt"}
-            </span>
+            <span>{t("command_palette.switch_language")}</span>
           </CommandItem>
         </CommandGroup>
 
         {user?.tenantMemberships && user.tenantMemberships.length > 1 ? (
           <>
             <CommandSeparator />
-            <CommandGroup heading={t("common.workspace.switch") || "Chuyển đổi Workspace"}>
+            <CommandGroup heading={t("navigation.tenant.switch")}>
               {user.tenantMemberships.map((tenant) => (
                 <CommandItem
                   key={tenant.tenantId}
@@ -198,7 +194,7 @@ export function CommandPalette({
                   <span className="flex-1">{tenant.tenantName}</span>
                   {tenant.tenantId === (user.activeTenantId || user.tenantId) ? (
                     <span className="text-[11px] font-semibold text-primary">
-                      Đang chọn
+                      ✓
                     </span>
                   ) : null}
                 </CommandItem>
@@ -209,10 +205,10 @@ export function CommandPalette({
 
         <CommandSeparator />
 
-        <CommandGroup heading={t("common.account") || "Tài khoản"}>
+        <CommandGroup heading={t("navigation.profile.title")}>
           <CommandItem value="Đăng xuất Logout" onSelect={handleLogout} className="cursor-pointer text-destructive">
             <LogOut className="mr-2 size-4" />
-            <span>{t("common.action.logout") || "Đăng xuất"}</span>
+            <span>{t("action.logout")}</span>
           </CommandItem>
         </CommandGroup>
       </CommandList>

@@ -94,5 +94,64 @@
   "status": {
     "active": "Active",
     "inactive": "Inactive"
+  },
+  "export": {
+    "title": "Export Data",
+    "description": "Configure file format, scope, and target columns to extract.",
+    "format": "File Format",
+    "format_xlsx": "Excel Spreadsheet (.xls)",
+    "format_xlsx_desc": "Structured spreadsheet with typed numbers and dates",
+    "format_csv": "CSV (UTF-8)",
+    "format_csv_desc": "Plain text with UTF-8 BOM, optimal for data exchange",
+    "scope": "Export Scope",
+    "scope_all": "All matching records",
+    "scope_selected": "Selected rows only",
+    "scope_page": "Current page",
+    "columns": "Columns",
+    "search_columns": "Search columns...",
+    "filename": "Export Filename",
+    "filename_placeholder": "Enter filename...",
+    "summary": "Exporting {rows} records • {cols} columns",
+    "download": "Download",
+    "processing": "Exporting...",
+    "success": "Data exported successfully",
+    "failed": "Failed to export data",
+    "select_at_least_one_column": "Please select at least one column to export.",
+    "no_columns_found": "No matching columns found"
+  },
+  "preview": {
+    "title": "File Preview",
+    "download": "Download",
+    "open_new_tab": "Open in new tab",
+    "fullscreen": "Fullscreen",
+    "minimize": "Minimize",
+    "loading": "Loading file data...",
+    "load_failed": "Failed to load file content",
+    "unsupported_message": "This file format is not supported for inline browser preview. Please download to view locally.",
+    "format_code": "Format",
+    "toggle_wrap": "Word wrap",
+    "search_in_file": "Find in file...",
+    "hits": "hits",
+    "lines": "lines",
+    "chars": "chars",
+    "rows": "rows",
+    "columns": "columns"
+  },
+  "command_palette": {
+    "placeholder": "Type a command, page, or search...",
+    "navigation": "Navigation & Modules",
+    "actions": "Quick Actions",
+    "preferences": "Preferences & Appearance",
+    "dark_mode": "Switch to Dark Mode",
+    "light_mode": "Switch to Light Mode",
+    "ai_assistant": "Toggle AI Assistant",
+    "switch_language": "Switch Language (Tiếng Việt / English)",
+    "no_results": "No matching commands found"
+  },
+  "batch_actions": {
+    "selected_count": "{count} selected",
+    "export": "Export Excel ({count})",
+    "delete": "Delete selected",
+    "clear_selection": "Clear selection"
   }
 }

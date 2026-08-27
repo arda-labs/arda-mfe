@@ -1,4 +1,5 @@
 import { Download, File, HelpCircle } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
@@ -19,6 +20,8 @@ export function FallbackViewer({
   onDownload,
   className,
 }: FallbackViewerProps) {
+  const { t } = useI18n()
+
   return (
     <div className={cn("flex flex-col items-center justify-center h-full p-8 border rounded-lg bg-card text-card-foreground", className)}>
       <div className="flex flex-col items-center text-center max-w-sm gap-4">
@@ -45,14 +48,14 @@ export function FallbackViewer({
         <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 text-xs text-muted-foreground text-left border">
           <HelpCircle className="size-4 shrink-0 text-muted-foreground/80" />
           <span>
-            Định dạng tệp này không hỗ trợ xem trực tiếp trên trình duyệt. Vui lòng tải xuống để mở trên ứng dụng máy tính.
+            {t("preview.unsupported_message")}
           </span>
         </div>
 
         {onDownload && (
           <Button onClick={onDownload} className="w-full gap-2 mt-2">
             <Download className="size-4" />
-            Tải tệp xuống máy
+            {t("preview.download")}
           </Button>
         )}
       </div>

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { AlertCircle, RefreshCw } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
@@ -17,6 +18,7 @@ interface FilePreviewContentProps {
 }
 
 export function FilePreviewContent({ source, className }: FilePreviewContentProps) {
+  const { t } = useI18n()
   const { src, content, filename, mimeType, sizeBytes, onDownload } = source
   const category = detectFileCategory(filename, mimeType)
 
@@ -66,7 +68,7 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
     return (
       <div className={cn("flex flex-col items-center justify-center h-full min-h-[350px] gap-3", className)}>
         <Spinner className="size-8 text-primary" />
-        <p className="text-xs text-muted-foreground font-mono">Đang nạp dữ liệu tệp...</p>
+        <p className="text-xs text-muted-foreground font-mono">{t("preview.loading")}</p>
       </div>
     )
   }
@@ -78,12 +80,12 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
           <AlertCircle className="size-6" />
         </div>
         <div className="space-y-1 max-w-sm">
-          <h4 className="font-semibold text-sm">Không thể tải nội dung tệp</h4>
+          <h4 className="font-semibold text-sm">{t("preview.load_failed")}</h4>
           <p className="text-xs text-muted-foreground break-all">{error}</p>
         </div>
         <Button variant="outline" size="sm" onClick={loadTextContent} className="gap-1.5 mt-2">
           <RefreshCw className="size-3.5" />
-          Thử lại
+          {t("action.retry")}
         </Button>
       </div>
     )
