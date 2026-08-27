@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import {
   Dialog,
