@@ -838,41 +838,6 @@ export function UsersPage() {
             link.click()
             document.body.removeChild(link)
           }}
-          fetchAllRows={async (onProgress, signal) => {
-            const all: User[] = []
-            let p = 1
-            const limit = 100
-            const sortApi = sortParam
-              ? (() => {
-                  try {
-                    const parsed = JSON.parse(sortParam) as Array<{
-                      id: string
-                      desc: boolean
-                    }>
-                    return sortToApiParams(parsed)
-                  } catch {
-                    return {}
-                  }
-                })()
-              : {}
-            while (!signal?.aborted) {
-              const res = await usersApi.listUsers({
-                page: p,
-                perPage: limit,
-                q: searchParam,
-                status: statusParam,
-                sort: sortApi.sort,
-                order: sortApi.order,
-                tenantId: actorTenantId,
-              })
-              if (signal?.aborted) break
-              all.push(...res.items)
-              if (onProgress) onProgress(all.length, res.total)
-              if (all.length >= res.total || res.items.length === 0) break
-              p++
-            }
-            return all
-          }}
         >
           <Button
             variant="outline"

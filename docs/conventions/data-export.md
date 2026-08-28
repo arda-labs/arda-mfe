@@ -4,21 +4,23 @@ Tài liệu quy chuẩn kiến trúc và hướng dẫn triển khai tính năng
 
 ---
 
-## 1. Ba Cấp Độ Kiến Trúc (3-Tier Export Architecture)
+## 1. Hai Cấp Độ Kiến Trúc Xuất Dữ Liệu (2-Tier Backend Architecture)
+
+Để đảm bảo **tính toàn vẹn dữ liệu (Data Consistency)**, **bảo mật (Audit Logging)** và **hiệu năng (Zero-Crash / Zero Rate-Limit)**, toàn bộ tính năng trích xuất toàn bộ dữ liệu lọc được chuyển giao 100% cho Backend xử lý theo mô hình **2-Tier**:
 
 ```mermaid
 flowchart TD
-    A[Yêu cầu Xuất Dữ liệu] --> B{Quy mô dữ liệu}
+    A[Yêu cầu Xuất Dữ liệu] --> B{Phạm vi & Quy mô}
 
-    B -->|Dưới 2.000 dòng| C[Tier 1: Client-Side Engine]
-    C --> C1[Trích xuất từ TanStack Table RAM]
-    C1 --> C2[Xuất XML Spreadsheet .xls hoặc CSV UTF-8]
+    B -->|Dòng đã chọn / Trang hiện tại| C[Local UI Snapshot]
+    C --> C1[Trích xuất tức thì từ RAM trình duyệt]
+    C1 --> C2[SheetJS / UTF-8 CSV]
 
-    B -->|2.000 - 50.000 dòng| D[Tier 2: Backend Streaming]
-    D --> D1[Go excelize.StreamWriter]
+    B -->|Tất cả kết quả lọc: < 10.000 dòng| D[Tier 1: Backend Sync Streaming]
+    D --> D1[Go excelize.StreamWriter O(1) RAM]
     D1 --> D2[Stream chunked qua HTTP Response]
 
-    B -->|Trên 50.000 dòng / Báo cáo nặng| E[Tier 3: Async Queue Job]
+    B -->|Tất cả kết quả lọc: > 10.000 dòng / Báo cáo nặng| E[Tier 2: Async Queue Job]
     E --> E1[Đẩy task vào Redis / Worker]
     E1 --> E2[Upload file lên Cloudflare R2 / S3]
     E2 --> E3[Gửi thông báo tải qua SSE / NotificationBell]
@@ -26,9 +28,12 @@ flowchart TD
 
 | Cấp độ | Quy mô áp dụng | Cơ chế xử lý | Trải nghiệm người dùng |
 | :--- | :--- | :--- | :--- |
-| **Tier 1: Client-Side** | $\le 2.000$ dòng, trang hiện tại, dòng đã chọn | Render Blob trực tiếp trên trình duyệt bằng `table-export.ts` | Tải xuống tức thì trong $< 1$ giây |
-| **Tier 2: Backend Streaming** | $2.000 - 50.000$ dòng | Backend stream dữ liệu qua `excelize` O(1) RAM | Tải trực tiếp qua trình duyệt trong $2 - 5$ giây |
-| **Tier 3: Async Queue Job** | $> 50.000$ dòng, báo cáo tài chính lớn | Worker xử lý nền, lưu R2/S3, bắn SSE notification | Toast nhận job $\rightarrow$ Thông báo chuông $\rightarrow$ Tải từ link S3 |
+| **Local Snapshot** | Các dòng đang tick chọn, Trang hiện tại đang xem ($\le 100$ dòng) | Render Blob trực tiếp trên trình duyệt bằng `table-export.ts` | Tải xuống tức thì trong $< 0.5$ giây |
+| **Tier 1: Backend Sync Streaming** | Tất cả kết quả lọc ($< 10.000$ dòng) | Backend stream dữ liệu qua `excelize` $O(1)$ RAM trong 1 request | Tải trực tiếp qua trình duyệt trong $1 - 3$ giây |
+| **Tier 2: Async Queue Job** | $> 10.000$ dòng, báo cáo tài chính tổng hợp | Worker xử lý nền, lưu R2/S3, bắn SSE notification | Toast nhận job $\rightarrow$ Thông báo chuông $\rightarrow$ Tải từ link S3 |
+
+> [!IMPORTANT]
+> **Nguyên tắc bất biến:** Không sử dụng Client-side loop fetch hàng loạt trang (`fetchAllRows`) để ghép file tại trình duyệt vì gây lỗi N+1 HTTP request, nghẽn mạng, lệch offset dữ liệu và tràn RAM.
 
 ---
 
@@ -128,7 +133,7 @@ import { exportTableToXlsx } from "@workspace/admin-list/table-export"
 
 ## 4. Quy Chuẩn Backend API (Go Backend Contract)
 
-### 4.1. Synchronous Streaming Endpoint (Tier 2)
+### 4.1. Synchronous Streaming Endpoint (Tier 1)
 
 ```http
 GET /api/<domain>/export?format=xlsx&columns=code,name,amount&status=ACTIVE
@@ -144,7 +149,7 @@ GET /api/<domain>/export?format=xlsx&columns=code,name,amount&status=ACTIVE
   Transfer-Encoding: chunked
   ```
 
-### 4.2. Asynchronous Export Job (Tier 3)
+### 4.2. Asynchronous Export Job (Tier 2)
 
 ```http
 POST /api/exports

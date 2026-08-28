@@ -49,15 +49,7 @@ export interface TableExportDialogProps<TData> {
   reportTitle?: string
   totalRowsCount?: number
   /**
-   * Optional custom bulk fetcher for server-side paginated tables.
-   * If provided, when scope is 'all', it streams/fetches all pages and exports full dataset.
-   */
-  fetchAllRows?: (
-    onProgress?: (loaded: number, total: number) => void,
-    signal?: AbortSignal
-  ) => Promise<TData[]>
-  /**
-   * Optional background job creator for large-scale enterprise asynchronous processing.
+   * Optional background job creator for large-scale enterprise asynchronous processing (Tier 2).
    */
   createExportJob?: (options: {
     scope: ExportScope
@@ -67,7 +59,7 @@ export interface TableExportDialogProps<TData> {
     totalCount: number
   }) => Promise<{ jobId: string; message?: string }>
   /**
-   * Optional custom server-side export delegate.
+   * Server-side export delegate for streaming all filtered records (Tier 1).
    */
   onServerExport?: (options: {
     scope: ExportScope
@@ -85,7 +77,6 @@ export function TableExportDialog<TData>({
   sheetName = "Data",
   reportTitle,
   totalRowsCount,
-  fetchAllRows,
   createExportJob,
   onServerExport,
 }: TableExportDialogProps<TData>) {
@@ -98,7 +89,6 @@ export function TableExportDialog<TData>({
           sheetName={sheetName}
           reportTitle={reportTitle}
           totalRowsCount={totalRowsCount}
-          fetchAllRows={fetchAllRows}
           createExportJob={createExportJob}
           onOpenChange={onOpenChange}
           onServerExport={onServerExport}
@@ -114,10 +104,6 @@ interface TableExportDialogContentProps<TData> {
   sheetName: string
   reportTitle?: string
   totalRowsCount?: number
-  fetchAllRows?: (
-    onProgress?: (loaded: number, total: number) => void,
-    signal?: AbortSignal
-  ) => Promise<TData[]>
   createExportJob?: (options: {
     scope: ExportScope
     format: ExportFormat
@@ -136,7 +122,7 @@ interface TableExportDialogContentProps<TData> {
 
 type ExportMode = "instant" | "background"
 
-const LARGE_DATASET_THRESHOLD = 5000
+const LARGE_DATASET_THRESHOLD = 10000
 const CSV_RECOMMENDATION_THRESHOLD = 50000
 
 function TableExportDialogContent<TData>({
@@ -145,7 +131,6 @@ function TableExportDialogContent<TData>({
   sheetName,
   reportTitle,
   totalRowsCount: externalTotalRows,
-  fetchAllRows,
   createExportJob,
   onOpenChange,
   onServerExport,
@@ -180,12 +165,6 @@ function TableExportDialogContent<TData>({
   )
   const [format, setFormat] = React.useState<ExportFormat>("xlsx")
   const [isExporting, setIsExporting] = React.useState(false)
-  const [fetchProgress, setFetchProgress] = React.useState<{
-    loaded: number
-    total: number
-  } | null>(null)
-
-  const abortControllerRef = React.useRef<AbortController | null>(null)
 
   const targetRowCount = React.useMemo(() => {
     if (scope === "selected") return selectedCount
@@ -263,16 +242,6 @@ function TableExportDialogContent<TData>({
     setSelectedColumnIds([])
   }
 
-  const handleCancelRunningExport = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
-    }
-    setIsExporting(false)
-    setFetchProgress(null)
-    notify.info(t("export.cancel_export"))
-  }
-
   const handleExport = async () => {
     if (selectedColumnIds.length === 0) {
       notify.warning(t("export.select_at_least_one_column"))
@@ -281,7 +250,7 @@ function TableExportDialogContent<TData>({
 
     const exportName = customFilename.trim() || initialFilename
 
-    // 1. Enterprise Background Job Mode
+    // 1. Enterprise Background Job Mode (Tier 2)
     if (exportMode === "background") {
       setIsExporting(true)
       try {
@@ -314,36 +283,36 @@ function TableExportDialogContent<TData>({
       return
     }
 
-    // 2. Direct Streaming Download Mode
+    // 2. Synchronous Export Mode
     setIsExporting(true)
-    setFetchProgress(null)
-    const controller = new AbortController()
-    abortControllerRef.current = controller
-
     try {
-      let fullData: TData[] | undefined = undefined
+      if (scope === "all") {
+        if (onServerExport) {
+          await onServerExport({
+            scope,
+            format,
+            columnIds: selectedColumnIds,
+            filename: exportName,
+          })
+          notify.success(t("export.success"))
+          onOpenChange(false)
+          return
+        }
 
-      if (scope === "all" && typeof fetchAllRows === "function") {
-        setFetchProgress({ loaded: 0, total: targetRowCount || 100 })
-        fullData = await fetchAllRows((loaded, total) => {
-          setFetchProgress({ loaded, total })
-        }, controller.signal)
-      } else if (scope === "all" && onServerExport) {
-        await onServerExport({
-          scope,
-          format,
-          columnIds: selectedColumnIds,
-          filename: exportName,
-        })
-        onOpenChange(false)
-        return
+        // Warning if table has server-side pagination with missing onServerExport
+        if (totalFilteredCount > currentPageCount) {
+          notify.warning(
+            "Cần kết nối API máy chủ (onServerExport) để xuất toàn bộ danh sách phân trang.",
+            "Vui lòng chọn 'Trang hiện tại' hoặc 'Dòng đã chọn' để xuất nhanh trên trình duyệt."
+          )
+          return
+        }
       }
 
+      // Local snapshot export (selected rows, current page, or pure client-side table)
       const helpers = { t, formatDate, formatNumber, formatCurrency, locale }
-
       const options = {
         table,
-        data: fullData,
         scope,
         format,
         columnIds: selectedColumnIds,
@@ -362,14 +331,9 @@ function TableExportDialogContent<TData>({
       notify.success(t("export.success"))
       onOpenChange(false)
     } catch (err: unknown) {
-      if ((err as Error)?.name === "AbortError") {
-        return
-      }
       notify.error(t("export.failed"), String(err))
     } finally {
       setIsExporting(false)
-      setFetchProgress(null)
-      abortControllerRef.current = null
     }
   }
 
@@ -774,53 +738,6 @@ function TableExportDialogContent<TData>({
             )}
           </div>
         </div>
-
-        {/* 6. Live Streaming Progress state with Cancel capability */}
-        {fetchProgress && isExporting && (
-          <div className="rounded-xl border border-primary/30 bg-primary/[0.04] p-3.5 space-y-2 animate-in fade-in">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-primary flex items-center gap-1.5">
-                <Loader2 className="size-3.5 animate-spin" />
-                <span>
-                  {t("export.fetching_data", {
-                    loaded: String(fetchProgress.loaded),
-                    total: String(fetchProgress.total),
-                    percent: String(
-                      Math.min(
-                        100,
-                        Math.round(
-                          (fetchProgress.loaded /
-                            (fetchProgress.total || 1)) *
-                            100
-                        )
-                      )
-                    ),
-                  })}
-                </span>
-              </span>
-              <button
-                type="button"
-                onClick={handleCancelRunningExport}
-                className="text-[11px] text-destructive hover:underline font-semibold"
-              >
-                {t("export.cancel_export")}
-              </button>
-            </div>
-            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-primary h-full transition-all duration-200"
-                style={{
-                  width: `${Math.min(
-                    100,
-                    Math.round(
-                      (fetchProgress.loaded / (fetchProgress.total || 1)) * 100
-                    )
-                  )}%`,
-                }}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer with summary badge & actions */}
@@ -839,10 +756,7 @@ function TableExportDialogContent<TData>({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => {
-              if (isExporting) handleCancelRunningExport()
-              onOpenChange(false)
-            }}
+            onClick={() => onOpenChange(false)}
             disabled={isExporting && exportMode === "background"}
             className="h-8 px-3 text-xs"
           >

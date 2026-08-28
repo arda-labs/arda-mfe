@@ -16,10 +16,6 @@ type ListTableToolbarProps<TData> = {
   sheetName?: string
   reportTitle?: string
   totalRowsCount?: number
-  fetchAllRows?: (
-    onProgress?: (loaded: number, total: number) => void,
-    signal?: AbortSignal
-  ) => Promise<TData[]>
   createExportJob?: (options: {
     scope: ExportScope
     format: ExportFormat
@@ -45,7 +41,6 @@ export function ListTableToolbar<TData>({
   sheetName,
   reportTitle,
   totalRowsCount,
-  fetchAllRows,
   createExportJob,
   onExport,
   onServerExport,
@@ -90,7 +85,6 @@ export function ListTableToolbar<TData>({
         sheetName={sheetName}
         reportTitle={reportTitle}
         totalRowsCount={totalRowsCount}
-        fetchAllRows={fetchAllRows}
         createExportJob={createExportJob}
         onServerExport={onServerExport}
       />
