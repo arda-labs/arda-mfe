@@ -37,6 +37,12 @@ export function useServerDataTable<TItem>({
     columns,
     data: list.items,
     pageCount,
+    rowCount: list.total,
+    meta: {
+      ...tableOptions?.meta,
+      queryFn: queryFn as any,
+      query,
+    },
     queryKeys: {
       ...tableOptions?.queryKeys,
       page: queryConfig.queryKeys?.page ?? tableOptions?.queryKeys?.page,

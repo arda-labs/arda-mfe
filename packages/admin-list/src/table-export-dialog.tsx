@@ -159,7 +159,9 @@ function TableExportDialogContent<TData>({
       ? pageCountEstimated
       : table.getFilteredRowModel().rows.length
   const currentPageCount = table.getRowModel().rows.length
-  const isServerAllDisabled = !onServerExport && totalFilteredCount > currentPageCount
+  const metaQueryFn = (table.options.meta as { queryFn?: unknown })?.queryFn
+  const hasAutoQueryExport = typeof metaQueryFn === "function"
+  const isServerAllDisabled = !onServerExport && !hasAutoQueryExport && totalFilteredCount > currentPageCount
 
   const [scope, setScope] = React.useState<ExportScope>(() =>
     selectedCount > 0 ? "selected" : isServerAllDisabled ? "current_page" : "all"
@@ -300,7 +302,45 @@ function TableExportDialogContent<TData>({
           return
         }
 
-        // Warning if table has server-side pagination with missing onServerExport
+        // Auto Single-Request QueryFn fetcher if provided by useServerDataTable
+        const queryFn = (table.options.meta as { queryFn?: (query: Record<string, unknown>, ctx: { signal: AbortSignal }) => Promise<{ items: TData[]; total: number }> })?.queryFn
+        const tableQuery = (table.options.meta as { query?: Record<string, unknown> })?.query
+
+        if (typeof queryFn === "function" && tableQuery) {
+          const controller = new AbortController()
+          const res = await queryFn({
+            ...tableQuery,
+            page: 1,
+            perPage: targetRowCount || 5000,
+          }, { signal: controller.signal })
+
+          if (res?.items && Array.isArray(res.items)) {
+            const helpers = { t, formatDate, formatNumber, formatCurrency, locale }
+            const options = {
+              table,
+              data: res.items,
+              scope,
+              format,
+              columnIds: selectedColumnIds,
+              filename: exportName,
+              sheetName,
+              reportTitle: reportTitle || initialFilename,
+              helpers,
+            }
+
+            if (format === "xlsx") {
+              exportTableToXlsx(options)
+            } else {
+              exportTableToCsv(options)
+            }
+
+            notify.success(t("export.success"))
+            onOpenChange(false)
+            return
+          }
+        }
+
+        // Warning if table has server-side pagination with missing onServerExport & queryFn
         if (totalFilteredCount > currentPageCount) {
           notify.warning(
             "Cần kết nối API máy chủ (onServerExport) để xuất toàn bộ danh sách phân trang.",

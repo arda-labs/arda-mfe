@@ -6,6 +6,8 @@ declare module "@tanstack/react-table" {
   interface TableMeta<TData extends RowData> {
     queryKeys?: QueryKeys
     totalRows?: number
+    queryFn?: (query: any, ctx: { signal: AbortSignal }) => Promise<{ items: TData[]; total: number }>
+    query?: Record<string, unknown>
   }
 
   interface ColumnMeta<TData extends RowData, TValue> {
