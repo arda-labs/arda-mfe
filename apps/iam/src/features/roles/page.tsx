@@ -165,6 +165,7 @@ export function RolesPage() {
     error: loadError,
     refetch,
     table,
+    query,
   } = useServerDataTable<Role>({
     ...rolesListDefinition,
     columns,
