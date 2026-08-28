@@ -372,6 +372,19 @@ export function PermissionsPage() {
           createLabel={t("admin.permissions.create")}
           exportFilename={t("admin.permissions.title")}
           sheetName={t("admin.permissions.title")}
+          totalRowsCount={total}
+          onServerExport={async ({ format, filename }) => {
+            const exportUrl = permissionsApi.getExportUrl({
+              module: moduleParam || undefined,
+              format,
+            })
+            const link = document.createElement("a")
+            link.href = exportUrl
+            link.download = filename || "permissions_export"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          }}
         />
       }
       dialogs={dialogs}

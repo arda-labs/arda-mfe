@@ -20,6 +20,11 @@ export const permissionsApi = {
       ...res,
       items: res.items.map(normalizePermission),
     })),
+  getExportUrl: (params?: AdminListInput & { format?: string }) => {
+    const query = buildAdminListQuery(params)
+    if (params?.format) query.set("format", params.format)
+    return `/api/admin/permissions/export?${query.toString()}`
+  },
   createPermission: (data: {
     code: string
     name: string

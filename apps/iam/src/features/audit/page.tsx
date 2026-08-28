@@ -416,6 +416,22 @@ export function AuditPage() {
           table={table}
           exportFilename={t("admin.audit.title")}
           sheetName={t("admin.audit.title")}
+          totalRowsCount={total}
+          onServerExport={async ({ format, filename }) => {
+            const exportUrl = auditApi.getExportUrl({
+              event_type: eventTypesParam.length > 0 ? eventTypesParam : undefined,
+              result: resultParam.length === 1 ? resultParam[0] : undefined,
+              subject: subjectParam,
+              sort,
+              format,
+            })
+            const link = document.createElement("a")
+            link.href = exportUrl
+            link.download = filename || "audit_export"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          }}
         >
           <Button
             variant="outline"

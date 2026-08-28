@@ -48,6 +48,28 @@ export const auditApi = {
     }))
   },
 
+  getExportUrl: (params?: {
+    event_type?: string[]
+    subject?: string
+    result?: string
+    from?: string
+    to?: string
+    sort?: string
+    format?: string
+  }) => {
+    const p = buildSearchParams({
+      sort: params?.sort,
+    })
+    if (params?.event_type)
+      params.event_type.forEach((et) => p.append("event_type", et))
+    if (params?.subject) p.set("subject", params.subject)
+    if (params?.result) p.set("result", params.result)
+    if (params?.from) p.set("from", params.from)
+    if (params?.to) p.set("to", params.to)
+    if (params?.format) p.set("format", params.format)
+    return `/api/admin/audit/export?${p.toString()}`
+  },
+
   stats: (from?: string, to?: string) => {
     const p = buildSearchParams({ from, to })
     return getCanonical<AuditStats>(`/api/admin/audit/stats?${p.toString()}`)
