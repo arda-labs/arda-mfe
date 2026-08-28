@@ -7,6 +7,7 @@ import type {
   ChainVerification,
 } from "./types"
 import { auditApi } from "./api"
+import { downloadFile } from "@workspace/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -425,12 +426,10 @@ export function AuditPage() {
               sort,
               format,
             })
-            const link = document.createElement("a")
-            link.href = exportUrl
-            link.download = filename || "audit_export"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
+            await downloadFile(exportUrl, {
+              filename: filename ? (filename.endsWith(`.${format}`) ? filename : `${filename}.${format}`) : undefined,
+              fallbackFilename: `audit_export.${format}`,
+            })
           }}
         >
           <Button

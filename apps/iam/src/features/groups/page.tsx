@@ -5,6 +5,7 @@ import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Group } from "./types"
 import { groupsApi } from "./api"
+import { downloadFile } from "@workspace/api"
 import { GroupMembersDialog } from "./group-members-dialog"
 import { GroupRolesDialog } from "./group-roles-dialog"
 import { translateApiError, useI18n } from "@workspace/i18n"
@@ -547,12 +548,10 @@ export function GroupsPage() {
               format,
               tenantId: actorTenantId,
             })
-            const link = document.createElement("a")
-            link.href = exportUrl
-            link.download = filename || "groups_export"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
+            await downloadFile(exportUrl, {
+              filename: filename ? (filename.endsWith(`.${format}`) ? filename : `${filename}.${format}`) : undefined,
+              fallbackFilename: `groups_export.${format}`,
+            })
           }}
         />
       }

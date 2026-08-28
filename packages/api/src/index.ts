@@ -21,3 +21,5 @@ export {
   deleteCanonical,
   getCanonicalList,
 } from "./canonical"
+export { downloadFile, type DownloadFileOptions } from "./download"
+

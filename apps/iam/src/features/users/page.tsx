@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { sortToApiParams } from "@workspace/api/list"
+import { downloadFile } from "@workspace/api"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { usersApi } from "./api"
@@ -831,12 +832,10 @@ export function UsersPage() {
               format,
               tenantId: actorTenantId,
             })
-            const link = document.createElement("a")
-            link.href = exportUrl
-            link.download = filename || "users_export"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
+            await downloadFile(exportUrl, {
+              filename: filename ? (filename.endsWith(`.${format}`) ? filename : `${filename}.${format}`) : undefined,
+              fallbackFilename: `users_export.${format}`,
+            })
           }}
         >
           <Button

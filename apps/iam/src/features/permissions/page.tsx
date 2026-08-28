@@ -5,6 +5,7 @@ import { z } from "zod"
 import { useSearchParams } from "react-router-dom"
 import type { Permission } from "./types"
 import { permissionsApi } from "./api"
+import { downloadFile } from "@workspace/api"
 import { notify } from "@workspace/ui/feedback/notify"
 import { translateApiError } from "@workspace/i18n"
 import { useI18n } from "@workspace/i18n"
@@ -378,12 +379,10 @@ export function PermissionsPage() {
               module: moduleParam || undefined,
               format,
             })
-            const link = document.createElement("a")
-            link.href = exportUrl
-            link.download = filename || "permissions_export"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
+            await downloadFile(exportUrl, {
+              filename: filename ? (filename.endsWith(`.${format}`) ? filename : `${filename}.${format}`) : undefined,
+              fallbackFilename: `permissions_export.${format}`,
+            })
           }}
         />
       }

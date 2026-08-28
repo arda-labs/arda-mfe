@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useAuthStore } from "@workspace/auth/store"
 import { rolesApi } from "./api"
+import { downloadFile } from "@workspace/api"
 import type { Role } from "./types"
 import { notify } from "@workspace/ui/feedback/notify"
 import { translateApiError, useI18n } from "@workspace/i18n"
@@ -231,12 +232,10 @@ export function RolesPage() {
               format,
               tenantId: actorTenantId,
             })
-            const link = document.createElement("a")
-            link.href = exportUrl
-            link.download = filename || "roles_export"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
+            await downloadFile(exportUrl, {
+              filename: filename ? (filename.endsWith(`.${format}`) ? filename : `${filename}.${format}`) : undefined,
+              fallbackFilename: `roles_export.${format}`,
+            })
           }}
         />
       }
