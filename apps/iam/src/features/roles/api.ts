@@ -31,6 +31,11 @@ export const rolesApi = {
       ...res,
       items: res.items.map(normalizeRole),
     })),
+  getExportUrl: (params?: AdminListInput & { format?: string }) => {
+    const query = buildAdminListQuery(params)
+    if (params?.format) query.set("format", params.format)
+    return `/api/admin/roles/export?${query.toString()}`
+  },
   getRole: (id: string, tenantId: string) =>
     getCanonical<{ role: RoleApiItem; permissions: PermissionApiItem[] }>(
       targetPath(`/api/admin/roles/${id}`, tenantId)

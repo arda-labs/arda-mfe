@@ -220,6 +220,23 @@ export function RolesPage() {
           createLabel={t("admin.roles.create")}
           exportFilename={t("admin.roles.title")}
           sheetName={t("admin.roles.title")}
+          totalRowsCount={total}
+          onServerExport={async ({ format, filename }) => {
+            const exportUrl = rolesApi.getExportUrl({
+              q: query.q === undefined ? undefined : String(query.q),
+              status: query.status === undefined ? undefined : String(query.status),
+              sort: query.sort,
+              order: query.order,
+              format,
+              tenantId: actorTenantId,
+            })
+            const link = document.createElement("a")
+            link.href = exportUrl
+            link.download = filename || "roles_export"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          }}
         />
       }
       dialogs={

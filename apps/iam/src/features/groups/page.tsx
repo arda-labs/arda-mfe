@@ -539,6 +539,21 @@ export function GroupsPage() {
           createLabel={t("admin.groups.create")}
           exportFilename={t("admin.groups.title")}
           sheetName={t("admin.groups.title")}
+          totalRowsCount={total}
+          onServerExport={async ({ format, filename }) => {
+            const exportUrl = groupsApi.getExportUrl({
+              q: searchParam || undefined,
+              status: statusParam.length === 1 ? statusParam[0] : undefined,
+              format,
+              tenantId: actorTenantId,
+            })
+            const link = document.createElement("a")
+            link.href = exportUrl
+            link.download = filename || "groups_export"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          }}
         />
       }
       dialogs={dialogs}

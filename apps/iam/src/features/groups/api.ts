@@ -68,6 +68,11 @@ export const groupsApi = {
       ...res,
       items: res.items.map(normalizeGroup),
     })),
+  getExportUrl: (params?: AdminListInput & { format?: string }) => {
+    const query = buildAdminListQuery(params)
+    if (params?.format) query.set("format", params.format)
+    return `/api/admin/groups/export?${query.toString()}`
+  },
   getGroup: (id: string, tenantId: string) =>
     getCanonical<{ group: GroupApiItem }>(
       targetPath(`/api/admin/groups/${id}`, tenantId)
