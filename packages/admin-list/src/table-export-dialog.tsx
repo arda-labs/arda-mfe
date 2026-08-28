@@ -159,9 +159,10 @@ function TableExportDialogContent<TData>({
       ? pageCountEstimated
       : table.getFilteredRowModel().rows.length
   const currentPageCount = table.getRowModel().rows.length
+  const isServerAllDisabled = !onServerExport && totalFilteredCount > currentPageCount
 
   const [scope, setScope] = React.useState<ExportScope>(() =>
-    selectedCount > 0 ? "selected" : "all"
+    selectedCount > 0 ? "selected" : isServerAllDisabled ? "current_page" : "all"
   )
   const [format, setFormat] = React.useState<ExportFormat>("xlsx")
   const [isExporting, setIsExporting] = React.useState(false)
@@ -187,7 +188,7 @@ function TableExportDialogContent<TData>({
 
   const [customFilename, setCustomFilename] = React.useState(() =>
     generateExportFilename(initialFilename, {
-      scope: selectedCount > 0 ? "selected" : "all",
+      scope: selectedCount > 0 ? "selected" : isServerAllDisabled ? "current_page" : "all",
       selectedCount,
     })
   )
@@ -533,19 +534,35 @@ function TableExportDialogContent<TData>({
           >
             {/* Scope: All */}
             <div
-              onClick={() => handleScopeChange("all")}
+              onClick={() => !isServerAllDisabled && handleScopeChange("all")}
               className={cn(
-                "flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors text-xs",
-                scope === "all"
-                  ? "bg-background shadow-xs font-medium border"
-                  : "hover:bg-muted/40"
+                "flex items-center justify-between p-2.5 rounded-lg transition-colors text-xs",
+                isServerAllDisabled
+                  ? "opacity-50 cursor-not-allowed bg-muted/10"
+                  : scope === "all"
+                  ? "bg-background shadow-xs font-medium border cursor-pointer"
+                  : "hover:bg-muted/40 cursor-pointer"
               )}
+              title={
+                isServerAllDisabled
+                  ? "Cần cấu hình API máy chủ (onServerExport) để xuất toàn bộ danh sách phân trang."
+                  : undefined
+              }
             >
               <div className="flex items-center space-x-2.5">
-                <RadioGroupItem value="all" id="scope-all" />
+                <RadioGroupItem
+                  value="all"
+                  id="scope-all"
+                  disabled={isServerAllDisabled}
+                />
                 <Label
                   htmlFor="scope-all"
-                  className="cursor-pointer font-medium text-xs flex items-center gap-1.5"
+                  className={cn(
+                    "text-xs flex items-center gap-1.5",
+                    isServerAllDisabled
+                      ? "cursor-not-allowed text-muted-foreground"
+                      : "cursor-pointer font-medium"
+                  )}
                 >
                   <span>{t("export.scope_all")}</span>
                   {isLargeDataset && (
@@ -553,12 +570,22 @@ function TableExportDialogContent<TData>({
                   )}
                 </Label>
               </div>
-              <Badge
-                variant="secondary"
-                className="font-mono text-[11px] font-medium px-2 py-0.5"
-              >
-                {totalFilteredCount} {t("preview.rows")}
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                {isServerAllDisabled && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] text-muted-foreground font-normal px-1.5 py-0"
+                  >
+                    Cần API máy chủ
+                  </Badge>
+                )}
+                <Badge
+                  variant="secondary"
+                  className="font-mono text-[11px] font-medium px-2 py-0.5"
+                >
+                  {totalFilteredCount} {t("preview.rows")}
+                </Badge>
+              </div>
             </div>
 
             {/* Scope: Selected */}
