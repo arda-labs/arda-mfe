@@ -2,6 +2,7 @@ import type { ChatModelAdapter, ChatModelRunUpdate } from "@assistant-ui/react"
 import { apiUrl } from "@workspace/api/url"
 import { collectOlorinContext } from "./registry"
 
+// Legacy AG-UI-style events emitted when the backend runs AI_PROTOCOL=v1.
 export type ArdaSSEEvent =
   | { type: "RUN_STARTED"; threadId: string; runId: string }
   | { type: "TEXT_MESSAGE_START"; threadId: string; runId: string; messageId: string }
@@ -18,12 +19,102 @@ export type ArdaSSEEvent =
     }
   | { type: "RUN_FINISHED"; threadId: string; runId: string; error?: string }
 
+// AI SDK UI Message Stream v1 parts, emitted when AI_PROTOCOL=v2.
+// Shapes follow the vercel/ai UIMessageChunk spec.
+export type ArdaUIStreamPart =
+  | { type: "start"; messageId?: string }
+  | { type: "start-step" }
+  | { type: "text-start"; id: string }
+  | { type: "text-delta"; id: string; delta: string }
+  | { type: "text-end"; id: string }
+  | { type: "tool-input-start"; toolCallId: string; toolName: string }
+  | { type: "tool-input-delta"; toolCallId: string; inputTextDelta: string }
+  | { type: "tool-input-available"; toolCallId: string; toolName: string; input: unknown }
+  | { type: "tool-output-available"; toolCallId: string; output: unknown }
+  | { type: "tool-output-error"; toolCallId: string; errorText: string }
+  | { type: "error"; errorText: string }
+  | { type: "finish-step" }
+  | { type: "finish"; finishReason?: string }
+
 export type ArdaChatModelAdapterOptions = {
   getThreadId: () => string
   endpoint?: string
 }
 
 type MessagePart = NonNullable<ChatModelRunUpdate["content"]>[number]
+
+type ToolCallState = {
+  toolCallId: string
+  toolName: string
+  args: Record<string, unknown>
+  result?: Record<string, unknown>
+}
+
+// buildContent mirrors the adapter state (text + tool calls) into the
+// assistant-ui message content shape.
+function buildContent(
+  accumulatedText: string,
+  toolCalls: IterableIterator<ToolCallState>
+): MessagePart[] {
+  const contentParts: MessagePart[] = []
+  if (accumulatedText) {
+    contentParts.push({ type: "text", text: accumulatedText })
+  }
+  for (const tool of toolCalls) {
+    contentParts.push({
+      type: "tool-call",
+      toolCallId: tool.toolCallId,
+      toolName: tool.toolName,
+      args: tool.args as Record<string, never>,
+      argsText: JSON.stringify(tool.args),
+      result: tool.result,
+    })
+  }
+  return contentParts.length > 0
+    ? contentParts
+    : [{ type: "text", text: "" }]
+}
+
+// readSSEDataLines yields raw `data:` payload strings from the response body.
+// A malformed JSON payload must be tolerated by the consumer (parse in its own
+// try/catch); semantic errors thrown by the consumer propagate and are
+// deliberately never swallowed.
+async function* readSSEDataLines(
+  reader: ReadableStreamDefaultReader<Uint8Array>
+): AsyncGenerator<string, void, unknown> {
+  const decoder = new TextDecoder()
+  let buffer = ""
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      const lines = buffer.split("\n")
+      buffer = lines.pop() ?? ""
+
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed || !trimmed.startsWith("data:")) continue
+        const dataStr = trimmed.slice(5).trim()
+        if (!dataStr) continue
+        yield dataStr
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
+
+function parseArgsSafely(argsText: string | undefined): Record<string, unknown> {
+  if (!argsText) return {}
+  try {
+    const parsed = JSON.parse(argsText) as unknown
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {}
+  } catch {
+    return {}
+  }
+}
 
 export function createArdaChatModelAdapter(
   options: ArdaChatModelAdapterOptions
@@ -86,94 +177,154 @@ export function createArdaChatModelAdapter(
         throw new Error("No response stream available")
       }
 
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ""
-      let accumulatedText = ""
-      const toolCallsMap = new Map<
-        string,
-        {
-          toolCallId: string
-          toolName: string
-          args: Record<string, unknown>
-          result?: Record<string, unknown>
-        }
-      >()
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          buffer += decoder.decode(value, { stream: true })
-
-          const lines = buffer.split("\n")
-          buffer = lines.pop() ?? ""
-
-          for (const line of lines) {
-            const trimmed = line.trim()
-            if (!trimmed || !trimmed.startsWith("data:")) continue
-            const dataStr = trimmed.slice(5).trim()
-            if (!dataStr) continue
-
-            try {
-              const event = JSON.parse(dataStr) as ArdaSSEEvent
-
-              if (event.type === "TEXT_MESSAGE_CONTENT" && event.delta) {
-                accumulatedText += event.delta
-              } else if (event.type === "TOOL_CALL_START") {
-                toolCallsMap.set(event.callId, {
-                  toolCallId: event.callId,
-                  toolName: event.toolName,
-                  args: {},
-                })
-              } else if (event.type === "TOOL_CALL_RESULT") {
-                const existing = toolCallsMap.get(event.callId) ?? {
-                  toolCallId: event.callId,
-                  toolName: event.toolName,
-                  args: {},
-                }
-                existing.result = event.result
-                toolCallsMap.set(event.callId, existing)
-              } else if (event.type === "RUN_FINISHED") {
-                if (event.error) {
-                  throw new Error(event.error)
-                }
-              }
-
-              const contentParts: MessagePart[] = []
-              if (accumulatedText) {
-                contentParts.push({ type: "text", text: accumulatedText })
-              }
-              for (const tool of toolCallsMap.values()) {
-                contentParts.push({
-                  type: "tool-call",
-                  toolCallId: tool.toolCallId,
-                  toolName: tool.toolName,
-                  args: tool.args as Record<string, never>,
-                  argsText: JSON.stringify(tool.args),
-                  result: tool.result,
-                })
-              }
-
-              yield {
-                content:
-                  contentParts.length > 0
-                    ? contentParts
-                    : [{ type: "text", text: "" }],
-              }
-            } catch (innerErr) {
-              if (
-                innerErr instanceof Error &&
-                innerErr.name === "AbortError"
-              ) {
-                throw innerErr
-              }
-            }
-          }
-        }
-      } finally {
-        reader.releaseLock()
+      const protocol = response.headers.get("x-vercel-ai-ui-message-stream")
+      if (protocol === "v1") {
+        yield* runUIStreamProtocol(response.body.getReader())
+      } else {
+        yield* runLegacyProtocol(response.body.getReader())
       }
     },
+  }
+}
+
+// runUIStreamProtocol parses AI SDK UI Message Stream v1 parts (AI_PROTOCOL=v2):
+// streamed text deltas, streamed tool input (args reassembled from deltas),
+// structured tool outputs, and error parts that fail the run properly.
+async function* runUIStreamProtocol(
+  reader: ReadableStreamDefaultReader<Uint8Array>
+): AsyncGenerator<ChatModelRunUpdate, void, unknown> {
+  let accumulatedText = ""
+  let streamError: string | null = null
+  const argsText = new Map<string, string>()
+  const toolCalls = new Map<string, ToolCallState>()
+
+  for await (const data of readSSEDataLines(reader)) {
+    let part: ArdaUIStreamPart
+    try {
+      part = JSON.parse(data) as ArdaUIStreamPart
+    } catch {
+      continue // tolerate a malformed line; the next line re-syncs
+    }
+
+    switch (part.type) {
+      case "text-delta":
+        accumulatedText += part.delta
+        break
+      case "tool-input-start":
+        toolCalls.set(part.toolCallId, {
+          toolCallId: part.toolCallId,
+          toolName: part.toolName,
+          args: {},
+        })
+        argsText.set(part.toolCallId, "")
+        break
+      case "tool-input-delta":
+        argsText.set(
+          part.toolCallId,
+          (argsText.get(part.toolCallId) ?? "") + part.inputTextDelta
+        )
+        break
+      case "tool-input-available": {
+        const existing = toolCalls.get(part.toolCallId) ?? {
+          toolCallId: part.toolCallId,
+          toolName: part.toolName,
+          args: parseArgsSafely(argsText.get(part.toolCallId)),
+        }
+        if (part.input && typeof part.input === "object") {
+          existing.args = part.input as Record<string, unknown>
+        }
+        toolCalls.set(part.toolCallId, existing)
+        break
+      }
+      case "tool-output-available": {
+        const existing = toolCalls.get(part.toolCallId) ?? {
+          toolCallId: part.toolCallId,
+          toolName: "unknown",
+          args: parseArgsSafely(argsText.get(part.toolCallId)),
+        }
+        existing.result =
+          part.output && typeof part.output === "object"
+            ? (part.output as Record<string, unknown>)
+            : { text: String(part.output ?? "") }
+        toolCalls.set(part.toolCallId, existing)
+        break
+      }
+      case "tool-output-error":
+      case "error":
+        // Keep reading until the stream closes; the run fails below.
+        streamError = part.errorText
+        break
+      case "finish":
+        break
+      default:
+        break
+    }
+
+    yield {
+      content: buildContent(accumulatedText, toolCalls.values()),
+    }
+  }
+
+  if (streamError) {
+    throw new Error(streamError)
+  }
+}
+
+// runLegacyProtocol parses the AG-UI-style events (AI_PROTOCOL=v1, default).
+async function* runLegacyProtocol(
+  reader: ReadableStreamDefaultReader<Uint8Array>
+): AsyncGenerator<ChatModelRunUpdate, void, unknown> {
+  let accumulatedText = ""
+  let streamError: string | null = null
+  const toolCalls = new Map<string, ToolCallState>()
+
+  for await (const data of readSSEDataLines(reader)) {
+    let event: ArdaSSEEvent
+    try {
+      event = JSON.parse(data) as ArdaSSEEvent
+    } catch {
+      continue
+    }
+
+    switch (event.type) {
+      case "TEXT_MESSAGE_CONTENT":
+        if (event.delta) {
+          accumulatedText += event.delta
+        }
+        break
+      case "TOOL_CALL_START":
+        toolCalls.set(event.callId, {
+          toolCallId: event.callId,
+          toolName: event.toolName,
+          args: {},
+        })
+        break
+      case "TOOL_CALL_RESULT": {
+        const existing = toolCalls.get(event.callId) ?? {
+          toolCallId: event.callId,
+          toolName: event.toolName,
+          args: {},
+        }
+        existing.result = event.result
+        toolCalls.set(event.callId, existing)
+        break
+      }
+      case "RUN_FINISHED":
+        if (event.error) {
+          streamError = event.error
+        }
+        break
+      default:
+        break
+    }
+
+    yield {
+      content: buildContent(accumulatedText, toolCalls.values()),
+    }
+  }
+
+  if (streamError) {
+    // Errors from the server must fail the run instead of ending silently.
+    throw new Error(streamError)
   }
 }
