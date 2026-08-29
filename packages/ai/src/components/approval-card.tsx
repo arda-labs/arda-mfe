@@ -8,6 +8,7 @@ import {
   executeApprovedProposal,
 } from "../conversations"
 import { textValue, type ApprovalProposalView } from "../messages"
+import { useOlorinContext } from "../context"
 
 type ApprovalDecisionResponse = {
   id: string
@@ -22,6 +23,7 @@ export function ApprovalCard({
   resume?: boolean
 }) {
   const { t, formatDate } = useI18n()
+  const { runtime } = useOlorinContext()
   const [status, setStatus] = useState(proposal.status)
   const [pending, setPending] = useState<"approve" | "reject" | null>(null)
   const [executing, setExecuting] = useState(false)
@@ -70,7 +72,21 @@ export function ApprovalCard({
         try {
           const executed = await executeApprovedProposal(proposal.id)
           setStatus("EXECUTED")
-          setExecutedSummary(executed.summary)
+          if (executed.resumedReply) {
+            // Resume-capable backend streamed the continued agent turn; append
+            // it to the open thread so the user sees the follow-up reply.
+            try {
+              runtime?.thread?.append({
+                role: "assistant",
+                content: [{ type: "text", text: executed.resumedReply }],
+              })
+            } catch {
+              // Thread unavailable (panel closed mid-execute); fall back to summary.
+              setExecutedSummary(executed.resumedReply)
+            }
+          } else {
+            setExecutedSummary(executed.summary)
+          }
         } finally {
           setExecuting(false)
         }
