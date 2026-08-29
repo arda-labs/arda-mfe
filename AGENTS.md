@@ -31,7 +31,7 @@ Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host S
 * Mỗi remote mount `QueryProvider` (`@workspace/query/provider`) ở gốc `src/Routes.tsx` để server-list dùng `@workspace/admin-list` hoạt động mọi nơi mà không cần wiring từng page.
 
 ### 2.2. Chuẩn hoá Remote Router với `createRemoteRoutes`
-* Mọi remote đều export một file duy nhất [`src/Routes.tsx`](file:///d:/github/arda/arda-mfe/apps/platform/src/Routes.tsx) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.
+* Mọi remote đều export một file duy nhất `src/Routes.tsx` (ví dụ `apps/platform/src/Routes.tsx`) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.
 * Sử dụng factory `createRemoteRoutes` từ `@workspace/ui/lib/lazy`:
   ```tsx
   import "@workspace/i18n/apps/platform"
@@ -49,6 +49,14 @@ Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host S
   })
   ```
 * Host Shell luôn bọc các Remote Routes bên trong `<RemoteErrorBoundary>` để cô lập sự cố khi remote gặp lỗi mạng.
+
+### 2.3. Tenant context từ BFF session
+
+* `/api/auth/me` trả về user đã xác thực kèm `tenantMemberships` và `activeTenantId`. Frontend đổi tenant qua `POST /api/auth/tenant/switch` — **không bao giờ gửi `X-Tenant-Id` như authority header**.
+* Sau khi switch thành công, auth store thay toàn bộ user context; mọi API call sau đó dùng active tenant phía server. Roles, permissions, groups, organizations đều lấy từ context đó.
+* Quyền global tách riêng: `globalRoles`, `globalPermissions`, `isGlobalAdmin`. Được dùng cho navigation và màn hình access-denied, nhưng **không** dùng để tạo authorization header hay suy ra target tenant ID.
+* Mọi call cookie-backed (`/api/auth/me`, tenant switch, logout) phải giữ `credentials: "include"` và dùng cùng origin resolver, để cookie BFF tới được `api.arda.io.vn` ở production.
+* Khi gặp 403: giữ nguyên `code` và `request_id` từ API, tránh logout loop, chỉ đề nghị switch tenant nếu user có membership khác đã verified.
 
 ---
 
@@ -70,7 +78,7 @@ apps/<remote>/src/
 ```
 
 ### 3.1. Quy tắc phân rã file:
-* **Không viết file nguyên khối (Monolithic Mega-file):** Mục tiêu `page.tsx` ≤ 400 dòng.
+* **Không viết file nguyên khối (Monolithic Mega-file):** Mục tiêu `page.tsx` ≤ 400 dòng. Gate `check:pages` chỉ áp dụng cho file mới; một số page cũ lớn hơn (760–850 dòng) nằm trong `LEGACY_BASELINE` của `scripts/check-page-size.mjs` với mốc giải tỏa Q4-2026/Q1-2027 — khi chạm vào các file này, tách nhỏ trước khi mở rộng thêm.
 * **Tách Zod Schema ra `schema.ts`:** Không khai báo Zod schema, interface form values và default values trực tiếp trong file UI.
 * **Tách Form / View Dialogs vào `components/`:** Mỗi dialog xử lý một nghiệp vụ riêng (Create, Edit, Roles, Audit, Sessions).
 
@@ -93,7 +101,7 @@ bun install
 # Kiểm tra ranh giới package (Package boundaries & no circular deps)
 bun run check:packages
 
-# Kiểm tra TypeScript toàn bộ monorepo (17 workspaces)
+# Kiểm tra TypeScript toàn bộ monorepo (18 workspaces: 8 apps + 10 packages)
 # Bao gồm các invariant: check:packages, check:credentials, check:fallbacks,
 # check:federation (chính sách shared deps tự động), check:pages (giới hạn
 # độ dài page.tsx với LEGACY_BASELINE cho debt cũ)
@@ -105,8 +113,9 @@ bun run lint
 # Build production toàn bộ 8 apps
 bun run build
 
-# Build từng app cho Cloudflare Pages
+# Build từng app cho Cloudflare Workers
 bun run cf:build <app_name>     # ví dụ: bun run cf:build shell
+bun run cf:deploy <app_name>
 ```
 
 > [!IMPORTANT]
@@ -123,7 +132,25 @@ Do hệ thống backend OAuth/Ory Kratos không có chế độ mock trong môi 
 
 ---
 
-## 7. AI assistant (Olorin) UI knowledge
+## 7. Tài liệu chi tiết theo chủ đề
+
+Khi làm việc sâu vào một mảng, đọc convention tương ứng trước:
+
+| Chủ đề | Tài liệu |
+| :--- | :--- |
+| i18n, locale, format ngày/số | [`docs/conventions/i18n-and-localization.md`](docs/conventions/i18n-and-localization.md) |
+| Toast, notification bell, inbox | [`docs/conventions/notifications-and-toasts.md`](docs/conventions/notifications-and-toasts.md) |
+| List server-side (search/filter/paging) | [`docs/conventions/server-list-migration.md`](docs/conventions/server-list-migration.md) |
+| Xuất dữ liệu (Excel/CSV) | [`docs/conventions/data-export.md`](docs/conventions/data-export.md) |
+| Xem trước file, upload media | [`docs/conventions/file-preview.md`](docs/conventions/file-preview.md) |
+| Tích hợp AI panel Olorin | [`docs/ai-integration-guide.md`](docs/ai-integration-guide.md) |
+| Trạng thái refactor đang chạy | [`docs/refactor-program.md`](docs/refactor-program.md) |
+
+Kiến trúc backend, hợp đồng API và `policy.yaml` nằm ở repo `arda-be` — xem `arda-be/AGENTS.md`.
+
+---
+
+## 8. AI assistant (Olorin) UI knowledge
 
 * `@workspace/ai` exports: `OlorinProvider` (CopilotKit v2 headless, runtime
   URL = `apiUrl() + "/api/copilotkit"`, credentials include), `OlorinPanel`
