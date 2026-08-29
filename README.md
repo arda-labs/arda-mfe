@@ -4,9 +4,9 @@ Bun + Vite micro frontend workspace for Arda.
 
 ## Docs index
 
-- Conventions: structure/rules lives at repo-level `../docs/conventions/mfe-structure.md`;
-  server-list migration guide: [docs/conventions/server-list-migration.md](docs/conventions/server-list-migration.md)
-- Architecture/refactor program: [docs/architecture.md](docs/architecture.md), [docs/refactor-program.md](docs/refactor-program.md)
+- Architecture, federation rules, code conventions, commands: [AGENTS.md](AGENTS.md)
+- Topic guides: [docs/conventions/](docs/conventions/)
+- Refactor program status: [docs/refactor-program.md](docs/refactor-program.md)
 
 ## Apps
 
@@ -43,7 +43,7 @@ modules before lazy chunks are evaluated.
 
 ## Structure conventions
 
-Feature folders follow a consistent layout. See [docs/conventions/mfe-structure.md](../docs/conventions/mfe-structure.md).
+Feature folders follow a consistent layout. See [AGENTS.md §3](AGENTS.md).
 
 ```text
 apps/<remote>/src/features/<domain>/
@@ -164,6 +164,6 @@ import { Button } from "@workspace/ui/components/button"
 
 ## Skills & rules
 
-- Cursor rule: `.cursor/rules/frontend-mfe.mdc`
+- Agent guide: [AGENTS.md](AGENTS.md)
 - Feature page template: skill `arda-feature-page`
 - New remote: skill `arda-mfe-remote`

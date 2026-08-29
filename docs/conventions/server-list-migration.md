@@ -1,7 +1,7 @@
 # Server List Migration Guide
 
-Conventions the checklist enforces live in `../docs/conventions/mfe-structure.md`
-and `docs/refactor-program.md`. Working exemplar:
+Conventions the checklist enforces live in [`AGENTS.md`](../../AGENTS.md) §3
+and [`docs/refactor-program.md`](../refactor-program.md). Working exemplar:
 `apps/finance/src/features/finance/transactions/page.tsx`
 (reference implementation of the full tree: platform organizations).
 

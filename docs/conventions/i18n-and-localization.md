@@ -106,7 +106,7 @@ Script này được nối trực tiếp vào pipeline `bun run typecheck`. Nế
 ## 5. Đóng Gói & Phân Phối Trên Cloudflare Workers
 
 Khi chạy lệnh build Cloudflare (`bun run cf:build:all` hoặc `bun run cf:build <app>`):
-* Script [`scripts/build-cloudflare-app.mjs`](file:///d:/Github/arda-labs/arda-mfe/scripts/build-cloudflare-app.mjs) sẽ tự động sao chép các file `locales/*.json` vào thư mục static assets của Worker: `.cloudflare/dist/<app>/locales/`.
+* Script [`scripts/build-cloudflare-app.mjs`](scripts/build-cloudflare-app.mjs) sẽ tự động sao chép các file `locales/*.json` vào thư mục static assets của Worker: `.cloudflare/dist/<app>/locales/`.
 * Worker phục vụ các static assets này kèm theo headers tối ưu:
   * `Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400`
   * `Access-Control-Allow-Origin: *`

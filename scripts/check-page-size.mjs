@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url"
 
 /**
  * Page size gate — convention: a feature page.tsx stays <= MAX_LINES and
- * decomposes into components/ beyond that (see docs/conventions/mfe-structure).
+ * decomposes into components/ beyond that (see AGENTS.md section 3).
  * Historical monolith pages live in LEGACY_BASELINE with a target date so CI
  * keeps failing for NEW violations while the debt shrinks deliberately.
  */
@@ -68,7 +68,7 @@ if (violations.length > 0) {
     [
       ...violations,
       "",
-      "Split pages into components/ per docs/conventions/mfe-structure; do not extend LEGACY_BASELINE without a team decision.",
+      "Split pages into components/ per AGENTS.md section 3; do not extend LEGACY_BASELINE without a team decision.",
     ].join("\n")
   )
   process.exit(1)
