@@ -3,13 +3,9 @@ import { useI18n } from "@workspace/i18n"
 import { api, ApiClientError } from "@workspace/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { useAgUiSubmitInterruptResponses } from "@assistant-ui/react-ag-ui"
 import { ShieldCheck, Clock, AlertCircle } from "lucide-react"
-import {
-  createArdaResumeStream,
-} from "../adapter"
-import { fetchApprovedExecutionResponse } from "../conversations"
 import { textValue, type ApprovalProposalView } from "../messages"
-import { useOlorinContext } from "../context"
 
 type ApprovalDecisionResponse = {
   id: string
@@ -17,42 +13,38 @@ type ApprovalDecisionResponse = {
 }
 
 export function ApprovalCard({
-  proposal,
+  proposal: { id: proposalId, expiresAt, status: initialStatus },
   resume = true,
 }: {
   proposal: ApprovalProposalView
   resume?: boolean
 }) {
   const { t, formatDate } = useI18n()
-  const { runtime } = useOlorinContext()
-  const [status, setStatus] = useState(proposal.status)
+  const submitInterruptResponses = useAgUiSubmitInterruptResponses()
+  const [status, setStatus] = useState(initialStatus)
   const [pending, setPending] = useState<"approve" | "reject" | null>(null)
-  const [executing, setExecuting] = useState(false)
-  const [executedSummary, setExecutedSummary] = useState("")
   const [error, setError] = useState("")
   const [isExpired, setIsExpired] = useState(() => {
-    if (!proposal.expiresAt) return false
-    return new Date(proposal.expiresAt).getTime() <= Date.now()
+    if (!expiresAt) return false
+    return new Date(expiresAt).getTime() <= Date.now()
   })
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(() => {
-    if (!proposal.expiresAt) return null
-    return Math.max(0, Math.floor((new Date(proposal.expiresAt).getTime() - Date.now()) / 1000))
+    if (!expiresAt) return null
+    return Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000))
   })
 
   useEffect(() => {
-    if (!proposal.expiresAt || status !== "PENDING") return
-
+    if (!expiresAt || status !== "PENDING") return
     const interval = setInterval(() => {
-      const remaining = Math.max(0, Math.floor((new Date(proposal.expiresAt!).getTime() - Date.now()) / 1000))
+      const remaining = Math.max(0, Math.floor((new Date(expiresAt!).getTime() - Date.now()) / 1000))
       setRemainingSeconds(remaining)
       if (remaining <= 0) {
         setIsExpired(true)
         clearInterval(interval)
       }
     }, 1000)
-
     return () => clearInterval(interval)
-  }, [proposal.expiresAt, status])
+  }, [expiresAt, status])
 
   async function decide(decision: "approve" | "reject") {
     if (isExpired) return
@@ -60,7 +52,7 @@ export function ApprovalCard({
     setError("")
     try {
       const record = await api.post<ApprovalDecisionResponse>(
-        `/api/ai/approvals/${encodeURIComponent(proposal.id)}/decision`,
+        `/api/ai/approvals/${encodeURIComponent(proposalId)}/decision`,
         { decision }
       )
       const nextStatus = textValue(
@@ -68,49 +60,15 @@ export function ApprovalCard({
         decision === "approve" ? "APPROVED" : "REJECTED"
       )
       setStatus(nextStatus)
-      if (nextStatus === "APPROVED" && resume) {
-        setExecuting(true)
-        try {
-          const response = await fetchApprovedExecutionResponse(proposal.id)
-          if (!response.ok) {
-            let errorMsg = `HTTP ${response.status}`
-            try {
-              const body = (await response.json()) as Record<string, unknown>
-              if (body?.detail || body?.title || body?.error) {
-                errorMsg = String(body.detail || body.title || body.error)
-              }
-            } catch {
-              // ignore json parse error
-            }
-            throw new Error(errorMsg)
-          }
 
-          const contentType = response.headers.get("content-type") ?? ""
-          if (contentType.includes("text/event-stream")) {
-            // Resume-capable backend: feed the continued agent turn into the
-            // runtime so it renders as a normal streamed assistant message.
-            runtime.thread.resumeRun({
-              parentId: null,
-              stream: () => createArdaResumeStream(response),
-            })
-            setStatus("EXECUTED")
-          } else {
-            const payload = (await response.json()) as {
-              result: { status: string; summary: string }
-            }
-            setStatus("EXECUTED")
-            setExecutedSummary(payload.result?.summary ?? "")
-          }
-        } catch (caught) {
-          setError(
-            caught instanceof Error && caught.message
-              ? caught.message
-              : (t("ai.approval.error") || "Không thể thực thi thao tác")
-          )
-          setStatus("APPROVED")
-        } finally {
-          setExecuting(false)
-        }
+      // AG-UI: submit the interrupt response so the runtime resumes the
+      // agent loop via HttpAgent (same /api/ai/agent endpoint). The BE
+      // picks up the resume entry, executes the approved tool, and
+      // continues streaming AG-UI events.
+      if (nextStatus === "APPROVED" && resume) {
+        await submitInterruptResponses([
+          { interruptId: proposalId, status: "resolved" },
+        ])
       }
     } catch (caught) {
       setError(
@@ -128,7 +86,7 @@ export function ApprovalCard({
 
   return (
     <section
-      aria-labelledby={`approval-title-${proposal.id}`}
+      aria-labelledby={`approval-title-${proposalId}`}
       className={`mt-3 rounded-xl border p-3.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200 ${
         isExpired
           ? "border-muted bg-muted/20 opacity-75"
@@ -139,7 +97,7 @@ export function ApprovalCard({
     >
       <div className="flex items-center gap-2">
         <ShieldCheck className={`size-4 shrink-0 ${isExpired ? "text-muted-foreground" : "text-amber-600"}`} />
-        <h4 id={`approval-title-${proposal.id}`} className="text-sm font-semibold text-foreground">
+        <h4 id={`approval-title-${proposalId}`} className="text-sm font-semibold text-foreground">
           {t("ai.approval.title") || "Yêu cầu phê duyệt hành động"}
         </h4>
         <Badge variant={isExpired ? "outline" : "secondary"} className="ml-auto shrink-0 text-xs">
@@ -151,7 +109,7 @@ export function ApprovalCard({
         {t("ai.approval.description") || "Trợ lý AI đề xuất một thao tác có ảnh hưởng đến dữ liệu. Vui lòng xác nhận trước khi hệ thống thực thi."}
       </p>
 
-      {proposal.expiresAt && !decided && (
+      {expiresAt && !decided && (
         <div className={`mt-2 flex items-center gap-1.5 text-xs ${isUrgent ? "text-destructive font-medium" : "text-muted-foreground"}`}>
           <Clock className="size-3.5" />
           {isExpired ? (
@@ -164,7 +122,7 @@ export function ApprovalCard({
           ) : (
             <span>
               {t("ai.approval.expires", {
-                time: formatDate(proposal.expiresAt, {
+                time: formatDate(expiresAt, {
                   hour: "2-digit",
                   minute: "2-digit",
                   day: "2-digit",
@@ -186,19 +144,19 @@ export function ApprovalCard({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button
           size="sm"
-          disabled={decided || isExpired || pending !== null || executing}
+          disabled={decided || isExpired || pending !== null}
           onClick={() => void decide("approve")}
           className="h-7.5 px-3 text-xs"
           aria-label={t("ai.approval.approve_aria") || "Xác nhận phê duyệt thao tác"}
         >
-          {pending === "approve" || executing
+          {pending === "approve"
             ? (t("ai.approval.saving") || "Đang xử lý...")
             : (t("ai.approval.approve") || "Phê duyệt")}
         </Button>
         <Button
           size="sm"
           variant="outline"
-          disabled={decided || isExpired || pending !== null || executing}
+          disabled={decided || isExpired || pending !== null}
           onClick={() => void decide("reject")}
           className="h-7.5 px-3 text-xs"
         >
@@ -218,18 +176,6 @@ export function ApprovalCard({
           </Badge>
         )}
       </div>
-
-      {executing && (
-        <p className="mt-2 text-xs text-muted-foreground motion-safe:animate-pulse">
-          {t("ai.approval.executing") || "Đang thực thi thao tác đã phê duyệt..."}
-        </p>
-      )}
-
-      {executedSummary && (
-        <div className="mt-2.5 rounded-lg bg-background border p-2.5 text-xs leading-5 font-mono text-muted-foreground">
-          {executedSummary}
-        </div>
-      )}
     </section>
   )
 }

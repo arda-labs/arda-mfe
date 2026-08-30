@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
 import { api, ApiClientError, type ApiSuccess } from "@workspace/api"
-import { apiUrl } from "@workspace/api/url"
 
 export type OlorinConversation = {
   threadId: string
@@ -62,23 +61,6 @@ export async function fetchConversationMessages(
     `/api/ai/conversations/${encodeURIComponent(threadId)}/messages?limit=200`
   )
   return response.result ?? []
-}
-
-// fetchApprovedExecutionResponse posts the execution request and returns the
-// raw Response: resume-capable backends answer with an SSE stream that the
-// caller feeds into runtime.thread.resumeRun({ stream }), older ones with a
-// JSON envelope.
-export async function fetchApprovedExecutionResponse(
-  approvalId: string
-): Promise<Response> {
-  return fetch(
-    apiUrl(`/api/ai/approvals/${encodeURIComponent(approvalId)}/execution`),
-    {
-      method: "POST",
-      credentials: "include",
-      headers: { Accept: "application/json, text/event-stream" },
-    }
-  )
 }
 
 export async function deleteConversation(threadId: string): Promise<void> {

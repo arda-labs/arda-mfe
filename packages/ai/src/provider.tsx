@@ -6,9 +6,11 @@ import {
 } from "react"
 import {
   AssistantRuntimeProvider,
-  useLocalRuntime,
   type ThreadMessage,
 } from "@assistant-ui/react"
+import { useAgUiRuntime } from "@assistant-ui/react-ag-ui"
+import { HttpAgent } from "@ag-ui/client"
+import { apiUrl } from "@workspace/api/url"
 import { registerAppLocales } from "@workspace/i18n"
 import enAi from "../locales/en-US.json"
 import viAi from "../locales/vi-VN.json"
@@ -18,7 +20,6 @@ registerAppLocales("ai", {
   "en-US": enAi,
 })
 
-import { createArdaChatModelAdapter } from "./adapter"
 import { OlorinContext } from "./context"
 import {
   fetchConversationMessages,
@@ -76,20 +77,34 @@ function toThreadMessage(
 export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
   const [threadId, setThreadId] = useState<string>(() => crypto.randomUUID())
 
-  const adapter = useMemo(
+  // The AG-UI runtime drives the whole chat (streaming, tool calls,
+  // reasoning, HITL interrupts) against our Go agent endpoint speaking the
+  // AG-UI SSE protocol — no hand-written adapter.
+  const agent = useMemo(
     () =>
-      createArdaChatModelAdapter({
-        getThreadId: () => threadId,
-        endpoint: runtimeUrl,
+      new HttpAgent({
+        url: runtimeUrl ?? apiUrl("/api/ai/agent"),
       }),
-    [threadId, runtimeUrl]
+    [runtimeUrl]
   )
 
-  const runtime = useLocalRuntime(adapter)
+  const runtime = useAgUiRuntime({
+    agent,
+    adapters: {
+      threadList: {
+        onSwitchToThread: async (nextThreadId) => {
+          const history = await fetchConversationMessages(nextThreadId)
+          const messages = history.map((item, index) =>
+            toThreadMessage(item, `hist-${nextThreadId}-${item.sequence}`)
+          )
+          return { messages }
+        },
+      },
+    },
+  })
 
   const newThread = useCallback(() => {
-    const nextId = crypto.randomUUID()
-    setThreadId(nextId)
+    setThreadId(crypto.randomUUID())
     runtime.thread?.import({ messages: [] })
   }, [runtime])
 

@@ -47,16 +47,11 @@ export {
 } from "./messages"
 export { olorinFixtures, type FixtureMessage } from "./fixtures"
 export {
-  fetchApprovedExecutionResponse,
   fetchConversationMessages,
   useOlorinConversations,
   type OlorinConversation,
   type OlorinConversationMessage,
 } from "./conversations"
-export {
-  createArdaChatModelAdapter,
-  type ArdaChatModelAdapterOptions,
-} from "./adapter"
 export {
   resolveAiError,
   AI_ERROR_MAP,

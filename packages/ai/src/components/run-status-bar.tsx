@@ -1,54 +1,74 @@
-import { useEffect, useState, useSyncExternalStore } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { useAuiState } from "@assistant-ui/react"
 import { Sparkles } from "lucide-react"
-import { useOlorinContext } from "../context"
-import {
-  getOlorinRunStatus,
-  subscribeOlorinRunStatus,
-} from "../run-status"
 import { RunErrorCard } from "./run-error-card"
 import { RunStatusBanner, type RunPhase } from "./run-status-banner"
 
-// Live activity bar: renders nothing until a run streams, then shows what
-// the agent is doing right now (thinking → calling tool → answering) with an
-// elapsed timer, driven by the SSE adapter through the run-status store.
+// Live activity bar driven entirely by the AG-UI thread state (no custom
+// store): running + last assistant message content determine the phase
+// (thinking → calling tool → answering).
 export function RunStatusBar() {
-  const { threadId } = useOlorinContext()
-  const status = useSyncExternalStore(
-    subscribeOlorinRunStatus,
-    getOlorinRunStatus,
-    getOlorinRunStatus
-  )
+  const isRunning = useAuiState((s) => s.thread.isRunning)
+  const messages = useAuiState((s) => s.thread.messages)
+  const last = messages[messages.length - 1]
 
-  if (status.phase === "idle" || status.threadId !== threadId) {
-    return null
-  }
+  const phase: RunPhase = !isRunning
+    ? "IDLE"
+    : !last || last.role !== "assistant" || last.content.length === 0
+      ? "THINKING"
+      : hasPendingToolCall(last)
+        ? "EXECUTING"
+        : "RESPONDING"
 
-  const phase = toBannerPhase(status)
+  const toolName = phase === "EXECUTING" ? getPendingToolName(last) : undefined
   // search/execute have dedicated banner copy; unknown tools show their name.
   const detail =
-    status.phase === "tool" && status.toolName && status.toolName !== "search" && status.toolName !== "execute"
-      ? status.toolName
+    phase === "EXECUTING" &&
+    toolName &&
+    toolName !== "search" &&
+    toolName !== "execute"
+      ? toolName
       : undefined
 
-  return <RunStatusBarInner phase={phase} detail={detail} startedAt={status.startedAt} />
+  const startedAt = useRunStartedAt(isRunning)
+
+  if (phase === "IDLE") return null
+  return <RunStatusBarInner phase={phase} detail={detail} startedAt={startedAt} />
 }
 
-function toBannerPhase(status: {
-  phase: "idle" | "thinking" | "tool" | "responding"
-  toolName: string | null
-}): RunPhase {
-  switch (status.phase) {
-    case "thinking":
-      return "THINKING"
-    case "tool":
-      return status.toolName === "search" ? "SEARCHING" : "EXECUTING"
-    case "responding":
-      return "RESPONDING"
-    default:
-      return "IDLE"
-  }
+function hasPendingToolCall(
+  message: { content: readonly { type?: string; result?: unknown }[] }
+): boolean {
+  return message.content.some(
+    (part) => part.type === "tool-call" && part.result === undefined
+  )
+}
+
+function getPendingToolName(
+  message: { content: readonly { type?: string; toolName?: string; result?: unknown }[] }
+): string | undefined {
+  const part = message.content.find(
+    (p) => p.type === "tool-call" && p.result === undefined
+  )
+  return part?.toolName
+}
+
+// Records the moment a run started so the banner can show an elapsed timer;
+// resets on the next run.
+function useRunStartedAt(isRunning: boolean): number | null {
+  const [startedAt, setStartedAt] = useState<number | null>(null)
+  const wasRunning = useRef(false)
+
+  useEffect(() => {
+    if (isRunning && !wasRunning.current) {
+      setStartedAt(Date.now())
+    }
+    wasRunning.current = isRunning
+    if (!isRunning) setStartedAt(null)
+  }, [isRunning])
+
+  return startedAt
 }
 
 function RunStatusBarInner({
