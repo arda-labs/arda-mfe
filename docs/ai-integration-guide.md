@@ -17,12 +17,15 @@ domain MFEs:
 │                                                          │
 │  1. registerOlorinContext()   → push UI state to AI      │
 │  2. registerToolRenderer()   → custom result card        │
-│  3. useCopilotAction()       → frontend-only tool        │
 └──────────────────────────────────────────────────────────┘
 ```
 
 All three are purely additive. Domain MFEs do not need to modify `packages/ai`
 core code or the backend `ai-service`.
+
+The chat itself is driven by the official assistant-ui AG-UI runtime
+(`useAgUiRuntime` + `HttpAgent`); `packages/ai` only wires the runtime to our
+Go agent endpoint and adds domain renderers.
 
 ---
 
@@ -226,70 +229,28 @@ registerInvoiceListRenderer()
 
 ---
 
-## 4. Integration Point 3: Frontend Actions (`useCopilotAction`)
+## 4. Integration Point 3: Frontend Actions (via AG-UI A2UI actions)
 
-For UI-only operations (filtering tables, scrolling to sections, opening modals,
-filling forms), implement `useCopilotAction` from `@copilotkit/react-core`.
-These tools **never touch the backend** — they are pure UI event handlers that
-the AI can invoke.
+For UI-only operations (filtering tables, scrolling to sections, opening
+modals, filling forms), the AG-UI runtime exposes A2UI actions: the agent
+emits `CUSTOM` / state events and the frontend reacts with
+`useAgUiSendA2uiAction`. These tools **never touch the backend** — they are
+pure UI event handlers that the AI can invoke.
+
+> Note: this path is not yet exposed on the Go agent endpoint (roadmap
+> §M4/MCP). Until then, UI-only operations are not available to the model —
+> keep them as a future integration point.
 
 ### When to use frontend actions vs backend tools
 
 | Scenario | Approach |
 |:---|:---|
-| Filter a data table by column | `useCopilotAction` |
-| Navigate to a specific record | `useCopilotAction` |
-| Pre-fill a form with suggested values | `useCopilotAction` |
+| Filter a data table by column | Frontend action (A2UI) — future |
+| Navigate to a specific record | Frontend action (A2UI) — future |
+| Pre-fill a form with suggested values | Frontend action (A2UI) — future |
 | Read business data from the database | Backend tool via `ai-service` |
 | Write / update a business record | Backend tool (confirm-kind, HITL) |
 | Search knowledge documents | Backend tool (`knowledge.search`) |
-
-### Example — CRM: Filter Customer Table
-
-```tsx
-// apps/crm/src/features/customers/CustomerListPage.tsx
-import { useCopilotAction } from "@copilotkit/react-core"
-import { useState } from "react"
-
-export function CustomerListPage() {
-  const [filters, setFilters] = useState({ status: "", riskLevel: "", segment: "" })
-
-  useCopilotAction({
-    name: "filterCustomerList",
-    description: "Lọc danh sách khách hàng theo trạng thái, mức rủi ro, hoặc phân khúc",
-    parameters: [
-      {
-        name: "status",
-        type: "string",
-        description: "Trạng thái khách hàng: ACTIVE | INACTIVE | SUSPENDED",
-        required: false,
-      },
-      {
-        name: "riskLevel",
-        type: "string",
-        description: "Mức rủi ro: low | medium | high",
-        required: false,
-      },
-      {
-        name: "segment",
-        type: "string",
-        description: "Phân khúc khách hàng",
-        required: false,
-      },
-    ],
-    handler: async ({ status, riskLevel, segment }) => {
-      setFilters({
-        status: status ?? "",
-        riskLevel: riskLevel ?? "",
-        segment: segment ?? "",
-      })
-      return `Đã lọc danh sách: ${[status, riskLevel, segment].filter(Boolean).join(", ")}`
-    },
-  })
-
-  return <CustomerTable filters={filters} />
-}
-```
 
 ### Frontend Action Naming Convention
 
@@ -311,8 +272,8 @@ export function CustomerListPage() {
    Sanitize before applying to state.
 3. **Actions are UI hints, not authoritative.** Never use them to perform
    backend mutations (API calls, form submissions). Use the Composer for that.
-4. **Register only on the relevant page/component.** Use `useEffect` cleanup or
-   component unmount to unregister if the action only applies to a specific view.
+4. **Register only on the relevant page/component.** Unregister on unmount if
+   the action only applies to a specific view.
 
 ---
 
@@ -330,8 +291,8 @@ export type { OlorinConversation, OlorinConversationMessage } from "./src/conver
 ```
 
 Domain MFEs import from `@workspace/ai` (resolved via Bun workspace symlinks).
-They do **not** directly import from `@assistant-ui/react` or `@copilotkit/*`
-unless they need `useCopilotAction`, which requires `@copilotkit/react-core`.
+They do **not** directly import from `@assistant-ui/react` or the AG-UI
+client packages — the runtime wiring lives in `packages/ai/src/provider.tsx`.
 
 ---
 
@@ -344,7 +305,5 @@ Before an MFE ships AI integration:
 - [ ] Context payload < 2 KiB
 - [ ] Custom tool renderers registered at app initialization (not per-component)
 - [ ] Renderer `match()` function is tight (no false positives on other domains)
-- [ ] Frontend actions have client-side parameter validation
-- [ ] Frontend actions return confirmation strings only (no sensitive data)
 - [ ] No direct calls to backend AI endpoints from domain MFE code
 - [ ] `userDisplayName` contributed to context if available from auth state

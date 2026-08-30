@@ -10,7 +10,6 @@ export type AiErrorCode =
   | "ai.sandbox_script_rejected"
   | "ai.approval_unavailable"
   | "ai.approval_persistence_unavailable"
-  | "ai.invalid_copilotkit_envelope"
   | "ai.rate_limited"
   | "ai.budget_exceeded"
 
