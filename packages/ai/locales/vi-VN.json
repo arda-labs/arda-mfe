@@ -116,7 +116,8 @@
     "messages_suffix": "tin nhắn",
     "new": "Hội thoại mới",
     "delete": "Xóa hội thoại",
-    "history": "Lịch sử hội thoại"
+    "history": "Lịch sử hội thoại",
+    "current_new": "Cuộc trò chuyện mới"
   },
   "fixture": {
     "notice": "Chế độ xem trước với dữ liệu mẫu"

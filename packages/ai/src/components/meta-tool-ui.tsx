@@ -6,10 +6,22 @@ import {
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible"
 import { ChevronDown, Search, Terminal, AlertCircle, Layers } from "lucide-react"
-import { makeAssistantToolUI } from "@assistant-ui/react"
+import { makeAssistantToolUI, useToolCallElapsed } from "@assistant-ui/react"
 import { DataTableView, isArrayResult } from "./data-table-view"
 import { ApprovalCard } from "./approval-card"
 import { extractApprovalProposal } from "../messages"
+
+// Live wall-clock seconds for the running tool call, provided by the
+// library's part timing (startedAt set by the SSE adapter).
+function ToolElapsedBadge() {
+  const elapsedMs = useToolCallElapsed()
+  if (elapsedMs === undefined || elapsedMs < 2000) return null
+  return (
+    <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">
+      {Math.floor(elapsedMs / 1000)}s
+    </span>
+  )
+}
 
 export type SearchToolArgs = {
   query?: string
@@ -59,6 +71,7 @@ export function SearchMetaToolCard({
         <span>
           {t("ai.tool.search.pending") || "Đang tìm kiếm API:"} <strong className="text-foreground">{query}</strong>
         </span>
+        <ToolElapsedBadge />
       </div>
     )
   }
@@ -139,6 +152,7 @@ export function ExecuteMetaToolCard({
         <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground motion-safe:animate-pulse">
           <Terminal className="size-3.5 text-amber-500" />
           <span>{t("ai.tool.execute.pending") || "Đang thực thi kịch bản xử lý trong sandbox an toàn..."}</span>
+          <ToolElapsedBadge />
         </div>
       </div>
     )

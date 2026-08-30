@@ -4,6 +4,7 @@ import {
   MessagePrimitive,
   ComposerPrimitive,
   ActionBarPrimitive,
+  useThreadViewport,
 } from "@assistant-ui/react"
 import { useI18n } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
@@ -61,7 +62,18 @@ if (!areDefaultRenderersRegistered()) {
   markDefaultRenderersRegistered()
 }
 
-const suggestionKeys = ["customer", "knowledge"] as const
+// Suggestions adapt to the module the user is in. Falls back to the default
+// pair on unknown routes.
+function pageSuggestionKeys(): readonly string[] {
+  const path = typeof window !== "undefined" ? window.location.pathname : ""
+  if (path.startsWith("/finance")) return ["customer", "knowledge"] as const
+  if (path.startsWith("/hrm")) return ["customer", "knowledge"] as const
+  if (path.startsWith("/workflow")) return ["knowledge", "customer"] as const
+  if (path.startsWith("/customers") || path.startsWith("/workbench"))
+    return ["customer", "knowledge"] as const
+  if (path.startsWith("/admin")) return ["knowledge", "customer"] as const
+  return ["customer", "knowledge"] as const
+}
 
 export function OlorinPanel({
   className,
@@ -99,6 +111,13 @@ export function OlorinPanel({
                   {t("ai.threads.empty")}
                 </DropdownMenuItem>
               )}
+              {!conversations.conversations.some((c) => c.threadId === threadId) && (
+                <DropdownMenuItem disabled className="flex items-center gap-2 bg-accent text-xs py-2 font-medium text-accent-foreground">
+                  <span className="min-w-0 flex-1 truncate">
+                    {t("ai.threads.current_new") || "Cuộc trò chuyện mới"}
+                  </span>
+                </DropdownMenuItem>
+              )}
               {conversations.conversations.map((conversation) => (
                 <DropdownMenuItem
                   key={conversation.threadId}
@@ -130,7 +149,12 @@ export function OlorinPanel({
                     onClick={(event) => {
                       event.stopPropagation()
                       void apiDeleteConversation(conversation.threadId)
-                        .then(() => conversations.refresh())
+                        .then(() => {
+                          // Deleting the thread currently open must reset the
+                          // view — otherwise the panel keeps a dead thread.
+                          if (conversation.threadId === threadId) newThread()
+                          return conversations.refresh()
+                        })
                         .catch(() => undefined)
                     }}
                   >
@@ -169,7 +193,7 @@ export function OlorinPanel({
       )}
 
       <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <ThreadViewportWithScroll>
+        <ThreadPrimitive.Viewport className="relative flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth">
           <ThreadPrimitive.Empty>
             <OlorinEmptyState />
           </ThreadPrimitive.Empty>
@@ -183,7 +207,8 @@ export function OlorinPanel({
 
           <ThinkingBubble />
           <RunErrorBubble />
-        </ThreadViewportWithScroll>
+          <ScrollToBottomButton />
+        </ThreadPrimitive.Viewport>
 
         <RunStatusBar />
 
@@ -249,7 +274,7 @@ function OlorinEmptyState() {
         {t("ai.empty.hint")}
       </p>
       <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-sm">
-        {suggestionKeys.map((key) => (
+        {pageSuggestionKeys().map((key) => (
           <ThreadPrimitive.Suggestion
             key={key}
             prompt={t(`ai.suggestions.${key}`)}
@@ -300,57 +325,25 @@ function getInitials(name?: string): string | undefined {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-// ThreadViewportWithScroll wraps ThreadPrimitive.Viewport with a manual
-// scroll watcher (assistant-ui 0.15 has no ScrollToBottom primitive): when
-// the user scrolls away from the newest message, a floating button offers to
-// jump back down. assistant-ui's built-in auto-scroll already pauses itself
-// in that state, so the two behaviours compose without interference.
-function ThreadViewportWithScroll({ children }: { children: React.ReactNode }) {
+// Floating scroll-to-bottom driven by the library's viewport state
+// (isAtBottom/scrollToBottom) instead of manual DOM scroll tracking.
+function ScrollToBottomButton() {
   const { t } = useI18n()
-  const wrapperRef = React.useRef<HTMLDivElement>(null)
-  const scrollerRef = React.useRef<HTMLElement | null>(null)
-  const [showButton, setShowButton] = React.useState(false)
+  const viewport = useThreadViewport({ optional: true })
 
-  const handleScrollCapture = React.useCallback((event: React.UIEvent<HTMLDivElement>) => {
-    const target = event.target
-    if (!(target instanceof HTMLElement)) return
-    if (target.scrollHeight <= target.clientHeight) return // not a scroller
-    scrollerRef.current = target
-    const distance = target.scrollHeight - target.scrollTop - target.clientHeight
-    setShowButton(distance > 120)
-  }, [])
-
-  const scrollToBottom = React.useCallback(() => {
-    const scroller = scrollerRef.current
-    if (scroller) {
-      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" })
-    }
-    setShowButton(false)
-  }, [])
+  if (!viewport || viewport.isAtBottom) return null
 
   return (
-    <div
-      ref={wrapperRef}
-      onScrollCapture={handleScrollCapture}
-      className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
+    <Button
+      type="button"
+      size="icon"
+      onClick={() => viewport.scrollToBottom({ behavior: "smooth" })}
+      aria-label={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
+      title={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
+      className="sticky bottom-4 left-1/2 z-10 size-8 -translate-x-1/2 rounded-full border bg-background/90 shadow-lg backdrop-blur text-muted-foreground hover:text-foreground"
     >
-      <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth">
-        {children}
-      </ThreadPrimitive.Viewport>
-
-      {showButton && (
-        <Button
-          type="button"
-          size="icon"
-          onClick={scrollToBottom}
-          aria-label={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
-          title={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
-          className="absolute bottom-4 left-1/2 z-10 size-8 -translate-x-1/2 rounded-full border bg-background/90 shadow-lg backdrop-blur text-muted-foreground hover:text-foreground"
-        >
-          <ArrowDown className="size-4" />
-        </Button>
-      )}
-    </div>
+      <ArrowDown className="size-4" />
+    </Button>
   )
 }
 

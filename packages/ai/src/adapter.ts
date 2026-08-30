@@ -63,11 +63,15 @@ type ToolCallState = {
   toolCallId: string
   toolName: string
   args: Record<string, unknown>
+  argsComplete: boolean
   result?: Record<string, unknown>
+  startedAt: number
+  completedAt?: number
 }
 
 // buildContent mirrors the adapter state (text + tool calls) into the
-// assistant-ui message content shape.
+// assistant-ui message content shape. Tool parts carry library-native
+// status/timing so primitives (useToolCallElapsed, approval UI) work.
 function buildContent(
   accumulatedText: string,
   toolCalls: IterableIterator<ToolCallState>
@@ -77,13 +81,18 @@ function buildContent(
     contentParts.push({ type: "text", text: accumulatedText })
   }
   for (const tool of toolCalls) {
+    const result = tool.result
     contentParts.push({
       type: "tool-call",
       toolCallId: tool.toolCallId,
       toolName: tool.toolName,
       args: tool.args as Record<string, never>,
       argsText: JSON.stringify(tool.args),
-      result: tool.result,
+      timing: {
+        startedAt: tool.startedAt,
+        ...(tool.completedAt !== undefined ? { completedAt: tool.completedAt } : {}),
+      },
+      result,
     })
   }
   return contentParts.length > 0
@@ -262,6 +271,8 @@ async function* runUIStreamProtocol(
           toolCallId: part.toolCallId,
           toolName: part.toolName,
           args: {},
+          argsComplete: false,
+          startedAt: Date.now(),
         })
         argsText.set(part.toolCallId, "")
         reportToolStart(part.toolName)
@@ -283,10 +294,13 @@ async function* runUIStreamProtocol(
           toolCallId: part.toolCallId,
           toolName: part.toolName,
           args: parseArgsSafely(argsText.get(part.toolCallId)),
+          argsComplete: true,
+          startedAt: Date.now(),
         }
         if (part.input && typeof part.input === "object") {
           existing.args = part.input as Record<string, unknown>
         }
+        existing.argsComplete = true
         toolCalls.set(part.toolCallId, existing)
         break
       }
@@ -295,11 +309,14 @@ async function* runUIStreamProtocol(
           toolCallId: part.toolCallId,
           toolName: "unknown",
           args: parseArgsSafely(argsText.get(part.toolCallId)),
+          argsComplete: true,
+          startedAt: Date.now(),
         }
         existing.result =
           part.output && typeof part.output === "object"
             ? (part.output as Record<string, unknown>)
             : { text: String(part.output ?? "") }
+        existing.completedAt = Date.now()
         toolCalls.set(part.toolCallId, existing)
         reportToolDone()
         break
@@ -353,6 +370,8 @@ async function* runLegacyProtocol(
           toolCallId: event.callId,
           toolName: event.toolName,
           args: {},
+          argsComplete: false,
+          startedAt: Date.now(),
         })
         reportToolStart(event.toolName)
         break
@@ -362,6 +381,7 @@ async function* runLegacyProtocol(
         if (existing) {
           const parsed = tryParseJSONObject(event.delta)
           if (parsed) existing.args = parsed
+          existing.argsComplete = true
         }
         break
       }
@@ -370,8 +390,11 @@ async function* runLegacyProtocol(
           toolCallId: event.callId,
           toolName: event.toolName,
           args: {},
+          argsComplete: true,
+          startedAt: Date.now(),
         }
         existing.result = event.result
+        existing.completedAt = Date.now()
         toolCalls.set(event.callId, existing)
         reportToolDone()
         break

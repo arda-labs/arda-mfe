@@ -116,7 +116,8 @@
     "messages_suffix": "messages",
     "new": "New chat",
     "delete": "Delete conversation",
-    "history": "Chat History"
+    "history": "Chat History",
+    "current_new": "New conversation"
   },
   "fixture": {
     "notice": "Preview mode with sample data"
