@@ -5,4 +5,10 @@
   "workers_dev": true,
   "routes": [{ "pattern": "arda.io.vn/mfes/crm/*", "zone_name": "arda.io.vn" }],
   "assets": { "directory": "../.cloudflare/dist/crm" }
+,
+  "observability": {
+    "traces": {
+      "enabled": true
+    }
+  }
 }

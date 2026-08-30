@@ -5,4 +5,10 @@
   "workers_dev": true,
   "routes": [{ "pattern": "arda.io.vn/mfes/finance/*", "zone_name": "arda.io.vn" }],
   "assets": { "directory": "../.cloudflare/dist/finance" }
+,
+  "observability": {
+    "traces": {
+      "enabled": true
+    }
+  }
 }
