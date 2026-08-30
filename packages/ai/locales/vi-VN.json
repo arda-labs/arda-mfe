@@ -141,5 +141,8 @@
     "save": "Lưu cấu hình",
     "saving": "Đang lưu...",
     "close": "Đóng"
+  },
+  "scroll": {
+    "bottom": "Xem tin nhắn mới nhất"
   }
 }

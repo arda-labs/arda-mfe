@@ -141,5 +141,8 @@
     "save": "Save Settings",
     "saving": "Saving...",
     "close": "Close"
+  },
+  "scroll": {
+    "bottom": "Jump to latest message"
   }
 }
