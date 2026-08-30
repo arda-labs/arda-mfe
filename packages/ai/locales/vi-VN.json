@@ -10,7 +10,9 @@
     "thinking": "Olorin đang phân tích yêu cầu...",
     "searching": "Đang tìm kiếm API phù hợp...",
     "executing": "Đang truy vấn và xử lý dữ liệu...",
-    "responding": "Đang soạn câu trả lời..."
+    "responding": "Đang soạn câu trả lời...",
+    "tool_calling": "Đang gọi công cụ {tool}...",
+    "elapsed": "{seconds}s"
   },
   "composer": {
     "label": "Nội dung hỏi Olorin",

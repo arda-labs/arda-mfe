@@ -1,6 +1,13 @@
 import type { ChatModelAdapter, ChatModelRunUpdate } from "@assistant-ui/react"
 import { apiUrl } from "@workspace/api/url"
 import { collectOlorinContext } from "./registry"
+import {
+  reportRunEnd,
+  reportRunStart,
+  reportTextDelta,
+  reportToolDone,
+  reportToolStart,
+} from "./run-status"
 
 // Legacy AG-UI-style events emitted when the backend runs AI_PROTOCOL=v1.
 export type ArdaSSEEvent =
@@ -178,10 +185,15 @@ export function createArdaChatModelAdapter(
       }
 
       const protocol = response.headers.get("x-vercel-ai-ui-message-stream")
-      if (protocol === "v1") {
-        yield* runUIStreamProtocol(response.body.getReader())
-      } else {
-        yield* runLegacyProtocol(response.body.getReader())
+      reportRunStart(threadId)
+      try {
+        if (protocol === "v1") {
+          yield* runUIStreamProtocol(response.body.getReader())
+        } else {
+          yield* runLegacyProtocol(response.body.getReader())
+        }
+      } finally {
+        reportRunEnd()
       }
     },
   }
@@ -209,6 +221,7 @@ async function* runUIStreamProtocol(
     switch (part.type) {
       case "text-delta":
         accumulatedText += part.delta
+        reportTextDelta()
         break
       case "tool-input-start":
         toolCalls.set(part.toolCallId, {
@@ -217,6 +230,7 @@ async function* runUIStreamProtocol(
           args: {},
         })
         argsText.set(part.toolCallId, "")
+        reportToolStart(part.toolName)
         break
       case "tool-input-delta":
         argsText.set(
@@ -247,6 +261,7 @@ async function* runUIStreamProtocol(
             ? (part.output as Record<string, unknown>)
             : { text: String(part.output ?? "") }
         toolCalls.set(part.toolCallId, existing)
+        reportToolDone()
         break
       }
       case "tool-output-error":
@@ -290,6 +305,7 @@ async function* runLegacyProtocol(
       case "TEXT_MESSAGE_CONTENT":
         if (event.delta) {
           accumulatedText += event.delta
+          reportTextDelta()
         }
         break
       case "TOOL_CALL_START":
@@ -298,6 +314,7 @@ async function* runLegacyProtocol(
           toolName: event.toolName,
           args: {},
         })
+        reportToolStart(event.toolName)
         break
       case "TOOL_CALL_RESULT": {
         const existing = toolCalls.get(event.callId) ?? {
@@ -307,6 +324,7 @@ async function* runLegacyProtocol(
         }
         existing.result = event.result
         toolCalls.set(event.callId, existing)
+        reportToolDone()
         break
       }
       case "RUN_FINISHED":
