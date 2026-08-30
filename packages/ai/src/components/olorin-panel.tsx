@@ -44,6 +44,7 @@ import {
   GenericToolView,
 } from "./tool-ui"
 import { AISettingsDialog } from "./ai-settings-dialog"
+import { RunStatusBar } from "./run-status-bar"
 import { useOlorinContext } from "../context"
 import { collectOlorinContext } from "../registry"
 
@@ -179,6 +180,8 @@ export function OlorinPanel({
             }}
           />
         </ThreadPrimitive.Viewport>
+
+        <RunStatusBar />
 
         <ComposerPrimitive.Root className="border-t bg-background p-3">
           <div className="rounded-2xl border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">

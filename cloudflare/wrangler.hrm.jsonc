@@ -5,4 +5,10 @@
   "workers_dev": true,
   "routes": [{ "pattern": "arda.io.vn/mfes/hrm/*", "zone_name": "arda.io.vn" }],
   "assets": { "directory": "../.cloudflare/dist/hrm" }
+,
+  "observability": {
+    "traces": {
+      "enabled": true
+    }
+  }
 }

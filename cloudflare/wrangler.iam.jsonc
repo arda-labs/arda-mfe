@@ -5,4 +5,10 @@
   "workers_dev": true,
   "routes": [{ "pattern": "arda.io.vn/mfes/iam/*", "zone_name": "arda.io.vn" }],
   "assets": { "directory": "../.cloudflare/dist/iam" }
+,
+  "observability": {
+    "traces": {
+      "enabled": true
+    }
+  }
 }

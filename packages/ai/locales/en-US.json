@@ -10,7 +10,9 @@
     "thinking": "Olorin is analyzing your request...",
     "searching": "Searching for relevant APIs...",
     "executing": "Querying and processing data...",
-    "responding": "Preparing response..."
+    "responding": "Preparing response...",
+    "tool_calling": "Calling tool {tool}...",
+    "elapsed": "{seconds}s"
   },
   "composer": {
     "label": "Ask Olorin",
