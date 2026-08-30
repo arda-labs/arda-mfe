@@ -12,7 +12,7 @@ import {
 
 // AI SDK UI Message Stream v1 parts — the only SSE dialect the backend
 // emits (AI SDK spec; the response carries `x-vercel-ai-ui-message-stream: v1`).
-export type ArdaUIStreamPart =
+export type ArdaStreamPart =
   | { type: "start"; messageId?: string }
   | { type: "start-step" }
   | { type: "text-start"; id: string }
@@ -211,7 +211,7 @@ export function createArdaChatModelAdapter(
       }
       reportRunStart(threadId)
       try {
-        yield* runUIStreamProtocol(response.body.getReader())
+        yield* runStream(response.body.getReader())
         reportRunEnd()
       } catch (caught) {
         if (caught instanceof Error && caught.name === "AbortError") {
@@ -247,13 +247,13 @@ export function createArdaResumeStream(
       `Unsupported AI stream protocol: ${protocol ?? "none"} (expected v1)`
     )
   }
-  return runUIStreamProtocol(response.body.getReader())
+  return runStream(response.body.getReader())
 }
 
-// runUIStreamProtocol parses AI SDK UI Message Stream v1 parts:
+// runStream parses AI SDK UI Message Stream v1 parts:
 // streamed text deltas, streamed tool input (args reassembled from deltas),
 // structured tool outputs, and error parts that fail the run properly.
-async function* runUIStreamProtocol(
+async function* runStream(
   reader: ReadableStreamDefaultReader<Uint8Array>
 ): AsyncGenerator<ChatModelRunUpdate, void, unknown> {
   let accumulatedText = ""
@@ -263,9 +263,9 @@ async function* runUIStreamProtocol(
   const toolCalls = new Map<string, ToolCallState>()
 
   for await (const data of readSSEDataLines(reader)) {
-    let part: ArdaUIStreamPart
+    let part: ArdaStreamPart
     try {
-      part = JSON.parse(data) as ArdaUIStreamPart
+      part = JSON.parse(data) as ArdaStreamPart
     } catch {
       continue // tolerate a malformed line; the next line re-syncs
     }
