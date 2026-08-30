@@ -1,4 +1,4 @@
-import type { ChatModelAdapter, ChatModelRunUpdate } from "@assistant-ui/react"
+import type { ChatModelAdapter, ChatModelRunResult, ChatModelRunUpdate } from "@assistant-ui/react"
 import { apiUrl } from "@workspace/api/url"
 import { collectOlorinContext } from "./registry"
 import {
@@ -240,6 +240,25 @@ export function createArdaChatModelAdapter(
       }
     },
   }
+}
+
+// createArdaResumeStream wraps an execution-response SSE stream as an
+// assistant-ui run stream, for feeding HITL resume continuations into
+// runtime.thread.resumeRun({ stream }).
+export function createArdaResumeStream(
+  response: Response
+): AsyncGenerator<ChatModelRunResult, void, unknown> {
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`)
+  }
+  if (!response.body) {
+    throw new Error("No response stream available")
+  }
+  const protocol = response.headers.get("x-vercel-ai-ui-message-stream")
+  const reader = response.body.getReader()
+  return protocol === "v1"
+    ? runUIStreamProtocol(reader)
+    : runLegacyProtocol(reader)
 }
 
 // runUIStreamProtocol parses AI SDK UI Message Stream v1 parts (AI_PROTOCOL=v2):

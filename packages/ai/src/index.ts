@@ -47,7 +47,7 @@ export {
 } from "./messages"
 export { olorinFixtures, type FixtureMessage } from "./fixtures"
 export {
-  executeApprovedProposal,
+  fetchApprovedExecutionResponse,
   fetchConversationMessages,
   useOlorinConversations,
   type OlorinConversation,

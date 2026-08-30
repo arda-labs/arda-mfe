@@ -5,8 +5,9 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { ShieldCheck, Clock, AlertCircle } from "lucide-react"
 import {
-  executeApprovedProposal,
-} from "../conversations"
+  createArdaResumeStream,
+} from "../adapter"
+import { fetchApprovedExecutionResponse } from "../conversations"
 import { textValue, type ApprovalProposalView } from "../messages"
 import { useOlorinContext } from "../context"
 
@@ -70,23 +71,43 @@ export function ApprovalCard({
       if (nextStatus === "APPROVED" && resume) {
         setExecuting(true)
         try {
-          const executed = await executeApprovedProposal(proposal.id)
-          setStatus("EXECUTED")
-          if (executed.resumedReply) {
-            // Resume-capable backend streamed the continued agent turn; append
-            // it to the open thread so the user sees the follow-up reply.
+          const response = await fetchApprovedExecutionResponse(proposal.id)
+          if (!response.ok) {
+            let errorMsg = `HTTP ${response.status}`
             try {
-              runtime?.thread?.append({
-                role: "assistant",
-                content: [{ type: "text", text: executed.resumedReply }],
-              })
+              const body = (await response.json()) as Record<string, unknown>
+              if (body?.detail || body?.title || body?.error) {
+                errorMsg = String(body.detail || body.title || body.error)
+              }
             } catch {
-              // Thread unavailable (panel closed mid-execute); fall back to summary.
-              setExecutedSummary(executed.resumedReply)
+              // ignore json parse error
             }
-          } else {
-            setExecutedSummary(executed.summary)
+            throw new Error(errorMsg)
           }
+
+          const contentType = response.headers.get("content-type") ?? ""
+          if (contentType.includes("text/event-stream")) {
+            // Resume-capable backend: feed the continued agent turn into the
+            // runtime so it renders as a normal streamed assistant message.
+            runtime.thread.resumeRun({
+              parentId: null,
+              stream: () => createArdaResumeStream(response),
+            })
+            setStatus("EXECUTED")
+          } else {
+            const payload = (await response.json()) as {
+              result: { status: string; summary: string }
+            }
+            setStatus("EXECUTED")
+            setExecutedSummary(payload.result?.summary ?? "")
+          }
+        } catch (caught) {
+          setError(
+            caught instanceof Error && caught.message
+              ? caught.message
+              : (t("ai.approval.error") || "Không thể thực thi thao tác")
+          )
+          setStatus("APPROVED")
         } finally {
           setExecuting(false)
         }
