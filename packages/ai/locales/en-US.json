@@ -28,7 +28,8 @@
   "message": {
     "header": "Olorin · Arda Assistant",
     "thinking": "Preparing an answer…",
-    "copy": "Copy"
+    "copy": "Copy",
+    "reasoning": "Olorin is thinking"
   },
   "error": {
     "connection": "Could not connect. Please try again.",

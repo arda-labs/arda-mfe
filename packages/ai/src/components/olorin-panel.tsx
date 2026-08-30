@@ -9,6 +9,7 @@ import {
 import { useI18n } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@workspace/ui/components/collapsible"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import {
   ArrowDown,
+  Brain,
   ChevronDown,
   Copy,
   History,
@@ -325,6 +327,28 @@ function getInitials(name?: string): string | undefined {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
+// Chain-of-thought streamed by reasoning models (e.g. deepseek): collapsed by
+// default, expandable for users who want to inspect the thinking.
+function ReasoningDisplay({ text }: { text: string }) {
+  const { t } = useI18n()
+  const [open, setOpen] = React.useState(false)
+
+  return (
+    <Collapsible className="mb-2 w-full" open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+        <Brain className="size-3 text-primary" />
+        <span>{t("ai.message.reasoning") || "Suy nghĩ của Olorin"}</span>
+        <ChevronDown className="size-3 transition-transform group-data-[state=open]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="mt-1.5 whitespace-pre-wrap border-l-2 border-primary/30 pl-3 text-xs leading-relaxed text-muted-foreground">
+          {text}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
+
 // Floating scroll-to-bottom driven by the library's viewport state
 // (isAtBottom/scrollToBottom) instead of manual DOM scroll tracking.
 function ScrollToBottomButton() {
@@ -359,6 +383,7 @@ function AssistantMessage() {
             <MessagePrimitive.Parts
               components={{
                 Text: ({ text }) => <MarkdownMessage content={text} />,
+                Reasoning: ReasoningDisplay,
                 tools: {
                   by_name: {
                     search: SearchMetaToolUI,

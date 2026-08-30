@@ -25,6 +25,7 @@ export type ArdaSSEEvent =
       toolName: string
       delta: string
     }
+  | { type: "REASONING_CONTENT"; threadId: string; runId: string; messageId: string; delta: string }
   | {
       type: "TOOL_CALL_RESULT"
       threadId: string
@@ -43,11 +44,15 @@ export type ArdaUIStreamPart =
   | { type: "text-start"; id: string }
   | { type: "text-delta"; id: string; delta: string }
   | { type: "text-end"; id: string }
+  | { type: "reasoning-start"; id: string }
+  | { type: "reasoning-delta"; id: string; delta: string }
+  | { type: "reasoning-end"; id: string }
   | { type: "tool-input-start"; toolCallId: string; toolName: string }
   | { type: "tool-input-delta"; toolCallId: string; inputTextDelta: string }
   | { type: "tool-input-available"; toolCallId: string; toolName: string; input: unknown }
   | { type: "tool-output-available"; toolCallId: string; output: unknown }
   | { type: "tool-output-error"; toolCallId: string; errorText: string }
+  | { type: "tool-approval-request"; toolCallId: string; approvalId: string; reason?: string }
   | { type: "error"; errorText: string }
   | { type: "finish-step" }
   | { type: "finish"; finishReason?: string }
@@ -69,14 +74,18 @@ type ToolCallState = {
   completedAt?: number
 }
 
-// buildContent mirrors the adapter state (text + tool calls) into the
-// assistant-ui message content shape. Tool parts carry library-native
-// status/timing so primitives (useToolCallElapsed, approval UI) work.
+// buildContent mirrors the adapter state (text + reasoning + tool calls) into
+// the assistant-ui message content shape. Tool parts carry library-native
+// timing so primitives (useToolCallElapsed) work.
 function buildContent(
   accumulatedText: string,
+  reasoningText: string,
   toolCalls: IterableIterator<ToolCallState>
 ): MessagePart[] {
   const contentParts: MessagePart[] = []
+  if (reasoningText) {
+    contentParts.push({ type: "reasoning", text: reasoningText })
+  }
   if (accumulatedText) {
     contentParts.push({ type: "text", text: accumulatedText })
   }
@@ -268,6 +277,7 @@ async function* runUIStreamProtocol(
   reader: ReadableStreamDefaultReader<Uint8Array>
 ): AsyncGenerator<ChatModelRunUpdate, void, unknown> {
   let accumulatedText = ""
+  let accumulatedReasoning = ""
   let streamError: string | null = null
   const argsText = new Map<string, string>()
   const toolCalls = new Map<string, ToolCallState>()
@@ -284,6 +294,9 @@ async function* runUIStreamProtocol(
       case "text-delta":
         accumulatedText += part.delta
         reportTextDelta()
+        break
+      case "reasoning-delta":
+        accumulatedReasoning += part.delta
         break
       case "tool-input-start":
         toolCalls.set(part.toolCallId, {
@@ -352,7 +365,7 @@ async function* runUIStreamProtocol(
     }
 
     yield {
-      content: buildContent(accumulatedText, toolCalls.values()),
+      content: buildContent(accumulatedText, accumulatedReasoning, toolCalls.values()),
     }
   }
 
@@ -366,6 +379,7 @@ async function* runLegacyProtocol(
   reader: ReadableStreamDefaultReader<Uint8Array>
 ): AsyncGenerator<ChatModelRunUpdate, void, unknown> {
   let accumulatedText = ""
+  let accumulatedReasoning = ""
   let streamError: string | null = null
   const toolCalls = new Map<string, ToolCallState>()
 
@@ -383,6 +397,9 @@ async function* runLegacyProtocol(
           accumulatedText += event.delta
           reportTextDelta()
         }
+        break
+      case "REASONING_CONTENT":
+        accumulatedReasoning += event.delta
         break
       case "TOOL_CALL_START":
         toolCalls.set(event.callId, {
@@ -428,7 +445,7 @@ async function* runLegacyProtocol(
     }
 
     yield {
-      content: buildContent(accumulatedText, toolCalls.values()),
+      content: buildContent(accumulatedText, accumulatedReasoning, toolCalls.values()),
     }
   }
 

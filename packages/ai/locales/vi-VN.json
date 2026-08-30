@@ -28,7 +28,8 @@
   "message": {
     "header": "Olorin · Trợ lý Arda",
     "thinking": "Đang chuẩn bị câu trả lời…",
-    "copy": "Sao chép"
+    "copy": "Sao chép",
+    "reasoning": "Suy nghĩ của Olorin"
   },
   "error": {
     "connection": "Không thể kết nối. Vui lòng thử lại.",
