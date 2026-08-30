@@ -42,5 +42,9 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@assistant-ui/react": "^0.15.17",
+    "@assistant-ui/react-markdown": "^0.14.13"
+  }
 }
