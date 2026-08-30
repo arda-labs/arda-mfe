@@ -3,7 +3,6 @@ import { apiUrl } from "@workspace/api/url"
 import { collectOlorinContext } from "./registry"
 import {
   reportRunEnd,
-  reportRunFailed,
   reportRunStart,
   reportTextDelta,
   reportToolDone,
@@ -216,13 +215,9 @@ export function createArdaChatModelAdapter(
       } catch (caught) {
         if (caught instanceof Error && caught.name === "AbortError") {
           reportRunEnd()
-        } else {
-          reportRunFailed(
-            caught instanceof Error && caught.message
-              ? caught.message
-              : String(caught)
-          )
         }
+        // The runtime marks the assistant message status error itself from
+        // the thrown error — no store bookkeeping needed here.
         throw caught
       }
     },

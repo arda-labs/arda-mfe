@@ -1,8 +1,9 @@
-// Live run-status store shared between the SSE adapter (producer) and UI
-// components (consumers). The adapter reports phase transitions as they
-// arrive on the wire; the status bar renders them. One store for the whole
-// app is fine: only one run streams at a time, and reports are thread-scoped
-// so a stale thread switch never shows the wrong run.
+// Live run-status store shared between the SSE adapter (producer) and the
+// status bar (consumer). The adapter reports phase transitions as they arrive
+// on the wire; the status bar renders them. One store for the whole app is
+// fine: only one run streams at a time, and reports are thread-scoped so a
+// stale thread switch never shows the wrong run. Terminal errors are NOT kept
+// here — the runtime marks the assistant message status itself.
 
 export type OlorinRunPhase = "idle" | "thinking" | "tool" | "responding"
 
@@ -11,8 +12,6 @@ export type OlorinRunStatus = {
   phase: OlorinRunPhase
   toolName: string | null
   startedAt: number | null
-  /** Terminal error message of the last failed run for this thread, if any. */
-  error: string | null
 }
 
 let snapshot: OlorinRunStatus = {
@@ -20,7 +19,6 @@ let snapshot: OlorinRunStatus = {
   phase: "idle",
   toolName: null,
   startedAt: null,
-  error: null,
 }
 
 const listeners = new Set<() => void>()
@@ -30,8 +28,7 @@ function set(next: OlorinRunStatus): void {
     snapshot.threadId === next.threadId &&
     snapshot.phase === next.phase &&
     snapshot.toolName === next.toolName &&
-    snapshot.startedAt === next.startedAt &&
-    snapshot.error === next.error
+    snapshot.startedAt === next.startedAt
   ) {
     return // no-op reports (e.g. every text delta) never re-render the UI
   }
@@ -41,7 +38,7 @@ function set(next: OlorinRunStatus): void {
 
 /** Called by the adapter when a run starts streaming. */
 export function reportRunStart(threadId: string): void {
-  set({ threadId, phase: "thinking", toolName: null, startedAt: Date.now(), error: null })
+  set({ threadId, phase: "thinking", toolName: null, startedAt: Date.now() })
 }
 
 /** Called when the model starts streaming a tool call. */
@@ -65,19 +62,7 @@ export function reportToolDone(): void {
 
 /** Called when the stream ends successfully or is aborted. */
 export function reportRunEnd(): void {
-  set({ threadId: null, phase: "idle", toolName: null, startedAt: null, error: null })
-}
-
-/** Called when the stream ends with an error; `error` is shown to the user. */
-export function reportRunFailed(error: string): void {
-  set({ threadId: snapshot.threadId, phase: "idle", toolName: null, startedAt: null, error })
-}
-
-/** Clears the terminal error bubble without starting a run. */
-export function clearRunError(): void {
-  if (snapshot.error !== null) {
-    set({ ...snapshot, error: null })
-  }
+  set({ threadId: null, phase: "idle", toolName: null, startedAt: null })
 }
 
 export function subscribeOlorinRunStatus(listener: () => void): () => void {

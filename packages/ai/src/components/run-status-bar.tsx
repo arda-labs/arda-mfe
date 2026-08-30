@@ -1,11 +1,11 @@
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { useI18n } from "@workspace/i18n"
+import { useAuiState } from "@assistant-ui/react"
 import { Sparkles } from "lucide-react"
 import { useOlorinContext } from "../context"
 import {
   getOlorinRunStatus,
   subscribeOlorinRunStatus,
-  type OlorinRunStatus,
 } from "../run-status"
 import { RunErrorCard } from "./run-error-card"
 import { RunStatusBanner, type RunPhase } from "./run-status-banner"
@@ -35,7 +35,10 @@ export function RunStatusBar() {
   return <RunStatusBarInner phase={phase} detail={detail} startedAt={status.startedAt} />
 }
 
-function toBannerPhase(status: OlorinRunStatus): RunPhase {
+function toBannerPhase(status: {
+  phase: "idle" | "thinking" | "tool" | "responding"
+  toolName: string | null
+}): RunPhase {
   switch (status.phase) {
     case "thinking":
       return "THINKING"
@@ -86,44 +89,46 @@ function useElapsedSeconds(startedAt: number | null): number | null {
   return Math.max(0, Math.floor((now - startedAt) / 1000))
 }
 
-// RunErrorBubble surfaces the terminal error of a failed run inline in the
-// thread (the adapter reports it through the run-status store), so users see
-// what went wrong immediately instead of only after reloading history.
-export function RunErrorBubble() {
-  const { threadId } = useOlorinContext()
-  const status = useSyncExternalStore(
-    subscribeOlorinRunStatus,
-    getOlorinRunStatus,
-    getOlorinRunStatus
-  )
-
-  if (!status.error || status.threadId !== threadId) {
-    return null
+// Reads the terminal error off the last assistant message status (the runtime
+// sets {type:"incomplete", reason:"error"} when the run throws) — no separate
+// error store needed.
+function useLastRunError(): string | null {
+  const messages = useAuiState((s) => s.thread.messages)
+  const last = messages[messages.length - 1]
+  if (!last || last.role !== "assistant") return null
+  const status = last.status
+  if (status?.type !== "incomplete" || status.reason !== "error") return null
+  if (typeof status.error === "string") return status.error
+  if (
+    status.error &&
+    typeof status.error === "object" &&
+    "message" in status.error &&
+    typeof (status.error as { message?: unknown }).message === "string"
+  ) {
+    return (status.error as { message: string }).message
   }
-
-  return (
-    <RunErrorCard
-      error={status.error}
-      className="mx-auto w-full max-w-[90%]"
-    />
-  )
+  return null
 }
 
-// ThinkingBubble is the skeleton assistant placeholder shown between the
-// user sending a message and the first streamed content. Once the run moves
-// to a tool call or text, the real content (pending tool cards / streamed
-// text) takes over and the skeleton disappears.
-export function ThinkingBubble() {
-  const { threadId } = useOlorinContext()
-  const status = useSyncExternalStore(
-    subscribeOlorinRunStatus,
-    getOlorinRunStatus,
-    getOlorinRunStatus
-  )
+// RunErrorBubble surfaces the terminal error of a failed run inline in the
+// thread, driven by the message status the runtime set for the failed run.
+export function RunErrorBubble() {
+  const error = useLastRunError()
+  if (!error) return null
+  return <RunErrorCard error={error} className="mx-auto w-full max-w-[90%]" />
+}
 
-  if (status.phase !== "thinking" || status.threadId !== threadId) {
-    return null
-  }
+// ThinkingBubble is the skeleton assistant placeholder shown while the model
+// is working but has not yet emitted any content or tool call. Driven by
+// thread state (running + last assistant message without content) instead of
+// a custom store.
+export function ThinkingBubble() {
+  const isRunning = useAuiState((s) => s.thread.isRunning)
+  const messages = useAuiState((s) => s.thread.messages)
+  const last = messages[messages.length - 1]
+  const show =
+    isRunning && (!last || last.role !== "assistant" || last.content.length === 0)
+  if (!show) return null
 
   return (
     <div
