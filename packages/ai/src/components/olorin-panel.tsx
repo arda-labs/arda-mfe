@@ -45,7 +45,7 @@ import {
   GenericToolView,
 } from "./tool-ui"
 import { AISettingsDialog } from "./ai-settings-dialog"
-import { RunStatusBar, ThinkingBubble } from "./run-status-bar"
+import { RunStatusBar, RunErrorBubble, ThinkingBubble } from "./run-status-bar"
 import { useOlorinContext } from "../context"
 import { collectOlorinContext } from "../registry"
 
@@ -182,6 +182,7 @@ export function OlorinPanel({
           />
 
           <ThinkingBubble />
+          <RunErrorBubble />
         </ThreadViewportWithScroll>
 
         <RunStatusBar />

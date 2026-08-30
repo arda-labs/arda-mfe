@@ -11,6 +11,8 @@ export type OlorinRunStatus = {
   phase: OlorinRunPhase
   toolName: string | null
   startedAt: number | null
+  /** Terminal error message of the last failed run for this thread, if any. */
+  error: string | null
 }
 
 let snapshot: OlorinRunStatus = {
@@ -18,6 +20,7 @@ let snapshot: OlorinRunStatus = {
   phase: "idle",
   toolName: null,
   startedAt: null,
+  error: null,
 }
 
 const listeners = new Set<() => void>()
@@ -27,7 +30,8 @@ function set(next: OlorinRunStatus): void {
     snapshot.threadId === next.threadId &&
     snapshot.phase === next.phase &&
     snapshot.toolName === next.toolName &&
-    snapshot.startedAt === next.startedAt
+    snapshot.startedAt === next.startedAt &&
+    snapshot.error === next.error
   ) {
     return // no-op reports (e.g. every text delta) never re-render the UI
   }
@@ -37,7 +41,7 @@ function set(next: OlorinRunStatus): void {
 
 /** Called by the adapter when a run starts streaming. */
 export function reportRunStart(threadId: string): void {
-  set({ threadId, phase: "thinking", toolName: null, startedAt: Date.now() })
+  set({ threadId, phase: "thinking", toolName: null, startedAt: Date.now(), error: null })
 }
 
 /** Called when the model starts streaming a tool call. */
@@ -59,10 +63,20 @@ export function reportToolDone(): void {
   }
 }
 
-/** Called when the stream ends, errors, or is aborted. */
+/** Called when the stream ends successfully or is aborted. */
 export function reportRunEnd(): void {
-  if (snapshot.phase !== "idle") {
-    set({ threadId: null, phase: "idle", toolName: null, startedAt: null })
+  set({ threadId: null, phase: "idle", toolName: null, startedAt: null, error: null })
+}
+
+/** Called when the stream ends with an error; `error` is shown to the user. */
+export function reportRunFailed(error: string): void {
+  set({ threadId: snapshot.threadId, phase: "idle", toolName: null, startedAt: null, error })
+}
+
+/** Clears the terminal error bubble without starting a run. */
+export function clearRunError(): void {
+  if (snapshot.error !== null) {
+    set({ ...snapshot, error: null })
   }
 }
 

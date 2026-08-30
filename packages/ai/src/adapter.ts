@@ -3,6 +3,7 @@ import { apiUrl } from "@workspace/api/url"
 import { collectOlorinContext } from "./registry"
 import {
   reportRunEnd,
+  reportRunFailed,
   reportRunStart,
   reportTextDelta,
   reportToolDone,
@@ -215,8 +216,18 @@ export function createArdaChatModelAdapter(
         } else {
           yield* runLegacyProtocol(response.body.getReader())
         }
-      } finally {
         reportRunEnd()
+      } catch (caught) {
+        if (caught instanceof Error && caught.name === "AbortError") {
+          reportRunEnd()
+        } else {
+          reportRunFailed(
+            caught instanceof Error && caught.message
+              ? caught.message
+              : String(caught)
+          )
+        }
+        throw caught
       }
     },
   }

@@ -123,7 +123,11 @@ export function AISettingsDialog({
   const [showKey, setShowKey] = React.useState(false)
   const [hasExistingKey, setHasExistingKey] = React.useState(false)
 
-  const [loading, setLoading] = React.useState(false)
+  // "idle" → fetch on open → "ready"; reset to "idle" on close via
+  // handleOpenChange so no setState runs synchronously inside an effect.
+  // While open and still idle the fetch is in flight → show the spinner.
+  const [loadState, setLoadState] = React.useState<"idle" | "ready">("idle")
+  const loading = open && loadState === "idle"
   const [testing, setTesting] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
   const [testResult, setTestResult] = React.useState<TestConnectionResult | null>(null)
@@ -136,37 +140,36 @@ export function AISettingsDialog({
 
   // Load existing settings on open
   React.useEffect(() => {
-    if (!open) {
-      setTestResult(null)
-      setSaveSuccess(false)
-      return
-    }
-
-    setLoading(true)
+    if (!open || loadState !== "idle") return
+    let cancelled = false
     fetchAISettings()
       .then((data: AISettings) => {
+        if (cancelled) return
         if (data.providerType) setProviderType(data.providerType)
         if (data.baseUrl) setBaseUrl(data.baseUrl)
         if (data.modelId) setModelId(data.modelId)
         if (data.apiKey) setApiKey(data.apiKey)
         setHasExistingKey(Boolean(data.hasApiKey || data.apiKey))
+        setLoadState("ready")
       })
       .catch(() => {
-        // Use defaults if not found
+        // Keep defaults if not found
+        if (!cancelled) setLoadState("ready")
       })
-      .finally(() => setLoading(false))
-  }, [open])
+    return () => {
+      cancelled = true
+    }
+  }, [open, loadState])
 
   // Profiles load separately: a failure surfaces as an explicit error with
   // retry instead of silently rendering an empty list (fail-open).
   React.useEffect(() => {
-    if (!open) {
-      setProfilesError(false)
-      return
-    }
-    setProfilesError(false)
+    if (!open) return
     listAIProfiles()
-      .then(setProfiles)
+      .then((items) => {
+        setProfiles(items)
+        setProfilesError(false)
+      })
       .catch(() => setProfilesError(true))
   }, [open])
 
@@ -247,6 +250,18 @@ export function AISettingsDialog({
 
   const currentPreset = PRESETS.find((p) => p.id === providerType)
 
+  // Reset transient feedback when the dialog closes. Done in the close
+  // handler (not an effect) so no setState runs synchronously during render.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setTestResult(null)
+      setSaveSuccess(false)
+      setProfilesError(false)
+      setLoadState("idle")
+    }
+    onOpenChange(next)
+  }
+
   const handleSaveProfile = async () => {
     if (!profileName.trim()) return
     setProfileBusy(true)
@@ -300,7 +315,7 @@ export function AISettingsDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/20">
           <div className="flex items-center gap-2">

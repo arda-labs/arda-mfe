@@ -7,6 +7,7 @@ import {
   subscribeOlorinRunStatus,
   type OlorinRunStatus,
 } from "../run-status"
+import { RunErrorCard } from "./run-error-card"
 import { RunStatusBanner, type RunPhase } from "./run-status-banner"
 
 // Live activity bar: renders nothing until a run streams, then shows what
@@ -77,13 +78,35 @@ function useElapsedSeconds(startedAt: number | null): number | null {
 
   useEffect(() => {
     if (!active) return
-    setNow(Date.now())
     const interval = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(interval)
   }, [active, startedAt])
 
   if (!active || startedAt === null) return null
   return Math.max(0, Math.floor((now - startedAt) / 1000))
+}
+
+// RunErrorBubble surfaces the terminal error of a failed run inline in the
+// thread (the adapter reports it through the run-status store), so users see
+// what went wrong immediately instead of only after reloading history.
+export function RunErrorBubble() {
+  const { threadId } = useOlorinContext()
+  const status = useSyncExternalStore(
+    subscribeOlorinRunStatus,
+    getOlorinRunStatus,
+    getOlorinRunStatus
+  )
+
+  if (!status.error || status.threadId !== threadId) {
+    return null
+  }
+
+  return (
+    <RunErrorCard
+      error={status.error}
+      className="mx-auto w-full max-w-[90%]"
+    />
+  )
 }
 
 // ThinkingBubble is the skeleton assistant placeholder shown between the
