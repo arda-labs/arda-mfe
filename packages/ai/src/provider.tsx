@@ -94,7 +94,7 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
       threadList: {
         onSwitchToThread: async (nextThreadId) => {
           const history = await fetchConversationMessages(nextThreadId)
-          const messages = history.map((item, index) =>
+          const messages = history.map((item) =>
             toThreadMessage(item, `hist-${nextThreadId}-${item.sequence}`)
           )
           return { messages }
