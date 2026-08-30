@@ -91,6 +91,12 @@ export interface ApiRequestOptions {
   signal?: AbortSignal
   /** Standard command retry key; sent as Idempotency-Key, never as a body guess. */
   idempotencyKey?: string
+  /**
+   * Suppress the global onUnauthorized logout for this call. Use for flows
+   * that legitimately return 401 as part of their protocol (step-up OTP,
+   * login probes) — a wrong OTP there must not kill the user's session.
+   */
+  skipAuthFailureRedirect?: boolean
 }
 
 export function createApiClient(options: CreateApiClientOptions = {}) {
@@ -136,7 +142,7 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
 
     if (res.status === 401) {
       const payload = await parseApiClientError(res)
-      if (isAuthenticationFailureCode(payload.code)) {
+      if (isAuthenticationFailureCode(payload.code) && !requestOptions.skipAuthFailureRedirect) {
         await options.onUnauthorized?.()
       }
       throw new ApiClientError(

@@ -71,9 +71,12 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
     setSubmitting(true)
     setError("")
     try {
+      // skipAuthFailureRedirect: a wrong OTP is a step-up failure, not a
+      // global session loss — never log the user out from inside the dialog.
       await api.post(
         "/api/auth/step-up",
-        mfaEnrolled ? { code: code.trim() } : { confirm: true }
+        mfaEnrolled ? { code: code.trim() } : { confirm: true },
+        { skipAuthFailureRedirect: true }
       )
       close(true)
     } catch {
