@@ -5,11 +5,17 @@ import {
   ComposerPrimitive,
   ActionBarPrimitive,
   useThreadViewport,
+  groupPartByType,
 } from "@assistant-ui/react"
+import {
+  ReasoningRoot,
+  ReasoningTrigger,
+  ReasoningContent,
+  ReasoningText,
+} from "../reasoning"
 import { useI18n } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@workspace/ui/components/collapsible"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +25,6 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import {
   ArrowDown,
-  Brain,
   ChevronDown,
   Copy,
   History,
@@ -260,6 +265,10 @@ export function OlorinPanel({
       </ThreadPrimitive.Root>
 
       <AISettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      {/* Registered meta-tool UIs — mounted once so part.toolUI can resolve
+          them by name inside GroupedParts. */}
+      <SearchMetaToolUI />
+      <ExecuteMetaToolUI />
     </div>
   )
 }
@@ -327,28 +336,6 @@ function getInitials(name?: string): string | undefined {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-// Chain-of-thought streamed by reasoning models (e.g. deepseek): collapsed by
-// default, expandable for users who want to inspect the thinking.
-function ReasoningDisplay({ text }: { text: string }) {
-  const { t } = useI18n()
-  const [open, setOpen] = React.useState(false)
-
-  return (
-    <Collapsible className="mb-2 w-full" open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-        <Brain className="size-3 text-primary" />
-        <span>{t("ai.message.reasoning") || "Suy nghĩ của Olorin"}</span>
-        <ChevronDown className="size-3 transition-transform group-data-[state=open]:rotate-180" />
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="mt-1.5 whitespace-pre-wrap border-l-2 border-primary/30 pl-3 text-xs leading-relaxed text-muted-foreground">
-          {text}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
-  )
-}
-
 // Floating scroll-to-bottom driven by the library's viewport state
 // (isAtBottom/scrollToBottom) instead of manual DOM scroll tracking.
 function ScrollToBottomButton() {
@@ -383,24 +370,63 @@ function AssistantMessage() {
               the first content part arrives; hide the bare card so the
               ThinkingBubble skeleton is the single visible placeholder. */}
           <div className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 text-sm leading-relaxed shadow-2xs text-foreground empty:hidden">
-            <MessagePrimitive.Parts
-              components={{
-                Text: ({ text }) => <MarkdownMessage content={text} />,
-                Reasoning: ReasoningDisplay,
-                tools: {
-                  by_name: {
-                    search: SearchMetaToolUI,
-                    execute: ExecuteMetaToolUI,
-                  },
-                  Fallback: ({ toolName, result }) => (
-                    <GenericToolView
-                      toolName={toolName}
-                      result={result as Record<string, unknown>}
-                    />
-                  ),
-                },
+            {/* GroupedParts + groupPartByType — the official chain-of-thought
+                pattern: consecutive reasoning/tool-call parts fold into one
+                collapsible thinking section (ChatGPT-style). */}
+            <MessagePrimitive.GroupedParts
+              groupBy={groupPartByType({
+                reasoning: ["group-chainOfThought", "group-reasoning"],
+                "tool-call": ["group-chainOfThought", "group-tool"],
+              })}
+            >
+              {({ part, children }) => {
+                switch (part.type) {
+                  case "group-chainOfThought":
+                    return <div className="mb-2">{children}</div>
+                  case "group-reasoning": {
+                    const running = part.status.type === "running"
+                    return (
+                      <ReasoningRoot streaming={running}>
+                        <ReasoningTrigger active={running} />
+                        <ReasoningContent aria-busy={running}>
+                          <ReasoningText>{children}</ReasoningText>
+                        </ReasoningContent>
+                      </ReasoningRoot>
+                    )
+                  }
+                  case "group-tool":
+                    return <div className="space-y-2">{children}</div>
+                  case "text":
+                    return <MarkdownMessage content={part.text ?? ""} />
+                  case "reasoning":
+                    return (
+                      <MarkdownMessage
+                        content={part.text ?? ""}
+                        className="text-xs leading-relaxed text-muted-foreground"
+                      />
+                    )
+                  case "indicator":
+                    // Streaming with no renderable parts yet — the ThinkingBubble
+                    // skeleton outside the card covers this.
+                    return null
+                  case "tool-call": {
+                    // Meta tools (search/execute) register via the mounted
+                    // makeAssistantToolUI components below; part.toolUI resolves
+                    // them. Anything else falls back to the generic view.
+                    return (
+                      part.toolUI ?? (
+                        <GenericToolView
+                          toolName={part.toolName}
+                          result={part.result as Record<string, unknown>}
+                        />
+                      )
+                    )
+                  }
+                  default:
+                    return null
+                }
               }}
-            />
+            </MessagePrimitive.GroupedParts>
           </div>
           <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover/message:opacity-100 pl-1">
             <ActionBarPrimitive.Root className="flex items-center gap-0.5">
