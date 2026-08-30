@@ -55,7 +55,6 @@ export {
 } from "./conversations"
 export {
   createArdaChatModelAdapter,
-  type ArdaSSEEvent,
   type ArdaChatModelAdapterOptions,
 } from "./adapter"
 export {

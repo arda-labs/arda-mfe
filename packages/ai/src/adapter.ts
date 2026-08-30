@@ -10,34 +10,8 @@ import {
   reportToolStart,
 } from "./run-status"
 
-// Legacy AG-UI-style events emitted when the backend runs AI_PROTOCOL=v1.
-export type ArdaSSEEvent =
-  | { type: "RUN_STARTED"; threadId: string; runId: string }
-  | { type: "TEXT_MESSAGE_START"; threadId: string; runId: string; messageId: string }
-  | { type: "TEXT_MESSAGE_CONTENT"; threadId: string; runId: string; messageId: string; delta: string }
-  | { type: "TEXT_MESSAGE_END"; threadId: string; runId: string; messageId: string }
-  | { type: "TOOL_CALL_START"; threadId: string; runId: string; callId: string; toolName: string }
-  | {
-      type: "TOOL_CALL_ARGS"
-      threadId: string
-      runId: string
-      callId: string
-      toolName: string
-      delta: string
-    }
-  | { type: "REASONING_CONTENT"; threadId: string; runId: string; messageId: string; delta: string }
-  | {
-      type: "TOOL_CALL_RESULT"
-      threadId: string
-      runId: string
-      callId: string
-      toolName: string
-      result: Record<string, unknown>
-    }
-  | { type: "RUN_FINISHED"; threadId: string; runId: string; error?: string }
-
-// AI SDK UI Message Stream v1 parts, emitted when AI_PROTOCOL=v2.
-// Shapes follow the vercel/ai UIMessageChunk spec.
+// AI SDK UI Message Stream v1 parts — the only SSE dialect the backend
+// emits (AI SDK spec; the response carries `x-vercel-ai-ui-message-stream: v1`).
 export type ArdaUIStreamPart =
   | { type: "start"; messageId?: string }
   | { type: "start-step" }
@@ -227,13 +201,17 @@ export function createArdaChatModelAdapter(
       }
 
       const protocol = response.headers.get("x-vercel-ai-ui-message-stream")
+      if (protocol !== "v1") {
+        // The only supported SSE dialect is AI SDK UI Message Stream v1.
+        // Anything else is a backend mismatch — fail loudly instead of
+        // silently swallowing the stream.
+        throw new Error(
+          `Unsupported AI stream protocol: ${protocol ?? "none"} (expected v1)`
+        )
+      }
       reportRunStart(threadId)
       try {
-        if (protocol === "v1") {
-          yield* runUIStreamProtocol(response.body.getReader())
-        } else {
-          yield* runLegacyProtocol(response.body.getReader())
-        }
+        yield* runUIStreamProtocol(response.body.getReader())
         reportRunEnd()
       } catch (caught) {
         if (caught instanceof Error && caught.name === "AbortError") {
@@ -264,13 +242,15 @@ export function createArdaResumeStream(
     throw new Error("No response stream available")
   }
   const protocol = response.headers.get("x-vercel-ai-ui-message-stream")
-  const reader = response.body.getReader()
-  return protocol === "v1"
-    ? runUIStreamProtocol(reader)
-    : runLegacyProtocol(reader)
+  if (protocol !== "v1") {
+    throw new Error(
+      `Unsupported AI stream protocol: ${protocol ?? "none"} (expected v1)`
+    )
+  }
+  return runUIStreamProtocol(response.body.getReader())
 }
 
-// runUIStreamProtocol parses AI SDK UI Message Stream v1 parts (AI_PROTOCOL=v2):
+// runUIStreamProtocol parses AI SDK UI Message Stream v1 parts:
 // streamed text deltas, streamed tool input (args reassembled from deltas),
 // structured tool outputs, and error parts that fail the run properly.
 async function* runUIStreamProtocol(
@@ -370,87 +350,6 @@ async function* runUIStreamProtocol(
   }
 
   if (streamError) {
-    throw new Error(streamError)
-  }
-}
-
-// runLegacyProtocol parses the AG-UI-style events (AI_PROTOCOL=v1, default).
-async function* runLegacyProtocol(
-  reader: ReadableStreamDefaultReader<Uint8Array>
-): AsyncGenerator<ChatModelRunUpdate, void, unknown> {
-  let accumulatedText = ""
-  let accumulatedReasoning = ""
-  let streamError: string | null = null
-  const toolCalls = new Map<string, ToolCallState>()
-
-  for await (const data of readSSEDataLines(reader)) {
-    let event: ArdaSSEEvent
-    try {
-      event = JSON.parse(data) as ArdaSSEEvent
-    } catch {
-      continue
-    }
-
-    switch (event.type) {
-      case "TEXT_MESSAGE_CONTENT":
-        if (event.delta) {
-          accumulatedText += event.delta
-          reportTextDelta()
-        }
-        break
-      case "REASONING_CONTENT":
-        accumulatedReasoning += event.delta
-        break
-      case "TOOL_CALL_START":
-        toolCalls.set(event.callId, {
-          toolCallId: event.callId,
-          toolName: event.toolName,
-          args: {},
-          argsComplete: false,
-          startedAt: Date.now(),
-        })
-        reportToolStart(event.toolName)
-        break
-      case "TOOL_CALL_ARGS": {
-        // Legacy protocol sends the full argument payload in one event.
-        const existing = toolCalls.get(event.callId)
-        if (existing) {
-          const parsed = tryParseJSONObject(event.delta)
-          if (parsed) existing.args = parsed
-          existing.argsComplete = true
-        }
-        break
-      }
-      case "TOOL_CALL_RESULT": {
-        const existing = toolCalls.get(event.callId) ?? {
-          toolCallId: event.callId,
-          toolName: event.toolName,
-          args: {},
-          argsComplete: true,
-          startedAt: Date.now(),
-        }
-        existing.result = event.result
-        existing.completedAt = Date.now()
-        toolCalls.set(event.callId, existing)
-        reportToolDone()
-        break
-      }
-      case "RUN_FINISHED":
-        if (event.error) {
-          streamError = event.error
-        }
-        break
-      default:
-        break
-    }
-
-    yield {
-      content: buildContent(accumulatedText, accumulatedReasoning, toolCalls.values()),
-    }
-  }
-
-  if (streamError) {
-    // Errors from the server must fail the run instead of ending silently.
     throw new Error(streamError)
   }
 }
