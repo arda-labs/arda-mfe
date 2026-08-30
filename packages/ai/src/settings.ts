@@ -38,3 +38,43 @@ export async function testAIConnection(payload: TestConnectionRequest): Promise<
   const response = await api.post<ApiSuccess<TestConnectionResult>>("/api/ai/settings/test", payload)
   return response.result
 }
+
+export interface AISettingProfile {
+  id: string
+  name: string
+  providerType: string
+  baseUrl: string
+  apiKey: string
+  modelId: string
+  temperature: number
+  isActive: boolean
+}
+
+export async function listAIProfiles(): Promise<AISettingProfile[]> {
+  const response = await api.get<ApiSuccess<AISettingProfile[]>>("/api/ai/settings/profiles")
+  return response.result ?? []
+}
+
+export async function createAIProfile(payload: {
+  name: string
+  providerType: string
+  baseUrl: string
+  apiKey: string
+  modelId: string
+  temperature: number
+  isActive?: boolean
+}): Promise<{ id: string }> {
+  const response = await api.post<ApiSuccess<{ id: string }>>("/api/ai/settings/profiles", payload)
+  return response.result
+}
+
+export async function activateAIProfile(id: string): Promise<{ id: string; name: string; baseUrl: string; modelId: string }> {
+  const response = await api.post<ApiSuccess<{ id: string; name: string; baseUrl: string; modelId: string }>>(
+    `/api/ai/settings/profiles/${encodeURIComponent(id)}/activate`
+  )
+  return response.result
+}
+
+export async function deleteAIProfile(id: string): Promise<void> {
+  await api.delete(`/api/ai/settings/profiles/${encodeURIComponent(id)}`)
+}

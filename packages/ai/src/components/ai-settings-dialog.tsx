@@ -11,21 +11,30 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { Badge } from "@workspace/ui/components/badge"
 import {
   CheckCircle2,
   Eye,
   EyeOff,
   Key,
+  Layers,
   Loader2,
+  Save,
   Server,
   Sparkles,
+  Trash2,
   XCircle,
 } from "lucide-react"
 
 import {
+  activateAIProfile,
+  createAIProfile,
+  deleteAIProfile,
   fetchAISettings,
+  listAIProfiles,
   saveAISettings,
   testAIConnection,
+  type AISettingProfile,
   type AISettings,
   type TestConnectionResult,
 } from "../settings"
@@ -120,6 +129,10 @@ export function AISettingsDialog({
   const [testResult, setTestResult] = React.useState<TestConnectionResult | null>(null)
   const [saveSuccess, setSaveSuccess] = React.useState(false)
 
+  const [profiles, setProfiles] = React.useState<AISettingProfile[]>([])
+  const [profileName, setProfileName] = React.useState("")
+  const [profileBusy, setProfileBusy] = React.useState(false)
+
   // Load existing settings on open
   React.useEffect(() => {
     if (!open) {
@@ -129,19 +142,28 @@ export function AISettingsDialog({
     }
 
     setLoading(true)
-    fetchAISettings()
-      .then((data: AISettings) => {
+    Promise.all([fetchAISettings(), listAIProfiles().catch(() => [])])
+      .then(([data, savedProfiles]: [AISettings, AISettingProfile[]]) => {
         if (data.providerType) setProviderType(data.providerType)
         if (data.baseUrl) setBaseUrl(data.baseUrl)
         if (data.modelId) setModelId(data.modelId)
         if (data.apiKey) setApiKey(data.apiKey)
         setHasExistingKey(Boolean(data.hasApiKey || data.apiKey))
+        setProfiles(savedProfiles)
       })
       .catch(() => {
         // Use defaults if not found
       })
       .finally(() => setLoading(false))
   }, [open])
+
+  const refreshProfiles = React.useCallback(async () => {
+    try {
+      setProfiles(await listAIProfiles())
+    } catch {
+      // keep the current list on refresh failure
+    }
+  }, [])
 
   const handleSelectPreset = (presetId: string) => {
     const preset = PRESETS.find((p) => p.id === presetId)
@@ -210,6 +232,58 @@ export function AISettingsDialog({
   }
 
   const currentPreset = PRESETS.find((p) => p.id === providerType)
+
+  const handleSaveProfile = async () => {
+    if (!profileName.trim()) return
+    setProfileBusy(true)
+    try {
+      await createAIProfile({
+        name: profileName.trim(),
+        providerType,
+        baseUrl,
+        // Masked/empty key = reuse the stored key server-side.
+        apiKey: apiKey.includes("...") ? "" : apiKey,
+        modelId,
+        temperature: 0.2,
+      })
+      setProfileName("")
+      await refreshProfiles()
+    } catch {
+      setTestResult({ success: false, error: "Không lưu được profile" })
+    } finally {
+      setProfileBusy(false)
+    }
+  }
+
+  const handleActivateProfile = async (id: string) => {
+    setProfileBusy(true)
+    try {
+      await activateAIProfile(id)
+      const data = await fetchAISettings()
+      if (data.baseUrl) setBaseUrl(data.baseUrl)
+      if (data.modelId) setModelId(data.modelId)
+      setHasExistingKey(Boolean(data.hasApiKey))
+      setSaveSuccess(false)
+      setTestResult(null)
+      await refreshProfiles()
+    } catch {
+      setTestResult({ success: false, error: "Không kích hoạt được profile" })
+    } finally {
+      setProfileBusy(false)
+    }
+  }
+
+  const handleDeleteProfile = async (id: string) => {
+    setProfileBusy(true)
+    try {
+      await deleteAIProfile(id)
+      await refreshProfiles()
+    } catch {
+      setTestResult({ success: false, error: "Không xóa được profile" })
+    } finally {
+      setProfileBusy(false)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -388,6 +462,93 @@ export function AISettingsDialog({
                 <span>Cấu hình AI đã được lưu và kích hoạt tức thì!</span>
               </div>
             )}
+
+            {/* Saved profiles */}
+            <div className="space-y-2 rounded-xl border bg-muted/20 p-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                <Layers className="size-3.5 text-primary" />
+                {t("ai.settings.profiles.title") || "Profiles đã lưu"}
+              </div>
+
+              {profiles.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">
+                  {t("ai.settings.profiles.empty") || "Chưa có profile nào. Lưu cấu hình hiện tại để switch nhanh sau này."}
+                </p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {profiles.map((profile) => (
+                    <li
+                      key={profile.id}
+                      className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
+                        profile.isActive ? "border-primary/40 bg-primary/5" : "bg-background"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate font-medium text-foreground">{profile.name}</span>
+                          {profile.isActive && (
+                            <Badge variant="secondary" className="h-4 px-1 text-[10px] font-normal">
+                              {t("ai.settings.profiles.active") || "đang dùng"}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="block truncate text-[11px] text-muted-foreground font-mono">
+                          {profile.modelId} · {profile.baseUrl}
+                        </span>
+                      </div>
+                      {!profile.isActive && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={profileBusy}
+                          onClick={() => void handleActivateProfile(profile.id)}
+                          className="h-6 px-2 text-[11px]"
+                        >
+                          {t("ai.settings.profiles.activate") || "Dùng"}
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={profileBusy}
+                        onClick={() => void handleDeleteProfile(profile.id)}
+                        aria-label={t("ai.settings.profiles.delete") || "Xóa profile"}
+                        className="size-6 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="flex items-center gap-1.5 pt-1">
+                <Input
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder={t("ai.settings.profiles.name_placeholder") || "Tên profile (vd: b.ai deepseek)"}
+                  className="h-7 flex-1 text-[11px]"
+                  maxLength={128}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={profileBusy || !profileName.trim() || !baseUrl || !modelId}
+                  onClick={() => void handleSaveProfile()}
+                  className="h-7 px-2 text-[11px]"
+                >
+                  {profileBusy ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <Save className="size-3" />
+                  )}
+                  {t("ai.settings.profiles.save_current") || "Lưu hiện tại"}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 

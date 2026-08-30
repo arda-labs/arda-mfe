@@ -140,7 +140,16 @@
     "testing": "Testing...",
     "save": "Save Settings",
     "saving": "Saving...",
-    "close": "Close"
+    "close": "Close",
+    "profiles": {
+      "title": "Saved profiles",
+      "empty": "No profiles yet. Save the current configuration to switch quickly later.",
+      "active": "active",
+      "activate": "Use",
+      "delete": "Delete profile",
+      "name_placeholder": "Profile name (e.g. b.ai deepseek)",
+      "save_current": "Save current"
+    }
   },
   "scroll": {
     "bottom": "Jump to latest message"
