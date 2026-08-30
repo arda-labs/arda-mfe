@@ -148,7 +148,8 @@
       "activate": "Use",
       "delete": "Delete profile",
       "name_placeholder": "Profile name (e.g. b.ai deepseek)",
-      "save_current": "Save current"
+      "save_current": "Save current",
+      "load_error": "Could not load the profile list."
     }
   },
   "scroll": {

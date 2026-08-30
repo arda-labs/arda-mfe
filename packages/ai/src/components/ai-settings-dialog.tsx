@@ -130,6 +130,7 @@ export function AISettingsDialog({
   const [saveSuccess, setSaveSuccess] = React.useState(false)
 
   const [profiles, setProfiles] = React.useState<AISettingProfile[]>([])
+  const [profilesError, setProfilesError] = React.useState(false)
   const [profileName, setProfileName] = React.useState("")
   const [profileBusy, setProfileBusy] = React.useState(false)
 
@@ -142,14 +143,13 @@ export function AISettingsDialog({
     }
 
     setLoading(true)
-    Promise.all([fetchAISettings(), listAIProfiles().catch(() => [])])
-      .then(([data, savedProfiles]: [AISettings, AISettingProfile[]]) => {
+    fetchAISettings()
+      .then((data: AISettings) => {
         if (data.providerType) setProviderType(data.providerType)
         if (data.baseUrl) setBaseUrl(data.baseUrl)
         if (data.modelId) setModelId(data.modelId)
         if (data.apiKey) setApiKey(data.apiKey)
         setHasExistingKey(Boolean(data.hasApiKey || data.apiKey))
-        setProfiles(savedProfiles)
       })
       .catch(() => {
         // Use defaults if not found
@@ -157,11 +157,25 @@ export function AISettingsDialog({
       .finally(() => setLoading(false))
   }, [open])
 
+  // Profiles load separately: a failure surfaces as an explicit error with
+  // retry instead of silently rendering an empty list (fail-open).
+  React.useEffect(() => {
+    if (!open) {
+      setProfilesError(false)
+      return
+    }
+    setProfilesError(false)
+    listAIProfiles()
+      .then(setProfiles)
+      .catch(() => setProfilesError(true))
+  }, [open])
+
   const refreshProfiles = React.useCallback(async () => {
     try {
       setProfiles(await listAIProfiles())
+      setProfilesError(false)
     } catch {
-      // keep the current list on refresh failure
+      setProfilesError(true)
     }
   }, [])
 
@@ -470,7 +484,23 @@ export function AISettingsDialog({
                 {t("ai.settings.profiles.title") || "Profiles đã lưu"}
               </div>
 
-              {profiles.length === 0 ? (
+              {profilesError ? (
+                <div className="flex items-center justify-between gap-2 text-[11px] text-destructive">
+                  <span>
+                    {t("ai.settings.profiles.load_error") || "Không tải được danh sách profiles."}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={profileBusy}
+                    onClick={() => void refreshProfiles()}
+                    className="h-6 px-2 text-[11px]"
+                  >
+                    {t("common.action.retry") || "Thử lại"}
+                  </Button>
+                </div>
+              ) : profiles.length === 0 ? (
                 <p className="text-[11px] text-muted-foreground">
                   {t("ai.settings.profiles.empty") || "Chưa có profile nào. Lưu cấu hình hiện tại để switch nhanh sau này."}
                 </p>

@@ -148,7 +148,8 @@
       "activate": "Dùng",
       "delete": "Xóa profile",
       "name_placeholder": "Tên profile (vd: b.ai deepseek)",
-      "save_current": "Lưu hiện tại"
+      "save_current": "Lưu hiện tại",
+      "load_error": "Không tải được danh sách profiles."
     }
   },
   "scroll": {
