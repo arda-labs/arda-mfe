@@ -379,7 +379,10 @@ function AssistantMessage() {
           <Sparkles className="size-3.5" />
         </div>
         <div className="flex-1 min-w-0 space-y-1.5">
-          <div className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 text-sm leading-relaxed shadow-2xs text-foreground">
+          {/* empty:hidden — the runtime creates the assistant message before
+              the first content part arrives; hide the bare card so the
+              ThinkingBubble skeleton is the single visible placeholder. */}
+          <div className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 text-sm leading-relaxed shadow-2xs text-foreground empty:hidden">
             <MessagePrimitive.Parts
               components={{
                 Text: ({ text }) => <MarkdownMessage content={text} />,

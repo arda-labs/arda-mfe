@@ -92,28 +92,45 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
     [runtimeUrl]
   )
 
-  const runtime = useAgUiRuntime({
-    agent,
-    adapters: {
-      threadList: {
-        onSwitchToThread: async (nextThreadId) => {
-          const history = await fetchConversationMessages(nextThreadId)
-          const messages = history.map((item) =>
-            toThreadMessage(item, `hist-${nextThreadId}-${item.sequence}`)
-          )
-          return { messages }
-        },
+  // The runtime rebuilds its internal store whenever these option objects
+  // change identity. Inline literals here would recreate them on every render
+  // and drive React into "Maximum update depth exceeded" (#185) during fast
+  // streams — memoize everything passed to useAgUiRuntime.
+  const threadListAdapter = useMemo(
+    () => ({
+      onSwitchToThread: async (nextThreadId: string) => {
+        // Runs target agent.threadId — it must follow the switched thread.
+        agent.threadId = nextThreadId
+        const history = await fetchConversationMessages(nextThreadId)
+        const messages = history.map((item) =>
+          toThreadMessage(item, `hist-${nextThreadId}-${item.sequence}`)
+        )
+        return { messages }
       },
-    },
-  })
+    }),
+    [agent]
+  )
+
+  const runtimeOptions = useMemo(
+    () => ({
+      agent,
+      adapters: { threadList: threadListAdapter },
+    }),
+    [agent, threadListAdapter]
+  )
+
+  const runtime = useAgUiRuntime(runtimeOptions)
 
   const newThread = useCallback(() => {
-    setThreadId(crypto.randomUUID())
+    const nextId = crypto.randomUUID()
+    agent.threadId = nextId
+    setThreadId(nextId)
     runtime.thread?.import({ messages: [] })
-  }, [runtime])
+  }, [agent, runtime])
 
   const switchToThread = useCallback(
     async (nextThreadId: string) => {
+      agent.threadId = nextThreadId
       setThreadId(nextThreadId)
       try {
         const history = await fetchConversationMessages(nextThreadId)
@@ -133,7 +150,7 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
         runtime.thread?.import({ messages: [] })
       }
     },
-    [runtime]
+    [agent, runtime]
   )
 
   const value = useMemo(
