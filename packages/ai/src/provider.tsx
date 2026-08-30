@@ -84,6 +84,10 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
     () =>
       new HttpAgent({
         url: runtimeUrl ?? apiUrl("/api/ai/agent"),
+        // The gateway lives on a different origin (api.* vs *); HttpAgent's
+        // default fetch does not attach cookies, so every run would return
+        // 401. Forward the session cookie explicitly.
+        fetch: (input, init) => fetch(input, { ...init, credentials: "include" }),
       }),
     [runtimeUrl]
   )
