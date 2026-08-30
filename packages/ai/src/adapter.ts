@@ -17,6 +17,14 @@ export type ArdaSSEEvent =
   | { type: "TEXT_MESSAGE_END"; threadId: string; runId: string; messageId: string }
   | { type: "TOOL_CALL_START"; threadId: string; runId: string; callId: string; toolName: string }
   | {
+      type: "TOOL_CALL_ARGS"
+      threadId: string
+      runId: string
+      callId: string
+      toolName: string
+      delta: string
+    }
+  | {
       type: "TOOL_CALL_RESULT"
       threadId: string
       runId: string
@@ -120,6 +128,21 @@ function parseArgsSafely(argsText: string | undefined): Record<string, unknown> 
     return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {}
   } catch {
     return {}
+  }
+}
+
+// tryParseJSONObject returns the parsed object only when the accumulated
+// args text is complete, valid JSON — otherwise null (still streaming).
+function tryParseJSONObject(value: string): Record<string, unknown> | null {
+  if (!value) return null
+  try {
+    const parsed = JSON.parse(value) as unknown
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>
+    }
+    return null
+  } catch {
+    return null
   }
 }
 
@@ -232,12 +255,18 @@ async function* runUIStreamProtocol(
         argsText.set(part.toolCallId, "")
         reportToolStart(part.toolName)
         break
-      case "tool-input-delta":
-        argsText.set(
-          part.toolCallId,
-          (argsText.get(part.toolCallId) ?? "") + part.inputTextDelta
-        )
+      case "tool-input-delta": {
+        const accumulated = (argsText.get(part.toolCallId) ?? "") + part.inputTextDelta
+        argsText.set(part.toolCallId, accumulated)
+        // Surface partially streamed args so the tool card can render the
+        // code/query while the model is still writing it.
+        const existing = toolCalls.get(part.toolCallId)
+        if (existing) {
+          const parsed = tryParseJSONObject(accumulated)
+          if (parsed) existing.args = parsed
+        }
         break
+      }
       case "tool-input-available": {
         const existing = toolCalls.get(part.toolCallId) ?? {
           toolCallId: part.toolCallId,
@@ -316,6 +345,15 @@ async function* runLegacyProtocol(
         })
         reportToolStart(event.toolName)
         break
+      case "TOOL_CALL_ARGS": {
+        // Legacy protocol sends the full argument payload in one event.
+        const existing = toolCalls.get(event.callId)
+        if (existing) {
+          const parsed = tryParseJSONObject(event.delta)
+          if (parsed) existing.args = parsed
+        }
+        break
+      }
       case "TOOL_CALL_RESULT": {
         const existing = toolCalls.get(event.callId) ?? {
           toolCallId: event.callId,

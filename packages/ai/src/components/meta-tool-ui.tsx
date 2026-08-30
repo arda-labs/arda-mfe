@@ -121,9 +121,25 @@ export function ExecuteMetaToolCard({
 
   if (isPending) {
     return (
-      <div className="my-1.5 flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground motion-safe:animate-pulse">
-        <Terminal className="size-3.5 text-amber-500" />
-        <span>{t("ai.tool.execute.pending") || "Đang thực thi kịch bản xử lý trong sandbox an toàn..."}</span>
+      <div className="my-1.5 space-y-1.5">
+        {code ? (
+          <div className="rounded-lg border bg-muted/50 p-2.5">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
+              Kịch bản JS
+            </span>
+            <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-[11px] leading-5 text-muted-foreground font-mono">
+              {code}
+              <span
+                className="ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 bg-primary/70 motion-safe:animate-pulse"
+                aria-hidden="true"
+              />
+            </pre>
+          </div>
+        ) : null}
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground motion-safe:animate-pulse">
+          <Terminal className="size-3.5 text-amber-500" />
+          <span>{t("ai.tool.execute.pending") || "Đang thực thi kịch bản xử lý trong sandbox an toàn..."}</span>
+        </div>
       </div>
     )
   }

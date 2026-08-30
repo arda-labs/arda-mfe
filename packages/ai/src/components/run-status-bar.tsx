@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { useI18n } from "@workspace/i18n"
+import { Sparkles } from "lucide-react"
 import { useOlorinContext } from "../context"
 import {
   getOlorinRunStatus,
@@ -83,4 +84,47 @@ function useElapsedSeconds(startedAt: number | null): number | null {
 
   if (!active || startedAt === null) return null
   return Math.max(0, Math.floor((now - startedAt) / 1000))
+}
+
+// ThinkingBubble is the skeleton assistant placeholder shown between the
+// user sending a message and the first streamed content. Once the run moves
+// to a tool call or text, the real content (pending tool cards / streamed
+// text) takes over and the skeleton disappears.
+export function ThinkingBubble() {
+  const { threadId } = useOlorinContext()
+  const status = useSyncExternalStore(
+    subscribeOlorinRunStatus,
+    getOlorinRunStatus,
+    getOlorinRunStatus
+  )
+
+  if (status.phase !== "thinking" || status.threadId !== threadId) {
+    return null
+  }
+
+  return (
+    <div
+      className="flex w-full justify-start py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="flex max-w-[90%] items-start gap-2.5">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground shadow-2xs ring-1 ring-primary/20">
+          <Sparkles className="size-3.5 motion-safe:animate-pulse" />
+        </div>
+        <div className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 shadow-2xs">
+          <div className="flex items-center gap-1" aria-hidden="true">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="size-1.5 rounded-full bg-muted-foreground/40 motion-safe:animate-bounce"
+                style={{ animationDelay: `${i * 150}ms` }}
+              />
+            ))}
+          </div>
+          <span className="sr-only">Đang suy nghĩ…</span>
+        </div>
+      </div>
+    </div>
+  )
 }

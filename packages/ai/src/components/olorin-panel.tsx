@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import {
+  ArrowDown,
   ChevronDown,
   Copy,
   History,
@@ -44,7 +45,7 @@ import {
   GenericToolView,
 } from "./tool-ui"
 import { AISettingsDialog } from "./ai-settings-dialog"
-import { RunStatusBar } from "./run-status-bar"
+import { RunStatusBar, ThinkingBubble } from "./run-status-bar"
 import { useOlorinContext } from "../context"
 import { collectOlorinContext } from "../registry"
 
@@ -168,7 +169,7 @@ export function OlorinPanel({
       )}
 
       <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth">
+        <ThreadViewportWithScroll>
           <ThreadPrimitive.Empty>
             <OlorinEmptyState />
           </ThreadPrimitive.Empty>
@@ -179,7 +180,9 @@ export function OlorinPanel({
               AssistantMessage,
             }}
           />
-        </ThreadPrimitive.Viewport>
+
+          <ThinkingBubble />
+        </ThreadViewportWithScroll>
 
         <RunStatusBar />
 
@@ -294,6 +297,60 @@ function getInitials(name?: string): string | undefined {
   const parts = name.trim().split(/\s+/)
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+// ThreadViewportWithScroll wraps ThreadPrimitive.Viewport with a manual
+// scroll watcher (assistant-ui 0.15 has no ScrollToBottom primitive): when
+// the user scrolls away from the newest message, a floating button offers to
+// jump back down. assistant-ui's built-in auto-scroll already pauses itself
+// in that state, so the two behaviours compose without interference.
+function ThreadViewportWithScroll({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n()
+  const wrapperRef = React.useRef<HTMLDivElement>(null)
+  const scrollerRef = React.useRef<HTMLElement | null>(null)
+  const [showButton, setShowButton] = React.useState(false)
+
+  const handleScrollCapture = React.useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.target
+    if (!(target instanceof HTMLElement)) return
+    if (target.scrollHeight <= target.clientHeight) return // not a scroller
+    scrollerRef.current = target
+    const distance = target.scrollHeight - target.scrollTop - target.clientHeight
+    setShowButton(distance > 120)
+  }, [])
+
+  const scrollToBottom = React.useCallback(() => {
+    const scroller = scrollerRef.current
+    if (scroller) {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" })
+    }
+    setShowButton(false)
+  }, [])
+
+  return (
+    <div
+      ref={wrapperRef}
+      onScrollCapture={handleScrollCapture}
+      className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
+    >
+      <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth">
+        {children}
+      </ThreadPrimitive.Viewport>
+
+      {showButton && (
+        <Button
+          type="button"
+          size="icon"
+          onClick={scrollToBottom}
+          aria-label={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
+          title={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
+          className="absolute bottom-4 left-1/2 z-10 size-8 -translate-x-1/2 rounded-full border bg-background/90 shadow-lg backdrop-blur text-muted-foreground hover:text-foreground"
+        >
+          <ArrowDown className="size-4" />
+        </Button>
+      )}
+    </div>
+  )
 }
 
 function AssistantMessage() {
