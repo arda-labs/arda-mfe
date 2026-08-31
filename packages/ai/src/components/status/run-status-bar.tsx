@@ -139,15 +139,16 @@ export function RunErrorBubble() {
 }
 
 // ThinkingBubble is the skeleton assistant placeholder shown while the model
-// is working but has not yet emitted any content or tool call. Driven by
-// thread state (running + last assistant message without content) instead of
-// a custom store.
+// is working but the last message is not an assistant message yet (i.e. the
+// run has started but the assistant message with its own avatar hasn't been
+// created). Once an assistant message exists — even with no content yet — the
+// AssistantMessage component renders its own avatar + the empty:hidden card,
+// so showing the skeleton here too would produce two avatars.
 export function ThinkingBubble() {
   const isRunning = useAuiState((s) => s.thread.isRunning)
   const messages = useAuiState((s) => s.thread.messages)
   const last = messages[messages.length - 1]
-  const show =
-    isRunning && (!last || last.role !== "assistant" || last.content.length === 0)
+  const show = isRunning && (!last || last.role !== "assistant")
   if (!show) return null
 
   return (
