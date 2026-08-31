@@ -5,7 +5,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { useAgUiSubmitInterruptResponses } from "@assistant-ui/react-ag-ui"
 import { ShieldCheck, Clock, AlertCircle } from "lucide-react"
-import { textValue, type ApprovalProposalView } from "../messages"
+import { textValue, type ApprovalProposalView } from "../../lib/messages"
 
 type ApprovalDecisionResponse = {
   id: string

@@ -5,8 +5,8 @@ import {
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible"
 import { ChevronDown, Wrench } from "lucide-react"
-import { extractApprovalProposal, type ToolResultPayload } from "../messages"
-import { resolveToolRenderer } from "../registry"
+import { extractApprovalProposal, type ToolResultPayload } from "../../lib/messages"
+import { resolveToolRenderer } from "../../lib/registry"
 import { ApprovalCard } from "./approval-card"
 import { SearchMetaToolUI, ExecuteMetaToolUI } from "./meta-tool-ui"
 import { DataTableView, isArrayResult } from "./data-table-view"

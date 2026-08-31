@@ -37,7 +37,7 @@ import {
   type AISettingProfile,
   type AISettings,
   type TestConnectionResult,
-} from "../settings"
+} from "../lib/settings"
 
 type ProviderPreset = {
   id: string

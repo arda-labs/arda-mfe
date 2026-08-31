@@ -1,30 +1,36 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react"
 import {
   AssistantRuntimeProvider,
+  WebSpeechDictationAdapter,
+  type ExternalStoreThreadData,
   type ThreadMessage,
 } from "@assistant-ui/react"
 import { useAgUiRuntime } from "@assistant-ui/react-ag-ui"
 import { HttpAgent } from "@ag-ui/client"
 import { apiUrl } from "@workspace/api/url"
 import { registerAppLocales } from "@workspace/i18n"
-import enAi from "../locales/en-US.json"
-import viAi from "../locales/vi-VN.json"
+import enAi from "../../locales/en-US.json"
+import viAi from "../../locales/vi-VN.json"
 
 registerAppLocales("ai", {
   "vi-VN": viAi,
   "en-US": enAi,
 })
 
-import { OlorinContext } from "./context"
+import { OlorinContext } from "../lib/context"
 import {
+  deleteConversation,
   fetchConversationMessages,
+  useOlorinConversations,
   type OlorinConversationMessage,
-} from "./conversations"
+} from "../lib/conversations"
 
 export type OlorinProviderProps = {
   children: ReactNode
@@ -92,45 +98,101 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
     [runtimeUrl]
   )
 
+  // Mirror threadId in a ref so adapter callbacks (which only depend on the
+  // memoized deps below) can read the current thread without re-creating the
+  // adapter on every switch. The agent follows the same id — centralized here
+  // so no handler mutates it directly.
+  const threadIdRef = useRef(threadId)
+  useEffect(() => {
+    threadIdRef.current = threadId
+    agent.threadId = threadId
+  }, [threadId, agent])
+
   // The runtime rebuilds its internal store whenever these option objects
   // change identity. Inline literals here would recreate them on every render
   // and drive React into "Maximum update depth exceeded" (#185) during fast
   // streams — memoize everything passed to useAgUiRuntime.
+  const {
+    conversations: conversationItems,
+    loading: conversationsLoading,
+    error: conversationsError,
+    refresh: refreshConversations,
+  } = useOlorinConversations(true)
+
   const threadListAdapter = useMemo(
     () => ({
+      threads: conversationItems.map(
+        (conversation): ExternalStoreThreadData<"regular"> => ({
+          id: conversation.threadId,
+          status: "regular",
+          title: conversation.title || conversation.threadId,
+          custom: {
+            messageCount: conversation.messageCount,
+            lastMessageAt: conversation.lastMessageAt,
+            status: conversation.status,
+          },
+        })
+      ),
+      onSwitchToNewThread: () => {
+        // The effect above keeps the agent's threadId in sync with state.
+        setThreadId(crypto.randomUUID())
+      },
       onSwitchToThread: async (nextThreadId: string) => {
-        // Runs target agent.threadId — it must follow the switched thread.
-        agent.threadId = nextThreadId
+        setThreadId(nextThreadId)
         const history = await fetchConversationMessages(nextThreadId)
         const messages = history.map((item) =>
           toThreadMessage(item, `hist-${nextThreadId}-${item.sequence}`)
         )
         return { messages }
       },
+      onDelete: async (deletedThreadId: string) => {
+        if (threadIdRef.current === deletedThreadId) {
+          // Deleted the currently active thread → start a new one so the
+          // view doesn't show a dead conversation.
+          setThreadId(crypto.randomUUID())
+        }
+        await deleteConversation(deletedThreadId)
+        await refreshConversations()
+      },
     }),
-    [agent]
+    [conversationItems, refreshConversations]
+  )
+
+  // Voice dictation uses the browser's Web Speech API — zero config, and
+  // only mounted when the browser actually supports it (Chrome/Edge/Safari).
+  const dictationAdapter = useMemo(
+    () =>
+      WebSpeechDictationAdapter.isSupported()
+        ? new WebSpeechDictationAdapter({
+            language: "vi-VN",
+            continuous: true,
+            interimResults: true,
+          })
+        : undefined,
+    []
   )
 
   const runtimeOptions = useMemo(
     () => ({
       agent,
-      adapters: { threadList: threadListAdapter },
+      adapters: {
+        threadList: threadListAdapter,
+        dictation: dictationAdapter,
+      },
     }),
-    [agent, threadListAdapter]
+    [agent, threadListAdapter, dictationAdapter]
   )
 
   const runtime = useAgUiRuntime(runtimeOptions)
 
   const newThread = useCallback(() => {
-    const nextId = crypto.randomUUID()
-    agent.threadId = nextId
-    setThreadId(nextId)
+    // The effect above keeps the agent's threadId in sync with state.
+    setThreadId(crypto.randomUUID())
     runtime.thread?.import({ messages: [] })
-  }, [agent, runtime])
+  }, [runtime])
 
   const switchToThread = useCallback(
     async (nextThreadId: string) => {
-      agent.threadId = nextThreadId
       setThreadId(nextThreadId)
       try {
         const history = await fetchConversationMessages(nextThreadId)
@@ -150,7 +212,7 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
         runtime.thread?.import({ messages: [] })
       }
     },
-    [agent, runtime]
+    [runtime]
   )
 
   const value = useMemo(
@@ -159,8 +221,23 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
       newThread,
       switchToThread,
       runtime,
+      conversations: {
+        list: conversationItems,
+        loading: conversationsLoading,
+        error: conversationsError,
+        refresh: refreshConversations,
+      },
     }),
-    [threadId, newThread, switchToThread, runtime]
+    [
+      threadId,
+      newThread,
+      switchToThread,
+      runtime,
+      conversationItems,
+      conversationsLoading,
+      conversationsError,
+      refreshConversations,
+    ]
   )
 
   return (

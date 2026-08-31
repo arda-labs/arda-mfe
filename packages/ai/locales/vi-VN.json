@@ -20,6 +20,9 @@
     "send": "Gửi câu hỏi",
     "hint": "Enter để gửi · Shift+Enter để xuống dòng",
     "stop": "Dừng tạo",
+    "quote_dismiss": "Bỏ trích dẫn",
+    "dictate": "Nhập liệu bằng giọng nói",
+    "stop_dictation": "Dừng nhập liệu",
     "rate_limit_countdown": "Thử lại sau {seconds}s"
   },
   "transcript": {
@@ -156,5 +159,14 @@
   },
   "scroll": {
     "bottom": "Xem tin nhắn mới nhất"
+  },
+  "selection": {
+    "quote": "Trích dẫn"
+  },
+  "edit": {
+    "title": "Sửa tin nhắn",
+    "placeholder": "Chỉnh sửa tin nhắn…",
+    "cancel": "Huỷ",
+    "save": "Lưu"
   }
 }

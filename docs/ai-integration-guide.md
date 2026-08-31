@@ -283,16 +283,15 @@ pure UI event handlers that the AI can invoke.
 
 ```ts
 // @workspace/ai
-export { OlorinProvider, OlorinPanel, OlorinWorkspace } from "./src/provider"
-export { useOlorin } from "./src/use-olorin"
-export { registerOlorinContext, registerToolRenderer, collectOlorinContext } from "./src/registry"
-export type { ToolResultViewProps, ToolRendererEntry } from "./src/registry"
-export type { OlorinConversation, OlorinConversationMessage } from "./src/conversations"
+export { OlorinProvider, OlorinPanel, OlorinWorkspace } from "./src/components/provider"
+export { registerOlorinContext, registerToolRenderer, collectOlorinContext } from "./src/lib/registry"
+export type { ToolResultViewProps, ToolRendererEntry } from "./src/lib/registry"
+export type { OlorinConversation, OlorinConversationMessage } from "./src/lib/conversations"
 ```
 
 Domain MFEs import from `@workspace/ai` (resolved via Bun workspace symlinks).
 They do **not** directly import from `@assistant-ui/react` or the AG-UI
-client packages — the runtime wiring lives in `packages/ai/src/provider.tsx`.
+client packages — the runtime wiring lives in `packages/ai/src/components/provider.tsx`.
 
 ---
 

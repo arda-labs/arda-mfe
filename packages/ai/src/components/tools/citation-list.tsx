@@ -5,9 +5,9 @@ import {
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible"
 import { ChevronDown } from "lucide-react"
-import { textValue, type ToolResultPayload } from "../messages"
-import type { ToolResultViewProps } from "../registry"
-import { registerToolRenderer } from "../registry"
+import { textValue, type ToolResultPayload } from "../../lib/messages"
+import type { ToolResultViewProps } from "../../lib/registry"
+import { registerToolRenderer } from "../../lib/registry"
 
 type CitationItem = Record<string, unknown>
 

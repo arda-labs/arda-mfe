@@ -9,7 +9,7 @@ import { ChevronDown, Search, Terminal, AlertCircle, Layers } from "lucide-react
 import { makeAssistantToolUI, useToolCallElapsed } from "@assistant-ui/react"
 import { DataTableView, isArrayResult } from "./data-table-view"
 import { ApprovalCard } from "./approval-card"
-import { extractApprovalProposal } from "../messages"
+import { extractApprovalProposal } from "../../lib/messages"
 
 // Live wall-clock seconds for the running tool call, provided by the
 // library's part timing (startedAt set by the SSE adapter).

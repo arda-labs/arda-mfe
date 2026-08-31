@@ -3,9 +3,9 @@ import { Badge } from "@workspace/ui/components/badge"
 import {
   textValue,
   type ToolResultPayload,
-} from "../messages"
-import type { ToolResultViewProps } from "../registry"
-import { registerToolRenderer } from "../registry"
+} from "../../lib/messages"
+import type { ToolResultViewProps } from "../../lib/registry"
+import { registerToolRenderer } from "../../lib/registry"
 
 type CustomerSummary = {
   id: string

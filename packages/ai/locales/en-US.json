@@ -20,6 +20,9 @@
     "send": "Send message",
     "hint": "Enter to send · Shift+Enter for a new line",
     "stop": "Stop generating",
+    "quote_dismiss": "Dismiss quote",
+    "dictate": "Dictate by voice",
+    "stop_dictation": "Stop dictation",
     "rate_limit_countdown": "Retry in {seconds}s"
   },
   "transcript": {
@@ -156,5 +159,14 @@
   },
   "scroll": {
     "bottom": "Jump to latest message"
+  },
+  "selection": {
+    "quote": "Quote"
+  },
+  "edit": {
+    "title": "Edit message",
+    "placeholder": "Edit message…",
+    "cancel": "Cancel",
+    "save": "Save"
   }
 }

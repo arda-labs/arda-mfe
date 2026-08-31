@@ -1,7 +1,7 @@
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { AlertTriangle, RefreshCw, HelpCircle, Split, ShieldAlert } from "lucide-react"
-import { resolveAiError, type AiErrorMeta } from "../errors"
+import { resolveAiError, type AiErrorMeta } from "../../lib/errors"
 
 export type RunErrorCardProps = {
   error: string

@@ -1,10 +1,12 @@
 import * as React from "react"
 import {
+  AuiIf,
   ThreadPrimitive,
   MessagePrimitive,
   ComposerPrimitive,
   ActionBarPrimitive,
-  useThreadViewport,
+  SelectionToolbarPrimitive,
+  useMessageTiming,
   groupPartByType,
 } from "@assistant-ui/react"
 import {
@@ -12,7 +14,7 @@ import {
   ReasoningTrigger,
   ReasoningContent,
   ReasoningText,
-} from "../reasoning"
+} from "./reasoning"
 import { useI18n } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
@@ -28,38 +30,40 @@ import {
   ChevronDown,
   Copy,
   History,
+  Mic,
+  Pencil,
   Plus,
+  Quote,
   RefreshCw,
   Send,
   Settings,
   Sparkles,
   Square,
   Trash2,
+  X,
 } from "lucide-react"
 import {
   deleteConversation as apiDeleteConversation,
-  useOlorinConversations,
-} from "../conversations"
+} from "../lib/conversations"
 import {
   areDefaultRenderersRegistered,
   markDefaultRenderersRegistered,
-} from "../registry"
-import { registerCustomerSummaryRenderer } from "./customer-summary-card"
-import { registerKnowledgeCitationRenderer } from "./citation-list"
+  collectOlorinContext,
+} from "../lib/registry"
+import { registerCustomerSummaryRenderer } from "./tools/customer-summary-card"
+import { registerKnowledgeCitationRenderer } from "./tools/citation-list"
 import { MarkdownMessage } from "./markdown"
 import {
   SearchMetaToolUI,
   ExecuteMetaToolUI,
   GenericToolView,
-} from "./tool-ui"
+} from "./tools/generic-tool-view"
 import { AISettingsDialog } from "./ai-settings-dialog"
-import { RunStatusBar, RunErrorBubble, ThinkingBubble } from "./run-status-bar"
-import { useOlorinContext } from "../context"
-import { collectOlorinContext } from "../registry"
+import { RunStatusBar, RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
+import { useOlorinContext } from "../lib/context"
 
 export type OlorinPanelProps = {
   className?: string
-  fixtureKey?: string
   showHeader?: boolean
 }
 
@@ -87,8 +91,7 @@ export function OlorinPanel({
   showHeader = true,
 }: OlorinPanelProps) {
   const { t, formatDate } = useI18n()
-  const { newThread, switchToThread, threadId } = useOlorinContext()
-  const conversations = useOlorinConversations(true)
+  const { newThread, switchToThread, threadId, conversations } = useOlorinContext()
   const [settingsOpen, setSettingsOpen] = React.useState(false)
 
   return (
@@ -105,7 +108,7 @@ export function OlorinPanel({
               >
                 <History className="size-3.5 shrink-0 text-muted-foreground" />
                 <span className="truncate">
-                  {conversations.conversations.find((c) => c.threadId === threadId)?.title ||
+                  {conversations.list.find((c) => c.threadId === threadId)?.title ||
                     t("ai.threads.history")}
                 </span>
                 <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
@@ -113,19 +116,19 @@ export function OlorinPanel({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72">
               <DropdownMenuLabel className="text-xs">{t("ai.threads.title")}</DropdownMenuLabel>
-              {conversations.conversations.length === 0 && !conversations.loading && (
+              {conversations.list.length === 0 && !conversations.loading && (
                 <DropdownMenuItem disabled className="text-xs text-muted-foreground">
                   {t("ai.threads.empty")}
                 </DropdownMenuItem>
               )}
-              {!conversations.conversations.some((c) => c.threadId === threadId) && (
+              {!conversations.list.some((c) => c.threadId === threadId) && (
                 <DropdownMenuItem disabled className="flex items-center gap-2 bg-accent text-xs py-2 font-medium text-accent-foreground">
                   <span className="min-w-0 flex-1 truncate">
                     {t("ai.threads.current_new") || "Cuộc trò chuyện mới"}
                   </span>
                 </DropdownMenuItem>
               )}
-              {conversations.conversations.map((conversation) => (
+              {conversations.list.map((conversation) => (
                 <DropdownMenuItem
                   key={conversation.threadId}
                   onSelect={() => switchToThread(conversation.threadId)}
@@ -205,22 +208,60 @@ export function OlorinPanel({
             <OlorinEmptyState />
           </ThreadPrimitive.Empty>
 
-          <ThreadPrimitive.Messages
-            components={{
-              UserMessage,
-              AssistantMessage,
+          <ThreadPrimitive.Messages>
+            {({ message }) => {
+              if (message.role === "user") {
+                if (message.composer.isEditing) return <UserEditComposer />;
+                return <UserMessage />;
+              }
+              return <AssistantMessage />;
             }}
-          />
+          </ThreadPrimitive.Messages>
 
           <ThinkingBubble />
           <RunErrorBubble />
-          <ScrollToBottomButton />
+          <ThreadPrimitive.ScrollToBottom asChild>
+            <Button
+              type="button"
+              size="icon"
+              aria-label={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
+              title={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
+              className="sticky bottom-4 left-1/2 z-10 size-8 -translate-x-1/2 rounded-full border bg-background/90 shadow-lg backdrop-blur text-muted-foreground hover:text-foreground"
+            >
+              <ArrowDown className="size-4" />
+            </Button>
+          </ThreadPrimitive.ScrollToBottom>
         </ThreadPrimitive.Viewport>
+
+        <SelectionToolbarPrimitive.Root className="z-50 flex items-center gap-1 rounded-lg border bg-popover px-1 py-1 shadow-md">
+          <SelectionToolbarPrimitive.Quote className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-popover-foreground text-sm hover:bg-accent">
+            <Quote className="size-3.5" />
+            {t("ai.selection.quote") || "Trích dẫn"}
+          </SelectionToolbarPrimitive.Quote>
+        </SelectionToolbarPrimitive.Root>
 
         <RunStatusBar />
 
         <ComposerPrimitive.Root className="border-t bg-background p-3">
           <div className="rounded-2xl border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
+            <ComposerPrimitive.Quote className="mx-2 mt-1.5 mb-0.5">
+              <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/60 px-2.5 py-1.5">
+                <Quote className="size-3 shrink-0 text-muted-foreground" />
+                <ComposerPrimitive.QuoteText className="min-w-0 flex-1 truncate text-xs text-muted-foreground" />
+                <ComposerPrimitive.QuoteDismiss asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("ai.composer.quote_dismiss") || "Bỏ trích dẫn"}
+                    title={t("ai.composer.quote_dismiss") || "Bỏ trích dẫn"}
+                    className="size-5 shrink-0 rounded text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="size-3" />
+                  </Button>
+                </ComposerPrimitive.QuoteDismiss>
+              </div>
+            </ComposerPrimitive.Quote>
             <ComposerPrimitive.Input
               rows={1}
               autoFocus
@@ -232,6 +273,33 @@ export function OlorinPanel({
                 {t("ai.composer.hint")}
               </span>
               <div className="flex items-center gap-1.5">
+                <AuiIf condition={(s) => s.composer.dictation == null}>
+                  <ComposerPrimitive.Dictate asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      aria-label={t("ai.composer.dictate") || "Nhập liệu bằng giọng nói"}
+                      title={t("ai.composer.dictate") || "Nhập liệu bằng giọng nói"}
+                      className="size-7.5 rounded-full shadow-2xs text-muted-foreground"
+                    >
+                      <Mic className="size-3.5" />
+                    </Button>
+                  </ComposerPrimitive.Dictate>
+                </AuiIf>
+                <AuiIf condition={(s) => s.composer.dictation != null}>
+                  <ComposerPrimitive.StopDictation asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="destructive"
+                      aria-label={t("ai.composer.stop_dictation") || "Dừng nhập liệu"}
+                      title={t("ai.composer.stop_dictation") || "Dừng nhập liệu"}
+                      className="size-7.5 rounded-full shadow-2xs"
+                    >
+                      <Square className="size-3 fill-current motion-safe:animate-pulse" />
+                    </Button>
+                  </ComposerPrimitive.StopDictation>
+                </AuiIf>
                 <ThreadPrimitive.If running={false}>
                   <ComposerPrimitive.Send asChild>
                     <Button
@@ -308,22 +376,79 @@ function OlorinEmptyState() {
 }
 
 function UserMessage() {
+  const { t } = useI18n()
   const context = collectOlorinContext()
   const displayName = typeof context.userDisplayName === "string" ? context.userDisplayName : ""
   const initials = getInitials(displayName) || "U"
 
   return (
-    <MessagePrimitive.Root className="group/message flex w-full justify-end py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
-      <div className="flex max-w-[85%] items-end gap-2 flex-row-reverse">
-        <div
-          title={displayName || "Người dùng"}
-          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-2xs select-none"
-        >
-          {initials}
+    <MessagePrimitive.Root
+      // User-owned text is not quotable — the selection toolbar only
+      // surfaces for assistant content.
+      data-aui-quote-selectable="false"
+      className="group/message flex w-full justify-end py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200"
+    >
+      <div className="flex max-w-[85%] flex-col items-end gap-1">
+        <div className="flex items-end gap-2 flex-row-reverse">
+          <div
+            title={displayName || "Người dùng"}
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-2xs select-none"
+          >
+            {initials}
+          </div>
+          <div className="rounded-2xl rounded-br-xs bg-primary px-3.5 py-2 text-sm leading-relaxed text-primary-foreground shadow-2xs wrap-break-word">
+            <MessagePrimitive.Content />
+          </div>
         </div>
-        <div className="rounded-2xl rounded-br-xs bg-primary px-3.5 py-2 text-sm leading-relaxed text-primary-foreground shadow-2xs wrap-break-word">
-          <MessagePrimitive.Content />
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover/message:opacity-100 pr-1">
+          <ActionBarPrimitive.Root className="flex items-center gap-0.5">
+            <ActionBarPrimitive.Edit asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 text-muted-foreground hover:text-foreground rounded"
+                title={t("ai.edit.title") || "Sửa tin nhắn"}
+              >
+                <Pencil className="size-3" />
+              </Button>
+            </ActionBarPrimitive.Edit>
+          </ActionBarPrimitive.Root>
         </div>
+      </div>
+    </MessagePrimitive.Root>
+  )
+}
+
+function UserEditComposer() {
+  const { t } = useI18n()
+  return (
+    <MessagePrimitive.Root className="flex w-full justify-end py-1.5">
+      <div className="flex max-w-[85%] flex-col items-end gap-1">
+        <ComposerPrimitive.Root className="w-full rounded-2xl border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
+          <ComposerPrimitive.Input
+            rows={2}
+            autoFocus
+            placeholder={t("ai.edit.placeholder") || "Chỉnh sửa tin nhắn…"}
+            className="max-h-40 min-h-10 w-full resize-none border-0 bg-transparent px-2.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground"
+          />
+          <div className="flex items-center justify-end gap-1.5 px-2 pt-1 pb-0.5">
+            <ComposerPrimitive.Cancel asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {t("ai.edit.cancel") || "Huỷ"}
+              </Button>
+            </ComposerPrimitive.Cancel>
+            <ComposerPrimitive.Send asChild>
+              <Button type="submit" size="sm" className="h-7 px-3 text-xs">
+                {t("ai.edit.save") || "Lưu"}
+              </Button>
+            </ComposerPrimitive.Send>
+          </div>
+        </ComposerPrimitive.Root>
       </div>
     </MessagePrimitive.Root>
   )
@@ -336,28 +461,6 @@ function getInitials(name?: string): string | undefined {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-// Floating scroll-to-bottom driven by the library's viewport state
-// (isAtBottom/scrollToBottom) instead of manual DOM scroll tracking.
-function ScrollToBottomButton() {
-  const { t } = useI18n()
-  const viewport = useThreadViewport({ optional: true })
-
-  if (!viewport || viewport.isAtBottom) return null
-
-  return (
-    <Button
-      type="button"
-      size="icon"
-      onClick={() => viewport.scrollToBottom({ behavior: "smooth" })}
-      aria-label={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
-      title={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
-      className="sticky bottom-4 left-1/2 z-10 size-8 -translate-x-1/2 rounded-full border bg-background/90 shadow-lg backdrop-blur text-muted-foreground hover:text-foreground"
-    >
-      <ArrowDown className="size-4" />
-    </Button>
-  )
-}
-
 function AssistantMessage() {
   return (
     <MessagePrimitive.Root className="group/message flex w-full justify-start py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
@@ -368,8 +471,13 @@ function AssistantMessage() {
         <div className="flex-1 min-w-0 space-y-1.5">
           {/* empty:hidden — the runtime creates the assistant message before
               the first content part arrives; hide the bare card so the
-              ThinkingBubble skeleton is the single visible placeholder. */}
-          <div className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 text-sm leading-relaxed shadow-2xs text-foreground empty:hidden">
+              ThinkingBubble skeleton is the single visible placeholder.
+              data-aui-quote-selectable marks the prose region quotable —
+              selections must stay inside it for the toolbar to appear. */}
+          <div
+            data-aui-quote-selectable=""
+            className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 text-sm leading-relaxed shadow-2xs text-foreground empty:hidden"
+          >
             {/* GroupedParts + groupPartByType — the official chain-of-thought
                 pattern: consecutive reasoning/tool-call parts fold into one
                 collapsible thinking section (ChatGPT-style). */}
@@ -451,9 +559,28 @@ function AssistantMessage() {
                 </Button>
               </ActionBarPrimitive.Reload>
             </ActionBarPrimitive.Root>
+            <MessageTimingStats />
           </div>
         </div>
       </div>
     </MessagePrimitive.Root>
+  )
+}
+
+// Stream metrics (duration, tok/s, TTFT) tracked automatically by the AG-UI
+// run aggregator — no custom timers.
+function MessageTimingStats() {
+  const timing = useMessageTiming()
+  if (!timing?.totalStreamTime) return null
+
+  const formatMs = (ms: number) =>
+    ms < 1000 ? `${Math.round(ms)}ms` : `${(ms / 1000).toFixed(2)}s`
+
+  return (
+    <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">
+      {formatMs(timing.totalStreamTime)}
+      {timing.tokensPerSecond !== undefined &&
+        ` · ${timing.tokensPerSecond.toFixed(1)} tok/s`}
+    </span>
   )
 }

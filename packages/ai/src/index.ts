@@ -1,33 +1,32 @@
 export {
   OlorinProvider,
   type OlorinProviderProps,
-} from "./provider"
+} from "./components/provider"
 export {
   OlorinContext,
   useOlorinContext,
   type OlorinContextValue,
-} from "./context"
+} from "./lib/context"
 export {
   OlorinWorkspace,
   type OlorinWorkspaceProps,
 } from "./components/olorin-workspace"
-export { OLORIN_AGENT_ID, useOlorin, type ArdaToolHint } from "./use-olorin"
 export {
   OlorinPanel,
   type OlorinPanelProps,
 } from "./components/olorin-panel"
-export { ApprovalCard } from "./components/approval-card"
+export { ApprovalCard } from "./components/tools/approval-card"
 export {
   CustomerSummaryCard,
   registerCustomerSummaryRenderer,
-} from "./components/customer-summary-card"
+} from "./components/tools/customer-summary-card"
 export {
   KnowledgeCitationList,
   registerKnowledgeCitationRenderer,
-} from "./components/citation-list"
+} from "./components/tools/citation-list"
 export {
   GenericToolView,
-} from "./components/tool-ui"
+} from "./components/tools/generic-tool-view"
 export { MarkdownMessage } from "./components/markdown"
 export {
   collectOlorinContext,
@@ -36,7 +35,7 @@ export {
   resolveToolRenderer,
   type ToolRendererEntry,
   type ToolResultViewProps,
-} from "./registry"
+} from "./lib/registry"
 export {
   extractApprovalProposal,
   messageText,
@@ -44,14 +43,13 @@ export {
   type ApprovalProposalView,
   type OlorinMessage,
   type ToolResultPayload,
-} from "./messages"
-export { olorinFixtures, type FixtureMessage } from "./fixtures"
+} from "./lib/messages"
 export {
   fetchConversationMessages,
   useOlorinConversations,
   type OlorinConversation,
   type OlorinConversationMessage,
-} from "./conversations"
+} from "./lib/conversations"
 export {
   resolveAiError,
   AI_ERROR_MAP,
@@ -59,26 +57,26 @@ export {
   type AiErrorMeta,
   type AiErrorSeverity,
   type AiErrorAction,
-} from "./errors"
+} from "./lib/errors"
 export {
   RunStatusBanner,
   type RunPhase,
   type RunStatusBannerProps,
-} from "./components/run-status-banner"
+} from "./components/status/run-status-banner"
 export {
   RunErrorCard,
   type RunErrorCardProps,
-} from "./components/run-error-card"
+} from "./components/status/run-error-card"
 export {
   SearchMetaToolUI,
   ExecuteMetaToolUI,
   SearchMetaToolCard,
   ExecuteMetaToolCard,
-} from "./components/meta-tool-ui"
+} from "./components/tools/meta-tool-ui"
 export {
   DataTableView,
   isArrayResult,
-} from "./components/data-table-view"
+} from "./components/tools/data-table-view"
 export {
   AISettingsDialog,
   type AISettingsDialogProps,
@@ -90,4 +88,4 @@ export {
   type AISettings,
   type TestConnectionRequest,
   type TestConnectionResult,
-} from "./settings"
+} from "./lib/settings"
