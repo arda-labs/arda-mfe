@@ -1,5 +1,7 @@
 # Hướng Dẫn Cấu Hình Build & Deploy Cloudflare Workers (Monorepo)
 
+> **⚠️ Note:** This file lives in `docs/archive/` but its content is still applicable — the 8 Workers described here are actively deployed. The archive placement is historical (superseded by automated Cloudflare Workers Builds integration).
+
 Tài liệu này mô tả chi tiết cách thiết lập build và deploy 8 Cloudflare Workers cho hệ thống `arda-mfe` trên Cloudflare Dashboard.
 
 ---

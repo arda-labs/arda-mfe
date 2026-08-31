@@ -26,7 +26,7 @@ Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host S
 ### 2.1. Đồng bộ Singleton trong `federation.shared.ts`
 * Tất cả cấu hình chia sẻ thư viện dùng chung **phải khai báo tại `federation.shared.ts`** ở thư mục gốc.
 * **Tuyệt đối không sửa riêng lẻ `shared` trong từng `apps/<remote>/vite.config.ts`**.
-* Các thư viện bắt buộc là singleton: `react`, `react-dom`, `react-router-dom`, `@workspace/auth`, `@workspace/theme`, `@workspace/notifications`, `@workspace/i18n`, `react-toastify`.
+* Các thư viện bắt buộc là singleton: `react`, `react-dom`, `react-router-dom`, `@workspace/auth`, `@workspace/api`, `@workspace/theme`, `@workspace/notifications`, `@workspace/i18n`, `react-toastify`.
 * **Chính sách share đã được tự động hoá**: `bun run check:federation` fail khi một package `@workspace/*` được ≥2 deployment unit import mà vừa không nằm trong `remoteSharedDeps`, vừa không có lý do trong `sharedWorkspaceExemptions`. Package mới muốn chỉ-dùng-shell hoặc per-remote → khai báo exemption kèm justification tại `federation.shared.ts`.
 * Mỗi remote mount `QueryProvider` (`@workspace/query/provider`) ở gốc `src/Routes.tsx` để server-list dùng `@workspace/admin-list` hoạt động mọi nơi mà không cần wiring từng page.
 
@@ -152,11 +152,11 @@ Kiến trúc backend, hợp đồng API và `policy.yaml` nằm ở repo `arda-b
 
 ## 8. AI assistant (Olorin) UI knowledge
 
-* `@workspace/ai` exports: `OlorinProvider` (CopilotKit v2 headless, runtime
-  URL = `apiUrl() + "/api/copilotkit"`, credentials include), `OlorinPanel`
+* `@workspace/ai` exports: `OlorinProvider` (AG-UI runtime, URL =
+  `apiUrl() + "/api/ai/agent"`, credentials include), `OlorinPanel`
   (props: `className`, `fixtureKey`, `showHeader` - set false inside
   workspace), `OlorinWorkspace` (full-screen dialog, ChatGPT-style thread
-  sidebar, Escape to exit, prop `onExit`), `useOlorin` (send/newThread/
+  sidebar, Escape to exit, prop `onExit`), `useOlorinContext` (send/newThread/
   switchToThread), `useOlorinConversations`.
 * Shell integration lives in `apps/shell/src/ShellLayout.tsx`: state
   `aiView: "closed" | "panel" | "full"`. Header "Ask AI" toggles panel; the

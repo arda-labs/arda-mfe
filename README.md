@@ -79,8 +79,9 @@ Workflow admin lives in `apps/workflow` (not shell). BPMN viewer/modeler: `apps/
 ## AI assistant (Olorin)
 
 The shell ships a global assistant dock (Ctrl/Cmd+J) backed by
-`@workspace/ai`, which wraps CopilotKit headless state behind Arda-owned UI.
-CopilotKit must stay inside the package; apps import only `@workspace/ai`.
+`@workspace/ai`, which wraps an AG-UI assistant runtime
+(`@assistant-ui/react-ag-ui` + `@ag-ui/client`) behind Arda-owned UI.
+The runtime must stay inside the package; apps import only `@workspace/ai`.
 
 - Enabled by default. Set `VITE_AI_ENABLED=false` (build variable) to disable.
   Legacy route `/ai-protocol-spike` follows `VITE_AI_PROTOCOL_SPIKE` with the
@@ -96,7 +97,7 @@ CopilotKit must stay inside the package; apps import only `@workspace/ai`.
 - Threads are real: list/switch/delete via the backend conversations API
   (`useOlorinConversations`, auto-refresh after each run); new conversations
   get server-side titles from the first user message.
-- Runtime URL is always `apiUrl() + "/api/copilotkit"` with
+- Runtime URL is always `apiUrl() + "/api/ai/agent"` with
   `credentials: "include"` so session cookies ride on the correct host.
 - Offline previews without a backend:
   `/ai?olorin-fixture=customerLookup|knowledgeCitations|approvalPending`.

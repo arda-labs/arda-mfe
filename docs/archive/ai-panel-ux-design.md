@@ -1,5 +1,11 @@
 # Olorin AI Panel — UI/UX Design & Frontend Standards
 
+> **Note:** This file is archived as historical design reference. Parts of it
+> are now implemented (e.g. `RunStatusBanner`, `RunErrorCard`, meta-tool UIs
+> in `packages/ai/src/components/`); the remaining sections are still useful
+> as roadmap reference. See `docs/ai-integration-guide.md` for the current
+> integration surface.
+
 Status: **Design specification — pre-implementation**. Covers the Olorin
 assistant panel (`packages/ai`) interaction patterns, animation system, error
 code standardization, retry UX, and tool result rendering standards required

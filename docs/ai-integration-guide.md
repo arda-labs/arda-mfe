@@ -212,7 +212,8 @@ export function registerInvoiceListRenderer() {
 
 ```tsx
 // apps/crm/src/main.tsx or CRM app provider
-import { registerInvoiceListRenderer } from "@workspace/ai/crm-renderers"
+import { registerToolRenderer } from "@workspace/ai"
+import { registerInvoiceListRenderer } from "./renderers/invoice-list"
 
 // Register once on app init
 registerInvoiceListRenderer()
@@ -283,7 +284,10 @@ pure UI event handlers that the AI can invoke.
 
 ```ts
 // @workspace/ai
-export { OlorinProvider, OlorinPanel, OlorinWorkspace } from "./src/components/provider"
+export { OlorinProvider } from "./src/components/provider"
+export { OlorinWorkspace } from "./src/components/olorin-workspace"
+export { OlorinPanel } from "./src/components/olorin-panel"
+export { useOlorinContext } from "./src/lib/context"
 export { registerOlorinContext, registerToolRenderer, collectOlorinContext } from "./src/lib/registry"
 export type { ToolResultViewProps, ToolRendererEntry } from "./src/lib/registry"
 export type { OlorinConversation, OlorinConversationMessage } from "./src/lib/conversations"
