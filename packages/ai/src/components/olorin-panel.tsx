@@ -483,6 +483,10 @@ function AssistantMessage() {
                 collapsible thinking section (ChatGPT-style). */}
             <MessagePrimitive.GroupedParts
               groupBy={groupPartByType({
+                // Group adjacent text parts into a single block so a streamed
+                // answer split across multiple text parts doesn't render as
+                // two separate bubbles while streaming.
+                text: ["group-text"],
                 reasoning: ["group-chainOfThought", "group-reasoning"],
                 "tool-call": ["group-chainOfThought", "group-tool"],
               })}
@@ -491,6 +495,8 @@ function AssistantMessage() {
                 switch (part.type) {
                   case "group-chainOfThought":
                     return <div className="mb-2">{children}</div>
+                  case "group-text":
+                    return <div className="space-y-1">{children}</div>
                   case "group-reasoning": {
                     const running = part.status.type === "running"
                     return (
