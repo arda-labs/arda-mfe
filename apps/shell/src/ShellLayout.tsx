@@ -258,53 +258,55 @@ export function ShellLayout() {
             : undefined
         }
       />
-      {aiEnabled && aiView === "panel" ? (
-        <aside
-          aria-label={t("ai.name")}
-          style={{ width: aiPanelWidth }}
-          className="relative hidden shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
-        >
-          <div
-            onMouseDown={startAiPanelResize}
-            className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize hover:bg-primary/20"
-          />
-          <div className="flex h-[52px] shrink-0 items-center gap-2 border-b px-3">
-            <p className="min-w-0 flex-1 truncate text-sm font-semibold">
-              {t("ai.name")}
-              <span className="ml-2 text-xs font-normal text-muted-foreground">
-                {t("ai.tagline")}
-              </span>
-            </p>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t("ai.panel.expand")}
-              title={t("ai.panel.expand")}
-              onClick={() => setAiView("full")}
-              className="size-8"
+      {aiEnabled ? (
+        <OlorinProvider>
+          {aiView === "panel" ? (
+            <aside
+              aria-label={t("ai.name")}
+              style={{ width: aiPanelWidth }}
+              className="relative hidden shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
             >
-              <Maximize2 className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t("ai.panel.close")}
-              onClick={() => setAiView("closed")}
-              className="size-8"
-            >
-              <X className="size-4" />
-            </Button>
-          </div>
-          <OlorinProvider>
-            <OlorinPanel className="min-h-0 flex-1" />
-          </OlorinProvider>
-        </aside>
-      ) : null}
-      {aiEnabled && aiView === "full" ? (
-        <OlorinWorkspace
-          onMinimize={() => setAiView("panel")}
-          onExit={() => setAiView("panel")}
-        />
+              <div
+                onMouseDown={startAiPanelResize}
+                className="absolute left-0 top-0 z-10 h-full w-1 cursor-col-resize hover:bg-primary/20"
+              />
+              <div className="flex h-[52px] shrink-0 items-center gap-2 border-b px-3">
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold">
+                  {t("ai.name")}
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">
+                    {t("ai.tagline")}
+                  </span>
+                </p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t("ai.panel.expand")}
+                  title={t("ai.panel.expand")}
+                  onClick={() => setAiView("full")}
+                  className="size-8"
+                >
+                  <Maximize2 className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t("ai.panel.close")}
+                  onClick={() => setAiView("closed")}
+                  className="size-8"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+              <OlorinPanel className="min-h-0 flex-1" />
+            </aside>
+          ) : null}
+          {aiView === "full" ? (
+            <OlorinWorkspace
+              onMinimize={() => setAiView("panel")}
+              onExit={() => setAiView("panel")}
+            />
+          ) : null}
+        </OlorinProvider>
       ) : null}
     </div>
   )

@@ -8,7 +8,6 @@ import {
 } from "@assistant-ui/react"
 import { Minimize2, Plus, Trash2 } from "lucide-react"
 import { useOlorinContext } from "../lib/context"
-import { OlorinProvider } from "./provider"
 import { OlorinPanel } from "./olorin-panel"
 
 export type OlorinWorkspaceProps = {
@@ -16,12 +15,13 @@ export type OlorinWorkspaceProps = {
   onExit?: () => void
 }
 
+// Full-screen workspace. Renders inside an existing OlorinProvider (the shell
+// mounts a single provider for both panel and full-screen views so thread
+// state survives minimize/expand) — no provider of its own.
 export function OlorinWorkspace({ onMinimize, onExit }: OlorinWorkspaceProps) {
   return (
     <div className="fixed inset-0 z-[70] flex bg-background text-foreground">
-      <OlorinProvider>
-        <OlorinWorkspaceSurface onMinimize={onMinimize} onExit={onExit} />
-      </OlorinProvider>
+      <OlorinWorkspaceSurface onMinimize={onMinimize} onExit={onExit} />
     </div>
   )
 }
@@ -78,6 +78,33 @@ function OlorinWorkspaceSurface({
               {t("ai.threads.empty")}
             </p>
           )}
+
+          {/* Current (unsaved) thread — always shown at the top so the user
+              can see the conversation they are in, even before the first
+              message persists it server-side. */}
+          {(() => {
+            const isCurrentPersisted = conversations.list.some(
+              (c) => c.threadId === threadId
+            )
+            if (isCurrentPersisted) return null
+            return (
+              <div
+                className={cn(
+                  "group flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 transition-colors text-xs",
+                  "bg-accent text-accent-foreground font-medium"
+                )}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block w-full truncate font-medium">
+                    {t("ai.threads.current_new") || "Cuộc trò chuyện mới"}
+                  </span>
+                  <span className="block text-[11px] text-muted-foreground mt-0.5">
+                    0 {t("ai.threads.messages_suffix")}
+                  </span>
+                </span>
+              </div>
+            )
+          })()}
 
           <ThreadListPrimitive.Items>
             {({ threadListItem }) => {
