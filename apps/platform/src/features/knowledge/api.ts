@@ -103,6 +103,65 @@ export interface JobOut {
   updated_at: string | null
 }
 
+export interface QueryHitOut {
+  source_id: number
+  source_version_id: number
+  version: string
+  title: string
+  heading: string
+  content: string
+  score: number
+  citation: string
+}
+
+export interface QueryRequest {
+  query: string
+  top_k: number
+}
+
+export interface QueryResponse {
+  run_id: string
+  hits: QueryHitOut[]
+  latency_ms: number
+  rewritten: boolean
+  retrieved_count: number
+  reranked_count: number
+}
+
+export interface FeedbackRequest {
+  run_id: string
+  helpful: boolean
+  comment?: string | null
+}
+
+export interface FeedbackOut {
+  id: string
+  run_id: string
+  helpful: boolean
+  comment: string | null
+  created_at: string | null
+}
+
+export interface ChunkPreviewOut {
+  index: number
+  heading: string
+  content: string
+  content_hash: string
+  word_count: number
+  char_count: number
+}
+
+export interface ChunkPreviewRequest {
+  content: string
+  chunker_config?: ChunkerConfig | null
+}
+
+export interface ChunkPreviewResponse {
+  total_chunks: number
+  extracted_text: string | null
+  chunks: ChunkPreviewOut[]
+}
+
 export const knowledgeApi = {
   listSources: (includeDeleted = false) =>
     api.get<SourceOut[]>(
@@ -126,4 +185,17 @@ export const knowledgeApi = {
       `/api/rag/sources/${sourceId}/versions/${versionId}/publish`
     ),
   getJob: (jobId: string) => api.get<JobOut>(`/api/rag/jobs/${jobId}`),
+  query: (data: QueryRequest) =>
+    api.post<QueryResponse>("/api/rag/query", data),
+  feedback: (data: FeedbackRequest) =>
+    api.post<FeedbackOut>("/api/rag/feedback", data),
+  previewChunks: (data: ChunkPreviewRequest) =>
+    api.post<ChunkPreviewResponse>("/api/rag/sources/preview-chunks", data),
+  parseAndPreviewFile: (file: File, chunkSize = 512, chunkOverlap = 64) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("chunk_size", String(chunkSize))
+    formData.append("chunk_overlap", String(chunkOverlap))
+    return api.post<ChunkPreviewResponse>("/api/rag/sources/parse-preview", formData)
+  },
 }

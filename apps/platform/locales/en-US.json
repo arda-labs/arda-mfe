@@ -618,6 +618,42 @@
       "action_failed": "Action failed"
     },
     "confirm_delete_title": "Delete this knowledge source?",
-    "confirm_delete": "Are you sure you want to delete \"{title}\"? All its versions will be removed."
+    "confirm_delete": "Are you sure you want to delete \"{title}\"? All its versions will be removed.",
+    "tab": {
+      "preview_chunks": "Preview Chunks",
+      "extracted_markdown": "Extracted Markdown"
+    },
+    "upload": {
+      "drop_title": "Drag and drop file here or click to browse",
+      "supported_formats": "Supported formats",
+      "processing": "Processing document...",
+      "parse_failed": "Failed to parse document content"
+    },
+    "preview": {
+      "loading": "Parsing document chunks...",
+      "empty": "No chunks yet. Enter text or upload a file to preview chunks.",
+      "total_chunks": "Total {count} chunks",
+      "words": "words",
+      "chars": "chars",
+      "refresh": "Refresh Preview",
+      "generate_btn": "Preview Chunks",
+      "failed": "Failed to preview chunks"
+    },
+    "playground": {
+      "button": "Retrieval Playground",
+      "title": "RAG Retrieval Playground",
+      "description": "Test queries directly against the published knowledge catalog.",
+      "placeholder": "Enter a test query (e.g., Leave policy, Travel allowances...)",
+      "search_btn": "Search",
+      "query_failed": "Query search failed",
+      "helpful_prompt": "Helpful result?",
+      "feedback_sent": "Thank you for your feedback!",
+      "feedback_failed": "Failed to submit feedback",
+      "feedback_thank_you": "Feedback recorded",
+      "searching": "Searching knowledge base...",
+      "empty_hint": "Enter a query and click Search to evaluate RAG retrieval accuracy.",
+      "no_results": "No relevant chunks found",
+      "no_results_tip": "Try different search terms or ensure the knowledge source has been approved and published."
+    }
   }
 }

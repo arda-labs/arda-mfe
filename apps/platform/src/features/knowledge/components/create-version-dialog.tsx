@@ -28,10 +28,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { ChevronDown } from "lucide-react"
-import { knowledgeApi, type VersionCreate } from "../api"
+import { ChevronDown, Eye, FileText, Layers, RefreshCw } from "lucide-react"
+import { uploadFile } from "@workspace/media"
+import { knowledgeApi, type ChunkPreviewOut, type VersionCreate } from "../api"
+import { ChunkPreviewPanel } from "./chunk-preview-panel"
+import { FileUploadZone } from "./file-upload-zone"
 
-const contentTypes = ["markdown", "url", "file"] as const
+const contentTypes = ["markdown", "file", "url"] as const
 
 type TranslateFn = (
   key: string,
@@ -79,6 +82,12 @@ export function CreateVersionDialog({
 }) {
   const { t } = useI18n()
   const [saving, setSaving] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [fileProcessing, setFileProcessing] = useState(false)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const [previewChunks, setPreviewChunks] = useState<ChunkPreviewOut[]>([])
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit")
 
   const schema = useMemo(() => buildSchema(t), [t])
   const {
@@ -87,14 +96,111 @@ export function CreateVersionDialog({
     handleSubmit,
     register,
     reset,
+    setValue,
     watch,
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues })
 
   const contentType = watch("content_type")
+  const watchContent = watch("content")
+  const watchChunkSize = watch("chunk_size")
+  const watchChunkOverlap = watch("chunk_overlap")
 
   const handleOpenChange = (next: boolean) => {
-    if (!next) reset(defaultValues)
+    if (!next) {
+      reset(defaultValues)
+      setSelectedFile(null)
+      setPreviewChunks([])
+      setFileError(null)
+      setActiveTab("edit")
+    }
     onOpenChange(next)
+  }
+
+  const handleFileSelect = async (file: File) => {
+    setSelectedFile(file)
+    setFileProcessing(true)
+    setFileError(null)
+
+    const chunkSize = watchChunkSize ? Number(watchChunkSize) : 512
+    const chunkOverlap = watchChunkOverlap ? Number(watchChunkOverlap) : 64
+
+    try {
+      // 1. Parse document & get live preview
+      const previewRes = await knowledgeApi.parseAndPreviewFile(
+        file,
+        chunkSize,
+        chunkOverlap
+      )
+      if (previewRes.extracted_text) {
+        setValue("content", previewRes.extracted_text)
+      }
+      setPreviewChunks(previewRes.chunks)
+      setActiveTab("preview")
+
+      // 2. Upload to media-service in background
+      try {
+        const mediaRes = await uploadFile(
+          file,
+          "knowledge",
+          "source_version",
+          String(sourceId),
+          "private"
+        )
+        if (mediaRes.url) {
+          setValue("content_url", mediaRes.url)
+        }
+      } catch (mediaErr) {
+        // Non-blocking: media upload failed, but extracted text is still intact
+        console.warn("Media service upload skipped/failed:", mediaErr)
+      }
+    } catch (err) {
+      setFileError(err instanceof Error ? err.message : String(err))
+      notify.error(
+        t("platform.knowledge.upload.parse_failed"),
+        translateApiError(err)
+      )
+    } finally {
+      setFileProcessing(false)
+    }
+  }
+
+  const handleFileRemove = () => {
+    setSelectedFile(null)
+    setFileError(null)
+    setValue("content", "")
+    setValue("content_url", "")
+    setPreviewChunks([])
+    setActiveTab("edit")
+  }
+
+  const handlePreviewMarkdown = async () => {
+    const text = watchContent?.trim()
+    if (!text) {
+      notify.error(t("platform.knowledge.validation.content_required_for_preview"))
+      return
+    }
+
+    setPreviewLoading(true)
+    try {
+      const chunkSize = watchChunkSize ? Number(watchChunkSize) : 512
+      const chunkOverlap = watchChunkOverlap ? Number(watchChunkOverlap) : 64
+      const res = await knowledgeApi.previewChunks({
+        content: text,
+        chunker_config: {
+          chunk_size: chunkSize,
+          chunk_overlap: chunkOverlap,
+        },
+      })
+      setPreviewChunks(res.chunks)
+      setActiveTab("preview")
+    } catch (err) {
+      notify.error(
+        t("platform.knowledge.preview.failed"),
+        translateApiError(err)
+      )
+    } finally {
+      setPreviewLoading(false)
+    }
   }
 
   const submit = handleSubmit(async (values) => {
@@ -106,15 +212,12 @@ export function CreateVersionDialog({
       const chunkOverlap = values.chunk_overlap
         ? Number(values.chunk_overlap)
         : undefined
+
       const payload: VersionCreate = {
         version: values.version.trim(),
         content_type: values.content_type,
-        content:
-          values.content_type === "markdown"
-            ? values.content || null
-            : null,
-        content_url:
-          values.content_type === "markdown" ? null : values.content_url || null,
+        content: values.content || null,
+        content_url: values.content_url || null,
         chunker_config:
           values.strategy || chunkSize || chunkOverlap
             ? {
@@ -140,7 +243,7 @@ export function CreateVersionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("platform.knowledge.new_version")}</DialogTitle>
           <DialogDescription>
@@ -172,7 +275,13 @@ export function CreateVersionDialog({
                 control={control}
                 name="content_type"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      setPreviewChunks([])
+                    }}
+                  >
                     <SelectTrigger aria-label={t("platform.knowledge.field.content_type")}>
                       <SelectValue />
                     </SelectTrigger>
@@ -189,21 +298,131 @@ export function CreateVersionDialog({
             </FormField>
           </div>
 
-          {contentType === "markdown" ? (
-            <FormField
-              label={t("platform.knowledge.field.content")}
-              htmlFor="kv_content"
-              error={errors.content?.message}
-            >
-              <Textarea
-                id="kv_content"
-                rows={8}
-                aria-invalid={Boolean(errors.content)}
-                spellCheck={false}
-                placeholder={t("platform.knowledge.placeholder.content")}
-                {...register("content")}
-              />
-            </FormField>
+          {contentType === "file" ? (
+            <div className="space-y-3">
+              <FormField label={t("platform.knowledge.field.upload_file")}>
+                <FileUploadZone
+                  file={selectedFile}
+                  onFileSelect={(f) => void handleFileSelect(f)}
+                  onFileRemove={handleFileRemove}
+                  uploading={fileProcessing}
+                  error={fileError}
+                />
+              </FormField>
+
+              {watchContent ? (
+                <div className="flex items-center justify-between border-b pb-1">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={activeTab === "preview" ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setActiveTab("preview")}
+                    >
+                      <Layers className="mr-1 size-3.5" />
+                      {t("platform.knowledge.tab.preview_chunks")}
+                      {previewChunks.length > 0 ? (
+                        <Badge variant="secondary" className="ml-1 px-1 py-0 text-[10px]">
+                          {previewChunks.length}
+                        </Badge>
+                      ) : null}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={activeTab === "edit" ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setActiveTab("edit")}
+                    >
+                      <FileText className="mr-1 size-3.5" />
+                      {t("platform.knowledge.tab.extracted_markdown")}
+                    </Button>
+                  </div>
+
+                  {activeTab === "preview" ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={previewLoading || fileProcessing}
+                      onClick={() => void handlePreviewMarkdown()}
+                    >
+                      <RefreshCw className="mr-1 size-3" />
+                      {t("platform.knowledge.preview.refresh")}
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {activeTab === "preview" && watchContent ? (
+                <ChunkPreviewPanel
+                  chunks={previewChunks}
+                  loading={previewLoading || fileProcessing}
+                />
+              ) : null}
+
+              {activeTab === "edit" || !previewChunks.length ? (
+                <FormField
+                  label={t("platform.knowledge.field.content")}
+                  htmlFor="kv_content"
+                  error={errors.content?.message}
+                >
+                  <Textarea
+                    id="kv_content"
+                    rows={6}
+                    aria-invalid={Boolean(errors.content)}
+                    spellCheck={false}
+                    placeholder={t("platform.knowledge.placeholder.content")}
+                    {...register("content")}
+                  />
+                </FormField>
+              ) : null}
+            </div>
+          ) : contentType === "markdown" ? (
+            <div className="space-y-3">
+              <FormField
+                label={t("platform.knowledge.field.content")}
+                htmlFor="kv_content"
+                error={errors.content?.message}
+              >
+                <Textarea
+                  id="kv_content"
+                  rows={7}
+                  aria-invalid={Boolean(errors.content)}
+                  spellCheck={false}
+                  placeholder={t("platform.knowledge.placeholder.content")}
+                  {...register("content")}
+                />
+              </FormField>
+
+              <div className="flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  disabled={previewLoading || !watchContent?.trim()}
+                  onClick={() => void handlePreviewMarkdown()}
+                >
+                  <Eye className="mr-1.5 size-3.5" />
+                  {t("platform.knowledge.preview.generate_btn")}
+                </Button>
+                {previewChunks.length > 0 ? (
+                  <Badge variant="secondary" className="text-xs font-mono">
+                    {previewChunks.length} chunks
+                  </Badge>
+                ) : null}
+              </div>
+
+              {previewChunks.length > 0 ? (
+                <ChunkPreviewPanel
+                  chunks={previewChunks}
+                  loading={previewLoading}
+                />
+              ) : null}
+            </div>
           ) : (
             <FormField
               label={t("platform.knowledge.field.content_url")}
@@ -278,7 +497,7 @@ export function CreateVersionDialog({
             >
               {t("common.action.cancel")}
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving || fileProcessing}>
               {saving ? t("common.action.saving") : t("common.action.save")}
             </Button>
           </div>

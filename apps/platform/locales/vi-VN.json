@@ -618,6 +618,42 @@
       "action_failed": "Thao tác thất bại"
     },
     "confirm_delete_title": "Xóa nguồn tri thức này?",
-    "confirm_delete": "Bạn chắc chắn muốn xóa \"{title}\"? Toàn bộ phiên bản sẽ bị xóa."
+    "confirm_delete": "Bạn chắc chắn muốn xóa \"{title}\"? Toàn bộ phiên bản sẽ bị xóa.",
+    "tab": {
+      "preview_chunks": "Xem trước Chunks",
+      "extracted_markdown": "Nội dung Markdown"
+    },
+    "upload": {
+      "drop_title": "Kéo thả tệp vào đây hoặc bấm để chọn tệp",
+      "supported_formats": "Định dạng hỗ trợ",
+      "processing": "Đang phân tích tệp...",
+      "parse_failed": "Không thể phân tích nội dung tệp"
+    },
+    "preview": {
+      "loading": "Đang phân tích các chunks...",
+      "empty": "Chưa có chunk nào. Nhập văn bản hoặc tải tệp lên để xem trước.",
+      "total_chunks": "Tổng số {count} chunks",
+      "words": "từ",
+      "chars": "ký tự",
+      "refresh": "Cập nhật Preview",
+      "generate_btn": "Xem trước Chunks",
+      "failed": "Không thể xem trước Chunks"
+    },
+    "playground": {
+      "button": "Thử nghiệm truy vấn",
+      "title": "RAG Retrieval Playground",
+      "description": "Thử nghiệm truy vấn trực tiếp vào cơ sở tri thức đã xuất bản.",
+      "placeholder": "Nhập câu hỏi thử nghiệm (VD: Quy định nghỉ phép, công tác phí...)",
+      "search_btn": "Tìm kiếm",
+      "query_failed": "Lỗi khi truy vấn tri thức",
+      "helpful_prompt": "Kết quả hữu ích?",
+      "feedback_sent": "Cảm ơn bạn đã phản hồi!",
+      "feedback_failed": "Không thể gửi phản hồi",
+      "feedback_thank_you": "Đã ghi nhận phản hồi",
+      "searching": "Đang tìm kiếm trong kho tri thức...",
+      "empty_hint": "Nhập câu hỏi và nhấn Tìm kiếm để kiểm tra độ chính xác của RAG.",
+      "no_results": "Không tìm thấy kết quả phù hợp",
+      "no_results_tip": "Hãy thử từ khóa khác hoặc đảm bảo nguồn tri thức đã được duyệt và xuất bản (Published)."
+    }
   }
 }

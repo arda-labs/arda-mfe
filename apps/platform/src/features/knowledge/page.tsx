@@ -4,10 +4,11 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { Skeleton } from "@workspace/ui/components/skeleton"
-import { Database, Plus } from "lucide-react"
+import { Database, Plus, Sparkles } from "lucide-react"
 import { knowledgeApi, type SourceOut, type VersionOut } from "./api"
 import { CreateSourceDialog } from "./components/create-source-dialog"
 import { CreateVersionDialog } from "./components/create-version-dialog"
+import { RetrievalPlayground } from "./components/retrieval-playground"
 import { SourceDetail, SourceListTable } from "./components/source-detail"
 
 export function KnowledgePage() {
@@ -18,6 +19,8 @@ export function KnowledgePage() {
   const [versionsLoading, setVersionsLoading] = useState(false)
   const [createSourceOpen, setCreateSourceOpen] = useState(false)
   const [createVersionOpen, setCreateVersionOpen] = useState(false)
+  const [playgroundOpen, setPlaygroundOpen] = useState(false)
+
 
   const loadSources = useCallback(async () => {
     try {
@@ -95,10 +98,20 @@ export function KnowledgePage() {
             icon={Database}
             description={t("platform.knowledge.description")}
             actions={
-              <Button size="sm" onClick={() => setCreateSourceOpen(true)}>
-                <Plus className="mr-1.5 size-3.5" />
-                {t("platform.knowledge.new_source")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPlaygroundOpen(true)}
+                >
+                  <Sparkles className="mr-1.5 size-3.5 text-primary" />
+                  {t("platform.knowledge.playground.button")}
+                </Button>
+                <Button size="sm" onClick={() => setCreateSourceOpen(true)}>
+                  <Plus className="mr-1.5 size-3.5" />
+                  {t("platform.knowledge.new_source")}
+                </Button>
+              </div>
             }
           />
           <SourceListTable
@@ -122,6 +135,11 @@ export function KnowledgePage() {
           onSuccess={() => loadVersions(selected.id)}
         />
       ) : null}
+
+      <RetrievalPlayground
+        open={playgroundOpen}
+        onOpenChange={setPlaygroundOpen}
+      />
     </section>
   )
 }
