@@ -137,6 +137,39 @@
       "empty_hint": "Enter a query and click Search to evaluate RAG retrieval accuracy.",
       "no_results": "No relevant chunks found",
       "no_results_tip": "Try different search terms or ensure the knowledge source has been approved and published."
+    },
+    "tabs": {
+      "corpus": "Corpus Sources",
+      "connectors": "Data Connectors",
+      "strategies": "Chunking & Rerank Strategies"
+    },
+    "connectors": {
+      "title": "Data Connectors & Auto-Sync",
+      "description": "Automated ingestion, extraction, and continuous sync from external document repositories",
+      "btn": {
+        "add": "New Connector",
+        "create": "Create Connector",
+        "cancel": "Cancel"
+      },
+      "field": {
+        "name": "Connector Name",
+        "provider": "Data Source Provider",
+        "target_source": "Target Knowledge Source",
+        "schedule": "Sync Schedule"
+      },
+      "last_sync": "Last sync",
+      "sync_now": "Sync Now",
+      "syncing": "Syncing...",
+      "sync_success": "Sync triggered successfully",
+      "created": "Connector created successfully",
+      "dialog": {
+        "title": "Add Data Connector",
+        "description": "Connect external storage to continuously ingest and embed enterprise documents."
+      }
+    },
+    "strategies": {
+      "title": "Advanced Chunking & Reranker Pipeline",
+      "description": "Maximize retrieval precision and answer groundedness with hierarchical chunking and cross-encoder reranking."
     }
   },
   "approvals": {
@@ -335,6 +368,16 @@
       "save_failed": "Failed to save agent",
       "deleted": "Agent deleted successfully",
       "delete_failed": "Failed to delete agent"
+    }
+  },
+  "settings": {
+    "title": "AI Settings",
+    "description": "Manage Model Gateway, provider credentials, safety guardrails, and budget caps",
+    "tabs": {
+      "profiles": "Model Profiles",
+      "routing": "Gateway & Fallback",
+      "guardrails": "Enterprise Guardrails",
+      "quotas": "Budgets & Rate Limits"
     }
   }
 }

@@ -137,6 +137,39 @@
       "empty_hint": "Nhập câu hỏi và nhấn Tìm kiếm để kiểm tra độ chính xác của RAG.",
       "no_results": "Không tìm thấy kết quả phù hợp",
       "no_results_tip": "Hãy thử từ khóa khác hoặc đảm bảo nguồn tri thức đã được duyệt và xuất bản (Published)."
+    },
+    "tabs": {
+      "corpus": "Kho Tri thức (Corpus)",
+      "connectors": "Kết nối & Đồng bộ (Connectors)",
+      "strategies": "Chiến lược phân mảnh & Reranker"
+    },
+    "connectors": {
+      "title": "Data Connectors & Tự động Đồng bộ",
+      "description": "Tự động thu thập, trích xuất và đồng bộ hóa tài liệu từ các hệ thống lưu trữ bên ngoài",
+      "btn": {
+        "add": "Thêm kết nối mới",
+        "create": "Tạo kết nối",
+        "cancel": "Hủy"
+      },
+      "field": {
+        "name": "Tên kết nối",
+        "provider": "Hệ thống nguồn",
+        "target_source": "Nguồn tri thức đích",
+        "schedule": "Tần suất đồng bộ"
+      },
+      "last_sync": "Đồng bộ gần nhất",
+      "sync_now": "Đồng bộ ngay",
+      "syncing": "Đang đồng bộ...",
+      "sync_success": "Đã kích hoạt đồng bộ thành công",
+      "created": "Đã tạo kết nối nguồn dữ liệu mới",
+      "dialog": {
+        "title": "Thêm Data Connector mới",
+        "description": "Kết nối kho lưu trữ ngoài để tự động chuyển hóa tài liệu thành vector tri thức."
+      }
+    },
+    "strategies": {
+      "title": "Chiến lược Phân mảnh & Cross-Encoder Reranker",
+      "description": "Tối ưu hóa độ bám ngữ cảnh và chất lượng câu trả lời với các kỹ thuật phân mảnh phân cấp và mô hình chấm lại điểm."
     }
   },
   "approvals": {
@@ -335,6 +368,16 @@
       "save_failed": "Không thể lưu cấu hình Agent",
       "deleted": "Đã xóa Agent thành công",
       "delete_failed": "Không thể xóa Agent"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt AI",
+    "description": "Quản lý Model Gateway, cấu hình nhà cung cấp, rào chắn an toàn và hạn mức chi phí",
+    "tabs": {
+      "profiles": "Cấu hình Model",
+      "routing": "Định tuyến & Dự phòng",
+      "guardrails": "Rào chắn An toàn (Guardrails)",
+      "quotas": "Hạn mức & Rate Limit"
     }
   }
 }

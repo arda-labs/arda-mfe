@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -66,6 +66,7 @@ export function SourceListTable({
           <TableHeader>
             <TableRow>
               <TableHead>{t("ai.knowledge.field.title")}</TableHead>
+              <TableHead>{t("ai.knowledge.field.classification")}</TableHead>
               <TableHead>{t("ai.knowledge.field.scope")}</TableHead>
               <TableHead>{t("ai.knowledge.field.language")}</TableHead>
               <TableHead>{t("ai.knowledge.field.version")}</TableHead>
@@ -76,7 +77,7 @@ export function SourceListTable({
           <TableBody>
             {sources.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
                   {t("ai.knowledge.empty")}
                 </TableCell>
               </TableRow>
@@ -88,6 +89,11 @@ export function SourceListTable({
                   onClick={() => onSelect(source)}
                 >
                   <TableCell className="font-medium">{source.title}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-semibold">
+                      {source.classification || "internal"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{t(`ai.knowledge.scope.${source.scope}`)}</TableCell>
                   <TableCell>{source.language ?? "-"}</TableCell>
                   <TableCell>{source.version ?? "-"}</TableCell>

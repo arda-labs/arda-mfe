@@ -1,386 +1,68 @@
-import * as React from "react"
-import { notify } from "@workspace/ui/feedback/notify"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Badge } from "@workspace/ui/components/badge"
+import { useState } from "react"
+import { useI18n } from "@workspace/i18n"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
-  Bot,
-  CheckCircle2,
   Cpu,
-  Eye,
-  EyeOff,
-  Globe,
-  Key,
-  Layers,
-  Lock,
-  RefreshCw,
-  Shield,
+  Gauge,
+  GitFork,
   ShieldCheck,
-  Sparkles,
-  Zap,
+  SlidersHorizontal,
 } from "lucide-react"
 
-import {
-  fetchAISettings,
-  saveAISettings,
-  testAIConnection,
-  type TestConnectionResult,
-} from "./api"
-
-import { PRESETS } from "./presets"
+import { BudgetQuotasTab } from "./components/budget-quotas-tab"
+import { GatewayRoutingTab } from "./components/gateway-routing-tab"
+import { GuardrailsSafetyTab } from "./components/guardrails-safety-tab"
+import { ModelProfilesTab } from "./components/model-profiles-tab"
 
 export function SettingsPage() {
-  const [providerType, setProviderType] = React.useState<string>("openai")
-  const [baseUrl, setBaseUrl] = React.useState<string>("https://api.openai.com/v1")
-  const [apiKey, setApiKey] = React.useState<string>("")
-  const [modelId, setModelId] = React.useState<string>("gpt-4o")
-  const [temperature, setTemperature] = React.useState<number>(0.2)
-  const [showKey, setShowKey] = React.useState<boolean>(false)
-  const [hasExistingKey, setHasExistingKey] = React.useState<boolean>(false)
-
-  const [loading, setLoading] = React.useState<boolean>(true)
-  const [testing, setTesting] = React.useState<boolean>(false)
-  const [saving, setSaving] = React.useState<boolean>(false)
-  const [testResult, setTestResult] = React.useState<TestConnectionResult | null>(null)
-
-  const loadSettings = React.useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await fetchAISettings()
-      if (data.providerType) setProviderType(data.providerType)
-      if (data.baseUrl) setBaseUrl(data.baseUrl)
-      if (data.modelId) setModelId(data.modelId)
-      if (data.apiKey) setApiKey(data.apiKey)
-      if (data.temperature) setTemperature(data.temperature)
-      setHasExistingKey(Boolean(data.hasApiKey || data.apiKey))
-    } catch {
-      // Use defaults
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  React.useEffect(() => {
-    void loadSettings()
-  }, [loadSettings])
-
-  const handleSelectPreset = (presetId: string) => {
-    const preset = PRESETS.find((p) => p.id === presetId)
-    if (!preset) return
-    setProviderType(preset.id)
-    if (preset.baseUrl && preset.id !== "custom") {
-      setBaseUrl(preset.baseUrl)
-    }
-    if (preset.defaultModel) {
-      setModelId(preset.defaultModel)
-    }
-    setTestResult(null)
-  }
-
-  const handleTestConnection = async () => {
-    setTesting(true)
-    setTestResult(null)
-    try {
-      const data = await testAIConnection({
-        providerType,
-        baseUrl,
-        apiKey,
-        modelId,
-      })
-      setTestResult(data)
-      if (data.success) {
-        notify.success(`Kết nối thành công tới ${data.modelId} (${data.latencyMs}ms)`)
-      } else {
-        notify.error("Kiểm tra kết nối thất bại", data.error || "Không thể kết nối")
-      }
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "Lỗi mạng"
-      setTestResult({ success: false, error: errMsg })
-      notify.error("Lỗi kiểm tra kết nối", errMsg)
-    } finally {
-      setTesting(false)
-    }
-  }
-
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await saveAISettings({
-        providerType,
-        baseUrl,
-        apiKey,
-        modelId,
-        temperature,
-        isActive: true,
-      })
-      notify.success("Cấu hình AI đã được lưu và kích hoạt tức thì")
-      setHasExistingKey(true)
-      await loadSettings()
-    } catch (err) {
-      notify.error("Lưu cấu hình thất bại", err instanceof Error ? err.message : "Lỗi server")
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const selectedPreset = PRESETS.find((p) => p.id === providerType)
+  const { t } = useI18n()
+  const [activeTab, setActiveTab] = useState("profiles")
 
   return (
-    <div className="flex-1 space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-            <Sparkles className="size-5 text-primary" />
-            Cấu hình Trợ lý AI & Model Provider (BYOK)
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Thiết lập mô hình ngôn ngữ lớn (LLM), API Token và các chính sách bảo mật cho toàn bộ Tenant.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={loadSettings} disabled={loading}>
-          <RefreshCw className={`size-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
-          Làm mới
-        </Button>
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4 sm:p-6">
+      <PageHeader
+        title={t("ai.settings.title")}
+        description={t("ai.settings.description")}
+        icon={SlidersHorizontal}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Settings Card */}
-        <Card className="lg:col-span-2 shadow-xs border-muted/80">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Bot className="size-4 text-primary" />
-              Thông số Nhà cung cấp (AI Provider)
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Mã hóa lưu trữ bảo mật bằng tiêu chuẩn AES-256-GCM kết hợp HKDF-SHA256 (RFC 5869).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Preset Picker */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Nhà cung cấp phổ biến</Label>
-              <Select value={providerType} onValueChange={handleSelectPreset}>
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Chọn nhà cung cấp" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRESETS.map((preset) => (
-                    <SelectItem key={preset.id} value={preset.id} className="text-xs">
-                      {preset.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2 sm:w-[620px] sm:grid-cols-4">
+          <TabsTrigger value="profiles" className="gap-1.5 text-xs">
+            <Cpu className="h-3.5 w-3.5" />
+            {t("ai.settings.tabs.profiles")}
+          </TabsTrigger>
+          <TabsTrigger value="routing" className="gap-1.5 text-xs">
+            <GitFork className="h-3.5 w-3.5" />
+            {t("ai.settings.tabs.routing")}
+          </TabsTrigger>
+          <TabsTrigger value="guardrails" className="gap-1.5 text-xs">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            {t("ai.settings.tabs.guardrails")}
+          </TabsTrigger>
+          <TabsTrigger value="quotas" className="gap-1.5 text-xs">
+            <Gauge className="h-3.5 w-3.5" />
+            {t("ai.settings.tabs.quotas")}
+          </TabsTrigger>
+        </TabsList>
 
-            {/* Base URL */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium flex items-center gap-1.5">
-                <Globe className="size-3.5 text-muted-foreground" />
-                Base URL (OpenAI-compatible)
-              </Label>
-              <Input
-                value={baseUrl}
-                onChange={(e) => setBaseUrl(e.target.value)}
-                placeholder="https://api.openai.com/v1"
-                className="font-mono text-xs h-9"
-              />
-            </div>
+        <TabsContent value="profiles" className="m-0">
+          <ModelProfilesTab />
+        </TabsContent>
 
-            {/* Model ID */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium flex items-center gap-1.5">
-                <Cpu className="size-3.5 text-muted-foreground" />
-                Model ID
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  value={modelId}
-                  onChange={(e) => setModelId(e.target.value)}
-                  placeholder="gpt-4o"
-                  className="font-mono text-xs h-9 flex-1"
-                />
-              </div>
-              {selectedPreset && selectedPreset.models.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="text-[11px] text-muted-foreground self-center">Gợi ý:</span>
-                  {selectedPreset.models.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setModelId(m)}
-                      className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
-                        modelId === m
-                          ? "bg-primary text-primary-foreground border-primary font-medium"
-                          : "bg-muted/40 hover:bg-accent text-foreground border-border"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+        <TabsContent value="routing" className="m-0">
+          <GatewayRoutingTab />
+        </TabsContent>
 
-            {/* API Key */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium flex items-center gap-1.5">
-                  <Key className="size-3.5 text-muted-foreground" />
-                  API Key
-                </Label>
-                {hasExistingKey && (
-                  <Badge variant="outline" className="text-[10px] text-emerald-600 bg-emerald-500/10 border-emerald-500/20">
-                    <ShieldCheck className="size-3 mr-1" />
-                    Đã cấu hình
-                  </Badge>
-                )}
-              </div>
-              <div className="relative">
-                <Input
-                  type={showKey ? "text" : "password"}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={hasExistingKey ? "•••••••••••••••••••• (giữ nguyên hoặc nhập mới)" : "sk-..."}
-                  className="font-mono text-xs h-9 pr-9"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
-                >
-                  {showKey ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                </button>
-              </div>
-            </div>
+        <TabsContent value="guardrails" className="m-0">
+          <GuardrailsSafetyTab />
+        </TabsContent>
 
-            {/* Test Result Display */}
-            {testResult && (
-              <div
-                className={`p-3 rounded-lg border text-xs flex items-start gap-2.5 ${
-                  testResult.success
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
-                    : "bg-destructive/10 border-destructive/30 text-destructive"
-                }`}
-              >
-                {testResult.success ? (
-                  <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-600" />
-                ) : (
-                  <Shield className="size-4 shrink-0 mt-0.5" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold flex items-center gap-2">
-                    {testResult.success ? "Kết nối thành công" : "Kết nối thất bại"}
-                    {testResult.latencyMs !== undefined && (
-                      <Badge variant="outline" className="text-[10px] h-4.5 px-1.5">
-                        {testResult.latencyMs}ms
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="text-[11px] mt-0.5 opacity-90">
-                    {testResult.message || testResult.error}
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex items-center justify-between border-t pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleTestConnection}
-              disabled={testing || !baseUrl || !modelId}
-              className="text-xs h-8 gap-1.5"
-            >
-              <Zap className={`size-3.5 ${testing ? "animate-pulse" : ""}`} />
-              {testing ? "Đang kiểm tra..." : "Kiểm tra kết nối"}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleSave}
-              disabled={saving || !baseUrl || !modelId}
-              className="text-xs h-8 gap-1.5"
-            >
-              {saving ? "Đang lưu..." : "Lưu cấu hình"}
-            </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Security & System Info Sidebars */}
-        <div className="space-y-6">
-          {/* Security Summary Card */}
-          <Card className="shadow-xs border-muted/80">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Lock className="size-4 text-emerald-600" />
-                An ninh & Mã hóa (Security)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs">
-              <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-muted-foreground">Chuẩn mã hóa:</span>
-                <span className="font-mono font-medium">AES-256-GCM</span>
-              </div>
-              <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-muted-foreground">Dẫn xuất khóa:</span>
-                <span className="font-mono font-medium">HKDF-SHA256</span>
-              </div>
-              <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-muted-foreground">Chống SSRF Egress:</span>
-                <Badge variant="outline" className="text-[10px] text-emerald-600 bg-emerald-500/10">
-                  Kích hoạt
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Quyền quản trị:</span>
-                <span className="font-mono text-[11px] text-primary">ai.admin</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Sandbox & Code Mode Invariants */}
-          <Card className="shadow-xs border-muted/80">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Layers className="size-4 text-primary" />
-                Chính sách Sandbox (Code Mode)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs">
-              <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-muted-foreground">Max Steps:</span>
-                <span className="font-mono font-medium">10 turns</span>
-              </div>
-              <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-muted-foreground">Timeout JS:</span>
-                <span className="font-mono font-medium">3,000 ms</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Call Budget:</span>
-                <span className="font-mono font-medium">50 calls/turn</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        <TabsContent value="quotas" className="m-0">
+          <BudgetQuotasTab />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
