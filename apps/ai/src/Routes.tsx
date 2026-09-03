@@ -25,6 +25,9 @@ const ToolsPage = lazyWithPreload(() =>
 const AnalyticsPage = lazyWithPreload(() =>
   import("@/features/analytics/page").then((m) => ({ default: m.AnalyticsPage }))
 )
+const AgentsPage = lazyWithPreload(() =>
+  import("@/features/agents/page").then((m) => ({ default: m.AgentsPage }))
+)
 
 export default createRemoteRoutes({
   routes: [
@@ -33,6 +36,7 @@ export default createRemoteRoutes({
     { prefix: "/ai/approvals", component: ApprovalsPage },
     { prefix: "/ai/tools", component: ToolsPage },
     { prefix: "/ai/analytics", component: AnalyticsPage },
+    { prefix: "/ai/agents", component: AgentsPage },
   ],
   defaultComponent: KnowledgePage,
   wrapper: QueryProvider,

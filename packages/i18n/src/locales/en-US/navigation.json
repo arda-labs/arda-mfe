@@ -7,7 +7,8 @@
     "settings": "AI Settings",
     "approvals": "Governance & Approvals",
     "tools": "Tools & MCP Registry",
-    "analytics": "Observability & Costs"
+    "analytics": "Observability & Costs",
+    "agents": "Agent Studio"
   },
   "admin": {
     "_self": "Admin",

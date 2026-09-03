@@ -300,5 +300,41 @@
       "tokens": "Tổng Token",
       "cost": "Chi phí (USD)"
     }
+  },
+  "agents": {
+    "title": "Agent Studio",
+    "description": "Quản lý Persona, System Prompt theo phòng ban, cấu hình Model và phân quyền Tool cho từng Agent",
+    "load_failed": "Không thể tải danh sách Agent",
+    "btn": {
+      "refresh": "Làm mới",
+      "create": "Tạo Agent mới",
+      "edit": "Cấu hình",
+      "save": "Lưu thay đổi",
+      "cancel": "Hủy"
+    },
+    "dept": {
+      "all": "Tất cả"
+    },
+    "field": {
+      "name": "Tên Agent",
+      "department": "Phòng ban / Lĩnh vực",
+      "description": "Mô tả vai trò",
+      "system_prompt": "System Prompt (Persona định hình)",
+      "model": "Mô hình LLM (Model)",
+      "temperature": "Độ sáng tạo (Temperature)",
+      "allowed_tools": "Công cụ được phép dùng (Allowed Tools)"
+    },
+    "tools_all": "Toàn quyền hệ thống (*)",
+    "dialog": {
+      "create_title": "Tạo Agent / Persona mới",
+      "edit_title": "Chỉnh sửa Cấu hình Agent",
+      "description": "Thiết lập hành vi, phạm vi dữ liệu và công cụ được phép dùng cho Agent."
+    },
+    "toast": {
+      "saved": "Đã lưu cấu hình Agent thành công",
+      "save_failed": "Không thể lưu cấu hình Agent",
+      "deleted": "Đã xóa Agent thành công",
+      "delete_failed": "Không thể xóa Agent"
+    }
   }
 }
