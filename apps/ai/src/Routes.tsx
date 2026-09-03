@@ -19,12 +19,16 @@ const SettingsPage = lazyWithPreload(() =>
 const ApprovalsPage = lazyWithPreload(() =>
   import("@/features/approvals/page").then((m) => ({ default: m.ApprovalsPage }))
 )
+const ToolsPage = lazyWithPreload(() =>
+  import("@/features/tools/page").then((m) => ({ default: m.ToolsPage }))
+)
 
 export default createRemoteRoutes({
   routes: [
     { prefix: "/ai/knowledge", component: KnowledgePage },
     { prefix: "/ai/settings", component: SettingsPage },
     { prefix: "/ai/approvals", component: ApprovalsPage },
+    { prefix: "/ai/tools", component: ToolsPage },
   ],
   defaultComponent: KnowledgePage,
   wrapper: QueryProvider,

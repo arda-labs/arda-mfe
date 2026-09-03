@@ -5,7 +5,8 @@
     "_self": "AI Center",
     "knowledge": "Nguồn tri thức",
     "settings": "Cài đặt AI",
-    "approvals": "Phê duyệt & Kiểm toán"
+    "approvals": "Phê duyệt & Kiểm toán",
+    "tools": "Công cụ & MCP Registry"
   },
   "admin": {
     "_self": "Quản trị",

@@ -193,5 +193,66 @@
       "inspecting": "Đang xem ngữ cảnh: {thread}",
       "empty_messages": "Không có tin nhắn nào trong phiên này"
     }
+  },
+  "tools": {
+    "title": "Danh mục Công cụ & MCP Registry",
+    "description": "Danh mục các hàm kinh doanh (Business APIs) và máy chủ MCP kết nối cho Trợ lý AI",
+    "load_failed": "Không thể tải danh sách công cụ",
+    "no_tools_found": "Không tìm thấy công cụ nào phù hợp",
+    "no_permissions_required": "Không yêu cầu quyền đặc biệt",
+    "placeholder": {
+      "search": "Tìm theo tên, SDK path hoặc mô tả..."
+    },
+    "btn": {
+      "refresh": "Làm mới",
+      "inspect": "Xem chi tiết",
+      "close": "Đóng"
+    },
+    "tab": {
+      "internal": "Công cụ hệ thống (Arda SDK)",
+      "mcp": "Máy chủ MCP ngoài"
+    },
+    "domain": {
+      "all": "Tất cả"
+    },
+    "kind": {
+      "read": "Tự động chạy",
+      "confirm": "Cần phê duyệt"
+    },
+    "risk": {
+      "low": "Rủi ro thấp",
+      "medium": "Rủi ro TB",
+      "high": "Rủi ro cao"
+    },
+    "field": {
+      "description": "Mô tả chức năng",
+      "signature": "TypeScript Signature",
+      "jsdoc": "Đặc tả kỹ thuật (JSDoc)",
+      "permissions": "Quyền hạn bắt buộc"
+    },
+    "mcp": {
+      "title": "Danh sách máy chủ MCP",
+      "description": "Kết nối các máy chủ Model Context Protocol để mở rộng khả năng cho AI Agent",
+      "btn": {
+        "add": "Thêm máy chủ MCP",
+        "connect": "Kết nối"
+      },
+      "field": {
+        "name": "Tên máy chủ",
+        "endpoint": "Endpoint kết nối",
+        "protocol": "Giao thức",
+        "tools_count": "Số công cụ",
+        "description": "Mô tả"
+      },
+      "status": {
+        "connected": "Đã kết nối",
+        "disconnected": "Mất kết nối",
+        "error": "Lỗi"
+      },
+      "dialog": {
+        "title": "Thêm kết nối MCP Server mới",
+        "description": "Nhập địa chỉ endpoint SSE hoặc HTTP của máy chủ Model Context Protocol."
+      }
+    }
   }
 }

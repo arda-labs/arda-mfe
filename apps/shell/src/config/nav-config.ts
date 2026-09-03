@@ -13,6 +13,7 @@ import {
   Sparkles,
   Users,
   Wallet,
+  Wrench,
 } from "lucide-react"
 import type { MessageKey } from "@workspace/i18n"
 import type { AuthUser } from "@workspace/auth/store"
@@ -56,6 +57,12 @@ export const navItems: NavNode[] = [
         href: "/ai/approvals",
         labelKey: "nav.ai_center.approvals",
         icon: ShieldCheck,
+        permissions: ["ai.admin", "superadmin", "platform.manage"],
+      },
+      {
+        href: "/ai/tools",
+        labelKey: "nav.ai_center.tools",
+        icon: Wrench,
         permissions: ["ai.admin", "superadmin", "platform.manage"],
       },
     ],

@@ -193,5 +193,66 @@
       "inspecting": "Inspecting: {thread}",
       "empty_messages": "No messages in this thread"
     }
+  },
+  "tools": {
+    "title": "Tools & MCP Registry",
+    "description": "Catalog of internal business APIs and external MCP servers for AI Agent",
+    "load_failed": "Failed to load tools catalog",
+    "no_tools_found": "No tools found matching filter",
+    "no_permissions_required": "No special permissions required",
+    "placeholder": {
+      "search": "Search by name, SDK path or keywords..."
+    },
+    "btn": {
+      "refresh": "Refresh",
+      "inspect": "Inspect",
+      "close": "Close"
+    },
+    "tab": {
+      "internal": "Internal APIs (Arda SDK)",
+      "mcp": "External MCP Servers"
+    },
+    "domain": {
+      "all": "All"
+    },
+    "kind": {
+      "read": "Auto Run",
+      "confirm": "Requires Approval"
+    },
+    "risk": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "field": {
+      "description": "Description",
+      "signature": "TypeScript Signature",
+      "jsdoc": "Technical JSDoc",
+      "permissions": "Required Permissions"
+    },
+    "mcp": {
+      "title": "MCP Server Connections",
+      "description": "Connect Model Context Protocol servers to expand AI Agent capabilities",
+      "btn": {
+        "add": "Add MCP Server",
+        "connect": "Connect"
+      },
+      "field": {
+        "name": "Server Name",
+        "endpoint": "Connection Endpoint",
+        "protocol": "Protocol",
+        "tools_count": "Available Tools",
+        "description": "Description"
+      },
+      "status": {
+        "connected": "Connected",
+        "disconnected": "Disconnected",
+        "error": "Error"
+      },
+      "dialog": {
+        "title": "Add New MCP Server Connection",
+        "description": "Enter the SSE or HTTP endpoint URL of the Model Context Protocol server."
+      }
+    }
   }
 }

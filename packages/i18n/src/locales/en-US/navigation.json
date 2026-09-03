@@ -5,7 +5,8 @@
     "_self": "AI Center",
     "knowledge": "Knowledge Base",
     "settings": "AI Settings",
-    "approvals": "Governance & Approvals"
+    "approvals": "Governance & Approvals",
+    "tools": "Tools & MCP Registry"
   },
   "admin": {
     "_self": "Admin",
