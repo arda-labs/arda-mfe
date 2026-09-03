@@ -37,16 +37,20 @@ function runIdOf(result: ToolResultPayload): string | undefined {
 
 function itemsOf(result: ToolResultPayload): KnowledgeSearchItem[] {
   if (!Array.isArray(result)) return []
-  return result.map((item) => ({
-    runId: textValue(item.runId),
-    sourceId: textValue(item.sourceId) || undefined,
-    sourceTitle: textValue(item.sourceTitle) || undefined,
-    heading: textValue(item.heading) || undefined,
-    content: textValue(item.content) || undefined,
-    citations: item.citations,
-    matchScore: typeof item.matchScore === "number" ? item.matchScore : undefined,
-    version: textValue(item.version) || undefined,
-  }))
+  return result
+    .filter((item): item is Record<string, unknown> =>
+      typeof item === "object" && item !== null
+    )
+    .map((item) => ({
+      runId: textValue(item.runId),
+      sourceId: textValue(item.sourceId) || undefined,
+      sourceTitle: textValue(item.sourceTitle) || undefined,
+      heading: textValue(item.heading) || undefined,
+      content: textValue(item.content) || undefined,
+      citations: item.citations,
+      matchScore: typeof item.matchScore === "number" ? item.matchScore : undefined,
+      version: textValue(item.version) || undefined,
+    }))
 }
 
 export function KnowledgeSearchFeedback({ result }: ToolResultViewProps) {
