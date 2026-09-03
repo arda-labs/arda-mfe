@@ -109,7 +109,7 @@ export function CreateSourceDialog({
         source_type: values.source_type,
         scope: values.scope,
         language: values.language || "vi",
-        tags: values.tags
+        tags: (values.tags ?? "")
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
