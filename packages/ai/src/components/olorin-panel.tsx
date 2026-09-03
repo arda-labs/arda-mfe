@@ -52,6 +52,7 @@ import {
 } from "../lib/registry"
 import { registerCustomerSummaryRenderer } from "./tools/customer-summary-card"
 import { registerKnowledgeCitationRenderer } from "./tools/citation-list"
+import { registerKnowledgeSearchFeedbackRenderer } from "./tools/knowledge-search-feedback"
 import { MarkdownMessage } from "./markdown"
 import {
   SearchMetaToolUI,
@@ -70,6 +71,7 @@ export type OlorinPanelProps = {
 if (!areDefaultRenderersRegistered()) {
   registerCustomerSummaryRenderer()
   registerKnowledgeCitationRenderer()
+  registerKnowledgeSearchFeedbackRenderer()
   markDefaultRenderersRegistered()
 }
 

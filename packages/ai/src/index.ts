@@ -25,6 +25,10 @@ export {
   registerKnowledgeCitationRenderer,
 } from "./components/tools/citation-list"
 export {
+  KnowledgeSearchFeedback,
+  registerKnowledgeSearchFeedbackRenderer,
+} from "./components/tools/knowledge-search-feedback"
+export {
   GenericToolView,
 } from "./components/tools/generic-tool-view"
 export { MarkdownMessage } from "./components/markdown"

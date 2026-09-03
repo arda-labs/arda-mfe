@@ -28,6 +28,13 @@
   "transcript": {
     "label": "Conversation history with Olorin"
   },
+  "feedback": {
+    "rate": "Rate this answer",
+    "rated": "Feedback recorded",
+    "helpful": "Helpful",
+    "not_helpful": "Not helpful",
+    "error": "Could not send feedback"
+  },
   "message": {
     "header": "Olorin · Arda Assistant",
     "thinking": "Preparing an answer…",
