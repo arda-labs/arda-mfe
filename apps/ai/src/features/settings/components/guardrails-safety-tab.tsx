@@ -3,6 +3,7 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import { Switch } from "@workspace/ui/components/switch"
 import {
   CheckCircle2,
   Lock,
@@ -36,8 +37,8 @@ export function GuardrailsSafetyTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-0 text-xs">
-            <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
-              <div className="space-y-1">
+            <div className="flex items-center justify-between gap-4 rounded-lg border p-3.5">
+              <div className="space-y-1 pr-4">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">Phát hiện & Chặn Prompt Injection / Jailbreak</span>
                   <Badge variant="outline" className="text-[10px]">Input Guard</Badge>
@@ -61,18 +62,15 @@ export function GuardrailsSafetyTab() {
                   </div>
                 )}
               </div>
-              <Button
-                variant={promptInjectionDefense ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setPromptInjectionDefense(!promptInjectionDefense)}
-              >
-                {promptInjectionDefense ? "Đang bật" : "Đã tắt"}
-              </Button>
+              <Switch
+                checked={promptInjectionDefense}
+                onCheckedChange={setPromptInjectionDefense}
+                aria-label="Toggle Prompt Injection Defense"
+              />
             </div>
 
-            <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
-              <div className="space-y-1">
+            <div className="flex items-center justify-between gap-4 rounded-lg border p-3.5">
+              <div className="space-y-1 pr-4">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">Tự động Ẩn Danh Thông tin Cá nhân (PII / DLP Redaction)</span>
                   <Badge variant="outline" className="text-[10px]">Privacy Guard</Badge>
@@ -81,18 +79,15 @@ export function GuardrailsSafetyTab() {
                   Tự động nhận diện và ẩn danh hóa số CCCD/CMND, mã số thuế, số thẻ ngân hàng, số điện thoại và mật khẩu bằng nhãn giả lập trước khi gửi payload lên Cloud LLM.
                 </p>
               </div>
-              <Button
-                variant={piiMasking ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setPiiMasking(!piiMasking)}
-              >
-                {piiMasking ? "Đang bật" : "Đã tắt"}
-              </Button>
+              <Switch
+                checked={piiMasking}
+                onCheckedChange={setPiiMasking}
+                aria-label="Toggle PII Masking"
+              />
             </div>
 
-            <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
-              <div className="space-y-1">
+            <div className="flex items-center justify-between gap-4 rounded-lg border p-3.5">
+              <div className="space-y-1 pr-4">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">Kiểm soát Ảo giác (Hallucination Detection)</span>
                   <Badge variant="outline" className="text-[10px]">Output Guard</Badge>
@@ -101,14 +96,11 @@ export function GuardrailsSafetyTab() {
                   Đánh giá câu trả lời của AI dựa trên đoạn trích dẫn nguồn (grounding check). Tự động từ chối nếu mô hình tự bịa đặt thông tin không có trong tài liệu doanh nghiệp.
                 </p>
               </div>
-              <Button
-                variant={hallucinationCheck ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setHallucinationCheck(!hallucinationCheck)}
-              >
-                {hallucinationCheck ? "Đang bật" : "Đã tắt"}
-              </Button>
+              <Switch
+                checked={hallucinationCheck}
+                onCheckedChange={setHallucinationCheck}
+                aria-label="Toggle Hallucination Detection"
+              />
             </div>
 
             <div className="flex justify-end pt-2">
@@ -132,14 +124,11 @@ export function GuardrailsSafetyTab() {
             <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-medium text-foreground">Zero Data Retention (ZDR)</span>
-                <Button
-                  variant={zeroRetention ? "default" : "outline"}
-                  size="sm"
-                  className="h-6 text-[11px]"
-                  onClick={() => setZeroRetention(!zeroRetention)}
-                >
-                  {zeroRetention ? "Kích hoạt" : "Tắt"}
-                </Button>
+                <Switch
+                  checked={zeroRetention}
+                  onCheckedChange={setZeroRetention}
+                  aria-label="Toggle Zero Data Retention"
+                />
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Yêu cầu nhà cung cấp Cloud (OpenAI, Google) cam kết theo thỏa thuận Enterprise: Không lưu trữ nhật ký hội thoại trên máy chủ của họ và không sử dụng dữ liệu doanh nghiệp để huấn luyện mô hình.
