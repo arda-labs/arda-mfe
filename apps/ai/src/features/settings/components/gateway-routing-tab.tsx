@@ -5,15 +5,19 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
+import {
   Activity,
-  GitFork,
+  FileCode,
+  GitBranch,
   Lock,
+  MessageSquare,
   Network,
-  Radio,
   Server,
-  ShieldCheck,
-  Terminal,
-  Zap,
+  Shield,
 } from "lucide-react"
 
 export function GatewayRoutingTab() {
@@ -32,103 +36,98 @@ export function GatewayRoutingTab() {
   return (
     <div className="space-y-6 min-w-0">
       {/* 1. High Availability Fallback Pipeline - Full Width */}
-      <Card className="shadow-xs border-border/80 min-w-0">
-        <CardHeader className="pb-3">
+      <Card className="shadow-xs border-border min-w-0">
+        <CardHeader className="pb-3 border-b border-border/70">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <Network className="h-4 w-4 text-primary shrink-0" />
+              <Network className="h-4 w-4 text-foreground shrink-0" />
               <div>
                 <CardTitle className="text-sm font-semibold">
-                  Mạch Dự phòng Đa Tầng (High Availability Fallback Pipeline)
+                  Mạch Dự phòng Đa Tầng (High-Availability Fallback Circuit)
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Cơ chế Zero-Downtime: Tự động chuyển tiếp khi Primary chạm ngưỡng TPM/RPM hoặc rớt mạng Internet
+                  Cơ chế dự phòng cấp doanh nghiệp: Tự động chuyển tiếp khi Primary chạm ngưỡng quota hoặc lỗi mạng
                 </CardDescription>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 gap-1 text-[10px] font-mono">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                99.99% Availability SLA
-              </Badge>
-            </div>
+            <Status variant="success" className="text-[11px]">
+              <StatusIndicator />
+              <StatusLabel>SLA Cam kết: 99.99% Availability</StatusLabel>
+            </Status>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 pt-0 text-xs">
+        <CardContent className="space-y-4 pt-4 text-xs">
           {/* Telemetry info bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-primary" />
-              Giao thức dự phòng: <strong className="text-foreground">3x Retries với Exponential Backoff (100ms - 2s)</strong>
+              <Activity className="h-3.5 w-3.5 text-foreground" />
+              Chính sách tái thử nghiệm (Retry Policy): <strong className="text-foreground">3 lần (Exponential Backoff 100ms - 2s)</strong>
             </span>
-            <span className="font-mono text-[10px]">Max Execution Timeout: 25.0s</span>
+            <span className="font-mono text-[10.5px]">Giới hạn thời gian (Max Timeout): 25.0s</span>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* Step 1: Primary Cloud Gateway */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-primary/50 bg-gradient-to-b from-primary/5 via-card to-card p-4 shadow-sm transition-all duration-300 hover:border-primary">
+            <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs transition-all duration-150 hover:border-border/80">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground shadow-2xs">
+                    <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">
                       1
                     </div>
-                    <span className="font-bold text-foreground text-xs">Primary Cloud Gateway</span>
+                    <span className="font-bold text-foreground text-xs">Cổng Chính (Primary Gateway)</span>
                   </div>
-                  <Badge variant="default" className="text-[10px] bg-primary">Mặc định</Badge>
+                  <Badge variant="outline" className="text-[10px] font-mono">Tier 1</Badge>
                 </div>
-                <p className="mt-2.5 text-[11px] text-muted-foreground leading-relaxed">
-                  Mô hình chính tiếp nhận 100% traffic tác vụ hàng ngày của toàn bộ tổ chức.
+                <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                  Mô hình mặc định tiếp nhận 100% lưu lượng truy vấn trong điều kiện bình thường.
                 </p>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-border/60 pt-3">
+              <div className="mt-4 space-y-2 border-t border-border pt-3">
                 <Label className="text-[11px] text-muted-foreground">Nhà cung cấp chính</Label>
                 <Select value={primaryProvider} onValueChange={setPrimaryProvider}>
-                  <SelectTrigger className="h-8 text-xs font-medium">
+                  <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gemini">Google Gemini 2.5 Flash (Cloud Ultra-Fast)</SelectItem>
+                    <SelectItem value="gemini">Google Gemini 2.5 Flash (Cloud Fast)</SelectItem>
                     <SelectItem value="openai">OpenAI GPT-4o Official</SelectItem>
                     <SelectItem value="deepseek">DeepSeek AI Official</SelectItem>
                   </SelectContent>
                 </Select>
 
-                <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-2.5 py-1.5 text-[10px]">
+                <div className="flex items-center justify-between rounded border border-border/70 bg-background px-2.5 py-1.5 text-[10.5px]">
                   <span className="text-muted-foreground">Trạng thái:</span>
-                  <span className="font-medium text-emerald-600 flex items-center gap-1">
-                    <Radio className="h-3 w-3 text-emerald-500 animate-pulse" />
-                    Online (Latency: 118ms)
-                  </span>
+                  <Status variant="success" className="h-4 px-1.5 text-[9.5px]">
+                    <StatusIndicator />
+                    <StatusLabel>Online (118ms)</StatusLabel>
+                  </Status>
                 </div>
               </div>
             </div>
 
             {/* Step 2: Secondary Cloud Gateway */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 shadow-2xs transition-all duration-300 hover:border-border">
+            <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs transition-all duration-150 hover:border-border/80">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-foreground shadow-2xs">
+                    <div className="flex h-6 w-6 items-center justify-center rounded bg-muted text-xs font-bold text-foreground">
                       2
                     </div>
-                    <span className="font-bold text-foreground text-xs">Secondary Fallback</span>
+                    <span className="font-bold text-foreground text-xs">Cổng Dự phòng 1 (Secondary)</span>
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">Trigger: HTTP 429</Badge>
+                  <Badge variant="outline" className="text-[10px] font-mono">Trigger: 429</Badge>
                 </div>
-                <p className="mt-2.5 text-[11px] text-muted-foreground leading-relaxed">
-                  Tự kích hoạt khi nhà cung cấp chính gặp sự cố quá tải, hết quota hoặc trả về HTTP 5xx.
+                <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                  Tự kích hoạt chuyển tiếp khi cổng chính quá tải, hết quota RPM/TPM hoặc lỗi 5xx.
                 </p>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-border/60 pt-3">
+              <div className="mt-4 space-y-2 border-t border-border pt-3">
                 <Label className="text-[11px] text-muted-foreground">Nhà cung cấp dự phòng 1</Label>
                 <Select value={secondaryProvider} onValueChange={setSecondaryProvider}>
-                  <SelectTrigger className="h-8 text-xs font-medium">
+                  <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -138,39 +137,37 @@ export function GatewayRoutingTab() {
                   </SelectContent>
                 </Select>
 
-                <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-[10px]">
+                <div className="flex items-center justify-between rounded border border-border/70 bg-background px-2.5 py-1.5 text-[10.5px]">
                   <span className="text-muted-foreground">Trạng thái:</span>
-                  <span className="font-medium text-amber-600 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                    Hot-Standby (Sẵn sàng)
-                  </span>
+                  <Status variant="warning" className="h-4 px-1.5 text-[9.5px]">
+                    <StatusIndicator />
+                    <StatusLabel>Hot-Standby</StatusLabel>
+                  </Status>
                 </div>
               </div>
             </div>
 
             {/* Step 3: Cluster Failover (On-Prem K8s) */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-b from-amber-500/5 via-card to-card p-4 shadow-2xs transition-all duration-300 hover:border-amber-500/60">
+            <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs transition-all duration-150 hover:border-border/80">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/20 text-xs font-bold text-amber-600 shadow-2xs">
+                    <div className="flex h-6 w-6 items-center justify-center rounded bg-muted text-xs font-bold text-foreground">
                       3
                     </div>
-                    <span className="font-bold text-foreground text-xs">Cluster Air-gapped Failover</span>
+                    <span className="font-bold text-foreground text-xs">Cụm Khẩn cấp (Air-gapped Failover)</span>
                   </div>
-                  <Badge variant="outline" className="border-amber-500/40 text-[10px] text-amber-600 bg-amber-500/10">
-                    On-Premises
-                  </Badge>
+                  <Badge variant="outline" className="text-[10px] font-mono">On-Prem K3s</Badge>
                 </div>
-                <p className="mt-2.5 text-[11px] text-muted-foreground leading-relaxed">
-                  Cơ chế sống còn: Inference trực tiếp trên máy chủ node K3s LAN khi mạng internet bị đứt.
+                <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                  Cơ chế dự phòng sống còn: Chạy trên máy chủ GPU LAN nội bộ khi mất kết nối Internet.
                 </p>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-border/60 pt-3">
+              <div className="mt-4 space-y-2 border-t border-border pt-3">
                 <Label className="text-[11px] text-muted-foreground">Cụm máy chủ nội bộ</Label>
                 <Select value={failoverProvider} onValueChange={setFailoverProvider}>
-                  <SelectTrigger className="h-8 text-xs font-medium">
+                  <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -179,11 +176,11 @@ export function GatewayRoutingTab() {
                   </SelectContent>
                 </Select>
 
-                <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-[10px]">
+                <div className="flex items-center justify-between rounded border border-border/70 bg-background px-2.5 py-1.5 text-[10.5px]">
                   <span className="text-muted-foreground">Bảo vệ:</span>
-                  <span className="font-medium text-amber-600 flex items-center gap-1">
-                    <ShieldCheck className="h-3 w-3 text-amber-600" />
-                    Zero Internet Required
+                  <span className="font-mono font-medium text-foreground flex items-center gap-1">
+                    <Shield className="h-3 w-3 text-muted-foreground" />
+                    Zero Internet Dependency
                   </span>
                 </div>
               </div>
@@ -193,42 +190,42 @@ export function GatewayRoutingTab() {
       </Card>
 
       {/* 2. Task-based Model Router - Full Width Grid */}
-      <Card className="shadow-xs border-border/80 min-w-0">
-        <CardHeader className="pb-3">
+      <Card className="shadow-xs border-border min-w-0">
+        <CardHeader className="pb-3 border-b border-border/70">
           <div className="flex items-center gap-2">
-            <GitFork className="h-4 w-4 text-primary" />
+            <GitBranch className="h-4 w-4 text-foreground" />
             <div>
               <CardTitle className="text-sm font-semibold">
                 Định tuyến Mô hình theo Tác vụ (Task-based Model Routing)
               </CardTitle>
               <CardDescription className="text-xs">
-                Tối ưu chi phí và năng lực tính toán bằng cách giao đúng việc cho đúng mô hình AI chuyên trách
+                Phân bổ tài nguyên AI theo chính sách bảo mật và yêu cầu năng lực xử lý nghiệp vụ
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 pt-0 text-xs">
+        <CardContent className="space-y-4 pt-4 text-xs">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* Task 1 */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-b from-cyan-500/5 via-card to-card p-4 transition-all duration-300 hover:border-cyan-500/40 shadow-2xs">
+            <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-lg border bg-background p-1.5 text-cyan-500 shadow-2xs">
-                      <Zap className="h-4 w-4" />
+                    <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-muted/40 text-foreground">
+                      <MessageSquare className="h-3.5 w-3.5" />
                     </div>
-                    <span className="font-bold text-foreground text-xs">Hội thoại thông thường</span>
+                    <span className="font-bold text-foreground text-xs">Hội thoại & Vận hành</span>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] bg-cyan-500/10 text-cyan-600">Fast / Triage</Badge>
+                  <Badge variant="outline" className="text-[10px] font-mono">Triage</Badge>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
-                  Xử lý hỏi-đáp chính sách, tóm tắt nhanh email và văn bản ngắn. Ưu tiên độ trễ &lt;500ms và tiết kiệm ngân sách.
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Xử lý hỏi-đáp quy trình, tóm tắt văn bản ngắn. Ưu tiên độ trễ thấp (&lt;500ms) và tối ưu ngân sách.
                 </p>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-border/60 pt-3">
+              <div className="space-y-2 border-t border-border pt-3">
                 <Select value={fastModel} onValueChange={setFastModel}>
-                  <SelectTrigger className="h-8 text-xs font-medium">
+                  <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -237,68 +234,68 @@ export function GatewayRoutingTab() {
                     <SelectItem value="qwen2.5:7b-instruct-q4_K_M">Qwen 2.5 7B (On-Prem $0.00)</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                <div className="flex items-center justify-between text-[10.5px] text-muted-foreground">
                   <span>Ước tính chi phí:</span>
-                  <span className="font-mono text-emerald-600 font-semibold">&lt; $0.0001 / req</span>
+                  <span className="font-mono text-foreground font-semibold">&lt; $0.0001 / request</span>
                 </div>
               </div>
             </div>
 
             {/* Task 2 */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-b from-indigo-500/5 via-card to-card p-4 transition-all duration-300 hover:border-indigo-500/40 shadow-2xs">
+            <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-lg border bg-background p-1.5 text-indigo-500 shadow-2xs">
-                      <Terminal className="h-4 w-4" />
+                    <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-muted/40 text-foreground">
+                      <FileCode className="h-3.5 w-3.5" />
                     </div>
                     <span className="font-bold text-foreground text-xs">Lập trình & Viết SQL</span>
                   </div>
-                  <Badge variant="outline" className="text-[10px] border-indigo-500/30 text-indigo-600 bg-indigo-500/10">Reasoning</Badge>
+                  <Badge variant="outline" className="text-[10px] font-mono">Reasoning</Badge>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
-                  Sinh mã nguồn phức tạp, viết câu lệnh truy vấn PostgreSQL và tư duy logic chuỗi (Chain-of-Thought).
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Sinh mã nguồn, tạo câu lệnh truy vấn CSDL phức tạp và phân tích logic đa bước (Chain-of-Thought).
                 </p>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-border/60 pt-3">
+              <div className="space-y-2 border-t border-border pt-3">
                 <Select value={codeModel} onValueChange={setCodeModel}>
-                  <SelectTrigger className="h-8 text-xs font-medium">
+                  <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="claude-3.5-sonnet">Claude 3.5 Sonnet (Chuyên sâu Code)</SelectItem>
-                    <SelectItem value="deepseek-r1">DeepSeek R1 (Lý luận sâu CoT)</SelectItem>
+                    <SelectItem value="deepseek-r1">DeepSeek R1 (Reasoning CoT)</SelectItem>
                     <SelectItem value="gpt-4o">OpenAI GPT-4o (Đa nhiệm cao cấp)</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span>Khả năng logic:</span>
-                  <span className="font-mono text-indigo-600 font-semibold">92.4% HumanEval</span>
+                <div className="flex items-center justify-between text-[10.5px] text-muted-foreground">
+                  <span>Độ chính xác logic:</span>
+                  <span className="font-mono text-foreground font-semibold">92.4% Benchmark</span>
                 </div>
               </div>
             </div>
 
             {/* Task 3 */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-b from-amber-500/5 via-card to-card p-4 transition-all duration-300 hover:border-amber-500/40 shadow-2xs">
+            <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-lg border bg-background p-1.5 text-amber-500 shadow-2xs">
-                      <Lock className="h-4 w-4" />
+                    <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-muted/40 text-foreground">
+                      <Lock className="h-3.5 w-3.5" />
                     </div>
-                    <span className="font-bold text-foreground text-xs">Dữ liệu nhạy cảm & Tài chính</span>
+                    <span className="font-bold text-foreground text-xs">Dữ liệu Tài chính Mật</span>
                   </div>
-                  <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-600">On-Prem Only</Badge>
+                  <Badge variant="outline" className="text-[10px] font-mono">On-Prem Only</Badge>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
-                  Bảng lương, hợp đồng khách hàng và báo cáo tài chính mật. Tuyệt đối không gửi payload ra Internet.
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Bảng lương, hợp đồng và báo cáo tài chính nội bộ. Bắt buộc xử lý cục bộ, không gửi ra ngoài.
                 </p>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-border/60 pt-3">
+              <div className="space-y-2 border-t border-border pt-3">
                 <Select value={sensitiveModel} onValueChange={setSensitiveModel}>
-                  <SelectTrigger className="h-8 text-xs font-medium">
+                  <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -306,10 +303,10 @@ export function GatewayRoutingTab() {
                     <SelectItem value="llama3.1:8b">Llama 3.1 8B Instruct Local K3s</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span>Định tuyến:</span>
-                  <span className="font-mono text-amber-600 font-semibold flex items-center gap-1">
-                    <Server className="h-3 w-3" /> Cụm K3s Node LAN
+                <div className="flex items-center justify-between text-[10.5px] text-muted-foreground">
+                  <span>Hạ tầng thực thi:</span>
+                  <span className="font-mono text-foreground font-semibold flex items-center gap-1">
+                    <Server className="h-3 w-3 text-muted-foreground" /> Máy chủ LAN K3s
                   </span>
                 </div>
               </div>
@@ -317,7 +314,7 @@ export function GatewayRoutingTab() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <Button size="sm" className="shadow-xs" onClick={handleSave}>
+            <Button size="sm" className="text-xs" onClick={handleSave}>
               Lưu Quy tắc Định tuyến Gateway
             </Button>
           </div>

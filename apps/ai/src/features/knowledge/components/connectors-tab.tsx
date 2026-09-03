@@ -1,11 +1,15 @@
 import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import {
   Clock,
   Database,
@@ -79,50 +83,36 @@ const DEFAULT_CONNECTORS: DataConnector[] = [
   },
 ]
 
-interface ProviderMeta {
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  gradient: string
-  badgeClass: string
-  iconClass: string
+function getProviderIcon(provider: DataConnector["provider"]) {
+  switch (provider) {
+    case "google_drive":
+      return HardDrive
+    case "confluence":
+      return FileText
+    case "s3_bucket":
+      return Database
+    case "sharepoint":
+      return Share2
+    default:
+      return FolderSync
+  }
 }
 
-const PROVIDER_METAS: Record<DataConnector["provider"], ProviderMeta> = {
-  google_drive: {
-    icon: HardDrive,
-    label: "Google Workspace",
-    gradient: "from-emerald-500/15 via-teal-500/5 to-transparent",
-    badgeClass: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
-    iconClass: "text-emerald-500",
-  },
-  confluence: {
-    icon: FileText,
-    label: "Atlassian Confluence",
-    gradient: "from-blue-500/15 via-indigo-500/5 to-transparent",
-    badgeClass: "border-blue-500/30 bg-blue-500/10 text-blue-600",
-    iconClass: "text-blue-500",
-  },
-  s3_bucket: {
-    icon: Database,
-    label: "Garage S3 / MinIO",
-    gradient: "from-amber-500/15 via-orange-500/5 to-transparent",
-    badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-600",
-    iconClass: "text-amber-500",
-  },
-  sharepoint: {
-    icon: Share2,
-    label: "Microsoft SharePoint",
-    gradient: "from-cyan-500/15 via-teal-500/5 to-transparent",
-    badgeClass: "border-cyan-500/30 bg-cyan-500/10 text-cyan-600",
-    iconClass: "text-cyan-500",
-  },
-  postgres: {
-    icon: Database,
-    label: "PostgreSQL DB Mirror",
-    gradient: "from-violet-500/15 via-purple-500/5 to-transparent",
-    badgeClass: "border-violet-500/30 bg-violet-500/10 text-violet-600",
-    iconClass: "text-violet-500",
-  },
+function getProviderName(provider: DataConnector["provider"]) {
+  switch (provider) {
+    case "google_drive":
+      return "Google Workspace"
+    case "confluence":
+      return "Atlassian Confluence"
+    case "s3_bucket":
+      return "Garage S3 / AWS S3"
+    case "sharepoint":
+      return "Microsoft SharePoint"
+    case "postgres":
+      return "PostgreSQL Table Mirror"
+    default:
+      return "External Data Source"
+  }
 }
 
 export function ConnectorsTab() {
@@ -174,151 +164,151 @@ export function ConnectorsTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header & Add Button */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-3">
         <div>
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Network className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
+            <Network className="h-4 w-4 text-foreground" />
             {t("ai.knowledge.connectors.title")}
           </h3>
           <p className="text-xs text-muted-foreground">
             {t("ai.knowledge.connectors.description")}
           </p>
         </div>
-        <Button size="sm" className="gap-1.5 self-start sm:self-auto shadow-xs" onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" />
+        <Button size="sm" className="gap-1.5 self-start sm:self-auto text-xs" onClick={() => setAddOpen(true)}>
+          <Plus className="h-3.5 w-3.5" />
           {t("ai.knowledge.connectors.btn.add")}
         </Button>
       </div>
 
       {/* Top Overview KPI Strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
-          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
-            <FolderSync className="h-3.5 w-3.5 text-primary" />
-            <span>Pipelines Kết nối</span>
+        <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+            <span>Đường dẫn Kết nối (Pipelines)</span>
+            <Status variant="success">
+              <StatusIndicator />
+              <StatusLabel>Hoạt động</StatusLabel>
+            </Status>
           </div>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="font-mono text-xl font-bold text-foreground">{connectors.length}</span>
-            <span className="text-[10px] text-emerald-600 font-medium">Auto-Sync</span>
+          <div className="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground">
+            {connectors.length}
           </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Đồng bộ tự động định kỳ
+          </p>
         </div>
 
-        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
-          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
-            <FileCheck2 className="h-3.5 w-3.5 text-emerald-500" />
-            <span>Tài liệu Đã Nạp (Ingested)</span>
+        <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+            <span>Tài liệu Đã nạp (Ingested)</span>
+            <FileCheck2 className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="font-mono text-xl font-bold text-foreground">{totalDocs}</span>
-            <span className="text-[10px] text-muted-foreground">files đồng bộ</span>
+          <div className="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground">
+            {totalDocs}
           </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Tập tin được lập chỉ mục đầy đủ
+          </p>
         </div>
 
-        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
-          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
-            <Layers className="h-3.5 w-3.5 text-indigo-500" />
+        <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
             <span>Vector Chunks Tạo ra</span>
+            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="font-mono text-xl font-bold text-foreground">{totalChunks.toLocaleString()}</span>
-            <span className="text-[10px] text-primary font-medium">HNSW Index</span>
+          <div className="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground">
+            {totalChunks.toLocaleString()}
           </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Chỉ mục HNSW pgvector
+          </p>
         </div>
 
-        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
-          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
-            <Clock className="h-3.5 w-3.5 text-cyan-500" />
-            <span>Chu kỳ Đồng bộ Kế tiếp</span>
+        <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+            <span>Chu kỳ Đồng bộ</span>
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-xs font-bold text-foreground">Trong 15 phút</span>
-            <span className="text-[10px] text-muted-foreground">Webhook Ready</span>
+          <div className="mt-2 font-mono text-lg font-bold text-foreground">
+            Real-time + Hourly
           </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Tự động kích hoạt qua Webhook
+          </p>
         </div>
       </div>
 
       {/* Connectors Cards Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {connectors.map((c) => {
-          const meta = PROVIDER_METAS[c.provider] || PROVIDER_METAS.google_drive
-          const Icon = meta.icon
+          const Icon = getProviderIcon(c.provider)
           const isSyncing = syncingId === c.id
 
           return (
             <div
               key={c.id}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card/90 p-4 backdrop-blur-xs transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
+              className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 transition-all duration-150 hover:border-border/80 hover:shadow-xs"
             >
-              {/* Top ambient gradient */}
-              <div
-                className={`pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b ${meta.gradient} opacity-60`}
-              />
-
-              <div className="relative space-y-3">
+              <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/80 shadow-2xs">
-                      <Icon className={`h-5 w-5 ${meta.iconClass}`} />
-                      <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                      </span>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-foreground">
+                      <Icon className="h-4 w-4" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                      <h4 className="text-xs font-bold text-foreground">
                         {c.name}
                       </h4>
-                      <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <span className="font-medium text-foreground">{c.targetSource}</span>
+                      <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <span>Kho lưu trữ đích: <strong className="text-foreground">{c.targetSource}</strong></span>
                       </div>
                     </div>
                   </div>
 
-                  <Badge variant="outline" className={`text-[10px] font-mono ${meta.badgeClass}`}>
-                    {c.syncSchedule}
-                  </Badge>
+                  <Status variant="success" className="text-[10px]">
+                    <StatusIndicator />
+                    <StatusLabel>{c.syncSchedule}</StatusLabel>
+                  </Status>
                 </div>
 
-                {/* Telemetry pill */}
-                <div className="flex items-center justify-between rounded-xl border border-border/50 bg-background/60 p-2.5 text-xs">
-                  <div className="flex items-center gap-3 font-mono text-[11px] text-muted-foreground">
-                    <span>
-                      <strong className="text-foreground">{c.docCount}</strong> docs
-                    </span>
-                    <span>•</span>
-                    <span>
-                      <strong className="text-primary font-bold">{c.totalChunks}</strong> chunks
+                {/* Tabular Telemetry specs */}
+                <div className="divide-y divide-border/60 rounded-md border border-border/70 bg-background/50 text-[11px]">
+                  <div className="flex items-center justify-between px-2.5 py-1.5">
+                    <span className="text-muted-foreground">Nhà cung cấp hạ tầng:</span>
+                    <span className="font-medium text-foreground">{getProviderName(c.provider)}</span>
+                  </div>
+                  <div className="flex items-center justify-between px-2.5 py-1.5">
+                    <span className="text-muted-foreground">Khối lượng dữ liệu:</span>
+                    <span className="font-mono font-medium text-foreground text-[10.5px]">
+                      {c.docCount} tài liệu • {c.totalChunks.toLocaleString()} chunks
                     </span>
                   </div>
-                  <span className="text-[10px] text-emerald-600 font-medium">Tự động xử lý</span>
+                  <div className="flex items-center justify-between px-2.5 py-1.5">
+                    <span className="text-muted-foreground">Lần đồng bộ gần nhất:</span>
+                    <span className="font-mono text-[10.5px] text-foreground">
+                      {formatDate(c.lastSyncAt, { dateStyle: "short", timeStyle: "short" })}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="relative mt-4 space-y-2 border-t border-border/60 pt-3">
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {t("ai.knowledge.connectors.last_sync")}:
-                  </span>
-                  <span className="font-mono text-[11px] font-medium text-foreground">
-                    {formatDate(c.lastSyncAt, { dateStyle: "short", timeStyle: "short" })}
-                  </span>
-                </div>
+              <div className="mt-3 flex items-center justify-between border-t border-border pt-2.5">
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  ID: {c.id}
+                </span>
 
-                <div className="flex items-center justify-end pt-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 gap-1.5 px-3 text-xs group-hover:border-primary/50 group-hover:bg-primary/5 transition-all"
-                    onClick={() => handleSyncNow(c.id)}
-                    disabled={isSyncing}
-                  >
-                    <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin text-primary" : ""}`} />
-                    {isSyncing ? t("ai.knowledge.connectors.syncing") : t("ai.knowledge.connectors.sync_now")}
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1 px-3 text-xs"
+                  onClick={() => handleSyncNow(c.id)}
+                  disabled={isSyncing}
+                >
+                  <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin text-foreground" : ""}`} />
+                  {isSyncing ? t("ai.knowledge.connectors.syncing") : t("ai.knowledge.connectors.sync_now")}
+                </Button>
               </div>
             </div>
           )
@@ -330,7 +320,7 @@ export function ConnectorsTab() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FolderSync className="h-4 w-4 text-primary" />
+              <FolderSync className="h-4 w-4 text-foreground" />
               {t("ai.knowledge.connectors.dialog.title")}
             </DialogTitle>
             <DialogDescription>
