@@ -8,7 +8,7 @@ Tài liệu này mô tả chi tiết cách thiết lập build và deploy 8 Clou
 
 ## 1. Cấu Trúc Các Workers
 
-Hệ thống Micro-Frontend gồm có 8 Workers phân tán:
+Hệ thống Micro-Frontend gồm có 9 Workers phân tán:
 1. `arda-shell` (Host container điều phối routing & layout)
 2. `arda-mfe-crm` (Customer Relationship Management)
 3. `arda-mfe-iam` (Identity & Access Management)
@@ -17,6 +17,7 @@ Hệ thống Micro-Frontend gồm có 8 Workers phân tán:
 6. `arda-mfe-account` (User Profile & Account Settings)
 7. `arda-mfe-hrm` (Human Resource Management)
 8. `arda-mfe-workflow` (Workflow & Zeebe BPM Monitoring)
+9. `arda-mfe-ai` (AI Center & Knowledge Base)
 
 ---
 
@@ -133,5 +134,19 @@ Hệ thống Micro-Frontend gồm có 8 Workers phân tán:
   ```
 * **Exclude paths:**
   ```text
-  apps/account/**, apps/crm/**, apps/finance/**, apps/hrm/**, apps/iam/**, apps/platform/**, apps/workflow/**, ../arda-be/**, ../arda-infra/**, ../arda-perf/**, **/*.md
+  apps/account/**, apps/crm/**, apps/finance/**, apps/hrm/**, apps/iam/**, apps/platform/**, apps/workflow/**, apps/ai/**, ../arda-be/**, ../arda-infra/**, ../arda-perf/**, **/*.md
+  ```
+
+---
+
+### 9. `arda-mfe-ai`
+* **Build Command:** `bun run cf:build ai`
+* **Build Output Directory:** `.cloudflare/dist/ai`
+* **Include paths:**
+  ```text
+  apps/ai/**, packages/**, cloudflare/wrangler.ai.jsonc, scripts/**, package.json, bun.lock
+  ```
+* **Exclude paths:**
+  ```text
+  apps/account/**, apps/crm/**, apps/finance/**, apps/hrm/**, apps/iam/**, apps/platform/**, apps/shell/**, apps/workflow/**, ../arda-be/**, ../arda-infra/**, ../arda-perf/**, **/*.md
   ```
