@@ -230,7 +230,15 @@ export function App() {
           element={aiAssistantEnabled ? <OlorinPage /> : <NotFoundPage />}
         />
         <Route
-          path="/ai/admin/*"
+          path="/ai/knowledge/*"
+          element={
+            <RemoteRoute>
+              <AiRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
+          path="/ai/settings/*"
           element={
             <RemoteRoute>
               <AiRoutes />

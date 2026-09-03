@@ -41,13 +41,13 @@ export const navItems: NavNode[] = [
     permissions: ["ai.admin", "ai.knowledge.manage", "superadmin", "platform.manage"],
     children: [
       {
-        href: "/ai/admin/knowledge",
+        href: "/ai/knowledge",
         labelKey: "nav.ai_center.knowledge",
         icon: BookOpen,
         permissions: ["ai.admin", "ai.knowledge.manage", "superadmin", "platform.manage"],
       },
       {
-        href: "/ai/admin/settings",
+        href: "/ai/settings",
         labelKey: "nav.ai_center.settings",
         icon: SlidersHorizontal,
         permissions: ["ai.admin", "superadmin", "platform.manage"],

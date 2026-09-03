@@ -19,8 +19,8 @@ const SettingsPage = lazyWithPreload(() =>
 
 export default createRemoteRoutes({
   routes: [
-    { prefix: "/ai/admin/knowledge", component: KnowledgePage },
-    { prefix: "/ai/admin/settings", component: SettingsPage },
+    { prefix: "/ai/knowledge", component: KnowledgePage },
+    { prefix: "/ai/settings", component: SettingsPage },
   ],
   defaultComponent: KnowledgePage,
   wrapper: QueryProvider,
