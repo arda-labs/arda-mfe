@@ -1,0 +1,142 @@
+{
+  "knowledge": {
+    "title": "Knowledge Management",
+    "description": "Manage RAG knowledge sources, versions and publish lifecycle.",
+    "new_source": "New source",
+    "new_version": "New version",
+    "load_failed": "Failed to load knowledge sources",
+    "load_versions_failed": "Failed to load versions",
+    "empty": "No knowledge sources yet. Create one to get started.",
+    "empty_versions": "No versions for this source yet.",
+    "create_source_title": "Create knowledge source",
+    "create_source_description": "Add a new source that RAG can index documents from.",
+    "create_version_description": "Add a new version of content for this source.",
+    "chunker_title": "Chunker configuration",
+    "advanced": "Advanced",
+    "indexing": "Indexing",
+    "published": "Published",
+    "rejected": "Rejected",
+    "submit_review": "Submit for review",
+    "approve": "Approve",
+    "reject": "Reject",
+    "publish": "Publish",
+    "reject_reason": "Rejection reason",
+    "job_progress": "{embedded}/{total} chunks embedded",
+    "job_pending": "Job queued...",
+    "job_running": "Embedding chunks...",
+    "job_failed": "Indexing failed: {error}",
+    "field": {
+      "title": "Title",
+      "description": "Description",
+      "source_type": "Source type",
+      "scope": "Scope",
+      "language": "Language",
+      "tags": "Tags",
+      "effective_from": "Effective from",
+      "effective_to": "Effective to",
+      "version": "Version",
+      "content_type": "Content type",
+      "content": "Content",
+      "content_url": "Content URL",
+      "status": "Status",
+      "created_at": "Created at",
+      "chunker": "Chunker",
+      "strategy": "Strategy",
+      "chunk_size": "Chunk size",
+      "chunk_overlap": "Chunk overlap"
+    },
+    "placeholder": {
+      "title": "e.g. HR policy handbook",
+      "language": "e.g. vi, en",
+      "tags": "Comma-separated tags",
+      "version": "e.g. 1.0.0",
+      "content": "Markdown content",
+      "content_url": "https://...",
+      "strategy": "e.g. recursive",
+      "chunk_size": "e.g. 512",
+      "chunk_overlap": "e.g. 64",
+      "reject_reason": "Optional reason for rejection"
+    },
+    "validation": {
+      "title_required": "Title is required",
+      "title_too_long": "Title is too long",
+      "version_required": "Version is required",
+      "version_too_long": "Version is too long",
+      "effective_range_invalid": "Effective to must be after effective from"
+    },
+    "source_type": {
+      "docs": "Documents",
+      "admin": "Admin docs",
+      "url": "URL"
+    },
+    "scope": {
+      "tenant": "Tenant",
+      "global": "Global",
+      "system": "System"
+    },
+    "content_type": {
+      "markdown": "Markdown",
+      "url": "URL",
+      "file": "File"
+    },
+    "status": {
+      "draft": "Draft",
+      "review": "In review",
+      "approved": "Approved",
+      "indexing": "Indexing",
+      "published": "Published",
+      "rejected": "Rejected",
+      "failed": "Failed"
+    },
+    "toast": {
+      "create_success": "Knowledge source created",
+      "create_failed": "Failed to create knowledge source",
+      "version_create_success": "Version created",
+      "version_create_failed": "Failed to create version",
+      "delete_success": "Knowledge source deleted",
+      "delete_failed": "Failed to delete knowledge source",
+      "submitted_review": "Version submitted for review",
+      "approved": "Version approved",
+      "rejected": "Version rejected",
+      "action_failed": "Action failed"
+    },
+    "confirm_delete_title": "Delete this knowledge source?",
+    "confirm_delete": "Are you sure you want to delete \"{title}\"? All its versions will be removed.",
+    "tab": {
+      "preview_chunks": "Preview Chunks",
+      "extracted_markdown": "Extracted Markdown"
+    },
+    "upload": {
+      "drop_title": "Drag and drop file here or click to browse",
+      "supported_formats": "Supported formats",
+      "processing": "Processing document...",
+      "parse_failed": "Failed to parse document content"
+    },
+    "preview": {
+      "loading": "Parsing document chunks...",
+      "empty": "No chunks yet. Enter text or upload a file to preview chunks.",
+      "total_chunks": "Total {count} chunks",
+      "words": "words",
+      "chars": "chars",
+      "refresh": "Refresh Preview",
+      "generate_btn": "Preview Chunks",
+      "failed": "Failed to preview chunks"
+    },
+    "playground": {
+      "button": "Retrieval Playground",
+      "title": "RAG Retrieval Playground",
+      "description": "Test queries directly against the published knowledge catalog.",
+      "placeholder": "Enter a test query (e.g., Leave policy, Travel allowances...)",
+      "search_btn": "Search",
+      "query_failed": "Query search failed",
+      "helpful_prompt": "Helpful result?",
+      "feedback_sent": "Thank you for your feedback!",
+      "feedback_failed": "Failed to submit feedback",
+      "feedback_thank_you": "Feedback recorded",
+      "searching": "Searching knowledge base...",
+      "empty_hint": "Enter a query and click Search to evaluate RAG retrieval accuracy.",
+      "no_results": "No relevant chunks found",
+      "no_results_tip": "Try different search terms or ensure the knowledge source has been approved and published."
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -32,7 +32,7 @@ export function ChunkPreviewPanel({
     return (
       <div className="flex h-48 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-muted-foreground">
         <Layers className="size-6 animate-pulse" />
-        <p className="text-xs">{t("platform.knowledge.preview.loading")}</p>
+        <p className="text-xs">{t("ai.knowledge.preview.loading")}</p>
       </div>
     )
   }
@@ -41,7 +41,7 @@ export function ChunkPreviewPanel({
     return (
       <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-muted-foreground">
         <FileText className="size-6 opacity-40" />
-        <p className="text-xs">{t("platform.knowledge.preview.empty")}</p>
+        <p className="text-xs">{t("ai.knowledge.preview.empty")}</p>
       </div>
     )
   }
@@ -52,7 +52,7 @@ export function ChunkPreviewPanel({
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-primary" />
           <span className="text-xs font-medium">
-            {t("platform.knowledge.preview.total_chunks", {
+            {t("ai.knowledge.preview.total_chunks", {
               count: totalChunks ?? chunks.length,
             })}
           </span>
@@ -82,9 +82,9 @@ export function ChunkPreviewPanel({
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  <span>{c.word_count} {t("platform.knowledge.preview.words")}</span>
+                  <span>{c.word_count} {t("ai.knowledge.preview.words")}</span>
                   <span>•</span>
-                  <span>{c.char_count} {t("platform.knowledge.preview.chars")}</span>
+                  <span>{c.char_count} {t("ai.knowledge.preview.chars")}</span>
                   <Button
                     type="button"
                     variant="ghost"

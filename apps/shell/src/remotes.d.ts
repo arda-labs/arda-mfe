@@ -60,3 +60,12 @@ declare module "workflow/Routes" {
   }
   export default Routes
 }
+
+declare module "ai/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType & {
+    preload?: (pathname?: string) => Promise<void>
+  }
+  export default Routes
+}

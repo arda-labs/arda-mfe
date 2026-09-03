@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent, type ChangeEvent } from "react"
+﻿import { useRef, useState, type DragEvent, type ChangeEvent } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { FileText, UploadCloud, X, CheckCircle2, AlertCircle } from "lucide-react"
@@ -81,7 +81,7 @@ export function FileUploadZone({
         <div className="flex items-center gap-2">
           {uploading ? (
             <span className="text-[11px] text-muted-foreground animate-pulse">
-              {t("platform.knowledge.upload.processing")}
+              {t("ai.knowledge.upload.processing")}
             </span>
           ) : error ? (
             <span className="flex items-center gap-1 text-[11px] text-destructive">
@@ -130,10 +130,10 @@ export function FileUploadZone({
       </div>
       <div>
         <p className="text-xs font-medium">
-          {t("platform.knowledge.upload.drop_title")}
+          {t("ai.knowledge.upload.drop_title")}
         </p>
         <p className="text-[11px] text-muted-foreground">
-          {t("platform.knowledge.upload.supported_formats")} (PDF, DOCX, MD, TXT)
+          {t("ai.knowledge.upload.supported_formats")} (PDF, DOCX, MD, TXT)
         </p>
       </div>
     </div>

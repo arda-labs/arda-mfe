@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+﻿import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -67,7 +67,7 @@ function IndexingProgress({ job }: { job: JobOut }) {
   if (total_chunks > 0) {
     return (
       <span className="text-xs text-muted-foreground">
-        {t("platform.knowledge.job_progress", {
+        {t("ai.knowledge.job_progress", {
           embedded: embedded_chunks,
           total: total_chunks,
         })}
@@ -78,13 +78,13 @@ function IndexingProgress({ job }: { job: JobOut }) {
     case "PENDING":
       return (
         <span className="text-xs text-muted-foreground">
-          {t("platform.knowledge.job_pending")}
+          {t("ai.knowledge.job_pending")}
         </span>
       )
     case "RUNNING":
       return (
         <span className="text-xs text-muted-foreground">
-          {t("platform.knowledge.job_running")}
+          {t("ai.knowledge.job_running")}
         </span>
       )
     default:
@@ -110,11 +110,11 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
   const handleApprove = async () => {
     try {
       await knowledgeApi.reviewVersion(sourceId, version.id, { decision: "approve" })
-      notify.success(t("platform.knowledge.toast.approved"))
+      notify.success(t("ai.knowledge.toast.approved"))
       void onMutate()
     } catch (err) {
       notify.error(
-        t("platform.knowledge.toast.action_failed"),
+        t("ai.knowledge.toast.action_failed"),
         err instanceof Error ? err.message : String(err)
       )
     }
@@ -126,13 +126,13 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
         decision: "reject",
         reason: rejectReason || null,
       })
-      notify.success(t("platform.knowledge.toast.rejected"))
+      notify.success(t("ai.knowledge.toast.rejected"))
       setRejectDialogOpen(false)
       setRejectReason("")
       void onMutate()
     } catch (err) {
       notify.error(
-        t("platform.knowledge.toast.action_failed"),
+        t("ai.knowledge.toast.action_failed"),
         err instanceof Error ? err.message : String(err)
       )
     }
@@ -146,7 +146,7 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
     } catch (err) {
       setPublishing(false)
       notify.error(
-        t("platform.knowledge.toast.action_failed"),
+        t("ai.knowledge.toast.action_failed"),
         err instanceof Error ? err.message : String(err)
       )
     }
@@ -157,12 +157,12 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
       <div className="flex items-center gap-2">
         <Loader2 className="size-4 animate-spin" />
         <Badge variant="secondary">
-          {t("platform.knowledge.indexing")}
+          {t("ai.knowledge.indexing")}
         </Badge>
         {pollJob && <IndexingProgress job={pollJob} />}
         {pollJob?.status === "FAILED" && (
           <span className="text-xs text-destructive">
-            {t("platform.knowledge.job_failed", {
+            {t("ai.knowledge.job_failed", {
               error: pollJob.error_message ?? "Unknown",
             })}
           </span>
@@ -178,7 +178,7 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
           <>
             <Button size="sm" variant="outline" onClick={handleApprove}>
               <ThumbsUp className="mr-1.5 size-3.5" />
-              {t("platform.knowledge.approve")}
+              {t("ai.knowledge.approve")}
             </Button>
             <Button
               size="sm"
@@ -187,29 +187,29 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
               onClick={() => setRejectDialogOpen(true)}
             >
               <ThumbsDown className="mr-1.5 size-3.5" />
-              {t("platform.knowledge.reject")}
+              {t("ai.knowledge.reject")}
             </Button>
           </>
         )}
         {version.status === "APPROVED" && (
           <Button size="sm" variant="default" onClick={handlePublish}>
             <Send className="mr-1.5 size-3.5" />
-            {t("platform.knowledge.publish")}
+            {t("ai.knowledge.publish")}
           </Button>
         )}
         {version.status === "INDEXING" && (
-          <Badge variant="secondary">{t("platform.knowledge.indexing")}</Badge>
+          <Badge variant="secondary">{t("ai.knowledge.indexing")}</Badge>
         )}
         {version.status === "PUBLISHED" && (
           <Badge variant="success">
             <CheckCircle2 className="mr-1 size-3.5" />
-            {t("platform.knowledge.published")}
+            {t("ai.knowledge.published")}
           </Badge>
         )}
         {version.status === "FAILED" && (
           <Badge variant="destructive">
             <XCircle className="mr-1 size-3.5" />
-            {t("platform.knowledge.status.failed")}
+            {t("ai.knowledge.status.failed")}
           </Badge>
         )}
       </div>
@@ -217,12 +217,12 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
       <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.knowledge.reject_reason")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("ai.knowledge.reject_reason")}</AlertDialogTitle>
           </AlertDialogHeader>
           <Textarea
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
-            placeholder={t("platform.knowledge.placeholder.reject_reason")}
+            placeholder={t("ai.knowledge.placeholder.reject_reason")}
             rows={3}
           />
           <AlertDialogFooter>
@@ -231,7 +231,7 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
               onClick={handleReject}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {t("platform.knowledge.reject")}
+              {t("ai.knowledge.reject")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

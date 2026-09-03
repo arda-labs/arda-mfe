@@ -43,64 +43,9 @@ import {
   type TestConnectionResult,
 } from "./api"
 
-const PRESETS = [
-  {
-    id: "openai",
-    name: "OpenAI",
-    baseUrl: "https://api.openai.com/v1",
-    defaultModel: "gpt-4o",
-    models: ["gpt-4o", "gpt-4o-mini", "o1", "o3-mini"],
-  },
-  {
-    id: "openrouter",
-    name: "OpenRouter",
-    baseUrl: "https://openrouter.ai/api/v1",
-    defaultModel: "anthropic/claude-3.5-sonnet",
-    models: [
-      "anthropic/claude-3.5-sonnet",
-      "openai/gpt-4o",
-      "google/gemini-2.0-flash-001",
-      "deepseek/deepseek-chat",
-    ],
-  },
-  {
-    id: "gemini",
-    name: "Google Gemini (OpenAI API)",
-    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
-    defaultModel: "gemini-2.0-flash",
-    models: ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
-  },
-  {
-    id: "deepseek",
-    name: "DeepSeek",
-    baseUrl: "https://api.deepseek.com/v1",
-    defaultModel: "deepseek-chat",
-    models: ["deepseek-chat", "deepseek-reasoner"],
-  },
-  {
-    id: "groq",
-    name: "Groq",
-    baseUrl: "https://api.groq.com/openai/v1",
-    defaultModel: "llama-3.3-70b-versatile",
-    models: ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"],
-  },
-  {
-    id: "ollama",
-    name: "Ollama (Local)",
-    baseUrl: "http://localhost:11434/v1",
-    defaultModel: "llama3.2",
-    models: ["llama3.2", "qwen2.5", "mistral", "deepseek-r1"],
-  },
-  {
-    id: "custom",
-    name: "Tùy chỉnh (OpenAI-compatible)",
-    baseUrl: "",
-    defaultModel: "",
-    models: [],
-  },
-]
+import { PRESETS } from "./presets"
 
-export function AISettingsPage() {
+export function SettingsPage() {
   const [providerType, setProviderType] = React.useState<string>("openai")
   const [baseUrl, setBaseUrl] = React.useState<string>("https://api.openai.com/v1")
   const [apiKey, setApiKey] = React.useState<string>("")

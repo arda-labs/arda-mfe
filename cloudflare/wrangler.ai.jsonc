@@ -1,0 +1,13 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "arda-mfe-ai",
+  "compatibility_date": "2026-08-22",
+  "workers_dev": true,
+  "routes": [{ "pattern": "arda.io.vn/mfes/ai/*", "zone_name": "arda.io.vn" }],
+  "assets": { "directory": "../.cloudflare/dist/ai" },
+  "observability": {
+    "traces": {
+      "enabled": true
+    }
+  }
+}

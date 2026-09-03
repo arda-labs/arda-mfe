@@ -1,6 +1,11 @@
 {
   "dashboard": "Tổng quan",
   "ai": "Trợ lý AI",
+  "ai_center": {
+    "_self": "AI Center",
+    "knowledge": "Nguồn tri thức",
+    "settings": "Cài đặt AI"
+  },
   "admin": {
     "_self": "Quản trị",
     "users": "Người dùng",

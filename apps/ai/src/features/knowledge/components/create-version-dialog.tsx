@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+﻿import { useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -46,8 +46,8 @@ function buildSchema(t: TranslateFn) {
     version: z
       .string()
       .trim()
-      .min(1, t("platform.knowledge.validation.version_required"))
-      .max(128, t("platform.knowledge.validation.version_too_long")),
+      .min(1, t("ai.knowledge.validation.version_required"))
+      .max(128, t("ai.knowledge.validation.version_too_long")),
     content_type: z.enum(contentTypes),
     content: z.string().optional().or(z.literal("")),
     content_url: z.string().optional().or(z.literal("")),
@@ -156,7 +156,7 @@ export function CreateVersionDialog({
     } catch (err) {
       setFileError(err instanceof Error ? err.message : String(err))
       notify.error(
-        t("platform.knowledge.upload.parse_failed"),
+        t("ai.knowledge.upload.parse_failed"),
         translateApiError(err)
       )
     } finally {
@@ -176,7 +176,7 @@ export function CreateVersionDialog({
   const handlePreviewMarkdown = async () => {
     const text = watchContent?.trim()
     if (!text) {
-      notify.error(t("platform.knowledge.validation.content_required_for_preview"))
+      notify.error(t("ai.knowledge.validation.content_required_for_preview"))
       return
     }
 
@@ -195,7 +195,7 @@ export function CreateVersionDialog({
       setActiveTab("preview")
     } catch (err) {
       notify.error(
-        t("platform.knowledge.preview.failed"),
+        t("ai.knowledge.preview.failed"),
         translateApiError(err)
       )
     } finally {
@@ -228,12 +228,12 @@ export function CreateVersionDialog({
             : null,
       }
       await knowledgeApi.createVersion(sourceId, payload)
-      notify.success(t("platform.knowledge.toast.version_create_success"))
+      notify.success(t("ai.knowledge.toast.version_create_success"))
       handleOpenChange(false)
       await onSuccess()
     } catch (err) {
       notify.error(
-        t("platform.knowledge.toast.version_create_failed"),
+        t("ai.knowledge.toast.version_create_failed"),
         translateApiError(err)
       )
     } finally {
@@ -245,22 +245,22 @@ export function CreateVersionDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("platform.knowledge.new_version")}</DialogTitle>
+          <DialogTitle>{t("ai.knowledge.new_version")}</DialogTitle>
           <DialogDescription>
-            {t("platform.knowledge.create_version_description")}
+            {t("ai.knowledge.create_version_description")}
           </DialogDescription>
         </DialogHeader>
 
         <form autoComplete="off" onSubmit={submit} className="space-y-4 py-2">
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              label={t("platform.knowledge.field.version")}
+              label={t("ai.knowledge.field.version")}
               htmlFor="kv_version"
               error={errors.version?.message}
             >
               <Input
                 id="kv_version"
-                placeholder={t("platform.knowledge.placeholder.version")}
+                placeholder={t("ai.knowledge.placeholder.version")}
                 aria-invalid={Boolean(errors.version)}
                 spellCheck={false}
                 {...register("version")}
@@ -268,7 +268,7 @@ export function CreateVersionDialog({
             </FormField>
 
             <FormField
-              label={t("platform.knowledge.field.content_type")}
+              label={t("ai.knowledge.field.content_type")}
               error={errors.content_type?.message}
             >
               <Controller
@@ -282,13 +282,13 @@ export function CreateVersionDialog({
                       setPreviewChunks([])
                     }}
                   >
-                    <SelectTrigger aria-label={t("platform.knowledge.field.content_type")}>
+                    <SelectTrigger aria-label={t("ai.knowledge.field.content_type")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {contentTypes.map((type) => (
                         <SelectItem key={type} value={type}>
-                          {t(`platform.knowledge.content_type.${type}`)}
+                          {t(`ai.knowledge.content_type.${type}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -300,7 +300,7 @@ export function CreateVersionDialog({
 
           {contentType === "file" ? (
             <div className="space-y-3">
-              <FormField label={t("platform.knowledge.field.upload_file")}>
+              <FormField label={t("ai.knowledge.field.upload_file")}>
                 <FileUploadZone
                   file={selectedFile}
                   onFileSelect={(f) => void handleFileSelect(f)}
@@ -321,7 +321,7 @@ export function CreateVersionDialog({
                       onClick={() => setActiveTab("preview")}
                     >
                       <Layers className="mr-1 size-3.5" />
-                      {t("platform.knowledge.tab.preview_chunks")}
+                      {t("ai.knowledge.tab.preview_chunks")}
                       {previewChunks.length > 0 ? (
                         <Badge variant="secondary" className="ml-1 px-1 py-0 text-[10px]">
                           {previewChunks.length}
@@ -336,7 +336,7 @@ export function CreateVersionDialog({
                       onClick={() => setActiveTab("edit")}
                     >
                       <FileText className="mr-1 size-3.5" />
-                      {t("platform.knowledge.tab.extracted_markdown")}
+                      {t("ai.knowledge.tab.extracted_markdown")}
                     </Button>
                   </div>
 
@@ -350,7 +350,7 @@ export function CreateVersionDialog({
                       onClick={() => void handlePreviewMarkdown()}
                     >
                       <RefreshCw className="mr-1 size-3" />
-                      {t("platform.knowledge.preview.refresh")}
+                      {t("ai.knowledge.preview.refresh")}
                     </Button>
                   ) : null}
                 </div>
@@ -365,7 +365,7 @@ export function CreateVersionDialog({
 
               {activeTab === "edit" || !previewChunks.length ? (
                 <FormField
-                  label={t("platform.knowledge.field.content")}
+                  label={t("ai.knowledge.field.content")}
                   htmlFor="kv_content"
                   error={errors.content?.message}
                 >
@@ -374,7 +374,7 @@ export function CreateVersionDialog({
                     rows={6}
                     aria-invalid={Boolean(errors.content)}
                     spellCheck={false}
-                    placeholder={t("platform.knowledge.placeholder.content")}
+                    placeholder={t("ai.knowledge.placeholder.content")}
                     {...register("content")}
                   />
                 </FormField>
@@ -383,7 +383,7 @@ export function CreateVersionDialog({
           ) : contentType === "markdown" ? (
             <div className="space-y-3">
               <FormField
-                label={t("platform.knowledge.field.content")}
+                label={t("ai.knowledge.field.content")}
                 htmlFor="kv_content"
                 error={errors.content?.message}
               >
@@ -392,7 +392,7 @@ export function CreateVersionDialog({
                   rows={7}
                   aria-invalid={Boolean(errors.content)}
                   spellCheck={false}
-                  placeholder={t("platform.knowledge.placeholder.content")}
+                  placeholder={t("ai.knowledge.placeholder.content")}
                   {...register("content")}
                 />
               </FormField>
@@ -407,7 +407,7 @@ export function CreateVersionDialog({
                   onClick={() => void handlePreviewMarkdown()}
                 >
                   <Eye className="mr-1.5 size-3.5" />
-                  {t("platform.knowledge.preview.generate_btn")}
+                  {t("ai.knowledge.preview.generate_btn")}
                 </Button>
                 {previewChunks.length > 0 ? (
                   <Badge variant="secondary" className="text-xs font-mono">
@@ -425,7 +425,7 @@ export function CreateVersionDialog({
             </div>
           ) : (
             <FormField
-              label={t("platform.knowledge.field.content_url")}
+              label={t("ai.knowledge.field.content_url")}
               htmlFor="kv_content_url"
               error={errors.content_url?.message}
             >
@@ -433,7 +433,7 @@ export function CreateVersionDialog({
                 id="kv_content_url"
                 aria-invalid={Boolean(errors.content_url)}
                 spellCheck={false}
-                placeholder={t("platform.knowledge.placeholder.content_url")}
+                placeholder={t("ai.knowledge.placeholder.content_url")}
                 {...register("content_url")}
               />
             </FormField>
@@ -441,47 +441,47 @@ export function CreateVersionDialog({
 
           <Collapsible className="rounded-lg border border-muted/70 bg-muted/20">
             <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs font-semibold text-foreground/80 transition-colors hover:bg-accent/40 [&[data-state=open]>svg]:rotate-180">
-              {t("platform.knowledge.chunker_title")}
+              {t("ai.knowledge.chunker_title")}
               <Badge variant="outline" className="text-[10px] font-normal">
-                {t("platform.knowledge.advanced")}
+                {t("ai.knowledge.advanced")}
               </Badge>
               <ChevronDown className="size-3.5 text-muted-foreground transition-transform" />
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 border-t border-muted/70 p-3">
               <FormField
-                label={t("platform.knowledge.field.strategy")}
+                label={t("ai.knowledge.field.strategy")}
                 htmlFor="kv_strategy"
                 error={errors.strategy?.message}
               >
                 <Input
                   id="kv_strategy"
-                  placeholder={t("platform.knowledge.placeholder.strategy")}
+                  placeholder={t("ai.knowledge.placeholder.strategy")}
                   spellCheck={false}
                   {...register("strategy")}
                 />
               </FormField>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  label={t("platform.knowledge.field.chunk_size")}
+                  label={t("ai.knowledge.field.chunk_size")}
                   htmlFor="kv_chunk_size"
                   error={errors.chunk_size?.message}
                 >
                   <Input
                     id="kv_chunk_size"
                     type="number"
-                    placeholder={t("platform.knowledge.placeholder.chunk_size")}
+                    placeholder={t("ai.knowledge.placeholder.chunk_size")}
                     {...register("chunk_size")}
                   />
                 </FormField>
                 <FormField
-                  label={t("platform.knowledge.field.chunk_overlap")}
+                  label={t("ai.knowledge.field.chunk_overlap")}
                   htmlFor="kv_chunk_overlap"
                   error={errors.chunk_overlap?.message}
                 >
                   <Input
                     id="kv_chunk_overlap"
                     type="number"
-                    placeholder={t("platform.knowledge.placeholder.chunk_overlap")}
+                    placeholder={t("ai.knowledge.placeholder.chunk_overlap")}
                     {...register("chunk_overlap")}
                   />
                 </FormField>

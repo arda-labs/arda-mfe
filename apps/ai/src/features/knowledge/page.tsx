@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+﻿import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
@@ -28,7 +28,7 @@ export function KnowledgePage() {
     } catch (err) {
       setSources([])
       notify.error(
-        t("platform.knowledge.load_failed"),
+        t("ai.knowledge.load_failed"),
         err instanceof Error ? err.message : String(err)
       )
     }
@@ -46,7 +46,7 @@ export function KnowledgePage() {
       } catch (err) {
         setVersions([])
         notify.error(
-          t("platform.knowledge.load_versions_failed"),
+          t("ai.knowledge.load_versions_failed"),
           err instanceof Error ? err.message : String(err)
         )
       } finally {
@@ -71,7 +71,7 @@ export function KnowledgePage() {
   if (!sources) {
     return (
       <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-        <PageHeader title={t("platform.knowledge.title")} icon={Database} />
+        <PageHeader title={t("ai.knowledge.title")} icon={Database} />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-40 w-full" />
       </section>
@@ -94,9 +94,9 @@ export function KnowledgePage() {
       ) : (
         <>
           <PageHeader
-            title={t("platform.knowledge.title")}
+            title={t("ai.knowledge.title")}
             icon={Database}
-            description={t("platform.knowledge.description")}
+            description={t("ai.knowledge.description")}
             actions={
               <div className="flex items-center gap-2">
                 <Button
@@ -105,11 +105,11 @@ export function KnowledgePage() {
                   onClick={() => setPlaygroundOpen(true)}
                 >
                   <Sparkles className="mr-1.5 size-3.5 text-primary" />
-                  {t("platform.knowledge.playground.button")}
+                  {t("ai.knowledge.playground.button")}
                 </Button>
                 <Button size="sm" onClick={() => setCreateSourceOpen(true)}>
                   <Plus className="mr-1.5 size-3.5" />
-                  {t("platform.knowledge.new_source")}
+                  {t("ai.knowledge.new_source")}
                 </Button>
               </div>
             }

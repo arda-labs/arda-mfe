@@ -18,6 +18,7 @@ import { Dashboard } from "./dashboard"
 import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
 import {
   AccountRoutes,
+  AiRoutes,
   CrmRoutes,
   FinanceRoutes,
   HrmRoutes,
@@ -227,6 +228,14 @@ export function App() {
         <Route
           path="/ai"
           element={aiAssistantEnabled ? <OlorinPage /> : <NotFoundPage />}
+        />
+        <Route
+          path="/ai/admin/*"
+          element={
+            <RemoteRoute>
+              <AiRoutes />
+            </RemoteRoute>
+          }
         />
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route

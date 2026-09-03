@@ -64,21 +64,9 @@ const WardsPage = lazyWithPreload(() =>
     default: m.WardsPage,
   }))
 )
-const AISettingsPage = lazyWithPreload(() =>
-  import("@/features/ai-settings/page").then((m) => ({
-    default: m.AISettingsPage,
-  }))
-)
-const KnowledgePage = lazyWithPreload(() =>
-  import("@/features/knowledge/page").then((m) => ({
-    default: m.KnowledgePage,
-  }))
-)
 
 export default createRemoteRoutes({
   routes: [
-    { prefix: "/admin/ai-settings", component: AISettingsPage },
-    { prefix: "/admin/knowledge", component: KnowledgePage },
     { prefix: "/admin/parameters", component: ParametersPage },
     { prefix: "/admin/provinces", component: ProvincesPage },
     { prefix: "/admin/wards", component: WardsPage },

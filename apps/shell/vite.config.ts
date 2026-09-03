@@ -43,6 +43,7 @@ export default defineConfig(({ command }) => {
           account: remote("account", "ACCOUNT_REMOTE_ENTRY"),
           crm: remote("crm", "CRM_REMOTE_ENTRY"),
           workflow: remote("workflow", "WORKFLOW_REMOTE_ENTRY"),
+          ai: remote("ai", "AI_REMOTE_ENTRY"),
         },
         shared: { ...remoteSharedDeps },
       }),
@@ -75,6 +76,7 @@ export default defineConfig(({ command }) => {
         "/api/hrm": { target: BFF_GATEWAY, changeOrigin: true },
         "/api/notifications": { target: BFF_GATEWAY, changeOrigin: true },
         "/api/ai": { target: BFF_GATEWAY, changeOrigin: true },
+        "/api/rag": { target: BFF_GATEWAY, changeOrigin: true },
       },
     },
   }

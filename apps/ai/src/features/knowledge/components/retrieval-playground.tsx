@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
@@ -58,7 +58,7 @@ export function RetrievalPlayground({
       setResponse(res)
     } catch (err) {
       notify.error(
-        t("platform.knowledge.playground.query_failed"),
+        t("ai.knowledge.playground.query_failed"),
         translateApiError(err)
       )
     } finally {
@@ -70,10 +70,10 @@ export function RetrievalPlayground({
     try {
       await knowledgeApi.feedback({ run_id: runId, helpful })
       setFeedbackSent((prev) => ({ ...prev, [runId]: true }))
-      notify.success(t("platform.knowledge.playground.feedback_sent"))
+      notify.success(t("ai.knowledge.playground.feedback_sent"))
     } catch (err) {
       notify.error(
-        t("platform.knowledge.playground.feedback_failed"),
+        t("ai.knowledge.playground.feedback_failed"),
         translateApiError(err)
       )
     }
@@ -85,10 +85,10 @@ export function RetrievalPlayground({
         <SheetHeader className="pb-4 border-b">
           <div className="flex items-center gap-2">
             <Sparkles className="size-5 text-primary" />
-            <SheetTitle>{t("platform.knowledge.playground.title")}</SheetTitle>
+            <SheetTitle>{t("ai.knowledge.playground.title")}</SheetTitle>
           </div>
           <SheetDescription>
-            {t("platform.knowledge.playground.description")}
+            {t("ai.knowledge.playground.description")}
           </SheetDescription>
         </SheetHeader>
 
@@ -96,7 +96,7 @@ export function RetrievalPlayground({
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Input
-                placeholder={t("platform.knowledge.playground.placeholder")}
+                placeholder={t("ai.knowledge.playground.placeholder")}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -127,7 +127,7 @@ export function RetrievalPlayground({
               className="shrink-0"
             >
               <Search className="mr-1.5 size-3.5" />
-              {t("platform.knowledge.playground.search_btn")}
+              {t("ai.knowledge.playground.search_btn")}
             </Button>
           </div>
 
@@ -147,7 +147,7 @@ export function RetrievalPlayground({
               {!feedbackSent[response.run_id] ? (
                 <div className="flex items-center gap-1">
                   <span className="text-[11px] mr-1">
-                    {t("platform.knowledge.playground.helpful_prompt")}
+                    {t("ai.knowledge.playground.helpful_prompt")}
                   </span>
                   <Button
                     variant="ghost"
@@ -168,7 +168,7 @@ export function RetrievalPlayground({
                 </div>
               ) : (
                 <span className="text-[11px] text-emerald-600 font-medium">
-                  {t("platform.knowledge.playground.feedback_thank_you")}
+                  {t("ai.knowledge.playground.feedback_thank_you")}
                 </span>
               )}
             </div>
@@ -179,19 +179,19 @@ export function RetrievalPlayground({
           {loading ? (
             <div className="flex h-64 flex-col items-center justify-center gap-2 text-muted-foreground">
               <Search className="size-6 animate-pulse" />
-              <p className="text-xs">{t("platform.knowledge.playground.searching")}</p>
+              <p className="text-xs">{t("ai.knowledge.playground.searching")}</p>
             </div>
           ) : !response ? (
             <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
               <FileSearch className="size-8 opacity-30" />
-              <p className="text-xs">{t("platform.knowledge.playground.empty_hint")}</p>
+              <p className="text-xs">{t("ai.knowledge.playground.empty_hint")}</p>
             </div>
           ) : response.hits.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
               <FileSearch className="size-8 opacity-30" />
-              <p className="text-xs font-medium">{t("platform.knowledge.playground.no_results")}</p>
+              <p className="text-xs font-medium">{t("ai.knowledge.playground.no_results")}</p>
               <p className="text-[11px] text-muted-foreground/80 max-w-xs">
-                {t("platform.knowledge.playground.no_results_tip")}
+                {t("ai.knowledge.playground.no_results_tip")}
               </p>
             </div>
           ) : (

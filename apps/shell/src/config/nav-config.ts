@@ -36,6 +36,25 @@ export const navItems: NavNode[] = [
     permissions: ["ai.assistant.use"],
   },
   {
+    labelKey: "nav.ai_center",
+    icon: Sparkles,
+    permissions: ["ai.admin", "ai.knowledge.manage", "superadmin", "platform.manage"],
+    children: [
+      {
+        href: "/ai/admin/knowledge",
+        labelKey: "nav.ai_center.knowledge",
+        icon: BookOpen,
+        permissions: ["ai.admin", "ai.knowledge.manage", "superadmin", "platform.manage"],
+      },
+      {
+        href: "/ai/admin/settings",
+        labelKey: "nav.ai_center.settings",
+        icon: SlidersHorizontal,
+        permissions: ["ai.admin", "superadmin", "platform.manage"],
+      },
+    ],
+  },
+  {
     labelKey: "nav.admin",
     icon: Users,
     children: [
@@ -74,18 +93,6 @@ export const navItems: NavNode[] = [
         labelKey: "nav.admin.system_settings",
         icon: Settings,
         permissions: ["platform.manage"],
-      },
-      {
-        href: "/admin/ai-settings",
-        labelKey: "nav.admin.ai_settings",
-        icon: Sparkles,
-        permissions: ["ai.admin", "superadmin", "platform.manage"],
-      },
-      {
-        href: "/admin/knowledge",
-        labelKey: "nav.admin.knowledge",
-        icon: BookOpen,
-        permissions: ["ai.admin", "superadmin", "platform.manage"],
       },
       {
         href: "/admin/tenants",

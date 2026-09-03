@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -37,7 +37,7 @@ const STATUS_COLOR: Record<string, "default" | "secondary" | "success" | "destru
 
 function statusLabel(status: string | null): string {
   if (!status) return "-"
-  return `platform.knowledge.status.${status.toLowerCase()}`
+  return `ai.knowledge.status.${status.toLowerCase()}`
 }
 
 export function VersionStatusBadge({ status }: { status: string }) {
@@ -65,19 +65,19 @@ export function SourceListTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("platform.knowledge.field.title")}</TableHead>
-              <TableHead>{t("platform.knowledge.field.scope")}</TableHead>
-              <TableHead>{t("platform.knowledge.field.language")}</TableHead>
-              <TableHead>{t("platform.knowledge.field.version")}</TableHead>
-              <TableHead>{t("platform.knowledge.field.status")}</TableHead>
-              <TableHead>{t("platform.knowledge.field.created_at")}</TableHead>
+              <TableHead>{t("ai.knowledge.field.title")}</TableHead>
+              <TableHead>{t("ai.knowledge.field.scope")}</TableHead>
+              <TableHead>{t("ai.knowledge.field.language")}</TableHead>
+              <TableHead>{t("ai.knowledge.field.version")}</TableHead>
+              <TableHead>{t("ai.knowledge.field.status")}</TableHead>
+              <TableHead>{t("ai.knowledge.field.created_at")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sources.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
-                  {t("platform.knowledge.empty")}
+                  {t("ai.knowledge.empty")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -88,7 +88,7 @@ export function SourceListTable({
                   onClick={() => onSelect(source)}
                 >
                   <TableCell className="font-medium">{source.title}</TableCell>
-                  <TableCell>{t(`platform.knowledge.scope.${source.scope}`)}</TableCell>
+                  <TableCell>{t(`ai.knowledge.scope.${source.scope}`)}</TableCell>
                   <TableCell>{source.language ?? "-"}</TableCell>
                   <TableCell>{source.version ?? "-"}</TableCell>
                   <TableCell>
@@ -138,12 +138,12 @@ export function SourceDetail({
     setDeleting(true)
     try {
       await knowledgeApi.deleteSource(source.id)
-      notify.success(t("platform.knowledge.toast.delete_success"))
+      notify.success(t("ai.knowledge.toast.delete_success"))
       setDeleteOpen(false)
       onDeleted()
     } catch (err) {
       notify.error(
-        t("platform.knowledge.toast.delete_failed"),
+        t("ai.knowledge.toast.delete_failed"),
         err instanceof Error ? err.message : String(err)
       )
     } finally {
@@ -170,7 +170,7 @@ export function SourceDetail({
           </Button>
           <Button size="sm" onClick={onCreateVersion}>
             <Plus className="mr-1.5 size-3.5" />
-            {t("platform.knowledge.new_version")}
+            {t("ai.knowledge.new_version")}
           </Button>
         </div>
       </div>
@@ -195,19 +195,19 @@ export function SourceDetail({
           ) : null}
           <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
             <div>
-              <dt className="text-muted-foreground">{t("platform.knowledge.field.scope")}</dt>
-              <dd className="font-medium">{t(`platform.knowledge.scope.${source.scope}`)}</dd>
+              <dt className="text-muted-foreground">{t("ai.knowledge.field.scope")}</dt>
+              <dd className="font-medium">{t(`ai.knowledge.scope.${source.scope}`)}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">{t("platform.knowledge.field.source_type")}</dt>
-              <dd className="font-medium">{t(`platform.knowledge.source_type.${source.source_type}`)}</dd>
+              <dt className="text-muted-foreground">{t("ai.knowledge.field.source_type")}</dt>
+              <dd className="font-medium">{t(`ai.knowledge.source_type.${source.source_type}`)}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">{t("platform.knowledge.field.language")}</dt>
+              <dt className="text-muted-foreground">{t("ai.knowledge.field.language")}</dt>
               <dd className="font-medium">{source.language ?? "-"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">{t("platform.knowledge.field.version")}</dt>
+              <dt className="text-muted-foreground">{t("ai.knowledge.field.version")}</dt>
               <dd className="font-medium">{source.version ?? "-"}</dd>
             </div>
           </dl>
@@ -219,11 +219,11 @@ export function SourceDetail({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t("platform.knowledge.field.version")}</TableHead>
-                <TableHead>{t("platform.knowledge.field.status")}</TableHead>
-                <TableHead>{t("platform.knowledge.field.content_type")}</TableHead>
-                <TableHead>{t("platform.knowledge.field.chunker")}</TableHead>
-                <TableHead>{t("platform.knowledge.field.created_at")}</TableHead>
+                <TableHead>{t("ai.knowledge.field.version")}</TableHead>
+                <TableHead>{t("ai.knowledge.field.status")}</TableHead>
+                <TableHead>{t("ai.knowledge.field.content_type")}</TableHead>
+                <TableHead>{t("ai.knowledge.field.chunker")}</TableHead>
+                <TableHead>{t("ai.knowledge.field.created_at")}</TableHead>
                 <TableHead className="text-right">{t("common.field.action")}</TableHead>
               </TableRow>
             </TableHeader>
@@ -237,7 +237,7 @@ export function SourceDetail({
               ) : versions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
-                    {t("platform.knowledge.empty_versions")}
+                    {t("ai.knowledge.empty_versions")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -245,7 +245,7 @@ export function SourceDetail({
                   <TableRow key={version.id}>
                     <TableCell className="font-mono text-xs">{version.version}</TableCell>
                     <TableCell><VersionStatusBadge status={version.status} /></TableCell>
-                    <TableCell>{t(`platform.knowledge.content_type.${version.content_type}`)}</TableCell>
+                    <TableCell>{t(`ai.knowledge.content_type.${version.content_type}`)}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {version.chunk_size != null
                         ? `${version.chunk_size}/${version.chunk_overlap ?? 0}`
@@ -272,9 +272,9 @@ export function SourceDetail({
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("platform.knowledge.confirm_delete_title")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("ai.knowledge.confirm_delete_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("platform.knowledge.confirm_delete", { title: source.title })}
+              {t("ai.knowledge.confirm_delete", { title: source.title })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+﻿import { useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -37,8 +37,8 @@ function buildSchema(t: TranslateFn) {
       title: z
         .string()
         .trim()
-        .min(1, t("platform.knowledge.validation.title_required"))
-        .max(500, t("platform.knowledge.validation.title_too_long")),
+        .min(1, t("ai.knowledge.validation.title_required"))
+        .max(500, t("ai.knowledge.validation.title_too_long")),
       description: z.string().max(2000).optional().or(z.literal("")),
       source_type: z.enum(sourceTypes),
       scope: z.enum(sourceScopes),
@@ -56,7 +56,7 @@ function buildSchema(t: TranslateFn) {
         v.effective_to > v.effective_from,
       {
         path: ["effective_to"],
-        message: t("platform.knowledge.validation.effective_range_invalid"),
+        message: t("ai.knowledge.validation.effective_range_invalid"),
       }
     )
 }
@@ -119,12 +119,12 @@ export function CreateSourceDialog({
         effective_to: values.effective_to || null,
       }
       await knowledgeApi.createSource(payload)
-      notify.success(t("platform.knowledge.toast.create_success"))
+      notify.success(t("ai.knowledge.toast.create_success"))
       handleOpenChange(false)
       await onSuccess()
     } catch (err) {
       notify.error(
-        t("platform.knowledge.toast.create_failed"),
+        t("ai.knowledge.toast.create_failed"),
         translateApiError(err)
       )
     } finally {
@@ -136,9 +136,9 @@ export function CreateSourceDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("platform.knowledge.create_source_title")}</DialogTitle>
+          <DialogTitle>{t("ai.knowledge.create_source_title")}</DialogTitle>
           <DialogDescription>
-            {t("platform.knowledge.create_source_description")}
+            {t("ai.knowledge.create_source_description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -148,13 +148,13 @@ export function CreateSourceDialog({
           className="space-y-4 py-2"
         >
           <FormField
-            label={t("platform.knowledge.field.title")}
+            label={t("ai.knowledge.field.title")}
             htmlFor="ks_title"
             error={errors.title?.message}
           >
             <Input
               id="ks_title"
-              placeholder={t("platform.knowledge.placeholder.title")}
+              placeholder={t("ai.knowledge.placeholder.title")}
               aria-invalid={Boolean(errors.title)}
               spellCheck={false}
               {...register("title")}
@@ -162,7 +162,7 @@ export function CreateSourceDialog({
           </FormField>
 
           <FormField
-            label={t("platform.knowledge.field.description")}
+            label={t("ai.knowledge.field.description")}
             htmlFor="ks_description"
             error={errors.description?.message}
           >
@@ -176,7 +176,7 @@ export function CreateSourceDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              label={t("platform.knowledge.field.source_type")}
+              label={t("ai.knowledge.field.source_type")}
               error={errors.source_type?.message}
             >
               <Controller
@@ -184,13 +184,13 @@ export function CreateSourceDialog({
                 name="source_type"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label={t("platform.knowledge.field.source_type")}>
+                    <SelectTrigger aria-label={t("ai.knowledge.field.source_type")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {sourceTypes.map((type) => (
                         <SelectItem key={type} value={type}>
-                          {t(`platform.knowledge.source_type.${type}`)}
+                          {t(`ai.knowledge.source_type.${type}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -200,7 +200,7 @@ export function CreateSourceDialog({
             </FormField>
 
             <FormField
-              label={t("platform.knowledge.field.scope")}
+              label={t("ai.knowledge.field.scope")}
               error={errors.scope?.message}
             >
               <Controller
@@ -208,13 +208,13 @@ export function CreateSourceDialog({
                 name="scope"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label={t("platform.knowledge.field.scope")}>
+                    <SelectTrigger aria-label={t("ai.knowledge.field.scope")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {sourceScopes.map((scope) => (
                         <SelectItem key={scope} value={scope}>
-                          {t(`platform.knowledge.scope.${scope}`)}
+                          {t(`ai.knowledge.scope.${scope}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -226,13 +226,13 @@ export function CreateSourceDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              label={t("platform.knowledge.field.language")}
+              label={t("ai.knowledge.field.language")}
               htmlFor="ks_language"
               error={errors.language?.message}
             >
               <Input
                 id="ks_language"
-                placeholder={t("platform.knowledge.placeholder.language")}
+                placeholder={t("ai.knowledge.placeholder.language")}
                 aria-invalid={Boolean(errors.language)}
                 spellCheck={false}
                 {...register("language")}
@@ -240,13 +240,13 @@ export function CreateSourceDialog({
             </FormField>
 
             <FormField
-              label={t("platform.knowledge.field.tags")}
+              label={t("ai.knowledge.field.tags")}
               htmlFor="ks_tags"
               error={errors.tags?.message}
             >
               <Input
                 id="ks_tags"
-                placeholder={t("platform.knowledge.placeholder.tags")}
+                placeholder={t("ai.knowledge.placeholder.tags")}
                 aria-invalid={Boolean(errors.tags)}
                 spellCheck={false}
                 {...register("tags")}
@@ -256,7 +256,7 @@ export function CreateSourceDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              label={t("platform.knowledge.field.effective_from")}
+              label={t("ai.knowledge.field.effective_from")}
               htmlFor="ks_effective_from"
               error={errors.effective_from?.message}
             >
@@ -269,7 +269,7 @@ export function CreateSourceDialog({
             </FormField>
 
             <FormField
-              label={t("platform.knowledge.field.effective_to")}
+              label={t("ai.knowledge.field.effective_to")}
               htmlFor="ks_effective_to"
               error={errors.effective_to?.message}
             >
