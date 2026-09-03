@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import {
+  BookOpen,
   Building2,
   Calendar,
   Clock,
@@ -78,6 +79,12 @@ export const navItems: NavNode[] = [
         href: "/admin/ai-settings",
         labelKey: "nav.admin.ai_settings",
         icon: Sparkles,
+        permissions: ["ai.admin", "superadmin", "platform.manage"],
+      },
+      {
+        href: "/admin/knowledge",
+        labelKey: "nav.admin.knowledge",
+        icon: BookOpen,
         permissions: ["ai.admin", "superadmin", "platform.manage"],
       },
       {

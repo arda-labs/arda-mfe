@@ -37,6 +37,7 @@ const remoteRoutes: Array<{
       "/admin/templates",
       "/admin/calendar",
       "/admin/cutoff",
+      "/admin/knowledge",
     ],
     component: PlatformRoutes,
   },
