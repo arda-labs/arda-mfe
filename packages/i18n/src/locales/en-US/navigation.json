@@ -6,7 +6,8 @@
     "knowledge": "Knowledge Base",
     "settings": "AI Settings",
     "approvals": "Governance & Approvals",
-    "tools": "Tools & MCP Registry"
+    "tools": "Tools & MCP Registry",
+    "analytics": "Observability & Costs"
   },
   "admin": {
     "_self": "Admin",

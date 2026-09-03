@@ -6,7 +6,8 @@
     "knowledge": "Nguồn tri thức",
     "settings": "Cài đặt AI",
     "approvals": "Phê duyệt & Kiểm toán",
-    "tools": "Công cụ & MCP Registry"
+    "tools": "Công cụ & MCP Registry",
+    "analytics": "Giám sát & Chi phí"
   },
   "admin": {
     "_self": "Quản trị",

@@ -254,5 +254,51 @@
         "description": "Enter the SSE or HTTP endpoint URL of the Model Context Protocol server."
       }
     }
+  },
+  "analytics": {
+    "title": "Observability & Cost Analytics",
+    "description": "Monitor Agent performance, token consumption, LLM costs, and RAG quality",
+    "load_failed": "Failed to load analytics metrics",
+    "btn": {
+      "refresh": "Refresh"
+    },
+    "kpi": {
+      "total_runs": "Total Agent Runs",
+      "success_rate": "success rate",
+      "total_tokens": "Token Consumption",
+      "estimated_cost": "Estimated LLM Cost",
+      "cost_per_tenant": "Current billing period",
+      "latency_p95": "P95 Latency"
+    },
+    "trend": {
+      "title": "Activity Trend (Last 7 Days)",
+      "subtitle": "Runs & Token Volume",
+      "description": "Daily volume of AI Agent executions and token throughput"
+    },
+    "quality": {
+      "title": "RAG Quality Evaluation",
+      "description": "Groundedness, faithfulness, and retrieval precision metrics",
+      "groundedness": "Groundedness",
+      "groundedness_desc": "Answers strictly rooted in retrieved chunks",
+      "faithfulness": "Faithfulness",
+      "faithfulness_desc": "Factual consistency without hallucinations",
+      "retrieval_precision": "Retrieval Precision",
+      "retrieval_precision_desc": "Relevant chunks retrieved per query",
+      "user_satisfaction": "User Satisfaction"
+    },
+    "feedback": {
+      "rate_label": "Positive feedback rate"
+    },
+    "model_breakdown": {
+      "title": "Model Cost & Token Breakdown",
+      "description": "Resource utilization and cost breakdown across LLM providers"
+    },
+    "table": {
+      "model": "Model ID",
+      "provider": "Provider",
+      "runs": "Invocations",
+      "tokens": "Total Tokens",
+      "cost": "Cost (USD)"
+    }
   }
 }

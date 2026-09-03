@@ -254,5 +254,51 @@
         "description": "Nhập địa chỉ endpoint SSE hoặc HTTP của máy chủ Model Context Protocol."
       }
     }
+  },
+  "analytics": {
+    "title": "Observability & Phân tích Chi phí",
+    "description": "Giám sát hiệu năng Agent, đo lường tiêu thụ token, chi phí LLM và chất lượng RAG",
+    "load_failed": "Không thể tải số liệu thống kê",
+    "btn": {
+      "refresh": "Làm mới"
+    },
+    "kpi": {
+      "total_runs": "Tổng số phiên chạy",
+      "success_rate": "thành công",
+      "total_tokens": "Tiêu thụ Token",
+      "estimated_cost": "Ước tính Chi phí",
+      "cost_per_tenant": "Chi phí trong kỳ",
+      "latency_p95": "Độ trễ P95"
+    },
+    "trend": {
+      "title": "Xu hướng hoạt động (7 ngày qua)",
+      "subtitle": "Số lượt chạy & Tiêu thụ Token",
+      "description": "Biểu đồ biến thiên số phiên thực thi Agent mỗi ngày"
+    },
+    "quality": {
+      "title": "Đánh giá Chất lượng RAG",
+      "description": "Chỉ số tin cậy và độ chuẩn xác của câu trả lời truy xuất",
+      "groundedness": "Độ bám ngữ cảnh (Groundedness)",
+      "groundedness_desc": "Tỷ lệ thông tin câu trả lời dựa trên văn bản trích xuất",
+      "faithfulness": "Độ trung thực (Faithfulness)",
+      "faithfulness_desc": "Không có hiện tượng ảo giác (hallucination)",
+      "retrieval_precision": "Độ chính xác truy xuất (Precision)",
+      "retrieval_precision_desc": "Tỷ lệ chunk được trích xuất thực sự liên quan",
+      "user_satisfaction": "Mức độ hài lòng người dùng"
+    },
+    "feedback": {
+      "rate_label": "Tỷ lệ đánh giá tích cực"
+    },
+    "model_breakdown": {
+      "title": "Phân bổ Chi phí & Token theo Mô hình",
+      "description": "Thống kê chi tiết tài nguyên sử dụng cho từng model LLM"
+    },
+    "table": {
+      "model": "Mô hình (Model ID)",
+      "provider": "Nhà cung cấp",
+      "runs": "Số lượt gọi",
+      "tokens": "Tổng Token",
+      "cost": "Chi phí (USD)"
+    }
   }
 }

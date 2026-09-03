@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import {
+  BarChart3,
   BookOpen,
   Building2,
   Calendar,
@@ -63,6 +64,12 @@ export const navItems: NavNode[] = [
         href: "/ai/tools",
         labelKey: "nav.ai_center.tools",
         icon: Wrench,
+        permissions: ["ai.admin", "superadmin", "platform.manage"],
+      },
+      {
+        href: "/ai/analytics",
+        labelKey: "nav.ai_center.analytics",
+        icon: BarChart3,
         permissions: ["ai.admin", "superadmin", "platform.manage"],
       },
     ],
