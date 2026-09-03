@@ -6,7 +6,7 @@ COPY . .
 # deliberately disabled build, but a normal production image must expose /ai.
 ARG VITE_AI_ENABLED=true
 ENV VITE_AI_ENABLED=$VITE_AI_ENABLED
-RUN bun install --frozen-lockfile && bun run build
+RUN (bun install --frozen-lockfile || (sleep 2 && bun install --frozen-lockfile)) && bun run build
 
 FROM nginx:1.29-alpine
 
