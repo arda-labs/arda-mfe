@@ -1,5 +1,5 @@
 import type { Column, Table } from "@tanstack/react-table"
-import * as XLSX from "xlsx"
+import ExcelJS from "exceljs"
 
 export type ExportScope = "all" | "selected" | "current_page"
 export type ExportFormat = "xlsx" | "csv"
@@ -329,23 +329,48 @@ export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): vo
   }
   const scopeLabel = scopeTextMap[scope] || scope
 
-  // Construct Sheet Data (AOA) with Banking Header
-  const aoa: unknown[][] = []
+  const workbook = new ExcelJS.Workbook()
+  workbook.creator = "Arda Enterprise Platform"
+  workbook.created = now
 
-  // Row 1: Report Title
-  aoa.push([title])
+  const worksheet = workbook.addWorksheet(sheetName.substring(0, 31), {
+    views: [{ state: "frozen", ySplit: 4 }],
+  })
+
+  // Row 1: Report Title (Bold, 13pt)
+  const titleRow = worksheet.addRow([title])
+  titleRow.font = { name: "Arial", size: 13, bold: true, color: { argb: "FF0F172A" } }
+  titleRow.height = 26
 
   // Row 2: Audit Metadata
   const metadataLine = isEn
     ? `Exported at: ${exportTimeStr}  |  Scope: ${scopeLabel}  |  Total records: ${records.length}`
     : `Thời gian trích xuất: ${exportTimeStr}  |  Phạm vi: ${scopeLabel}  |  Tổng số bản ghi: ${records.length}`
-  aoa.push([metadataLine])
+  const metaRow = worksheet.addRow([metadataLine])
+  metaRow.font = { name: "Arial", size: 9, italic: true, color: { argb: "FF64748B" } }
+  metaRow.height = 18
 
   // Row 3: Blank separator
-  aoa.push([])
+  worksheet.addRow([])
 
   // Row 4: Column Header Row
-  aoa.push(columns.map((c) => c.title))
+  const headerRow = worksheet.addRow(columns.map((c) => c.title))
+  headerRow.height = 24
+  headerRow.eachCell((cell) => {
+    cell.font = { name: "Arial", size: 10, bold: true, color: { argb: "FF0F172A" } }
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFF1F5F9" }, // Slate-100
+    }
+    cell.border = {
+      top: { style: "thin", color: { argb: "FFE2E8F0" } },
+      bottom: { style: "medium", color: { argb: "FF94A3B8" } },
+      left: { style: "thin", color: { argb: "FFE2E8F0" } },
+      right: { style: "thin", color: { argb: "FFE2E8F0" } },
+    }
+    cell.alignment = { vertical: "middle", horizontal: "left" }
+  })
 
   // Rows 5+: Data records
   for (let r = 0; r < records.length; r++) {
@@ -354,63 +379,58 @@ export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): vo
       const formatted = formatExportValue(col, item, r, helpers)
       return formatted.raw
     })
-    aoa.push(rowValues)
-  }
+    const dataRow = worksheet.addRow(rowValues)
+    dataRow.height = 20
 
-  // Create worksheet
-  const worksheet = XLSX.utils.aoa_to_sheet(aoa)
-
-  // Explicitly tag Code / Identification Number cells as type 's' (string)
-  // to guarantee Microsoft Excel NEVER truncates leading zeroes.
-  for (let r = 0; r < records.length; r++) {
-    const item = records[r]
-    const rowIdx = r + 4 // Header is at row index 3 (0-indexed)
-    for (let c = 0; c < columns.map((x) => x.id).length; c++) {
+    for (let c = 0; c < columns.length; c++) {
       const col = columns[c]
       const formatted = formatExportValue(col, item, r, helpers)
-      const cellRef = XLSX.utils.encode_cell({ r: rowIdx, c })
-      const cell = worksheet[cellRef]
-      if (cell) {
-        if (formatted.isCodeString) {
-          cell.t = "s"
-          cell.v = String(formatted.text)
-        } else if (formatted.isNumeric) {
-          cell.t = "n"
-          cell.v = Number(formatted.raw)
-          cell.z = Number.isInteger(Number(formatted.raw)) ? "#,##0" : "#,##0.00"
-        }
+      const cell = dataRow.getCell(c + 1)
+
+      cell.font = { name: "Arial", size: 10 }
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFF8FAFC" } },
+        bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+        left: { style: "thin", color: { argb: "FFF8FAFC" } },
+        right: { style: "thin", color: { argb: "FFF8FAFC" } },
+      }
+
+      if (formatted.isCodeString) {
+        cell.numFmt = "@"
+        cell.value = String(formatted.text)
+        cell.alignment = { vertical: "middle", horizontal: "left" }
+      } else if (formatted.isNumeric) {
+        const num = Number(formatted.raw)
+        cell.value = num
+        cell.numFmt = Number.isInteger(num) ? "#,##0" : "#,##0.00"
+        cell.alignment = { vertical: "middle", horizontal: "right" }
+      } else {
+        cell.alignment = { vertical: "middle", horizontal: "left" }
       }
     }
   }
 
   // Auto-fit column widths
-  const colWidths = columns.map((col) => {
-    let maxLen = Math.max(col.title.length, 10)
+  worksheet.columns.forEach((col, colIdx) => {
+    if (colIdx >= columns.length) return
+    const columnDef = columns[colIdx]
+    let maxLen = Math.max(columnDef.title.length, 10)
     for (let r = 0; r < Math.min(records.length, 200); r++) {
       const item = records[r]
-      const formatted = formatExportValue(col, item, r, helpers)
-      const cellLen = formatted.text.length
-      if (cellLen > maxLen) maxLen = cellLen
+      const formatted = formatExportValue(columnDef, item, r, helpers)
+      if (formatted.text.length > maxLen) maxLen = formatted.text.length
     }
-    return { wch: Math.min(Math.max(maxLen + 3, 12), 60) }
+    col.width = Math.min(Math.max(maxLen + 4, 13), 50)
   })
-  worksheet["!cols"] = colWidths
-
-  // Freeze Header Panes at Row 4 (Data begins at Row 5)
-  worksheet["!freeze"] = { xSplit: 0, ySplit: 4 }
-
-  // Create workbook
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.substring(0, 31))
 
   // Write binary array & trigger download
-  const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
-  const blob = new Blob([wbout], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  void workbook.xlsx.writeBuffer().then((buffer) => {
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    })
+    const finalFilename = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+    triggerDownload(blob, finalFilename)
   })
-
-  const finalFilename = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-  triggerDownload(blob, finalFilename)
 }
 
 export const exportTableToExcelXml = exportTableToXlsx

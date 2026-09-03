@@ -3,17 +3,18 @@ import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import {
-  CheckCircle2,
   Clock,
   Database,
+  FileCheck2,
   FileText,
   FolderSync,
   HardDrive,
+  Layers,
+  Network,
   Plus,
   RefreshCw,
   Share2,
@@ -78,19 +79,50 @@ const DEFAULT_CONNECTORS: DataConnector[] = [
   },
 ]
 
-function getProviderIcon(provider: DataConnector["provider"]) {
-  switch (provider) {
-    case "google_drive":
-      return HardDrive
-    case "confluence":
-      return FileText
-    case "s3_bucket":
-      return Database
-    case "sharepoint":
-      return Share2
-    default:
-      return FolderSync
-  }
+interface ProviderMeta {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  gradient: string
+  badgeClass: string
+  iconClass: string
+}
+
+const PROVIDER_METAS: Record<DataConnector["provider"], ProviderMeta> = {
+  google_drive: {
+    icon: HardDrive,
+    label: "Google Workspace",
+    gradient: "from-emerald-500/15 via-teal-500/5 to-transparent",
+    badgeClass: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
+    iconClass: "text-emerald-500",
+  },
+  confluence: {
+    icon: FileText,
+    label: "Atlassian Confluence",
+    gradient: "from-blue-500/15 via-indigo-500/5 to-transparent",
+    badgeClass: "border-blue-500/30 bg-blue-500/10 text-blue-600",
+    iconClass: "text-blue-500",
+  },
+  s3_bucket: {
+    icon: Database,
+    label: "Garage S3 / MinIO",
+    gradient: "from-amber-500/15 via-orange-500/5 to-transparent",
+    badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-600",
+    iconClass: "text-amber-500",
+  },
+  sharepoint: {
+    icon: Share2,
+    label: "Microsoft SharePoint",
+    gradient: "from-cyan-500/15 via-teal-500/5 to-transparent",
+    badgeClass: "border-cyan-500/30 bg-cyan-500/10 text-cyan-600",
+    iconClass: "text-cyan-500",
+  },
+  postgres: {
+    icon: Database,
+    label: "PostgreSQL DB Mirror",
+    gradient: "from-violet-500/15 via-purple-500/5 to-transparent",
+    badgeClass: "border-violet-500/30 bg-violet-500/10 text-violet-600",
+    iconClass: "text-violet-500",
+  },
 }
 
 export function ConnectorsTab() {
@@ -102,6 +134,9 @@ export function ConnectorsTab() {
   const [provider, setProvider] = useState<DataConnector["provider"]>("google_drive")
   const [targetSource, setTargetSource] = useState("")
   const [schedule, setSchedule] = useState("Hourly")
+
+  const totalDocs = connectors.reduce((acc, c) => acc + c.docCount, 0)
+  const totalChunks = connectors.reduce((acc, c) => acc + c.totalChunks, 0)
 
   const handleSyncNow = (id: string) => {
     setSyncingId(id)
@@ -139,53 +174,130 @@ export function ConnectorsTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Header & Add Button */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-sm font-semibold">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <Network className="h-4 w-4 text-primary" />
             {t("ai.knowledge.connectors.title")}
           </h3>
           <p className="text-xs text-muted-foreground">
             {t("ai.knowledge.connectors.description")}
           </p>
         </div>
-        <Button size="sm" className="gap-1.5 self-start sm:self-auto" onClick={() => setAddOpen(true)}>
+        <Button size="sm" className="gap-1.5 self-start sm:self-auto shadow-xs" onClick={() => setAddOpen(true)}>
           <Plus className="h-4 w-4" />
           {t("ai.knowledge.connectors.btn.add")}
         </Button>
       </div>
 
+      {/* Top Overview KPI Strip */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
+          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
+            <FolderSync className="h-3.5 w-3.5 text-primary" />
+            <span>Pipelines Kết nối</span>
+          </div>
+          <div className="mt-1 flex items-baseline gap-1.5">
+            <span className="font-mono text-xl font-bold text-foreground">{connectors.length}</span>
+            <span className="text-[10px] text-emerald-600 font-medium">Auto-Sync</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
+          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
+            <FileCheck2 className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Tài liệu Đã Nạp (Ingested)</span>
+          </div>
+          <div className="mt-1 flex items-baseline gap-1.5">
+            <span className="font-mono text-xl font-bold text-foreground">{totalDocs}</span>
+            <span className="text-[10px] text-muted-foreground">files đồng bộ</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
+          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
+            <Layers className="h-3.5 w-3.5 text-indigo-500" />
+            <span>Vector Chunks Tạo ra</span>
+          </div>
+          <div className="mt-1 flex items-baseline gap-1.5">
+            <span className="font-mono text-xl font-bold text-foreground">{totalChunks.toLocaleString()}</span>
+            <span className="text-[10px] text-primary font-medium">HNSW Index</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-3 shadow-2xs">
+          <div className="flex items-center gap-2 text-muted-foreground text-[11px]">
+            <Clock className="h-3.5 w-3.5 text-cyan-500" />
+            <span>Chu kỳ Đồng bộ Kế tiếp</span>
+          </div>
+          <div className="mt-1 flex items-baseline gap-1.5">
+            <span className="text-xs font-bold text-foreground">Trong 15 phút</span>
+            <span className="text-[10px] text-muted-foreground">Webhook Ready</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Connectors Cards Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {connectors.map((c) => {
-          const Icon = getProviderIcon(c.provider)
+          const meta = PROVIDER_METAS[c.provider] || PROVIDER_METAS.google_drive
+          const Icon = meta.icon
           const isSyncing = syncingId === c.id
 
           return (
-            <Card key={c.id} className="transition-all hover:border-primary/40 hover:shadow-xs">
-              <CardHeader className="pb-3">
+            <div
+              key={c.id}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card/90 p-4 backdrop-blur-xs transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
+            >
+              {/* Top ambient gradient */}
+              <div
+                className={`pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b ${meta.gradient} opacity-60`}
+              />
+
+              <div className="relative space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="rounded-lg border bg-muted p-2 text-primary">
-                      <Icon className="h-4 w-4" />
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/80 shadow-2xs">
+                      <Icon className={`h-5 w-5 ${meta.iconClass}`} />
+                      <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      </span>
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-semibold">{c.name}</CardTitle>
+                      <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                        {c.name}
+                      </h4>
                       <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
                         <span className="font-medium text-foreground">{c.targetSource}</span>
                       </div>
                     </div>
                   </div>
-                  <Badge variant="outline" className="gap-1 text-[10px]">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+
+                  <Badge variant="outline" className={`text-[10px] font-mono ${meta.badgeClass}`}>
                     {c.syncSchedule}
                   </Badge>
                 </div>
-                <CardDescription className="pt-2 text-xs">
-                  {c.docCount} documents • {c.totalChunks} chunks indexed
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0 text-xs">
-                <div className="flex items-center justify-between border-t pt-2.5 text-muted-foreground">
+
+                {/* Telemetry pill */}
+                <div className="flex items-center justify-between rounded-xl border border-border/50 bg-background/60 p-2.5 text-xs">
+                  <div className="flex items-center gap-3 font-mono text-[11px] text-muted-foreground">
+                    <span>
+                      <strong className="text-foreground">{c.docCount}</strong> docs
+                    </span>
+                    <span>•</span>
+                    <span>
+                      <strong className="text-primary font-bold">{c.totalChunks}</strong> chunks
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-emerald-600 font-medium">Tự động xử lý</span>
+                </div>
+              </div>
+
+              <div className="relative mt-4 space-y-2 border-t border-border/60 pt-3">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {t("ai.knowledge.connectors.last_sync")}:
@@ -195,24 +307,25 @@ export function ConnectorsTab() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 border-t pt-2">
+                <div className="flex items-center justify-end pt-1">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 gap-1.5 px-2.5 text-xs"
+                    className="h-7 gap-1.5 px-3 text-xs group-hover:border-primary/50 group-hover:bg-primary/5 transition-all"
                     onClick={() => handleSyncNow(c.id)}
                     disabled={isSyncing}
                   >
-                    <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin" : ""}`} />
+                    <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin text-primary" : ""}`} />
                     {isSyncing ? t("ai.knowledge.connectors.syncing") : t("ai.knowledge.connectors.sync_now")}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )
         })}
       </div>
 
+      {/* Add Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -243,9 +356,9 @@ export function ConnectorsTab() {
                 <SelectContent>
                   <SelectItem value="google_drive">Google Drive / Workspace</SelectItem>
                   <SelectItem value="confluence">Atlassian Confluence</SelectItem>
-                  <SelectItem value="sharepoint">Microsoft SharePoint / OneDrive</SelectItem>
-                  <SelectItem value="s3_bucket">Garage / AWS S3 Object Storage</SelectItem>
-                  <SelectItem value="postgres">PostgreSQL Database Mirror</SelectItem>
+                  <SelectItem value="s3_bucket">Garage S3 / AWS S3</SelectItem>
+                  <SelectItem value="sharepoint">Microsoft SharePoint</SelectItem>
+                  <SelectItem value="postgres">PostgreSQL Table Mirror</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -253,7 +366,7 @@ export function ConnectorsTab() {
               <label className="font-medium">{t("ai.knowledge.connectors.field.target_source")}</label>
               <Input
                 className="mt-1 h-8 text-xs"
-                placeholder="Tên nguồn tri thức đích để lưu chunks..."
+                placeholder="VD: Sổ tay & Hướng dẫn Vận hành 2026"
                 value={targetSource}
                 onChange={(e) => setTargetSource(e.target.value)}
               />
@@ -265,20 +378,20 @@ export function ConnectorsTab() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Real-time Webhook">Real-time Webhook (Tức thời)</SelectItem>
-                  <SelectItem value="Hourly">Hourly (Hàng giờ)</SelectItem>
-                  <SelectItem value="Daily at 02:00 AM">Daily at 02:00 AM (Hàng ngày)</SelectItem>
-                  <SelectItem value="Weekly on Sunday">Weekly on Sunday (Cuối tuần)</SelectItem>
+                  <SelectItem value="Real-time Webhook">Real-time (Webhook Trigger)</SelectItem>
+                  <SelectItem value="Hourly">Hourly (Mỗi giờ)</SelectItem>
+                  <SelectItem value="Every 6 Hours">Every 6 Hours (Mỗi 6 tiếng)</SelectItem>
+                  <SelectItem value="Daily at 02:00 AM">Daily at 02:00 AM (Hàng ngày lúc 2 giờ sáng)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAddOpen(false)}>
-              {t("ai.knowledge.connectors.btn.cancel")}
+              {t("common.cancel")}
             </Button>
-            <Button onClick={handleAddConnector} disabled={!name || !targetSource}>
-              {t("ai.knowledge.connectors.btn.create")}
+            <Button onClick={handleAddConnector} disabled={!name.trim() || !targetSource.trim()}>
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
