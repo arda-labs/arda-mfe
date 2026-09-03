@@ -35,3 +35,6 @@ dist-ssr
 
 # Generated Cloudflare deployment assets
 .cloudflare/
+
+# Worktrees
+.worktrees
