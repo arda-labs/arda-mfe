@@ -4,7 +4,8 @@
   "ai_center": {
     "_self": "AI Center",
     "knowledge": "Knowledge Base",
-    "settings": "AI Settings"
+    "settings": "AI Settings",
+    "approvals": "Governance & Approvals"
   },
   "admin": {
     "_self": "Admin",

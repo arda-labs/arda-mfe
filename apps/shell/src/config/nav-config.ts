@@ -52,6 +52,12 @@ export const navItems: NavNode[] = [
         icon: SlidersHorizontal,
         permissions: ["ai.admin", "superadmin", "platform.manage"],
       },
+      {
+        href: "/ai/approvals",
+        labelKey: "nav.ai_center.approvals",
+        icon: ShieldCheck,
+        permissions: ["ai.admin", "superadmin", "platform.manage"],
+      },
     ],
   },
   {

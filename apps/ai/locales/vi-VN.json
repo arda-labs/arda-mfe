@@ -138,5 +138,60 @@
       "no_results": "Không tìm thấy kết quả phù hợp",
       "no_results_tip": "Hãy thử từ khóa khác hoặc đảm bảo nguồn tri thức đã được duyệt và xuất bản (Published)."
     }
+  },
+  "approvals": {
+    "title": "Governance & Phê duyệt HITL",
+    "description": "Quản trị rủi ro và phê duyệt các lệnh tác động hệ thống của Trợ lý AI",
+    "load_failed": "Không thể tải danh sách phê duyệt",
+    "empty_pending": "Không có lệnh nào chờ phê duyệt",
+    "empty_pending_tip": "Các hành động nhạy cảm của Agent (xuất dữ liệu, cập nhật...) sẽ xuất hiện tại đây để Quản lý duyệt.",
+    "empty_history": "Chưa có lịch sử phê duyệt",
+    "empty_history_tip": "Các lệnh đã được duyệt hoặc từ chối sẽ lưu trữ tại đây.",
+    "btn": {
+      "refresh": "Làm mới",
+      "view": "Chi tiết",
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "close": "Đóng"
+    },
+    "tab": {
+      "pending": "Chờ phê duyệt",
+      "history": "Lịch sử xử lý",
+      "audit": "Nhật ký kiểm toán"
+    },
+    "risk": {
+      "low": "Thấp",
+      "medium": "Trung bình",
+      "high": "Cao"
+    },
+    "status": {
+      "pending": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối",
+      "expired": "Hết hạn",
+      "executed": "Đã thực thi"
+    },
+    "field": {
+      "status": "Trạng thái",
+      "created_at": "Thời gian tạo",
+      "expires_at": "Thời hạn",
+      "thread_id": "Mã phiên đối thoại",
+      "arguments": "Đối số thực thi (Arguments)"
+    },
+    "detail": {
+      "description": "Chi tiết yêu cầu thực thi công cụ từ Trợ lý AI"
+    },
+    "toast": {
+      "approved": "Đã phê duyệt lệnh thành công",
+      "rejected": "Đã từ chối lệnh",
+      "action_failed": "Thao tác thất bại"
+    },
+    "audit": {
+      "threads_title": "Phiên đối thoại",
+      "no_threads": "Chưa có phiên đối thoại nào",
+      "select_thread": "Chọn một phiên đối thoại để xem nhật ký",
+      "inspecting": "Đang xem ngữ cảnh: {thread}",
+      "empty_messages": "Không có tin nhắn nào trong phiên này"
+    }
   }
 }

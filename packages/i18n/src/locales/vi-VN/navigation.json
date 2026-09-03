@@ -4,7 +4,8 @@
   "ai_center": {
     "_self": "AI Center",
     "knowledge": "Nguồn tri thức",
-    "settings": "Cài đặt AI"
+    "settings": "Cài đặt AI",
+    "approvals": "Phê duyệt & Kiểm toán"
   },
   "admin": {
     "_self": "Quản trị",

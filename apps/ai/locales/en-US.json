@@ -138,5 +138,60 @@
       "no_results": "No relevant chunks found",
       "no_results_tip": "Try different search terms or ensure the knowledge source has been approved and published."
     }
+  },
+  "approvals": {
+    "title": "Governance & HITL Approvals",
+    "description": "Risk governance and approval workflow for Agent mutation calls",
+    "load_failed": "Failed to load approvals",
+    "empty_pending": "No pending approvals",
+    "empty_pending_tip": "Sensitive Agent actions (exports, mutations...) will appear here for review.",
+    "empty_history": "No approval history",
+    "empty_history_tip": "Past decisions will be archived here.",
+    "btn": {
+      "refresh": "Refresh",
+      "view": "Inspect",
+      "approve": "Approve",
+      "reject": "Reject",
+      "close": "Close"
+    },
+    "tab": {
+      "pending": "Pending",
+      "history": "History",
+      "audit": "Audit Trail"
+    },
+    "risk": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired",
+      "executed": "Executed"
+    },
+    "field": {
+      "status": "Status",
+      "created_at": "Created At",
+      "expires_at": "Expires At",
+      "thread_id": "Thread ID",
+      "arguments": "Arguments"
+    },
+    "detail": {
+      "description": "Detailed tool execution request from AI Agent"
+    },
+    "toast": {
+      "approved": "Proposal approved successfully",
+      "rejected": "Proposal rejected",
+      "action_failed": "Action failed"
+    },
+    "audit": {
+      "threads_title": "Conversations",
+      "no_threads": "No conversations found",
+      "select_thread": "Select a thread to view audit trail",
+      "inspecting": "Inspecting: {thread}",
+      "empty_messages": "No messages in this thread"
+    }
   }
 }
