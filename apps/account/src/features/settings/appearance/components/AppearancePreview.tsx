@@ -125,111 +125,100 @@ ${chartLines}
   }
 
   return (
-    <aside className="sticky top-6 flex flex-col gap-4">
-      {/* Sandbox Header Control */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/70 bg-card/80 p-3 shadow-xs backdrop-blur-md">
-        <div className="flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+    <aside className="sticky top-6 flex flex-col gap-3">
+      {/* Sandbox Header Bar */}
+      <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-xs backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Eye className="size-4" />
           </span>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-foreground">
-                Live Studio Preview
-              </span>
-              <Badge
-                variant="outline"
-                className="h-4 border-primary/30 bg-primary/5 px-1.5 text-[9px] font-semibold text-primary"
-              >
-                shadcn/ui
-              </Badge>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              Instant visual sandbox with current draft tokens
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-foreground">
+              Live Preview
+            </span>
+            <Badge
+              variant="outline"
+              className="h-4.5 border-primary/30 bg-primary/5 px-1.5 text-[9px] font-semibold text-primary"
+            >
+              shadcn/ui
+            </Badge>
           </div>
         </div>
 
-        {/* Preview Theme and Tabs Controls */}
-        <div className="flex items-center gap-1.5">
-          {/* Light / Dark Sandbox Mode Switch */}
-          <div className="flex items-center rounded-lg border border-border/60 bg-muted/40 p-0.5">
-            <button
-              type="button"
-              onClick={() => onTogglePreviewTheme("light")}
-              className={cn(
-                "flex size-6 items-center justify-center rounded-md text-xs transition-all",
-                previewTheme === "light"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              title="Preview in Light Mode"
-            >
-              <Sun className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onTogglePreviewTheme("dark")}
-              className={cn(
-                "flex size-6 items-center justify-center rounded-md text-xs transition-all",
-                previewTheme === "dark"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              title="Preview in Dark Mode"
-            >
-              <Moon className="size-3.5" />
-            </button>
-          </div>
-
-          {/* View Tab switcher */}
-          <div className="flex items-center rounded-lg border border-border/60 bg-muted/40 p-0.5">
-            <button
-              type="button"
-              onClick={() => setActiveTab("dashboard")}
-              className={cn(
-                "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-all",
-                activeTab === "dashboard"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              title="App Dashboard View"
-            >
-              <Layers className="size-3.5" />
-              <span className="hidden text-[11px] sm:inline">App</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("cards")}
-              className={cn(
-                "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-all",
-                activeTab === "cards"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              title="Shadcn UI Showcase Cards"
-            >
-              <LayoutGrid className="size-3.5" />
-              <span className="hidden text-[11px] sm:inline">Cards</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("code")}
-              className={cn(
-                "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-all",
-                activeTab === "code"
-                  ? "bg-background text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              title="Shadcn Copy Code"
-            >
-              <Code className="size-3.5" />
-              <span className="hidden text-[11px] sm:inline">Code</span>
-            </button>
-          </div>
+        {/* Light / Dark Mode Toggle */}
+        <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-muted/40 p-0.5">
+          <button
+            type="button"
+            onClick={() => onTogglePreviewTheme("light")}
+            className={cn(
+              "flex size-6 items-center justify-center rounded-md text-xs transition-all",
+              previewTheme === "light"
+                ? "bg-background text-foreground shadow-2xs"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            title="Preview in Light Mode"
+          >
+            <Sun className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onTogglePreviewTheme("dark")}
+            className={cn(
+              "flex size-6 items-center justify-center rounded-md text-xs transition-all",
+              previewTheme === "dark"
+                ? "bg-background text-foreground shadow-2xs"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            title="Preview in Dark Mode"
+          >
+            <Moon className="size-3.5" />
+          </button>
         </div>
+      </div>
+
+      {/* Dedicated Spacious Tab Bar */}
+      <div className="grid grid-cols-3 gap-1 rounded-xl border border-border/70 bg-muted/40 p-1 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setActiveTab("dashboard")}
+          className={cn(
+            "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all",
+            activeTab === "dashboard"
+              ? "bg-background text-foreground shadow-xs ring-1 ring-border/50"
+              : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+          )}
+        >
+          <Layers className="size-3.5 shrink-0" />
+          <span>Dashboard</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("cards")}
+          className={cn(
+            "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all",
+            activeTab === "cards"
+              ? "bg-background text-foreground shadow-xs ring-1 ring-border/50"
+              : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+          )}
+        >
+          <LayoutGrid className="size-3.5 shrink-0" />
+          <span>UI Cards</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("code")}
+          className={cn(
+            "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all",
+            activeTab === "code"
+              ? "bg-background text-foreground shadow-xs ring-1 ring-border/50"
+              : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+          )}
+        >
+          <Code className="size-3.5 shrink-0" />
+          <span>CSS Code</span>
+        </button>
       </div>
 
       {/* Tab 1: Miniature App Dashboard View */}

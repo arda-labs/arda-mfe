@@ -101,8 +101,8 @@ export function PresetsManager({
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
             <Sparkles className="size-4 text-primary" />
             <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase">
@@ -110,12 +110,11 @@ export function PresetsManager({
             </h2>
           </div>
           <p className="text-xs text-muted-foreground">
-            Switch between curated design systems or create your own custom
-            styles
+            Switch between curated design systems or create your own custom styles
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="outline"

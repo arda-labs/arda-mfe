@@ -1,5 +1,10 @@
-import { RotateCcw } from "lucide-react"
+import { useState } from "react"
+import { Layers, Palette, RotateCcw, Sparkles, Type } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import {
+  SettingsTabbedShell,
+  type SettingsTabItem,
+} from "@workspace/ui/components/settings-tabbed-shell"
 import { useAppearanceEditor } from "./hooks/useAppearanceEditor"
 import { ThemeModeSelector } from "./components/ThemeModeSelector"
 import { PresetsManager } from "./components/PresetsManager"
@@ -9,7 +14,17 @@ import { SurfaceSelector } from "./components/SurfaceSelector"
 import { AppearancePreview } from "./components/AppearancePreview"
 import { AppearanceActionBar } from "./components/AppearanceActionBar"
 
+const appearanceTabs: SettingsTabItem[] = [
+  { id: "all", label: "All Settings" },
+  { id: "presets", label: "Presets & Templates", icon: Sparkles },
+  { id: "colors", label: "Theme & Colors", icon: Palette },
+  { id: "typography", label: "Typography & Radius", icon: Type },
+  { id: "surfaces", label: "Surfaces & Chrome", icon: Layers },
+]
+
 export function AppearancePage() {
+  const [activeTab, setActiveTab] = useState("all")
+
   const {
     theme,
     setTheme,
@@ -32,38 +47,44 @@ export function AppearancePage() {
   } = useAppearanceEditor()
 
   return (
-    <div className="relative mx-auto flex h-full w-full max-w-7xl flex-col gap-6 overflow-y-auto px-4 py-6 md:px-6">
-      {/* Top Header */}
-      <div className="flex flex-col gap-3 border-b border-border/60 pb-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Appearance & Theme Studio
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Configure color palettes, typography, layout geometry, and custom
-            design templates
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={resetToDefault}
-            className="h-8.5 gap-1.5 rounded-xl px-3 text-xs font-semibold"
-          >
-            <RotateCcw className="size-3.5" />
-            Reset to Defaults
-          </Button>
-        </div>
-      </div>
-
-      {/* Main 2-Column Responsive Layout */}
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px]">
-        {/* Left Column: Design System Controls */}
-        <div className="space-y-8 pb-12">
-          {/* Section 1: Presets & Templates */}
+    <SettingsTabbedShell
+      title="Appearance & Theme Studio"
+      description="Configure color palettes, typography, layout geometry, and custom design templates"
+      actions={
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={resetToDefault}
+          className="h-8.5 gap-1.5 rounded-xl px-3 text-xs font-semibold"
+        >
+          <RotateCcw className="size-3.5" />
+          Reset to Defaults
+        </Button>
+      }
+      tabs={appearanceTabs}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      sidebar={
+        <AppearancePreview
+          settings={draft}
+          previewTheme={previewTheme}
+          onTogglePreviewTheme={setPreviewTheme}
+        />
+      }
+      stickyActionBar={
+        <AppearanceActionBar
+          isDirty={isDirty}
+          saveFeedback={saveFeedback}
+          onApply={applyDraft}
+          onDiscard={discardDraft}
+          onResetToDefault={resetToDefault}
+        />
+      }
+    >
+      <div className="space-y-8">
+        {/* Section 1: Presets & Templates */}
+        {(activeTab === "all" || activeTab === "presets") && (
           <PresetsManager
             currentSettings={draft}
             builtinPresets={builtinPresets}
@@ -74,25 +95,28 @@ export function AppearancePage() {
             onImportPresets={importPresets}
             onExportPresets={exportPresets}
           />
+        )}
 
-          <div className="h-px bg-border/60" />
+        {activeTab === "all" && <div className="h-px bg-border/60" />}
 
-          {/* Section 2: Theme Mode (Light / Dark / System) */}
-          <ThemeModeSelector value={theme} onChange={setTheme} />
+        {/* Section 2 & 3: Theme Mode & Colors */}
+        {(activeTab === "all" || activeTab === "colors") && (
+          <div className="space-y-8">
+            <ThemeModeSelector value={theme} onChange={setTheme} />
+            <div className="h-px bg-border/60" />
+            <ColorPaletteSelector
+              selectedBaseColor={draft.baseColor}
+              selectedChartPalette={draft.chartPalette}
+              onSelectBaseColor={(c) => updateDraft("baseColor", c)}
+              onSelectChartPalette={(p) => updateDraft("chartPalette", p)}
+            />
+          </div>
+        )}
 
-          <div className="h-px bg-border/60" />
+        {activeTab === "all" && <div className="h-px bg-border/60" />}
 
-          {/* Section 3: Brand Accent & Chart Palettes */}
-          <ColorPaletteSelector
-            selectedBaseColor={draft.baseColor}
-            selectedChartPalette={draft.chartPalette}
-            onSelectBaseColor={(c) => updateDraft("baseColor", c)}
-            onSelectChartPalette={(p) => updateDraft("chartPalette", p)}
-          />
-
-          <div className="h-px bg-border/60" />
-
-          {/* Section 4: Typography & Radius */}
+        {/* Section 4: Typography & Radius */}
+        {(activeTab === "all" || activeTab === "typography") && (
           <TypographyRadiusSelector
             font={draft.font}
             headingFont={draft.headingFont}
@@ -101,36 +125,20 @@ export function AppearancePage() {
             onSelectHeadingFont={(hf) => updateDraft("headingFont", hf)}
             onSelectRadius={(r) => updateDraft("radius", r)}
           />
+        )}
 
-          <div className="h-px bg-border/60" />
+        {activeTab === "all" && <div className="h-px bg-border/60" />}
 
-          {/* Section 5: Layout Surfaces */}
+        {/* Section 5: Layout Surfaces */}
+        {(activeTab === "all" || activeTab === "surfaces") && (
           <SurfaceSelector
             headerSurface={draft.headerSurface}
             sidebarSurface={draft.sidebarSurface}
             onSelectHeaderSurface={(s) => updateDraft("headerSurface", s)}
             onSelectSidebarSurface={(s) => updateDraft("sidebarSurface", s)}
           />
-        </div>
-
-        {/* Right Column: Live Sandbox Preview */}
-        <div>
-          <AppearancePreview
-            settings={draft}
-            previewTheme={previewTheme}
-            onTogglePreviewTheme={setPreviewTheme}
-          />
-        </div>
+        )}
       </div>
-
-      {/* Floating Sticky Action Bar */}
-      <AppearanceActionBar
-        isDirty={isDirty}
-        saveFeedback={saveFeedback}
-        onApply={applyDraft}
-        onDiscard={discardDraft}
-        onResetToDefault={resetToDefault}
-      />
-    </div>
+    </SettingsTabbedShell>
   )
 }
