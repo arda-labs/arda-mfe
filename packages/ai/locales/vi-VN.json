@@ -28,6 +28,13 @@
   "transcript": {
     "label": "Lịch sử hội thoại với Olorin"
   },
+  "feedback": {
+    "rate": "Đánh giá câu trả lời này",
+    "rated": "Đã ghi nhận phản hồi",
+    "helpful": "Hữu ích",
+    "not_helpful": "Không hữu ích",
+    "error": "Không gửi được phản hồi"
+  },
   "message": {
     "header": "Olorin · Trợ lý Arda",
     "thinking": "Đang chuẩn bị câu trả lời…",
