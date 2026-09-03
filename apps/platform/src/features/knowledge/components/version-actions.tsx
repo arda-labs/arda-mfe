@@ -3,7 +3,6 @@ import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +13,7 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { CheckCircle2, Loader2, XCircle, Send, ThumbsUp, ThumbsDown } from "lucide-react"
+import { CheckCircle2, Loader2, Send, ThumbsDown, ThumbsUp, XCircle } from "lucide-react"
 import { knowledgeApi, type JobOut, type VersionOut } from "../api"
 
 const POLL_INTERVAL = 2000
@@ -108,19 +107,6 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
 
   const pollJob = useJobPoll(publishing ? publishJobId : null, handleJobDone)
 
-  const handleSubmitReview = async () => {
-    try {
-      await knowledgeApi.reviewVersion(sourceId, version.id, { decision: "approve" })
-      notify.success(t("platform.knowledge.toast.submitted_review"))
-      void onMutate()
-    } catch (err) {
-      notify.error(
-        t("platform.knowledge.toast.action_failed"),
-        err instanceof Error ? err.message : String(err)
-      )
-    }
-  }
-
   const handleApprove = async () => {
     try {
       await knowledgeApi.reviewVersion(sourceId, version.id, { decision: "approve" })
@@ -189,12 +175,6 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
     <>
       <div className="flex flex-wrap items-center gap-2">
         {version.status === "DRAFT" && (
-          <Button size="sm" variant="outline" onClick={handleSubmitReview}>
-            <Send className="mr-1.5 size-3.5" />
-            {t("platform.knowledge.submit_review")}
-          </Button>
-        )}
-        {version.status === "REVIEW" && (
           <>
             <Button size="sm" variant="outline" onClick={handleApprove}>
               <ThumbsUp className="mr-1.5 size-3.5" />
@@ -213,14 +193,12 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
         )}
         {version.status === "APPROVED" && (
           <Button size="sm" variant="default" onClick={handlePublish}>
+            <Send className="mr-1.5 size-3.5" />
             {t("platform.knowledge.publish")}
           </Button>
         )}
         {version.status === "INDEXING" && (
-          <div className="flex items-center gap-2">
-            <Spinner className="size-4" />
-            <Badge variant="secondary">{t("platform.knowledge.indexing")}</Badge>
-          </div>
+          <Badge variant="secondary">{t("platform.knowledge.indexing")}</Badge>
         )}
         {version.status === "PUBLISHED" && (
           <Badge variant="success">
@@ -228,10 +206,10 @@ export function VersionActionsInner({ version, sourceId, onMutate }: VersionActi
             {t("platform.knowledge.published")}
           </Badge>
         )}
-        {version.status === "REJECTED" && (
+        {version.status === "FAILED" && (
           <Badge variant="destructive">
             <XCircle className="mr-1 size-3.5" />
-            {t("platform.knowledge.rejected")}
+            {t("platform.knowledge.status.failed")}
           </Badge>
         )}
       </div>

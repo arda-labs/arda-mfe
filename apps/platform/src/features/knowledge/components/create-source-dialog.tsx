@@ -32,20 +32,33 @@ type TranslateFn = (
 ) => string
 
 function buildSchema(t: TranslateFn) {
-  return z.object({
-    title: z
-      .string()
-      .trim()
-      .min(1, t("platform.knowledge.validation.title_required"))
-      .max(500, t("platform.knowledge.validation.title_too_long")),
-    description: z.string().max(2000).optional().or(z.literal("")),
-    source_type: z.enum(sourceTypes),
-    scope: z.enum(sourceScopes),
-    language: z.string().max(16).optional().or(z.literal("")),
-    tags: z.string().max(500).optional().or(z.literal("")),
-    effective_from: z.string().optional().or(z.literal("")),
-    effective_to: z.string().optional().or(z.literal("")),
-  })
+  return z
+    .object({
+      title: z
+        .string()
+        .trim()
+        .min(1, t("platform.knowledge.validation.title_required"))
+        .max(500, t("platform.knowledge.validation.title_too_long")),
+      description: z.string().max(2000).optional().or(z.literal("")),
+      source_type: z.enum(sourceTypes),
+      scope: z.enum(sourceScopes),
+      language: z.string().max(16).optional().or(z.literal("")),
+      tags: z.string().max(500).optional().or(z.literal("")),
+      effective_from: z.string().optional().or(z.literal("")),
+      effective_to: z.string().optional().or(z.literal("")),
+    })
+    .refine(
+      // Both fields are datetime-local "YYYY-MM-DDTHH:mm" — fixed-width ISO,
+      // so lexicographic comparison is equivalent to chronological.
+      (v) =>
+        !v.effective_from ||
+        !v.effective_to ||
+        v.effective_to > v.effective_from,
+      {
+        path: ["effective_to"],
+        message: t("platform.knowledge.validation.effective_range_invalid"),
+      }
+    )
 }
 
 type FormValues = z.infer<ReturnType<typeof buildSchema>>
@@ -100,12 +113,10 @@ export function CreateSourceDialog({
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-        effective_from: values.effective_from
-          ? new Date(values.effective_from).toISOString()
-          : null,
-        effective_to: values.effective_to
-          ? new Date(values.effective_to).toISOString()
-          : null,
+        // Send datetime-local value as-is (local time, no UTC shift). The
+        // rag-service accepts this ISO format directly.
+        effective_from: values.effective_from || null,
+        effective_to: values.effective_to || null,
       }
       await knowledgeApi.createSource(payload)
       notify.success(t("platform.knowledge.toast.create_success"))

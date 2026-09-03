@@ -29,11 +29,10 @@ import { VersionActionsInner } from "./version-actions"
 
 const STATUS_COLOR: Record<string, "default" | "secondary" | "success" | "destructive" | "warning" | "info"> = {
   DRAFT: "default",
-  REVIEW: "warning",
   APPROVED: "info",
   INDEXING: "secondary",
   PUBLISHED: "success",
-  REJECTED: "destructive",
+  FAILED: "destructive",
 }
 
 function statusLabel(status: string | null): string {

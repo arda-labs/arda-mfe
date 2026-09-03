@@ -578,7 +578,8 @@
       "title_required": "Title is required",
       "title_too_long": "Title is too long",
       "version_required": "Version is required",
-      "version_too_long": "Version is too long"
+      "version_too_long": "Version is too long",
+      "effective_range_invalid": "Effective to must be after effective from"
     },
     "source_type": {
       "docs": "Documents",
@@ -601,7 +602,8 @@
       "approved": "Approved",
       "indexing": "Indexing",
       "published": "Published",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "failed": "Failed"
     },
     "toast": {
       "create_success": "Knowledge source created",

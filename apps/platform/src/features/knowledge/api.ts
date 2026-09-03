@@ -1,8 +1,4 @@
-import {
-  deleteCanonical,
-  getCanonical,
-  postCanonical,
-} from "@workspace/api"
+import { api } from "@workspace/api"
 
 export type SourceType = "docs" | "admin" | "url"
 export type SourceScope = "tenant" | "global" | "system"
@@ -109,25 +105,25 @@ export interface JobOut {
 
 export const knowledgeApi = {
   listSources: (includeDeleted = false) =>
-    getCanonical<SourceOut[]>(
+    api.get<SourceOut[]>(
       `/api/rag/sources?include_deleted=${includeDeleted}`
     ),
   createSource: (data: SourceCreate) =>
-    postCanonical<SourceOut>("/api/rag/sources", data),
+    api.post<SourceOut>("/api/rag/sources", data),
   deleteSource: (sourceId: number) =>
-    deleteCanonical<void>(`/api/rag/sources/${sourceId}`),
+    api.delete<void>(`/api/rag/sources/${sourceId}`),
   listVersions: (sourceId: number) =>
-    getCanonical<VersionOut[]>(`/api/rag/sources/${sourceId}/versions`),
+    api.get<VersionOut[]>(`/api/rag/sources/${sourceId}/versions`),
   createVersion: (sourceId: number, data: VersionCreate) =>
-    postCanonical<VersionOut>(`/api/rag/sources/${sourceId}/versions`, data),
+    api.post<VersionOut>(`/api/rag/sources/${sourceId}/versions`, data),
   reviewVersion: (sourceId: number, versionId: number, data: ReviewRequest) =>
-    postCanonical<VersionOut>(
+    api.post<VersionOut>(
       `/api/rag/sources/${sourceId}/versions/${versionId}/review`,
       data
     ),
   publishVersion: (sourceId: number, versionId: number) =>
-    postCanonical<PublishResult>(
+    api.post<PublishResult>(
       `/api/rag/sources/${sourceId}/versions/${versionId}/publish`
     ),
-  getJob: (jobId: string) => getCanonical<JobOut>(`/api/rag/jobs/${jobId}`),
+  getJob: (jobId: string) => api.get<JobOut>(`/api/rag/jobs/${jobId}`),
 }
