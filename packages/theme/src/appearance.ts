@@ -1,4 +1,5 @@
 export const APPEARANCE_STORAGE_KEY = "arda-appearance"
+export const APPEARANCE_CUSTOM_PRESETS_KEY = "arda-appearance-custom-presets"
 
 export type BaseColor =
   | "arda"
@@ -9,6 +10,8 @@ export type BaseColor =
   | "green"
   | "orange"
   | "red"
+  | "rose"
+  | "yellow"
   | "violet"
 export type ChartPalette = "default" | "finance" | "cool" | "warm"
 export type FontPreset = "inter" | "system" | "serif" | "mono"
@@ -24,6 +27,16 @@ export type AppearanceSettings = {
   radius: RadiusPreset
   headerSurface: LayoutSurface
   sidebarSurface: LayoutSurface
+}
+
+export type AppearancePreset = {
+  id: string
+  name: string
+  description?: string
+  isBuiltin?: boolean
+  createdAt?: number
+  themeMode?: "light" | "dark" | "system"
+  settings: AppearanceSettings
 }
 
 type BaseColorDefinition = {
@@ -288,6 +301,58 @@ export const baseColors: Record<BaseColor, BaseColorDefinition> = {
       "--sidebar-accent-foreground": "oklch(0.92 0.06 293.541)",
     },
   },
+  rose: {
+    label: "Rose",
+    swatch: "oklch(0.58 0.23 15)",
+    light: {
+      "--primary": "oklch(0.55 0.22 15)",
+      "--primary-foreground": "oklch(0.985 0.01 15)",
+      "--accent": "oklch(0.95 0.03 15)",
+      "--accent-foreground": "oklch(0.35 0.15 15)",
+      "--ring": "oklch(0.58 0.23 15)",
+      "--sidebar-primary": "oklch(0.55 0.22 15)",
+      "--sidebar-primary-foreground": "oklch(0.985 0.01 15)",
+      "--sidebar-accent": "oklch(0.95 0.03 15)",
+      "--sidebar-accent-foreground": "oklch(0.35 0.15 15)",
+    },
+    dark: {
+      "--primary": "oklch(0.72 0.19 15)",
+      "--primary-foreground": "oklch(0.2 0.04 15)",
+      "--accent": "oklch(0.28 0.06 15)",
+      "--accent-foreground": "oklch(0.92 0.05 15)",
+      "--ring": "oklch(0.72 0.19 15)",
+      "--sidebar-primary": "oklch(0.72 0.19 15)",
+      "--sidebar-primary-foreground": "oklch(0.2 0.04 15)",
+      "--sidebar-accent": "oklch(0.28 0.06 15)",
+      "--sidebar-accent-foreground": "oklch(0.92 0.05 15)",
+    },
+  },
+  yellow: {
+    label: "Yellow",
+    swatch: "oklch(0.75 0.18 85)",
+    light: {
+      "--primary": "oklch(0.68 0.18 85)",
+      "--primary-foreground": "oklch(0.2 0.05 85)",
+      "--accent": "oklch(0.94 0.05 85)",
+      "--accent-foreground": "oklch(0.35 0.12 85)",
+      "--ring": "oklch(0.75 0.18 85)",
+      "--sidebar-primary": "oklch(0.68 0.18 85)",
+      "--sidebar-primary-foreground": "oklch(0.2 0.05 85)",
+      "--sidebar-accent": "oklch(0.94 0.05 85)",
+      "--sidebar-accent-foreground": "oklch(0.35 0.12 85)",
+    },
+    dark: {
+      "--primary": "oklch(0.78 0.18 85)",
+      "--primary-foreground": "oklch(0.2 0.05 85)",
+      "--accent": "oklch(0.28 0.06 85)",
+      "--accent-foreground": "oklch(0.92 0.06 85)",
+      "--ring": "oklch(0.78 0.18 85)",
+      "--sidebar-primary": "oklch(0.78 0.18 85)",
+      "--sidebar-primary-foreground": "oklch(0.2 0.05 85)",
+      "--sidebar-accent": "oklch(0.28 0.06 85)",
+      "--sidebar-accent-foreground": "oklch(0.92 0.06 85)",
+    },
+  },
 }
 
 export const chartPalettes: Record<ChartPalette, ChartPaletteDefinition> = {
@@ -476,4 +541,207 @@ function isKey<T extends Record<string, unknown>>(
   key: unknown
 ): key is keyof T {
   return typeof key === "string" && key in record
+}
+
+export const builtinPresets: AppearancePreset[] = [
+  {
+    id: "arda-classic",
+    name: "Arda Classic",
+    description: "Deep indigo & violet tones with balanced geometry",
+    isBuiltin: true,
+    themeMode: "system",
+    settings: {
+      baseColor: "arda",
+      chartPalette: "default",
+      font: "inter",
+      headingFont: "inter",
+      radius: "md",
+      headerSurface: "background",
+      sidebarSurface: "sidebar",
+    },
+  },
+  {
+    id: "slate-enterprise",
+    name: "Slate Enterprise",
+    description:
+      "Subtle silver-slate precision tailored for business operations",
+    isBuiltin: true,
+    themeMode: "system",
+    settings: {
+      baseColor: "slate",
+      chartPalette: "finance",
+      font: "system",
+      headingFont: "system",
+      radius: "sm",
+      headerSurface: "card",
+      sidebarSurface: "sidebar",
+    },
+  },
+  {
+    id: "emerald-terminal",
+    name: "Emerald Terminal",
+    description: "Cyber emerald accents with crisp monospace geometry",
+    isBuiltin: true,
+    themeMode: "dark",
+    settings: {
+      baseColor: "green",
+      chartPalette: "finance",
+      font: "mono",
+      headingFont: "mono",
+      radius: "none",
+      headerSurface: "muted",
+      sidebarSurface: "background",
+    },
+  },
+  {
+    id: "warm-amber",
+    name: "Sunset Amber",
+    description: "Warm radiant tones with smooth organic curves",
+    isBuiltin: true,
+    themeMode: "light",
+    settings: {
+      baseColor: "orange",
+      chartPalette: "warm",
+      font: "inter",
+      headingFont: "inter",
+      radius: "lg",
+      headerSurface: "background",
+      sidebarSurface: "accent",
+    },
+  },
+  {
+    id: "midnight-zinc",
+    name: "Midnight Zinc",
+    description: "Monochrome high-contrast design optimized for deep focus",
+    isBuiltin: true,
+    themeMode: "dark",
+    settings: {
+      baseColor: "zinc",
+      chartPalette: "cool",
+      font: "inter",
+      headingFont: "inter",
+      radius: "md",
+      headerSurface: "card",
+      sidebarSurface: "card",
+    },
+  },
+]
+
+export function readCustomPresets(): AppearancePreset[] {
+  if (typeof localStorage === "undefined") return []
+  try {
+    const raw = localStorage.getItem(APPEARANCE_CUSTOM_PRESETS_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter(
+        (item): item is AppearancePreset =>
+          Boolean(item) &&
+          typeof item === "object" &&
+          typeof item.id === "string" &&
+          typeof item.name === "string"
+      )
+      .map((item) => ({
+        ...item,
+        isBuiltin: false,
+        settings: normalizeAppearance(item.settings || {}),
+      }))
+  } catch {
+    return []
+  }
+}
+
+export function saveCustomPreset(preset: {
+  name: string
+  description?: string
+  themeMode?: "light" | "dark" | "system"
+  settings: AppearanceSettings
+}): AppearancePreset {
+  const customPresets = readCustomPresets()
+  const newPreset: AppearancePreset = {
+    id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name: preset.name.trim() || "Custom Preset",
+    description: preset.description?.trim(),
+    themeMode: preset.themeMode,
+    isBuiltin: false,
+    createdAt: Date.now(),
+    settings: normalizeAppearance(preset.settings),
+  }
+  const updated = [newPreset, ...customPresets]
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(APPEARANCE_CUSTOM_PRESETS_KEY, JSON.stringify(updated))
+  }
+  return newPreset
+}
+
+export function deleteCustomPreset(id: string): void {
+  const customPresets = readCustomPresets()
+  const updated = customPresets.filter((p) => p.id !== id)
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(APPEARANCE_CUSTOM_PRESETS_KEY, JSON.stringify(updated))
+  }
+}
+
+export function exportPresetsAsJson(): string {
+  const customPresets = readCustomPresets()
+  return JSON.stringify(customPresets, null, 2)
+}
+
+export function importPresetsFromJson(jsonString: string): {
+  success: boolean
+  count: number
+  error?: string
+} {
+  try {
+    const parsed = JSON.parse(jsonString)
+    const items = Array.isArray(parsed) ? parsed : [parsed]
+    const validPresets: AppearancePreset[] = []
+    for (const item of items) {
+      if (
+        item &&
+        typeof item === "object" &&
+        typeof item.name === "string" &&
+        item.settings
+      ) {
+        validPresets.push({
+          id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          name: item.name.trim(),
+          description:
+            typeof item.description === "string" ? item.description : undefined,
+          themeMode:
+            item.themeMode === "dark" ||
+            item.themeMode === "light" ||
+            item.themeMode === "system"
+              ? item.themeMode
+              : undefined,
+          isBuiltin: false,
+          createdAt: Date.now(),
+          settings: normalizeAppearance(item.settings),
+        })
+      }
+    }
+    if (validPresets.length === 0) {
+      return {
+        success: false,
+        count: 0,
+        error: "No valid presets found in JSON",
+      }
+    }
+    const current = readCustomPresets()
+    const merged = [...validPresets, ...current]
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(
+        APPEARANCE_CUSTOM_PRESETS_KEY,
+        JSON.stringify(merged)
+      )
+    }
+    return { success: true, count: validPresets.length }
+  } catch (err) {
+    return {
+      success: false,
+      count: 0,
+      error: err instanceof Error ? err.message : "Invalid JSON",
+    }
+  }
 }

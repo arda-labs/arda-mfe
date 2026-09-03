@@ -1,322 +1,136 @@
-import { useEffect, useMemo, useState } from "react"
-import {
-  applyAppearance,
-  baseColors,
-  chartPalettes,
-  defaultAppearance,
-  fontPresets,
-  layoutSurfacePresets,
-  radiusPresets,
-  readAppearance,
-  resetAppearance,
-  saveAppearance,
-} from "@workspace/theme/appearance"
-import type {
-  AppearanceSettings,
-  BaseColor,
-  ChartPalette,
-  FontPreset,
-  LayoutSurface,
-  RadiusPreset,
-} from "@workspace/theme/appearance"
-import { useTheme } from "@workspace/theme"
+import { RotateCcw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Label } from "@workspace/ui/components/label"
-import { cn } from "@workspace/ui/lib/utils"
-
-const themeOptions = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "System" },
-] as const
+import { useAppearanceEditor } from "./hooks/useAppearanceEditor"
+import { ThemeModeSelector } from "./components/ThemeModeSelector"
+import { PresetsManager } from "./components/PresetsManager"
+import { ColorPaletteSelector } from "./components/ColorPaletteSelector"
+import { TypographyRadiusSelector } from "./components/TypographyRadiusSelector"
+import { SurfaceSelector } from "./components/SurfaceSelector"
+import { AppearancePreview } from "./components/AppearancePreview"
+import { AppearanceActionBar } from "./components/AppearanceActionBar"
 
 export function AppearancePage() {
-  const { theme, setTheme } = useTheme()
-  const [settings, setSettings] = useState<AppearanceSettings>(() =>
-    readAppearance()
-  )
-
-  useEffect(() => {
-    applyAppearance(settings)
-  }, [settings, theme])
-
-  const cssPreview = useMemo(() => buildCSSPreview(settings), [settings])
-
-  const update = <TKey extends keyof AppearanceSettings>(
-    key: TKey,
-    value: AppearanceSettings[TKey]
-  ) => {
-    const next = { ...settings, [key]: value }
-    setSettings(next)
-    saveAppearance(next)
-  }
-
-  const handleReset = () => {
-    resetAppearance()
-    setSettings(defaultAppearance)
-  }
+  const {
+    theme,
+    setTheme,
+    previewTheme,
+    setPreviewTheme,
+    draft,
+    isDirty,
+    saveFeedback,
+    builtinPresets,
+    customPresets,
+    updateDraft,
+    applyDraft,
+    discardDraft,
+    resetToDefault,
+    applyPreset,
+    saveAsPreset,
+    deletePreset,
+    importPresets,
+    exportPresets,
+  } = useAppearanceEditor()
 
   return (
-    <div className="grid h-full gap-8 overflow-y-auto px-4 py-6 md:px-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="space-y-8">
-        <section className="space-y-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Appearance</h1>
-            <p className="text-sm text-muted-foreground">
-              Customize the theme, layout, and colors of your workspace
-            </p>
-          </div>
-          <SettingBlock label="Theme">
-            <div className="inline-flex rounded-xl border bg-muted/40 p-1">
-              {themeOptions.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => setTheme(item.value)}
-                  className={cn(
-                    "h-8 rounded-lg px-4 text-xs font-semibold transition-all duration-200",
-                    theme === item.value
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </SettingBlock>
-        </section>
-
-        <SettingBlock label="Base Color">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {(Object.keys(baseColors) as BaseColor[]).map((key) => {
-              const item = baseColors[key]
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => update("baseColor", key)}
-                  className={cn(
-                    "flex h-10 items-center gap-2.5 rounded-xl border px-3 text-left text-xs font-semibold transition-all hover:bg-muted/75",
-                    settings.baseColor === key
-                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20"
-                      : "border-muted-foreground/10"
-                  )}
-                >
-                  <span
-                    className="size-4.5 rounded-full border border-black/10"
-                    style={{ background: item.swatch }}
-                  />
-                  {item.label}
-                </button>
-              )
-            })}
-          </div>
-        </SettingBlock>
-
-        <SettingBlock label="Chart Colors">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {(Object.keys(chartPalettes) as ChartPalette[]).map((key) => {
-              const item = chartPalettes[key]
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => update("chartPalette", key)}
-                  className={cn(
-                    "flex h-14 items-center justify-between rounded-xl border px-4 text-xs font-semibold transition-all hover:bg-muted/75",
-                    settings.chartPalette === key
-                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20"
-                      : "border-muted-foreground/10"
-                  )}
-                >
-                  <span>{item.label}</span>
-                  <span className="flex gap-1.5">
-                    {item.colors.map((color) => (
-                      <span
-                        key={color}
-                        className="size-4.5 rounded-full border border-black/10"
-                        style={{ background: color }}
-                      />
-                    ))}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </SettingBlock>
-
-        <div className="grid gap-6 sm:grid-cols-2">
-          <SettingBlock label="Font">
-            <Segmented
-              value={settings.font}
-              values={Object.keys(fontPresets) as FontPreset[]}
-              getLabel={(key) => fontPresets[key].label}
-              onChange={(value) => update("font", value)}
-            />
-          </SettingBlock>
-
-          <SettingBlock label="Heading font">
-            <Segmented
-              value={settings.headingFont}
-              values={Object.keys(fontPresets) as FontPreset[]}
-              getLabel={(key) => fontPresets[key].label}
-              onChange={(value) => update("headingFont", value)}
-            />
-          </SettingBlock>
+    <div className="relative mx-auto flex h-full w-full max-w-7xl flex-col gap-6 overflow-y-auto px-4 py-6 md:px-6">
+      {/* Top Header */}
+      <div className="flex flex-col gap-3 border-b border-border/60 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Appearance & Theme Studio
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Configure color palettes, typography, layout geometry, and custom
+            design templates
+          </p>
         </div>
 
-        <SettingBlock label="Radius">
-          <Segmented
-            value={settings.radius}
-            values={Object.keys(radiusPresets) as RadiusPreset[]}
-            getLabel={(key) => radiusPresets[key].label}
-            onChange={(value) => update("radius", value)}
-          />
-        </SettingBlock>
-
-        <div className="grid gap-6 sm:grid-cols-2">
-          <SettingBlock label="Header surface">
-            <Segmented
-              value={settings.headerSurface}
-              values={Object.keys(layoutSurfacePresets) as LayoutSurface[]}
-              getLabel={(key) => layoutSurfacePresets[key].label}
-              onChange={(value) => update("headerSurface", value)}
-            />
-          </SettingBlock>
-
-          <SettingBlock label="Menu surface">
-            <Segmented
-              value={settings.sidebarSurface}
-              values={Object.keys(layoutSurfacePresets) as LayoutSurface[]}
-              getLabel={(key) => layoutSurfacePresets[key].label}
-              onChange={(value) => update("sidebarSurface", value)}
-            />
-          </SettingBlock>
-        </div>
-
-        <div className="flex justify-end border-t border-muted/50 pt-4">
+        <div className="flex items-center gap-2">
           <Button
+            type="button"
             variant="outline"
-            onClick={handleReset}
-            className="rounded-xl px-5 py-4.5 text-xs font-semibold"
+            size="sm"
+            onClick={resetToDefault}
+            className="h-8.5 gap-1.5 rounded-xl px-3 text-xs font-semibold"
           >
-            Reset to defaults
+            <RotateCcw className="size-3.5" />
+            Reset to Defaults
           </Button>
         </div>
       </div>
 
-      <aside className="space-y-5">
-        <section className="rounded-2xl border border-muted/50 bg-card/45 p-5 shadow-sm backdrop-blur-md">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold">Theme Preview</h2>
-              <p className="text-[11px] font-medium text-muted-foreground">
-                Visualizing current style system
-              </p>
-            </div>
-            <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold text-primary">
-              Active
-            </span>
-          </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-5 gap-1.5">
-              {[1, 2, 3, 4, 5].map((index) => (
-                <div
-                  key={index}
-                  className="h-10 rounded-lg border border-black/5 shadow-sm"
-                  style={{ background: `var(--chart-${index})` }}
-                />
-              ))}
-            </div>
-            <div className="space-y-3 rounded-xl border border-muted/50 bg-muted/15 p-4">
-              <h3 className="text-sm font-semibold">Example Component</h3>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div className="h-full w-2/3 rounded-full bg-primary" />
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" className="h-8 rounded-lg text-[11px]">
-                  Save
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 rounded-lg text-[11px]"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
+      {/* Main 2-Column Responsive Layout */}
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px]">
+        {/* Left Column: Design System Controls */}
+        <div className="space-y-8 pb-12">
+          {/* Section 1: Presets & Templates */}
+          <PresetsManager
+            currentSettings={draft}
+            builtinPresets={builtinPresets}
+            customPresets={customPresets}
+            onSelectPreset={applyPreset}
+            onSaveCurrentAsPreset={saveAsPreset}
+            onDeletePreset={deletePreset}
+            onImportPresets={importPresets}
+            onExportPresets={exportPresets}
+          />
 
-        <pre className="max-h-[220px] overflow-auto rounded-2xl border bg-muted/20 p-4 font-mono text-[10px] leading-relaxed text-muted-foreground/80">
-          {cssPreview}
-        </pre>
-      </aside>
+          <div className="h-px bg-border/60" />
+
+          {/* Section 2: Theme Mode (Light / Dark / System) */}
+          <ThemeModeSelector value={theme} onChange={setTheme} />
+
+          <div className="h-px bg-border/60" />
+
+          {/* Section 3: Brand Accent & Chart Palettes */}
+          <ColorPaletteSelector
+            selectedBaseColor={draft.baseColor}
+            selectedChartPalette={draft.chartPalette}
+            onSelectBaseColor={(c) => updateDraft("baseColor", c)}
+            onSelectChartPalette={(p) => updateDraft("chartPalette", p)}
+          />
+
+          <div className="h-px bg-border/60" />
+
+          {/* Section 4: Typography & Radius */}
+          <TypographyRadiusSelector
+            font={draft.font}
+            headingFont={draft.headingFont}
+            radius={draft.radius}
+            onSelectFont={(f) => updateDraft("font", f)}
+            onSelectHeadingFont={(hf) => updateDraft("headingFont", hf)}
+            onSelectRadius={(r) => updateDraft("radius", r)}
+          />
+
+          <div className="h-px bg-border/60" />
+
+          {/* Section 5: Layout Surfaces */}
+          <SurfaceSelector
+            headerSurface={draft.headerSurface}
+            sidebarSurface={draft.sidebarSurface}
+            onSelectHeaderSurface={(s) => updateDraft("headerSurface", s)}
+            onSelectSidebarSurface={(s) => updateDraft("sidebarSurface", s)}
+          />
+        </div>
+
+        {/* Right Column: Live Sandbox Preview */}
+        <div>
+          <AppearancePreview
+            settings={draft}
+            previewTheme={previewTheme}
+            onTogglePreviewTheme={setPreviewTheme}
+          />
+        </div>
+      </div>
+
+      {/* Floating Sticky Action Bar */}
+      <AppearanceActionBar
+        isDirty={isDirty}
+        saveFeedback={saveFeedback}
+        onApply={applyDraft}
+        onDiscard={discardDraft}
+        onResetToDefault={resetToDefault}
+      />
     </div>
   )
-}
-
-function SettingBlock({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <section className="flex flex-col gap-2.5">
-      <Label className="text-xs font-bold tracking-wider text-muted-foreground/90 uppercase">
-        {label}
-      </Label>
-      <div className="flex">{children}</div>
-    </section>
-  )
-}
-
-function Segmented<T extends string>({
-  value,
-  values,
-  getLabel,
-  onChange,
-}: {
-  value: T
-  values: T[]
-  getLabel: (value: T) => string
-  onChange: (value: T) => void
-}) {
-  return (
-    <div className="inline-flex flex-wrap rounded-xl border bg-muted/40 p-1">
-      {values.map((item) => (
-        <button
-          key={item}
-          type="button"
-          onClick={() => onChange(item)}
-          className={cn(
-            "h-8 rounded-lg px-3.5 text-xs font-semibold transition-all duration-200",
-            value === item
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {getLabel(item)}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function buildCSSPreview(settings: AppearanceSettings) {
-  const base = baseColors[settings.baseColor]
-  const charts = chartPalettes[settings.chartPalette]
-  return [
-    `--primary: ${base.light["--primary"]};`,
-    `--radius: ${radiusPresets[settings.radius].value};`,
-    `--font-sans: ${fontPresets[settings.font].stack};`,
-    `--font-heading: ${fontPresets[settings.headingFont].stack};`,
-    `--layout-header-background: ${layoutSurfacePresets[settings.headerSurface].value};`,
-    `--layout-sidebar-background: ${layoutSurfacePresets[settings.sidebarSurface].value};`,
-    ...charts.colors.map((color, index) => `--chart-${index + 1}: ${color};`),
-  ].join("\n")
 }
