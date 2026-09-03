@@ -1,5 +1,4 @@
 import { Layout, PanelLeft } from "lucide-react"
-import { layoutSurfacePresets } from "@workspace/theme/appearance"
 import type { LayoutSurface } from "@workspace/theme/appearance"
 import { cn } from "@workspace/ui/lib/utils"
 
