@@ -168,10 +168,10 @@ export function ConnectorsTab() {
     try {
       await knowledgeApi.deleteConnector(id)
       setConnectors((prev) => prev.filter((c) => c.id !== id))
-      notify.success(t("ai.knowledge.connectors.deleted", "Đã ngắt kết nối pipeline"))
+      notify.success(t("ai.knowledge.connectors.deleted"))
     } catch {
       setConnectors((prev) => prev.filter((c) => c.id !== id))
-      notify.success(t("ai.knowledge.connectors.deleted", "Đã ngắt kết nối pipeline"))
+      notify.success(t("ai.knowledge.connectors.deleted"))
     } finally {
       setDeletingId(null)
     }
@@ -456,10 +456,10 @@ export function ConnectorsTab() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAddOpen(false)}>
-              {t("common.cancel")}
+              {t("common.action.cancel")}
             </Button>
             <Button onClick={handleAddConnector} disabled={creating || !name.trim() || !targetSource.trim()}>
-              {creating ? t("common.saving", "Đang lưu...") : t("common.create")}
+              {creating ? t("common.action.saving") : t("common.action.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

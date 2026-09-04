@@ -193,8 +193,8 @@ export function GuardrailsSafetyTab() {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button size="sm" className="text-xs" onClick={handleSave}>
-                Lưu Thay đổi Guardrails
+              <Button size="sm" className="text-xs" onClick={handleSave} disabled={saving}>
+                {saving ? "Đang lưu..." : "Lưu Thay đổi Guardrails"}
               </Button>
             </div>
           </CardContent>

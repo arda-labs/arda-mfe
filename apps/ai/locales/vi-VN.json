@@ -162,6 +162,7 @@
       "syncing": "Đang đồng bộ...",
       "sync_success": "Đã kích hoạt đồng bộ thành công",
       "created": "Đã tạo kết nối nguồn dữ liệu mới",
+      "deleted": "Đã ngắt kết nối pipeline",
       "dialog": {
         "title": "Thêm Data Connector mới",
         "description": "Kết nối kho lưu trữ ngoài để tự động chuyển hóa tài liệu thành vector tri thức."

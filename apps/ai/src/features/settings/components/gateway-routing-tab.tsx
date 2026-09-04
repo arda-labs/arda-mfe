@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -352,8 +351,8 @@ export function GatewayRoutingTab() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <Button size="sm" className="text-xs" onClick={handleSave}>
-              Lưu Quy tắc Định tuyến Gateway
+            <Button size="sm" className="text-xs" onClick={handleSave} disabled={saving}>
+              {saving ? "Đang lưu..." : "Lưu Quy tắc Định tuyến Gateway"}
             </Button>
           </div>
         </CardContent>

@@ -162,6 +162,7 @@
       "syncing": "Syncing...",
       "sync_success": "Sync triggered successfully",
       "created": "Connector created successfully",
+      "deleted": "Connector pipeline disconnected",
       "dialog": {
         "title": "Add Data Connector",
         "description": "Connect external storage to continuously ingest and embed enterprise documents."
