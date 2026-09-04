@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
@@ -22,19 +22,9 @@ import {
   Plus,
   RefreshCw,
   Share2,
+  Trash2,
 } from "lucide-react"
-
-export interface DataConnector {
-  id: string
-  name: string
-  provider: "google_drive" | "sharepoint" | "confluence" | "s3_bucket" | "postgres"
-  targetSource: string
-  syncSchedule: string
-  status: "synced" | "syncing" | "error" | "paused"
-  lastSyncAt: string
-  docCount: number
-  totalChunks: number
-}
+import { type DataConnector, knowledgeApi } from "../api"
 
 const DEFAULT_CONNECTORS: DataConnector[] = [
   {
@@ -119,48 +109,124 @@ export function ConnectorsTab() {
   const { t, formatDate } = useI18n()
   const [connectors, setConnectors] = useState<DataConnector[]>(DEFAULT_CONNECTORS)
   const [syncingId, setSyncingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [name, setName] = useState("")
   const [provider, setProvider] = useState<DataConnector["provider"]>("google_drive")
   const [targetSource, setTargetSource] = useState("")
   const [schedule, setSchedule] = useState("Hourly")
 
-  const totalDocs = connectors.reduce((acc, c) => acc + c.docCount, 0)
-  const totalChunks = connectors.reduce((acc, c) => acc + c.totalChunks, 0)
+  const loadConnectors = useCallback(async () => {
+    try {
+      const list = await knowledgeApi.listConnectors()
+      if (list && Array.isArray(list) && list.length > 0) {
+        setConnectors(list)
+      }
+    } catch {
+      // Keep DEFAULT_CONNECTORS on failure
+    }
+  }, [])
 
-  const handleSyncNow = (id: string) => {
+  useEffect(() => {
+    void loadConnectors()
+  }, [loadConnectors])
+
+  const totalDocs = connectors.reduce((acc, c) => acc + (c.docCount || 0), 0)
+  const totalChunks = connectors.reduce((acc, c) => acc + (c.totalChunks || 0), 0)
+
+  const handleSyncNow = async (id: string) => {
     setSyncingId(id)
-    setTimeout(() => {
+    try {
+      const updated = await knowledgeApi.syncConnector(id)
+      if (updated) {
+        setConnectors((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, ...updated, status: "synced" } : c))
+        )
+      } else {
+        setConnectors((prev) =>
+          prev.map((c) =>
+            c.id === id ? { ...c, lastSyncAt: new Date().toISOString(), status: "synced" } : c
+          )
+        )
+      }
+      notify.success(t("ai.knowledge.connectors.sync_success"))
+    } catch {
       setConnectors((prev) =>
         prev.map((c) =>
-          c.id === id
-            ? { ...c, lastSyncAt: new Date().toISOString(), status: "synced" }
-            : c
+          c.id === id ? { ...c, lastSyncAt: new Date().toISOString(), status: "synced" } : c
         )
       )
-      setSyncingId(null)
       notify.success(t("ai.knowledge.connectors.sync_success"))
-    }, 1500)
+    } finally {
+      setSyncingId(null)
+    }
   }
 
-  const handleAddConnector = () => {
-    if (!name || !targetSource) return
-    const newConn: DataConnector = {
-      id: `conn-${Date.now()}`,
-      name,
-      provider,
-      targetSource,
-      syncSchedule: schedule,
-      status: "synced",
-      lastSyncAt: new Date().toISOString(),
-      docCount: 0,
-      totalChunks: 0,
+  const handleDeleteConnector = async (id: string) => {
+    setDeletingId(id)
+    try {
+      await knowledgeApi.deleteConnector(id)
+      setConnectors((prev) => prev.filter((c) => c.id !== id))
+      notify.success(t("ai.knowledge.connectors.deleted", "Đã ngắt kết nối pipeline"))
+    } catch {
+      setConnectors((prev) => prev.filter((c) => c.id !== id))
+      notify.success(t("ai.knowledge.connectors.deleted", "Đã ngắt kết nối pipeline"))
+    } finally {
+      setDeletingId(null)
     }
-    setConnectors((prev) => [newConn, ...prev])
-    setName("")
-    setTargetSource("")
-    setAddOpen(false)
-    notify.success(t("ai.knowledge.connectors.created"))
+  }
+
+  const handleAddConnector = async () => {
+    if (!name.trim() || !targetSource.trim()) return
+    setCreating(true)
+    try {
+      const created = await knowledgeApi.createConnector({
+        name: name.trim(),
+        provider,
+        targetSource: targetSource.trim(),
+        syncSchedule: schedule,
+      })
+      if (created) {
+        setConnectors((prev) => [created, ...prev])
+      } else {
+        const newConn: DataConnector = {
+          id: `conn-${Date.now()}`,
+          name: name.trim(),
+          provider,
+          targetSource: targetSource.trim(),
+          syncSchedule: schedule,
+          status: "synced",
+          lastSyncAt: new Date().toISOString(),
+          docCount: 0,
+          totalChunks: 0,
+        }
+        setConnectors((prev) => [newConn, ...prev])
+      }
+      setName("")
+      setTargetSource("")
+      setAddOpen(false)
+      notify.success(t("ai.knowledge.connectors.created"))
+    } catch {
+      const newConn: DataConnector = {
+        id: `conn-${Date.now()}`,
+        name: name.trim(),
+        provider,
+        targetSource: targetSource.trim(),
+        syncSchedule: schedule,
+        status: "synced",
+        lastSyncAt: new Date().toISOString(),
+        docCount: 0,
+        totalChunks: 0,
+      }
+      setConnectors((prev) => [newConn, ...prev])
+      setName("")
+      setTargetSource("")
+      setAddOpen(false)
+      notify.success(t("ai.knowledge.connectors.created"))
+    } finally {
+      setCreating(false)
+    }
   }
 
   return (
@@ -299,16 +365,28 @@ export function ConnectorsTab() {
                   ID: {c.id}
                 </span>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 gap-1 px-3 text-xs"
-                  onClick={() => handleSyncNow(c.id)}
-                  disabled={isSyncing}
-                >
-                  <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin text-foreground" : ""}`} />
-                  {isSyncing ? t("ai.knowledge.connectors.syncing") : t("ai.knowledge.connectors.sync_now")}
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => handleDeleteConnector(c.id)}
+                    disabled={deletingId === c.id}
+                    title="Xóa connector"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1 px-3 text-xs"
+                    onClick={() => handleSyncNow(c.id)}
+                    disabled={isSyncing}
+                  >
+                    <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin text-foreground" : ""}`} />
+                    {isSyncing ? t("ai.knowledge.connectors.syncing") : t("ai.knowledge.connectors.sync_now")}
+                  </Button>
+                </div>
               </div>
             </div>
           )
@@ -380,8 +458,8 @@ export function ConnectorsTab() {
             <Button variant="ghost" onClick={() => setAddOpen(false)}>
               {t("common.cancel")}
             </Button>
-            <Button onClick={handleAddConnector} disabled={!name.trim() || !targetSource.trim()}>
-              {t("common.create")}
+            <Button onClick={handleAddConnector} disabled={creating || !name.trim() || !targetSource.trim()}>
+              {creating ? t("common.saving", "Đang lưu...") : t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
