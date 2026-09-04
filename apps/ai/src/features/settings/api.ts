@@ -69,3 +69,44 @@ export async function deleteProfile(id: string): Promise<void> {
 export async function activateProfile(id: string): Promise<ProfileDTO> {
   return postCanonical<ProfileDTO>(`/api/ai/settings/profiles/${id}/activate`, {})
 }
+
+export interface RoutingRulesDTO {
+  fastModel: string
+  codeModel: string
+  sensitiveModel: string
+  primaryProvider: string
+  secondaryProvider: string
+  failoverProvider: string
+}
+
+export interface DepartmentBudgetDTO {
+  department: string
+  monthlyLimit: number
+  spent: number
+  rpmLimit: number
+}
+
+export interface QuotasDTO {
+  budgets: DepartmentBudgetDTO[]
+  webhookUrl: string
+}
+
+export async function fetchRoutingRules(): Promise<RoutingRulesDTO> {
+  return getCanonical<RoutingRulesDTO>("/api/ai/settings/routing")
+}
+
+export async function saveRoutingRules(
+  payload: RoutingRulesDTO
+): Promise<RoutingRulesDTO> {
+  return putCanonical<RoutingRulesDTO>("/api/ai/settings/routing", payload)
+}
+
+export async function fetchQuotas(): Promise<QuotasDTO> {
+  return getCanonical<QuotasDTO>("/api/ai/settings/quotas")
+}
+
+export async function saveQuotas(
+  payload: QuotasDTO
+): Promise<QuotasDTO> {
+  return putCanonical<QuotasDTO>("/api/ai/settings/quotas", payload)
+}

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
@@ -7,15 +7,9 @@ import {
   Gauge,
   Wallet,
 } from "lucide-react"
+import { fetchQuotas, saveQuotas, type DepartmentBudgetDTO } from "../api"
 
-interface DepartmentBudget {
-  department: string
-  monthlyLimit: number
-  spent: number
-  rpmLimit: number
-}
-
-const INITIAL_BUDGETS: DepartmentBudget[] = [
+const INITIAL_BUDGETS: DepartmentBudgetDTO[] = [
   { department: "Tech & DevOps", monthlyLimit: 300, spent: 118.2, rpmLimit: 120 },
   { department: "Sales & Marketing", monthlyLimit: 150, spent: 42.5, rpmLimit: 60 },
   { department: "HR & Internal Ops", monthlyLimit: 80, spent: 15.4, rpmLimit: 30 },
@@ -23,8 +17,29 @@ const INITIAL_BUDGETS: DepartmentBudget[] = [
 ]
 
 export function BudgetQuotasTab() {
-  const [budgets, setBudgets] = useState<DepartmentBudget[]>(INITIAL_BUDGETS)
+  const [budgets, setBudgets] = useState<DepartmentBudgetDTO[]>(INITIAL_BUDGETS)
   const [webhookUrl, setWebhookUrl] = useState("https://hooks.slack.com/services/T00/B00/XXXX")
+  const [saving, setSaving] = useState(false)
+
+  const loadQuotas = useCallback(async () => {
+    try {
+      const data = await fetchQuotas()
+      if (data) {
+        if (data.budgets && data.budgets.length > 0) {
+          setBudgets(data.budgets)
+        }
+        if (data.webhookUrl) {
+          setWebhookUrl(data.webhookUrl)
+        }
+      }
+    } catch {
+      // Keep defaults
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadQuotas()
+  }, [loadQuotas])
 
   const updateLimit = (department: string, newLimit: number) => {
     setBudgets((prev) =>
@@ -32,8 +47,19 @@ export function BudgetQuotasTab() {
     )
   }
 
-  const handleSave = () => {
-    notify.success("Đã lưu hạn mức ngân sách và giới hạn tốc độ (Rate Limits)!")
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await saveQuotas({
+        budgets,
+        webhookUrl,
+      })
+      notify.success("Đã lưu hạn mức ngân sách và giới hạn tốc độ (Rate Limits)!")
+    } catch (err) {
+      notify.error("Không thể lưu cấu hình hạn mức", err instanceof Error ? err.message : String(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -150,6 +176,12 @@ export function BudgetQuotasTab() {
               <p className="text-[10px] text-muted-foreground">
                 Gửi thông báo tức thời qua Slack hoặc Microsoft Teams khi một phòng ban sắp hết ngân sách AI.
               </p>
+            </div>
+
+            <div className="flex justify-end pt-3">
+              <Button size="sm" className="text-xs" disabled={saving} onClick={handleSave}>
+                {saving ? "Đang lưu..." : "Lưu Hạn mức & Ngân sách"}
+              </Button>
             </div>
           </CardContent>
         </Card>

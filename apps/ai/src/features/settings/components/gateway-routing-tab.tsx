@@ -19,6 +19,8 @@ import {
   Server,
   Shield,
 } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { fetchRoutingRules, saveRoutingRules } from "../api"
 
 export function GatewayRoutingTab() {
   const [fastModel, setFastModel] = useState("gemini-2.5-flash")
@@ -28,9 +30,45 @@ export function GatewayRoutingTab() {
   const [primaryProvider, setPrimaryProvider] = useState("gemini")
   const [secondaryProvider, setSecondaryProvider] = useState("openai")
   const [failoverProvider, setFailoverProvider] = useState("ollama")
+  const [saving, setSaving] = useState(false)
 
-  const handleSave = () => {
-    notify.success("Đã cập nhật quy tắc định tuyến Model Gateway & Chuỗi Dự phòng!")
+  const loadRules = useCallback(async () => {
+    try {
+      const data = await fetchRoutingRules()
+      if (data) {
+        if (data.fastModel) setFastModel(data.fastModel)
+        if (data.codeModel) setCodeModel(data.codeModel)
+        if (data.sensitiveModel) setSensitiveModel(data.sensitiveModel)
+        if (data.primaryProvider) setPrimaryProvider(data.primaryProvider)
+        if (data.secondaryProvider) setSecondaryProvider(data.secondaryProvider)
+        if (data.failoverProvider) setFailoverProvider(data.failoverProvider)
+      }
+    } catch {
+      // Keep defaults
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadRules()
+  }, [loadRules])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await saveRoutingRules({
+        fastModel,
+        codeModel,
+        sensitiveModel,
+        primaryProvider,
+        secondaryProvider,
+        failoverProvider,
+      })
+      notify.success("Đã cập nhật quy tắc định tuyến Model Gateway & Chuỗi Dự phòng!")
+    } catch (err) {
+      notify.error("Không thể lưu quy tắc định tuyến", err instanceof Error ? err.message : String(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
