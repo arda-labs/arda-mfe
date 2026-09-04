@@ -28,24 +28,26 @@ export function SettingsPage() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 sm:w-[620px] sm:grid-cols-4">
-          <TabsTrigger value="profiles" className="gap-1.5 text-xs">
-            <Cpu className="h-3.5 w-3.5" />
-            {t("ai.settings.tabs.profiles")}
-          </TabsTrigger>
-          <TabsTrigger value="routing" className="gap-1.5 text-xs">
-            <GitFork className="h-3.5 w-3.5" />
-            {t("ai.settings.tabs.routing")}
-          </TabsTrigger>
-          <TabsTrigger value="guardrails" className="gap-1.5 text-xs">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            {t("ai.settings.tabs.guardrails")}
-          </TabsTrigger>
-          <TabsTrigger value="quotas" className="gap-1.5 text-xs">
-            <Gauge className="h-3.5 w-3.5" />
-            {t("ai.settings.tabs.quotas")}
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-1">
+          <TabsList className="inline-flex h-9 w-fit items-center justify-start gap-1 p-1">
+            <TabsTrigger value="profiles" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+              <Cpu className="size-3.5 shrink-0" />
+              <span>{t("ai.settings.tabs.profiles")}</span>
+            </TabsTrigger>
+            <TabsTrigger value="routing" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+              <GitFork className="size-3.5 shrink-0" />
+              <span>{t("ai.settings.tabs.routing")}</span>
+            </TabsTrigger>
+            <TabsTrigger value="guardrails" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+              <ShieldCheck className="size-3.5 shrink-0" />
+              <span>{t("ai.settings.tabs.guardrails")}</span>
+            </TabsTrigger>
+            <TabsTrigger value="quotas" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+              <Gauge className="size-3.5 shrink-0" />
+              <span>{t("ai.settings.tabs.quotas")}</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="profiles" className="m-0">
           <ModelProfilesTab />

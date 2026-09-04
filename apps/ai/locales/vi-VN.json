@@ -139,9 +139,9 @@
       "no_results_tip": "Hãy thử từ khóa khác hoặc đảm bảo nguồn tri thức đã được duyệt và xuất bản (Published)."
     },
     "tabs": {
-      "corpus": "Kho Tri thức (Corpus)",
-      "connectors": "Kết nối & Đồng bộ (Connectors)",
-      "strategies": "Chiến lược phân mảnh & Reranker"
+      "corpus": "Kho tri thức",
+      "connectors": "Kết nối & Đồng bộ",
+      "strategies": "Phân mảnh & Rerank"
     },
     "connectors": {
       "title": "Data Connectors & Tự động Đồng bộ",
@@ -376,7 +376,7 @@
     "tabs": {
       "profiles": "Cấu hình Model",
       "routing": "Định tuyến & Dự phòng",
-      "guardrails": "Rào chắn An toàn (Guardrails)",
+      "guardrails": "Rào chắn An toàn",
       "quotas": "Hạn mức & Rate Limit"
     }
   }

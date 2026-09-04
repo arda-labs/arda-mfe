@@ -119,20 +119,22 @@ export function KnowledgePage() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3 sm:w-[480px]">
-              <TabsTrigger value="corpus" className="gap-1.5 text-xs">
-                <Database className="h-3.5 w-3.5" />
-                {t("ai.knowledge.tabs.corpus")}
-              </TabsTrigger>
-              <TabsTrigger value="connectors" className="gap-1.5 text-xs">
-                <FolderSync className="h-3.5 w-3.5" />
-                {t("ai.knowledge.tabs.connectors")}
-              </TabsTrigger>
-              <TabsTrigger value="strategies" className="gap-1.5 text-xs">
-                <Layers className="h-3.5 w-3.5" />
-                {t("ai.knowledge.tabs.strategies")}
-              </TabsTrigger>
-            </TabsList>
+            <div className="w-full overflow-x-auto pb-1">
+              <TabsList className="inline-flex h-9 w-fit items-center justify-start gap-1 p-1">
+                <TabsTrigger value="corpus" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+                  <Database className="size-3.5 shrink-0" />
+                  <span>{t("ai.knowledge.tabs.corpus")}</span>
+                </TabsTrigger>
+                <TabsTrigger value="connectors" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+                  <FolderSync className="size-3.5 shrink-0" />
+                  <span>{t("ai.knowledge.tabs.connectors")}</span>
+                </TabsTrigger>
+                <TabsTrigger value="strategies" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+                  <Layers className="size-3.5 shrink-0" />
+                  <span>{t("ai.knowledge.tabs.strategies")}</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="corpus" className="m-0 space-y-4">
               <SourceListTable
