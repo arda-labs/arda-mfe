@@ -1,6 +1,8 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
@@ -22,6 +24,7 @@ import {
   SlidersHorizontal,
   SplitSquareVertical,
 } from "lucide-react"
+import { knowledgeApi } from "../api"
 
 type ChunkStrategy = "hierarchical" | "semantic" | "markdown_ast" | "recursive"
 
@@ -34,6 +37,48 @@ export function ChunkingStrategiesTab() {
   const [rerankerModel, setRerankerModel] = useState("cohere-rerank-v3.5")
   const [topK, setTopK] = useState(20)
   const [topN, setTopN] = useState(5)
+  const [saving, setSaving] = useState(false)
+
+  const loadStrategies = useCallback(async () => {
+    try {
+      const data = await knowledgeApi.fetchStrategies()
+      if (data) {
+        if (data.strategy) setStrategy(data.strategy as ChunkStrategy)
+        if (data.similarityThreshold) setSimilarityThreshold(data.similarityThreshold)
+        if (data.parentChunkSize) setParentChunkSize(data.parentChunkSize)
+        if (data.childChunkSize) setChildChunkSize(data.childChunkSize)
+        if (data.rerankerModel) setRerankerModel(data.rerankerModel)
+        if (data.topK) setTopK(data.topK)
+        if (data.topN) setTopN(data.topN)
+      }
+    } catch {
+      // Keep defaults
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadStrategies()
+  }, [loadStrategies])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await knowledgeApi.saveStrategies({
+        strategy,
+        parentChunkSize,
+        childChunkSize,
+        similarityThreshold,
+        rerankerModel,
+        topK,
+        topN,
+      })
+      notify.success("Đã cập nhật cấu hình Chiến lược Phân mảnh & Reranker!")
+    } catch (err) {
+      notify.error("Không thể lưu cấu hình chiến lược", err instanceof Error ? err.message : String(err))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="space-y-6 min-w-0">
@@ -466,6 +511,12 @@ export function ChunkingStrategiesTab() {
               <span>
                 <strong>Kiểm định chất lượng:</strong> Cross-Encoder đọc đồng thời câu hỏi và toàn văn đoạn trích để tính toán độ tương quan thực tế, loại bỏ kết quả sai lệch và đẩy tài liệu chính xác lên vị trí ưu tiên hàng đầu.
               </span>
+            </div>
+
+            <div className="flex justify-end pt-3">
+              <Button size="sm" className="text-xs" disabled={saving} onClick={handleSave}>
+                {saving ? "Đang lưu..." : "Lưu Cấu hình Chiến lược & Reranker"}
+              </Button>
             </div>
           </div>
         </CardContent>

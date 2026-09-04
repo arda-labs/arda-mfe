@@ -110,3 +110,21 @@ export async function saveQuotas(
 ): Promise<QuotasDTO> {
   return putCanonical<QuotasDTO>("/api/ai/settings/quotas", payload)
 }
+
+export interface GuardrailsDTO {
+  promptInjectionDefense: boolean
+  piiMasking: boolean
+  hallucinationCheck: boolean
+  zeroRetention: boolean
+  injectionThreshold: number
+}
+
+export async function fetchGuardrails(): Promise<GuardrailsDTO> {
+  return getCanonical<GuardrailsDTO>("/api/ai/settings/guardrails")
+}
+
+export async function saveGuardrails(
+  payload: GuardrailsDTO
+): Promise<GuardrailsDTO> {
+  return putCanonical<GuardrailsDTO>("/api/ai/settings/guardrails", payload)
+}

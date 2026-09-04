@@ -198,4 +198,16 @@ export const knowledgeApi = {
     formData.append("chunk_overlap", String(chunkOverlap))
     return api.post<ChunkPreviewResponse>("/api/rag/sources/parse-preview", formData)
   },
+  fetchStrategies: () => api.get<StrategyDTO>("/api/rag/strategies"),
+  saveStrategies: (data: StrategyDTO) => api.put<StrategyDTO>("/api/rag/strategies", data),
+}
+
+export interface StrategyDTO {
+  strategy: string
+  parentChunkSize: number
+  childChunkSize: number
+  similarityThreshold: number
+  rerankerModel: string
+  topK: number
+  topN: number
 }

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react"
+import { fetchGuardrails, saveGuardrails } from "../api"
 
 export function GuardrailsSafetyTab() {
   const [promptInjectionDefense, setPromptInjectionDefense] = useState(true)
@@ -24,9 +25,45 @@ export function GuardrailsSafetyTab() {
   const [hallucinationCheck, setHallucinationCheck] = useState(true)
   const [zeroRetention, setZeroRetention] = useState(true)
   const [injectionThreshold, setInjectionThreshold] = useState(0.85)
+  const [saving, setSaving] = useState(false)
 
-  const handleSave = () => {
-    notify.success("Đã cập nhật cấu hình Rào chắn An toàn AI (Guardrails)!")
+  const loadGuardrails = useCallback(async () => {
+    try {
+      const data = await fetchGuardrails()
+      if (data) {
+        setPromptInjectionDefense(data.promptInjectionDefense)
+        setPiiMasking(data.piiMasking)
+        setHallucinationCheck(data.hallucinationCheck)
+        setZeroRetention(data.zeroRetention)
+        if (data.injectionThreshold) {
+          setInjectionThreshold(data.injectionThreshold)
+        }
+      }
+    } catch {
+      // Keep defaults
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadGuardrails()
+  }, [loadGuardrails])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await saveGuardrails({
+        promptInjectionDefense,
+        piiMasking,
+        hallucinationCheck,
+        zeroRetention,
+        injectionThreshold,
+      })
+      notify.success("Đã cập nhật cấu hình Rào chắn An toàn AI (Guardrails)!")
+    } catch (err) {
+      notify.error("Không thể lưu cấu hình Guardrails", err instanceof Error ? err.message : String(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
