@@ -76,6 +76,7 @@ export function AgentsPage() {
 
   // Executive banking telemetry metrics
   const totalAgents = agents.length
+  const activeAgents = agents.filter((a) => a.isActive).length
   const deptsCount = new Set(agents.map((a) => a.department)).size
   const totalScopedTools = agents.reduce((acc, a) => acc + (a.allowedTools.includes("*") ? 15 : a.allowedTools.length), 0)
 
@@ -120,14 +121,14 @@ export function AgentsPage() {
             <span>Agent Đang Vận hành</span>
             <Status variant="success">
               <StatusIndicator />
-              <StatusLabel>100%</StatusLabel>
+              <StatusLabel>{activeAgents}/{totalAgents}</StatusLabel>
             </Status>
           </div>
           <div className="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground">
-            {totalAgents}
+            {activeAgents}
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Tất cả Agent đã kích hoạt chính sách
+            Agent đang bật / tổng số Agent
           </p>
         </div>
 
@@ -163,11 +164,11 @@ export function AgentsPage() {
             <Server className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="mt-2 font-mono text-lg font-bold text-foreground">
-            Dual-Cluster
+            Theo cấu hình triển khai
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1">
             <Cpu className="h-3 w-3 text-muted-foreground" />
-            Cloud Gateway + K3s On-Prem LAN
+            Trạng thái hạ tầng lấy từ backend
           </p>
         </div>
       </div>

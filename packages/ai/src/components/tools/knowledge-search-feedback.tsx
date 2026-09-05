@@ -11,6 +11,7 @@ import { registerToolRenderer } from "../../lib/registry"
 type KnowledgeSearchItem = {
   runId: string
   sourceId?: string
+  sourceKey?: string
   sourceTitle?: string
   heading?: string
   content?: string
@@ -44,6 +45,7 @@ function itemsOf(result: ToolResultPayload): KnowledgeSearchItem[] {
     .map((item) => ({
       runId: textValue(item.runId),
       sourceId: textValue(item.sourceId) || undefined,
+      sourceKey: textValue(item.sourceKey) || undefined,
       sourceTitle: textValue(item.sourceTitle) || undefined,
       heading: textValue(item.heading) || undefined,
       content: textValue(item.content) || undefined,

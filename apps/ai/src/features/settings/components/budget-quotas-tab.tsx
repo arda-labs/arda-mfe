@@ -9,31 +9,27 @@ import {
 } from "lucide-react"
 import { fetchQuotas, saveQuotas, type DepartmentBudgetDTO } from "../api"
 
-const INITIAL_BUDGETS: DepartmentBudgetDTO[] = [
-  { department: "Tech & DevOps", monthlyLimit: 300, spent: 118.2, rpmLimit: 120 },
-  { department: "Sales & Marketing", monthlyLimit: 150, spent: 42.5, rpmLimit: 60 },
-  { department: "HR & Internal Ops", monthlyLimit: 80, spent: 15.4, rpmLimit: 30 },
-  { department: "Finance & Accounting", monthlyLimit: 100, spent: 22.1, rpmLimit: 40 },
-]
-
 export function BudgetQuotasTab() {
-  const [budgets, setBudgets] = useState<DepartmentBudgetDTO[]>(INITIAL_BUDGETS)
-  const [webhookUrl, setWebhookUrl] = useState("https://hooks.slack.com/services/T00/B00/XXXX")
+  const [budgets, setBudgets] = useState<DepartmentBudgetDTO[]>([])
+  const [webhookUrl, setWebhookUrl] = useState("")
+  const [monthlyTokenLimit, setMonthlyTokenLimit] = useState(0)
+  const [tokensUsed, setTokensUsed] = useState(0)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   const loadQuotas = useCallback(async () => {
     try {
       const data = await fetchQuotas()
       if (data) {
-        if (data.budgets && data.budgets.length > 0) {
-          setBudgets(data.budgets)
-        }
-        if (data.webhookUrl) {
-          setWebhookUrl(data.webhookUrl)
-        }
+        setBudgets(data.budgets ?? [])
+        setWebhookUrl(data.webhookUrl ?? "")
+        setMonthlyTokenLimit(data.monthlyTokenLimit ?? 0)
+        setTokensUsed(data.tokensUsed ?? 0)
       }
     } catch {
-      // Keep defaults
+      // The empty state below explains that quota is not configured.
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -53,6 +49,7 @@ export function BudgetQuotasTab() {
       await saveQuotas({
         budgets,
         webhookUrl,
+        monthlyTokenLimit,
       })
       notify.success("Đã lưu hạn mức ngân sách và giới hạn tốc độ (Rate Limits)!")
     } catch (err) {
@@ -79,8 +76,13 @@ export function BudgetQuotasTab() {
           </CardHeader>
           <CardContent className="space-y-4 pt-0 text-xs">
             <div className="space-y-3">
+              {!loading && budgets.length === 0 && (
+                <p className="rounded-lg border border-dashed p-4 text-muted-foreground">
+                  Chưa có hạn mức phòng ban nào được cấu hình.
+                </p>
+              )}
               {budgets.map((b) => {
-                const percent = Math.min(Math.round((b.spent / b.monthlyLimit) * 100), 100)
+                const percent = b.monthlyLimit > 0 ? Math.min(Math.round((b.spent / b.monthlyLimit) * 100), 100) : 0
                 const isWarning = percent >= 80
 
                 return (
@@ -154,18 +156,31 @@ export function BudgetQuotasTab() {
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <div className="rounded border bg-card p-2 text-center">
                   <div className="text-[10px] text-muted-foreground">Max RPM</div>
-                  <div className="font-mono text-sm font-bold text-primary">120</div>
+                  <div className="font-mono text-sm font-bold text-primary">—</div>
                   <div className="text-[9px] text-muted-foreground">req / phút</div>
                 </div>
                 <div className="rounded border bg-card p-2 text-center">
                   <div className="text-[10px] text-muted-foreground">Max TPM</div>
-                  <div className="font-mono text-sm font-bold text-primary">200K</div>
+                  <div className="font-mono text-sm font-bold text-primary">—</div>
                   <div className="text-[9px] text-muted-foreground">token / phút</div>
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5">
+              <label className="font-medium text-foreground">Hạn mức token theo tháng (0 = không giới hạn)</label>
+              <Input
+                type="number"
+                min={0}
+                className="h-8 text-xs font-mono"
+                value={monthlyTokenLimit}
+                onChange={(e) => setMonthlyTokenLimit(Math.max(0, Number(e.target.value) || 0))}
+              />
+              {monthlyTokenLimit > 0 && (
+                <p className="text-[10px] text-muted-foreground">
+                  Đã dùng {tokensUsed.toLocaleString()} / {monthlyTokenLimit.toLocaleString()} token trong kỳ hiện tại.
+                </p>
+              )}
               <label className="font-medium text-foreground">Webhook Cảnh báo khi chạm 80% hạn mức</label>
               <Input
                 className="h-8 text-xs font-mono"

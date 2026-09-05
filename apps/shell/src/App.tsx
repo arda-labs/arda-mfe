@@ -29,7 +29,6 @@ import {
 import { ShellLayout } from "./ShellLayout"
 import { OlorinPage } from "./features/ai/olorin-page"
 
-const aiProtocolSpikeEnabled = import.meta.env.VITE_AI_PROTOCOL_SPIKE !== "false"
 const aiAssistantEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
 
 const routeFallback = (
@@ -203,16 +202,6 @@ export function App() {
       <Route path="/consent" element={<ConsentPage />} />
       <Route path="/404" element={<NotFoundPage />} />
       <Route path="/502" element={<BadGatewayPage />} />
-      <Route
-        path="/ai-protocol-spike"
-        element={
-          aiProtocolSpikeEnabled || aiAssistantEnabled ? (
-            <OlorinPage />
-          ) : (
-            <NotFoundPage />
-          )
-        }
-      />
       <Route
         element={
           <Suspense fallback={<AuthLoadingScreen />}>

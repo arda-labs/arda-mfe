@@ -395,7 +395,7 @@ export function ModelProfilesTab() {
                   <span className="font-semibold text-xs text-foreground">Ollama Local (Cluster LAN)</span>
                   <Badge variant="outline" className="text-[10px]">On-Premise</Badge>
                 </div>
-                <span className="mt-1 text-[11px] text-muted-foreground">Chạy trên node K3s LAN, bảo mật 100% không qua internet</span>
+                <span className="mt-1 text-[11px] text-muted-foreground">Kết nối tới endpoint Ollama do quản trị viên cấu hình</span>
               </Button>
 
               <Button

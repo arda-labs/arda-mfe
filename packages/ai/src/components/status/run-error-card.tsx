@@ -102,6 +102,12 @@ function getFallbackErrorMessage(key: string, raw: string): string {
       return "Hệ thống đang nhận quá nhiều yêu cầu. Vui lòng đợi một lát trước khi gửi lại."
     case "ai.error.budget_exceeded":
       return "Tài khoản đã đạt hạn mức sử dụng AI trong tháng."
+    case "ai.error.quota_exceeded":
+      return "Đã đạt hạn mức token AI trong tháng. Vui lòng liên hệ quản trị viên."
+    case "ai.error.quota_unavailable":
+      return "Dịch vụ hạn mức tạm thời không khả dụng. Vui lòng thử lại."
+    case "ai.error.not_ready":
+      return "Dịch vụ AI chưa sẵn sàng. Vui lòng thử lại sau ít phút."
     default:
       return raw || "Đã xảy ra lỗi trong quá trình xử lý yêu cầu."
   }

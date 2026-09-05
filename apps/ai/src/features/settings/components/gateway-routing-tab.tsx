@@ -117,7 +117,7 @@ export function GatewayRoutingTab() {
                   <Badge variant="outline" className="text-[10px] font-mono">Tier 1</Badge>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
-                  Mô hình mặc định tiếp nhận 100% lưu lượng truy vấn trong điều kiện bình thường.
+                  Mô hình mặc định nhận lưu lượng theo policy routing đang được cấu hình.
                 </p>
               </div>
 

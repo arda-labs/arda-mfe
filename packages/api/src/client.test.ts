@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { ApiClientError, createApiClient } from "./client"
+import { ApiClientError, createApiClient, createCredentialedFetch } from "./client"
 
 const originalFetch = globalThis.fetch
 
@@ -8,6 +8,19 @@ afterEach(() => {
 })
 
 describe("createApiClient GET lifecycle", () => {
+  test("credentialed fetch preserves cookies and adds request correlation", async () => {
+    let received: RequestInit | undefined
+    const transport = createCredentialedFetch(async (_input, init) => {
+      received = init
+      return new Response("ok")
+    })
+
+    await transport("https://api.example.test/stream", { method: "POST" })
+
+    expect(received?.credentials).toBe("include")
+    expect(new Headers(received?.headers).get("X-Request-Id")).toBeTruthy()
+  })
+
   test("deduplicates concurrent GET requests without an AbortSignal", async () => {
     let calls = 0
     globalThis.fetch = async () => {

@@ -34,7 +34,7 @@ Bun + Vite micro frontend workspace for Arda.
 | `@workspace/notifications` | Notification inbox, stream and browser push         |
 | `@workspace/theme`         | Theme, appearance and branding                      |
 | `@workspace/media`         | Media API and URL helpers                           |
-| `@workspace/ai`            | Olorin assistant panel: provider wrapper, tool renderer registry, approval card, fixtures |
+| `@workspace/ai`            | Olorin assistant panel: provider wrapper, tool renderer registry, approval card |
 
 Dependency direction is enforced by `bun run check:packages`. Workspace code
 must import package exports, never another package's `src` directory. The only
@@ -84,8 +84,7 @@ The shell ships a global assistant dock (Ctrl/Cmd+J) backed by
 The runtime must stay inside the package; apps import only `@workspace/ai`.
 
 - Enabled by default. Set `VITE_AI_ENABLED=false` (build variable) to disable.
-  Legacy route `/ai-protocol-spike` follows `VITE_AI_PROTOCOL_SPIKE` with the
-  same default-on rule. Full page: `/ai`.
+  Full page: `/ai`.
 - **Docked side panel** (`ShellLayout`): opens from the "Ask AI" header button,
   resizes by dragging its left edge (320–720px, persisted in
   `localStorage["arda-ai-panel-width"]`), and offers an expand action that
@@ -99,14 +98,11 @@ The runtime must stay inside the package; apps import only `@workspace/ai`.
   get server-side titles from the first user message.
 - Runtime URL is always `apiUrl() + "/api/ai/agent"` with
   `credentials: "include"` so session cookies ride on the correct host.
-- Offline previews without a backend:
-  `/ai?olorin-fixture=customerLookup|knowledgeCitations|approvalPending`.
 - Tool renderers and page context are registered by remotes through
-  `registerToolRenderer` / `registerOlorinContext`; nothing registers yet —
-  CRM is the first candidate.
+  `registerToolRenderer` / `registerOlorinContext`.
 - Backend requirements live in `arda-be/apps/ai-service/README.md`
-  (`AI_ENABLE_AGENT`, HITL flags, conversation APIs) and the Go-native
-  envelope contract in `arda-be/docs/ai/go-native-copilotkit.md`.
+  (`AI_ENABLE_AGENT`, HITL flags, conversation APIs) and the AG-UI contract in
+  `arda-be/docs/ai/architecture.md`.
 
 ## Commands
 

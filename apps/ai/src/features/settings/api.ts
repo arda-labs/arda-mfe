@@ -89,7 +89,12 @@ export interface DepartmentBudgetDTO {
 export interface QuotasDTO {
   budgets: DepartmentBudgetDTO[]
   webhookUrl: string
+  monthlyTokenLimit: number
+  tokensUsed: number
+  periodStart?: string
 }
+
+export type UpdateQuotasDTO = Pick<QuotasDTO, "budgets" | "webhookUrl" | "monthlyTokenLimit">
 
 export async function fetchRoutingRules(): Promise<RoutingRulesDTO> {
   return getCanonical<RoutingRulesDTO>("/api/ai/settings/routing")
@@ -106,7 +111,7 @@ export async function fetchQuotas(): Promise<QuotasDTO> {
 }
 
 export async function saveQuotas(
-  payload: QuotasDTO
+  payload: UpdateQuotasDTO
 ): Promise<QuotasDTO> {
   return putCanonical<QuotasDTO>("/api/ai/settings/quotas", payload)
 }

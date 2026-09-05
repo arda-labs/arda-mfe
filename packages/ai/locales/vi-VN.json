@@ -54,7 +54,11 @@
     "sandbox_rejected": "Kịch bản thực thi không vượt qua kiểm tra an toàn.",
     "rate_limited": "Hệ thống đang nhận quá nhiều yêu cầu. Vui lòng thử lại sau.",
     "budget_exceeded": "Tài khoản đã đạt hạn mức sử dụng AI trong tháng.",
-    "unknown": "Đã xảy ra lỗi không xác định. Vui lòng thử lại."
+    "unknown": "Đã xảy ra lỗi không xác định. Vui lòng thử lại.",
+    "quota_exceeded": "Đã đạt hạn mức token AI trong tháng. Vui lòng liên hệ quản trị viên.",
+    "quota_unavailable": "Dịch vụ hạn mức tạm thời không khả dụng. Vui lòng thử lại.",
+    "not_ready": "Dịch vụ AI chưa sẵn sàng. Vui lòng thử lại sau ít phút.",
+    "approval_expired": "Yêu cầu phê duyệt đã hết hạn và không thể thực thi."
   },
   "action": {
     "retry": "Thử lại",
@@ -92,7 +96,8 @@
     "citations": {
       "title": "Nguồn tham khảo",
       "details": "Chi tiết kết quả tra cứu",
-      "fallback": "Tri thức Arda"
+      "fallback": "Tri thức Arda",
+      "no_evidence": "Không tìm thấy tài liệu phù hợp đã được phê duyệt."
     },
     "executed": "Thực thi công cụ: {name}"
   },
@@ -129,9 +134,6 @@
     "delete": "Xóa hội thoại",
     "history": "Lịch sử hội thoại",
     "current_new": "Cuộc trò chuyện mới"
-  },
-  "fixture": {
-    "notice": "Chế độ xem trước với dữ liệu mẫu"
   },
   "panel": {
     "open": "Mở Olorin",

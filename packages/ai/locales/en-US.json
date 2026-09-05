@@ -54,7 +54,11 @@
     "sandbox_rejected": "Execution script did not pass security checks.",
     "rate_limited": "System is receiving too many requests. Please try again shortly.",
     "budget_exceeded": "Account has reached monthly AI usage limits.",
-    "unknown": "An unknown error occurred. Please try again."
+    "unknown": "An unknown error occurred. Please try again.",
+    "quota_exceeded": "Monthly token quota has been reached. Contact an administrator.",
+    "quota_unavailable": "Quota service is temporarily unavailable. Please retry.",
+    "not_ready": "AI service is not ready yet. Please retry shortly.",
+    "approval_expired": "This approval request has expired and can no longer be executed."
   },
   "action": {
     "retry": "Retry",
@@ -92,7 +96,8 @@
     "citations": {
       "title": "References",
       "details": "Lookup result details",
-      "fallback": "Arda knowledge"
+      "fallback": "Arda knowledge",
+      "no_evidence": "No approved evidence matched this question."
     },
     "executed": "Executed tool: {name}"
   },
@@ -129,9 +134,6 @@
     "delete": "Delete conversation",
     "history": "Chat History",
     "current_new": "New conversation"
-  },
-  "fixture": {
-    "notice": "Preview mode with sample data"
   },
   "panel": {
     "open": "Open Olorin",

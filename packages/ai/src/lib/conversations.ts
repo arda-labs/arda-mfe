@@ -23,17 +23,29 @@ export function useOlorinConversations(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) return
+    const controller = new AbortController()
     let cancelled = false
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true)
+    })
     api
-      .get<ApiSuccess<OlorinConversation[]>>("/api/ai/conversations?limit=20")
+      .get<ApiSuccess<OlorinConversation[]>>("/api/ai/conversations?limit=20", {
+        signal: controller.signal,
+      })
       .then((response) => {
         if (!cancelled) setConversations(response.result ?? [])
       })
-      .catch(() => {
-        if (!cancelled) setError("error")
+      .catch((caught) => {
+        if (!cancelled && !isAbortError(caught)) {
+          setError(caught instanceof ApiClientError ? caught.code : "error")
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
+      controller.abort()
     }
   }, [enabled])
 
@@ -54,11 +66,22 @@ export function useOlorinConversations(enabled: boolean) {
   return { conversations, loading, error, refresh }
 }
 
+function isAbortError(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "name" in value &&
+    (value as { name?: unknown }).name === "AbortError"
+  )
+}
+
 export async function fetchConversationMessages(
-  threadId: string
+  threadId: string,
+  signal?: AbortSignal
 ): Promise<OlorinConversationMessage[]> {
   const response = await api.get<ApiSuccess<OlorinConversationMessage[]>>(
-    `/api/ai/conversations/${encodeURIComponent(threadId)}/messages?limit=200`
+    `/api/ai/conversations/${encodeURIComponent(threadId)}/messages?limit=200`,
+    { signal }
   )
   return response.result ?? []
 }

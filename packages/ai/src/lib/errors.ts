@@ -9,9 +9,16 @@ export type AiErrorCode =
   | "ai.sandbox_quota_exceeded"
   | "ai.sandbox_script_rejected"
   | "ai.approval_unavailable"
+  | "ai.approval_expired"
   | "ai.approval_persistence_unavailable"
   | "ai.rate_limited"
   | "ai.budget_exceeded"
+  | "ai.quota_exceeded"
+  | "ai.quota_unavailable"
+  | "ai.not_ready"
+  | "ai.connector_persistence_unavailable"
+  | "ai.analytics_persistence_unavailable"
+  | "ai.agent_persistence_unavailable"
 
 export type AiErrorSeverity = "transient" | "user" | "system"
 
@@ -70,6 +77,24 @@ export const AI_ERROR_MAP: Record<string, AiErrorMeta> = {
     severity: "transient",
     action: "retry",
   },
+  "ai.connector_persistence_unavailable": {
+    i18nKey: "ai.error.persistence_unavailable",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
+  },
+  "ai.analytics_persistence_unavailable": {
+    i18nKey: "ai.error.persistence_unavailable",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
+  },
+  "ai.agent_persistence_unavailable": {
+    i18nKey: "ai.error.persistence_unavailable",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
+  },
   "ai.sandbox_quota_exceeded": {
     i18nKey: "ai.error.sandbox_quota",
     retryable: false,
@@ -92,6 +117,30 @@ export const AI_ERROR_MAP: Record<string, AiErrorMeta> = {
     retryable: false,
     severity: "user",
     action: "contact_admin",
+  },
+  "ai.quota_exceeded": {
+    i18nKey: "ai.error.quota_exceeded",
+    retryable: false,
+    severity: "user",
+    action: "contact_admin",
+  },
+  "ai.quota_unavailable": {
+    i18nKey: "ai.error.quota_unavailable",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
+  },
+  "ai.approval_expired": {
+    i18nKey: "ai.error.approval_expired",
+    retryable: false,
+    severity: "user",
+    action: "contact_admin",
+  },
+  "ai.not_ready": {
+    i18nKey: "ai.error.not_ready",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
   },
 }
 

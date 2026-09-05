@@ -14,6 +14,7 @@ import {
 } from "@assistant-ui/react"
 import { useAgUiRuntime } from "@assistant-ui/react-ag-ui"
 import { HttpAgent } from "@ag-ui/client"
+import { createCredentialedFetch } from "@workspace/api"
 import { apiUrl } from "@workspace/api/url"
 import { registerAppLocales } from "@workspace/i18n"
 import enAi from "../../locales/en-US.json"
@@ -93,7 +94,7 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
         // The gateway lives on a different origin (api.* vs *); HttpAgent's
         // default fetch does not attach cookies, so every run would return
         // 401. Forward the session cookie explicitly.
-        fetch: (input, init) => fetch(input, { ...init, credentials: "include" }),
+        fetch: createCredentialedFetch(),
       }),
     [runtimeUrl]
   )
@@ -103,6 +104,8 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
   // adapter on every switch. The agent follows the same id — centralized here
   // so no handler mutates it directly.
   const threadIdRef = useRef(threadId)
+  const historyRequestRef = useRef(0)
+  const historyAbortRef = useRef<AbortController | null>(null)
   useEffect(() => {
     threadIdRef.current = threadId
     agent.threadId = threadId
@@ -138,8 +141,13 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
         setThreadId(crypto.randomUUID())
       },
       onSwitchToThread: async (nextThreadId: string) => {
+        const requestId = ++historyRequestRef.current
+        historyAbortRef.current?.abort()
+        const controller = new AbortController()
+        historyAbortRef.current = controller
         setThreadId(nextThreadId)
-        const history = await fetchConversationMessages(nextThreadId)
+        const history = await fetchConversationMessages(nextThreadId, controller.signal)
+        if (requestId !== historyRequestRef.current) return { messages: [] }
         const messages = history.map((item) =>
           toThreadMessage(item, `hist-${nextThreadId}-${item.sequence}`)
         )
@@ -193,9 +201,14 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
 
   const switchToThread = useCallback(
     async (nextThreadId: string) => {
+      const requestId = ++historyRequestRef.current
+      historyAbortRef.current?.abort()
+      const controller = new AbortController()
+      historyAbortRef.current = controller
       setThreadId(nextThreadId)
       try {
-        const history = await fetchConversationMessages(nextThreadId)
+        const history = await fetchConversationMessages(nextThreadId, controller.signal)
+        if (requestId !== historyRequestRef.current) return
         const formatted = history.map((item, index) => ({
           message: toThreadMessage(
             item,
@@ -208,6 +221,7 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
         }))
         runtime.thread?.import({ messages: formatted })
       } catch (err) {
+        if (requestId !== historyRequestRef.current) return
         console.warn("Failed to load thread history", err)
         runtime.thread?.import({ messages: [] })
       }

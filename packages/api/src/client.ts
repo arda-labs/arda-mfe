@@ -99,6 +99,27 @@ export interface ApiRequestOptions {
   skipAuthFailureRedirect?: boolean
 }
 
+/**
+ * Fetch adapter for streaming or third-party runtimes that cannot use the
+ * canonical JSON client directly. It preserves the same cookie and request
+ * correlation rules as the shared API client.
+ */
+export function createCredentialedFetch(
+  fetchImpl: typeof fetch = globalThis.fetch
+): typeof fetch {
+  return (input, init = {}) => {
+    const headers = new Headers(init.headers)
+    if (!headers.has("X-Request-Id")) {
+      headers.set("X-Request-Id", createRequestId())
+    }
+    return fetchImpl(input, {
+      ...init,
+      credentials: "include",
+      headers,
+    })
+  }
+}
+
 export function createApiClient(options: CreateApiClientOptions = {}) {
   const baseURL = options.baseURL ?? getApiBaseURL()
   const inflightGet = new Map<string, Promise<unknown>>()

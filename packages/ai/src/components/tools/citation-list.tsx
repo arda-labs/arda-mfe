@@ -33,7 +33,7 @@ export function KnowledgeCitationList({ result }: ToolResultViewProps) {
           <p className="font-medium">{t("ai.tool.citations.title")}</p>
           <ul className="space-y-1.5 text-muted-foreground">
             {citations.map((citation, index) => (
-              <li key={`${textValue(citation.sourceId, "source")}-${index}`}>
+              <li key={`${textValue(citation.sourceKey, textValue(citation.sourceId, "source"))}-${index}`}>
                 <span className="font-medium text-foreground">
                   {textValue(citation.title, t("ai.tool.citations.fallback"))}
                 </span>
@@ -49,6 +49,9 @@ export function KnowledgeCitationList({ result }: ToolResultViewProps) {
             ))}
           </ul>
         </div>
+      )}
+      {citations.length === 0 && (
+        <p className="text-muted-foreground">{t("ai.tool.citations.no_evidence")}</p>
       )}
       <Collapsible>
         <CollapsibleTrigger className="group flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground">
