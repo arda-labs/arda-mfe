@@ -31,11 +31,17 @@ const DisbursementsPage = lazyWithPreload(() =>
     default: m.DisbursementsPage,
   }))
 )
+const CollectionsPage = lazyWithPreload(() =>
+  import("@/features/collections/page").then((m) => ({
+    default: m.CollectionsPage,
+  }))
+)
 
 async function preload(pathname: string) {
   if (pathname.startsWith("/loans/products")) await ProductsPage.preload()
   else if (pathname.startsWith("/loans/vfu")) await VfuPage.preload()
   else if (pathname.startsWith("/loans/disbursements")) await DisbursementsPage.preload()
+  else if (pathname.startsWith("/loans/collections")) await CollectionsPage.preload()
   else await LoanPage.preload()
 }
 
@@ -46,6 +52,7 @@ function RemoteRoutes() {
   if (pathname.startsWith("/loans/products")) page = <ProductsPage pathname={pathname} />
   else if (pathname.startsWith("/loans/vfu")) page = <VfuPage pathname={pathname} />
   else if (pathname.startsWith("/loans/disbursements")) page = <DisbursementsPage pathname={pathname} />
+  else if (pathname.startsWith("/loans/collections")) page = <CollectionsPage pathname={pathname} />
 
   return (
     <div className="flex h-full min-h-0 flex-col">

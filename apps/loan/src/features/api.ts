@@ -206,3 +206,32 @@ export const disbursementApi = {
   submit: (id: string) =>
     postCanonical<LoanDisbursement>(`/api/loan/disbursements/${encodeURIComponent(id)}/submit`, {}),
 }
+
+// ── Collections (P1b.4, LNM.301.02) ──
+
+export interface LoanCollection {
+  id: string
+  tenant_id: string
+  contract_code: string
+  agreement_code: string
+  collection_date: string
+  principal_minor: number
+  interest_minor: number
+  currency_code: string
+  status: string
+  workflow_case_id?: string
+  journal_entry_id?: string
+  created_by: string
+  created_at?: string
+}
+
+export const collectionApi = {
+  list: (params: { status?: string; contract_code?: string } = {}) => {
+    const p = buildSearchParams({ status: params.status, contract_code: params.contract_code })
+    return getCanonicalList<LoanCollection>(`/api/loan/collections${p.toString() ? `?${p.toString()}` : ""}`)
+  },
+  create: (body: Partial<LoanCollection>) =>
+    postCanonical<LoanCollection>("/api/loan/collections", body),
+  submit: (id: string) =>
+    postCanonical<LoanCollection>(`/api/loan/collections/${encodeURIComponent(id)}/submit`, {}),
+}

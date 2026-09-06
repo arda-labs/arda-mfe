@@ -1,0 +1,199 @@
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
+import { useI18n, translateApiError } from "@workspace/i18n"
+import { notify } from "@workspace/ui/feedback/notify"
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { matchTextColumnFilter, textSearchMeta } from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
+import { CheckCircle2, Plus } from "lucide-react"
+import { collectionApi, type LoanCollection } from "../api"
+import { CollectionCreateDialog } from "./components/CollectionCreateDialog"
+
+const DEFAULT_PAGE_SIZE = 10
+
+const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+  DRAFT: "outline",
+  SUBMITTED: "secondary",
+  APPROVED: "default",
+  POSTED: "default",
+  REJECTED: "destructive",
+  CANCELLED: "outline",
+}
+
+/** Collections — principal + interest receipts (LNM.301.02): create →
+ * submit case → approval → finance posting. */
+export function CollectionsPage(_props: { pathname: string }) {
+  const { t } = useI18n()
+  const [items, setItems] = useState<LoanCollection[]>([])
+  const [loading, setLoading] = useState(true)
+  const [createOpen, setCreateOpen] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await collectionApi.list()
+      setItems(result.items)
+    } catch (error) {
+      notify.error(translateApiError(error, t("loan.load_failed")))
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const submit = useCallback(async (item: LoanCollection) => {
+    try {
+      await collectionApi.submit(item.id)
+      notify.success(t("loan.submitted"))
+      await load()
+    } catch (error) {
+      notify.error(translateApiError(error, t("loan.submit_failed")))
+    }
+  }, [load, t])
+
+  const columns = useMemo<ColumnDef<LoanCollection>[]>(
+    () => [
+      {
+        accessorKey: "agreement_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Hợp đồng GD" />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta("Hợp đồng GD", "Tìm…"),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-primary">{row.original.agreement_code}</span>
+        ),
+      },
+      {
+        accessorKey: "contract_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Hợp đồng tín dụng" />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta("Hợp đồng tín dụng", "Tìm…"),
+      },
+      {
+        accessorKey: "principal_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Thu gốc" />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatAmount(fromMinor(row.original.principal_minor, row.original.currency_code), row.original.currency_code)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "interest_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Thu lãi" />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatAmount(fromMinor(row.original.interest_minor, row.original.currency_code), row.original.currency_code)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "collection_date",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Ngày thu" />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap">{formatDateShort(row.original.collection_date)}</span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.field.status")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan.field.status"), "DRAFT…"),
+        cell: ({ row }) => (
+          <Badge variant={statusVariant[row.original.status] ?? "outline"}>
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: t("loan.field.actions"),
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.status === "DRAFT" ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => void submit(row.original)}
+            >
+              <CheckCircle2 className="size-3.5" />
+              {t("loan.submit")}
+            </Button>
+          ) : null,
+      },
+    ],
+    [submit, t]
+  )
+
+  const { table, total } = useClientListTable({
+    columns,
+    items,
+    filterBy: {
+      agreement_code: (item, value) => matchTextColumnFilter(value, item.agreement_code),
+      contract_code: (item, value) => matchTextColumnFilter(value, item.contract_code),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        agreement_code: (a, b) => a.agreement_code.localeCompare(b.agreement_code),
+        collection_date: (a, b) => a.collection_date.localeCompare(b.collection_date),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
+  return (
+    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
+      <PageHeader
+        title="Thu nợ"
+        description="Thu gốc + lãi theo hợp đồng; trình duyệt qua workbench — duyệt xong bút toán tự post."
+        actions={
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="size-4" />
+            Thêm thu nợ
+          </Button>
+        }
+      />
+
+      <div className="relative min-h-0 flex-1">
+        {loading ? (
+          <DataTableSkeleton columnCount={7} rowCount={6} />
+        ) : (
+          <DataTable table={table} totalRows={total} className="min-h-0 flex-1">
+            <ListTableToolbar
+              table={table}
+              onCreate={() => setCreateOpen(true)}
+              createLabel="Thêm thu nợ"
+            />
+          </DataTable>
+        )}
+      </div>
+
+      <CollectionCreateDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSaved={load}
+      />
+    </section>
+  )
+}
