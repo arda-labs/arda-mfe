@@ -177,3 +177,32 @@ export const vfuApi = {
   createPlan: (body: Partial<VfuPlan>) =>
     postCanonical<VfuPlan>("/api/loan/vfu/plans", body),
 }
+
+// ── Disbursements (P1b, LNM.300.02) ──
+
+export interface LoanDisbursement {
+  id: string
+  tenant_id: string
+  contract_code: string
+  agreement_code: string
+  disburse_date: string
+  disburse_amt_minor: number
+  currency_code: string
+  fund_source_code: string
+  status: string
+  workflow_case_id?: string
+  journal_entry_id?: string
+  created_by: string
+  created_at?: string
+}
+
+export const disbursementApi = {
+  list: (params: { status?: string; contract_code?: string } = {}) => {
+    const p = buildSearchParams({ status: params.status, contract_code: params.contract_code })
+    return getCanonicalList<LoanDisbursement>(`/api/loan/disbursements${p.toString() ? `?${p.toString()}` : ""}`)
+  },
+  create: (body: Partial<LoanDisbursement>) =>
+    postCanonical<LoanDisbursement>("/api/loan/disbursements", body),
+  submit: (id: string) =>
+    postCanonical<LoanDisbursement>(`/api/loan/disbursements/${encodeURIComponent(id)}/submit`, {}),
+}
