@@ -44,7 +44,7 @@ import { MdmItemDialog } from "./components/MdmItemDialog"
 
 const DEFAULT_PAGE_SIZE = 10
 
-export function MdmPage() {
+export function MdmPage(_props: { pathname: string }) {
   const { t } = useI18n()
   const [catalog, setCatalog] = useState<MdmCatalogKey>("currencies")
   const [items, setItems] = useState<MdmItem[]>([])

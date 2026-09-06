@@ -1,0 +1,124 @@
+{
+  "title": "Business Master Data (MDM)",
+  "description": "Manage the 20 platform-wide master data catalogs.",
+  "create": "New record",
+  "save": "Save",
+  "saved": "Record saved",
+  "save_failed": "Failed to save record",
+  "delete": "Delete",
+  "deleted": "Record deleted",
+  "delete_failed": "Failed to delete record",
+  "delete_confirm_title": "Delete catalog record?",
+  "delete_confirm_description": "Record {code} will be permanently removed.",
+  "cancel": "Cancel",
+  "loading": "Loading...",
+  "load_failed": "Failed to load list (is mdm-service up?)",
+  "empty": "No records in this catalog yet",
+  "validation": {
+    "code_name_required": "Code and name are required",
+    "attributes_json": "Attributes must be valid JSON"
+  },
+  "field": {
+    "code": "Code",
+    "name": "Name",
+    "description": "Description",
+    "attributes": "Attributes (JSON)",
+    "scope": "Scope",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "scope": {
+    "global": "Global",
+    "readonly": "Seed — read-only"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "catalog": {
+    "currencies": "Currencies",
+    "countries": "Countries",
+    "id_document_types": "ID document types",
+    "collateral_types": "Collateral types",
+    "loan_purposes": "Loan purposes",
+    "fee_types": "Fee types",
+    "debt_groups": "Debt groups (Circular 02/2023)",
+    "economic_types": "Economic types",
+    "industries": "Industries",
+    "loan_methods": "Loan methods",
+    "loan_contract_types": "Contract types",
+    "fund_sources": "Fund sources",
+    "fund_purposes": "Fund purposes",
+    "base_rates": "Base rates",
+    "interest_factors": "Day-count factors",
+    "cash_denominations": "Cash denominations",
+    "scoring_types": "Scoring types",
+    "scoring_indicator_groups": "Scoring indicator groups",
+    "scoring_indicators": "Scoring indicators",
+    "scoring_benchmarks": "Scoring benchmarks"
+  },
+  "edit": "Edit record",
+  "placeholder": {
+    "search": "Search by code or name..."
+  },
+  "interest_rates": {
+    "title": "Interest rates",
+    "description": "Define rate tables and tiered values by date range and amount band.",
+    "create": "New rate table",
+    "edit": "Edit rate table",
+    "dialog_description": "A rate table is the parent frame; concrete values live in tiers.",
+    "load_failed": "Failed to load interest rates",
+    "placeholder": {
+      "search": "Search by code or name..."
+    },
+    "field": {
+      "code": "Code",
+      "name": "Name",
+      "rate_type": "Rate type",
+      "apply_type": "Apply type",
+      "currency": "Currency",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "rate_type": {
+      "central": "Central rate",
+      "loan": "Lending rate",
+      "deposit": "Deposit rate"
+    },
+    "apply_type": {
+      "by_balance": "By balance",
+      "by_term": "By term",
+      "negotiated": "Negotiated"
+    },
+    "tiers": {
+      "title": "Rate tiers",
+      "description": "Rate values effective per date range and amount band.",
+      "manage": "Rate tiers",
+      "create": "Add tier",
+      "empty": "No rate tiers yet",
+      "load_failed": "Failed to load rate tiers",
+      "field": {
+        "effective": "Effective",
+        "effective_from": "From",
+        "effective_to": "To",
+        "amount_band": "Amount band",
+        "amount_from": "Amount from",
+        "amount_to": "Amount to",
+        "rate_value": "Rate (%/yr)",
+        "min_rate": "Min rate (%/yr)",
+        "max_rate": "Max rate (%/yr)",
+        "decision": "Decision",
+        "decision_no": "Decision no."
+      },
+      "placeholder": {
+        "optional": "—"
+      },
+      "validation": {
+        "effective_from": "Invalid effective-from date",
+        "rate_value": "Rate must be a valid number"
+      },
+      "delete_confirm_title": "Delete rate tier?",
+      "delete_confirm_description": "The tier will be permanently removed from this rate table."
+    }
+  }
+}

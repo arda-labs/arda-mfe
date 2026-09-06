@@ -130,6 +130,8 @@ const KNOWN_NAMESPACES = new Set([
   "workflow",
   "ai",
   "account",
+  "loan",
+  "mdm",
 ])
 
 function translate(

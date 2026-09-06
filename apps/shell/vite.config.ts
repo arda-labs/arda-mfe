@@ -45,6 +45,7 @@ export default defineConfig(({ command }) => {
           workflow: remote("workflow", "WORKFLOW_REMOTE_ENTRY"),
           ai: remote("ai", "AI_REMOTE_ENTRY"),
           loan: remote("loan", "LOAN_REMOTE_ENTRY"),
+          mdm: remote("mdm", "MDM_REMOTE_ENTRY"),
         },
         shared: { ...remoteSharedDeps },
       }),

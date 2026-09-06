@@ -34,11 +34,6 @@ const CutoffPage = lazyWithPreload(() =>
     default: m.CutoffPage,
   }))
 )
-const MdmPage = lazyWithPreload(() =>
-  import("@/features/mdm/page").then((m) => ({
-    default: m.MdmPage,
-  }))
-)
 const LookupsPage = lazyWithPreload(() =>
   import("@/features/lookups/page").then((m) => ({
     default: m.LookupsPage,
@@ -82,7 +77,6 @@ export default createRemoteRoutes({
     { prefix: "/admin/templates", component: TemplatesPage },
     { prefix: "/admin/calendar", component: CalendarPage },
     { prefix: "/admin/cutoff", component: CutoffPage },
-    { prefix: "/admin/mdm", component: MdmPage },
   ],
   defaultComponent: OrganizationsPage,
   wrapper: QueryProvider,

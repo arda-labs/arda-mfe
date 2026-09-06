@@ -292,6 +292,42 @@
         "vite": "^8",
       },
     },
+    "apps/mdm": {
+      "name": "mdm",
+      "version": "0.0.1",
+      "dependencies": {
+        "@tanstack/react-table": "^8.21.3",
+        "@workspace/admin-list": "workspace:*",
+        "@workspace/api": "workspace:*",
+        "@workspace/auth": "workspace:*",
+        "@workspace/format": "workspace:*",
+        "@workspace/i18n": "workspace:*",
+        "@workspace/notifications": "workspace:*",
+        "@workspace/query": "workspace:*",
+        "@workspace/theme": "workspace:*",
+        "@workspace/ui": "workspace:*",
+        "lucide-react": "^1.22.0",
+        "react": "^19.2.6",
+        "react-dom": "^19.2.6",
+        "react-router-dom": "^7.18.1",
+        "react-toastify": "^11.1.0",
+      },
+      "devDependencies": {
+        "@eslint/js": "^10",
+        "@tailwindcss/vite": "^4",
+        "@types/node": "^24",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^6",
+        "eslint": "^10",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "eslint-plugin-react-refresh": "^0.5.2",
+        "globals": "^17",
+        "typescript": "~6",
+        "typescript-eslint": "^8",
+        "vite": "^8",
+      },
+    },
     "apps/platform": {
       "name": "platform",
       "version": "0.0.1",
@@ -1681,6 +1717,8 @@
     "mdast-util-to-markdown": ["mdast-util-to-markdown@2.1.2", "", { "dependencies": { "@types/mdast": "^4.0.0", "@types/unist": "^3.0.0", "longest-streak": "^3.0.0", "mdast-util-phrasing": "^4.0.0", "mdast-util-to-string": "^4.0.0", "micromark-util-classify-character": "^2.0.0", "micromark-util-decode-string": "^2.0.0", "unist-util-visit": "^5.0.0", "zwitch": "^2.0.0" } }, "sha512-xj68wMTvGXVOKonmog6LwyJKrYXZPvlwabaryTjLh9LuvovB/KAH+kvi8Gjj+7rJjsFi23nkUxRQv1KqSroMqA=="],
 
     "mdast-util-to-string": ["mdast-util-to-string@4.0.0", "", { "dependencies": { "@types/mdast": "^4.0.0" } }, "sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg=="],
+
+    "mdm": ["mdm@workspace:apps/mdm"],
 
     "micromark": ["micromark@4.0.2", "", { "dependencies": { "@types/debug": "^4.0.0", "debug": "^4.0.0", "decode-named-character-reference": "^1.0.0", "devlop": "^1.0.0", "micromark-core-commonmark": "^2.0.0", "micromark-factory-space": "^2.0.0", "micromark-util-character": "^2.0.0", "micromark-util-chunked": "^2.0.0", "micromark-util-combine-extensions": "^2.0.0", "micromark-util-decode-numeric-character-reference": "^2.0.0", "micromark-util-encode": "^2.0.0", "micromark-util-normalize-identifier": "^2.0.0", "micromark-util-resolve-all": "^2.0.0", "micromark-util-sanitize-uri": "^2.0.0", "micromark-util-subtokenize": "^2.0.0", "micromark-util-symbol": "^2.0.0", "micromark-util-types": "^2.0.0" } }, "sha512-zpe98Q6kvavpCr1NPVSCMebCKfD7CA2NqZ+rykeNhONIJBpc1tFKt9hucLGwha3jNTNI8lHpctWJWoimVF4PfA=="],
 

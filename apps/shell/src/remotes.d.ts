@@ -78,3 +78,12 @@ declare module "loan/Routes" {
   }
   export default Routes
 }
+
+declare module "mdm/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType & {
+    preload?: (pathname?: string) => Promise<void>
+  }
+  export default Routes
+}

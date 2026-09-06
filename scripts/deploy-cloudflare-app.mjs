@@ -11,6 +11,8 @@ const apps = [
   "workflow",
   "crm",
   "ai",
+  "loan",
+  "mdm",
 ]
 
 const app = process.argv[2]
