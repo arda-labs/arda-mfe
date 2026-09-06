@@ -26,11 +26,17 @@ const TrialBalancePage = lazyWithPreload(() =>
     default: m.TrialBalancePage,
   }))
 )
+const JournalPage = lazyWithPreload(() =>
+  import("@/features/finance/journal/page").then((m) => ({
+    default: m.JournalPage,
+  }))
+)
 
 async function preload(pathname = "") {
   let page = AccountsPage
   if (pathname.startsWith("/finance/accounting-config")) page = AccountingConfigPage
   if (pathname.startsWith("/finance/trial-balance")) page = TrialBalancePage
+  if (pathname.startsWith("/finance/journal")) page = JournalPage
   await page.preload()
 }
 
@@ -42,6 +48,7 @@ function RemoteRoutes() {
     page = <AccountingConfigPage />
   }
   if (pathname.startsWith("/finance/trial-balance")) page = <TrialBalancePage />
+  if (pathname.startsWith("/finance/journal")) page = <JournalPage pathname={pathname} />
 
   return (
     <div className="flex h-full min-h-0 flex-col">
