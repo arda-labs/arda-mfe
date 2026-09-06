@@ -1,0 +1,12 @@
+{
+  "loan": {
+    "field": {
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "cancel": "Hủy",
+    "create": "Tạo",
+    "submit": "Trình duyệt",
+    "load_failed": "Không thể tải dữ liệu"
+  }
+}

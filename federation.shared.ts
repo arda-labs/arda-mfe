@@ -51,6 +51,9 @@ export const remotePorts = {
   ai: 5108,
   loan: 5109,
   mdm: 5110,
+  deposit: 8110,
+  capital: 8111,
+  statistical: 8112,
 } as const
 
 // Vendor lớn để shell pre-bundle 1 lần ở boot, không ở first navigation

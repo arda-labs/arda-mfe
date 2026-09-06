@@ -15,6 +15,9 @@ const apps = [
   "ai",
   "loan",
   "mdm",
+  "deposit",
+  "capital",
+  "statistical",
 ]
 
 const targetArg = process.argv[2] ?? "all"

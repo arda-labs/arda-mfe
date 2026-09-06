@@ -1,0 +1,12 @@
+{
+  "loan": {
+    "field": {
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "cancel": "Cancel",
+    "create": "Create",
+    "submit": "Submit",
+    "load_failed": "Failed to load"
+  }
+}

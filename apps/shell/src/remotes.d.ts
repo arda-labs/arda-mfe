@@ -79,6 +79,33 @@ declare module "loan/Routes" {
   export default Routes
 }
 
+declare module "deposit/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType & {
+    preload?: (pathname?: string) => Promise<void>
+  }
+  export default Routes
+}
+
+declare module "capital/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType & {
+    preload?: (pathname?: string) => Promise<void>
+  }
+  export default Routes
+}
+
+declare module "statistical/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType & {
+    preload?: (pathname?: string) => Promise<void>
+  }
+  export default Routes
+}
+
 declare module "mdm/Routes" {
   import type { ComponentType } from "react"
 

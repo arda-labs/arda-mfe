@@ -13,6 +13,9 @@ const apps = [
   "ai",
   "loan",
   "mdm",
+  "deposit",
+  "capital",
+  "statistical",
 ]
 
 const app = process.argv[2]
