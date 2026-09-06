@@ -58,7 +58,7 @@ export function MdmPage() {
     setLoading(true)
     try {
       const result = await mdmApi.listItems(catalog)
-      setItems(result)
+      setItems(result.items)
     } catch (error) {
       notify.error(translateApiError(error, t("mdm.load_failed")))
     } finally {

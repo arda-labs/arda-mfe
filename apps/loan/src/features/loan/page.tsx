@@ -66,7 +66,7 @@ export function LoanPage(_props: { pathname: string }) {
     setLoadingContracts(true)
     try {
       const result = await loanApi.listContracts()
-      setContracts(result)
+      setContracts(result.items)
     } catch (error) {
       notify.error(translateApiError(error, t("loan.load_failed")))
     } finally {
@@ -78,7 +78,7 @@ export function LoanPage(_props: { pathname: string }) {
     setLoadingAdjustments(true)
     try {
       const result = await loanApi.listAdjustments(kind)
-      setAdjustments(result)
+      setAdjustments(result.items)
     } catch (error) {
       notify.error(translateApiError(error, t("loan.load_failed")))
     } finally {

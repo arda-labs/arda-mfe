@@ -1,4 +1,4 @@
-import { getCanonical, postCanonical } from "@workspace/api"
+import { getCanonicalList, postCanonical } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 
 export interface LoanContract {
@@ -51,8 +51,8 @@ export type LoanAdjustmentKind = (typeof loanAdjustmentKinds)[number]["key"]
 export const loanApi = {
   listContracts: (params: { q?: string; status?: string } = {}) => {
     const search = buildSearchParams({ q: params.q, status: params.status })
-    const qs = search.toString()
-    return getCanonical<LoanContract[]>(`/api/loan/contracts${qs ? `?${qs}` : ""}`)
+    search.set("all", "true")
+    return getCanonicalList<LoanContract>(`/api/loan/contracts?${search.toString()}`)
   },
   submitContract: (id: string) =>
     postCanonical<LoanContract>(`/api/loan/contracts/${encodeURIComponent(id)}/submit`, {}),
@@ -66,9 +66,9 @@ export const loanApi = {
       contract_code: params.contract_code,
       status: params.status,
     })
-    const qs = search.toString()
-    return getCanonical<LoanAdjustment[]>(
-      `/api/loan/adjustments/${kind}${qs ? `?${qs}` : ""}`
+    search.set("all", "true")
+    return getCanonicalList<LoanAdjustment>(
+      `/api/loan/adjustments/${kind}?${search.toString()}`
     )
   },
   createAdjustment: (
@@ -106,7 +106,9 @@ export interface LoanProduct {
 
 export const productApi = {
   listProducts: (includeInactive = false) =>
-    getCanonical<LoanProduct[]>(`/api/loan/products${includeInactive ? "?include_inactive=true" : ""}`),
+    getCanonicalList<LoanProduct>(
+      `/api/loan/products?all=true${includeInactive ? "&include_inactive=true" : ""}`
+    ),
   upsertProduct: (body: Partial<LoanProduct>) =>
     postCanonical<LoanProduct>("/api/loan/products", body),
 }
@@ -157,20 +159,20 @@ export interface VfuPlan {
 
 export const vfuApi = {
   listParties: (q = "") => {
-    const qs = q ? `?q=${encodeURIComponent(q)}` : ""
-    return getCanonical<VfuParty[]>(`/api/loan/vfu/parties${qs}`)
+    const qs = q ? `&q=${encodeURIComponent(q)}` : ""
+    return getCanonicalList<VfuParty>(`/api/loan/vfu/parties?all=true${qs}`)
   },
   createParty: (body: Partial<VfuParty>) =>
     postCanonical<VfuParty>("/api/loan/vfu/parties", body),
   listMandates: (q = "") => {
-    const qs = q ? `?q=${encodeURIComponent(q)}` : ""
-    return getCanonical<VfuMandate[]>(`/api/loan/vfu/mandates${qs}`)
+    const qs = q ? `&q=${encodeURIComponent(q)}` : ""
+    return getCanonicalList<VfuMandate>(`/api/loan/vfu/mandates?all=true${qs}`)
   },
   createMandate: (body: Partial<VfuMandate>) =>
     postCanonical<VfuMandate>("/api/loan/vfu/mandates", body),
   listPlans: (mandateCode = "") => {
-    const qs = mandateCode ? `?mandate_code=${encodeURIComponent(mandateCode)}` : ""
-    return getCanonical<VfuPlan[]>(`/api/loan/vfu/plans${qs}`)
+    const qs = mandateCode ? `&mandate_code=${encodeURIComponent(mandateCode)}` : ""
+    return getCanonicalList<VfuPlan>(`/api/loan/vfu/plans?all=true${qs}`)
   },
   createPlan: (body: Partial<VfuPlan>) =>
     postCanonical<VfuPlan>("/api/loan/vfu/plans", body),

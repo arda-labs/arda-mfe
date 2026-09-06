@@ -441,7 +441,7 @@ export type MdmCatalogKey = (typeof mdmCatalogs)[number]["key"]
 
 export const mdmApi = {
   listItems: (catalog: MdmCatalogKey, requestOptions?: ApiRequestOptions) =>
-    getCanonical<MdmItem[]>(`/api/mdm/${catalog}`, requestOptions),
+    getCanonicalList<MdmItem>(`/api/mdm/${catalog}?include_inactive=true&all=true`, requestOptions),
   createItem: (catalog: MdmCatalogKey, body: Partial<MdmItem>) =>
     postCanonical<MdmItem>(`/api/mdm/${catalog}`, body),
   updateItem: (catalog: MdmCatalogKey, id: string, body: Partial<MdmItem>) =>

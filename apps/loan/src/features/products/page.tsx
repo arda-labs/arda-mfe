@@ -34,7 +34,7 @@ export function ProductsPage(_props: { pathname: string }) {
     setLoading(true)
     try {
       const result = await productApi.listProducts()
-      setProducts(result)
+      setProducts(result.items)
     } catch (error) {
       notify.error(translateApiError(error, t("loan_products.load_failed")))
     } finally {

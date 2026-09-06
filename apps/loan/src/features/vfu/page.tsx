@@ -34,9 +34,9 @@ export function VfuPage(_props: { pathname: string }) {
         vfuApi.listMandates(),
         vfuApi.listPlans(),
       ])
-      setParties(p)
-      setMandates(m)
-      setPlans(pl)
+      setParties(p.items)
+      setMandates(m.items)
+      setPlans(pl.items)
     } catch (error) {
       notify.error(translateApiError(error, t("loan_vfu.load_failed")))
     } finally {

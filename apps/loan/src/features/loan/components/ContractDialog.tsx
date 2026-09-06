@@ -56,7 +56,7 @@ export function ContractDialog({
     })
     productApi
       .listProducts()
-      .then(setProducts)
+      .then((r) => setProducts(r.items))
       .catch(() => setProducts([]))
   }, [open])
 
