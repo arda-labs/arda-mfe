@@ -23,13 +23,11 @@ export function VfuPage(_props: { pathname: string }) {
   const [parties, setParties] = useState<VfuParty[]>([])
   const [mandates, setMandates] = useState<VfuMandate[]>([])
   const [plans, setPlans] = useState<VfuPlan[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogTarget, setDialogTarget] = useState<DialogTarget>(null)
   const [savePending, setSavePending] = useState(false)
   const [form, setForm] = useState({ code: "", name: "", extra: "" })
 
   const loadAll = useCallback(async () => {
-    setLoading(true)
     try {
       const [p, m, pl] = await Promise.all([
         vfuApi.listParties(),
@@ -42,7 +40,6 @@ export function VfuPage(_props: { pathname: string }) {
     } catch (error) {
       notify.error(translateApiError(error, t("loan_vfu.load_failed")))
     } finally {
-      setLoading(false)
     }
   }, [t])
 

@@ -13,6 +13,7 @@ const apps = [
   "workflow",
   "crm",
   "ai",
+  "loan",
 ]
 
 const targetArg = process.argv[2] ?? "all"

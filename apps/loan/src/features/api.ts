@@ -1,8 +1,5 @@
-import {
-  buildSearchParams,
-  getCanonical,
-  postCanonical,
-} from "@workspace/api"
+import { getCanonical, postCanonical } from "@workspace/api"
+import { buildSearchParams } from "@workspace/api/query"
 
 export interface LoanContract {
   id: string

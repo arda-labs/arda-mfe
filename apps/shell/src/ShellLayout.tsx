@@ -77,7 +77,7 @@ export function ShellLayout() {
   const { user, isAuthenticated, logout, switchTenant } = useAuthStore()
   const { t } = useI18n()
   const { branding } = useSystemBranding()
-  const { items: navSource } = useDynamicNavItems(user)
+  const { items: navSource } = useDynamicNavItems()
   const visibleNavItems = filterNavItems(navSource, user)
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
 

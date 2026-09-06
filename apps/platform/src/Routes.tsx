@@ -34,6 +34,11 @@ const CutoffPage = lazyWithPreload(() =>
     default: m.CutoffPage,
   }))
 )
+const MdmPage = lazyWithPreload(() =>
+  import("@/features/mdm/page").then((m) => ({
+    default: m.MdmPage,
+  }))
+)
 const LookupsPage = lazyWithPreload(() =>
   import("@/features/lookups/page").then((m) => ({
     default: m.LookupsPage,

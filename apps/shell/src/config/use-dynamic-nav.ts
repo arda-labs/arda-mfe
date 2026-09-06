@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import {
-  BarChart3,
   BookOpen,
   Bot,
   Building2,
@@ -22,7 +21,6 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { fetchEffectiveMenu, type PlatformMenuItem } from "@workspace/api"
-import type { AuthUser } from "@workspace/auth/store"
 import { navItems, type NavNode } from "./nav-config"
 
 // Icon names are free text in plt_menus; unmapped names degrade to a plain
@@ -92,9 +90,10 @@ export type DynamicNavState = {
 /**
  * DB-driven sidebar (plt_menus via platform-service). Falls back to the
  * static route table when the menu API fails or returns nothing, so a
- * platform outage degrades navigation instead of removing it.
+ * platform outage degrades navigation instead of removing it. Permission
+ * filtering happens at the caller (filterNavItems on the session user).
  */
-export function useDynamicNavItems(user: AuthUser | null): DynamicNavState {
+export function useDynamicNavItems(): DynamicNavState {
   const [state, setState] = useState<DynamicNavState>({
     items: navItems,
     source: "static-fallback",
