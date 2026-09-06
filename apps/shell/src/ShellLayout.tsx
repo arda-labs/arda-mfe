@@ -74,7 +74,8 @@ export function ShellLayout() {
   const [authHydrated, setAuthHydrated] = useState(() =>
     useAuthStore.persist.hasHydrated()
   )
-  const { user, isAuthenticated, logout, switchTenant } = useAuthStore()
+  const { user, isAuthenticated, logout, switchTenant, setActiveOrgId } =
+    useAuthStore()
   const { t } = useI18n()
   const { branding } = useSystemBranding()
   const { items: navSource } = useDynamicNavItems()
@@ -243,6 +244,7 @@ export function ShellLayout() {
           displayUserName={displayUserName}
           logout={logout}
           switchTenant={switchTenant}
+          setActiveOrgId={setActiveOrgId}
           navigate={navigate}
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           aiPanelOpen={aiEnabled && aiView !== "closed"}

@@ -115,6 +115,7 @@ export interface WorkItemFilter {
   slaStatus?: "ALL" | "MET" | "BREACHED"
   transactionStatus?: string
   node?: string
+  domain?: string
   status?: string
   caseType?: string
   candidateRole?: string
@@ -320,6 +321,7 @@ function toWorkItemSearch(filter: WorkItemFilter) {
     transactionStatus:
       filter.transactionStatus === "ALL" ? undefined : filter.transactionStatus,
     node: filter.node === "ALL" ? undefined : filter.node,
+    domain: filter.domain === "ALL" ? undefined : filter.domain,
     status: filter.status === "ALL" ? undefined : filter.status,
     case_type: filter.caseType,
     candidate_role: filter.candidateRole,

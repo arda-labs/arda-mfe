@@ -1,5 +1,6 @@
 import { Building2, Check, Moon, Search, Sparkles, Sun } from "lucide-react"
 import { useState } from "react"
+import { Network } from "lucide-react"
 import {
   SHELL_PAGE_HEADER_SLOT_ID,
   type ShellPageTitleState,
@@ -27,6 +28,7 @@ export function AppHeader({
   displayUserName,
   logout,
   switchTenant,
+  setActiveOrgId,
   navigate,
   aiPanelOpen = false,
   onToggleAiPanel,
@@ -38,12 +40,15 @@ export function AppHeader({
   displayUserName: string
   logout: () => Promise<void>
   switchTenant: (tenantId: string) => Promise<void>
+  setActiveOrgId: (orgId: string) => void
   navigate: (pathname: string) => void
   aiPanelOpen?: boolean
   onToggleAiPanel?: () => void
   onOpenCommandPalette?: () => void
 }) {
   const { theme, setTheme } = useTheme()
+  const orgIds = user?.orgIds ?? []
+  const activeOrgId = user?.activeOrgId || orgIds[0] || ""
   const { locale, setLocale, t } = useI18n()
   const [switchingTenant, setSwitchingTenant] = useState(false)
 
@@ -110,6 +115,40 @@ export function AppHeader({
                   </span>
                   {membership.tenantId ===
                   (user.activeTenantId || user.tenantId) ? (
+                    <Check className="size-4" />
+                  ) : null}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+        {orgIds.length > 1 ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="max-w-48 gap-2"
+                title="Chi nhánh giao dịch"
+              >
+                <Network className="size-3.5" />
+                <span className="truncate">
+                  {activeOrgId || "Chọn chi nhánh"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Chi nhánh giao dịch</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {orgIds.map((orgId) => (
+                <DropdownMenuItem
+                  key={orgId}
+                  onClick={() => setActiveOrgId(orgId)}
+                >
+                  <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                    {orgId}
+                  </span>
+                  {orgId === activeOrgId ? (
                     <Check className="size-4" />
                   ) : null}
                 </DropdownMenuItem>
