@@ -118,6 +118,12 @@ export const navItems: NavNode[] = [
         permissions: ["iam.user.read"],
       },
       {
+        href: "/admin/menus",
+        labelKey: "nav.admin.menus",
+        icon: ListTree,
+        permissions: ["platform.manage"],
+      },
+      {
         href: "/admin/settings",
         labelKey: "nav.admin.system_settings",
         icon: Settings,

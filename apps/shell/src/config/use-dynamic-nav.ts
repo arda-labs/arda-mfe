@@ -1,55 +1,12 @@
 import { useEffect, useState } from "react"
-import {
-  BookOpen,
-  Bot,
-  Building2,
-  Calendar,
-  Circle,
-  FileText,
-  IdCard,
-  Inbox,
-  KeyRound,
-  LayoutDashboard,
-  ListTree,
-  Settings,
-  ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
-  Users,
-  Wallet,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react"
+import { getMenuIcon } from "@workspace/ui/config/menu-icons"
 import { fetchEffectiveMenu, type PlatformMenuItem } from "@workspace/api"
 import { navItems, type NavNode } from "./nav-config"
 
-// Icon names are free text in plt_menus; unmapped names degrade to a plain
-// circle instead of breaking the sidebar.
-const iconRegistry: Record<string, LucideIcon> = {
-  dashboard: LayoutDashboard,
-  settings: Settings,
-  users: Users,
-  groups: Users,
-  shield: ShieldCheck,
-  key: KeyRound,
-  log: FileText,
-  building: Building2,
-  org: Building2,
-  sliders: SlidersHorizontal,
-  list: ListTree,
-  book: BookOpen,
-  coins: Wallet,
-  "id-card": IdCard,
-  contact: IdCard,
-  workflow: Calendar,
-  inbox: Inbox,
-  sparkles: Sparkles,
-  bot: Bot,
-  wrench: Wrench,
-}
-
 function toNavNodes(items: PlatformMenuItem[]): NavNode[] {
   const byId = new Map<string, NavNode>()
+  const byCode = new Map<string, NavNode>()
+  const codeById = new Map<string, string>()
   const roots: NavNode[] = []
 
   const sorted = [...items].sort((a, b) =>
@@ -59,20 +16,33 @@ function toNavNodes(items: PlatformMenuItem[]): NavNode[] {
   )
 
   for (const item of sorted) {
-    const icon = iconRegistry[item.icon] ?? Circle
     const node: NavNode = {
       id: item.code,
       href: item.path || undefined,
       label: item.title,
-      icon,
-      permissions: item.required_permission ? [item.required_permission] : undefined,
+      icon: getMenuIcon(item.icon),
+      // required_permission may hold a comma-separated list; empty = visible to all.
+      permissions: item.required_permission
+        ? item.required_permission
+            .split(",")
+            .map((code) => code.trim())
+            .filter(Boolean)
+        : undefined,
     }
     byId.set(item.id, node)
+    byCode.set(item.code, node)
+    codeById.set(item.id, item.code)
   }
   for (const item of sorted) {
     const node = byId.get(item.id)
     if (!node) continue
-    const parent = item.parent_id ? byId.get(item.parent_id) : undefined
+    // Resolve the parent by row id; when the parent row itself was replaced by
+    // a tenant override (same code, new id), fall back to its code.
+    const parent =
+      (item.parent_id ? byId.get(item.parent_id) : undefined) ??
+      (item.parent_id
+        ? byCode.get(codeById.get(item.parent_id) ?? "")
+        : undefined)
     if (parent) {
       parent.children = [...(parent.children ?? []), node]
     } else {

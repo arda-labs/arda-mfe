@@ -17,6 +17,7 @@
     "roles": "Roles",
     "permissions": "Permissions",
     "audit": "Audit",
+    "menus": "Menu Configuration",
     "system_settings": "System Settings",
     "ai_settings": "AI Assistant Settings",
     "knowledge": "Knowledge Management",

@@ -2,6 +2,69 @@
   "lookup": {
     "not_found": "Không tìm thấy danh mục"
   },
+  "menus": {
+    "title": "Cấu hình menu",
+    "count": "{count} mục",
+    "create": "Thêm mục menu",
+    "edit": "Cập nhật mục menu",
+    "create_title": "Thêm mục menu",
+    "dialog_description": "Quản lý cây menu điều hướng; bản ghi riêng của đơn vị sẽ ghi đè mục mặc định cùng mã.",
+    "override_notice": "Mục này là mặc định toàn hệ thống. Lưu sẽ tạo bản ghi ghi đè riêng cho đơn vị hiện tại (cùng mã).",
+    "load_failed": "Không thể tải cây menu",
+    "field": {
+      "code": "Mã",
+      "title": "Tiêu đề",
+      "path": "Đường dẫn",
+      "parent": "Menu cha",
+      "parent_none": "— Menu cấp gốc —",
+      "icon": "Icon",
+      "icon_none": "Mặc định (tròn)",
+      "remote": "Remote",
+      "remote_none": "Không gán",
+      "required_permission": "Quyền yêu cầu",
+      "sort_order": "Thứ tự",
+      "is_active": "Đang hiển thị",
+      "scope": "Phạm vi",
+      "status": "Trạng thái"
+    },
+    "placeholder": {
+      "search": "Tìm theo tiêu đề, mã, đường dẫn...",
+      "path": "/route hoặc để trống nếu là nhóm",
+      "permission": "vd: iam.read,platform.manage"
+    },
+    "scope": {
+      "default": "Mặc định",
+      "tenant": "Riêng của đơn vị",
+      "override": "Ghi đè mặc định"
+    },
+    "status": {
+      "active": "Hiển thị",
+      "inactive": "Đã ẩn"
+    },
+    "validation": {
+      "code_required": "Mã menu là bắt buộc",
+      "code_too_long": "Mã menu quá dài",
+      "code_format": "Mã chỉ gồm chữ thường, số, dấu chấm và gạch dưới",
+      "title_required": "Tiêu đề là bắt buộc",
+      "title_too_long": "Tiêu đề quá dài",
+      "path_too_long": "Đường dẫn quá dài",
+      "path_format": "Đường dẫn phải bắt đầu bằng / hoặc để trống",
+      "permission_too_long": "Danh sách quyền quá dài",
+      "sort_integer": "Thứ tự phải là số nguyên",
+      "sort_invalid": "Thứ tự phải là số nguyên không âm"
+    },
+    "delete": {
+      "title": "Xác nhận xóa mục menu?",
+      "description": "Bạn chắc chắn muốn xóa \"{title}\" khỏi menu của đơn vị? Mục mặc định toàn hệ thống (nếu có) sẽ hiển thị lại.",
+      "confirm": "Xóa bỏ"
+    },
+    "toast": {
+      "save_success": "Đã lưu mục menu",
+      "save_failed": "Không thể lưu mục menu",
+      "delete_success": "Đã xóa mục menu",
+      "delete_failed": "Không thể xóa mục menu"
+    }
+  },
   "area_types": {
     "title": "Loại khu vực",
     "count": "{count} loại",

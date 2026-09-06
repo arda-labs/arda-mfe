@@ -2,6 +2,69 @@
   "lookup": {
     "not_found": "Lookup category not found"
   },
+  "menus": {
+    "title": "Menu Configuration",
+    "count": "{count} items",
+    "create": "Add menu item",
+    "edit": "Edit menu item",
+    "create_title": "Add menu item",
+    "dialog_description": "Manage the navigation menu tree; tenant-scoped entries override the global default with the same code.",
+    "override_notice": "This is a global default entry. Saving will create a tenant-scoped override (same code) for the current tenant.",
+    "load_failed": "Failed to load menu tree",
+    "field": {
+      "code": "Code",
+      "title": "Title",
+      "path": "Path",
+      "parent": "Parent menu",
+      "parent_none": "— Root level —",
+      "icon": "Icon",
+      "icon_none": "Default (circle)",
+      "remote": "Remote",
+      "remote_none": "Unassigned",
+      "required_permission": "Required permission",
+      "sort_order": "Sort order",
+      "is_active": "Visible",
+      "scope": "Scope",
+      "status": "Status"
+    },
+    "placeholder": {
+      "search": "Search by title, code, path...",
+      "path": "/route or empty for group nodes",
+      "permission": "e.g. iam.read,platform.manage"
+    },
+    "scope": {
+      "default": "Default",
+      "tenant": "Tenant-owned",
+      "override": "Overrides default"
+    },
+    "status": {
+      "active": "Visible",
+      "inactive": "Hidden"
+    },
+    "validation": {
+      "code_required": "Menu code is required",
+      "code_too_long": "Menu code is too long",
+      "code_format": "Code may only contain lowercase letters, digits, dots and underscores",
+      "title_required": "Title is required",
+      "title_too_long": "Title is too long",
+      "path_too_long": "Path is too long",
+      "path_format": "Path must start with / or be empty",
+      "permission_too_long": "Permission list is too long",
+      "sort_integer": "Sort order must be an integer",
+      "sort_invalid": "Sort order must be a non-negative integer"
+    },
+    "delete": {
+      "title": "Delete menu item?",
+      "description": "Are you sure you want to remove \"{title}\" from the tenant menu? The global default (if any) will show up again.",
+      "confirm": "Delete"
+    },
+    "toast": {
+      "save_success": "Menu item saved",
+      "save_failed": "Failed to save menu item",
+      "delete_success": "Menu item deleted",
+      "delete_failed": "Failed to delete menu item"
+    }
+  },
   "area_types": {
     "title": "Area Types",
     "count": "{count} types",
