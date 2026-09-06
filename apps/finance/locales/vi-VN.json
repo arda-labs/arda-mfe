@@ -8,12 +8,6 @@
       "normal_balance": "Số dư thông thường"
     }
   },
-  "transactions": {
-    "title": "Hạch toán giao dịch"
-  },
-  "approvals": {
-    "title": "Duyệt giao dịch"
-  },
   "account_type": {
     "asset": "Tài sản (Asset)",
     "liability": "Nợ phải trả (Liability)",

@@ -8,12 +8,6 @@
       "normal_balance": "Normal Balance"
     }
   },
-  "transactions": {
-    "title": "Transaction ledger"
-  },
-  "approvals": {
-    "title": "Approval requests"
-  },
   "account_type": {
     "asset": "Asset",
     "liability": "Liability",

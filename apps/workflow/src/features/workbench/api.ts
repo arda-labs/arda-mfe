@@ -265,22 +265,6 @@ export const workbenchApi = {
     return sortCases(groups.flat())
   },
 
-  async activateTasks(input: WorkflowTaskRequest) {
-    const search = buildSearchParams({
-      task_type: input.taskType,
-      role: input.role,
-      limit: "10",
-    })
-    return getItems<WorkflowTask>(`/api/workflow/tasks?${search.toString()}`)
-  },
-
-  claimTask(input: WorkflowTaskRequest) {
-    return request<WorkflowTask>("/api/workflow/tasks/claim", {
-      method: "POST",
-      body: input,
-    })
-  },
-
   completeTask(input: {
     jobKey: string
     processInstanceKey: string

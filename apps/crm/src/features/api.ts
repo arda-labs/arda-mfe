@@ -210,18 +210,6 @@ export const customerApi = {
       payload
     )
   },
-  listTasks(role: WorkflowTaskRole) {
-    return getItems<WorkflowTask>("/api/workflow/tasks", { role, limit: 10 })
-  },
-  claimWorkflowTask(input: {
-    role: WorkflowTaskRole
-    taskType?: string
-    processInstanceKey?: string
-    caseId?: string | null
-    elementId?: string | null
-  }) {
-    return postCanonical<WorkflowTask>("/api/workflow/tasks/claim", input)
-  },
   getWorkflowWorkItem(id: string) {
     return getCanonical<WorkflowWorkItem>(
       `/api/workflow/work-items/${encodeURIComponent(id)}`
