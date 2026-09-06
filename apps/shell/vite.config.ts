@@ -44,6 +44,7 @@ export default defineConfig(({ command }) => {
           crm: remote("crm", "CRM_REMOTE_ENTRY"),
           workflow: remote("workflow", "WORKFLOW_REMOTE_ENTRY"),
           ai: remote("ai", "AI_REMOTE_ENTRY"),
+          loan: remote("loan", "LOAN_REMOTE_ENTRY"),
         },
         shared: { ...remoteSharedDeps },
       }),

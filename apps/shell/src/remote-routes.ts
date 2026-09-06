@@ -8,6 +8,7 @@ export const AccountRoutes = lazyRemote(() => import("account/Routes"))
 export const CrmRoutes = lazyRemote(() => import("crm/Routes"))
 export const WorkflowRoutes = lazyRemote(() => import("workflow/Routes"))
 export const AiRoutes = lazyRemote(() => import("ai/Routes"))
+export const LoanRoutes = lazyRemote(() => import("loan/Routes"))
 
 const remoteRoutes: Array<{
   prefixes: string[]
@@ -39,7 +40,6 @@ const remoteRoutes: Array<{
       "/admin/calendar",
       "/admin/cutoff",
       "/admin/mdm",
-      "/admin/loan",
     ],
     component: PlatformRoutes,
   },
@@ -47,6 +47,7 @@ const remoteRoutes: Array<{
   { prefixes: ["/hrm"], component: HrmRoutes },
   { prefixes: ["/customers"], component: CrmRoutes },
   { prefixes: ["/workflow", "/workbench"], component: WorkflowRoutes },
+  { prefixes: ["/loans"], component: LoanRoutes },
   { prefixes: ["/ai/knowledge", "/ai/settings", "/ai/approvals", "/ai/tools", "/ai/analytics", "/ai/agents"], component: AiRoutes },
   {
     prefixes: ["/my-account", "/in", "/settings"],

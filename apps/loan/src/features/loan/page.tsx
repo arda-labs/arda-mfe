@@ -1,17 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
-import { useI18n } from "@workspace/i18n"
-import { translateApiError } from "@workspace/i18n"
-import {
-  loanAdjustmentKinds,
-  loanApi,
-  type LoanAdjustment,
-  type LoanAdjustmentKind,
-  type LoanContract,
-} from "../api"
+import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import {
   Select,
@@ -20,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { loanAdjustmentKinds, loanApi, type LoanAdjustment, type LoanAdjustmentKind, type LoanContract } from "../api"
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
@@ -37,7 +29,7 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
   }
 }
 
-export function LoanPage() {
+export function LoanPage(_props: { pathname: string }) {
   const { t } = useI18n()
   const [contracts, setContracts] = useState<LoanContract[]>([])
   const [loadingContracts, setLoadingContracts] = useState(true)

@@ -575,37 +575,5 @@
       "scoring_indicators": "Scoring indicators",
       "scoring_benchmarks": "Scoring benchmarks"
     }
-  },
-  "loan": {
-    "title": "Credit",
-    "description": "Credit contracts, disbursements and adjustment flows (loan-service).",
-    "contracts_title": "Credit contracts",
-    "adjustments_title": "Adjustment flows",
-    "loading": "Loading...",
-    "load_failed": "Failed to load (is loan-service up?)",
-    "empty": "No data yet",
-    "submit": "Submit",
-    "submitted": "Submitted for approval",
-    "submit_failed": "Failed to submit",
-    "field": {
-      "contract_code": "Contract code",
-      "customer": "Customer",
-      "amount": "Amount",
-      "status": "Status",
-      "actions": "Actions",
-      "effective_date": "Effective date"
-    },
-    "kind": {
-      "debt_change": "Debt group change",
-      "rate_change": "Rate change",
-      "restructure": "Restructure",
-      "waiver": "Interest waiver",
-      "writeoff": "Write-off",
-      "recovery": "Recovery",
-      "fund_check": "Fund usage check",
-      "revenue_allocation": "Revenue allocation",
-      "vfu_fee_allocation": "VFU fee allocation",
-      "off_balance_export": "Off-balance export"
-    }
   }
 }

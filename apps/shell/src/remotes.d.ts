@@ -69,3 +69,12 @@ declare module "ai/Routes" {
   }
   export default Routes
 }
+
+declare module "loan/Routes" {
+  import type { ComponentType } from "react"
+
+  const Routes: ComponentType & {
+    preload?: (pathname?: string) => Promise<void>
+  }
+  export default Routes
+}
