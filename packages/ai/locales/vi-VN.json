@@ -93,6 +93,29 @@
       "risk": "Mức độ rủi ro",
       "status": "{status}"
     },
+    "employee": {
+      "code": "Mã nhân viên",
+      "fullName": "Họ và tên",
+      "department": "Phòng ban",
+      "position": "Chức vụ",
+      "status": "{status}"
+    },
+    "financeAccount": {
+      "code": "Mã tài khoản",
+      "name": "Tên tài khoản",
+      "type": "Loại tài khoản",
+      "balance": "Số dư",
+      "currency": "Loại tiền",
+      "status": "{status}"
+    },
+    "invoiceList": {
+      "title": "Hóa đơn",
+      "header": "{count} hóa đơn · {currency}",
+      "number": "Số HĐ",
+      "amount": "Giá trị",
+      "status": "Trạng thái",
+      "dueDate": "Hạn thanh toán"
+    },
     "citations": {
       "title": "Nguồn tham khảo",
       "details": "Chi tiết kết quả tra cứu",

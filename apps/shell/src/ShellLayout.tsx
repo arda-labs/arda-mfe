@@ -14,13 +14,18 @@ import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { useAuthStore } from "@workspace/auth"
 import { useNotificationStream } from "@workspace/notifications"
-import { OlorinPanel, OlorinProvider, OlorinWorkspace } from "@workspace/ai"
+import {
+  OlorinPanel,
+  OlorinProvider,
+  OlorinWorkspace,
+  registerOlorinContext,
+} from "@workspace/ai"
 import { GlobalErrorDialog } from "@workspace/ui/feedback/global-error-dialog"
 import {
-  navItems,
   filterNavItems,
   getNavNodeId,
 } from "./config/nav-config"
+import { useDynamicNavItems } from "./config/use-dynamic-nav"
 import { SidebarNode } from "./components/SidebarNav"
 import { AppHeader } from "./components/AppHeader"
 import { CommandPalette } from "./components/CommandPalette"
@@ -72,13 +77,23 @@ export function ShellLayout() {
   const { user, isAuthenticated, logout, switchTenant } = useAuthStore()
   const { t } = useI18n()
   const { branding } = useSystemBranding()
-  const visibleNavItems = filterNavItems(navItems, user)
+  const { items: navSource } = useDynamicNavItems(user)
+  const visibleNavItems = filterNavItems(navSource, user)
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
 
   useEffect(() => {
     if (authHydrated) return
     return useAuthStore.persist.onFinishHydration(() => setAuthHydrated(true))
   }, [authHydrated])
+
+  useEffect(() => {
+    const displayName = user ? formatUserLabel(user.name, user.nickname) : undefined
+    return registerOlorinContext("shell.active", () => ({
+      userDisplayName: displayName,
+      currentScreen: pathname,
+      userLocale: "vi",
+    }))
+  }, [user, pathname])
 
   useEffect(() => {
     function handlePageTitle(event: Event) {

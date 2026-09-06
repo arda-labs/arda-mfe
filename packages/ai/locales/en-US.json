@@ -93,6 +93,29 @@
       "risk": "Risk level",
       "status": "{status}"
     },
+    "employee": {
+      "code": "Employee code",
+      "fullName": "Full name",
+      "department": "Department",
+      "position": "Position",
+      "status": "{status}"
+    },
+    "financeAccount": {
+      "code": "Account code",
+      "name": "Account name",
+      "type": "Type",
+      "balance": "Balance",
+      "currency": "Currency",
+      "status": "{status}"
+    },
+    "invoiceList": {
+      "title": "Invoices",
+      "header": "{count} invoices · {currency}",
+      "number": "Invoice #",
+      "amount": "Amount",
+      "status": "Status",
+      "dueDate": "Due date"
+    },
     "citations": {
       "title": "References",
       "details": "Lookup result details",

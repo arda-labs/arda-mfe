@@ -48,3 +48,10 @@ export {
   getCanonicalList,
 } from "./canonical"
 export { downloadFile, type DownloadFileOptions } from "./download"
+export {
+  fetchEffectiveMenu,
+  fetchMenuItems,
+  upsertMenuItem,
+  deleteMenuItem,
+  type PlatformMenuItem,
+} from "./platform-menu"

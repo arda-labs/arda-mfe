@@ -23,7 +23,9 @@ import { hasAnyPermission } from "@workspace/auth/store"
 
 export type NavNode = {
   href?: string
-  labelKey: MessageKey
+  /** Stable id for group nodes without an href (menu code or i18n key). */
+  id?: string
+  labelKey?: MessageKey
   label?: string
   icon: LucideIcon
   permissions?: string[]
@@ -373,9 +375,10 @@ export function filterNavItems(items: NavNode[], user: AuthUser | null): NavNode
 }
 
 export function getNavNodeId(item: NavNode) {
-  return item.href ?? item.labelKey
+  return item.href ?? item.id ?? item.labelKey ?? item.label ?? ""
 }
 
 export function getNavLabel(item: NavNode, t: (key: MessageKey) => string) {
-  return item.label ?? t(item.labelKey)
+  if (item.label) return item.label
+  return item.labelKey ? t(item.labelKey) : ""
 }
