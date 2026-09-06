@@ -19,6 +19,7 @@
     "@workspace/auth": "workspace:*",
     "@workspace/ai": "workspace:*",
     "@workspace/i18n": "workspace:*",
+    "@workspace/format": "workspace:*",
     "@workspace/media": "workspace:*",
     "@workspace/notifications": "workspace:*",
     "@workspace/theme": "workspace:*",

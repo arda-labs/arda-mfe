@@ -15,7 +15,10 @@
     "amount": "Amount",
     "status": "Status",
     "actions": "Actions",
-    "effective_date": "Effective date"
+    "effective_date": "Effective date",
+    "contract_no": "Contract no.",
+    "product": "Product",
+    "term": "Term (months)"
   },
   "kind": {
     "debt_change": "Debt group change",
@@ -85,5 +88,17 @@
     }
   },
   "mdm_status_active": "Active",
-  "mdm_status_inactive": "Inactive"
+  "mdm_status_inactive": "Inactive",
+  "create": "New contract",
+  "dialog_description": "The contract is submitted into the multi-level formation case.",
+  "placeholder": {
+    "search": "Search..."
+  },
+  "validation": {
+    "required": "Contract code and customer are required",
+    "amount": "Invalid amount"
+  },
+  "cancel": "Cancel",
+  "status_active": "Active",
+  "status_inactive": "Inactive"
 }

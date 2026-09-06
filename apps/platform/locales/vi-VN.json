@@ -574,6 +574,24 @@
       "scoring_indicator_groups": "Nhóm chỉ tiêu chấm điểm",
       "scoring_indicators": "Chỉ tiêu chấm điểm",
       "scoring_benchmarks": "Thang điểm"
+    },
+    "edit": "Cập nhật bản ghi",
+    "placeholder": {
+      "search": "Tìm theo mã hoặc tên..."
+    }
+  },
+  "loan_products": {
+    "edit": "Cập nhật sản phẩm",
+    "placeholder": {
+      "search": "Tìm..."
+    }
+  },
+  "loan_vfu": {
+    "placeholder": {
+      "search": "Tìm..."
+    },
+    "field": {
+      "rep_name": "Người đại diện"
     }
   }
 }

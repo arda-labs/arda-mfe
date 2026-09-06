@@ -1,0 +1,19 @@
+{
+  "name": "@workspace/format",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~6"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./money": "./src/money.ts",
+    "./date": "./src/date.ts"
+  }
+}

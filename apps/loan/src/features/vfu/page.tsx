@@ -1,33 +1,33 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
 import { PageHeader } from "@workspace/ui/components/page-header"
+import { matchTextColumnFilter, textSearchMeta } from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { formatMoney } from "@workspace/format"
+import { Plus } from "lucide-react"
 import { vfuApi, type VfuMandate, type VfuParty, type VfuPlan } from "../api"
+import { VfuCreateDialog, type VfuDialogTarget } from "./components/VfuCreateDialog"
 
-type DialogTarget = "party" | "mandate" | "plan" | null
+const DEFAULT_PAGE_SIZE = 10
 
 export function VfuPage(_props: { pathname: string }) {
   const { t } = useI18n()
   const [parties, setParties] = useState<VfuParty[]>([])
   const [mandates, setMandates] = useState<VfuMandate[]>([])
   const [plans, setPlans] = useState<VfuPlan[]>([])
-  const [dialogTarget, setDialogTarget] = useState<DialogTarget>(null)
-  const [savePending, setSavePending] = useState(false)
-  const [form, setForm] = useState({ code: "", name: "", extra: "" })
+  const [loading, setLoading] = useState(true)
+  const [dialogTarget, setDialogTarget] = useState<VfuDialogTarget>(null)
 
   const loadAll = useCallback(async () => {
+    setLoading(true)
     try {
       const [p, m, pl] = await Promise.all([
         vfuApi.listParties(),
@@ -40,6 +40,7 @@ export function VfuPage(_props: { pathname: string }) {
     } catch (error) {
       notify.error(translateApiError(error, t("loan_vfu.load_failed")))
     } finally {
+      setLoading(false)
     }
   }, [t])
 
@@ -47,210 +48,262 @@ export function VfuPage(_props: { pathname: string }) {
     void loadAll()
   }, [loadAll])
 
-  const openDialog = (target: Exclude<DialogTarget, null>) => {
-    setForm({ code: "", name: "", extra: "" })
-    setDialogTarget(target)
-  }
+  const partyColumns = useMemo<ColumnDef<VfuParty>[]>(
+    () => [
+      {
+        accessorKey: "party_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.party_code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan_vfu.field.party_code"), t("loan.placeholder.search")),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-primary">{row.original.party_code}</span>
+        ),
+      },
+      {
+        accessorKey: "party_name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.party_name")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan_vfu.field.party_name"), t("loan.placeholder.search")),
+        cell: ({ row }) => <span className="font-medium">{row.original.party_name}</span>,
+      },
+      {
+        accessorKey: "mobile_number",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.phone")} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.mobile_number || "—"}</span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: t("loan.field.status"),
+        cell: ({ row }) => (
+          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
+            {row.original.status}
+          </Badge>
+        ),
+      },
+    ],
+    [t]
+  )
 
-  const submitCreate = async () => {
-    if (!form.code.trim()) {
-      notify.error(t("loan_vfu.validation.code_required"))
-      return
-    }
-    setSavePending(true)
-    try {
-      if (dialogTarget === "party") {
-        await vfuApi.createParty({ party_code: form.code.trim(), party_name: form.name.trim(), party_type: "ORG" })
-      } else if (dialogTarget === "mandate") {
-        await vfuApi.createMandate({
-          mandate_code: form.code.trim(),
-          party_code: form.name.trim(),
-          rep_name: form.extra.trim() || undefined,
-        })
-      } else if (dialogTarget === "plan") {
-        await vfuApi.createPlan({
-          plan_code: form.code.trim(),
-          mandate_code: form.name.trim(),
-          allocated_amt: form.extra ? Number(form.extra) : 0,
-        })
-      }
-      notify.success(t("loan_vfu.saved"))
-      setDialogTarget(null)
-      await loadAll()
-    } catch (error) {
-      notify.error(translateApiError(error, t("loan_vfu.save_failed")))
-    } finally {
-      setSavePending(false)
-    }
-  }
+  const mandateColumns = useMemo<ColumnDef<VfuMandate>[]>(
+    () => [
+      {
+        accessorKey: "mandate_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.mandate_code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan_vfu.field.mandate_code"), t("loan.placeholder.search")),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-primary">{row.original.mandate_code}</span>
+        ),
+      },
+      {
+        accessorKey: "party_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.party_code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan_vfu.field.party_code"), t("loan.placeholder.search")),
+      },
+      {
+        accessorKey: "rate_value",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.rate")} />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">{row.original.rate_value ?? "—"}</span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: t("loan.field.status"),
+        cell: ({ row }) => (
+          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
+            {row.original.status}
+          </Badge>
+        ),
+      },
+    ],
+    [t]
+  )
 
-  const dialogLabels: Record<Exclude<DialogTarget, null>, { code: string; name: string; extra: string }> = {
-    party: { code: t("loan_vfu.field.party_code"), name: t("loan_vfu.field.party_name"), extra: "" },
-    mandate: { code: t("loan_vfu.field.mandate_code"), name: t("loan_vfu.field.party_code"), extra: t("loan_vfu.field.rep_name") },
-    plan: { code: t("loan_vfu.field.plan_code"), name: t("loan_vfu.field.mandate_code"), extra: t("loan_vfu.field.allocated") },
-  }
+  const planColumns = useMemo<ColumnDef<VfuPlan>[]>(
+    () => [
+      {
+        accessorKey: "plan_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.plan_code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan_vfu.field.plan_code"), t("loan.placeholder.search")),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-primary">{row.original.plan_code}</span>
+        ),
+      },
+      {
+        accessorKey: "mandate_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.mandate_code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan_vfu.field.mandate_code"), t("loan.placeholder.search")),
+      },
+      {
+        accessorKey: "allocated_amt",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.allocated")} />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">{formatMoney(row.original.allocated_amt)}</span>
+        ),
+      },
+      {
+        accessorKey: "settled_amt",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.settled")} />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">{formatMoney(row.original.settled_amt)}</span>
+        ),
+      },
+      {
+        accessorKey: "fee_amt",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan_vfu.field.fee")} />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">{formatMoney(row.original.fee_amt)}</span>
+        ),
+      },
+    ],
+    [t]
+  )
+
+  const partyTable = useClientListTable({
+    columns: partyColumns,
+    items: parties,
+    filterBy: {
+      party_code: (item, value) => matchTextColumnFilter(value, item.party_code),
+      party_name: (item, value) => matchTextColumnFilter(value, item.party_name),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        party_code: (a, b) => a.party_code.localeCompare(b.party_code),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
+  const mandateTable = useClientListTable({
+    columns: mandateColumns,
+    items: mandates,
+    filterBy: {
+      mandate_code: (item, value) => matchTextColumnFilter(value, item.mandate_code),
+      party_code: (item, value) => matchTextColumnFilter(value, item.party_code),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        mandate_code: (a, b) => a.mandate_code.localeCompare(b.mandate_code),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
+  const planTable = useClientListTable({
+    columns: planColumns,
+    items: plans,
+    filterBy: {
+      plan_code: (item, value) => matchTextColumnFilter(value, item.plan_code),
+      mandate_code: (item, value) => matchTextColumnFilter(value, item.mandate_code),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        plan_code: (a, b) => a.plan_code.localeCompare(b.plan_code),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
 
   return (
-    <div className="space-y-6">
+    <section className="flex h-full min-h-0 flex-col gap-6 overflow-y-auto p-4">
       <PageHeader title={t("loan_vfu.title")} description={t("loan_vfu.description")} />
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">{t("loan_vfu.parties_title")}</h2>
-          <Button size="sm" variant="outline" onClick={() => openDialog("party")}>
+          <Button size="sm" variant="outline" onClick={() => setDialogTarget("party")}>
+            <Plus className="size-3.5" />
             {t("loan_vfu.create_party")}
           </Button>
         </div>
-        {parties.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("loan.empty")}</p>
+        {loading ? (
+          <DataTableSkeleton columnCount={4} rowCount={4} />
         ) : (
-          <div className="overflow-hidden rounded-md border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left">
-                <tr>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.party_code")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.party_name")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.phone")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan.field.status")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {parties.map((party) => (
-                  <tr key={party.id} className="border-t">
-                    <td className="px-3 py-2 font-mono text-[13px]">{party.party_code}</td>
-                    <td className="px-3 py-2">{party.party_name}</td>
-                    <td className="px-3 py-2">{party.mobile_number || "—"}</td>
-                    <td className="px-3 py-2">
-                      <Badge variant={party.status === "ACTIVE" ? "default" : "outline"}>{party.status}</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable table={partyTable.table} totalRows={partyTable.total}>
+            <ListTableToolbar
+              table={partyTable.table}
+              onCreate={() => setDialogTarget("party")}
+              createLabel={t("loan_vfu.create_party")}
+            />
+          </DataTable>
         )}
       </section>
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">{t("loan_vfu.mandates_title")}</h2>
-          <Button size="sm" variant="outline" onClick={() => openDialog("mandate")}>
+          <Button size="sm" variant="outline" onClick={() => setDialogTarget("mandate")}>
+            <Plus className="size-3.5" />
             {t("loan_vfu.create_mandate")}
           </Button>
         </div>
-        {mandates.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("loan.empty")}</p>
+        {loading ? (
+          <DataTableSkeleton columnCount={4} rowCount={4} />
         ) : (
-          <div className="overflow-hidden rounded-md border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left">
-                <tr>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.mandate_code")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.party_code")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.rate")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan.field.status")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mandates.map((mandate) => (
-                  <tr key={mandate.id} className="border-t">
-                    <td className="px-3 py-2 font-mono text-[13px]">{mandate.mandate_code}</td>
-                    <td className="px-3 py-2">{mandate.party_code}</td>
-                    <td className="px-3 py-2 tabular-nums">{mandate.rate_value ?? "—"}</td>
-                    <td className="px-3 py-2">
-                      <Badge variant={mandate.status === "ACTIVE" ? "default" : "outline"}>{mandate.status}</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable table={mandateTable.table} totalRows={mandateTable.total}>
+            <ListTableToolbar
+              table={mandateTable.table}
+              onCreate={() => setDialogTarget("mandate")}
+              createLabel={t("loan_vfu.create_mandate")}
+            />
+          </DataTable>
         )}
       </section>
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">{t("loan_vfu.plans_title")}</h2>
-          <Button size="sm" variant="outline" onClick={() => openDialog("plan")}>
+          <Button size="sm" variant="outline" onClick={() => setDialogTarget("plan")}>
+            <Plus className="size-3.5" />
             {t("loan_vfu.create_plan")}
           </Button>
         </div>
-        {plans.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("loan.empty")}</p>
+        {loading ? (
+          <DataTableSkeleton columnCount={5} rowCount={4} />
         ) : (
-          <div className="overflow-hidden rounded-md border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left">
-                <tr>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.plan_code")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.mandate_code")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.allocated")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.settled")}</th>
-                  <th className="px-3 py-2 font-medium">{t("loan_vfu.field.fee")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {plans.map((plan) => (
-                  <tr key={plan.id} className="border-t">
-                    <td className="px-3 py-2 font-mono text-[13px]">{plan.plan_code}</td>
-                    <td className="px-3 py-2">{plan.mandate_code}</td>
-                    <td className="px-3 py-2 tabular-nums">{new Intl.NumberFormat("vi-VN").format(plan.allocated_amt)}</td>
-                    <td className="px-3 py-2 tabular-nums">{new Intl.NumberFormat("vi-VN").format(plan.settled_amt)}</td>
-                    <td className="px-3 py-2 tabular-nums">{new Intl.NumberFormat("vi-VN").format(plan.fee_amt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable table={planTable.table} totalRows={planTable.total}>
+            <ListTableToolbar
+              table={planTable.table}
+              onCreate={() => setDialogTarget("plan")}
+              createLabel={t("loan_vfu.create_plan")}
+            />
+          </DataTable>
         )}
       </section>
 
-      <Dialog open={Boolean(dialogTarget)} onOpenChange={(open) => !open && setDialogTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("loan_vfu.create_title")}</DialogTitle>
-            <DialogDescription>{t("loan_vfu.dialog_description")}</DialogDescription>
-          </DialogHeader>
-          {dialogTarget && (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="vfu-code">{dialogLabels[dialogTarget].code}</Label>
-                <Input
-                  id="vfu-code"
-                  value={form.code}
-                  onChange={(event) => setForm((current) => ({ ...current, code: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="vfu-name">{dialogLabels[dialogTarget].name}</Label>
-                <Input
-                  id="vfu-name"
-                  value={form.name}
-                  onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                />
-              </div>
-              {dialogLabels[dialogTarget].extra && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="vfu-extra">{dialogLabels[dialogTarget].extra}</Label>
-                  <Input
-                    id="vfu-extra"
-                    value={form.extra}
-                    onChange={(event) => setForm((current) => ({ ...current, extra: event.target.value }))}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogTarget(null)}>
-              {t("loan_vfu.cancel")}
-            </Button>
-            <Button onClick={() => void submitCreate()} disabled={savePending}>
-              {t("loan_vfu.save")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      <VfuCreateDialog
+        target={dialogTarget}
+        onOpenChange={(open) => !open && setDialogTarget(null)}
+        onSaved={loadAll}
+      />
+    </section>
   )
 }
+

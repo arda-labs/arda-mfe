@@ -15,7 +15,10 @@
     "amount": "Số tiền",
     "status": "Trạng thái",
     "actions": "Thao tác",
-    "effective_date": "Hiệu lực"
+    "effective_date": "Hiệu lực",
+    "contract_no": "Số hợp đồng",
+    "product": "Sản phẩm",
+    "term": "Kỳ hạn (tháng)"
   },
   "kind": {
     "debt_change": "Chuyển nhóm nợ",
@@ -85,5 +88,17 @@
     }
   },
   "mdm_status_active": "Hoạt động",
-  "mdm_status_inactive": "Ngưng"
+  "mdm_status_inactive": "Ngưng",
+  "create": "Tạo hợp đồng",
+  "dialog_description": "Hợp đồng sẽ được trình vào case hình thành khoản vay đa cấp.",
+  "placeholder": {
+    "search": "Tìm..."
+  },
+  "validation": {
+    "required": "Mã hợp đồng và khách hàng là bắt buộc",
+    "amount": "Số tiền không hợp lệ"
+  },
+  "cancel": "Hủy",
+  "status_active": "Hoạt động",
+  "status_inactive": "Ngưng"
 }

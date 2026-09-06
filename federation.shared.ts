@@ -28,6 +28,10 @@ export const remoteSharedDeps = {
   // sharedWorkspaceExemptions below + check:federation (automated).
   "@workspace/notifications": { singleton: true, requiredVersion: false },
   "@workspace/notifications/": { singleton: true, requiredVersion: false },
+  // Pure formatting helpers (money/percent/date) — no state, singleton harmless:
+  // mọi remote hiển thị tiền phải đi qua đây thay vì Intl inline.
+  "@workspace/format": { singleton: true, requiredVersion: false },
+  "@workspace/format/": { singleton: true, requiredVersion: false },
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
   // ToastContainer từ cùng instance — thiếu share = toast remote không hiện UI shell.
   "react-toastify": { singleton: true, requiredVersion: false },

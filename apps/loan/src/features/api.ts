@@ -56,6 +56,8 @@ export const loanApi = {
   },
   submitContract: (id: string) =>
     postCanonical<LoanContract>(`/api/loan/contracts/${encodeURIComponent(id)}/submit`, {}),
+  createContract: (body: Partial<LoanContract>) =>
+    postCanonical<LoanContract>("/api/loan/contracts", body),
   listAdjustments: (
     kind: LoanAdjustmentKind,
     params: { contract_code?: string; status?: string } = {}

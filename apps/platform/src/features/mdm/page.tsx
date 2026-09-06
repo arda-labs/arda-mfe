@@ -1,22 +1,31 @@
-import { useCallback, useEffect, useState } from "react"
-import { useI18n } from "@workspace/i18n"
-import { translateApiError } from "@workspace/i18n"
-import { mdmApi, mdmCatalogs, type MdmCatalogKey, type MdmItem } from "../api"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
 import { PageHeader } from "@workspace/ui/components/page-header"
+import {
+  activeStatusMeta,
+  matchBooleanActiveFilter,
+  matchTextColumnFilter,
+  textSearchMeta,
+} from "@workspace/admin-list/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 import {
   Select,
   SelectContent,
@@ -24,75 +33,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { cn } from "@workspace/ui/lib/utils"
+import { Edit2, Plus, Trash2 } from "lucide-react"
+import {
+  mdmApi,
+  mdmCatalogs,
+  type MdmCatalogKey,
+  type MdmItem,
+} from "../api"
+import { MdmItemDialog } from "./components/MdmItemDialog"
+
+const DEFAULT_PAGE_SIZE = 10
 
 export function MdmPage() {
   const { t } = useI18n()
   const [catalog, setCatalog] = useState<MdmCatalogKey>("currencies")
   const [items, setItems] = useState<MdmItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [savePending, setSavePending] = useState(false)
+  const [editing, setEditing] = useState<MdmItem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<MdmItem | null>(null)
   const [deletePending, setDeletePending] = useState(false)
-  const [form, setForm] = useState({ code: "", name: "", description: "", attributes: "" })
 
   const loadItems = useCallback(async () => {
     setLoading(true)
-    setLoadError(false)
     try {
       const result = await mdmApi.listItems(catalog)
       setItems(result)
-    } catch {
-      setLoadError(true)
+    } catch (error) {
+      notify.error(translateApiError(error, t("mdm.load_failed")))
     } finally {
       setLoading(false)
     }
-  }, [catalog])
+  }, [catalog, t])
 
   useEffect(() => {
     void loadItems()
   }, [loadItems])
 
   const openCreate = () => {
-    setForm({ code: "", name: "", description: "", attributes: "" })
+    setEditing(null)
     setDialogOpen(true)
   }
 
-  const submitCreate = async () => {
-    if (!form.code.trim() || !form.name.trim()) {
-      notify.error(t("mdm.validation.code_name_required"))
-      return
-    }
-    let attributes: unknown = undefined
-    if (form.attributes.trim()) {
-      try {
-        attributes = JSON.parse(form.attributes)
-      } catch {
-        notify.error(t("mdm.validation.attributes_json"))
-        return
-      }
-    }
-    setSavePending(true)
-    try {
-      await mdmApi.createItem(catalog, {
-        code: form.code.trim(),
-        name: form.name.trim(),
-        description: form.description.trim() || undefined,
-        attributes: attributes as Record<string, unknown> | undefined,
-      })
-      notify.success(t("mdm.saved"))
-      setDialogOpen(false)
-      await loadItems()
-    } catch (error) {
-      notify.error(translateApiError(error, t("mdm.save_failed")))
-    } finally {
-      setSavePending(false)
-    }
+  const openEdit = (item: MdmItem) => {
+    setEditing(item)
+    setDialogOpen(true)
   }
 
-  const submitDelete = async () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return
     setDeletePending(true)
     try {
@@ -107,159 +95,190 @@ export function MdmPage() {
     }
   }
 
+  const columns = useMemo<ColumnDef<MdmItem>[]>(
+    () => [
+      {
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("mdm.field.code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("mdm.field.code"), t("mdm.placeholder.search")),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-primary">
+            {row.original.code}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("mdm.field.name")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("mdm.field.name"), t("mdm.placeholder.search")),
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      },
+      {
+        id: "scope",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("mdm.field.scope")} />
+        ),
+        cell: ({ row }) =>
+          row.original.tenant_id ? (
+            <Badge variant="outline">{row.original.tenant_id}</Badge>
+          ) : (
+            <Badge variant="secondary">{t("mdm.scope.global")}</Badge>
+          ),
+      },
+      {
+        id: "is_active",
+        accessorKey: "is_active",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("mdm.field.status")} />
+        ),
+        enableColumnFilter: true,
+        meta: activeStatusMeta(t("mdm.field.status"), t("mdm.status.active"), t("mdm.status.inactive")),
+        cell: ({ row }) => (
+          <Badge variant={row.original.is_active ? "default" : "outline"}>
+            {row.original.is_active
+              ? t("mdm.status.active")
+              : t("mdm.status.inactive")}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: t("mdm.field.actions"),
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.tenant_id ? (
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                onClick={() => openEdit(row.original)}
+              >
+                <Edit2 className="size-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-destructive"
+                onClick={() => setDeleteTarget(row.original)}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {t("mdm.scope.readonly")}
+            </span>
+          ),
+      },
+    ],
+    [t]
+  )
+
+  const { table, total } = useClientListTable({
+    columns,
+    items,
+    filterBy: {
+      code: (item, value) => matchTextColumnFilter(value, item.code),
+      name: (item, value) => matchTextColumnFilter(value, item.name),
+      is_active: (item, value) => matchBooleanActiveFilter(item, value),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        name: (a, b) => a.name.localeCompare(b.name),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
   return (
-    <div className="space-y-4">
+    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
       <PageHeader
         title={t("mdm.title")}
         description={t("mdm.description")}
         actions={
-          <Button onClick={openCreate}>{t("mdm.create")}</Button>
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            {t("mdm.create")}
+          </Button>
         }
       />
 
-      <Select value={catalog} onValueChange={(value) => setCatalog(value as MdmCatalogKey)}>
-        <SelectTrigger className="w-72">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {mdmCatalogs.map((entry) => (
-            <SelectItem key={entry.key} value={entry.key}>
-              {t(entry.labelKey)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="max-w-sm">
+        <Select
+          value={catalog}
+          onValueChange={(value) => setCatalog(value as MdmCatalogKey)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {mdmCatalogs.map((entry) => (
+              <SelectItem key={entry.key} value={entry.key}>
+                {t(entry.labelKey)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      {loadError ? (
-        <p className="text-sm text-destructive">{t("mdm.load_failed")}</p>
-      ) : loading ? (
-        <p className="text-sm text-muted-foreground">{t("mdm.loading")}</p>
-      ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("mdm.empty")}</p>
-      ) : (
-        <div className="overflow-hidden rounded-md border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left">
-              <tr>
-                <th className="px-3 py-2 font-medium">{t("mdm.field.code")}</th>
-                <th className="px-3 py-2 font-medium">{t("mdm.field.name")}</th>
-                <th className="px-3 py-2 font-medium">{t("mdm.field.scope")}</th>
-                <th className="px-3 py-2 font-medium">{t("mdm.field.status")}</th>
-                <th className="px-3 py-2 font-medium">{t("mdm.field.actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-t">
-                  <td className="px-3 py-2 font-mono text-[13px]">{item.code}</td>
-                  <td className="px-3 py-2">{item.name}</td>
-                  <td className="px-3 py-2">
-                    {item.tenant_id ? (
-                      <Badge variant="outline">{item.tenant_id}</Badge>
-                    ) : (
-                      <Badge variant="secondary">{t("mdm.scope.global")}</Badge>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    <Badge
-                      variant={item.is_active ? "default" : "outline"}
-                      className={cn(!item.is_active && "text-muted-foreground")}
-                    >
-                      {item.is_active ? t("mdm.status.active") : t("mdm.status.inactive")}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-2">
-                    {item.tenant_id ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive"
-                        onClick={() => setDeleteTarget(item)}
-                      >
-                        {t("mdm.delete")}
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">{t("mdm.scope.readonly")}</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="relative min-h-0 flex-1">
+        {loading ? (
+          <DataTableSkeleton columnCount={5} rowCount={6} />
+        ) : (
+          <DataTable table={table} totalRows={total} className="min-h-0 flex-1">
+            <ListTableToolbar
+              table={table}
+              onCreate={openCreate}
+              createLabel={t("mdm.create")}
+            />
+          </DataTable>
+        )}
+      </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("mdm.create")}</DialogTitle>
-            <DialogDescription>{t("mdm.dialog_description")}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="mdm-code">{t("mdm.field.code")}</Label>
-              <Input
-                id="mdm-code"
-                value={form.code}
-                onChange={(event) => setForm((current) => ({ ...current, code: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="mdm-name">{t("mdm.field.name")}</Label>
-              <Input
-                id="mdm-name"
-                value={form.name}
-                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="mdm-description">{t("mdm.field.description")}</Label>
-              <Input
-                id="mdm-description"
-                value={form.description}
-                onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="mdm-attributes">{t("mdm.field.attributes")}</Label>
-              <Textarea
-                id="mdm-attributes"
-                rows={4}
-                placeholder='{"symbol":"₫","decimal_places":0}'
-                value={form.attributes}
-                onChange={(event) => setForm((current) => ({ ...current, attributes: event.target.value }))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              {t("mdm.cancel")}
-            </Button>
-            <Button onClick={() => void submitCreate()} disabled={savePending}>
-              {t("mdm.save")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <MdmItemDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        catalog={catalog}
+        editing={editing}
+        onSaved={loadItems}
+      />
 
-      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("mdm.delete_confirm_title")}</DialogTitle>
-            <DialogDescription>
-              {t("mdm.delete_confirm_description").replace("{code}", deleteTarget?.code ?? "")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              {t("mdm.cancel")}
-            </Button>
-            <Button variant="destructive" onClick={() => void submitDelete()} disabled={deletePending}>
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("mdm.delete_confirm_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("mdm.delete_confirm_description").replace(
+                "{code}",
+                deleteTarget?.code ?? ""
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("mdm.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletePending}
+              onClick={(event) => {
+                event.preventDefault()
+                void handleDelete()
+              }}
+            >
               {t("mdm.delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </section>
   )
 }

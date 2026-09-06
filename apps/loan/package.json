@@ -13,8 +13,10 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
+    "@workspace/admin-list": "workspace:*",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
+    "@workspace/format": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/notifications": "workspace:*",
     "@workspace/query": "workspace:*",
