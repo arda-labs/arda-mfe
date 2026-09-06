@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { parseMoneyInput } from "@workspace/format"
+import { parseMoneyInput, toMinor } from "@workspace/format"
 import { loanApi, productApi, type LoanProduct } from "../../api"
 
 /** Create + submit-to-approval dialog for a credit contract. */
@@ -65,7 +65,7 @@ export function ContractDialog({
       notify.error(t("loan.validation.required"))
       return
     }
-    const amount = parseMoneyInput(form.loan_amt)
+    const amount = toMinor(parseMoneyInput(form.loan_amt) ?? 0)
     if (amount == null || amount <= 0) {
       notify.error(t("loan.validation.amount"))
       return
@@ -77,7 +77,7 @@ export function ContractDialog({
         contract_no: form.contract_no.trim() || undefined,
         customer_code: form.customer_code.trim(),
         product_code: form.product_code || undefined,
-        loan_amt: amount,
+        loan_amt_minor: amount,
         loan_term: form.loan_term ? Number(form.loan_term) : undefined,
       })
       // Submit straight into the multi-level formation case.

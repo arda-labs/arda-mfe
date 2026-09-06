@@ -79,3 +79,22 @@ export function parseMoneyInput(raw: string): number | undefined {
   const value = Number(normalized)
   return Number.isFinite(value) ? value : undefined
 }
+
+// ── Minor-unit standard ──
+// Backend money crosses the API as int64 MINOR units (`*_minor` fields — see
+// docs/db-schema-conventions). Major→minor on input, minor→major on display:
+// these helpers are the only sanctioned conversions in the FE.
+
+/** Major-unit number → int64 minor units, quantized to the currency exponent. */
+export function toMinor(major: number, currency: string = "VND"): number {
+  const scaled = major * 10 ** currencyDecimals(currency)
+  // Round half away from zero (match backend ardamoney.ToMinor).
+  return Math.sign(scaled) * Math.round(Math.abs(scaled))
+}
+
+/** int64 minor units → major-unit number for formatting (display only —
+ * never chain further math on the result). */
+export function fromMinor(minor: number | null | undefined, currency: string = "VND"): number {
+  if (minor == null || !Number.isFinite(minor)) return 0
+  return minor / 10 ** currencyDecimals(currency)
+}

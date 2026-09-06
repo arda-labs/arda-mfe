@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { parseMoneyInput } from "@workspace/format"
+import { fromMinor, parseMoneyInput, toMinor } from "@workspace/format"
 import { productApi, type LoanProduct } from "../../api"
 
 type ProductForm = {
@@ -72,8 +72,8 @@ export function ProductDialog({
         interest_rate: editing.interest_rate?.toString() ?? "",
         loan_term_from: editing.loan_term_from?.toString() ?? "",
         loan_term_to: editing.loan_term_to?.toString() ?? "",
-        min_amount: editing.min_amount?.toString() ?? "",
-        max_amount: editing.max_amount?.toString() ?? "",
+        min_amount: editing.min_amount_minor != null ? String(fromMinor(editing.min_amount_minor)) : "",
+        max_amount: editing.max_amount_minor != null ? String(fromMinor(editing.max_amount_minor)) : "",
         acc_classification: editing.acc_classification ?? "",
       })
     } else {
@@ -86,8 +86,8 @@ export function ProductDialog({
       notify.error(t("loan.loan_products.validation.required"))
       return
     }
-    const maxAmount = form.max_amount ? parseMoneyInput(form.max_amount) : undefined
-    const minAmount = form.min_amount ? parseMoneyInput(form.min_amount) : undefined
+    const maxAmount = form.max_amount ? toMinor(parseMoneyInput(form.max_amount) ?? 0) : undefined
+    const minAmount = form.min_amount ? toMinor(parseMoneyInput(form.min_amount) ?? 0) : undefined
     setSavePending(true)
     try {
       await productApi.upsertProduct({
@@ -97,8 +97,8 @@ export function ProductDialog({
         interest_rate: form.interest_rate ? Number(form.interest_rate) : undefined,
         loan_term_from: form.loan_term_from ? Number(form.loan_term_from) : undefined,
         loan_term_to: form.loan_term_to ? Number(form.loan_term_to) : undefined,
-        min_amount: minAmount,
-        max_amount: maxAmount,
+        min_amount_minor: minAmount,
+        max_amount_minor: maxAmount,
         acc_classification: form.acc_classification.trim() || undefined,
       })
       notify.success(t("loan.loan_products.saved"))

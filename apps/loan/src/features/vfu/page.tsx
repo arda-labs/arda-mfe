@@ -11,7 +11,7 @@ import { PageHeader } from "@workspace/ui/components/page-header"
 import { matchTextColumnFilter, textSearchMeta } from "@workspace/admin-list/column-filters"
 import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
-import { formatMoney } from "@workspace/format"
+import { formatMoney, fromMinor } from "@workspace/format"
 import { Plus } from "lucide-react"
 import { vfuApi, type VfuMandate, type VfuParty, type VfuPlan } from "../api"
 import { VfuCreateDialog, type VfuDialogTarget } from "./components/VfuCreateDialog"
@@ -164,7 +164,7 @@ export function VfuPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.allocated")} />
         ),
         cell: ({ row }) => (
-          <span className="tabular-nums">{formatMoney(row.original.allocated_amt)}</span>
+          <span className="tabular-nums">{formatMoney(fromMinor(row.original.allocated_amt_minor))}</span>
         ),
       },
       {
@@ -173,7 +173,7 @@ export function VfuPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.settled")} />
         ),
         cell: ({ row }) => (
-          <span className="tabular-nums">{formatMoney(row.original.settled_amt)}</span>
+          <span className="tabular-nums">{formatMoney(fromMinor(row.original.settled_amt_minor))}</span>
         ),
       },
       {
@@ -182,7 +182,7 @@ export function VfuPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.fee")} />
         ),
         cell: ({ row }) => (
-          <span className="tabular-nums">{formatMoney(row.original.fee_amt)}</span>
+          <span className="tabular-nums">{formatMoney(fromMinor(row.original.fee_amt_minor))}</span>
         ),
       },
     ],

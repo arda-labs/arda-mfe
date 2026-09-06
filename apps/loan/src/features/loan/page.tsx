@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { formatDateShort, formatMoney } from "@workspace/format"
+import { formatDateShort, formatMoney, fromMinor } from "@workspace/format"
 import { Plus } from "lucide-react"
 import {
   loanAdjustmentKinds,
@@ -150,7 +150,7 @@ export function LoanPage(_props: { pathname: string }) {
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">
-            {formatMoney(row.original.loan_amt)}
+            {formatMoney(fromMinor(row.original.loan_amt_minor))}
           </span>
         ),
       },
@@ -201,7 +201,7 @@ export function LoanPage(_props: { pathname: string }) {
       sortByColumn(rows, sortState, {
         contract_code: (a, b) => a.contract_code.localeCompare(b.contract_code),
         customer_code: (a, b) => a.customer_code.localeCompare(b.customer_code),
-        loan_amt: (a, b) => a.loan_amt - b.loan_amt,
+        loan_amt_minor: (a, b) => a.loan_amt_minor - b.loan_amt_minor,
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })
@@ -239,7 +239,7 @@ export function LoanPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.field.amount")} />
         ),
         cell: ({ row }) => (
-          <span className="tabular-nums">{formatMoney(row.original.amount)}</span>
+          <span className="tabular-nums">{formatMoney(fromMinor(row.original.amount_minor))}</span>
         ),
       },
       {
@@ -287,7 +287,7 @@ export function LoanPage(_props: { pathname: string }) {
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
         contract_code: (a, b) => a.contract_code.localeCompare(b.contract_code),
-        amount: (a, b) => (a.amount ?? 0) - (b.amount ?? 0),
+        amount: (a, b) => (a.amount_minor ?? 0) - (b.amount_minor ?? 0),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })

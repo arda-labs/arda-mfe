@@ -84,8 +84,8 @@ export interface InterestRateTier {
   rate_id: string
   effective_from: string
   effective_to?: string
-  amount_from?: number
-  amount_to?: number
+  amount_from_minor?: number
+  amount_to_minor?: number
   rate_value: number
   min_rate?: number
   max_rate?: number

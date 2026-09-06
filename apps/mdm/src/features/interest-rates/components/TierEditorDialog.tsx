@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useI18n, translateApiError } from "@workspace/i18n"
-import { formatAmount, formatDateShort, formatRatePercent, isValidISODate, parseMoneyInput, todayISO } from "@workspace/format"
+import { formatAmount, formatDateShort, formatRatePercent, fromMinor, isValidISODate, parseMoneyInput, toMinor, todayISO } from "@workspace/format"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -57,9 +57,10 @@ const emptyTierForm: TierForm = {
   decision_date: "",
 }
 
-function optionalMoney(raw: string): number | undefined {
+function optionalMoney(raw: string, currency: string): number | undefined {
   if (!raw.trim()) return undefined
-  return parseMoneyInput(raw)
+  const major = parseMoneyInput(raw)
+  return major === undefined ? undefined : toMinor(major, currency)
 }
 
 function optionalRate(raw: string): number | undefined {
@@ -125,8 +126,8 @@ export function TierEditorDialog({
     setForm({
       effective_from: tier.effective_from ?? "",
       effective_to: tier.effective_to ?? "",
-      amount_from: tier.amount_from != null ? String(tier.amount_from) : "",
-      amount_to: tier.amount_to != null ? String(tier.amount_to) : "",
+      amount_from: tier.amount_from_minor != null ? String(fromMinor(tier.amount_from_minor, currency)) : "",
+      amount_to: tier.amount_to_minor != null ? String(fromMinor(tier.amount_to_minor, currency)) : "",
       rate_value: String(tier.rate_value ?? ""),
       min_rate: tier.min_rate != null ? String(tier.min_rate) : "",
       max_rate: tier.max_rate != null ? String(tier.max_rate) : "",
@@ -156,8 +157,8 @@ export function TierEditorDialog({
       const body = {
         effective_from: form.effective_from,
         effective_to: isValidISODate(form.effective_to) ? form.effective_to : undefined,
-        amount_from: optionalMoney(form.amount_from),
-        amount_to: optionalMoney(form.amount_to),
+        amount_from_minor: optionalMoney(form.amount_from, currency),
+        amount_to_minor: optionalMoney(form.amount_to, currency),
         rate_value: rateValue,
         min_rate: optionalRate(form.min_rate),
         max_rate: optionalRate(form.max_rate),
@@ -240,8 +241,8 @@ export function TierEditorDialog({
                       {tier.effective_to ? formatDateShort(tier.effective_to) : "∞"}
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-sm">
-                      {tier.amount_from != null || tier.amount_to != null
-                        ? `${formatAmount(tier.amount_from, currency)} – ${formatAmount(tier.amount_to, currency)}`
+                      {tier.amount_from_minor != null || tier.amount_to_minor != null
+                        ? `${formatAmount(fromMinor(tier.amount_from_minor, currency), currency)} – ${formatAmount(fromMinor(tier.amount_to_minor, currency), currency)}`
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-sm font-medium">

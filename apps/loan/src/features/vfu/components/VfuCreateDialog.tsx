@@ -12,7 +12,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { parseMoneyInput } from "@workspace/format"
+import { parseMoneyInput, toMinor } from "@workspace/format"
 import { vfuApi } from "../../api"
 
 export type VfuDialogTarget = "party" | "mandate" | "plan" | null
@@ -79,7 +79,7 @@ export function VfuCreateDialog({
         await vfuApi.createPlan({
           plan_code: form.code.trim(),
           mandate_code: form.name.trim(),
-          allocated_amt: parseMoneyInput(form.extra) ?? 0,
+          allocated_amt_minor: toMinor(parseMoneyInput(form.extra) ?? 0),
         })
       }
       notify.success(t("loan.loan_vfu.saved"))

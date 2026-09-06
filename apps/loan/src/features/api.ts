@@ -10,7 +10,7 @@ export interface LoanContract {
   product_code?: string
   contract_type_code?: string
   interest_rate?: number
-  loan_amt: number
+  loan_amt_minor: number
   loan_term?: number
   term_unit?: string
   maturity_date?: string
@@ -26,7 +26,7 @@ export interface LoanAdjustment {
   contract_code: string
   agreement_code?: string
   effective_date?: string
-  amount?: number
+  amount_minor?: number
   status: string
   workflow_case_id?: string
   decision_note?: string
@@ -96,8 +96,8 @@ export interface LoanProduct {
   loan_term_from?: number
   loan_term_to?: number
   term_unit: string
-  min_amount?: number
-  max_amount?: number
+  min_amount_minor?: number
+  max_amount_minor?: number
   acc_classification?: string
   is_active: boolean
   description?: string
@@ -150,9 +150,9 @@ export interface VfuPlan {
   plan_date?: string
   mandate_code: string
   contract_code?: string
-  allocated_amt: number
-  settled_amt: number
-  fee_amt: number
+  allocated_amt_minor: number
+  settled_amt_minor: number
+  fee_amt_minor: number
   status: string
   created_at?: string
 }

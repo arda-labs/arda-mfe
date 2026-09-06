@@ -17,7 +17,7 @@ import {
 import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
 import { Edit2, Plus } from "lucide-react"
-import { formatMoney, formatRatePercent } from "@workspace/format"
+import { formatMoney, formatRatePercent, fromMinor } from "@workspace/format"
 import { productApi, type LoanProduct } from "../api"
 import { ProductDialog } from "./components/ProductDialog"
 
@@ -88,7 +88,7 @@ export function ProductsPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.loan_products.field.max_amount")} />
         ),
         cell: ({ row }) => (
-          <span className="tabular-nums">{formatMoney(row.original.max_amount)}</span>
+          <span className="tabular-nums">{formatMoney(fromMinor(row.original.max_amount_minor))}</span>
         ),
       },
       {
