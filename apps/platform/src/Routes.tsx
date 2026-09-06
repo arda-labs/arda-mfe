@@ -77,6 +77,8 @@ export default createRemoteRoutes({
     { prefix: "/admin/templates", component: TemplatesPage },
     { prefix: "/admin/calendar", component: CalendarPage },
     { prefix: "/admin/cutoff", component: CutoffPage },
+    { prefix: "/admin/mdm", component: MdmPage },
+    { prefix: "/admin/loan", component: LoanPage },
   ],
   defaultComponent: OrganizationsPage,
   wrapper: QueryProvider,

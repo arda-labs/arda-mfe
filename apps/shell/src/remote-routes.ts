@@ -38,6 +38,8 @@ const remoteRoutes: Array<{
       "/admin/templates",
       "/admin/calendar",
       "/admin/cutoff",
+      "/admin/mdm",
+      "/admin/loan",
     ],
     component: PlatformRoutes,
   },

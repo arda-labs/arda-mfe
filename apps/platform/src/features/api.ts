@@ -396,3 +396,130 @@ export interface HolidayCalendar {
   holiday_year?: number
   created_at: string
 }
+
+// ── MDM (master data service) ──
+
+export interface MdmItem {
+  id: string
+  tenant_id?: string
+  code: string
+  name: string
+  description?: string
+  is_active: boolean
+  attributes?: Record<string, unknown>
+  created_at?: string
+  updated_at?: string
+}
+
+export const mdmCatalogs = [
+  { key: "currencies", labelKey: "mdm.catalog.currencies" },
+  { key: "countries", labelKey: "mdm.catalog.countries" },
+  { key: "id-document-types", labelKey: "mdm.catalog.id_document_types" },
+  { key: "collateral-types", labelKey: "mdm.catalog.collateral_types" },
+  { key: "loan-purposes", labelKey: "mdm.catalog.loan_purposes" },
+  { key: "fee-types", labelKey: "mdm.catalog.fee_types" },
+  { key: "debt-groups", labelKey: "mdm.catalog.debt_groups" },
+  { key: "economic-types", labelKey: "mdm.catalog.economic_types" },
+  { key: "industries", labelKey: "mdm.catalog.industries" },
+  { key: "loan-methods", labelKey: "mdm.catalog.loan_methods" },
+  { key: "loan-contract-types", labelKey: "mdm.catalog.loan_contract_types" },
+  { key: "fund-sources", labelKey: "mdm.catalog.fund_sources" },
+  { key: "fund-purposes", labelKey: "mdm.catalog.fund_purposes" },
+  { key: "base-rates", labelKey: "mdm.catalog.base_rates" },
+  { key: "interest-factors", labelKey: "mdm.catalog.interest_factors" },
+  { key: "cash-denominations", labelKey: "mdm.catalog.cash_denominations" },
+  { key: "scoring-types", labelKey: "mdm.catalog.scoring_types" },
+  {
+    key: "scoring-indicator-groups",
+    labelKey: "mdm.catalog.scoring_indicator_groups",
+  },
+  { key: "scoring-indicators", labelKey: "mdm.catalog.scoring_indicators" },
+  { key: "scoring-benchmarks", labelKey: "mdm.catalog.scoring_benchmarks" },
+] as const
+
+export type MdmCatalogKey = (typeof mdmCatalogs)[number]["key"]
+
+export const mdmApi = {
+  listItems: (catalog: MdmCatalogKey, requestOptions?: ApiRequestOptions) =>
+    getCanonical<MdmItem[]>(`/api/mdm/${catalog}`, requestOptions),
+  createItem: (catalog: MdmCatalogKey, body: Partial<MdmItem>) =>
+    postCanonical<MdmItem>(`/api/mdm/${catalog}`, body),
+  updateItem: (catalog: MdmCatalogKey, id: string, body: Partial<MdmItem>) =>
+    putCanonical<MdmItem>(`/api/mdm/${catalog}/${encodeURIComponent(id)}`, body),
+  deleteItem: (catalog: MdmCatalogKey, id: string) =>
+    deleteCanonical(`/api/mdm/${catalog}/${encodeURIComponent(id)}`),
+}
+
+// ── Loan (credit domain) ──
+
+export interface LoanContract {
+  id: string
+  tenant_id: string
+  contract_code: string
+  contract_no?: string
+  customer_code: string
+  product_code?: string
+  contract_type_code?: string
+  interest_rate?: number
+  loan_amt: number
+  loan_term?: number
+  term_unit?: string
+  maturity_date?: string
+  status: string
+  workflow_case_id?: string
+  created_at?: string
+}
+
+export interface LoanAdjustment {
+  id: string
+  tenant_id: string
+  kind: string
+  contract_code: string
+  agreement_code?: string
+  effective_date?: string
+  amount?: number
+  status: string
+  workflow_case_id?: string
+  decision_note?: string
+  created_at?: string
+}
+
+export const loanAdjustmentKinds = [
+  { key: "debt-change", labelKey: "loan.kind.debt_change" },
+  { key: "rate-change", labelKey: "loan.kind.rate_change" },
+  { key: "restructure", labelKey: "loan.kind.restructure" },
+  { key: "waiver", labelKey: "loan.kind.waiver" },
+  { key: "writeoff", labelKey: "loan.kind.writeoff" },
+  { key: "recovery", labelKey: "loan.kind.recovery" },
+  { key: "fund-check", labelKey: "loan.kind.fund_check" },
+  { key: "revenue-allocation", labelKey: "loan.kind.revenue_allocation" },
+  { key: "vfu-fee-allocation", labelKey: "loan.kind.vfu_fee_allocation" },
+  { key: "off-balance-export", labelKey: "loan.kind.off_balance_export" },
+] as const
+
+export type LoanAdjustmentKind = (typeof loanAdjustmentKinds)[number]["key"]
+
+export const loanApi = {
+  listContracts: (params: { q?: string; status?: string } = {}) => {
+    const search = buildSearchParams({ q: params.q, status: params.status })
+    const qs = search.toString()
+    return getCanonical<LoanContract[]>(`/api/loan/contracts${qs ? `?${qs}` : ""}`)
+  },
+  submitContract: (id: string) =>
+    postCanonical<LoanContract>(`/api/loan/contracts/${encodeURIComponent(id)}/submit`, {}),
+  listAdjustments: (kind: LoanAdjustmentKind, params: { contract_code?: string; status?: string } = {}) => {
+    const search = buildSearchParams({
+      contract_code: params.contract_code,
+      status: params.status,
+    })
+    const qs = search.toString()
+    return getCanonical<LoanAdjustment[]>(`/api/loan/adjustments/${kind}${qs ? `?${qs}` : ""}`)
+  },
+  createAdjustment: (kind: LoanAdjustmentKind, body: Partial<LoanAdjustment> & { payload?: Record<string, unknown> }) =>
+    postCanonical<LoanAdjustment>(`/api/loan/adjustments/${kind}`, body),
+  submitAdjustment: (kind: LoanAdjustmentKind, id: string) =>
+    postCanonical<LoanAdjustment>(
+      `/api/loan/adjustments/${kind}/${encodeURIComponent(id)}/submit`,
+      {}
+    ),
+}

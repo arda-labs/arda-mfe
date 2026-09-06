@@ -515,5 +515,97 @@
       "description": "Are you sure you want to remove {name} from the catalog?",
       "confirm": "Delete"
     }
+  },
+  "mdm": {
+    "title": "Business Master Data (MDM)",
+    "description": "Manage the 20 platform-wide master data catalogs.",
+    "create": "New record",
+    "save": "Save",
+    "saved": "Record saved",
+    "save_failed": "Failed to save record",
+    "delete": "Delete",
+    "deleted": "Record deleted",
+    "delete_failed": "Failed to delete record",
+    "delete_confirm_title": "Delete catalog record?",
+    "delete_confirm_description": "Record {code} will be permanently removed.",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "load_failed": "Failed to load list (is mdm-service up?)",
+    "empty": "No records in this catalog yet",
+    "validation": {
+      "code_name_required": "Code and name are required",
+      "attributes_json": "Attributes must be valid JSON"
+    },
+    "field": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Description",
+      "attributes": "Attributes (JSON)",
+      "scope": "Scope",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "scope": {
+      "global": "Global",
+      "readonly": "Seed — read-only"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "catalog": {
+      "currencies": "Currencies",
+      "countries": "Countries",
+      "id_document_types": "ID document types",
+      "collateral_types": "Collateral types",
+      "loan_purposes": "Loan purposes",
+      "fee_types": "Fee types",
+      "debt_groups": "Debt groups (Circular 02/2023)",
+      "economic_types": "Economic types",
+      "industries": "Industries",
+      "loan_methods": "Loan methods",
+      "loan_contract_types": "Contract types",
+      "fund_sources": "Fund sources",
+      "fund_purposes": "Fund purposes",
+      "base_rates": "Base rates",
+      "interest_factors": "Day-count factors",
+      "cash_denominations": "Cash denominations",
+      "scoring_types": "Scoring types",
+      "scoring_indicator_groups": "Scoring indicator groups",
+      "scoring_indicators": "Scoring indicators",
+      "scoring_benchmarks": "Scoring benchmarks"
+    }
+  },
+  "loan": {
+    "title": "Credit",
+    "description": "Credit contracts, disbursements and adjustment flows (loan-service).",
+    "contracts_title": "Credit contracts",
+    "adjustments_title": "Adjustment flows",
+    "loading": "Loading...",
+    "load_failed": "Failed to load (is loan-service up?)",
+    "empty": "No data yet",
+    "submit": "Submit",
+    "submitted": "Submitted for approval",
+    "submit_failed": "Failed to submit",
+    "field": {
+      "contract_code": "Contract code",
+      "customer": "Customer",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions",
+      "effective_date": "Effective date"
+    },
+    "kind": {
+      "debt_change": "Debt group change",
+      "rate_change": "Rate change",
+      "restructure": "Restructure",
+      "waiver": "Interest waiver",
+      "writeoff": "Write-off",
+      "recovery": "Recovery",
+      "fund_check": "Fund usage check",
+      "revenue_allocation": "Revenue allocation",
+      "vfu_fee_allocation": "VFU fee allocation",
+      "off_balance_export": "Off-balance export"
+    }
   }
 }
