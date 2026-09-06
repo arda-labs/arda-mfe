@@ -100,7 +100,7 @@ export function TierEditorDialog({
       const items = await interestRateApi.listTiers(rate.id)
       setTiers(items)
     } catch (error) {
-      notify.error(translateApiError(error, t("interest_rates.tiers.load_failed")))
+      notify.error(translateApiError(error, t("mdm.interest_rates.tiers.load_failed")))
     } finally {
       setLoading(false)
     }
@@ -139,16 +139,16 @@ export function TierEditorDialog({
   const submit = async () => {
     if (!rate) return
     if (!isValidISODate(form.effective_from)) {
-      notify.error(t("interest_rates.tiers.validation.effective_from"))
+      notify.error(t("mdm.interest_rates.tiers.validation.effective_from"))
       return
     }
     if (!form.rate_value.trim()) {
-      notify.error(t("interest_rates.tiers.validation.rate_value"))
+      notify.error(t("mdm.interest_rates.tiers.validation.rate_value"))
       return
     }
     const rateValue = optionalRate(form.rate_value)
     if (rateValue === undefined) {
-      notify.error(t("interest_rates.tiers.validation.rate_value"))
+      notify.error(t("mdm.interest_rates.tiers.validation.rate_value"))
       return
     }
     setSavePending(true)
@@ -196,10 +196,10 @@ export function TierEditorDialog({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            {rate ? `${t("interest_rates.tiers.title")} — ${rate.code}` : ""}
+            {rate ? `${t("mdm.interest_rates.tiers.title")} — ${rate.code}` : ""}
           </DialogTitle>
           <DialogDescription>
-            {t("interest_rates.tiers.description")}
+            {t("mdm.interest_rates.tiers.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -207,14 +207,14 @@ export function TierEditorDialog({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t("interest_rates.tiers.field.effective")}</TableHead>
+                <TableHead>{t("mdm.interest_rates.tiers.field.effective")}</TableHead>
                 <TableHead className="text-right">
-                  {t("interest_rates.tiers.field.amount_band")}
+                  {t("mdm.interest_rates.tiers.field.amount_band")}
                 </TableHead>
                 <TableHead className="text-right">
-                  {t("interest_rates.tiers.field.rate_value")}
+                  {t("mdm.interest_rates.tiers.field.rate_value")}
                 </TableHead>
-                <TableHead>{t("interest_rates.tiers.field.decision")}</TableHead>
+                <TableHead>{t("mdm.interest_rates.tiers.field.decision")}</TableHead>
                 <TableHead className="w-20" />
               </TableRow>
             </TableHeader>
@@ -228,7 +228,7 @@ export function TierEditorDialog({
               ) : tiers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    {t("interest_rates.tiers.empty")}
+                    {t("mdm.interest_rates.tiers.empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -282,7 +282,7 @@ export function TierEditorDialog({
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <div className="space-y-1.5">
                 <Label htmlFor="tier-from">
-                  {t("interest_rates.tiers.field.effective_from")}
+                  {t("mdm.interest_rates.tiers.field.effective_from")}
                 </Label>
                 <Input
                   id="tier-from"
@@ -298,7 +298,7 @@ export function TierEditorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-to">
-                  {t("interest_rates.tiers.field.effective_to")}
+                  {t("mdm.interest_rates.tiers.field.effective_to")}
                 </Label>
                 <Input
                   id="tier-to"
@@ -314,12 +314,12 @@ export function TierEditorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-amount-from">
-                  {t("interest_rates.tiers.field.amount_from")}
+                  {t("mdm.interest_rates.tiers.field.amount_from")}
                 </Label>
                 <Input
                   id="tier-amount-from"
                   inputMode="decimal"
-                  placeholder={t("interest_rates.tiers.placeholder.optional")}
+                  placeholder={t("mdm.interest_rates.tiers.placeholder.optional")}
                   value={form.amount_from}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -331,12 +331,12 @@ export function TierEditorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-amount-to">
-                  {t("interest_rates.tiers.field.amount_to")}
+                  {t("mdm.interest_rates.tiers.field.amount_to")}
                 </Label>
                 <Input
                   id="tier-amount-to"
                   inputMode="decimal"
-                  placeholder={t("interest_rates.tiers.placeholder.optional")}
+                  placeholder={t("mdm.interest_rates.tiers.placeholder.optional")}
                   value={form.amount_to}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -348,7 +348,7 @@ export function TierEditorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-rate">
-                  {t("interest_rates.tiers.field.rate_value")}
+                  {t("mdm.interest_rates.tiers.field.rate_value")}
                 </Label>
                 <Input
                   id="tier-rate"
@@ -364,12 +364,12 @@ export function TierEditorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-min-rate">
-                  {t("interest_rates.tiers.field.min_rate")}
+                  {t("mdm.interest_rates.tiers.field.min_rate")}
                 </Label>
                 <Input
                   id="tier-min-rate"
                   inputMode="decimal"
-                  placeholder={t("interest_rates.tiers.placeholder.optional")}
+                  placeholder={t("mdm.interest_rates.tiers.placeholder.optional")}
                   value={form.min_rate}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -381,12 +381,12 @@ export function TierEditorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-max-rate">
-                  {t("interest_rates.tiers.field.max_rate")}
+                  {t("mdm.interest_rates.tiers.field.max_rate")}
                 </Label>
                 <Input
                   id="tier-max-rate"
                   inputMode="decimal"
-                  placeholder={t("interest_rates.tiers.placeholder.optional")}
+                  placeholder={t("mdm.interest_rates.tiers.placeholder.optional")}
                   value={form.max_rate}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -398,7 +398,7 @@ export function TierEditorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-decision-no">
-                  {t("interest_rates.tiers.field.decision_no")}
+                  {t("mdm.interest_rates.tiers.field.decision_no")}
                 </Label>
                 <Input
                   id="tier-decision-no"
@@ -425,7 +425,7 @@ export function TierEditorDialog({
           <div className="flex justify-end">
             <Button onClick={openCreate}>
               <Plus className="size-4" />
-              {t("interest_rates.tiers.create")}
+              {t("mdm.interest_rates.tiers.create")}
             </Button>
           </div>
         )}
@@ -437,10 +437,10 @@ export function TierEditorDialog({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {t("interest_rates.tiers.delete_confirm_title")}
+                {t("mdm.interest_rates.tiers.delete_confirm_title")}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                {t("interest_rates.tiers.delete_confirm_description")}
+                {t("mdm.interest_rates.tiers.delete_confirm_description")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

@@ -120,5 +120,6 @@
       "delete_confirm_title": "Xóa bậc lãi suất?",
       "delete_confirm_description": "Bậc lãi suất sẽ bị xóa vĩnh viễn khỏi bảng lãi suất."
     }
-  }
+  },
+  "dialog_description": "Thông tin bản ghi danh mục. Bản ghi toàn cục (seed) chỉ đọc qua API."
 }

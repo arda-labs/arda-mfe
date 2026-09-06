@@ -120,5 +120,6 @@
       "delete_confirm_title": "Delete rate tier?",
       "delete_confirm_description": "The tier will be permanently removed from this rate table."
     }
-  }
+  },
+  "dialog_description": "Catalog record details. Global (seed) rows are read-only via the API."
 }

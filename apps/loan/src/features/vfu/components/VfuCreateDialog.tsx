@@ -40,25 +40,25 @@ export function VfuCreateDialog({
     { code: string; name: string; extra: string }
   > = {
     party: {
-      code: t("loan_vfu.field.party_code"),
-      name: t("loan_vfu.field.party_name"),
+      code: t("loan.loan_vfu.field.party_code"),
+      name: t("loan.loan_vfu.field.party_name"),
       extra: "",
     },
     mandate: {
-      code: t("loan_vfu.field.mandate_code"),
-      name: t("loan_vfu.field.party_code"),
-      extra: t("loan_vfu.field.rep_name"),
+      code: t("loan.loan_vfu.field.mandate_code"),
+      name: t("loan.loan_vfu.field.party_code"),
+      extra: t("loan.loan_vfu.field.rep_name"),
     },
     plan: {
-      code: t("loan_vfu.field.plan_code"),
-      name: t("loan_vfu.field.mandate_code"),
-      extra: t("loan_vfu.field.allocated"),
+      code: t("loan.loan_vfu.field.plan_code"),
+      name: t("loan.loan_vfu.field.mandate_code"),
+      extra: t("loan.loan_vfu.field.allocated"),
     },
   }
 
   const submit = async () => {
     if (!form.code.trim()) {
-      notify.error(t("loan_vfu.validation.code_required"))
+      notify.error(t("loan.loan_vfu.validation.code_required"))
       return
     }
     setSavePending(true)
@@ -82,11 +82,11 @@ export function VfuCreateDialog({
           allocated_amt: parseMoneyInput(form.extra) ?? 0,
         })
       }
-      notify.success(t("loan_vfu.saved"))
+      notify.success(t("loan.loan_vfu.saved"))
       onOpenChange(false)
       await onSaved()
     } catch (error) {
-      notify.error(translateApiError(error, t("loan_vfu.save_failed")))
+      notify.error(translateApiError(error, t("loan.loan_vfu.save_failed")))
     } finally {
       setSavePending(false)
     }
@@ -96,8 +96,8 @@ export function VfuCreateDialog({
     <Dialog open={Boolean(target)} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("loan_vfu.create_title")}</DialogTitle>
-          <DialogDescription>{t("loan_vfu.dialog_description")}</DialogDescription>
+          <DialogTitle>{t("loan.loan_vfu.create_title")}</DialogTitle>
+          <DialogDescription>{t("loan.loan_vfu.dialog_description")}</DialogDescription>
         </DialogHeader>
         {target && (
           <div className="space-y-3">
@@ -137,10 +137,10 @@ export function VfuCreateDialog({
         )}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("loan_vfu.cancel")}
+            {t("loan.loan_vfu.cancel")}
           </Button>
           <Button onClick={() => void submit()} disabled={savePending}>
-            {t("loan_vfu.save")}
+            {t("loan.loan_vfu.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

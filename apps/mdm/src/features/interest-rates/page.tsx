@@ -27,9 +27,9 @@ const rateTypeMeta: Record<
   string,
   { labelKey: string; variant: "default" | "secondary" | "outline" }
 > = {
-  central: { labelKey: "interest_rates.rate_type.central", variant: "default" },
-  loan: { labelKey: "interest_rates.rate_type.loan", variant: "secondary" },
-  deposit: { labelKey: "interest_rates.rate_type.deposit", variant: "outline" },
+  central: { labelKey: "mdm.interest_rates.rate_type.central", variant: "default" },
+  loan: { labelKey: "mdm.interest_rates.rate_type.loan", variant: "secondary" },
+  deposit: { labelKey: "mdm.interest_rates.rate_type.deposit", variant: "outline" },
 }
 
 export function InterestRatesPage(_props: { pathname: string }) {
@@ -46,7 +46,7 @@ export function InterestRatesPage(_props: { pathname: string }) {
       const result = await interestRateApi.list(true)
       setRates(result.items)
     } catch (error) {
-      notify.error(translateApiError(error, t("interest_rates.load_failed")))
+      notify.error(translateApiError(error, t("mdm.interest_rates.load_failed")))
     } finally {
       setLoading(false)
     }
@@ -66,12 +66,12 @@ export function InterestRatesPage(_props: { pathname: string }) {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("interest_rates.field.code")} />
+          <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.code")} />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
-          t("interest_rates.field.code"),
-          t("interest_rates.placeholder.search")
+          t("mdm.interest_rates.field.code"),
+          t("mdm.interest_rates.placeholder.search")
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.code}</span>
@@ -80,19 +80,19 @@ export function InterestRatesPage(_props: { pathname: string }) {
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("interest_rates.field.name")} />
+          <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.name")} />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
-          t("interest_rates.field.name"),
-          t("interest_rates.placeholder.search")
+          t("mdm.interest_rates.field.name"),
+          t("mdm.interest_rates.placeholder.search")
         ),
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "rate_type",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("interest_rates.field.rate_type")} />
+          <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.rate_type")} />
         ),
         cell: ({ row }) => {
           const meta = rateTypeMeta[row.original.rate_type]
@@ -106,18 +106,18 @@ export function InterestRatesPage(_props: { pathname: string }) {
       {
         accessorKey: "apply_type",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("interest_rates.field.apply_type")} />
+          <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.apply_type")} />
         ),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
-            {t(`interest_rates.apply_type.${row.original.apply_type}`)}
+            {t(`mdm.interest_rates.apply_type.${row.original.apply_type}`)}
           </span>
         ),
       },
       {
         id: "currency",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("interest_rates.field.currency")} />
+          <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.currency")} />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">
@@ -129,11 +129,11 @@ export function InterestRatesPage(_props: { pathname: string }) {
         id: "is_active",
         accessorKey: "is_active",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("interest_rates.field.status")} />
+          <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.status")} />
         ),
         enableColumnFilter: true,
         meta: activeStatusMeta(
-          t("interest_rates.field.status"),
+          t("mdm.interest_rates.field.status"),
           t("mdm.status.active"),
           t("mdm.status.inactive")
         ),
@@ -147,7 +147,7 @@ export function InterestRatesPage(_props: { pathname: string }) {
       },
       {
         id: "actions",
-        header: t("interest_rates.field.actions"),
+        header: t("mdm.interest_rates.field.actions"),
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex gap-1">
@@ -158,7 +158,7 @@ export function InterestRatesPage(_props: { pathname: string }) {
               onClick={() => setTierTarget(row.original)}
             >
               <Layers className="size-3.5" />
-              {t("interest_rates.tiers.manage")}
+              {t("mdm.interest_rates.tiers.manage")}
             </Button>
             <Button
               variant="ghost"
@@ -197,12 +197,12 @@ export function InterestRatesPage(_props: { pathname: string }) {
   return (
     <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
       <PageHeader
-        title={t("interest_rates.title")}
-        description={t("interest_rates.description")}
+        title={t("mdm.interest_rates.title")}
+        description={t("mdm.interest_rates.description")}
         actions={
           <Button onClick={openCreate}>
             <Plus className="size-4" />
-            {t("interest_rates.create")}
+            {t("mdm.interest_rates.create")}
           </Button>
         }
       />
@@ -215,7 +215,7 @@ export function InterestRatesPage(_props: { pathname: string }) {
             <ListTableToolbar
               table={table}
               onCreate={openCreate}
-              createLabel={t("interest_rates.create")}
+              createLabel={t("mdm.interest_rates.create")}
             />
           </DataTable>
         )}

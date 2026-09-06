@@ -38,7 +38,7 @@ export function VfuPage(_props: { pathname: string }) {
       setMandates(m.items)
       setPlans(pl.items)
     } catch (error) {
-      notify.error(translateApiError(error, t("loan_vfu.load_failed")))
+      notify.error(translateApiError(error, t("loan.loan_vfu.load_failed")))
     } finally {
       setLoading(false)
     }
@@ -53,10 +53,10 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "party_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.party_code")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.party_code")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_vfu.field.party_code"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_vfu.field.party_code"), t("loan.placeholder.search")),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.party_code}</span>
         ),
@@ -64,16 +64,16 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "party_name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.party_name")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.party_name")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_vfu.field.party_name"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_vfu.field.party_name"), t("loan.placeholder.search")),
         cell: ({ row }) => <span className="font-medium">{row.original.party_name}</span>,
       },
       {
         accessorKey: "mobile_number",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.phone")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.phone")} />
         ),
         cell: ({ row }) => (
           <span className="text-muted-foreground">{row.original.mobile_number || "—"}</span>
@@ -98,10 +98,10 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "mandate_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.mandate_code")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.mandate_code")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_vfu.field.mandate_code"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_vfu.field.mandate_code"), t("loan.placeholder.search")),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.mandate_code}</span>
         ),
@@ -109,15 +109,15 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "party_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.party_code")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.party_code")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_vfu.field.party_code"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_vfu.field.party_code"), t("loan.placeholder.search")),
       },
       {
         accessorKey: "rate_value",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.rate")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.rate")} />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{row.original.rate_value ?? "—"}</span>
@@ -142,10 +142,10 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "plan_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.plan_code")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.plan_code")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_vfu.field.plan_code"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_vfu.field.plan_code"), t("loan.placeholder.search")),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.plan_code}</span>
         ),
@@ -153,15 +153,15 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "mandate_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.mandate_code")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.mandate_code")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_vfu.field.mandate_code"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_vfu.field.mandate_code"), t("loan.placeholder.search")),
       },
       {
         accessorKey: "allocated_amt",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.allocated")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.allocated")} />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatMoney(row.original.allocated_amt)}</span>
@@ -170,7 +170,7 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "settled_amt",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.settled")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.settled")} />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatMoney(row.original.settled_amt)}</span>
@@ -179,7 +179,7 @@ export function VfuPage(_props: { pathname: string }) {
       {
         accessorKey: "fee_amt",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_vfu.field.fee")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_vfu.field.fee")} />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatMoney(row.original.fee_amt)}</span>
@@ -233,14 +233,14 @@ export function VfuPage(_props: { pathname: string }) {
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-6 overflow-y-auto p-4">
-      <PageHeader title={t("loan_vfu.title")} description={t("loan_vfu.description")} />
+      <PageHeader title={t("loan.loan_vfu.title")} description={t("loan.loan_vfu.description")} />
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">{t("loan_vfu.parties_title")}</h2>
+          <h2 className="text-sm font-semibold">{t("loan.loan_vfu.parties_title")}</h2>
           <Button size="sm" variant="outline" onClick={() => setDialogTarget("party")}>
             <Plus className="size-3.5" />
-            {t("loan_vfu.create_party")}
+            {t("loan.loan_vfu.create_party")}
           </Button>
         </div>
         {loading ? (
@@ -250,7 +250,7 @@ export function VfuPage(_props: { pathname: string }) {
             <ListTableToolbar
               table={partyTable.table}
               onCreate={() => setDialogTarget("party")}
-              createLabel={t("loan_vfu.create_party")}
+              createLabel={t("loan.loan_vfu.create_party")}
             />
           </DataTable>
         )}
@@ -258,10 +258,10 @@ export function VfuPage(_props: { pathname: string }) {
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">{t("loan_vfu.mandates_title")}</h2>
+          <h2 className="text-sm font-semibold">{t("loan.loan_vfu.mandates_title")}</h2>
           <Button size="sm" variant="outline" onClick={() => setDialogTarget("mandate")}>
             <Plus className="size-3.5" />
-            {t("loan_vfu.create_mandate")}
+            {t("loan.loan_vfu.create_mandate")}
           </Button>
         </div>
         {loading ? (
@@ -271,7 +271,7 @@ export function VfuPage(_props: { pathname: string }) {
             <ListTableToolbar
               table={mandateTable.table}
               onCreate={() => setDialogTarget("mandate")}
-              createLabel={t("loan_vfu.create_mandate")}
+              createLabel={t("loan.loan_vfu.create_mandate")}
             />
           </DataTable>
         )}
@@ -279,10 +279,10 @@ export function VfuPage(_props: { pathname: string }) {
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">{t("loan_vfu.plans_title")}</h2>
+          <h2 className="text-sm font-semibold">{t("loan.loan_vfu.plans_title")}</h2>
           <Button size="sm" variant="outline" onClick={() => setDialogTarget("plan")}>
             <Plus className="size-3.5" />
-            {t("loan_vfu.create_plan")}
+            {t("loan.loan_vfu.create_plan")}
           </Button>
         </div>
         {loading ? (
@@ -292,7 +292,7 @@ export function VfuPage(_props: { pathname: string }) {
             <ListTableToolbar
               table={planTable.table}
               onCreate={() => setDialogTarget("plan")}
-              createLabel={t("loan_vfu.create_plan")}
+              createLabel={t("loan.loan_vfu.create_plan")}
             />
           </DataTable>
         )}

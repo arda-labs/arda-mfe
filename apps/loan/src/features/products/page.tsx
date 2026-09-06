@@ -36,7 +36,7 @@ export function ProductsPage(_props: { pathname: string }) {
       const result = await productApi.listProducts()
       setProducts(result.items)
     } catch (error) {
-      notify.error(translateApiError(error, t("loan_products.load_failed")))
+      notify.error(translateApiError(error, t("loan.loan_products.load_failed")))
     } finally {
       setLoading(false)
     }
@@ -56,10 +56,10 @@ export function ProductsPage(_props: { pathname: string }) {
       {
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_products.field.code")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_products.field.code")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_products.field.code"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_products.field.code"), t("loan.placeholder.search")),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.code}</span>
         ),
@@ -67,16 +67,16 @@ export function ProductsPage(_props: { pathname: string }) {
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_products.field.name")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_products.field.name")} />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("loan_products.field.name"), t("loan.placeholder.search")),
+        meta: textSearchMeta(t("loan.loan_products.field.name"), t("loan.placeholder.search")),
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "interest_rate",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_products.field.rate")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_products.field.rate")} />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatRatePercent(row.original.interest_rate)}</span>
@@ -85,7 +85,7 @@ export function ProductsPage(_props: { pathname: string }) {
       {
         accessorKey: "max_amount",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan_products.field.max_amount")} />
+          <DataTableColumnHeader column={column} label={t("loan.loan_products.field.max_amount")} />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatMoney(row.original.max_amount)}</span>
@@ -96,7 +96,7 @@ export function ProductsPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t("loan_products.field.classification")}
+            label={t("loan.loan_products.field.classification")}
           />
         ),
         cell: ({ row }) => (
@@ -112,10 +112,10 @@ export function ProductsPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.field.status")} />
         ),
         enableColumnFilter: true,
-        meta: activeStatusMeta(t("loan.field.status"), t("status_active"), t("status_inactive")),
+        meta: activeStatusMeta(t("loan.field.status"), t("loan.status_active"), t("loan.status_inactive")),
         cell: ({ row }) => (
           <Badge variant={row.original.is_active ? "default" : "outline"}>
-            {row.original.is_active ? t("status_active") : t("status_inactive")}
+            {row.original.is_active ? t("loan.status_active") : t("loan.status_inactive")}
           </Badge>
         ),
       },
@@ -160,8 +160,8 @@ export function ProductsPage(_props: { pathname: string }) {
   return (
     <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
       <PageHeader
-        title={t("loan_products.title")}
-        description={t("loan_products.description")}
+        title={t("loan.loan_products.title")}
+        description={t("loan.loan_products.description")}
         actions={
           <Button
             onClick={() => {
@@ -170,7 +170,7 @@ export function ProductsPage(_props: { pathname: string }) {
             }}
           >
             <Plus className="size-4" />
-            {t("loan_products.create")}
+            {t("loan.loan_products.create")}
           </Button>
         }
       />
@@ -183,7 +183,7 @@ export function ProductsPage(_props: { pathname: string }) {
             <ListTableToolbar
               table={table}
               onCreate={openCreate}
-              createLabel={t("loan_products.create")}
+              createLabel={t("loan.loan_products.create")}
             />
           </DataTable>
         )}

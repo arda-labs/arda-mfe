@@ -54,7 +54,8 @@
       "classification": "Classification (COA)",
       "min_amount": "Hạn mức tối thiểu",
       "max_amount": "Hạn mức tối đa"
-    }
+    },
+    "edit": "Cập nhật sản phẩm"
   },
   "loan_vfu": {
     "title": "Ủy thác (VFU)",
@@ -85,14 +86,14 @@
       "allocated": "Số vốn phân bổ",
       "settled": "Đã tất toán",
       "fee": "Phí"
-    }
+    },
+    "save": "Lưu"
   },
-  "mdm_status_active": "Hoạt động",
-  "mdm_status_inactive": "Ngưng",
   "create": "Tạo hợp đồng",
   "dialog_description": "Hợp đồng sẽ được trình vào case hình thành khoản vay đa cấp.",
   "placeholder": {
-    "search": "Tìm..."
+    "search": "Tìm...",
+    "product": "Chọn sản phẩm"
   },
   "validation": {
     "required": "Mã hợp đồng và khách hàng là bắt buộc",

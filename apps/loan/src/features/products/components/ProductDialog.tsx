@@ -83,7 +83,7 @@ export function ProductDialog({
 
   const submit = async () => {
     if (!form.code.trim() || !form.name.trim()) {
-      notify.error(t("loan_products.validation.required"))
+      notify.error(t("loan.loan_products.validation.required"))
       return
     }
     const maxAmount = form.max_amount ? parseMoneyInput(form.max_amount) : undefined
@@ -101,11 +101,11 @@ export function ProductDialog({
         max_amount: maxAmount,
         acc_classification: form.acc_classification.trim() || undefined,
       })
-      notify.success(t("loan_products.saved"))
+      notify.success(t("loan.loan_products.saved"))
       onOpenChange(false)
       await onSaved()
     } catch (error) {
-      notify.error(translateApiError(error, t("loan_products.save_failed")))
+      notify.error(translateApiError(error, t("loan.loan_products.save_failed")))
     } finally {
       setSavePending(false)
     }
@@ -116,13 +116,13 @@ export function ProductDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {editing ? t("loan_products.edit") : t("loan_products.create")}
+            {editing ? t("loan.loan_products.edit") : t("loan.loan_products.create")}
           </DialogTitle>
-          <DialogDescription>{t("loan_products.dialog_description")}</DialogDescription>
+          <DialogDescription>{t("loan.loan_products.dialog_description")}</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="prd-code">{t("loan_products.field.code")}</Label>
+            <Label htmlFor="prd-code">{t("loan.loan_products.field.code")}</Label>
             <Input
               id="prd-code"
               value={form.code}
@@ -133,7 +133,7 @@ export function ProductDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="prd-name">{t("loan_products.field.name")}</Label>
+            <Label htmlFor="prd-name">{t("loan.loan_products.field.name")}</Label>
             <Input
               id="prd-name"
               value={form.name}
@@ -143,7 +143,7 @@ export function ProductDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="prd-type">{t("loan_products.field.type")}</Label>
+            <Label htmlFor="prd-type">{t("loan.loan_products.field.type")}</Label>
             <Select
               value={form.product_type}
               onValueChange={(value) =>
@@ -163,7 +163,7 @@ export function ProductDialog({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="prd-rate">{t("loan_products.field.rate")}</Label>
+            <Label htmlFor="prd-rate">{t("loan.loan_products.field.rate")}</Label>
             <Input
               id="prd-rate"
               type="number"
@@ -175,7 +175,7 @@ export function ProductDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="prd-min">{t("loan_products.field.min_amount")}</Label>
+            <Label htmlFor="prd-min">{t("loan.loan_products.field.min_amount")}</Label>
             <Input
               id="prd-min"
               inputMode="numeric"
@@ -186,7 +186,7 @@ export function ProductDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="prd-max">{t("loan_products.field.max_amount")}</Label>
+            <Label htmlFor="prd-max">{t("loan.loan_products.field.max_amount")}</Label>
             <Input
               id="prd-max"
               inputMode="numeric"
@@ -197,7 +197,7 @@ export function ProductDialog({
             />
           </div>
           <div className="col-span-2 space-y-1.5">
-            <Label htmlFor="prd-class">{t("loan_products.field.classification")}</Label>
+            <Label htmlFor="prd-class">{t("loan.loan_products.field.classification")}</Label>
             <Input
               id="prd-class"
               value={form.acc_classification}
@@ -212,10 +212,10 @@ export function ProductDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("loan_products.cancel")}
+            {t("loan.loan_products.cancel")}
           </Button>
           <Button onClick={() => void submit()} disabled={savePending}>
-            {t("loan_products.save")}
+            {t("loan.loan_products.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

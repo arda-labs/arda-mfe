@@ -54,7 +54,8 @@
       "classification": "Classification (COA)",
       "min_amount": "Min amount",
       "max_amount": "Max amount"
-    }
+    },
+    "edit": "Edit product"
   },
   "loan_vfu": {
     "title": "Trust (VFU)",
@@ -85,14 +86,14 @@
       "allocated": "Allocated",
       "settled": "Settled",
       "fee": "Fee"
-    }
+    },
+    "save": "Save"
   },
-  "mdm_status_active": "Active",
-  "mdm_status_inactive": "Inactive",
   "create": "New contract",
   "dialog_description": "The contract is submitted into the multi-level formation case.",
   "placeholder": {
-    "search": "Search..."
+    "search": "Search...",
+    "product": "Select product"
   },
   "validation": {
     "required": "Contract code and customer are required",

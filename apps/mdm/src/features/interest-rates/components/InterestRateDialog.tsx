@@ -115,15 +115,15 @@ export function InterestRateDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {editing ? t("interest_rates.edit") : t("interest_rates.create")}
+            {editing ? t("mdm.interest_rates.edit") : t("mdm.interest_rates.create")}
           </DialogTitle>
           <DialogDescription>
-            {t("interest_rates.dialog_description")}
+            {t("mdm.interest_rates.dialog_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="rate-code">{t("interest_rates.field.code")}</Label>
+            <Label htmlFor="rate-code">{t("mdm.interest_rates.field.code")}</Label>
             <Input
               id="rate-code"
               value={form.code}
@@ -134,7 +134,7 @@ export function InterestRateDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="rate-name">{t("interest_rates.field.name")}</Label>
+            <Label htmlFor="rate-name">{t("mdm.interest_rates.field.name")}</Label>
             <Input
               id="rate-name"
               value={form.name}
@@ -145,7 +145,7 @@ export function InterestRateDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>{t("interest_rates.field.rate_type")}</Label>
+              <Label>{t("mdm.interest_rates.field.rate_type")}</Label>
               <Select
                 value={form.rate_type}
                 onValueChange={(value) =>
@@ -161,14 +161,14 @@ export function InterestRateDialog({
                 <SelectContent>
                   {RATE_TYPES.map((value) => (
                     <SelectItem key={value} value={value}>
-                      {t(`interest_rates.rate_type.${value}`)}
+                      {t(`mdm.interest_rates.rate_type.${value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>{t("interest_rates.field.apply_type")}</Label>
+              <Label>{t("mdm.interest_rates.field.apply_type")}</Label>
               <Select
                 value={form.apply_type}
                 onValueChange={(value) =>
@@ -184,7 +184,7 @@ export function InterestRateDialog({
                 <SelectContent>
                   {APPLY_TYPES.map((value) => (
                     <SelectItem key={value} value={value}>
-                      {t(`interest_rates.apply_type.${value}`)}
+                      {t(`mdm.interest_rates.apply_type.${value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -192,7 +192,7 @@ export function InterestRateDialog({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="rate-currency">{t("interest_rates.field.currency")}</Label>
+            <Label htmlFor="rate-currency">{t("mdm.interest_rates.field.currency")}</Label>
             <Input
               id="rate-currency"
               placeholder="VND"
