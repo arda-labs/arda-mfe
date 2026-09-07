@@ -5,7 +5,7 @@ import {
   putCanonical,
 } from "@workspace/api"
 import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
-import { buildSearchParams, type SearchParams } from "@workspace/api/query"
+import { buildSearchParams } from "@workspace/api/query"
 
 export type CustomerType = "PERSONAL" | "BUSINESS"
 export type CustomerStatus =
@@ -220,6 +220,15 @@ export const customerApi = {
       `/api/workflow/cases/${encodeURIComponent(id)}`
     )
   },
+  claimWorkflowTask(input: {
+    role?: string
+    taskType?: string
+    processInstanceKey?: string | number
+    caseId?: string | null
+    elementId?: string | null
+  }) {
+    return postCanonical<WorkflowTask>("/api/workflow/tasks/claim", input)
+  },
   getTaskReadiness(caseId: string, stepCode: string) {
     return getCanonical<{ ready: boolean; status: string }>(
       `/api/workflow/cases/${encodeURIComponent(caseId)}/task-readiness?stepCode=${encodeURIComponent(stepCode)}`
@@ -331,11 +340,4 @@ export const platformReferenceApi = {
       `/api/platform/organizations${suffix}`
     )
   },
-}
-
-async function getItems<T>(path: string, params: SearchParams = {}) {
-  const search = buildSearchParams(params)
-  const suffix = search.size ? `?${search.toString()}` : ""
-  const data = await getCanonical<{ items: T[] }>(`${path}${suffix}`)
-  return data.items
 }
