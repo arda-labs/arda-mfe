@@ -1,8 +1,36 @@
 import { deleteCanonical, getCanonical, postCanonical } from "@workspace/api"
+import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import type { Tenant, TenantMember } from "./types"
 
+export type TenantListInput = {
+  page?: number
+  perPage?: number
+  q?: string
+  sort?: string
+  order?: "asc" | "desc" | string
+}
+
+export function buildTenantListQuery(params?: TenantListInput): URLSearchParams {
+  const order =
+    params?.order?.toLowerCase() === "desc"
+      ? "desc"
+      : params?.order
+        ? "asc"
+        : undefined
+  return buildListSearchParams({
+    page: params?.page,
+    perPage: params?.perPage,
+    q: params?.q,
+    sort: params?.sort,
+    order,
+  })
+}
+
 export const tenantsApi = {
-  listTenants: () => getCanonical<Tenant[]>("/api/admin/tenants"),
+  listTenants: (params?: TenantListInput) =>
+    getCanonical<ListResponse<Tenant>>(
+      `/api/admin/tenants?${buildTenantListQuery(params).toString()}`
+    ),
   createTenant: (data: { code: string; name: string; ownerUserId?: string }) =>
     postCanonical<Tenant>("/api/admin/tenants", {
       code: data.code,

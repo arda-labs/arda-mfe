@@ -28,15 +28,17 @@ import {
 import { useServerDataTable } from "@workspace/admin-list/server-data-table"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
-import { ShieldCheck, Trash2 } from "lucide-react"
+import { ShieldCheck, Pencil, Trash2 } from "lucide-react"
 import { rolesListDefinition } from "./list-query"
 import { CreateRoleDialog } from "./components/CreateRoleDialog"
+import { EditRoleDialog } from "./components/EditRoleDialog"
 import { RolePermissionsDialog } from "./components/RolePermissionsDialog"
 
 export function RolesPage() {
   const { t } = useI18n()
   const actorTenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const [createOpen, setCreateOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Role | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Role | null>(null)
   const [permissionTarget, setPermissionTarget] = useState<Role | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -131,9 +133,18 @@ export function RolesPage() {
               size="icon"
               className="size-7 text-muted-foreground"
               onClick={() => setPermissionTarget(row.original)}
-              title="Phân quyền"
+              title={t("iam.roles.permissions_action")}
             >
               <ShieldCheck className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => setEditTarget(row.original)}
+              title={t("common.action.edit")}
+            >
+              <Pencil className="size-3.5" />
             </Button>
             <Button
               variant="ghost"
@@ -186,16 +197,16 @@ export function RolesPage() {
       setDeleting(true)
       try {
         await rolesApi.deleteRole(target.id, target.tenantId)
-        notify.success("Đã xóa vai trò")
+        notify.success(t("iam.roles.delete_success"))
         setDeleteTarget(null)
         await refetch()
       } catch (err) {
-        notify.error("Không xóa được vai trò", translateApiError(err))
+        notify.error(t("iam.roles.delete_failed"), translateApiError(err))
       } finally {
         setDeleting(false)
       }
     },
-    [refetch]
+    [refetch, t]
   )
 
   return (
@@ -245,6 +256,12 @@ export function RolesPage() {
             open={createOpen}
             onOpenChange={setCreateOpen}
             onCreated={() => void refetch()}
+          />
+          <EditRoleDialog
+            role={editTarget}
+            open={editTarget !== null}
+            onOpenChange={(nextOpen) => !nextOpen && setEditTarget(null)}
+            onSaved={() => void refetch()}
           />
           <RolePermissionsDialog
             role={permissionTarget}

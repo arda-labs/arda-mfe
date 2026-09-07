@@ -1,5 +1,8 @@
-import { useI18n } from "@workspace/i18n"
+import { useEffect, useState } from "react"
 import type { AdminUserSession, User } from "../types"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/ui/feedback/notify"
+import { usersApi } from "../api"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -8,24 +11,62 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 
+type UserSessionsDialogProps = {
+  user: User | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+/**
+ * Self-contained sessions dialog: loads the user's active sessions when
+ * opened and revokes them in place.
+ */
 export function UserSessionsDialog({
   user,
   open,
   onOpenChange,
-  sessions,
-  sessionsLoading,
-  onRevokeSessions,
-  isBusy,
-}: {
-  user: User | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  sessions: AdminUserSession[]
-  sessionsLoading: boolean
-  onRevokeSessions: () => Promise<void>
-  isBusy: boolean
-}) {
+}: UserSessionsDialogProps) {
   const { t, formatDate } = useI18n()
+  const [sessions, setSessions] = useState<AdminUserSession[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(false)
+  const [revoking, setRevoking] = useState(false)
+
+  useEffect(() => {
+    if (!open || !user) {
+      setSessions([])
+      return
+    }
+    let cancelled = false
+    setSessionsLoading(true)
+    usersApi
+      .listUserSessions(user.id, user.tenantId)
+      .then((result) => {
+        if (!cancelled) setSessions(result.sessions ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setSessions([])
+      })
+      .finally(() => {
+        if (!cancelled) setSessionsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, user])
+
+  const revokeSessions = async () => {
+    if (!user) return
+    setRevoking(true)
+    try {
+      await usersApi.revokeUserSessions(user.id, user.tenantId)
+      notify.success(t("admin.users.sessions.revoke_success"))
+      onOpenChange(false)
+    } catch (err) {
+      notify.error(t("admin.users.sessions.revoke_failed"), translateApiError(err))
+    } finally {
+      setRevoking(false)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -41,8 +82,8 @@ export function UserSessionsDialog({
           <div className="flex justify-end">
             <Button
               variant="outline"
-              onClick={onRevokeSessions}
-              disabled={!user || isBusy}
+              onClick={() => void revokeSessions()}
+              disabled={!user || revoking}
             >
               {t("admin.users.action.revoke_sessions")}
             </Button>

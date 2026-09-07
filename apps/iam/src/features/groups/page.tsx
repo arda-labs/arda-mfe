@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Group } from "./types"
 import { groupsApi } from "./api"
 import { downloadFile } from "@workspace/api"
 import { GroupMembersDialog } from "./group-members-dialog"
 import { GroupRolesDialog } from "./group-roles-dialog"
+import { GroupFormDialog } from "./components/GroupFormDialog"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -16,12 +14,6 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/admin-list/list-page-shell"
 import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,198 +24,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { FormField } from "@workspace/ui/components/form-field"
-import { Input } from "@workspace/ui/components/input"
 import {
   Status,
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { useDataTable } from "@workspace/admin-list/use-data-table"
-import { useSearchParams } from "react-router-dom"
+import { useServerDataTable } from "@workspace/admin-list/server-data-table"
 import { useAuthStore } from "@workspace/auth/store"
-
-const POS = (value: string | null, fallback: number) => {
-  const n = Number.parseInt(value ?? "", 10)
-  return Number.isFinite(n) && n > 0 ? n : fallback
-}
-
-const parseArrayParam = (raw: string | null) =>
-  raw
-    ? raw
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-    : []
 import { Pencil, ShieldCheck, Trash2, Users } from "lucide-react"
-
-const DEFAULT_PAGE_SIZE = 10
-
-const groupSchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .min(1, "Code is required")
-    .max(128, "Code is too long"),
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required")
-    .max(255, "Name is too long"),
-  description: z
-    .string()
-    .trim()
-    .max(1000, "Description is too long")
-    .optional(),
-  status: z.enum(["ACTIVE", "DISABLED"]),
-  tenantId: z.string().trim().min(1, "Tenant is required"),
-})
-
-type GroupFormValues = z.infer<typeof groupSchema>
-
-const groupDefaultValues: GroupFormValues = {
-  code: "",
-  name: "",
-  description: "",
-  status: "ACTIVE",
-  tenantId: "",
-}
-
-function toGroupValues(group: Group): GroupFormValues {
-  return {
-    code: group.code,
-    name: group.name,
-    description: group.description ?? "",
-    status: group.status === "DISABLED" ? "DISABLED" : "ACTIVE",
-    tenantId: group.tenantId || "",
-  }
-}
+import { groupsListDefinition } from "./list-query"
 
 export function GroupsPage() {
   const { t, formatDate } = useI18n()
   const actorTenantId = useAuthStore((state) => state.user?.tenantId ?? "")
-  const [open, setOpen] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Group | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Group | null>(null)
   const [memberTarget, setMemberTarget] = useState<Group | null>(null)
   const [roleTarget, setRoleTarget] = useState<Group | null>(null)
-  const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const {
-    formState: { errors, isSubmitting },
-    handleSubmit,
-    register,
-    reset,
-  } = useForm<GroupFormValues>({
-    resolver: zodResolver(groupSchema),
-    defaultValues: groupDefaultValues,
-  })
-
-  // list state
-  const [groups, setGroups] = useState<Group[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<unknown>(null)
-  const hasLoadedRef = useRef(false)
-
-  const [searchParams] = useSearchParams()
-  const pageParam = POS(searchParams.get("page"), 1)
-  const pageSizeParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
-  const searchParam = searchParams.get("code")
-  const statusParam = useMemo(
-    () => parseArrayParam(searchParams.get("status")),
-    [searchParams]
-  )
-
-  const loadGroups = useCallback(async () => {
-    setLoadError(null)
-    if (hasLoadedRef.current) setRefreshing(true)
-    else setLoading(true)
-    try {
-      const result = await groupsApi.listGroups({
-        page: pageParam,
-        perPage: pageSizeParam,
-        q: searchParam || undefined,
-        status: statusParam.length === 1 ? statusParam[0] : undefined,
-        tenantId: actorTenantId,
-      })
-      setGroups(result.items)
-      setTotal(result.total)
-    } catch (reason) {
-      setLoadError(reason)
-    } finally {
-      hasLoadedRef.current = true
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [actorTenantId, pageParam, pageSizeParam, searchParam, statusParam])
-
-  useEffect(() => {
-    void loadGroups()
-  }, [loadGroups])
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSizeParam))
-
-  const openCreate = () => {
-    setEditTarget(null)
-    reset(groupDefaultValues)
-    setOpen(true)
-  }
-
-  const openEdit = (group: Group) => {
-    setEditTarget(group)
-    reset(toGroupValues(group))
-    setOpen(true)
-  }
-
-  const closeForm = (nextOpen: boolean) => {
-    setOpen(nextOpen)
-    if (!nextOpen) {
-      setEditTarget(null)
-      reset(groupDefaultValues)
-    }
-  }
-
-  const submit = handleSubmit(async (values) => {
-    const payload = {
-      name: values.name.trim(),
-      description: values.description?.trim() || "",
-      status: values.status,
-      tenantId: values.tenantId.trim(),
-    }
-    setSaving(true)
-    try {
-      if (editTarget) {
-        await groupsApi.updateGroup(editTarget.id, payload)
-        notify.success(t("admin.groups.update_success"))
-      } else {
-        await groupsApi.createGroup({ code: values.code.trim(), ...payload })
-        notify.success(t("admin.groups.create_success"))
-      }
-      closeForm(false)
-      await loadGroups()
-    } catch (err) {
-      notify.error(t("admin.groups.save_failed"), translateApiError(err))
-    } finally {
-      setSaving(false)
-    }
-  })
-
-  const handleDelete = async (group: Group) => {
-    setDeleting(true)
-    try {
-      await groupsApi.deleteGroup(group.id, group.tenantId)
-      notify.success(t("admin.groups.delete_success"))
-      setDeleteTarget(null)
-      await loadGroups()
-    } catch (err) {
-      notify.error(t("admin.groups.delete_failed"), translateApiError(err))
-    } finally {
-      setDeleting(false)
-    }
-  }
 
   const columns = useMemo<ColumnDef<Group>[]>(
     () => [
@@ -263,7 +82,7 @@ export function GroupsPage() {
         meta: {
           label: t("common.field.code"),
           variant: "text",
-          placeholder: "Search groups",
+          placeholder: t("iam.groups.search_placeholder"),
         },
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.code}</span>
@@ -292,8 +111,8 @@ export function GroupsPage() {
           label: t("common.field.status"),
           variant: "multiSelect",
           options: [
-            { label: "Active", value: "ACTIVE" },
-            { label: "Disabled", value: "DISABLED" },
+            { label: t("admin.users.status.active"), value: "ACTIVE" },
+            { label: t("admin.users.status.disabled"), value: "DISABLED" },
           ],
         },
         cell: ({ row }) => (
@@ -364,7 +183,10 @@ export function GroupsPage() {
                 variant="ghost"
                 size="icon"
                 className="size-7 text-muted-foreground"
-                onClick={() => openEdit(group)}
+                onClick={() => {
+                  setEditTarget(group)
+                  setFormOpen(true)
+                }}
                 title={t("common.action.edit")}
               >
                 <Pencil className="size-3.5" />
@@ -389,89 +211,60 @@ export function GroupsPage() {
     [formatDate, t]
   )
 
-  const { table } = useDataTable<Group>({
+  /**
+   * Server-driven list controller: URL page/perPage + `code`→q + `status`
+   * filters <-> TanStack Query cache, cancellation, dedupe and previous-page
+   * placeholder handled by @workspace/admin-list. The page owns columns,
+   * dialogs and the delete action only.
+   */
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+    query,
+  } = useServerDataTable<Group>({
+    ...groupsListDefinition,
     columns,
-    data: groups,
-    pageCount: totalPages,
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: DEFAULT_PAGE_SIZE,
-      },
-    },
+    queryFn: async (query) =>
+      groupsApi.listGroups({
+        page: query.page,
+        perPage: query.perPage,
+        q: query.q === undefined ? undefined : String(query.q),
+        status: query.status === undefined ? undefined : String(query.status),
+        tenantId: actorTenantId,
+      }),
   })
+
+  const handleDelete = async (group: Group) => {
+    setDeleting(true)
+    try {
+      await groupsApi.deleteGroup(group.id, group.tenantId)
+      notify.success(t("admin.groups.delete_success"))
+      setDeleteTarget(null)
+      await refetch()
+    } catch (err) {
+      notify.error(t("admin.groups.delete_failed"), translateApiError(err))
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const openCreate = () => {
+    setEditTarget(null)
+    setFormOpen(true)
+  }
 
   const dialogs = (
     <>
-      <Dialog open={open} onOpenChange={closeForm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editTarget ? t("admin.groups.edit") : t("admin.groups.create")}
-            </DialogTitle>
-          </DialogHeader>
-          <form className="space-y-3" onSubmit={submit}>
-            <FormField
-              label={t("common.field.code")}
-              error={errors.code?.message}
-            >
-              <Input
-                aria-invalid={Boolean(errors.code)}
-                disabled={Boolean(editTarget)}
-                {...register("code")}
-              />
-            </FormField>
-            <FormField
-              label={t("common.field.name")}
-              error={errors.name?.message}
-            >
-              <Input
-                aria-invalid={Boolean(errors.name)}
-                {...register("name")}
-              />
-            </FormField>
-            <FormField
-              label={t("admin.groups.field.description")}
-              error={errors.description?.message}
-            >
-              <Textarea
-                aria-invalid={Boolean(errors.description)}
-                {...register("description")}
-              />
-            </FormField>
-            <FormField
-              label={t("common.field.status")}
-              error={errors.status?.message}
-            >
-              <Input
-                aria-invalid={Boolean(errors.status)}
-                placeholder="ACTIVE/DISABLED"
-                {...register("status", {
-                  onChange: (event) => {
-                    event.target.value = event.target.value.toUpperCase()
-                  },
-                })}
-              />
-            </FormField>
-            <FormField
-              label={t("admin.groups.field.tenant")}
-              error={errors.tenantId?.message}
-            >
-              <Input
-                aria-invalid={Boolean(errors.tenantId)}
-                {...register("tenantId")}
-              />
-            </FormField>
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={isSubmitting || saving}
-            >
-              {editTarget ? t("common.action.save") : t("common.action.create")}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <GroupFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        group={editTarget}
+        onSaved={() => void refetch()}
+      />
 
       <GroupMembersDialog
         group={memberTarget}
@@ -527,11 +320,11 @@ export function GroupsPage() {
           {t("admin.groups.count", { count: total })}
         </Badge>
       }
-      criticalPending={loading}
+      criticalPending={isLoading}
       criticalError={loadError}
-      onRetry={loadGroups}
+      onRetry={() => void refetch()}
       loadErrorTitle={t("admin.groups.load_failed")}
-      fetching={refreshing}
+      fetching={isFetching}
       table={table}
       toolbar={
         <ListTableToolbar
@@ -543,13 +336,18 @@ export function GroupsPage() {
           totalRowsCount={total}
           onServerExport={async ({ format, filename }) => {
             const exportUrl = groupsApi.getExportUrl({
-              q: searchParam || undefined,
-              status: statusParam.length === 1 ? statusParam[0] : undefined,
+              q: query.q === undefined ? undefined : String(query.q),
+              status:
+                query.status === undefined ? undefined : String(query.status),
               format,
               tenantId: actorTenantId,
             })
             await downloadFile(exportUrl, {
-              filename: filename ? (filename.endsWith(`.${format}`) ? filename : `${filename}.${format}`) : undefined,
+              filename: filename
+                ? filename.endsWith(`.${format}`)
+                  ? filename
+                  : `${filename}.${format}`
+                : undefined,
               fallbackFilename: `groups_export.${format}`,
             })
           }}

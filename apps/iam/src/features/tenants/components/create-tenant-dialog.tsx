@@ -13,56 +13,51 @@ import {
 import { FormField } from "@workspace/ui/components/form-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { rolesApi } from "../api"
+import { tenantsApi } from "../api"
 
-const buildRoleCreateSchema = (t: (key: string) => string) =>
+const buildTenantCreateSchema = (t: (key: string) => string) =>
   z.object({
     code: z
       .string()
       .trim()
-      .min(1, t("iam.roles.validation.code_required"))
-      .max(64, t("iam.roles.validation.code_too_long")),
+      .min(1, t("iam.tenants.validation.code_required"))
+      .max(128, t("iam.tenants.validation.code_too_long")),
     name: z
       .string()
       .trim()
-      .min(1, t("iam.roles.validation.name_required"))
-      .max(255, t("iam.roles.validation.name_too_long")),
-    tenantId: z
-      .string()
-      .trim()
-      .min(1, t("iam.roles.validation.tenant_required")),
+      .min(1, t("iam.tenants.validation.name_required"))
+      .max(255, t("iam.tenants.validation.name_too_long")),
   })
 
-type RoleCreateValues = z.infer<ReturnType<typeof buildRoleCreateSchema>>
+type TenantCreateValues = z.infer<ReturnType<typeof buildTenantCreateSchema>>
 
-const initialValues: RoleCreateValues = {
+const initialValues: TenantCreateValues = {
   code: "",
   name: "",
-  tenantId: "",
 }
 
-interface CreateRoleDialogProps {
+type CreateTenantDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   /** Called after a successful create so the page can refresh its server list. */
   onCreated?: () => void | Promise<void>
 }
 
-export function CreateRoleDialog({
+export function CreateTenantDialog({
   open,
   onOpenChange,
   onCreated,
-}: CreateRoleDialogProps) {
+}: CreateTenantDialogProps) {
   const { t } = useI18n()
-  const [creating, setCreating] = useState(false)
-  const roleCreateSchema = useMemo(() => buildRoleCreateSchema(t), [t])
+  const [saving, setSaving] = useState(false)
+  const tenantCreateSchema = useMemo(() => buildTenantCreateSchema(t), [t])
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
     reset,
-  } = useForm<RoleCreateValues>({
-    resolver: zodResolver(roleCreateSchema),
+  } = useForm<TenantCreateValues>({
+    resolver: zodResolver(tenantCreateSchema),
     defaultValues: initialValues,
   })
 
@@ -72,16 +67,19 @@ export function CreateRoleDialog({
   }
 
   const handleCreate = handleSubmit(async (values) => {
-    setCreating(true)
+    setSaving(true)
     try {
-      await rolesApi.createRole(values)
-      notify.success(t("iam.roles.create_success"))
+      await tenantsApi.createTenant({
+        code: values.code.trim().toLowerCase(),
+        name: values.name.trim(),
+      })
+      notify.success(t("iam.tenants.create_success"))
       onOpenChange(false)
       await onCreated?.()
     } catch (err) {
-      notify.error(t("iam.roles.create_failed"), translateApiError(err))
+      notify.error(t("iam.tenants.create_failed"), translateApiError(err))
     } finally {
-      setCreating(false)
+      setSaving(false)
     }
   })
 
@@ -89,7 +87,7 @@ export function CreateRoleDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("admin.roles.create")}</DialogTitle>
+          <DialogTitle>{t("iam.tenants.create")}</DialogTitle>
         </DialogHeader>
         <form className="space-y-3" onSubmit={handleCreate}>
           <FormField
@@ -98,7 +96,14 @@ export function CreateRoleDialog({
           >
             <Input
               aria-invalid={Boolean(errors.code)}
-              {...register("code")}
+              placeholder={t("iam.tenants.field.code_placeholder")}
+              {...register("code", {
+                onChange: (event) => {
+                  event.target.value = event.target.value
+                    .toLowerCase()
+                    .replace(/\s+/g, "-")
+                },
+              })}
             />
           </FormField>
           <FormField
@@ -107,22 +112,14 @@ export function CreateRoleDialog({
           >
             <Input
               aria-invalid={Boolean(errors.name)}
+              placeholder={t("iam.tenants.field.name_placeholder")}
               {...register("name")}
-            />
-          </FormField>
-          <FormField
-            label={t("admin.groups.field.tenant")}
-            error={errors.tenantId?.message}
-          >
-            <Input
-              aria-invalid={Boolean(errors.tenantId)}
-              {...register("tenantId")}
             />
           </FormField>
           <Button
             className="w-full"
             type="submit"
-            disabled={isSubmitting || creating}
+            disabled={isSubmitting || saving}
           >
             {t("common.action.create")}
           </Button>

@@ -11,6 +11,104 @@
   "permission": {
     "not_found": "Không tìm thấy quyền"
   },
+  "groups": {
+    "search_placeholder": "Tìm nhóm",
+    "validation": {
+      "code_required": "Mã là bắt buộc",
+      "code_too_long": "Mã quá dài",
+      "name_required": "Tên là bắt buộc",
+      "name_too_long": "Tên quá dài",
+      "description_too_long": "Mô tả quá dài",
+      "tenant_required": "Tenant là bắt buộc"
+    }
+  },
+  "roles": {
+    "edit": "Sửa vai trò",
+    "permissions_action": "Phân quyền",
+    "create_success": "Đã tạo vai trò",
+    "create_failed": "Không tạo được vai trò",
+    "update_success": "Đã cập nhật vai trò",
+    "update_failed": "Không cập nhật được vai trò",
+    "delete_success": "Đã xóa vai trò",
+    "delete_failed": "Không xóa được vai trò",
+    "validation": {
+      "code_required": "Mã là bắt buộc",
+      "code_too_long": "Mã quá dài",
+      "name_required": "Tên là bắt buộc",
+      "name_too_long": "Tên quá dài",
+      "tenant_required": "Tenant là bắt buộc"
+    }
+  },
+  "permissions": {
+    "create_success": "Đã tạo quyền",
+    "create_failed": "Không tạo được quyền",
+    "delete_success": "Đã xóa quyền",
+    "delete_failed": "Không xóa được quyền",
+    "validation": {
+      "code_required": "Mã là bắt buộc",
+      "code_too_long": "Mã quá dài",
+      "name_required": "Tên là bắt buộc",
+      "name_too_long": "Tên quá dài",
+      "module_required": "Module là bắt buộc",
+      "module_too_long": "Module quá dài",
+      "resource_required": "Resource là bắt buộc",
+      "resource_too_long": "Resource quá dài",
+      "operation_required": "Operation là bắt buộc",
+      "operation_too_long": "Operation quá dài"
+    }
+  },
+  "tenants": {
+    "title": "Tenant",
+    "count": "{count} tenant",
+    "create": "Tạo tenant",
+    "create_success": "Đã tạo tenant",
+    "create_failed": "Không tạo được tenant",
+    "search_placeholder": "Tìm tenant",
+    "field": {
+      "code_placeholder": "tenant-code",
+      "name_placeholder": "Tên tenant"
+    },
+    "action": {
+      "members": "Quản lý thành viên"
+    },
+    "validation": {
+      "code_required": "Cần nhập tenant code",
+      "code_too_long": "Tenant code quá dài",
+      "name_required": "Cần nhập tên tenant",
+      "name_too_long": "Tên tenant quá dài"
+    },
+    "members": {
+      "title": "Thành viên của {tenant}",
+      "empty": "Chưa có thành viên.",
+      "add": "Thêm",
+      "user_id_placeholder": "IAM user ID",
+      "user_id_required": "Cần nhập user ID",
+      "missing_info": "Thiếu thông tin",
+      "load_failed": "Không tải được thành viên",
+      "add_success": "Đã thêm thành viên",
+      "add_failed": "Không thêm được thành viên",
+      "remove_success": "Đã gỡ thành viên",
+      "remove_failed": "Không gỡ được thành viên"
+    }
+  },
+  "users": {
+    "export": {
+      "report_title": "DANH SÁCH NGƯỜI DÙNG HỆ THỐNG / USERS AUDIT REPORT"
+    },
+    "batch": {
+      "export_selected": "Xuất Excel ({count})",
+      "export_selected_success": "Đã xuất {count} người dùng đã chọn.",
+      "delete_selected": "Xóa đã chọn",
+      "delete_selected_armed": "Đã kích hoạt xóa hàng loạt {count} người dùng"
+    },
+    "roles": {
+      "title": "Phân vai trò cho {user}",
+      "loading": "Đang tải vai trò...",
+      "empty": "Chưa có vai trò để gán.",
+      "update_success": "Đã cập nhật vai trò",
+      "update_failed": "Không cập nhật được vai trò"
+    }
+  },
   "superadmin": {
     "last_active": "Không thể gỡ superadmin hoạt động cuối cùng",
     "system_user_protected": "Tài khoản superadmin hệ thống được bảo vệ",

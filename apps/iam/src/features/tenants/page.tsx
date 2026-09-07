@@ -1,204 +1,204 @@
-import { useCallback, useEffect, useState } from "react"
-import type { Tenant, TenantMember } from "./types"
+import { useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
 import { tenantsApi } from "./api"
-import { translateApiError } from "@workspace/i18n"
-import { notify } from "@workspace/ui/feedback/notify"
+import { tenantsListDefinition } from "./list-query"
+import type { Tenant } from "./types"
+import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
-import { Building2, RefreshCw } from "lucide-react"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { textSearchMeta } from "@workspace/admin-list/column-filters"
+import { useServerDataTable } from "@workspace/admin-list/server-data-table"
+import { CreateTenantDialog } from "./components/create-tenant-dialog"
+import { TenantMembersDialog } from "./components/tenant-members-dialog"
+import { Users } from "lucide-react"
 
 export function TenantsPage() {
-  const [tenants, setTenants] = useState<Tenant[]>([])
-  const [members, setMembers] = useState<Record<string, TenantMember[]>>({})
-  const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [code, setCode] = useState("")
-  const [name, setName] = useState("")
+  const { t, formatDate } = useI18n()
+  const [createOpen, setCreateOpen] = useState(false)
+  const [memberTarget, setMemberTarget] = useState<Tenant | null>(null)
 
-  const loadTenants = useCallback(async () => {
-    setLoading(true)
-    try {
-      const nextTenants = await tenantsApi.listTenants()
-      setTenants(nextTenants)
-      const entries = await Promise.all(
-        nextTenants.map(async (tenant) => [
-          tenant.id,
-          await tenantsApi.listTenantMembers(tenant.id),
-        ] as const)
-      )
-      setMembers(Object.fromEntries(entries))
-    } catch (error) {
-      notify.error("Không tải được tenant", translateApiError(error))
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const columns = useMemo<ColumnDef<Tenant>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label={t("common.action.select_all")}
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label={t("common.action.select_row")}
+            className="translate-y-[2px]"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        id: "code",
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.code")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("common.field.code"),
+          t("iam.tenants.search_placeholder")
+        ),
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <div className="font-mono text-sm">{row.original.code}</div>
+            <div className="truncate font-mono text-xs text-muted-foreground">
+              {row.original.id}
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.name")}
+          />
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
+        cell: ({ row }) => (
+          <Badge
+            variant={row.original.status === "ACTIVE" ? "success" : "secondary"}
+          >
+            {row.original.status || "-"}
+          </Badge>
+        ),
+      },
+      {
+        id: "created_at",
+        accessorKey: "createdAt",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.created")}
+          />
+        ),
+        cell: ({ row }) =>
+          row.original.createdAt ? formatDate(row.original.createdAt) : "-",
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => setMemberTarget(row.original)}
+              title={t("iam.tenants.action.members")}
+            >
+              <Users className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [formatDate, t]
+  )
 
-  const addMember = async (tenantId: string) => {
-    const userId = memberUserIds[tenantId]?.trim()
-    if (!userId) {
-      notify.error("Thiếu thông tin", "Cần nhập user ID")
-      return
-    }
-    try {
-      await tenantsApi.addTenantMember(tenantId, userId)
-      setMemberUserIds((current) => ({ ...current, [tenantId]: "" }))
-      notify.success("Đã thêm thành viên")
-      await loadTenants()
-    } catch (error) {
-      notify.error("Không thêm được thành viên", translateApiError(error))
-    }
-  }
-
-  const removeMember = async (tenantId: string, userId: string) => {
-    try {
-      await tenantsApi.removeTenantMember(tenantId, userId)
-      notify.success("Đã gỡ thành viên")
-      await loadTenants()
-    } catch (error) {
-      notify.error("Không gỡ được thành viên", translateApiError(error))
-    }
-  }
-
-  useEffect(() => {
-    void loadTenants()
-  }, [loadTenants])
-
-  const createTenant = async () => {
-    const normalizedCode = code.trim().toLowerCase()
-    const normalizedName = name.trim()
-    if (!normalizedCode || !normalizedName) {
-      notify.error("Thiếu thông tin", "Cần nhập tenant code và tên tenant")
-      return
-    }
-    setSaving(true)
-    try {
-      await tenantsApi.createTenant({ code: normalizedCode, name: normalizedName })
-      setCode("")
-      setName("")
-      notify.success("Đã tạo tenant")
-      await loadTenants()
-    } catch (error) {
-      notify.error("Không tạo được tenant", translateApiError(error))
-    } finally {
-      setSaving(false)
-    }
-  }
+  /**
+   * Server-driven list controller: URL page/perPage + `code`→q filters <->
+   * TanStack Query cache, cancellation, dedupe and previous-page placeholder
+   * handled by @workspace/admin-list. The page owns columns and dialogs only.
+   */
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<Tenant>({
+    ...tenantsListDefinition,
+    columns,
+    queryFn: async (query) =>
+      tenantsApi.listTenants({
+        page: query.page,
+        perPage: query.perPage,
+        q: query.q === undefined ? undefined : String(query.q),
+        sort: query.sort,
+        order: query.order,
+      }),
+  })
 
   return (
-    <div className="flex min-h-full flex-col gap-4 overflow-auto p-4 md:p-6">
-      <div>
-        <h1 className="text-xl font-semibold">Tenants</h1>
-        <p className="text-sm text-muted-foreground">
-          Quản lý business tenant và registry context cho toàn hệ thống.
-        </p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Tạo tenant</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 md:flex-row">
-          <Input
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            placeholder="tenant-code"
-            aria-label="Tenant code"
+    <ListPageShell
+      title={t("iam.tenants.title")}
+      totalRows={total}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("iam.tenants.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setCreateOpen(true)}
+          createLabel={t("iam.tenants.create")}
+          exportFilename={t("iam.tenants.title")}
+          sheetName={t("iam.tenants.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <>
+          <CreateTenantDialog
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            onCreated={() => void refetch()}
           />
-          <Input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Tenant name"
-            aria-label="Tenant name"
+          <TenantMembersDialog
+            tenant={memberTarget}
+            open={memberTarget !== null}
+            onOpenChange={(nextOpen) => !nextOpen && setMemberTarget(null)}
+            onChanged={() => void refetch()}
           />
-          <Button disabled={saving} onClick={() => void createTenant()}>
-            Tạo tenant
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-sm">Tenant registry</CardTitle>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled={loading}
-            onClick={() => void loadTenants()}
-            aria-label="Refresh tenants"
-          >
-            <RefreshCw className={loading ? "animate-spin" : ""} />
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Đang tải...</p>
-          ) : tenants.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Chưa có tenant.</p>
-          ) : (
-            <div className="divide-y rounded-md border">
-              {tenants.map((tenant) => (
-                <div key={tenant.id} className="space-y-3 px-3 py-3 text-sm">
-                  <div className="flex items-center gap-3">
-                    <Building2 className="size-4 text-muted-foreground" />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">{tenant.name}</div>
-                      <div className="truncate font-mono text-xs text-muted-foreground">
-                        {tenant.code} · {tenant.id}
-                      </div>
-                    </div>
-                    <Badge variant="secondary">{tenant.status}</Badge>
-                  </div>
-                  <div className="ml-7 space-y-2 rounded-md bg-muted/30 p-2">
-                    <div className="text-xs font-medium text-muted-foreground">
-                      Members ({members[tenant.id]?.length || 0})
-                    </div>
-                    {members[tenant.id]?.map((member) => (
-                      <div key={member.userId} className="flex items-center gap-2 text-xs">
-                        <span className="min-w-0 flex-1 truncate">
-                          {member.displayName || member.username || member.email}
-                          <span className="ml-2 font-mono text-muted-foreground">
-                            {member.userId}
-                          </span>
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => void removeMember(tenant.id, member.userId)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                    <div className="flex gap-2">
-                      <Input
-                        value={memberUserIds[tenant.id] || ""}
-                        onChange={(event) =>
-                          setMemberUserIds((current) => ({
-                            ...current,
-                            [tenant.id]: event.target.value,
-                          }))
-                        }
-                        placeholder="IAM user ID"
-                        aria-label={`Add member to ${tenant.name}`}
-                      />
-                      <Button onClick={() => void addMember(tenant.id)}>Add</Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        </>
+      }
+    />
   )
 }

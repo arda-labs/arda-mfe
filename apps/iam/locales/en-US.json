@@ -11,6 +11,104 @@
   "permission": {
     "not_found": "Permission not found"
   },
+  "groups": {
+    "search_placeholder": "Search groups",
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code is too long",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "description_too_long": "Description is too long",
+      "tenant_required": "Tenant is required"
+    }
+  },
+  "roles": {
+    "edit": "Edit Role",
+    "permissions_action": "Manage permissions",
+    "create_success": "Role created",
+    "create_failed": "Failed to create role",
+    "update_success": "Role updated",
+    "update_failed": "Failed to update role",
+    "delete_success": "Role deleted",
+    "delete_failed": "Failed to delete role",
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code is too long",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "tenant_required": "Tenant is required"
+    }
+  },
+  "permissions": {
+    "create_success": "Permission created",
+    "create_failed": "Failed to create permission",
+    "delete_success": "Permission deleted",
+    "delete_failed": "Failed to delete permission",
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code is too long",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "module_required": "Module is required",
+      "module_too_long": "Module is too long",
+      "resource_required": "Resource is required",
+      "resource_too_long": "Resource is too long",
+      "operation_required": "Operation is required",
+      "operation_too_long": "Operation is too long"
+    }
+  },
+  "tenants": {
+    "title": "Tenants",
+    "count": "{count} tenants",
+    "create": "Create tenant",
+    "create_success": "Tenant created",
+    "create_failed": "Failed to create tenant",
+    "search_placeholder": "Search tenants",
+    "field": {
+      "code_placeholder": "tenant-code",
+      "name_placeholder": "Tenant name"
+    },
+    "action": {
+      "members": "Manage members"
+    },
+    "validation": {
+      "code_required": "Tenant code is required",
+      "code_too_long": "Tenant code is too long",
+      "name_required": "Tenant name is required",
+      "name_too_long": "Tenant name is too long"
+    },
+    "members": {
+      "title": "Members of {tenant}",
+      "empty": "No members yet.",
+      "add": "Add",
+      "user_id_placeholder": "IAM user ID",
+      "user_id_required": "User ID is required",
+      "missing_info": "Missing information",
+      "load_failed": "Failed to load members",
+      "add_success": "Member added",
+      "add_failed": "Failed to add member",
+      "remove_success": "Member removed",
+      "remove_failed": "Failed to remove member"
+    }
+  },
+  "users": {
+    "export": {
+      "report_title": "SYSTEM USERS LIST / USERS AUDIT REPORT"
+    },
+    "batch": {
+      "export_selected": "Export Excel ({count})",
+      "export_selected_success": "Exported {count} selected users.",
+      "delete_selected": "Delete selected",
+      "delete_selected_armed": "Batch delete armed for {count} users"
+    },
+    "roles": {
+      "title": "Assign roles to {user}",
+      "loading": "Loading roles...",
+      "empty": "No roles available to assign.",
+      "update_success": "Roles updated",
+      "update_failed": "Failed to update roles"
+    }
+  },
   "superadmin": {
     "last_active": "Cannot remove the last active superadmin",
     "system_user_protected": "System superadmin user is protected",

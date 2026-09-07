@@ -25,13 +25,13 @@ export function EditUserDialog({
   open,
   onOpenChange,
   onSubmit,
-  isBusy,
+  isBusy = false,
 }: {
   user: User | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (values: EditUserValues) => Promise<void>
-  isBusy: boolean
+  isBusy?: boolean
 }) {
   const { t } = useI18n()
   const {
