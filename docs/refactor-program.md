@@ -30,7 +30,7 @@ view and remains usable when the MFE repository is reviewed independently.
 | `@workspace/api` | HTTP base URL, credentials, request/trace correlation, abort, decode, typed problems |
 | `@workspace/auth` | Normalized auth state, capability API, guards and step-up coordination |
 | `@workspace/query` | Query client/provider/default retry policy |
-| `@workspace/admin-list` | URL/list definitions, offset/cursor orchestration, table server state |
+| `@workspace/list-page` | URL/list definitions, offset/cursor orchestration, table server state |
 | `@workspace/media` | Upload/download/media protocol adapters |
 | `@workspace/i18n` | UI dictionaries and stable API problem-code translations |
 | `@workspace/notifications` | Inbox/SSE UI behavior after transport/session policy is standardized |

@@ -44,19 +44,19 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Edit2, Trash2 } from "lucide-react"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import {
   matchSelectFilter,
   matchTextColumnFilter,
   multiSelectFilterMeta,
   selectFilterMeta,
   textSearchMeta,
-} from "@workspace/admin-list/column-filters"
+} from "@workspace/list-page/column-filters"
 import {
   sortByColumn,
   useClientListTable,
-} from "@workspace/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+} from "@workspace/list-page/client-list"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 
 const DEFAULT_PAGE_SIZE = 10
 

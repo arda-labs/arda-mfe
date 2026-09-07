@@ -12,8 +12,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +29,7 @@ import {
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { useServerDataTable } from "@workspace/admin-list/server-data-table"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { useAuthStore } from "@workspace/auth/store"
 import { Pencil, ShieldCheck, Trash2, Users } from "lucide-react"
 import { groupsListDefinition } from "./list-query"
@@ -125,6 +125,7 @@ export function GroupsPage() {
         ),
       },
       {
+        id: "member_count",
         accessorKey: "memberCount",
         header: ({ column }) => (
           <DataTableColumnHeader
@@ -134,6 +135,7 @@ export function GroupsPage() {
         ),
       },
       {
+        id: "role_count",
         accessorKey: "roleCount",
         header: ({ column }) => (
           <DataTableColumnHeader
@@ -143,6 +145,7 @@ export function GroupsPage() {
         ),
       },
       {
+        id: "created_at",
         accessorKey: "createdAt",
         header: ({ column }) => (
           <DataTableColumnHeader
@@ -214,7 +217,7 @@ export function GroupsPage() {
   /**
    * Server-driven list controller: URL page/perPage + `code`→q + `status`
    * filters <-> TanStack Query cache, cancellation, dedupe and previous-page
-   * placeholder handled by @workspace/admin-list. The page owns columns,
+   * placeholder handled by @workspace/list-page. The page owns columns,
    * dialogs and the delete action only.
    */
   const {
@@ -234,6 +237,8 @@ export function GroupsPage() {
         perPage: query.perPage,
         q: query.q === undefined ? undefined : String(query.q),
         status: query.status === undefined ? undefined : String(query.status),
+        sort: query.sort,
+        order: query.order,
         tenantId: actorTenantId,
       }),
   })

@@ -67,11 +67,11 @@
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/media": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
@@ -106,11 +106,11 @@
       "version": "0.0.1",
       "dependencies": {
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
@@ -181,11 +181,11 @@
       "version": "0.0.1",
       "dependencies": {
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
@@ -218,11 +218,11 @@
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
@@ -295,11 +295,11 @@
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
@@ -333,11 +333,11 @@
       "version": "0.0.1",
       "dependencies": {
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
@@ -369,11 +369,11 @@
       "version": "0.0.1",
       "dependencies": {
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
@@ -410,11 +410,11 @@
         "@fullcalendar/timegrid": "^6.1.21",
         "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/media": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
@@ -490,11 +490,11 @@
       "version": "0.0.1",
       "dependencies": {
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
@@ -527,11 +527,11 @@
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
-        "@workspace/admin-list": "workspace:*",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/media": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
@@ -562,25 +562,6 @@
         "typescript": "~6",
         "typescript-eslint": "^8",
         "vite": "^8",
-      },
-    },
-    "packages/admin-list": {
-      "name": "@workspace/admin-list",
-      "version": "0.0.0",
-      "dependencies": {
-        "@tanstack/react-query": "^5.90.0",
-        "@tanstack/react-table": "^8.21.3",
-        "@workspace/api": "workspace:*",
-        "@workspace/i18n": "workspace:*",
-        "@workspace/ui": "workspace:*",
-        "exceljs": "^4.4.0",
-        "lucide-react": "^1.22.0",
-        "react": "^19.2.6",
-        "react-router-dom": "^7.18.1",
-      },
-      "devDependencies": {
-        "@types/react": "^19",
-        "typescript": "~6",
       },
     },
     "packages/ai": {
@@ -660,6 +641,25 @@
         "@types/node": "^24",
         "@types/react": "^19",
         "eslint": "^10",
+        "typescript": "~6",
+      },
+    },
+    "packages/list-page": {
+      "name": "@workspace/list-page",
+      "version": "0.0.0",
+      "dependencies": {
+        "@tanstack/react-query": "^5.90.0",
+        "@tanstack/react-table": "^8.21.3",
+        "@workspace/api": "workspace:*",
+        "@workspace/i18n": "workspace:*",
+        "@workspace/ui": "workspace:*",
+        "exceljs": "^4.4.0",
+        "lucide-react": "^1.22.0",
+        "react": "^19.2.6",
+        "react-router-dom": "^7.18.1",
+      },
+      "devDependencies": {
+        "@types/react": "^19",
         "typescript": "~6",
       },
     },
@@ -1370,8 +1370,6 @@
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@6.0.3", "", { "dependencies": { "@rolldown/pluginutils": "^1.0.1" }, "peerDependencies": { "@rolldown/plugin-babel": "^0.1.7 || ^0.2.0", "babel-plugin-react-compiler": "^1.0.0", "vite": "^8.0.0" }, "optionalPeers": ["@rolldown/plugin-babel", "babel-plugin-react-compiler"] }, "sha512-vmFvco5/QuC2f9Oj+wTk0+9XeDFkHxSamwZKYc7MxYwKICfvUvlMhqKI0VuICPltGqh1neqBKDvO4kes1ya8vg=="],
 
-    "@workspace/admin-list": ["@workspace/admin-list@workspace:packages/admin-list"],
-
     "@workspace/ai": ["@workspace/ai@workspace:packages/ai"],
 
     "@workspace/api": ["@workspace/api@workspace:packages/api"],
@@ -1381,6 +1379,8 @@
     "@workspace/format": ["@workspace/format@workspace:packages/format"],
 
     "@workspace/i18n": ["@workspace/i18n@workspace:packages/i18n"],
+
+    "@workspace/list-page": ["@workspace/list-page@workspace:packages/list-page"],
 
     "@workspace/media": ["@workspace/media@workspace:packages/media"],
 
@@ -2146,7 +2146,7 @@
 
     "util-deprecate": ["util-deprecate@1.0.2", "", {}, "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="],
 
-    "uuid": ["uuid@8.3.2", "", { "bin": { "uuid": "dist/bin/uuid" } }, "sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg=="],
+    "uuid": ["uuid@11.1.1", "", { "bin": { "uuid": "dist/esm/bin/uuid" } }, "sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ=="],
 
     "vaul": ["vaul@1.1.2", "", { "dependencies": { "@radix-ui/react-dialog": "^1.1.1" }, "peerDependencies": { "react": "^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc", "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc" } }, "sha512-ZFkClGpWyI2WUQjdLJ/BaGuV6AVQiJ3uELGk3OYtP+B6yCO7Cmn9vPFXVJkRaGkOJu3m8bQMgtyzNHixULceQA=="],
 
@@ -2206,8 +2206,6 @@
 
     "zwitch": ["zwitch@2.0.4", "", {}, "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="],
 
-    "@ag-ui/client/uuid": ["uuid@11.1.1", "", { "bin": { "uuid": "dist/esm/bin/uuid" } }, "sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ=="],
-
     "@ag-ui/client/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "@ag-ui/core/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
@@ -2249,6 +2247,8 @@
     "archiver-utils/readable-stream": ["readable-stream@2.3.8", "", { "dependencies": { "core-util-is": "~1.0.0", "inherits": "~2.0.3", "isarray": "~1.0.0", "process-nextick-args": "~2.0.0", "safe-buffer": "~5.1.1", "string_decoder": "~1.1.1", "util-deprecate": "~1.0.1" } }, "sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA=="],
 
     "duplexer2/readable-stream": ["readable-stream@2.3.8", "", { "dependencies": { "core-util-is": "~1.0.0", "inherits": "~2.0.3", "isarray": "~1.0.0", "process-nextick-args": "~2.0.0", "safe-buffer": "~5.1.1", "string_decoder": "~1.1.1", "util-deprecate": "~1.0.1" } }, "sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA=="],
+
+    "exceljs/uuid": ["uuid@8.3.2", "", { "bin": { "uuid": "dist/bin/uuid" } }, "sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg=="],
 
     "glob/minimatch": ["minimatch@3.1.5", "", { "dependencies": { "brace-expansion": "^1.1.7" } }, "sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w=="],
 

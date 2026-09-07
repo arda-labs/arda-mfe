@@ -13,9 +13,9 @@ import {
   matchBooleanActiveFilter,
   matchTextColumnFilter,
   textSearchMeta,
-} from "@workspace/admin-list/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+} from "@workspace/list-page/column-filters"
+import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { Edit2, Plus } from "lucide-react"
 import { formatMoney, formatRatePercent, fromMinor } from "@workspace/format"
 import { productApi, type LoanProduct } from "../api"

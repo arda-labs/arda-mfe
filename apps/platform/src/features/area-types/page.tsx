@@ -12,7 +12,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { DataTableKeyCell } from "@workspace/ui/components/data-table/data-table-key-cell"
-import { createActionsColumn } from "@workspace/admin-list/table-columns"
+import { createActionsColumn } from "@workspace/list-page/table-columns"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import {
@@ -37,18 +37,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import {
   activeStatusMeta,
   matchBooleanActiveFilter,
   matchTextColumnFilter,
   textSearchMeta,
-} from "@workspace/admin-list/column-filters"
+} from "@workspace/list-page/column-filters"
 import {
   sortByColumn,
   useClientListTable,
-} from "@workspace/admin-list/client-list"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+} from "@workspace/list-page/client-list"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 
 const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
 

@@ -47,11 +47,11 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Building2, Edit2, FolderTree, List, Plus, Trash2 } from "lucide-react"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
-import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
-import { useServerList } from "@workspace/admin-list/server-list"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { PageErrorDialog } from "@workspace/list-page/page-error-dialog"
+import { useServerList } from "@workspace/list-page/server-list"
 import { useAppQueryClient } from "@workspace/query/provider"
-import { useServerDataTable } from "@workspace/admin-list/server-data-table"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { organizationsListDefinition } from "./list-query"
 
 const ORGANIZATIONS_QUERY_KEY = ["platform", "organizations"] as const

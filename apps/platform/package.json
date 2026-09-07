@@ -33,7 +33,7 @@
     "react-hook-form": "^7.80.0",
     "react-toastify": "^11.1.0",
     "zod": "^4.4.3",
-    "@workspace/admin-list": "workspace:*",
+    "@workspace/list-page": "workspace:*",
     "@workspace/query": "workspace:*"
   },
   "devDependencies": {

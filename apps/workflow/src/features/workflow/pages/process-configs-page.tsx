@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
+import { PageErrorDialog } from "@workspace/list-page/page-error-dialog"
 import type { WorkflowCaseType, SlaPolicy } from "../api"
 import { workflowApi } from "../api"
 import {

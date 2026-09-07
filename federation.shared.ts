@@ -75,7 +75,7 @@ export const shellOptimizeInclude = ["react-toastify"]
  */
 export const sharedWorkspaceExemptions = {
   "@workspace/ui": "presentational-only; no cross-tree state",
-  "@workspace/admin-list": "per-remote list isolation",
+  "@workspace/list-page": "per-remote list isolation",
   "@workspace/query": "per-remote cache isolation",
   "@workspace/media": "stateless protocol helpers",
   // When a second remote needs the panel: move "@workspace/ai" out of this map

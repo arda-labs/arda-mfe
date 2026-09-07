@@ -10,10 +10,10 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
-import { textSearchMeta } from "@workspace/admin-list/column-filters"
-import { useServerDataTable } from "@workspace/admin-list/server-data-table"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { textSearchMeta } from "@workspace/list-page/column-filters"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -133,7 +133,7 @@ export function PermissionsPage() {
   /**
    * Server-driven list controller: URL page/perPage + `module`→q filters <->
    * TanStack Query cache, cancellation, dedupe and previous-page placeholder
-   * handled by @workspace/admin-list. The page owns columns and dialogs only.
+   * handled by @workspace/list-page. The page owns columns and dialogs only.
    */
   const {
     total,

@@ -1,5 +1,5 @@
 {
-  "name": "@workspace/admin-list",
+  "name": "@workspace/list-page",
   "version": "0.0.0",
   "type": "module",
   "private": true,

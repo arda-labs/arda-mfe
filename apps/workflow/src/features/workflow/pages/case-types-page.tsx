@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { useAuthStore } from "@workspace/auth"
-import { PageErrorDialog } from "@workspace/admin-list/page-error-dialog"
+import { PageErrorDialog } from "@workspace/list-page/page-error-dialog"
 import type { WorkflowCaseType } from "../api"
 import { workflowApi } from "../api"
 import {

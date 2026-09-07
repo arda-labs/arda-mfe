@@ -36,7 +36,7 @@ Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
 * **Tuyệt đối không sửa riêng lẻ `shared` trong từng `apps/<remote>/vite.config.ts`**.
 * Các thư viện bắt buộc là singleton: `react`, `react-dom`, `react-router-dom`, `@workspace/auth`, `@workspace/api`, `@workspace/theme`, `@workspace/notifications`, `@workspace/i18n`, `react-toastify`.
 * **Chính sách share đã được tự động hoá**: `bun run check:federation` fail khi một package `@workspace/*` được ≥2 deployment unit import mà vừa không nằm trong `remoteSharedDeps`, vừa không có lý do trong `sharedWorkspaceExemptions`. Package mới muốn chỉ-dùng-shell hoặc per-remote → khai báo exemption kèm justification tại `federation.shared.ts`.
-* Mỗi remote mount `QueryProvider` (`@workspace/query/provider`) ở gốc `src/Routes.tsx` để server-list dùng `@workspace/admin-list` hoạt động mọi nơi mà không cần wiring từng page.
+* Mỗi remote mount `QueryProvider` (`@workspace/query/provider`) ở gốc `src/Routes.tsx` để server-list dùng `@workspace/list-page` hoạt động mọi nơi mà không cần wiring từng page.
 
 ### 2.2. Chuẩn hoá Remote Router với `createRemoteRoutes`
 * Mọi remote đều export một file duy nhất `src/Routes.tsx` (ví dụ `apps/platform/src/Routes.tsx`) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.

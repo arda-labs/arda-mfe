@@ -29,18 +29,18 @@ import {
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import {
   sortByColumn,
   useClientListTable,
-} from "@workspace/admin-list/client-list"
+} from "@workspace/list-page/client-list"
 import {
   activeStatusMeta,
   getSingleSelectValue,
   matchTextColumnFilter,
   textSearchMeta,
-} from "@workspace/admin-list/column-filters"
+} from "@workspace/list-page/column-filters"
 
 const accountFormSchema = z.object({
   code: z

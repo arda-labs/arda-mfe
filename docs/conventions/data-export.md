@@ -37,14 +37,14 @@ flowchart TD
 
 ---
 
-## 2. Hướng Dẫn Sử Dụng trên Frontend (`@workspace/admin-list`)
+## 2. Hướng Dẫn Sử Dụng trên Frontend (`@workspace/list-page`)
 
 ### 2.1. Sử dụng Mặc định với `ListTableToolbar`
 
 Nút **"Xuất Excel"** trong `ListTableToolbar` đã được tự động tích hợp sẵn `TableExportDialog`. Không cần viết thêm code xử lý:
 
 ```tsx
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 
 <ListTableToolbar
   table={table}
@@ -67,8 +67,8 @@ Khi người dùng click vào nút, hệ thống sẽ mở hộp thoại **`Tabl
 Khi người dùng tick chọn các checkbox trên bảng, nút xuất hàng loạt có thể gọi trực tiếp hàm tiện ích `exportTableToXlsx` hoặc `exportTableToCsv`:
 
 ```tsx
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { exportTableToXlsx } from "@workspace/admin-list/table-export"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { exportTableToXlsx } from "@workspace/list-page/table-export"
 
 <ListPageShell
   title={t("admin.users.title")}

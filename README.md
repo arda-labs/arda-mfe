@@ -36,7 +36,7 @@ Ports are the single source of truth in `federation.shared.ts` (`remotePorts`).
 | `@workspace/api`           | HTTP client, URL resolver, list transport contract  |
 | `@workspace/query`         | TanStack Query client and cache policy              |
 | `@workspace/ui`            | Design system, generic table and feedback UI        |
-| `@workspace/admin-list`    | URL/search/filter/list page orchestration           |
+| `@workspace/list-page`    | URL/search/filter/list page orchestration           |
 | `@workspace/auth`          | Session, step-up, auth store and API auth bridge    |
 | `@workspace/i18n`          | Locales and `translateApiError`                     |
 | `@workspace/notifications` | Notification inbox, stream and browser push         |
@@ -67,7 +67,7 @@ apps/<remote>/src/features/<domain>/
 - `page.tsx` target ≤ 400 lines; split into `components/` when larger.
 - Heavy dependencies (BPMN, large forms): `lazy()` at tab/dialog open.
 - Server state: `@workspace/query`; server-backed lists use
-  `@workspace/admin-list/server-list` instead of page-local fetch effects.
+  `@workspace/list-page/server-list` instead of page-local fetch effects.
   Migration checklist: [docs/conventions/server-list-migration.md](docs/conventions/server-list-migration.md).
 - List URL state: declare one filter/search mapping with `defineServerList` and
   reuse it for table filters and advanced search.

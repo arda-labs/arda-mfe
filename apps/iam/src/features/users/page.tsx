@@ -8,9 +8,9 @@ import { usersListDefinition } from "./list-query"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { useServerDataTable } from "@workspace/admin-list/server-data-table"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { SearchCheck } from "lucide-react"
 import { useUserColumns } from "./components/user-columns"
 import { UsersBatchActions } from "./components/UsersBatchActions"
@@ -200,7 +200,7 @@ export function UsersPage() {
   /**
    * Server-driven list controller: URL page/perPage + `username`→q + `status`
    * filters <-> TanStack Query cache, cancellation, dedupe and previous-page
-   * placeholder handled by @workspace/admin-list. The page owns columns,
+   * placeholder handled by @workspace/list-page. The page owns columns,
    * dialogs and row actions only.
    */
   const {

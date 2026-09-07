@@ -5,7 +5,7 @@ import { Button } from "@workspace/ui/components/button"
 import {
   exportTableToXlsx,
   generateExportFilename,
-} from "@workspace/admin-list/table-export"
+} from "@workspace/list-page/table-export"
 import type { User } from "../types"
 import { Trash2, FileSpreadsheet } from "lucide-react"
 

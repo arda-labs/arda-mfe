@@ -25,9 +25,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { useServerDataTable } from "@workspace/admin-list/server-data-table"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { ShieldCheck, Pencil, Trash2 } from "lucide-react"
 import { rolesListDefinition } from "./list-query"
 import { CreateRoleDialog } from "./components/CreateRoleDialog"
@@ -167,7 +167,7 @@ export function RolesPage() {
   /**
    * Server-driven list controller: URL page/perPage + `code`→q + `status`
    * filters <-> TanStack Query cache, cancellation, dedupe and previous-page
-   * placeholder handled by @workspace/admin-list. The page owns columns,
+   * placeholder handled by @workspace/list-page. The page owns columns,
    * dialogs and the delete action only.
    */
   const {
@@ -187,6 +187,8 @@ export function RolesPage() {
         perPage: query.perPage,
         q: query.q === undefined ? undefined : String(query.q),
         status: query.status === undefined ? undefined : String(query.status),
+        sort: query.sort,
+        order: query.order,
         tenantId: actorTenantId,
       }),
   })

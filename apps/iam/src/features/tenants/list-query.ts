@@ -1,4 +1,4 @@
-import { defineServerList } from "@workspace/admin-list/server-list"
+import { defineServerList } from "@workspace/list-page/server-list"
 
 export const TENANTS_DEFAULT_PAGE_SIZE = 10
 

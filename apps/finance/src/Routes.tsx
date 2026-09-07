@@ -61,7 +61,7 @@ const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
 
 /**
  * Every remote mounts the shared TanStack Query client at its route root so
- * server-list pages can adopt @workspace/admin-list without per-page wiring.
+ * server-list pages can adopt @workspace/list-page without per-page wiring.
  */
 const RemoteRoutesWithProviders = Object.assign(
   function ProvidedRoutes() {

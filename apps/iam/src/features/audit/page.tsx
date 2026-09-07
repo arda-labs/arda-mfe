@@ -11,14 +11,14 @@ import { downloadFile } from "@workspace/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
-import { ListTableToolbar } from "@workspace/admin-list/list-table-toolbar"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import {
   Status,
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { useDataTable } from "@workspace/admin-list/use-data-table"
+import { useDataTable } from "@workspace/list-page/use-data-table"
 import { useI18n } from "@workspace/i18n"
 import { listPageCount } from "@workspace/api/list"
 

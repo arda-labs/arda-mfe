@@ -1,12 +1,13 @@
-import { defineServerList } from "@workspace/admin-list/server-list"
+import { defineServerList } from "@workspace/list-page/server-list"
 
 export const USERS_DEFAULT_PAGE_SIZE = 10
 
 /**
  * URL-synced list contract for users. The toolbar search `username` is
- * remapped to the API `q` parameter; status is a single-select surfaced in the
- * table filters. Sort ids follow the BE whitelist (`created_at` snake_case).
- * Shared by the toolbar and any advanced-search form.
+ * remapped to the API `q` parameter; status is surfaced in the table filters
+ * (BE accepts a comma list via ANY). Sort ids follow the BE whitelist
+ * (`created_at` snake_case). Shared by the toolbar and any advanced-search
+ * form.
  */
 export const usersListDefinition = defineServerList({
   queryKey: ["iam", "users", "list"] as const,
@@ -17,7 +18,7 @@ export const usersListDefinition = defineServerList({
       { urlKey: "username", apiKey: "q", mode: "text" },
       {
         urlKey: "status",
-        mode: "single",
+        mode: "multi",
         allowedValues: ["ACTIVE", "DISABLED"],
       },
     ],

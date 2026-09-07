@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
-import { ListPageShell } from "@workspace/admin-list/list-page-shell"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import {
   AlertDialog,
@@ -37,7 +37,7 @@ import {
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { useDataTable } from "@workspace/admin-list/use-data-table"
+import { useDataTable } from "@workspace/list-page/use-data-table"
 import { notify } from "@workspace/ui/feedback/notify"
 import { fetchPlatformDrafts } from "./drafts/sources"
 import { customerDraftApi } from "./drafts/customer-client"

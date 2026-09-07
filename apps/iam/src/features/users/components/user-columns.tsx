@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
-import { multiSelectFilterMeta, textSearchMeta } from "@workspace/admin-list/column-filters"
+import { multiSelectFilterMeta, textSearchMeta } from "@workspace/list-page/column-filters"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Status,
