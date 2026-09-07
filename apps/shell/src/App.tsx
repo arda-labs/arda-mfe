@@ -19,11 +19,16 @@ import { BadGatewayPage, NotFoundPage } from "./features/errors/page"
 import {
   AccountRoutes,
   AiRoutes,
+  CapitalRoutes,
   CrmRoutes,
+  DepositRoutes,
   FinanceRoutes,
   HrmRoutes,
   IamRoutes,
+  LoanRoutes,
+  MdmRoutes,
   PlatformRoutes,
+  StatisticalRoutes,
   WorkflowRoutes,
 } from "./remote-routes"
 import { ShellLayout } from "./ShellLayout"
@@ -352,6 +357,46 @@ export function App() {
           element={
             <RemoteRoute>
               <CrmRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
+          path="/loans/*"
+          element={
+            <RemoteRoute>
+              <LoanRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
+          path="/deposit/*"
+          element={
+            <RemoteRoute>
+              <DepositRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
+          path="/capital/*"
+          element={
+            <RemoteRoute>
+              <CapitalRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
+          path="/statistical/*"
+          element={
+            <RemoteRoute>
+              <StatisticalRoutes />
+            </RemoteRoute>
+          }
+        />
+        <Route
+          path="/admin/mdm/*"
+          element={
+            <RemoteRoute>
+              <MdmRoutes />
             </RemoteRoute>
           }
         />
