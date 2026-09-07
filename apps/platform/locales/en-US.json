@@ -29,6 +29,7 @@
     },
     "placeholder": {
       "search": "Search by title, code, path...",
+      "code": "e.g. finance.reports",
       "path": "/route or empty for group nodes",
       "permission": "e.g. iam.read,platform.manage"
     },
@@ -102,7 +103,13 @@
       "description": "Are you sure you want to remove {name} from the catalog?",
       "confirm": "Delete"
     },
-    "empty": "No area types yet."
+    "empty": "No area types yet.",
+    "toast": {
+      "save_success": "Area type saved",
+      "save_failed": "Failed to save area type",
+      "delete_success": "Area type deleted",
+      "delete_failed": "Failed to delete area type"
+    }
   },
   "organizations": {
     "title": "Organizations",
@@ -221,7 +228,8 @@
       "effective_from": "Effective from",
       "effective_to": "Effective to",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "created_at": "Created at"
     },
     "placeholder": {
       "search": "Search by code or name...",
@@ -270,7 +278,8 @@
       "status": "Status",
       "description": "Notes / description",
       "effective_from": "Effective from (MM/DD/YYYY)",
-      "effective_to": "Effective to (MM/DD/YYYY)"
+      "effective_to": "Effective to (MM/DD/YYYY)",
+      "created_at": "Created at"
     },
     "placeholder": {
       "search": "Search by code, name, or description...",
@@ -297,6 +306,13 @@
       "title": "Deactivate this area?",
       "description": "This will set area {name} to inactive.",
       "confirm": "Confirm"
+    },
+    "toast": {
+      "create_success": "Area created",
+      "update_success": "Area updated",
+      "save_failed": "Failed to save area",
+      "delete_success": "Area deactivated",
+      "delete_failed": "Failed to deactivate area"
     }
   },
   "parameters": {
@@ -452,6 +468,16 @@
       "value_title": "Delete this value?",
       "value_description": "Are you sure you want to delete value {name} from this category?",
       "confirm": "Delete"
+    },
+    "toast": {
+      "category_save_success": "Category saved",
+      "category_save_failed": "Failed to save category",
+      "category_delete_success": "Category deleted",
+      "category_delete_failed": "Failed to delete category",
+      "value_save_success": "Value saved",
+      "value_save_failed": "Failed to save value",
+      "value_delete_success": "Value deleted",
+      "value_delete_failed": "Failed to delete value"
     }
   },
   "templates": {
@@ -520,6 +546,13 @@
       "title": "Delete this template?",
       "description": "This will permanently remove template {name} from the list. The original file on Storage will not be affected.",
       "confirm": "Delete"
+    },
+    "toast": {
+      "create_success": "Template created",
+      "update_success": "Template updated",
+      "save_failed": "Failed to save template",
+      "delete_success": "Template deleted",
+      "delete_failed": "Failed to delete template"
     }
   },
   "credit_institutions": {
@@ -544,7 +577,8 @@
       "tax_code": "Tax code",
       "website": "Website",
       "note": "Note",
-      "actions": "Actions"
+      "actions": "Actions",
+      "created_at": "Created at"
     },
     "placeholder": {
       "code": "BIDV",
@@ -577,6 +611,13 @@
       "title": "Delete this credit institution?",
       "description": "Are you sure you want to remove {name} from the catalog?",
       "confirm": "Delete"
+    },
+    "toast": {
+      "create_success": "Credit institution created",
+      "update_success": "Credit institution updated",
+      "save_failed": "Failed to save credit institution",
+      "delete_success": "Credit institution deleted",
+      "delete_failed": "Failed to delete credit institution"
     }
   }
 }

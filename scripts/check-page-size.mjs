@@ -12,14 +12,9 @@ const MAX_LINES = 400
 
 const LEGACY_BASELINE = new Map([
   ["apps/platform/src/features/templates/page.tsx", "Q4-2026"],
-  ["apps/platform/src/features/credit-institutions/page.tsx", "Q4-2026"],
   ["apps/iam/src/features/system-settings/page.tsx", "Q4-2026"],
-  ["apps/finance/src/features/finance/operation/page.tsx", "Q4-2026"],
   ["apps/account/src/features/profile/page.tsx", "Q4-2026"],
-  ["apps/finance/src/features/finance/accounts/page.tsx", "Q1-2027"],
-  ["apps/platform/src/features/areas/page.tsx", "Q1-2027"],
   ["apps/platform/src/features/organizations/page.tsx", "Q1-2027"],
-  ["apps/platform/src/features/wards/page.tsx", "Q1-2027"],
   ["apps/platform/src/features/lookups/page.tsx", "Q1-2027"],
   ["apps/platform/src/features/provinces/page.tsx", "Q1-2027"],
   ["apps/finance/src/features/finance/approvals/page.tsx", "Q1-2027"],

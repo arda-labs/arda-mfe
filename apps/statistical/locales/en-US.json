@@ -8,5 +8,77 @@
     "create": "Create",
     "submit": "Submit",
     "load_failed": "Failed to load"
+  },
+  "statistical": {
+    "count": "{count, plural, =0 {No records} one {# record} other {# records}}",
+    "placeholder": {
+      "search": "Search…",
+      "select": "— select —"
+    },
+    "save_failed": "Failed to save",
+    "action_failed": "Action failed",
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code must be at most 64 characters",
+      "name_required": "Name is required",
+      "name_too_long": "Name must be at most 255 characters",
+      "unit_too_long": "Unit must be at most 32 characters",
+      "group_too_long": "Group must be at most 64 characters"
+    },
+    "indicators": {
+      "title": "Statistical indicators",
+      "create": "New indicator",
+      "edit": "Edit indicator",
+      "create_success": "Indicator saved",
+      "update_success": "Indicator updated",
+      "save_failed": "Failed to save indicator",
+      "field": {
+        "name": "Indicator",
+        "unit": "Unit",
+        "group": "Group"
+      }
+    },
+    "report_definitions": {
+      "title": "Report definitions",
+      "create": "New definition",
+      "edit": "Edit definition",
+      "create_success": "Report definition saved",
+      "update_success": "Report definition updated",
+      "save_failed": "Failed to save report definition",
+      "field": {
+        "name": "Report name",
+        "query_id": "Query builder",
+        "output_format": "Output format"
+      },
+      "validation": {
+        "query_required": "Query builder id is required",
+        "query_too_long": "Query builder id must be at most 64 characters"
+      }
+    },
+    "submissions": {
+      "title": "Report submissions",
+      "create": "New submission",
+      "create_title": "Create report submission",
+      "create_description": "Pick a report definition and a period (\"2026-09\"). After creation, the case goes through the approval workbench.",
+      "create_success": "Submission created (DRAFT)",
+      "create_failed": "Failed to create submission",
+      "submit": "Submit",
+      "submit_success": "Submission sent for approval",
+      "submit_failed": "Failed to submit",
+      "validation": {
+        "required": "Pick a report and a period"
+      },
+      "field": {
+        "report": "Report",
+        "period": "Period",
+        "submitted_by": "Submitted by"
+      },
+      "status": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
+    }
   }
 }

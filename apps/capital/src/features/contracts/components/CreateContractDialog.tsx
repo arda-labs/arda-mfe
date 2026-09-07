@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -42,6 +43,7 @@ export function CreateContractDialog({
   onOpenChange: (open: boolean) => void
   onSaved: () => Promise<void> | void
 }) {
+  const { t } = useI18n()
   const [form, setForm] = useState<Form>(() => ({
     ...emptyForm,
     contract_date: todayISO(),
@@ -60,7 +62,7 @@ export function CreateContractDialog({
   const submit = async () => {
     const amountMinor = toMinor(Number(form.amount) || 0, form.currency_code)
     if (!form.contract_code || !form.fund_type_code || amountMinor <= 0) {
-      notify.error("Nhập đủ mã HĐ, loại vốn, số vốn dương")
+      notify.error(t("capital.contracts.validation.required"))
       return
     }
     setSavePending(true)
@@ -73,12 +75,12 @@ export function CreateContractDialog({
         amount_minor: amountMinor,
         currency_code: form.currency_code,
       })
-      notify.success("Đã tạo hợp đồng vốn")
+      notify.success(t("capital.contracts.create_success"))
       onOpenChange(false)
       setForm({ ...emptyForm, contract_date: todayISO() })
       await onSaved()
     } catch {
-      notify.error("Không thể tạo hợp đồng vốn")
+      notify.error(t("capital.contracts.create_failed"))
     } finally {
       setSavePending(false)
     }
@@ -88,45 +90,45 @@ export function CreateContractDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Thêm hợp đồng vốn</DialogTitle>
+          <DialogTitle>{t("capital.contracts.create_title")}</DialogTitle>
           <DialogDescription>
-            Hình thành hợp đồng vốn với loại vốn và hạn mức.
+            {t("capital.contracts.create_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Mã HĐ</Label>
+              <Label>{t("capital.contracts.field.contract_code")}</Label>
               <Input
                 value={form.contract_code}
                 onChange={(e) => setForm((c) => ({ ...c, contract_code: e.target.value }))}
-                placeholder="VD: CFC-2026-001"
+                placeholder="CFC-2026-001"
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Loại vốn</Label>
+              <Label>{t("capital.contracts.field.fund_type")}</Label>
               <select
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={form.fund_type_code}
                 onChange={(e) => setForm((c) => ({ ...c, fund_type_code: e.target.value }))}
               >
-                <option value="">— chọn —</option>
-                {fundTypes.map((t) => (
-                  <option key={t.id} value={t.code}>
-                    {t.code} — {t.name}
+                <option value="">{t("capital.placeholder.select")}</option>
+                {fundTypes.map((type) => (
+                  <option key={type.id} value={type.code}>
+                    {type.code} — {type.name}
                   </option>
                 ))}
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label>Đối tác</Label>
+              <Label>{t("capital.contracts.field.counterparty")}</Label>
               <Input
                 value={form.counterparty_code}
                 onChange={(e) => setForm((c) => ({ ...c, counterparty_code: e.target.value }))}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Ngày HĐ</Label>
+              <Label>{t("capital.contracts.field.contract_date")}</Label>
               <Input
                 type="date"
                 value={form.contract_date}
@@ -134,7 +136,7 @@ export function CreateContractDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Số vốn</Label>
+              <Label>{t("capital.contracts.field.amount")}</Label>
               <Input
                 inputMode="decimal"
                 value={form.amount}
@@ -142,7 +144,7 @@ export function CreateContractDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Loại tiền</Label>
+              <Label>{t("common.field.currency")}</Label>
               <Input
                 value={form.currency_code}
                 maxLength={3}
@@ -153,10 +155,10 @@ export function CreateContractDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Hủy
+            {t("common.action.cancel")}
           </Button>
           <Button onClick={() => void submit()} disabled={savePending}>
-            Tạo
+            {t("common.action.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

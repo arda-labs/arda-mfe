@@ -1,4 +1,9 @@
-import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
+import {
+  getCanonical,
+  getCanonicalList,
+  postCanonical,
+} from "@workspace/api"
+import { buildListSearchParams } from "@workspace/api/list"
 import type { ApiRequestOptions } from "@workspace/api/client"
 
 // ── Savings products ──
@@ -12,6 +17,7 @@ export interface SavingsProduct {
   interest_rate: number
   currency_code: string
   is_active: boolean
+  created_at?: string
 }
 
 // ── Savings account ──
@@ -55,8 +61,26 @@ export interface InterbankDeposit {
 }
 
 export const depositApi = {
-  listProducts: (requestOptions?: ApiRequestOptions) =>
-    getCanonicalList<SavingsProduct>("/api/deposit/products", requestOptions),
+  listProducts: (
+    params: { q?: string; is_active?: string; sort?: string; order?: string } = {},
+    requestOptions?: ApiRequestOptions
+  ) => {
+    const search = buildListSearchParams({
+      q: params.q,
+      sort: params.sort,
+      order: params.order === "asc" || params.order === "desc" ? params.order : undefined,
+      ...(params.is_active ? { is_active: params.is_active } : {}),
+    })
+    const qs = search.toString()
+    return getCanonicalList<SavingsProduct>(`/api/deposit/products${qs ? `?${qs}` : ""}`, requestOptions)
+  },
+  upsertProduct: (body: {
+    code: string
+    name: string
+    term_months: number
+    interest_rate: number
+    currency_code?: string
+  }) => postCanonical<SavingsProduct>("/api/deposit/products", body),
   listSavings: (params: { status?: string; q?: string } = {}, requestOptions?: ApiRequestOptions) => {
     const search = new URLSearchParams()
     if (params.status) search.set("status", params.status)

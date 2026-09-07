@@ -80,11 +80,14 @@ export function CategoryDialog({
         payload.id = editingCat.id
       }
       await platformApi.upsertLookupCategory(payload)
-      notify.success("Lưu danh mục thành công")
+      notify.success(t("platform.lookups.toast.category_save_success"))
       handleClose(false)
       await onSuccess()
     } catch (err) {
-      notify.error("Lưu danh mục thất bại", translateApiError(err))
+      notify.error(
+        t("platform.lookups.toast.category_save_failed"),
+        translateApiError(err)
+      )
     } finally {
       setSaving(false)
     }

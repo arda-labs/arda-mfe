@@ -229,10 +229,48 @@ export const platformApi = {
   },
 
   // Geo Admin Units
+  /**
+   * Legacy lookup fetch: returns the full bare array (no page/per_page params,
+   * so the BE keeps legacy mode). Used by dropdown/tree consumers.
+   */
   listGeoAdminUnits: (parentCode?: string, level?: number) => {
     const q = buildSearchParams({ parent_code: parentCode, level })
     return getCanonical<GeoAdminUnit[]>(
       `/api/platform/geo/admin-units?${q.toString()}`
+    )
+  },
+  /**
+   * Paged fetch for the admin wards catalog: page/per_page trigger the BE
+   * paged envelope (items/page/per_page/total). Sort keys must stay within
+   * the BE whitelist: code, name, created_at.
+   */
+  listGeoAdminUnitsPaged: (
+    params: {
+      page?: number
+      perPage?: number
+      q?: string
+      parentCode?: string
+      level?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {},
+    requestOptions?: ApiRequestOptions
+  ) => {
+    const search = buildListSearchParams({
+      page: params.page ?? 1,
+      perPage: params.perPage ?? 20,
+      sort: params.sort,
+      order: params.order,
+      q: params.q,
+    })
+    const extra = buildSearchParams({
+      parent_code: params.parentCode,
+      level: params.level,
+    })
+    extra.forEach((value, key) => search.set(key, value))
+    return getCanonicalList<GeoAdminUnit>(
+      `/api/platform/geo/admin-units?${search.toString()}`,
+      requestOptions
     )
   },
   upsertGeoAdminUnit: (data: Partial<GeoAdminUnit>) => {
@@ -240,6 +278,9 @@ export const platformApi = {
   },
 
   // Credit Institutions
+  /**
+   * Legacy fetch: full bare array (no page/per_page params → BE legacy mode).
+   */
   listCreditInstitutions: (params?: {
     status?: string
     q?: string
@@ -250,6 +291,35 @@ export const platformApi = {
     })
     return getCanonical<CreditInstitution[]>(
       `/api/platform/credit-institutions?${q.toString()}`
+    )
+  },
+  /**
+   * Paged fetch for the admin catalog: page/per_page trigger the BE paged
+   * envelope. Sort keys must stay within the BE whitelist: code, name,
+   * status, created_at.
+   */
+  listCreditInstitutionsPaged: (
+    params: {
+      page?: number
+      perPage?: number
+      q?: string
+      status?: string
+      sort?: string
+      order?: "asc" | "desc"
+    } = {},
+    requestOptions?: ApiRequestOptions
+  ) => {
+    const search = buildListSearchParams({
+      page: params.page ?? 1,
+      perPage: params.perPage ?? 20,
+      sort: params.sort,
+      order: params.order,
+      q: params.q,
+      status: params.status,
+    })
+    return getCanonicalList<CreditInstitution>(
+      `/api/platform/credit-institutions?${search.toString()}`,
+      requestOptions
     )
   },
   getCreditInstitution: (id: string) => {
@@ -274,6 +344,9 @@ export const platformApi = {
   },
 
   // Areas
+  /**
+   * Legacy fetch: full bare array (no page/per_page params → BE legacy mode).
+   */
   listAreas: (params?: {
     status?: string
     areaTypeCode?: string
@@ -287,6 +360,39 @@ export const platformApi = {
       q: params?.q,
     })
     return getCanonical<Area[]>(`/api/platform/areas?${q.toString()}`)
+  },
+  /**
+   * Paged fetch for the admin catalog: page/per_page trigger the BE paged
+   * envelope. Sort keys must stay within the BE whitelist: code, name,
+   * area_type_code, status, created_at.
+   */
+  listAreasPaged: (
+    params: {
+      page?: number
+      perPage?: number
+      q?: string
+      status?: string
+      areaTypeCode?: string
+      parentId?: string
+      sort?: string
+      order?: "asc" | "desc"
+    } = {},
+    requestOptions?: ApiRequestOptions
+  ) => {
+    const search = buildListSearchParams({
+      page: params.page ?? 1,
+      perPage: params.perPage ?? 20,
+      sort: params.sort,
+      order: params.order,
+      q: params.q,
+      status: params.status,
+      area_type_code: params.areaTypeCode,
+      parent_id: params.parentId,
+    })
+    return getCanonicalList<Area>(
+      `/api/platform/areas?${search.toString()}`,
+      requestOptions
+    )
   },
   getArea: (id: string) => {
     return getCanonical<Area>(`/api/platform/areas/${id}`)

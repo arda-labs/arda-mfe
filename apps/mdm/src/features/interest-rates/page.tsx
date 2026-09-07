@@ -1,27 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n, translateApiError } from "@workspace/i18n"
-import { notify } from "@workspace/ui/feedback/notify"
+import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { PageHeader } from "@workspace/ui/components/page-header"
 import {
   activeStatusMeta,
-  matchBooleanActiveFilter,
-  matchTextColumnFilter,
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { Edit2, Layers, Plus } from "lucide-react"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { Edit2, Layers } from "lucide-react"
 import { interestRateApi, type InterestRate } from "../api"
+import { interestRatesListDefinition } from "./list-query"
 import { InterestRateDialog } from "./components/InterestRateDialog"
 import { TierEditorDialog } from "./components/TierEditorDialog"
-
-const DEFAULT_PAGE_SIZE = 10
 
 const rateTypeMeta: Record<
   string,
@@ -33,37 +27,15 @@ const rateTypeMeta: Record<
 }
 
 export function InterestRatesPage(_props: { pathname: string }) {
-  const { t } = useI18n()
-  const [rates, setRates] = useState<InterestRate[]>([])
-  const [loading, setLoading] = useState(true)
+  const { t, formatDate } = useI18n()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<InterestRate | null>(null)
   const [tierTarget, setTierTarget] = useState<InterestRate | null>(null)
 
-  const loadRates = useCallback(async () => {
-    setLoading(true)
-    try {
-      const result = await interestRateApi.list(true)
-      setRates(result.items)
-    } catch (error) {
-      notify.error(translateApiError(error, t("mdm.interest_rates.load_failed")))
-    } finally {
-      setLoading(false)
-    }
-  }, [t])
-
-  useEffect(() => {
-    void loadRates()
-  }, [loadRates])
-
-  const openCreate = () => {
-    setEditing(null)
-    setDialogOpen(true)
-  }
-
   const columns = useMemo<ColumnDef<InterestRate>[]>(
     () => [
       {
+        id: "code",
         accessorKey: "code",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.code")} />
@@ -78,22 +50,20 @@ export function InterestRatesPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "name",
         accessorKey: "name",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.name")} />
         ),
-        enableColumnFilter: true,
-        meta: textSearchMeta(
-          t("mdm.interest_rates.field.name"),
-          t("mdm.interest_rates.placeholder.search")
-        ),
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
+        id: "rate_type",
         accessorKey: "rate_type",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.rate_type")} />
         ),
+        enableSorting: false,
         cell: ({ row }) => {
           const meta = rateTypeMeta[row.original.rate_type]
           return meta ? (
@@ -104,10 +74,12 @@ export function InterestRatesPage(_props: { pathname: string }) {
         },
       },
       {
+        id: "apply_type",
         accessorKey: "apply_type",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.apply_type")} />
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {t(`mdm.interest_rates.apply_type.${row.original.apply_type}`)}
@@ -119,6 +91,7 @@ export function InterestRatesPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.currency")} />
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="font-mono text-xs">
             {row.original.currency_code || "—"}
@@ -131,6 +104,7 @@ export function InterestRatesPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("mdm.interest_rates.field.status")} />
         ),
+        enableSorting: false,
         enableColumnFilter: true,
         meta: activeStatusMeta(
           t("mdm.interest_rates.field.status"),
@@ -146,15 +120,29 @@ export function InterestRatesPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "created_at",
+        accessorKey: "created_at",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("common.field.created")} />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap text-muted-foreground">
+            {row.original.created_at ? formatDate(row.original.created_at) : "—"}
+          </span>
+        ),
+      },
+      {
         id: "actions",
-        header: t("mdm.interest_rates.field.actions"),
+        header: () => (
+          <div className="text-right">{t("mdm.interest_rates.field.actions")}</div>
+        ),
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex gap-1">
+          <div className="flex justify-end gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 gap-1 px-2 text-xs"
+              className="h-7 gap-1 px-2 text-xs text-muted-foreground"
               onClick={() => setTierTarget(row.original)}
             >
               <Layers className="size-3.5" />
@@ -163,11 +151,12 @@ export function InterestRatesPage(_props: { pathname: string }) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7"
+              className="size-7 text-muted-foreground"
               onClick={() => {
                 setEditing(row.original)
                 setDialogOpen(true)
               }}
+              title={t("common.action.edit")}
             >
               <Edit2 className="size-3.5" />
             </Button>
@@ -175,64 +164,85 @@ export function InterestRatesPage(_props: { pathname: string }) {
         ),
       },
     ],
-    [t]
+    [formatDate, t]
   )
 
-  const { table, total } = useClientListTable({
+  /**
+   * Server-driven list controller: URL page/perPage + `code`→q + `is_active`
+   * filters <-> TanStack Query cache. Rate-level delete does not exist on the
+   * BE — only tier values inside TierEditorDialog are deletable.
+   */
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<InterestRate>({
+    ...interestRatesListDefinition,
     columns,
-    items: rates,
-    filterBy: {
-      code: (item, value) => matchTextColumnFilter(value, item.code),
-      name: (item, value) => matchTextColumnFilter(value, item.name),
-      is_active: (item, value) => matchBooleanActiveFilter(item, value),
-    },
-    sort: (rows, sortState) =>
-      sortByColumn(rows, sortState, {
-        code: (a, b) => a.code.localeCompare(b.code),
-        name: (a, b) => a.name.localeCompare(b.name),
+    queryFn: async (query) =>
+      interestRateApi.list(true, {
+        page: query.page,
+        perPage: query.perPage,
+        q: query.q === undefined ? undefined : String(query.q),
+        is_active:
+          query.is_active === undefined ? undefined : String(query.is_active),
+        sort: query.sort,
+        order: query.order,
       }),
-    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-      <PageHeader
-        title={t("mdm.interest_rates.title")}
-        description={t("mdm.interest_rates.description")}
-        actions={
-          <Button onClick={openCreate}>
-            <Plus className="size-4" />
-            {t("mdm.interest_rates.create")}
-          </Button>
-        }
-      />
+    <ListPageShell
+      title={t("mdm.interest_rates.title")}
+      totalRows={total}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("mdm.interest_rates.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      loadErrorTitle={t("mdm.interest_rates.load_failed")}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
+          createLabel={t("mdm.interest_rates.create")}
+          exportFilename={t("mdm.interest_rates.title")}
+          sheetName={t("mdm.interest_rates.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <>
+          <InterestRateDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            editing={editing}
+            onSaved={async () => {
+              await refetch()
+            }}
+          />
 
-      <div className="relative min-h-0 flex-1">
-        {loading ? (
-          <DataTableSkeleton columnCount={7} rowCount={6} />
-        ) : (
-          <DataTable table={table} totalRows={total} className="min-h-0 flex-1">
-            <ListTableToolbar
-              table={table}
-              onCreate={openCreate}
-              createLabel={t("mdm.interest_rates.create")}
-            />
-          </DataTable>
-        )}
-      </div>
-
-      <InterestRateDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        editing={editing}
-        onSaved={loadRates}
-      />
-
-      <TierEditorDialog
-        rate={tierTarget}
-        open={Boolean(tierTarget)}
-        onOpenChange={(open) => !open && setTierTarget(null)}
-      />
-    </section>
+          <TierEditorDialog
+            rate={tierTarget}
+            open={Boolean(tierTarget)}
+            onOpenChange={(open) => !open && setTierTarget(null)}
+          />
+        </>
+      }
+    />
   )
 }

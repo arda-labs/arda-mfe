@@ -4,6 +4,20 @@
     "title": "Tài khoản kế toán",
     "count": "{count} tài khoản",
     "create": "Tạo tài khoản",
+    "create_success": "Đã tạo tài khoản",
+    "create_failed": "Không thể tạo tài khoản",
+    "load_failed": "Không thể tải danh sách tài khoản",
+    "placeholder": {
+      "search": "Tìm theo mã hoặc tên..."
+    },
+    "validation": {
+      "code_required": "Mã là bắt buộc",
+      "code_max": "Mã quá dài",
+      "name_required": "Tên là bắt buộc",
+      "name_max": "Tên quá dài",
+      "currency_required": "Loại tiền là bắt buộc",
+      "currency_max": "Dùng mã loại tiền 3 ký tự"
+    },
     "field": {
       "normal_balance": "Số dư thông thường"
     }
@@ -18,5 +32,21 @@
   "entry": {
     "debit": "Nợ (Debit)",
     "credit": "Có (Credit)"
+  },
+  "journal": {
+    "title": "Nhật ký chung",
+    "count": "{count} bút toán",
+    "preview": "Xem trước bút toán",
+    "load_failed": "Không thể tải nhật ký chung",
+    "placeholder": {
+      "search": "Tìm theo loại chứng từ hoặc diễn giải..."
+    },
+    "field": {
+      "entry_no": "Số CT",
+      "accounting_date": "Ngày KT",
+      "document_type": "Loại CT",
+      "business_domain": "Domain",
+      "description": "Diễn giải"
+    }
   }
 }

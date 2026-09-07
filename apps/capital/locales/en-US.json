@@ -8,5 +8,31 @@
     "create": "Create",
     "submit": "Submit",
     "load_failed": "Failed to load"
+  },
+  "capital": {
+    "count": "{count, plural, =0 {No records} one {# record} other {# records}}",
+    "placeholder": {
+      "search": "Search…",
+      "select": "— select —"
+    },
+    "contracts": {
+      "title": "Fund contracts",
+      "create": "New contract",
+      "create_title": "Create fund contract",
+      "create_description": "Form a fund contract with a fund type and committed amount.",
+      "create_success": "Fund contract created",
+      "create_failed": "Failed to create fund contract",
+      "field": {
+        "contract_code": "Contract code",
+        "fund_type": "Fund type",
+        "counterparty": "Counterparty",
+        "amount": "Amount",
+        "interest_rate": "Interest rate",
+        "contract_date": "Contract date"
+      },
+      "validation": {
+        "required": "Enter contract code, fund type and a positive amount"
+      }
+    }
   }
 }

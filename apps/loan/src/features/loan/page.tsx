@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -7,11 +7,7 @@ import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { PageHeader } from "@workspace/ui/components/page-header"
-import {
-  matchTextColumnFilter,
-  textSearchMeta,
-} from "@workspace/list-page/column-filters"
+import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
 import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import {
@@ -22,7 +18,8 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { formatDateShort, formatMoney, fromMinor } from "@workspace/format"
-import { Plus } from "lucide-react"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import {
   loanAdjustmentKinds,
   loanApi,
@@ -30,9 +27,8 @@ import {
   type LoanAdjustmentKind,
   type LoanContract,
 } from "../api"
+import { LOAN_DEFAULT_PAGE_SIZE, loanContractsListDefinition } from "./list-query"
 import { ContractDialog } from "./components/ContractDialog"
-
-const DEFAULT_PAGE_SIZE = 10
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
@@ -50,79 +46,56 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
   }
 }
 
-export function LoanPage(_props: { pathname: string }) {
+/**
+ * Adjustment flows sub-table — one kind at a time, client tier: the BE
+ * returns the full per-kind list (allow-all) and the set is small, so
+ * filter/sort/paginate in RAM. Kept as its own section under the contracts
+ * table; submit + reload stay local because the section owns the kind.
+ */
+function AdjustmentsSection() {
   const { t } = useI18n()
-  const [contracts, setContracts] = useState<LoanContract[]>([])
-  const [loadingContracts, setLoadingContracts] = useState(true)
-  const [submittingId, setSubmittingId] = useState<string | null>(null)
-  const [contractDialogOpen, setContractDialogOpen] = useState(false)
-
   const [kind, setKind] = useState<LoanAdjustmentKind>("debt-change")
-  const [adjustments, setAdjustments] = useState<LoanAdjustment[]>([])
-  const [loadingAdjustments, setLoadingAdjustments] = useState(false)
-  const [submittingAdjustmentId, setSubmittingAdjustmentId] = useState<string | null>(null)
+  const [items, setItems] = useState<LoanAdjustment[]>([])
+  const [loading, setLoading] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [submittingId, setSubmittingId] = useState<string | null>(null)
 
-  const loadContracts = useCallback(async () => {
-    setLoadingContracts(true)
-    try {
-      const result = await loanApi.listContracts()
-      setContracts(result.items)
-    } catch (error) {
-      notify.error(translateApiError(error, t("loan.load_failed")))
-    } finally {
-      setLoadingContracts(false)
-    }
-  }, [t])
+  const loadAdjustments = useCallback(
+    async (target: LoanAdjustmentKind) => {
+      setLoading(true)
+      try {
+        const result = await loanApi.listAdjustments(target)
+        setItems(result.items)
+        setLoaded(true)
+      } catch (error) {
+        notify.error(translateApiError(error, t("loan.load_failed")))
+      } finally {
+        setLoading(false)
+      }
+    },
+    [t]
+  )
 
-  const loadAdjustments = useCallback(async () => {
-    setLoadingAdjustments(true)
-    try {
-      const result = await loanApi.listAdjustments(kind)
-      setAdjustments(result.items)
-    } catch (error) {
-      notify.error(translateApiError(error, t("loan.load_failed")))
-    } finally {
-      setLoadingAdjustments(false)
-    }
-  }, [kind, t])
+  const submitAdjustment = useCallback(
+    async (adjustment: LoanAdjustment) => {
+      setSubmittingId(adjustment.id)
+      try {
+        await loanApi.submitAdjustment(kind, adjustment.id)
+        notify.success(t("loan.submitted"))
+        await loadAdjustments(kind)
+      } catch (error) {
+        notify.error(translateApiError(error, t("loan.submit_failed")))
+      } finally {
+        setSubmittingId(null)
+      }
+    },
+    [kind, loadAdjustments, t]
+  )
 
-  useEffect(() => {
-    void loadContracts()
-  }, [loadContracts])
-
-  useEffect(() => {
-    void loadAdjustments()
-  }, [loadAdjustments])
-
-  const submitContract = async (contract: LoanContract) => {
-    setSubmittingId(contract.id)
-    try {
-      await loanApi.submitContract(contract.id)
-      notify.success(t("loan.submitted"))
-      await loadContracts()
-    } catch (error) {
-      notify.error(translateApiError(error, t("loan.submit_failed")))
-    } finally {
-      setSubmittingId(null)
-    }
-  }
-
-  const submitAdjustment = async (adjustment: LoanAdjustment) => {
-    setSubmittingAdjustmentId(adjustment.id)
-    try {
-      await loanApi.submitAdjustment(kind, adjustment.id)
-      notify.success(t("loan.submitted"))
-      await loadAdjustments()
-    } catch (error) {
-      notify.error(translateApiError(error, t("loan.submit_failed")))
-    } finally {
-      setSubmittingAdjustmentId(null)
-    }
-  }
-
-  const contractColumns = useMemo<ColumnDef<LoanContract>[]>(
+  const columns = useMemo<ColumnDef<LoanAdjustment>[]>(
     () => [
       {
+        id: "adjustment_contract_code",
         accessorKey: "contract_code",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.contract_code")} />
@@ -136,15 +109,157 @@ export function LoanPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "adjustment_effective_date",
+        accessorKey: "effective_date",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.field.effective_date")} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {formatDateShort(row.original.effective_date)}
+          </span>
+        ),
+      },
+      {
+        id: "adjustment_amount",
+        accessorKey: "amount_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.field.amount")} />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">{formatMoney(fromMinor(row.original.amount_minor))}</span>
+        ),
+      },
+      {
+        id: "adjustment_status",
+        accessorKey: "status",
+        header: t("loan.field.status"),
+        cell: ({ row }) => (
+          <Badge variant={statusVariant(row.original.status)}>
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        id: "adjustment_actions",
+        header: t("loan.field.actions"),
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.status === "DRAFT" ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={submittingId === row.original.id}
+              onClick={() => void submitAdjustment(row.original)}
+            >
+              {t("loan.submit")}
+            </Button>
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          ),
+      },
+    ],
+    [submitAdjustment, submittingId, t]
+  )
+
+  const table = useClientListTable({
+    columns,
+    items,
+    filterBy: {
+      adjustment_contract_code: (item, value) =>
+        matchTextColumnFilter(value, item.contract_code),
+    },
+    sort: (rows, sortState) =>
+      sortByColumn(rows, sortState, {
+        contract_code: (a, b) => a.contract_code.localeCompare(b.contract_code),
+        effective_date: (a, b) =>
+          (a.effective_date ?? "").localeCompare(b.effective_date ?? ""),
+        amount_minor: (a, b) => (a.amount_minor ?? 0) - (b.amount_minor ?? 0),
+      }),
+    defaultPageSize: LOAN_DEFAULT_PAGE_SIZE,
+  })
+
+  return (
+    <section className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold">{t("loan.adjustments_title")}</h2>
+        <div className="flex items-center gap-2">
+          <Select
+            value={kind}
+            onValueChange={(value) => {
+              const next = value as LoanAdjustmentKind
+              setKind(next)
+              void loadAdjustments(next)
+            }}
+          >
+            <SelectTrigger className="w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {loanAdjustmentKinds.map((entry) => (
+                <SelectItem key={entry.key} value={entry.key}>
+                  {t(entry.labelKey)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" onClick={() => void loadAdjustments(kind)}>
+            {t("loan.reload")}
+          </Button>
+        </div>
+      </div>
+      {loading ? (
+        <DataTableSkeleton columnCount={5} rowCount={4} />
+      ) : (
+        <DataTable table={table.table} totalRows={table.total} className="min-h-0">
+          <ListTableToolbar table={table.table} />
+        </DataTable>
+      )}
+      {!loading && !loaded ? (
+        <p className="text-xs text-muted-foreground">{t("loan.adjustments_hint")}</p>
+      ) : null}
+    </section>
+  )
+}
+
+/**
+ * Loans hub — dual-table page. The contracts table (transactional, grows
+ * unbounded) runs on the server tier inside ListPageShell; the adjustment
+ * flows sub-table is the second catalog and lives in the shell's `header`
+ * slot — ListPageShell owns one panel table, so stacking keeps both visible
+ * like today without restructuring into tabs.
+ */
+export function LoanPage(_props: { pathname: string }) {
+  const { t } = useI18n()
+  const [submittingId, setSubmittingId] = useState<string | null>(null)
+  const [contractDialogOpen, setContractDialogOpen] = useState(false)
+
+  const columns = useMemo<ColumnDef<LoanContract>[]>(
+    () => [
+      {
+        id: "contract_code",
+        accessorKey: "contract_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.field.contract_code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan.field.contract_code"), t("loan.placeholder.search")),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-primary">
+            {row.original.contract_code}
+          </span>
+        ),
+      },
+      {
+        id: "customer_code",
         accessorKey: "customer_code",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.customer")} />
         ),
-        enableColumnFilter: true,
-        meta: textSearchMeta(t("loan.field.customer"), t("loan.placeholder.search")),
       },
       {
-        accessorKey: "loan_amt",
+        id: "loan_amt_minor",
+        accessorKey: "loan_amt_minor",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.amount")} />
         ),
@@ -168,193 +283,99 @@ export function LoanPage(_props: { pathname: string }) {
       },
       {
         id: "actions",
-        header: t("loan.field.actions"),
+        header: () => <div className="text-right">{t("loan.field.actions")}</div>,
         enableSorting: false,
-        cell: ({ row }) =>
-          row.original.status === "DRAFT" ? (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={submittingId === row.original.id}
-              onClick={() => void submitContract(row.original)}
-            >
-              {t("loan.submit")}
-            </Button>
-          ) : (
-            <span className="text-xs text-muted-foreground">—</span>
-          ),
+        enableHiding: false,
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            {row.original.status === "DRAFT" ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={submittingId === row.original.id}
+                onClick={() => void submitContract(row.original)}
+              >
+                {t("loan.submit")}
+              </Button>
+            ) : (
+              <span className="text-xs text-muted-foreground">—</span>
+            )}
+          </div>
+        ),
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [t, submittingId]
   )
 
-  const contractTable = useClientListTable({
-    columns: contractColumns,
-    items: contracts,
-    filterBy: {
-      contract_code: (item, value) =>
-        matchTextColumnFilter(value, item.contract_code, item.contract_no ?? ""),
-      customer_code: (item, value) => matchTextColumnFilter(value, item.customer_code),
-    },
-    sort: (rows, sortState) =>
-      sortByColumn(rows, sortState, {
-        contract_code: (a, b) => a.contract_code.localeCompare(b.contract_code),
-        customer_code: (a, b) => a.customer_code.localeCompare(b.customer_code),
-        loan_amt_minor: (a, b) => a.loan_amt_minor - b.loan_amt_minor,
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<LoanContract>({
+    ...loanContractsListDefinition,
+    columns,
+    queryFn: async (query) =>
+      loanApi.listContracts({
+        q: query.q === undefined ? undefined : String(query.q),
+        page: query.page,
+        per_page: query.perPage,
+        sort: query.sort,
+        order: query.order,
       }),
-    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
-  const adjustmentColumns = useMemo<ColumnDef<LoanAdjustment>[]>(
-    () => [
-      {
-        accessorKey: "contract_code",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan.field.contract_code")} />
-        ),
-        enableColumnFilter: true,
-        meta: textSearchMeta(t("loan.field.contract_code"), t("loan.placeholder.search")),
-        cell: ({ row }) => (
-          <span className="font-mono text-xs text-primary">
-            {row.original.contract_code}
-          </span>
-        ),
-      },
-      {
-        id: "effective_date",
-        accessorKey: "effective_date",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan.field.effective_date")} />
-        ),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {formatDateShort(row.original.effective_date)}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "amount",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan.field.amount")} />
-        ),
-        cell: ({ row }) => (
-          <span className="tabular-nums">{formatMoney(fromMinor(row.original.amount_minor))}</span>
-        ),
-      },
-      {
-        id: "status",
-        accessorKey: "status",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} label={t("loan.field.status")} />
-        ),
-        cell: ({ row }) => (
-          <Badge variant={statusVariant(row.original.status)}>
-            {row.original.status}
-          </Badge>
-        ),
-      },
-      {
-        id: "actions",
-        header: t("loan.field.actions"),
-        enableSorting: false,
-        cell: ({ row }) =>
-          row.original.status === "DRAFT" ? (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={submittingAdjustmentId === row.original.id}
-              onClick={() => void submitAdjustment(row.original)}
-            >
-              {t("loan.submit")}
-            </Button>
-          ) : (
-            <span className="text-xs text-muted-foreground">—</span>
-          ),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, kind, submittingAdjustmentId]
-  )
-
-  const adjustmentTable = useClientListTable({
-    columns: adjustmentColumns,
-    items: adjustments,
-    filterBy: {
-      contract_code: (item, value) => matchTextColumnFilter(value, item.contract_code),
-      status: (item, value) => value === "" || item.status === value,
-    },
-    sort: (rows, sortState) =>
-      sortByColumn(rows, sortState, {
-        contract_code: (a, b) => a.contract_code.localeCompare(b.contract_code),
-        amount: (a, b) => (a.amount_minor ?? 0) - (b.amount_minor ?? 0),
-      }),
-    defaultPageSize: DEFAULT_PAGE_SIZE,
-  })
+  const submitContract = async (contract: LoanContract) => {
+    setSubmittingId(contract.id)
+    try {
+      await loanApi.submitContract(contract.id)
+      notify.success(t("loan.submitted"))
+      await refetch()
+    } catch (error) {
+      notify.error(translateApiError(error, t("loan.submit_failed")))
+    } finally {
+      setSubmittingId(null)
+    }
+  }
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4">
-      <PageHeader title={t("loan.title")} description={t("loan.description")} />
-
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">{t("loan.contracts_title")}</h2>
-          <Button onClick={() => setContractDialogOpen(true)}>
-            <Plus className="size-4" />
-            {t("loan.create")}
-          </Button>
-        </div>
-        {loadingContracts ? (
-          <DataTableSkeleton columnCount={5} rowCount={6} />
-        ) : (
-          <DataTable
-            table={contractTable.table}
-            totalRows={contractTable.total}
-            className="min-h-0"
-          >
-            <ListTableToolbar
-              table={contractTable.table}
-              onCreate={() => setContractDialogOpen(true)}
-              createLabel={t("loan.create")}
-            />
-          </DataTable>
-        )}
-      </section>
-
-      <section className="space-y-2">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold">{t("loan.adjustments_title")}</h2>
-          <Select value={kind} onValueChange={(value) => setKind(value as LoanAdjustmentKind)}>
-            <SelectTrigger className="w-64">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {loanAdjustmentKinds.map((entry) => (
-                <SelectItem key={entry.key} value={entry.key}>
-                  {t(entry.labelKey)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {loadingAdjustments ? (
-          <DataTableSkeleton columnCount={5} rowCount={6} />
-        ) : (
-          <DataTable
-            table={adjustmentTable.table}
-            totalRows={adjustmentTable.total}
-            className="min-h-0"
-          >
-            <ListTableToolbar table={adjustmentTable.table} />
-          </DataTable>
-        )}
-      </section>
-
-      <ContractDialog
-        open={contractDialogOpen}
-        onOpenChange={setContractDialogOpen}
-        onSaved={loadContracts}
-      />
-    </section>
+    <ListPageShell
+      title={t("loan.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("loan.count_badge", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setContractDialogOpen(true)}
+          createLabel={t("loan.create")}
+        />
+      }
+      header={
+        <>
+          <p className="text-sm text-muted-foreground">{t("loan.description")}</p>
+          <AdjustmentsSection />
+        </>
+      }
+      dialogs={
+        <ContractDialog
+          open={contractDialogOpen}
+          onOpenChange={setContractDialogOpen}
+          onSaved={async () => {
+            await refetch()
+          }}
+        />
+      }
+    />
   )
 }

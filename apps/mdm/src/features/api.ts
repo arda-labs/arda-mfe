@@ -50,8 +50,39 @@ export const mdmCatalogs = [
 export type MdmCatalogKey = (typeof mdmCatalogs)[number]["key"]
 
 export const mdmApi = {
-  listItems: (catalog: MdmCatalogKey, requestOptions?: ApiRequestOptions) =>
-    getCanonicalList<MdmItem>(`/api/mdm/${catalog}?include_inactive=true&all=true`, requestOptions),
+  /**
+   * Server-tier list for one catalog: q + page/per_page + sort/order +
+   * optional is_active ("true"/"false" — include_inactive is implied when
+   * set). Legacy callers keep using the no-arg `all=true` default.
+   */
+  listItems: (
+    catalog: MdmCatalogKey,
+    params?: {
+      page?: number
+      perPage?: number
+      q?: string
+      sort?: string
+      order?: "asc" | "desc"
+      is_active?: string
+    },
+    requestOptions?: ApiRequestOptions
+  ) => {
+    const search = new URLSearchParams()
+    if (params?.is_active !== undefined && params.is_active !== "") {
+      search.set("include_inactive", "true")
+      search.set("is_active", params.is_active)
+    }
+    if (params?.page !== undefined) search.set("page", String(params.page))
+    if (params?.perPage !== undefined) search.set("per_page", String(params.perPage))
+    if (params?.q) search.set("q", params.q)
+    if (params?.sort) search.set("sort", params.sort)
+    if (params?.order) search.set("order", params.order)
+    const qs = search.toString()
+    return getCanonicalList<MdmItem>(
+      `/api/mdm/${catalog}${qs ? `?${qs}` : ""}`,
+      requestOptions
+    )
+  },
   createItem: (catalog: MdmCatalogKey, body: Partial<MdmItem>) =>
     postCanonical<MdmItem>(`/api/mdm/${catalog}`, body),
   updateItem: (catalog: MdmCatalogKey, id: string, body: Partial<MdmItem>) =>
@@ -96,11 +127,40 @@ export interface InterestRateTier {
 }
 
 export const interestRateApi = {
-  list: (includeInactive = false, requestOptions?: ApiRequestOptions) =>
-    getCanonicalList<InterestRate>(
-      `/api/mdm/interest-rates?include_inactive=${includeInactive ? "true" : "false"}&all=true`,
+  /**
+   * Server-tier list for rate tables: q + page/per_page + sort/order +
+   * optional is_active ("true"/"false" — include_inactive is implied when
+   * set). Legacy callers keep using the no-arg `all=true` default.
+   */
+  list: (
+    includeInactive = false,
+    params?: {
+      page?: number
+      perPage?: number
+      q?: string
+      sort?: string
+      order?: "asc" | "desc"
+      is_active?: string
+    },
+    requestOptions?: ApiRequestOptions
+  ) => {
+    const search = new URLSearchParams()
+    if (params?.is_active !== undefined && params.is_active !== "") {
+      search.set("include_inactive", "true")
+      search.set("is_active", params.is_active)
+    } else {
+      search.set("include_inactive", includeInactive ? "true" : "false")
+    }
+    if (params?.page !== undefined) search.set("page", String(params.page))
+    if (params?.perPage !== undefined) search.set("per_page", String(params.perPage))
+    if (params?.q) search.set("q", params.q)
+    if (params?.sort) search.set("sort", params.sort)
+    if (params?.order) search.set("order", params.order)
+    return getCanonicalList<InterestRate>(
+      `/api/mdm/interest-rates?${search.toString()}`,
       requestOptions
-    ),
+    )
+  },
   create: (body: Partial<InterestRate>) =>
     postCanonical<InterestRate>("/api/mdm/interest-rates", body),
   update: (id: string, body: Partial<InterestRate>) =>

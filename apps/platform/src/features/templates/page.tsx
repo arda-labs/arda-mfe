@@ -253,16 +253,19 @@ export function TemplatesPage() {
 
       if (editingTemplate) {
         await platformApi.updateFileTemplate(editingTemplate.id, payload)
-        notify.success("Cap nhat mau bieu thanh cong")
+        notify.success(t("platform.templates.toast.update_success"))
       } else {
         await platformApi.createFileTemplate(payload)
-        notify.success("Them mau bieu thanh cong")
+        notify.success(t("platform.templates.toast.create_success"))
       }
       setDialogOpen(false)
       reset(templateDefaultValues)
       await loadTemplates()
     } catch (err) {
-      notify.error("Luu mau bieu that bai", translateApiError(err))
+      notify.error(
+        t("platform.templates.toast.save_failed"),
+        translateApiError(err)
+      )
     } finally {
       setSaving(false)
     }
@@ -273,11 +276,14 @@ export function TemplatesPage() {
     setDeleting(true)
     try {
       await platformApi.deleteFileTemplate(deleteTarget.id)
-      notify.success("Xoa mau bieu thanh cong")
+      notify.success(t("platform.templates.toast.delete_success"))
       setDeleteTarget(null)
       await loadTemplates()
     } catch (err) {
-      notify.error("Xoa mau bieu that bai", translateApiError(err))
+      notify.error(
+        t("platform.templates.toast.delete_failed"),
+        translateApiError(err)
+      )
     } finally {
       setDeleting(false)
     }

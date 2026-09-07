@@ -8,5 +8,31 @@
     "create": "Tạo",
     "submit": "Trình duyệt",
     "load_failed": "Không thể tải dữ liệu"
+  },
+  "capital": {
+    "count": "{count, plural, =0 {Không có bản ghi} one {# bản ghi} other {# bản ghi}}",
+    "placeholder": {
+      "search": "Tìm…",
+      "select": "— chọn —"
+    },
+    "contracts": {
+      "title": "Hợp đồng vốn",
+      "create": "Thêm hợp đồng",
+      "create_title": "Thêm hợp đồng vốn",
+      "create_description": "Hình thành hợp đồng vốn với loại vốn và hạn mức.",
+      "create_success": "Đã tạo hợp đồng vốn",
+      "create_failed": "Không thể tạo hợp đồng vốn",
+      "field": {
+        "contract_code": "Mã HĐ",
+        "fund_type": "Loại vốn",
+        "counterparty": "Đối tác",
+        "amount": "Số vốn",
+        "interest_rate": "Lãi suất",
+        "contract_date": "Ngày HĐ"
+      },
+      "validation": {
+        "required": "Nhập đủ mã HĐ, loại vốn và số vốn dương"
+      }
+    }
   }
 }

@@ -8,5 +8,77 @@
     "create": "Tạo",
     "submit": "Trình duyệt",
     "load_failed": "Không thể tải dữ liệu"
+  },
+  "statistical": {
+    "count": "{count, plural, =0 {Không có bản ghi} one {# bản ghi} other {# bản ghi}}",
+    "placeholder": {
+      "search": "Tìm…",
+      "select": "— chọn —"
+    },
+    "save_failed": "Không thể lưu",
+    "action_failed": "Thao tác thất bại",
+    "validation": {
+      "code_required": "Mã không được để trống",
+      "code_too_long": "Mã tối đa 64 ký tự",
+      "name_required": "Tên không được để trống",
+      "name_too_long": "Tên tối đa 255 ký tự",
+      "unit_too_long": "Đơn vị tối đa 32 ký tự",
+      "group_too_long": "Nhóm tối đa 64 ký tự"
+    },
+    "indicators": {
+      "title": "Chỉ tiêu thống kê",
+      "create": "Thêm chỉ tiêu",
+      "edit": "Sửa chỉ tiêu",
+      "create_success": "Đã lưu chỉ tiêu",
+      "update_success": "Đã cập nhật chỉ tiêu",
+      "save_failed": "Không thể lưu chỉ tiêu",
+      "field": {
+        "name": "Chỉ tiêu",
+        "unit": "Đơn vị",
+        "group": "Nhóm"
+      }
+    },
+    "report_definitions": {
+      "title": "Mẫu báo cáo",
+      "create": "Thêm mẫu",
+      "edit": "Sửa mẫu báo cáo",
+      "create_success": "Đã lưu mẫu báo cáo",
+      "update_success": "Đã cập nhật mẫu báo cáo",
+      "save_failed": "Không thể lưu mẫu báo cáo",
+      "field": {
+        "name": "Tên báo cáo",
+        "query_id": "Query builder",
+        "output_format": "Định dạng"
+      },
+      "validation": {
+        "query_required": "Query builder id không được để trống",
+        "query_too_long": "Query builder id tối đa 64 ký tự"
+      }
+    },
+    "submissions": {
+      "title": "Nộp báo cáo",
+      "create": "Tạo kỳ nộp",
+      "create_title": "Tạo kỳ nộp báo cáo",
+      "create_description": "Chọn mẫu báo cáo và kỳ (\"2026-09\"). Sau khi tạo, trình duyệt qua workbench.",
+      "create_success": "Đã tạo kỳ nộp báo cáo (DRAFT)",
+      "create_failed": "Không thể tạo kỳ nộp",
+      "submit": "Trình duyệt",
+      "submit_success": "Đã trình kỳ nộp để duyệt",
+      "submit_failed": "Không thể trình duyệt",
+      "validation": {
+        "required": "Chọn báo cáo và kỳ nộp"
+      },
+      "field": {
+        "report": "Báo cáo",
+        "period": "Kỳ",
+        "submitted_by": "Người nộp"
+      },
+      "status": {
+        "draft": "Nháp",
+        "submitted": "Đã trình",
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối"
+      }
+    }
   }
 }

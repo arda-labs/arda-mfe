@@ -1,129 +1,223 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { notify } from "@workspace/ui/feedback/notify"
+import { useI18n } from "@workspace/i18n"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
 import { Badge } from "@workspace/ui/components/badge"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { PageHeader } from "@workspace/ui/components/page-header"
-import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { formatRatePercent } from "@workspace/format"
+import {
+  selectFilterMeta,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { formatDateShort, formatRatePercent } from "@workspace/format"
 import { depositApi, type SavingsProduct } from "../api"
+import { productsListDefinition } from "./list-query"
+import { ProductFormDialog } from "./components/ProductFormDialog"
 
-const DEFAULT_PAGE_SIZE = 10
-
-/** Deposit products catalog (DPM). */
+/** Deposit products catalog (DPM) — server tier, upsert via POST/PUT. */
 export function ProductsPage(_props: { pathname: string }) {
-  const [items, setItems] = useState<SavingsProduct[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const result = await depositApi.listProducts()
-      setItems(result.items)
-    } catch {
-      notify.error("Không thể tải sản phẩm")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
+  const { t } = useI18n()
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<SavingsProduct | null>(null)
 
   const columns = useMemo<ColumnDef<SavingsProduct>[]>(
     () => [
       {
+        id: "code",
         accessorKey: "code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Mã" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.code")}
+          />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta("Mã", "Tìm…"),
+        meta: textSearchMeta(
+          t("common.field.code"),
+          t("deposit.placeholder.search")
+        ),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.code}</span>
         ),
       },
       {
+        id: "name",
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Tên" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.name")}
+          />
         ),
-        enableColumnFilter: true,
-        meta: textSearchMeta("Tên", "Tìm…"),
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
+        id: "term_months",
         accessorKey: "term_months",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Kỳ hạn (tháng)" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.products.field.term_months")}
+          />
         ),
       },
       {
+        id: "interest_rate",
         accessorKey: "interest_rate",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Lãi suất" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.products.field.interest_rate")}
+          />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatRatePercent(row.original.interest_rate)}</span>
         ),
       },
       {
+        id: "currency_code",
         accessorKey: "currency_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Loại tiền" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.currency")}
+          />
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.currency_code}</span>
         ),
       },
       {
-        accessorKey: "is_active",
-        header: "TT",
+        id: "created_at",
+        accessorKey: "created_at",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.created")}
+          />
+        ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
-            {row.original.is_active ? "ACTIVE" : "OFF"}
-          </Badge>
+          <span className="whitespace-nowrap text-muted-foreground">
+            {formatDateShort(row.original.created_at)}
+          </span>
+        ),
+      },
+      {
+        id: "is_active",
+        accessorKey: "is_active",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: selectFilterMeta(
+          t("common.field.status"),
+          [
+            { value: "true", label: t("deposit.status.active") },
+            { value: "false", label: t("deposit.status.inactive") },
+          ]
+        ),
+        cell: ({ row }) => (
+          <Status variant={row.original.is_active ? "success" : "default"}>
+            <StatusIndicator />
+            <StatusLabel>
+              {row.original.is_active
+                ? t("deposit.status.active")
+                : t("deposit.status.inactive")}
+            </StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="text-xs font-semibold text-primary hover:underline"
+              onClick={() => setEditTarget(row.original)}
+            >
+              {t("common.action.edit")}
+            </button>
+          </div>
         ),
       },
     ],
-    []
+    [t]
   )
 
-  const { table, total } = useClientListTable({
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<SavingsProduct>({
+    ...productsListDefinition,
     columns,
-    items,
-    filterBy: {
-      code: (item, value) => matchTextColumnFilter(value, item.code),
-      name: (item, value) => matchTextColumnFilter(value, item.name),
-    },
-    sort: (rows, sortState) =>
-      sortByColumn(rows, sortState, {
-        code: (a, b) => a.code.localeCompare(b.code),
+    queryFn: async (q) =>
+      depositApi.listProducts({
+        q: q.q === undefined ? undefined : String(q.q),
+        is_active: q.is_active === undefined ? undefined : String(q.is_active),
+        sort: q.sort,
+        order: q.order,
       }),
-    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-      <PageHeader
-        title="Sản phẩm huy động"
-        description="Danh mục sản phẩm tiền gửi dân cư — kỳ hạn và lãi suất."
-      />
-
-      <div className="relative min-h-0 flex-1">
-        {loading ? (
-          <DataTableSkeleton columnCount={6} rowCount={6} />
-        ) : (
-          <DataTable table={table} totalRows={total} className="min-h-0 flex-1">
-            <ListTableToolbar table={table} />
-          </DataTable>
-        )}
-      </div>
-    </section>
+    <ListPageShell
+      title={t("deposit.products.title")}
+      totalRows={total}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("deposit.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setCreateOpen(true)}
+          createLabel={t("deposit.products.create")}
+          exportFilename={t("deposit.products.title")}
+          sheetName={t("deposit.products.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <>
+          <ProductFormDialog
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            product={null}
+            onSaved={() => void refetch()}
+          />
+          <ProductFormDialog
+            open={editTarget !== null}
+            onOpenChange={(nextOpen) => !nextOpen && setEditTarget(null)}
+            product={editTarget}
+            onSaved={() => void refetch()}
+          />
+        </>
+      }
+    />
   )
 }

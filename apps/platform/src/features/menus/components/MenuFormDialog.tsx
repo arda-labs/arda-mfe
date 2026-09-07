@@ -171,7 +171,7 @@ export function MenuFormDialog({
             >
               <Input
                 id="menu_code"
-                placeholder="vd: finance.reports"
+                placeholder={t("platform.menus.placeholder.code")}
                 aria-invalid={Boolean(errors.code)}
                 disabled={isEditing}
                 className="font-mono"

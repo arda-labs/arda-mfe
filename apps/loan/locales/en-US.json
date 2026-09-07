@@ -18,7 +18,39 @@
     "effective_date": "Effective date",
     "contract_no": "Contract no.",
     "product": "Product",
-    "term": "Term (months)"
+    "term": "Term (months)",
+    "agreement_code": "Agreement code"
+  },
+  "status": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "approved": "Approved",
+    "posted": "Posted",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "count_badge": "{count} records",
+  "retry": "Retry",
+  "reload": "Reload",
+  "adjustments_hint": "Pick an adjustment kind and press Reload to load its flows.",
+  "collections": {
+    "title": "Collections",
+    "description": "Principal + interest receipts per agreement; submitted through the workbench — the posting is journaled automatically after approval.",
+    "create": "New collection",
+    "field": {
+      "principal": "Principal",
+      "interest": "Interest",
+      "collection_date": "Collection date"
+    }
+  },
+  "disbursements": {
+    "title": "Disbursements",
+    "description": "Create drawdown requests, submit through the workbench; after approval the entry posts to the ledger automatically.",
+    "create": "New disbursement",
+    "field": {
+      "amount": "Disbursement amount",
+      "disburse_date": "Disbursement date"
+    }
   },
   "kind": {
     "debt_change": "Debt group change",

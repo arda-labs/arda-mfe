@@ -298,6 +298,23 @@ export type ProcessDefinitionUploadPayload = {
 
 // ─── API helpers ─────────────────────────────────────────────────────────────────
 
+/** Shared list query params supported by workflow catalog list endpoints. */
+export interface WorkflowListParams {
+  q?: string
+  sort?: string
+  order?: "asc" | "desc"
+}
+
+function listParamsToQuery(params?: WorkflowListParams) {
+  if (!params) return ""
+  const search = new URLSearchParams()
+  if (params.q) search.set("q", params.q)
+  if (params.sort) search.set("sort", params.sort)
+  if (params.order) search.set("order", params.order)
+  const raw = search.toString()
+  return raw ? `?${raw}` : ""
+}
+
 async function request<T>(
   path: string,
   options?: { method?: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown }
@@ -350,8 +367,10 @@ async function uploadProcessDefinition(
 // ─── API methods ─────────────────────────────────────────────────────────────────
 
 export const workflowApi = {
-  async listCaseTypes() {
-    return requestList<WorkflowCaseType>("/api/workflow/case-types")
+  async listCaseTypes(params?: WorkflowListParams) {
+    return requestList<WorkflowCaseType>(
+      `/api/workflow/case-types${listParamsToQuery(params)}`
+    )
   },
   async listCases() {
     return requestList<WorkflowCase>("/api/workflow/cases?limit=100")
@@ -373,11 +392,15 @@ export const workflowApi = {
       { method: "POST" }
     )
   },
-  async listSlaPolicies() {
-    return requestList<SlaPolicy>("/api/workflow/sla-policies")
+  async listSlaPolicies(params?: WorkflowListParams) {
+    return requestList<SlaPolicy>(
+      `/api/workflow/sla-policies${listParamsToQuery(params)}`
+    )
   },
-  async listDescriptionTemplates() {
-    return requestList<DescriptionTemplate>("/api/workflow/description-templates")
+  async listDescriptionTemplates(params?: WorkflowListParams) {
+    return requestList<DescriptionTemplate>(
+      `/api/workflow/description-templates${listParamsToQuery(params)}`
+    )
   },
   async listProcessRoles() {
     return requestList<ProcessRole>("/api/workflow/roles")

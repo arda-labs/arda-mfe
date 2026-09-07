@@ -52,13 +52,20 @@ import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 
 const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
 
+/**
+ * Bootstrap the AREA_TYPE lookup category only when it is actually missing:
+ * the page load performs GETs only; the upsert runs just once when the fetch
+ * shows the category absent. The main table list never mutates on load.
+ */
 async function ensureAreaTypeCategory() {
+  const categories = await platformApi.listLookupCategories()
+  if (categories.some((item) => item.code === AREA_TYPE_CATEGORY_CODE)) return
   await platformApi.upsertLookupCategory({
     code: AREA_TYPE_CATEGORY_CODE,
-    name: "Loai khu vuc",
+    name: "Loại khu vực",
     scope_type: "global",
     is_system: false,
-    description: "Danh muc loai khu vuc",
+    description: "Danh mục loại khu vực",
   })
 }
 
@@ -283,12 +290,15 @@ export function AreaTypesPage() {
       }
       await ensureAreaTypeCategory()
       await platformApi.upsertLookupValue(AREA_TYPE_CATEGORY_CODE, payload)
-      notify.success("Luu loai khu vuc thanh cong")
+      notify.success(t("platform.area_types.toast.save_success"))
       setDialogOpen(false)
       reset(areaTypeDefaultValues)
       await loadAreaTypes()
     } catch (err) {
-      notify.error("Luu loai khu vuc that bai", translateApiError(err))
+      notify.error(
+        t("platform.area_types.toast.save_failed"),
+        translateApiError(err)
+      )
     } finally {
       setSaving(false)
     }
@@ -299,11 +309,14 @@ export function AreaTypesPage() {
     setDeleting(true)
     try {
       await platformApi.deleteLookupValue(deleteTarget.id)
-      notify.success("Xoa loai khu vuc thanh cong")
+      notify.success(t("platform.area_types.toast.delete_success"))
       setDeleteTarget(null)
       await loadAreaTypes()
     } catch (err) {
-      notify.error("Xoa loai khu vuc that bai", translateApiError(err))
+      notify.error(
+        t("platform.area_types.toast.delete_failed"),
+        translateApiError(err)
+      )
     } finally {
       setDeleting(false)
     }

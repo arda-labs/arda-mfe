@@ -1,4 +1,5 @@
 import { api, type ApiSuccess } from "@workspace/api"
+import { buildListSearchParams, type ListQueryInput, type ListResponse } from "@workspace/api/list"
 import { buildSearchParams } from "@workspace/api/query"
 
 export interface Account {
@@ -38,6 +39,27 @@ export const financeApi = {
     api
       .get<ApiSuccess<{ accounts: Account[] }>>("/api/finance/accounts")
       .then((res) => res.result),
+  /**
+   * Server-tier account list: q ILIKEs code+name, sort whitelist
+   * (code | name | created_at), page/per_page. The BE keeps the
+   * `{ accounts: [...] }` result shape and adds page/per_page/total — this
+   * adapter normalizes it to the standard ListResponse for the data table.
+   */
+  listAccountsPaged: (params?: ListQueryInput) =>
+    api
+      .get<
+        ApiSuccess<{ accounts: Account[] } & Partial<ListResponse<Account>>>
+      >(`/api/finance/accounts?${buildListSearchParams(params).toString()}`)
+      .then((res): ListResponse<Account> => {
+        const accounts = res.result.accounts ?? []
+        return {
+          items: accounts,
+          page: res.result.page ?? params?.page ?? 1,
+          per_page:
+            res.result.per_page ?? params?.perPage ?? Math.max(accounts.length, 1),
+          total: res.result.total ?? accounts.length,
+        }
+      }),
   getAccount: (id: string) =>
     api
       .get<ApiSuccess<Account>>(`/api/finance/accounts/${id}`)
@@ -154,6 +176,17 @@ export const postingApi = {
       .get<ApiSuccess<JournalEntry[]>>(`/api/finance/journal-entries?${p.toString()}`)
       .then((res) => res.result)
   },
+  /**
+   * Server-tier journal list: q ILIKEs document_type / document_code /
+   * description, sort whitelist (entry_no | accounting_date), page/per_page.
+   * The BE answers with the standard ListResponse envelope.
+   */
+  listJournalPaged: (params?: ListQueryInput) =>
+    api
+      .get<ApiSuccess<ListResponse<JournalEntry>>>(
+        `/api/finance/journal-entries?${buildListSearchParams(params).toString()}`
+      )
+      .then((res) => res.result),
   validate: (input: PostingPreviewInput) =>
     api
       .post<ApiSuccess<ValidationResult>>("/api/finance/posting/validate", input)

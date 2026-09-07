@@ -1,282 +1,106 @@
-import { useCallback, useEffect, useState } from "react"
-import { Button } from "@workspace/ui/components/button"
-import { useAuthStore } from "@workspace/auth"
-import type {
-  ProcessRole,
-  WorkflowAssignmentRule,
-  WorkflowCaseType,
-  WorkflowDelegation,
-  WorkflowRoleCatalog,
-  WorkflowRoleMembership,
-} from "../api"
-import { workflowApi } from "../api"
-import {
-  AssignmentRuleDialog,
-  AssignmentRuleTable,
-  caseTypeOptionsFromCaseTypes,
-  DelegationDialog,
-  DelegationTable,
-  EmptyState,
-  LoadingBlock,
-  ProcessRoleDialog,
-  ProcessRoleTable,
-  RoleCatalogDialog,
-  RoleCatalogTable,
-  RoleMembershipDialog,
-  RoleMembershipTable,
-  uniqueOptions,
-  WorkflowFrame,
-} from "../shared/admin-ui"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  } from "@workspace/ui/components/tabs"
+import { useMemo, useState } from "react"
+import { useI18n } from "@workspace/i18n"
+import { Badge } from "@workspace/ui/components/badge"
+import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import { PageErrorDialog } from "@workspace/list-page/page-error-dialog"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { PageLoadOverlay } from "@workspace/list-page/page-load-overlay"
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import { useDelayedBusy } from "@workspace/ui/hooks/use-delayed-busy"
+import { caseTypeOptionsOf, useCaseTypesLookup } from "./process-roles/tab-list"
+import { useCatalogTab } from "./process-roles/use-catalog-tab"
+import { useMembershipTab } from "./process-roles/use-membership-tab"
+import { useAssignmentTab } from "./process-roles/use-assignment-tab"
+import { useDelegationTab } from "./process-roles/use-delegation-tab"
+import { useMappingTab } from "./process-roles/use-mapping-tab"
+import type { ProcessRolesTab } from "./process-roles/tab-list"
 
+/**
+ * Vai trò quy trình — 5 tabs, mỗi tab là 1 client-tier list độc lập với
+ * error state riêng (useTabList per tab; lỗi 1 tab không xóa dữ liệu tab
+ * khác). Toàn bộ trang dùng chung 1 khung bảng full-trang; toolbar + dialogs
+ * của tab đang mở được truyền xuống panel đó.
+ */
 export function ProcessRolesPage() {
-  const tenantId = useAuthStore((state) => state.user?.tenantId ?? "")
-  const [stepRoles, setStepRoles] = useState<ProcessRole[]>([])
-  const [roleCatalog, setRoleCatalog] = useState<WorkflowRoleCatalog[]>([])
-  const [memberships, setMemberships] = useState<WorkflowRoleMembership[]>([])
-  const [assignmentRules, setAssignmentRules] = useState<
-    WorkflowAssignmentRule[]
-  >([])
-  const [delegations, setDelegations] = useState<WorkflowDelegation[]>([])
-  const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    if (!tenantId) {
-      setLoading(false)
-      setError("Không xác định được tenant hiện tại để quản lý role workflow")
-      return
-    }
-    try {
-      const [sr, rc, mm, ar, dl, ct] = await Promise.all([
-        workflowApi.listProcessRoles(),
-        workflowApi.listRoleCatalog(),
-        workflowApi.listRoleMemberships(tenantId),
-        workflowApi.listAssignmentRules(),
-        workflowApi.listDelegations(tenantId),
-        workflowApi.listCaseTypes(),
-      ])
-      setStepRoles(sr)
-      setRoleCatalog(rc)
-      setMemberships(mm)
-      setAssignmentRules(ar)
-      setDelegations(dl)
-      setCaseTypes(ct)
-    } catch (cause) {
-      setStepRoles([])
-      setRoleCatalog([])
-      setMemberships([])
-      setAssignmentRules([])
-      setDelegations([])
-      setCaseTypes([])
-      setError(cause instanceof Error ? cause.message : "Không tải được dữ liệu workflow")
-    } finally {
-      setLoading(false)
-    }
-  }, [tenantId])
-  useEffect(() => {
-    void load()
-  }, [load])
+  const { t } = useI18n()
+  const [activeKey, setActiveKey] = useState(catalogTabKey)
+  const caseTypeQuery = useCaseTypesLookup()
+  const caseTypeOptions = useMemo(
+    () => caseTypeOptionsOf(caseTypeQuery.data ?? []),
+    [caseTypeQuery.data]
+  )
 
-  const caseTypeOptions = caseTypeOptionsFromCaseTypes(caseTypes)
-  const roleCodeOptions = roleCatalog.map((item) => ({
-    value: item.roleCode,
-    label: `${item.roleCode} - ${item.roleName}`,
-  }))
-  const iamRoleOptions = uniqueOptions(
-    stepRoles.map((item) => item.iamRole),
-    roleCodeOptions
-  )
-  const [activeTab, setActiveTab] = useState("catalog")
-  const [editing, setEditing] = useState<ProcessRole | null>(null)
-  const [editingCatalog, setEditingCatalog] =
-    useState<WorkflowRoleCatalog | null>(null)
-  const [editingMembership, setEditingMembership] =
-    useState<WorkflowRoleMembership | null>(null)
-  const [editingRule, setEditingRule] = useState<WorkflowAssignmentRule | null>(
-    null
-  )
-  const [editingDelegation, setEditingDelegation] =
-    useState<WorkflowDelegation | null>(null)
-  const [createOpen, setCreateOpen] = useState(false)
-  function onSaved() {
-    void load()
-  }
-  const actionLabel =
-    {
-      catalog: "Tạo role",
-      membership: "Thêm thành viên",
-      assignment: "Tạo luật phân công",
-      delegation: "Tạo ủy quyền",
-      mapping: "Tạo mapping bước",
-    }[activeTab] ?? "Tạo"
+  const catalog = useCatalogTab()
+  const membership = useMembershipTab(catalog.roleCodeOptions)
+  const assignment = useAssignmentTab(caseTypeOptions, catalog.roleCodeOptions)
+  const delegation = useDelegationTab(catalog.roleCodeOptions)
+  const mapping = useMappingTab(caseTypeOptions, catalog.roleCodeOptions)
+
+  const tabs: ProcessRolesTab[] = [
+    catalog,
+    membership,
+    assignment,
+    delegation,
+    mapping,
+  ]
+  const active = tabs.find((tab) => tab.key === activeKey) ?? catalog
 
   return (
-    <WorkflowFrame
-      title="Vai trò quy trình"
-      description="Quản lý role vận hành, thành viên, luật phân công, ủy quyền và mapping từng bước quy trình."
-      metrics={[
-        { label: "Role", value: String(roleCatalog.length), tone: "default" },
-        {
-          label: "Thành viên",
-          value: String(memberships.length),
-          tone: "success",
-        },
-        {
-          label: "Luật tách maker/checker",
-          value: String(
-            assignmentRules.filter((item) => item.requireSeparationOfDuties)
-              .length
-          ),
-          tone: "warning",
-        },
-      ]}
-      action={
-        <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-          {actionLabel}
-        </Button>
-      }
-    >
-      {loading ? (
-        <LoadingBlock />
-      ) : error ? (
-        <div className="space-y-3">
-          <EmptyState text={error} />
-          <Button type="button" variant="outline" onClick={() => void load()}>
-            Thử lại
-          </Button>
-        </div>
-      ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex h-auto flex-wrap justify-start">
-            <TabsTrigger value="catalog">Role catalog</TabsTrigger>
-            <TabsTrigger value="membership">Thành viên</TabsTrigger>
-            <TabsTrigger value="assignment">Luật phân công</TabsTrigger>
-            <TabsTrigger value="delegation">Ủy quyền</TabsTrigger>
-            <TabsTrigger value="mapping">Mapping bước</TabsTrigger>
-          </TabsList>
-          <TabsContent value="catalog">
-            <RoleCatalogTable items={roleCatalog} onEdit={setEditingCatalog} />
-          </TabsContent>
-          <TabsContent value="membership">
-            <RoleMembershipTable
-              items={memberships}
-              onEdit={setEditingMembership}
-            />
-          </TabsContent>
-          <TabsContent value="assignment">
-            <AssignmentRuleTable
-              items={assignmentRules}
-              onEdit={setEditingRule}
-            />
-          </TabsContent>
-          <TabsContent value="delegation">
-            <DelegationTable
-              items={delegations}
-              onEdit={setEditingDelegation}
-            />
-          </TabsContent>
-          <TabsContent value="mapping">
-            <ProcessRoleTable items={stepRoles} onEdit={setEditing} />
-          </TabsContent>
-        </Tabs>
-      )}
-      {createOpen && activeTab === "catalog" ? (
-        <RoleCatalogDialog
-          open
-          onOpenChange={setCreateOpen}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {createOpen && activeTab === "membership" ? (
-        <RoleMembershipDialog
-          open
-          roleOptions={roleCodeOptions}
-          onOpenChange={setCreateOpen}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {createOpen && activeTab === "assignment" ? (
-        <AssignmentRuleDialog
-          open
-          caseTypeOptions={caseTypeOptions}
-          roleOptions={roleCodeOptions}
-          onOpenChange={setCreateOpen}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {createOpen && activeTab === "delegation" ? (
-        <DelegationDialog
-          open
-          tenantId={tenantId}
-          roleOptions={roleCodeOptions}
-          onOpenChange={setCreateOpen}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {createOpen && activeTab === "mapping" ? (
-        <ProcessRoleDialog
-          open
-          caseTypeOptions={caseTypeOptions}
-          iamRoleOptions={iamRoleOptions}
-          onOpenChange={setCreateOpen}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {editingCatalog ? (
-        <RoleCatalogDialog
-          item={editingCatalog}
-          open
-          onOpenChange={(open) => !open && setEditingCatalog(null)}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {editingMembership ? (
-        <RoleMembershipDialog
-          item={editingMembership}
-          open
-          roleOptions={roleCodeOptions}
-          onOpenChange={(open) => !open && setEditingMembership(null)}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {editingRule ? (
-        <AssignmentRuleDialog
-          item={editingRule}
-          open
-          caseTypeOptions={caseTypeOptions}
-          roleOptions={roleCodeOptions}
-          onOpenChange={(open) => !open && setEditingRule(null)}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {editingDelegation ? (
-        <DelegationDialog
-          item={editingDelegation}
-          open
-          tenantId={tenantId}
-          roleOptions={roleCodeOptions}
-          onOpenChange={(open) => !open && setEditingDelegation(null)}
-          onSaved={onSaved}
-        />
-      ) : null}
-      {editing ? (
-        <ProcessRoleDialog
-          item={editing}
-          open
-          caseTypeOptions={caseTypeOptions}
-          iamRoleOptions={iamRoleOptions}
-          onOpenChange={(open) => !open && setEditing(null)}
-          onSaved={onSaved}
-        />
-      ) : null}
-    </WorkflowFrame>
+    <section className="flex h-full min-h-0 flex-col gap-5 overflow-hidden p-4 sm:p-5">
+      <PageHeader
+        title={t("workflow.process_roles.title")}
+        meta={
+          <Badge
+            variant="secondary"
+            className="px-2.5 py-0.5 text-[10px] font-bold"
+          >
+            {active.countLabel}
+          </Badge>
+        }
+      />
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        {t("workflow.process_roles.description")}
+      </p>
+      <Tabs value={active.key} onValueChange={setActiveKey}>
+        <TabsList className="flex h-auto flex-wrap justify-start">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.key} value={tab.key}>
+              {t(`workflow.process_roles.tab_${tab.key}`)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+      <TabPanel key={active.key} tab={active} />
+    </section>
+  )
+}
+
+const catalogTabKey = "catalog"
+
+function TabPanel({ tab }: { tab: ProcessRolesTab }) {
+  const { t } = useI18n()
+  const showOverlay = useDelayedBusy(tab.criticalPending)
+  const showErrorDialog = tab.criticalError != null && !tab.criticalPending
+
+  return (
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <DataTable
+        layout="panel"
+        table={tab.table}
+        totalRows={tab.total}
+        className="min-h-0 flex-1"
+        fetching={tab.fetching}
+      >
+        {tab.toolbar}
+      </DataTable>
+      {showOverlay ? <PageLoadOverlay /> : null}
+      <PageErrorDialog
+        open={showErrorDialog}
+        error={tab.criticalError}
+        onRetry={tab.onRetry}
+        title={t("workflow.process_roles.load_failed")}
+      />
+      {tab.dialogs}
+    </div>
   )
 }

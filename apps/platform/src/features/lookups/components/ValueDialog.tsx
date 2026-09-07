@@ -72,11 +72,14 @@ export function ValueDialog({
         payload.id = editingVal.id
       }
       await platformApi.upsertLookupValue(selectedCat.code, payload)
-      notify.success("Lưu giá trị thành công")
+      notify.success(t("platform.lookups.toast.value_save_success"))
       handleClose(false)
       await onSuccess()
     } catch (err) {
-      notify.error("Lưu giá trị thất bại", translateApiError(err))
+      notify.error(
+        t("platform.lookups.toast.value_save_failed"),
+        translateApiError(err)
+      )
     } finally {
       setSaving(false)
     }

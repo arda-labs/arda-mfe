@@ -4,6 +4,20 @@
     "title": "Chart of accounts",
     "count": "{count} accounts",
     "create": "Create Account",
+    "create_success": "Account created",
+    "create_failed": "Could not create account",
+    "load_failed": "Failed to load accounts",
+    "placeholder": {
+      "search": "Search by code or name..."
+    },
+    "validation": {
+      "code_required": "Code is required",
+      "code_max": "Code is too long",
+      "name_required": "Name is required",
+      "name_max": "Name is too long",
+      "currency_required": "Currency is required",
+      "currency_max": "Use a 3-letter currency code"
+    },
     "field": {
       "normal_balance": "Normal Balance"
     }
@@ -18,5 +32,21 @@
   "entry": {
     "debit": "Debit",
     "credit": "Credit"
+  },
+  "journal": {
+    "title": "General journal",
+    "count": "{count} entries",
+    "preview": "Preview posting",
+    "load_failed": "Failed to load the general journal",
+    "placeholder": {
+      "search": "Search by document type or description..."
+    },
+    "field": {
+      "entry_no": "Entry no.",
+      "accounting_date": "Accounting date",
+      "document_type": "Document type",
+      "business_domain": "Domain",
+      "description": "Description"
+    }
   }
 }

@@ -8,5 +8,84 @@
     "create": "Tạo",
     "submit": "Trình duyệt",
     "load_failed": "Không thể tải dữ liệu"
+  },
+  "deposit": {
+    "count": "{count, plural, =0 {Không có bản ghi} one {# bản ghi} other {# bản ghi}}",
+    "placeholder": {
+      "search": "Tìm…",
+      "select": "— chọn —"
+    },
+    "save_failed": "Không thể lưu",
+    "action_failed": "Thao tác thất bại",
+    "validation": {
+      "code_required": "Mã không được để trống",
+      "code_too_long": "Mã tối đa 64 ký tự",
+      "name_required": "Tên không được để trống",
+      "name_too_long": "Tên tối đa 255 ký tự",
+      "currency_length": "Loại tiền phải đúng 3 ký tự"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "inactive": "Ngừng hoạt động"
+    },
+    "products": {
+      "title": "Sản phẩm huy động",
+      "create": "Thêm sản phẩm",
+      "edit": "Sửa sản phẩm",
+      "create_success": "Đã lưu sản phẩm",
+      "update_success": "Đã cập nhật sản phẩm",
+      "save_failed": "Không thể lưu sản phẩm",
+      "months_short": "tháng",
+      "field": {
+        "term_months": "Kỳ hạn (tháng)",
+        "interest_rate": "Lãi suất"
+      },
+      "validation": {
+        "term_number": "Kỳ hạn phải là số",
+        "term_integer": "Kỳ hạn phải là số tháng nguyên",
+        "term_positive": "Kỳ hạn tối thiểu 1 tháng",
+        "term_too_long": "Kỳ hạn tối đa 600 tháng",
+        "rate_number": "Lãi suất phải là số",
+        "rate_non_negative": "Lãi suất không được âm",
+        "rate_too_high": "Lãi suất tối đa 100"
+      }
+    },
+    "interbank": {
+      "title": "Tiền gửi liên ngân hàng",
+      "field": {
+        "deposit_code": "Mã HĐ",
+        "counterparty": "Đối tác",
+        "principal": "Số tiền gửi",
+        "interest_rate": "Lãi suất",
+        "deposit_date": "Ngày gửi",
+        "maturity_date": "Đáo hạn"
+      }
+    },
+    "savings": {
+      "title": "Sổ tiết kiệm",
+      "open": "Mở sổ",
+      "open_title": "Mở sổ tiết kiệm",
+      "open_description": "Chọn sản phẩm (kỳ hạn + lãi suất), nhập số tiền gửi ban đầu.",
+      "open_success": "Đã mở sổ",
+      "open_failed": "Không thể mở sổ",
+      "settle": "Tất toán",
+      "settle_confirm_title": "Tất toán sổ tiết kiệm?",
+      "settle_confirm_description": "Sổ {code} sẽ được tất toán và đóng; bút toán ghi qua sổ nhật ký tài chính. Hành động này không thể hoàn tác.",
+      "settle_success": "Đã tất toán sổ",
+      "settle_failed": "Không thể tất toán sổ",
+      "field": {
+        "savings_code": "Mã sổ",
+        "customer": "Khách hàng",
+        "product": "Sản phẩm",
+        "principal": "Gốc",
+        "accrued": "Lãi tích lũy",
+        "amount": "Số tiền",
+        "open_date": "Mở sổ",
+        "maturity_date": "Đáo hạn"
+      },
+      "validation": {
+        "required": "Nhập đủ mã sổ, khách hàng, sản phẩm và số tiền dương"
+      }
+    }
   }
 }

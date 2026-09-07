@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -33,6 +34,7 @@ export function CreateSubmissionDialog({
   onOpenChange: (open: boolean) => void
   onSaved: () => Promise<void> | void
 }) {
+  const { t } = useI18n()
   const [form, setForm] = useState<Form>(emptyForm)
   const [definitions, setDefinitions] = useState<ReportDefinition[]>([])
   const [savePending, setSavePending] = useState(false)
@@ -47,7 +49,7 @@ export function CreateSubmissionDialog({
 
   const submit = async () => {
     if (!form.report_code || !form.period_code) {
-      notify.error("Chọn báo cáo và kỳ nộp")
+      notify.error(t("statistical.submissions.validation.required"))
       return
     }
     setSavePending(true)
@@ -56,12 +58,12 @@ export function CreateSubmissionDialog({
         report_code: form.report_code,
         period_code: form.period_code,
       })
-      notify.success("Đã tạo kỳ nộp báo cáo (DRAFT)")
+      notify.success(t("statistical.submissions.create_success"))
       onOpenChange(false)
       setForm(emptyForm)
       await onSaved()
     } catch {
-      notify.error("Không thể tạo kỳ nộp")
+      notify.error(t("statistical.submissions.create_failed"))
     } finally {
       setSavePending(false)
     }
@@ -71,21 +73,20 @@ export function CreateSubmissionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Tạo kỳ nộp báo cáo</DialogTitle>
+          <DialogTitle>{t("statistical.submissions.create_title")}</DialogTitle>
           <DialogDescription>
-            Chọn mẫu báo cáo và kỳ ("2026-09"). Sau khi tạo, trình duyệt qua
-            workbench.
+            {t("statistical.submissions.create_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label>Báo cáo</Label>
+            <Label>{t("statistical.submissions.field.report")}</Label>
             <select
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={form.report_code}
               onChange={(e) => setForm((c) => ({ ...c, report_code: e.target.value }))}
             >
-              <option value="">— chọn —</option>
+              <option value="">{t("statistical.placeholder.select")}</option>
               {definitions.map((d) => (
                 <option key={d.id} value={d.code}>
                   {d.code} — {d.name}
@@ -94,7 +95,7 @@ export function CreateSubmissionDialog({
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label>Kỳ (YYYY-MM)</Label>
+            <Label>{t("statistical.submissions.field.period")}</Label>
             <Input
               value={form.period_code}
               placeholder="2026-09"
@@ -104,10 +105,10 @@ export function CreateSubmissionDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Hủy
+            {t("common.action.cancel")}
           </Button>
           <Button onClick={() => void submit()} disabled={savePending}>
-            Tạo
+            {t("common.action.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

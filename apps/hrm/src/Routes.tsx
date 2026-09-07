@@ -2,7 +2,7 @@ import { registerAppLocales } from "@workspace/i18n"
 import enHrm from "../locales/en-US.json"
 import viHrm from "../locales/vi-VN.json"
 
-registerAppLocales("user", {
+registerAppLocales("hrm", {
   "vi-VN": viHrm,
   "en-US": enHrm,
 })

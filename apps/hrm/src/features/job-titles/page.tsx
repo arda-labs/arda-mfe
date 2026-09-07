@@ -1,171 +1,244 @@
-import { useCallback, useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useCallback, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { textSearchMeta } from "@workspace/list-page/column-filters"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import { FormField } from "@workspace/ui/components/form-field"
-import { Input } from "@workspace/ui/components/input"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { TableCell, TableRow } from "@workspace/ui/components/table"
+import { Pencil, Trash2 } from "lucide-react"
 import { hrmApi, type JobTitle } from "../api"
-import {
-  jobTitleDefaults,
-  jobTitleSchema,
-  type JobTitleValues,
-} from "../shared/schemas"
-import {
-  DataTable,
-  DeleteDialog,
-  DialogActions,
-  PageTitle,
-  RowActions,
-} from "../shared/ui"
+import { jobTitlesListDefinition } from "./list-query"
+import { JobTitleFormDialog } from "./components/JobTitleFormDialog"
 
 export function JobTitlesPage() {
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<JobTitle | null>(null)
+  const { t, formatDate } = useI18n()
+  const [formOpen, setFormOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<JobTitle | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<JobTitle | null>(null)
-  const [items, setItems] = useState<JobTitle[]>([])
-  const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const form = useForm<JobTitleValues>({
-    resolver: zodResolver(jobTitleSchema),
-    defaultValues: jobTitleDefaults,
+
+  const columns = useMemo<ColumnDef<JobTitle>[]>(
+    () => [
+      {
+        id: "code",
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.job_titles.field.code")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("hrm.job_titles.field.code"),
+          t("hrm.job_titles.search_placeholder")
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">{row.original.code}</span>
+        ),
+      },
+      {
+        id: "name",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.job_titles.field.name")}
+          />
+        ),
+      },
+      {
+        id: "description",
+        accessorKey: "description",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.job_titles.field.description")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.description || "-"}
+          </span>
+        ),
+      },
+      {
+        id: "created_at",
+        accessorKey: "created_at",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.created")}
+          />
+        ),
+        cell: ({ row }) => formatDate(row.original.created_at ?? ""),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => {
+                setEditTarget(row.original)
+                setFormOpen(true)
+              }}
+              title={t("common.action.edit")}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              onClick={() => setDeleteTarget(row.original)}
+              title={t("common.action.delete")}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [t]
+  )
+
+  /**
+   * Server-driven list controller: URL page/perPage + `code`→q filter <->
+   * TanStack Query cache, cancellation, dedupe and previous-page placeholder
+   * handled by @workspace/list-page. The page owns columns, dialogs and the
+   * delete action only.
+   */
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<JobTitle>({
+    ...jobTitlesListDefinition,
+    columns,
+    queryFn: async (query) =>
+      hrmApi.listJobTitlesPaged({
+        page: query.page,
+        perPage: query.perPage,
+        q: query.q === undefined ? undefined : String(query.q),
+        sort: query.sort,
+        order: query.order,
+      }),
   })
-
-  const load = useCallback(async () => {
-    try {
-      const result = await hrmApi.listJobTitles()
-      setItems(result)
-    } catch {
-      notify.error("Khong the tai danh sach chuc danh")
-    }
-  }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
 
   const openCreate = () => {
-    setEditing(null)
-    form.reset(jobTitleDefaults)
-    setDialogOpen(true)
+    setEditTarget(null)
+    setFormOpen(true)
   }
 
-  const openEdit = (item: JobTitle) => {
-    setEditing(item)
-    form.reset({
-      code: item.code,
-      name: item.name,
-      description: item.description ?? "",
-    })
-    setDialogOpen(true)
-  }
-
-  const submit = form.handleSubmit(async (values) => {
-    const payload = {
-      code: values.code.trim(),
-      name: values.name.trim(),
-      description: values.description?.trim() || undefined,
-    }
-    setSubmitting(true)
-    try {
-      if (editing) {
-        await hrmApi.updateJobTitle(editing.id, payload)
-        notify.success("Da cap nhat chuc danh")
-      } else {
-        await hrmApi.createJobTitle(payload)
-        notify.saveSuccess()
+  const handleDelete = useCallback(
+    async (target: JobTitle) => {
+      setDeleting(true)
+      try {
+        await hrmApi.deleteJobTitle(target.id)
+        notify.success(t("hrm.job_titles.delete_success"))
+        setDeleteTarget(null)
+        await refetch()
+      } catch (err) {
+        notify.error(t("hrm.job_titles.delete_failed"), translateApiError(err))
+      } finally {
+        setDeleting(false)
       }
-      setDialogOpen(false)
-      form.reset(jobTitleDefaults)
-      await load()
-    } catch (reason) {
-      notify.saveFailed(reason)
-    } finally {
-      setSubmitting(false)
-    }
-  })
+    },
+    [refetch, t]
+  )
 
   return (
-    <section className="space-y-4 p-4">
-      <PageTitle title="Chuc danh" count={items.length} onCreate={openCreate} />
-      <DataTable
-        columns={["Ma chuc danh", "Ten chuc danh", "Mo ta"]}
-        empty="Chua co chuc danh."
-      >
-        {items.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell className="font-mono text-xs">{item.code}</TableCell>
-            <TableCell className="font-medium">{item.name}</TableCell>
-            <TableCell className="text-muted-foreground">
-              {item.description || "-"}
-            </TableCell>
-            <RowActions
-              onEdit={() => openEdit(item)}
-              onDelete={() => setDeleteTarget(item)}
-            />
-          </TableRow>
-        ))}
-      </DataTable>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editing ? "Sua chuc danh" : "Them chuc danh"}
-            </DialogTitle>
-            <DialogDescription>
-              Ma va ten chuc danh la bat buoc.
-            </DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={submit}>
-            <FormField
-              label="Ma chuc danh (*)"
-              error={form.formState.errors.code?.message}
-            >
-              <Input {...form.register("code")} placeholder="KETO" />
-            </FormField>
-            <FormField
-              label="Ten chuc danh (*)"
-              error={form.formState.errors.name?.message}
-            >
-              <Input {...form.register("name")} placeholder="Ke toan" />
-            </FormField>
-            <FormField label="Mo ta">
-              <Textarea {...form.register("description")} />
-            </FormField>
-            <DialogActions
-              pending={form.formState.isSubmitting || submitting}
-            />
-          </form>
-        </DialogContent>
-      </Dialog>
-      <DeleteDialog
-        title="Xoa chuc danh"
-        open={Boolean(deleteTarget)}
-        pending={deleting}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        onConfirm={async () => {
-          if (!deleteTarget) return
-          setDeleting(true)
-          try {
-            await hrmApi.deleteJobTitle(deleteTarget.id)
-            notify.deleteSuccess()
-            setDeleteTarget(null)
-            await load()
-          } catch (reason) {
-            notify.deleteFailed(reason)
-          } finally {
-            setDeleting(false)
-          }
-        }}
-      />
-    </section>
+    <ListPageShell
+      title={t("hrm.job_titles.title")}
+      totalRows={total}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("hrm.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      loadErrorTitle={t("hrm.job_titles.load_failed")}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={openCreate}
+          createLabel={t("hrm.job_titles.create")}
+          exportFilename={t("hrm.job_titles.title")}
+          sheetName={t("hrm.job_titles.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <>
+          <JobTitleFormDialog
+            open={formOpen}
+            onOpenChange={setFormOpen}
+            jobTitle={editTarget}
+            onSaved={() => void refetch()}
+          />
+          <AlertDialog
+            open={deleteTarget !== null}
+            onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t("common.confirm.delete_title")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("common.confirm.delete_description", {
+                    item: deleteTarget?.code || deleteTarget?.name || "",
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>
+                  {t("common.action.cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleting}
+                  onClick={() => deleteTarget && handleDelete(deleteTarget)}
+                >
+                  {t("common.action.delete")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      }
+    />
   )
 }

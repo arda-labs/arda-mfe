@@ -105,6 +105,7 @@
       "name": "capital",
       "version": "0.0.1",
       "dependencies": {
+        "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
@@ -118,8 +119,10 @@
         "lucide-react": "^1.22.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
+        "react-hook-form": "^7.80.0",
         "react-router-dom": "^7.18.1",
         "react-toastify": "^11.1.0",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@eslint/js": "^10",
@@ -180,6 +183,7 @@
       "name": "deposit",
       "version": "0.0.1",
       "dependencies": {
+        "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
@@ -193,8 +197,10 @@
         "lucide-react": "^1.22.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
+        "react-hook-form": "^7.80.0",
         "react-router-dom": "^7.18.1",
         "react-toastify": "^11.1.0",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@eslint/js": "^10",
@@ -256,10 +262,13 @@
       "version": "0.0.1",
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
+        "@tanstack/react-query": "^5.90.0",
+        "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/media": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/query": "workspace:*",
@@ -489,6 +498,8 @@
       "name": "statistical",
       "version": "0.0.1",
       "dependencies": {
+        "@hookform/resolvers": "^5.4.0",
+        "@tanstack/react-query": "^5.90.0",
         "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
@@ -502,8 +513,10 @@
         "lucide-react": "^1.22.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
+        "react-hook-form": "^7.80.0",
         "react-router-dom": "^7.18.1",
         "react-toastify": "^11.1.0",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@eslint/js": "^10",
@@ -526,6 +539,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
+        "@tanstack/react-query": "^5.90.0",
         "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",

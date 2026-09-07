@@ -3,5 +3,147 @@
     "set_status": "Set status",
     "settings": "Account settings",
     "help_support": "Help & Support"
+  },
+  "hrm": {
+    "count": "{count, plural, one {# record} other {# records}}",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "common": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "employees": {
+      "title": "Employees",
+      "create": "New employee",
+      "create_title": "New employee",
+      "edit_title": "Edit employee",
+      "form_description": "Employee code and full name are required.",
+      "create_success": "Employee created",
+      "update_success": "Employee updated",
+      "save_failed": "Failed to save employee",
+      "delete_success": "Employee deleted",
+      "delete_failed": "Failed to delete employee",
+      "load_failed": "Failed to load employees",
+      "search_placeholder": "Search employee code or name",
+      "field": {
+        "employee_code": "Employee code",
+        "full_name": "Full name",
+        "department": "Department",
+        "position": "Position",
+        "job_title": "Job title",
+        "status": "Status"
+      },
+      "select": {
+        "department": "Select department",
+        "position": "Select position",
+        "job_title": "Select job title"
+      },
+      "validation": {
+        "code_required": "Employee code is required",
+        "code_too_long": "Employee code is too long",
+        "name_required": "Full name is required",
+        "name_too_long": "Full name is too long"
+      }
+    },
+    "job_titles": {
+      "title": "Job titles",
+      "create": "New job title",
+      "create_title": "New job title",
+      "edit_title": "Edit job title",
+      "form_description": "Job title code and name are required.",
+      "create_success": "Job title created",
+      "update_success": "Job title updated",
+      "save_failed": "Failed to save job title",
+      "delete_success": "Job title deleted",
+      "delete_failed": "Failed to delete job title",
+      "load_failed": "Failed to load job titles",
+      "search_placeholder": "Search code or name",
+      "field": {
+        "code": "Code",
+        "name": "Name",
+        "description": "Description"
+      },
+      "placeholder": {
+        "name": "Accountant"
+      },
+      "validation": {
+        "code_required": "Code is required",
+        "code_too_long": "Code is too long",
+        "name_required": "Name is required",
+        "name_too_long": "Name is too long",
+        "description_too_long": "Description is too long"
+      }
+    },
+    "positions": {
+      "title": "Positions",
+      "create": "New position",
+      "create_title": "New position",
+      "edit_title": "Edit position",
+      "form_description": "Position code and name are required.",
+      "create_success": "Position created",
+      "update_success": "Position updated",
+      "save_failed": "Failed to save position",
+      "delete_success": "Position deleted",
+      "delete_failed": "Failed to delete position",
+      "load_failed": "Failed to load positions",
+      "search_placeholder": "Search code or name",
+      "field": {
+        "code": "Code",
+        "name": "Name",
+        "status": "Status",
+        "is_manager": "Managerial level",
+        "description": "Description"
+      },
+      "placeholder": {
+        "name": "Director"
+      },
+      "validation": {
+        "code_required": "Code is required",
+        "code_too_long": "Code is too long",
+        "name_required": "Name is required",
+        "name_too_long": "Name is too long",
+        "description_too_long": "Description is too long"
+      }
+    },
+    "org_units": {
+      "title": "Organization units",
+      "create": "New org unit",
+      "create_title": "New org unit",
+      "edit_title": "Edit org unit",
+      "form_description": "Org unit code is taken from platform.organizations.",
+      "create_success": "Org unit created",
+      "update_success": "Org unit updated",
+      "save_failed": "Failed to save org unit",
+      "delete_success": "Org unit deleted",
+      "delete_failed": "Failed to delete org unit",
+      "load_failed": "Failed to load org units",
+      "search_placeholder": "Search code or name",
+      "field": {
+        "code": "Code",
+        "organization": "Organization",
+        "name": "Name",
+        "org_level": "Org level",
+        "parent": "Parent unit",
+        "department_type": "Type",
+        "status": "Status",
+        "description": "Description"
+      },
+      "select": {
+        "organization": "Select organization",
+        "no_parent": "No parent"
+      },
+      "validation": {
+        "code_required": "Code is required",
+        "code_too_long": "Code is too long",
+        "organization_required": "Organization is required",
+        "name_required": "Name is required",
+        "name_too_long": "Name is too long",
+        "org_level_required": "Org level is required",
+        "department_type_required": "Department type is required",
+        "description_too_long": "Description is too long"
+      }
+    }
   }
 }

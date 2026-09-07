@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -42,6 +43,7 @@ export function OpenSavingsDialog({
   onOpenChange: (open: boolean) => void
   onSaved: () => Promise<void> | void
 }) {
+  const { t } = useI18n()
   const [form, setForm] = useState<Form>(() => ({
     ...emptyForm,
     open_date: todayISO(),
@@ -52,7 +54,7 @@ export function OpenSavingsDialog({
   useEffect(() => {
     if (!open) return
     void depositApi
-      .listProducts()
+      .listProducts({ is_active: "true" })
       .then((result) => setProducts(result.items))
       .catch(() => setProducts([]))
   }, [open])
@@ -60,7 +62,7 @@ export function OpenSavingsDialog({
   const submit = async () => {
     const amountMinor = toMinor(Number(form.amount) || 0, form.currency_code)
     if (!form.savings_code || !form.customer_code || !form.product_code || amountMinor <= 0) {
-      notify.error("Nhập đủ mã sổ, khách hàng, sản phẩm và số tiền dương")
+      notify.error(t("deposit.savings.validation.required"))
       return
     }
     setSavePending(true)
@@ -73,12 +75,12 @@ export function OpenSavingsDialog({
         principal_minor: amountMinor,
         currency_code: form.currency_code,
       })
-      notify.success("Đã mở sổ")
+      notify.success(t("deposit.savings.open_success"))
       onOpenChange(false)
       setForm({ ...emptyForm, open_date: todayISO() })
       await onSaved()
     } catch {
-      notify.error("Không thể mở sổ")
+      notify.error(t("deposit.savings.open_failed"))
     } finally {
       setSavePending(false)
     }
@@ -88,23 +90,23 @@ export function OpenSavingsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Mở sổ tiết kiệm</DialogTitle>
+          <DialogTitle>{t("deposit.savings.open_title")}</DialogTitle>
           <DialogDescription>
-            Chọn sản phẩm (kỳ hạn + lãi suất), nhập số tiền gửi ban đầu.
+            {t("deposit.savings.open_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Mã sổ</Label>
+              <Label>{t("deposit.savings.field.savings_code")}</Label>
               <Input
                 value={form.savings_code}
                 onChange={(e) => setForm((c) => ({ ...c, savings_code: e.target.value }))}
-                placeholder="VD: SV-2026-001"
+                placeholder="SV-2026-001"
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Khách hàng</Label>
+              <Label>{t("deposit.savings.field.customer")}</Label>
               <Input
                 value={form.customer_code}
                 onChange={(e) => setForm((c) => ({ ...c, customer_code: e.target.value }))}
@@ -112,23 +114,23 @@ export function OpenSavingsDialog({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Sản phẩm</Label>
+            <Label>{t("deposit.savings.field.product")}</Label>
             <select
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={form.product_code}
               onChange={(e) => setForm((c) => ({ ...c, product_code: e.target.value }))}
             >
-              <option value="">— chọn —</option>
+              <option value="">{t("deposit.placeholder.select")}</option>
               {products.map((p) => (
                 <option key={p.id} value={p.code}>
-                  {p.code} — {p.name} ({p.term_months} tháng, {p.interest_rate}%)
+                  {p.code} — {p.name} ({p.term_months} {t("deposit.products.months_short")}, {p.interest_rate}%)
                 </option>
               ))}
             </select>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label>Số tiền</Label>
+              <Label>{t("deposit.savings.field.amount")}</Label>
               <Input
                 inputMode="decimal"
                 value={form.amount}
@@ -136,7 +138,7 @@ export function OpenSavingsDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Loại tiền</Label>
+              <Label>{t("common.field.currency")}</Label>
               <Input
                 value={form.currency_code}
                 maxLength={3}
@@ -144,7 +146,7 @@ export function OpenSavingsDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Ngày mở</Label>
+              <Label>{t("deposit.savings.field.open_date")}</Label>
               <Input
                 type="date"
                 value={form.open_date}
@@ -155,10 +157,10 @@ export function OpenSavingsDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Hủy
+            {t("common.action.cancel")}
           </Button>
           <Button onClick={() => void submit()} disabled={savePending}>
-            Mở sổ
+            {t("deposit.savings.open")}
           </Button>
         </DialogFooter>
       </DialogContent>

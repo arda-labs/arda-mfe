@@ -1,65 +1,91 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { notify } from "@workspace/ui/feedback/notify"
+import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { PageHeader } from "@workspace/ui/components/page-header"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
 import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
-import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { formatDateShort, formatAmount, formatRatePercent, fromMinor } from "@workspace/format"
 import { depositApi, type InterbankDeposit } from "../api"
 
 const DEFAULT_PAGE_SIZE = 10
 
-/** Interbank deposits (IBM): contracts with TCTD đối tác. */
+/**
+ * Interbank deposits (IBM): contracts with partner credit institutions.
+ * Client tier — contract volume is expected to stay well under the 500-row
+ * threshold (BE caps the unpaged list at 200 rows).
+ */
 export function InterbankPage(_props: { pathname: string }) {
+  const { t } = useI18n()
   const [items, setItems] = useState<InterbankDeposit[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
     try {
       const result = await depositApi.listInterbank()
       setItems(result.items)
-    } catch {
-      notify.error("Không thể tải tiền gửi liên ngân hàng")
+    } catch (reason) {
+      setLoadError(reason)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [])
 
   useEffect(() => {
-    void load()
+    void load(true)
   }, [load])
 
   const columns = useMemo<ColumnDef<InterbankDeposit>[]>(
     () => [
       {
+        id: "deposit_code",
         accessorKey: "deposit_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Mã HĐ" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.interbank.field.deposit_code")}
+          />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta("Mã HĐ", "Tìm…"),
+        meta: textSearchMeta(
+          t("deposit.interbank.field.deposit_code"),
+          t("deposit.placeholder.search")
+        ),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.deposit_code}</span>
         ),
       },
       {
+        id: "counterparty_code",
         accessorKey: "counterparty_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Đối tác" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.interbank.field.counterparty")}
+          />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta("Đối tác", "Tìm…"),
+        meta: textSearchMeta(
+          t("deposit.interbank.field.counterparty"),
+          t("deposit.placeholder.search")
+        ),
       },
       {
+        id: "principal_minor",
         accessorKey: "principal_minor",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Số tiền gửi" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.interbank.field.principal")}
+          />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums font-medium">
@@ -68,35 +94,53 @@ export function InterbankPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "interest_rate",
         accessorKey: "interest_rate",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Lãi suất" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.interbank.field.interest_rate")}
+          />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatRatePercent(row.original.interest_rate)}</span>
         ),
       },
       {
+        id: "deposit_date",
         accessorKey: "deposit_date",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Ngày gửi" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.interbank.field.deposit_date")}
+          />
         ),
         cell: ({ row }) => (
           <span className="whitespace-nowrap">{formatDateShort(row.original.deposit_date)}</span>
         ),
       },
       {
+        id: "maturity_date",
         accessorKey: "maturity_date",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Đáo hạn" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.interbank.field.maturity_date")}
+          />
         ),
         cell: ({ row }) => (
           <span className="whitespace-nowrap">{formatDateShort(row.original.maturity_date)}</span>
         ),
       },
       {
+        id: "status",
         accessorKey: "status",
-        header: "TT",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
         cell: ({ row }) => (
           <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
             {row.original.status}
@@ -104,7 +148,7 @@ export function InterbankPage(_props: { pathname: string }) {
         ),
       },
     ],
-    []
+    [t]
   )
 
   const { table, total } = useClientListTable({
@@ -117,27 +161,35 @@ export function InterbankPage(_props: { pathname: string }) {
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
         deposit_code: (a, b) => a.deposit_code.localeCompare(b.deposit_code),
+        counterparty_code: (a, b) => a.counterparty_code.localeCompare(b.counterparty_code),
         deposit_date: (a, b) => a.deposit_date.localeCompare(b.deposit_date),
+        maturity_date: (a, b) => a.maturity_date.localeCompare(b.maturity_date),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-      <PageHeader
-        title="Tiền gửi liên ngân hàng"
-        description="Hợp đồng gửi/nhận vốn tại các tổ chức tín dụng khác."
-      />
-
-      <div className="relative min-h-0 flex-1">
-        {loading ? (
-          <DataTableSkeleton columnCount={7} rowCount={6} />
-        ) : (
-          <DataTable table={table} totalRows={total} className="min-h-0 flex-1">
-            <ListTableToolbar table={table} />
-          </DataTable>
-        )}
-      </div>
-    </section>
+    <ListPageShell
+      title={t("deposit.interbank.title")}
+      totalRows={total}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("deposit.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={() => void load(true)}
+      fetching={refreshing}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          exportFilename={t("deposit.interbank.title")}
+          sheetName={t("deposit.interbank.title")}
+          totalRowsCount={total}
+        />
+      }
+    />
   )
 }

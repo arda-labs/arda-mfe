@@ -1,59 +1,36 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n, translateApiError } from "@workspace/i18n"
-import { notify } from "@workspace/ui/feedback/notify"
+import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { PageHeader } from "@workspace/ui/components/page-header"
 import {
   activeStatusMeta,
-  matchBooleanActiveFilter,
-  matchTextColumnFilter,
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { Edit2, Plus } from "lucide-react"
+import { Edit2 } from "lucide-react"
 import { formatMoney, formatRatePercent, fromMinor } from "@workspace/format"
 import { productApi, type LoanProduct } from "../api"
+import { productsListDefinition } from "./list-query"
 import { ProductDialog } from "./components/ProductDialog"
 
-const DEFAULT_PAGE_SIZE = 10
-
+/**
+ * Credit product catalog — server tier: page/perPage/sort/is_active are
+ * URL-synced, the toolbar search `q` filters code+name in SQL (BE
+ * productListSpec whitelist). Sortable column ids equal the BE whitelist.
+ */
 export function ProductsPage(_props: { pathname: string }) {
   const { t } = useI18n()
-  const [products, setProducts] = useState<LoanProduct[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<LoanProduct | null>(null)
-
-  const loadProducts = useCallback(async () => {
-    setLoading(true)
-    try {
-      const result = await productApi.listProducts()
-      setProducts(result.items)
-    } catch (error) {
-      notify.error(translateApiError(error, t("loan.loan_products.load_failed")))
-    } finally {
-      setLoading(false)
-    }
-  }, [t])
-
-  useEffect(() => {
-    void loadProducts()
-  }, [loadProducts])
-
-  const openCreate = () => {
-    setEditing(null)
-    setDialogOpen(true)
-  }
 
   const columns = useMemo<ColumnDef<LoanProduct>[]>(
     () => [
       {
+        id: "code",
         accessorKey: "code",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.loan_products.field.code")} />
@@ -65,15 +42,15 @@ export function ProductsPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "name",
         accessorKey: "name",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.loan_products.field.name")} />
         ),
-        enableColumnFilter: true,
-        meta: textSearchMeta(t("loan.loan_products.field.name"), t("loan.placeholder.search")),
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
+        id: "interest_rate",
         accessorKey: "interest_rate",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.loan_products.field.rate")} />
@@ -83,7 +60,8 @@ export function ProductsPage(_props: { pathname: string }) {
         ),
       },
       {
-        accessorKey: "max_amount",
+        id: "max_amount_minor",
+        accessorKey: "max_amount_minor",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.loan_products.field.max_amount")} />
         ),
@@ -92,6 +70,7 @@ export function ProductsPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "acc_classification",
         accessorKey: "acc_classification",
         header: ({ column }) => (
           <DataTableColumnHeader
@@ -121,80 +100,85 @@ export function ProductsPage(_props: { pathname: string }) {
       },
       {
         id: "actions",
-        header: t("loan.field.actions"),
+        header: () => <div className="text-right">{t("loan.field.actions")}</div>,
         enableSorting: false,
+        enableHiding: false,
         cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            onClick={() => {
-              setEditing(row.original)
-              setDialogOpen(true)
-            }}
-          >
-            <Edit2 className="size-3.5" />
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => {
+                setEditing(row.original)
+                setDialogOpen(true)
+              }}
+              title={t("loan.loan_products.edit")}
+            >
+              <Edit2 className="size-3.5" />
+            </Button>
+          </div>
         ),
       },
     ],
     [t]
   )
 
-  const { table, total } = useClientListTable({
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<LoanProduct>({
+    ...productsListDefinition,
     columns,
-    items: products,
-    filterBy: {
-      code: (item, value) => matchTextColumnFilter(value, item.code),
-      name: (item, value) => matchTextColumnFilter(value, item.name),
-      is_active: (item, value) => matchBooleanActiveFilter(item, value),
-    },
-    sort: (rows, sortState) =>
-      sortByColumn(rows, sortState, {
-        code: (a, b) => a.code.localeCompare(b.code),
-        name: (a, b) => a.name.localeCompare(b.name),
+    queryFn: async (q) =>
+      productApi.listProducts({
+        q: q.q === undefined ? undefined : String(q.q),
+        is_active: q.is_active === undefined ? undefined : String(q.is_active),
+        page: q.page,
+        per_page: q.perPage,
+        sort: q.sort,
+        order: q.order,
       }),
-    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-      <PageHeader
-        title={t("loan.loan_products.title")}
-        description={t("loan.loan_products.description")}
-        actions={
-          <Button
-            onClick={() => {
-              setEditing(null)
-              setDialogOpen(true)
-            }}
-          >
-            <Plus className="size-4" />
-            {t("loan.loan_products.create")}
-          </Button>
-        }
-      />
-
-      <div className="relative min-h-0 flex-1">
-        {loading ? (
-          <DataTableSkeleton columnCount={7} rowCount={6} />
-        ) : (
-          <DataTable table={table} totalRows={total} className="min-h-0 flex-1">
-            <ListTableToolbar
-              table={table}
-              onCreate={openCreate}
-              createLabel={t("loan.loan_products.create")}
-            />
-          </DataTable>
-        )}
-      </div>
-
-      <ProductDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        editing={editing}
-        onSaved={loadProducts}
-      />
-    </section>
+    <ListPageShell
+      title={t("loan.loan_products.title")}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("loan.count_badge", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      fetching={isFetching}
+      table={table}
+      header={<p className="text-sm text-muted-foreground">{t("loan.loan_products.description")}</p>}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
+          createLabel={t("loan.loan_products.create")}
+        />
+      }
+      dialogs={
+        <ProductDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          editing={editing}
+          onSaved={async () => {
+            await refetch()
+          }}
+        />
+      }
+    />
   )
 }

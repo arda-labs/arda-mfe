@@ -132,6 +132,9 @@ const KNOWN_NAMESPACES = new Set([
   "account",
   "loan",
   "mdm",
+  "statistical",
+  "deposit",
+  "capital",
 ])
 
 function translate(

@@ -1,261 +1,339 @@
-import { useCallback, useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { translateApiError } from "@workspace/i18n"
+import { useCallback, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
+import {
+  Status,
+  StatusIndicator,
+  StatusLabel,
+} from "@workspace/ui/components/status"
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import {
+  textSearchMeta,
+  multiSelectFilterMeta,
+} from "@workspace/list-page/column-filters"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
+import { useQuery } from "@tanstack/react-query"
+import { Pencil, Trash2 } from "lucide-react"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import { FormField } from "@workspace/ui/components/form-field"
-import { Input } from "@workspace/ui/components/input"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { TableCell, TableRow } from "@workspace/ui/components/table"
-import { hrmApi, type OrgUnit, type PlatformOrganization } from "../api"
-import {
-  fieldClass,
-  orgUnitDefaults,
-  orgUnitSchema,
-  type OrgUnitValues,
-} from "../shared/schemas"
-import {
-  DataTable,
-  DeleteDialog,
-  DialogActions,
-  PageTitle,
-  RowActions,
-  StatusBadge,
-} from "../shared/ui"
+  hrmApi,
+  type OrgUnit,
+  type PlatformOrganization,
+} from "../api"
+import { orgUnitsListDefinition } from "./list-query"
+import { OrgUnitFormDialog } from "./components/OrgUnitFormDialog"
 
 export function OrgUnitsPage() {
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<OrgUnit | null>(null)
+  const { t } = useI18n()
+  const [formOpen, setFormOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<OrgUnit | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<OrgUnit | null>(null)
-  const [items, setItems] = useState<OrgUnit[]>([])
-  const [orgs, setOrgs] = useState<PlatformOrganization[]>([])
-  const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const form = useForm<OrgUnitValues>({
-    resolver: zodResolver(orgUnitSchema),
-    defaultValues: orgUnitDefaults,
+
+  /**
+   * Client lookups (kept as-is per catalog standard): platform organizations
+   * for the organization column/dialog and the full org-unit list for parent
+   * names + parent selector — both are small, near-static catalogs.
+   */
+  const organizations = useQuery({
+    queryKey: ["platform", "organizations", "lookup"],
+    queryFn: () => hrmApi.listOrganizations(),
+    staleTime: 60_000,
+  })
+  const orgUnitsLookup = useQuery({
+    queryKey: ["hrm", "org-units", "lookup"],
+    queryFn: () => hrmApi.listOrgUnits(),
+    staleTime: 60_000,
   })
 
-  const load = useCallback(async () => {
-    try {
-      const [units, organizations] = await Promise.all([
-        hrmApi.listOrgUnits(),
-        hrmApi.listOrganizations(),
-      ])
-      setItems(units)
-      setOrgs(organizations.items)
-    } catch {
-      notify.error("Khong the tai danh sach phong ban")
-    }
-  }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
+  const orgs: PlatformOrganization[] = organizations.data?.items ?? []
 
   const orgName = (id: string) => {
     const org = orgs.find((item) => item.id === id)
     return org ? `${org.code} - ${org.name}` : id
   }
   const parentName = (id?: string) =>
-    items.find((item) => item.id === id)?.name ?? "-"
+    id
+      ? ((orgUnitsLookup.data ?? []).find((item) => item.id === id)?.name ?? id)
+      : ""
 
-  const openCreate = () => {
-    setEditing(null)
-    form.reset(orgUnitDefaults)
-    setDialogOpen(true)
-  }
+  const columns = useMemo<ColumnDef<OrgUnit>[]>(
+    () => [
+      {
+        id: "code",
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.org_units.field.code")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("hrm.org_units.field.code"),
+          t("hrm.org_units.search_placeholder")
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">{row.original.code}</span>
+        ),
+      },
+      {
+        id: "name",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.org_units.field.name")}
+          />
+        ),
+      },
+      {
+        id: "organization",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.org_units.field.organization")}
+          />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {orgName(row.original.organization_id)}
+          </span>
+        ),
+      },
+      {
+        id: "org_level",
+        accessorKey: "org_level",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.org_units.field.org_level")}
+          />
+        ),
+      },
+      {
+        id: "parent",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.org_units.field.parent")}
+          />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {parentName(row.original.parent_id ?? undefined) || "-"}
+          </span>
+        ),
+      },
+      {
+        id: "department_type",
+        accessorKey: "department_type",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.org_units.field.department_type")}
+          />
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("hrm.org_units.field.status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: multiSelectFilterMeta(t("hrm.org_units.field.status"), [
+          { label: t("hrm.status.active"), value: "active" },
+          { label: t("hrm.status.inactive"), value: "inactive" },
+        ]),
+        cell: ({ row }) => (
+          <Status
+            variant={row.original.status === "active" ? "success" : "default"}
+          >
+            <StatusIndicator />
+            <StatusLabel>
+              {row.original.status === "active"
+                ? t("hrm.status.active")
+                : t("hrm.status.inactive")}
+            </StatusLabel>
+          </Status>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => {
+                setEditTarget(row.original)
+                setFormOpen(true)
+              }}
+              title={t("common.action.edit")}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              onClick={() => setDeleteTarget(row.original)}
+              title={t("common.action.delete")}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [orgUnitsLookup.data, orgs, t]
+  )
 
-  const openEdit = (item: OrgUnit) => {
-    setEditing(item)
-    form.reset({
-      code: item.code,
-      organization_id: item.organization_id,
-      name: item.name,
-      org_level: item.org_level,
-      parent_id: item.parent_id ?? "",
-      department_type: item.department_type,
-      status: item.status,
-      description: item.description ?? "",
-    })
-    setDialogOpen(true)
-  }
-
-  const submit = form.handleSubmit(async (values) => {
-    const payload = {
-      ...values,
-      code: values.code.trim(),
-      name: values.name.trim(),
-      parent_id: values.parent_id || undefined,
-      description: values.description?.trim() || undefined,
-    }
-    setSubmitting(true)
-    try {
-      if (editing) {
-        await hrmApi.updateOrgUnit(editing.id, payload)
-        notify.success("Da cap nhat phong ban")
-      } else {
-        await hrmApi.createOrgUnit(payload)
-        notify.success("Da luu phong ban")
-      }
-      setDialogOpen(false)
-      form.reset(orgUnitDefaults)
-      await load()
-    } catch (reason) {
-      notify.error("Luu phong ban that bai", translateApiError(reason))
-    } finally {
-      setSubmitting(false)
-    }
+  /**
+   * Server-driven list controller: URL page/perPage + `code`→q + `status`
+   * filters <-> TanStack Query cache, cancellation, dedupe and previous-page
+   * placeholder handled by @workspace/list-page. The page owns columns,
+   * dialogs and the delete action only.
+   */
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<OrgUnit>({
+    ...orgUnitsListDefinition,
+    columns,
+    queryFn: async (query) =>
+      hrmApi.listOrgUnitsPaged({
+        page: query.page,
+        perPage: query.perPage,
+        q: query.q === undefined ? undefined : String(query.q),
+        status:
+          query.status === undefined ? undefined : String(query.status),
+        sort: query.sort,
+        order: query.order,
+      }),
   })
 
+  const openCreate = () => {
+    setEditTarget(null)
+    setFormOpen(true)
+  }
+
+  const handleDelete = useCallback(
+    async (target: OrgUnit) => {
+      setDeleting(true)
+      try {
+        await hrmApi.deleteOrgUnit(target.id)
+        notify.success(t("hrm.org_units.delete_success"))
+        setDeleteTarget(null)
+        await refetch()
+      } catch (err) {
+        notify.error(t("hrm.org_units.delete_failed"), translateApiError(err))
+      } finally {
+        setDeleting(false)
+      }
+    },
+    [refetch, t]
+  )
+
   return (
-    <section className="space-y-4 p-4">
-      <PageTitle
-        title="Co cau to chuc"
-        count={items.length}
-        onCreate={openCreate}
-      />
-      <DataTable
-        columns={[
-          "Ma phong ban",
-          "Ten phong ban",
-          "Don vi",
-          "Cap",
-          "Cap cha",
-          "Loai",
-          "Trang thai",
-        ]}
-        empty="Chua co phong ban."
-      >
-        {items.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell className="font-mono text-xs">{item.code}</TableCell>
-            <TableCell className="font-medium">{item.name}</TableCell>
-            <TableCell>{orgName(item.organization_id)}</TableCell>
-            <TableCell>{item.org_level}</TableCell>
-            <TableCell>{parentName(item.parent_id)}</TableCell>
-            <TableCell>{item.department_type}</TableCell>
-            <TableCell>
-              <StatusBadge status={item.status} />
-            </TableCell>
-            <RowActions
-              onEdit={() => openEdit(item)}
-              onDelete={() => setDeleteTarget(item)}
-            />
-          </TableRow>
-        ))}
-      </DataTable>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editing ? "Sua phong ban" : "Them phong ban"}
-            </DialogTitle>
-            <DialogDescription>
-              Ma don vi lay tu platform.organizations.
-            </DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={submit}>
-            <FormField
-              label="Ma phong ban (*)"
-              error={form.formState.errors.code?.message}
-            >
-              <Input {...form.register("code")} />
-            </FormField>
-            <FormField
-              label="Ma don vi (*)"
-              error={form.formState.errors.organization_id?.message}
-            >
-              <select
-                className={fieldClass}
-                {...form.register("organization_id")}
-              >
-                <option value="">Chon don vi</option>
-                {orgs.map((org) => (
-                  <option key={org.id} value={org.id}>
-                    {org.code} - {org.name}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField
-              label="Ten phong ban (*)"
-              error={form.formState.errors.name?.message}
-            >
-              <Input {...form.register("name")} />
-            </FormField>
-            <FormField
-              label="Cap to chuc (*)"
-              error={form.formState.errors.org_level?.message}
-            >
-              <Input
-                {...form.register("org_level")}
-                placeholder="HOI_SO, PHONG, TO"
-              />
-            </FormField>
-            <FormField label="Ma cap cha">
-              <select className={fieldClass} {...form.register("parent_id")}>
-                <option value="">Khong co</option>
-                {items
-                  .filter((item) => item.id !== editing?.id)
-                  .map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.code} - {item.name}
-                    </option>
-                  ))}
-              </select>
-            </FormField>
-            <FormField
-              label="Loai phong ban (*)"
-              error={form.formState.errors.department_type?.message}
-            >
-              <Input
-                {...form.register("department_type")}
-                placeholder="PHONG_BAN"
-              />
-            </FormField>
-            <FormField label="Trang thai (*)">
-              <select className={fieldClass} {...form.register("status")}>
-                <option value="active">Hieu luc</option>
-                <option value="inactive">Khong hieu luc</option>
-              </select>
-            </FormField>
-            <FormField label="Mo ta">
-              <Textarea {...form.register("description")} />
-            </FormField>
-            <DialogActions
-              pending={form.formState.isSubmitting || submitting}
-            />
-          </form>
-        </DialogContent>
-      </Dialog>
-      <DeleteDialog
-        title="Xoa phong ban"
-        open={Boolean(deleteTarget)}
-        pending={deleting}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        onConfirm={async () => {
-          if (!deleteTarget) return
-          setDeleting(true)
-          try {
-            await hrmApi.deleteOrgUnit(deleteTarget.id)
-            notify.success("Da xoa phong ban")
-            setDeleteTarget(null)
-            await load()
-          } catch (reason) {
-            notify.error("Xoa phong ban that bai", translateApiError(reason))
-          } finally {
-            setDeleting(false)
-          }
-        }}
-      />
-    </section>
+    <ListPageShell
+      title={t("hrm.org_units.title")}
+      totalRows={total}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("hrm.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      loadErrorTitle={t("hrm.org_units.load_failed")}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={openCreate}
+          createLabel={t("hrm.org_units.create")}
+          exportFilename={t("hrm.org_units.title")}
+          sheetName={t("hrm.org_units.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <>
+          <OrgUnitFormDialog
+            open={formOpen}
+            onOpenChange={setFormOpen}
+            orgUnit={editTarget}
+            organizations={orgs}
+            orgUnits={orgUnitsLookup.data ?? []}
+            onSaved={() => void refetch()}
+          />
+          <AlertDialog
+            open={deleteTarget !== null}
+            onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t("common.confirm.delete_title")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("common.confirm.delete_description", {
+                    item: deleteTarget?.code || deleteTarget?.name || "",
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>
+                  {t("common.action.cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleting}
+                  onClick={() => deleteTarget && handleDelete(deleteTarget)}
+                >
+                  {t("common.action.delete")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      }
+    />
   )
 }

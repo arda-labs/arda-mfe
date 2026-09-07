@@ -1,75 +1,73 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { notify } from "@workspace/ui/feedback/notify"
+import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
-import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { PageHeader } from "@workspace/ui/components/page-header"
-import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
-import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { textSearchMeta } from "@workspace/list-page/column-filters"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { formatDateShort, formatAmount, formatRatePercent, fromMinor } from "@workspace/format"
-import { Plus } from "lucide-react"
 import { capitalApi, type CapitalContract } from "../api"
+import { contractsListDefinition } from "./list-query"
 import { CreateContractDialog } from "./components/CreateContractDialog"
 
-const DEFAULT_PAGE_SIZE = 10
-
-/** Fund contracts (CFM): list + create. */
+/**
+ * Fund contracts (CFM): server tier, create-only — the BE exposes no
+ * update/delete endpoint for contracts, so rows carry no edit action.
+ */
 export function ContractsPage(_props: { pathname: string }) {
-  const [items, setItems] = useState<CapitalContract[]>([])
-  const [loading, setLoading] = useState(true)
+  const { t } = useI18n()
   const [createOpen, setCreateOpen] = useState(false)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const result = await capitalApi.listContracts()
-      setItems(result.items)
-    } catch {
-      notify.error("Không thể tải hợp đồng vốn")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
 
   const columns = useMemo<ColumnDef<CapitalContract>[]>(
     () => [
       {
+        id: "contract_code",
         accessorKey: "contract_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Mã HĐ" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("capital.contracts.field.contract_code")}
+          />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta("Mã HĐ", "Tìm…"),
+        meta: textSearchMeta(
+          t("capital.contracts.field.contract_code"),
+          t("capital.placeholder.search")
+        ),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">{row.original.contract_code}</span>
         ),
       },
       {
+        id: "fund_type_code",
         accessorKey: "fund_type_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Loại vốn" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("capital.contracts.field.fund_type")}
+          />
         ),
-        enableColumnFilter: true,
-        meta: textSearchMeta("Loại vốn", "Tìm…"),
       },
       {
+        id: "counterparty_code",
         accessorKey: "counterparty_code",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Đối tác" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("capital.contracts.field.counterparty")}
+          />
         ),
       },
       {
+        id: "amount_minor",
         accessorKey: "amount_minor",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Số vốn" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("capital.contracts.field.amount")}
+          />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums font-medium">
@@ -78,26 +76,55 @@ export function ContractsPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "interest_rate",
         accessorKey: "interest_rate",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Lãi suất" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("capital.contracts.field.interest_rate")}
+          />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums">{formatRatePercent(row.original.interest_rate)}</span>
         ),
       },
       {
+        id: "contract_date",
         accessorKey: "contract_date",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="Ngày HĐ" />
+          <DataTableColumnHeader
+            column={column}
+            label={t("capital.contracts.field.contract_date")}
+          />
         ),
         cell: ({ row }) => (
           <span className="whitespace-nowrap">{formatDateShort(row.original.contract_date)}</span>
         ),
       },
       {
+        id: "created_at",
+        accessorKey: "created_at",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.created")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap text-muted-foreground">
+            {formatDateShort(row.original.created_at)}
+          </span>
+        ),
+      },
+      {
+        id: "status",
         accessorKey: "status",
-        header: "TT",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
         cell: ({ row }) => (
           <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
             {row.original.status}
@@ -105,56 +132,60 @@ export function ContractsPage(_props: { pathname: string }) {
         ),
       },
     ],
-    []
+    [t]
   )
 
-  const { table, total } = useClientListTable({
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<CapitalContract>({
+    ...contractsListDefinition,
     columns,
-    items,
-    filterBy: {
-      contract_code: (item, value) => matchTextColumnFilter(value, item.contract_code),
-      fund_type_code: (item, value) => matchTextColumnFilter(value, item.fund_type_code),
-    },
-    sort: (rows, sortState) =>
-      sortByColumn(rows, sortState, {
-        contract_code: (a, b) => a.contract_code.localeCompare(b.contract_code),
-        contract_date: (a, b) => a.contract_date.localeCompare(b.contract_date),
+    queryFn: async (q) =>
+      capitalApi.listContracts({
+        page: q.page,
+        perPage: q.perPage,
+        q: q.q === undefined ? undefined : String(q.q),
+        sort: q.sort,
+        order: q.order,
       }),
-    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-      <PageHeader
-        title="Hợp đồng vốn"
-        description="Hình thành hợp đồng vốn, thu/giải ngân vốn — bút toán qua PostingService."
-        actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="size-4" />
-            Thêm hợp đồng
-          </Button>
-        }
-      />
-
-      <div className="relative min-h-0 flex-1">
-        {loading ? (
-          <DataTableSkeleton columnCount={7} rowCount={6} />
-        ) : (
-          <DataTable table={table} totalRows={total} className="min-h-0 flex-1">
-            <ListTableToolbar
-              table={table}
-              onCreate={() => setCreateOpen(true)}
-              createLabel="Thêm hợp đồng"
-            />
-          </DataTable>
-        )}
-      </div>
-
-      <CreateContractDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onSaved={load}
-      />
-    </section>
+    <ListPageShell
+      title={t("capital.contracts.title")}
+      totalRows={total}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("capital.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={loadError}
+      onRetry={() => void refetch()}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setCreateOpen(true)}
+          createLabel={t("capital.contracts.create")}
+          exportFilename={t("capital.contracts.title")}
+          sheetName={t("capital.contracts.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <CreateContractDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onSaved={() => void refetch()}
+        />
+      }
+    />
   )
 }

@@ -1,29 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { financeApi, type Account } from "@/features/finance/api"
-import { notify } from "@workspace/ui/feedback/notify"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import { FormField } from "@workspace/ui/components/form-field"
-import { Input } from "@workspace/ui/components/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import {
   Status,
   StatusIndicator,
@@ -31,46 +11,11 @@ import {
 } from "@workspace/ui/components/status"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import {
-  sortByColumn,
-  useClientListTable,
-} from "@workspace/list-page/client-list"
-import {
-  activeStatusMeta,
-  getSingleSelectValue,
-  matchTextColumnFilter,
-  textSearchMeta,
-} from "@workspace/list-page/column-filters"
-
-const accountFormSchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .min(1, "Code is required")
-    .max(64, "Code is too long"),
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required")
-    .max(255, "Name is too long"),
-  type: z.enum(["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"]),
-  normalBalance: z.enum(["DEBIT", "CREDIT"]),
-  currency: z
-    .string()
-    .trim()
-    .min(3, "Currency is required")
-    .max(3, "Use a 3-letter currency code"),
-})
-
-type AccountFormValues = z.infer<typeof accountFormSchema>
-
-const accountDefaultValues: AccountFormValues = {
-  code: "",
-  name: "",
-  type: "ASSET",
-  normalBalance: "DEBIT",
-  currency: "VND",
-}
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { textSearchMeta } from "@workspace/list-page/column-filters"
+import { useState } from "react"
+import { accountsListDefinition } from "./list-query"
+import { CreateAccountDialog } from "./components/CreateAccountDialog"
 
 const ACCOUNT_TYPE_COLORS: Record<string, string> = {
   ASSET: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -81,8 +26,6 @@ const ACCOUNT_TYPE_COLORS: Record<string, string> = {
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
   EXPENSE: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 }
-
-const DEFAULT_PAGE_SIZE = 20
 
 function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {
   const keys: Record<string, Parameters<typeof t>[0]> = {
@@ -96,43 +39,8 @@ function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {
 }
 
 export function AccountsPage() {
-  const { t } = useI18n()
-  const [accounts, setAccounts] = useState<Account[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<unknown>(null)
-  const [saving, setSaving] = useState(false)
-  const [open, setOpen] = useState(false)
-  const {
-    control,
-    formState: { errors, isSubmitting },
-    handleSubmit,
-    register,
-    reset,
-    setValue,
-  } = useForm<AccountFormValues>({
-    resolver: zodResolver(accountFormSchema),
-    defaultValues: accountDefaultValues,
-  })
-
-  const loadAccounts = useCallback(async (initial = false) => {
-    if (initial) setLoading(true)
-    else setRefreshing(true)
-    setLoadError(null)
-    try {
-      const result = await financeApi.listAccounts()
-      setAccounts(result.accounts)
-    } catch (reason) {
-      setLoadError(reason)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void loadAccounts(true)
-  }, [loadAccounts])
+  const { t, formatDate } = useI18n()
+  const [createOpen, setCreateOpen] = useState(false)
 
   const columns = useMemo<ColumnDef<Account>[]>(
     () => [
@@ -146,7 +54,10 @@ export function AccountsPage() {
           />
         ),
         enableColumnFilter: true,
-        meta: textSearchMeta(t("common.field.code"), t("common.field.code")),
+        meta: textSearchMeta(
+          t("common.field.code"),
+          t("finance.accounts.placeholder.search")
+        ),
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.code}</span>
         ),
@@ -160,8 +71,6 @@ export function AccountsPage() {
             label={t("common.field.name")}
           />
         ),
-        enableColumnFilter: true,
-        meta: textSearchMeta(t("common.field.name"), t("common.field.name")),
         cell: ({ row }) => (
           <span className="font-medium">{row.original.name}</span>
         ),
@@ -175,6 +84,7 @@ export function AccountsPage() {
             label={t("common.field.type")}
           />
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span
             className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${ACCOUNT_TYPE_COLORS[row.original.type] || ""}`}
@@ -192,6 +102,7 @@ export function AccountsPage() {
             label={t("finance.accounts.field.normal_balance")}
           />
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="text-muted-foreground">
             {row.original.normalBalance === "DEBIT"
@@ -209,6 +120,7 @@ export function AccountsPage() {
             label={t("common.field.currency")}
           />
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="text-muted-foreground">{row.original.currency}</span>
         ),
@@ -222,12 +134,7 @@ export function AccountsPage() {
             label={t("common.field.status")}
           />
         ),
-        enableColumnFilter: true,
-        meta: activeStatusMeta(
-          t("common.field.status"),
-          t("common.status.active"),
-          t("common.status.inactive")
-        ),
+        enableSorting: false,
         cell: ({ row }) => (
           <Status variant={row.original.isActive ? "success" : "default"}>
             <StatusIndicator />
@@ -239,66 +146,51 @@ export function AccountsPage() {
           </Status>
         ),
       },
+      {
+        id: "created_at",
+        accessorKey: "createdAt",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.created")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap text-muted-foreground">
+            {formatDate(row.original.createdAt)}
+          </span>
+        ),
+      },
     ],
-    [t]
+    [formatDate, t]
   )
 
-  const { table, total } = useClientListTable({
+  /**
+   * Server-driven list controller: URL page/perPage + `code`→q filter and
+   * whitelisted sort <-> TanStack Query cache. The BE adapter returns the
+   * standard ListResponse shape over the `{ accounts, total }` envelope.
+   * Update/delete do not exist on the accounts BE — the dialog is
+   * create-only.
+   */
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+  } = useServerDataTable<Account>({
+    ...accountsListDefinition,
     columns,
-    items: accounts,
-    filterBy: {
-      code: (item, value) => matchTextColumnFilter(value, item.code),
-      name: (item, value) => matchTextColumnFilter(value, item.name),
-      isActive: (item, value) => {
-        const selected = getSingleSelectValue(value)
-        return !selected || item.isActive === (selected === "true")
-      },
-    },
-    sort: (rows, sorting) =>
-      sortByColumn(rows, sorting, {
-        code: (a, b) => a.code.localeCompare(b.code),
-        name: (a, b) => a.name.localeCompare(b.name),
-        type: (a, b) => a.type.localeCompare(b.type),
-        normalBalance: (a, b) => a.normalBalance.localeCompare(b.normalBalance),
-        currency: (a, b) => a.currency.localeCompare(b.currency),
-        isActive: (a, b) => Number(a.isActive) - Number(b.isActive),
+    queryFn: async (query) =>
+      financeApi.listAccountsPaged({
+        page: query.page,
+        perPage: query.perPage,
+        q: query.q === undefined ? undefined : String(query.q),
+        sort: query.sort,
+        order: query.order,
       }),
-    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen)
-    if (!nextOpen) reset(accountDefaultValues)
-  }
-
-  const handleCreate = handleSubmit(async (values) => {
-    setSaving(true)
-    try {
-      await financeApi.createAccount(values)
-      notify.success("Account created")
-      setOpen(false)
-      reset(accountDefaultValues)
-      await loadAccounts()
-    } catch (reason) {
-      notify.error(
-        reason instanceof Error ? reason.message : "Could not create account"
-      )
-    } finally {
-      setSaving(false)
-    }
-  })
-
-  const handleTypeChange = (type: AccountFormValues["type"]) => {
-    setValue("type", type, { shouldDirty: true, shouldValidate: true })
-    setValue(
-      "normalBalance",
-      type === "ASSET" || type === "EXPENSE" ? "DEBIT" : "CREDIT",
-      {
-        shouldDirty: true,
-        shouldValidate: true,
-      }
-    )
-  }
 
   return (
     <ListPageShell
@@ -309,102 +201,30 @@ export function AccountsPage() {
           {t("finance.accounts.count", { count: total })}
         </Badge>
       }
-      criticalPending={loading}
+      criticalPending={isLoading}
       criticalError={loadError}
-      onRetry={loadAccounts}
-      fetching={refreshing}
+      onRetry={() => void refetch()}
+      loadErrorTitle={t("finance.accounts.load_failed")}
+      fetching={isFetching}
       table={table}
       toolbar={
         <ListTableToolbar
           table={table}
-          onCreate={() => setOpen(true)}
+          onCreate={() => setCreateOpen(true)}
           createLabel={t("finance.accounts.create")}
           exportFilename={t("finance.accounts.title")}
           sheetName={t("finance.accounts.title")}
+          totalRowsCount={total}
         />
       }
       dialogs={
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("finance.accounts.create")}</DialogTitle>
-            </DialogHeader>
-            <form className="space-y-3" onSubmit={handleCreate}>
-              <FormField
-                label={t("common.field.code")}
-                error={errors.code?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(errors.code)}
-                  {...register("code")}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.name")}
-                error={errors.name?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(errors.name)}
-                  {...register("name")}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.type")}
-                error={errors.type?.message}
-              >
-                <Controller
-                  control={control}
-                  name="type"
-                  render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={(value) =>
-                        handleTypeChange(value as AccountFormValues["type"])
-                      }
-                    >
-                      <SelectTrigger aria-invalid={Boolean(errors.type)}>
-                        <SelectValue placeholder={t("common.field.type")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ASSET">
-                          {t("finance.account_type.asset")}
-                        </SelectItem>
-                        <SelectItem value="LIABILITY">
-                          {t("finance.account_type.liability")}
-                        </SelectItem>
-                        <SelectItem value="EQUITY">
-                          {t("finance.account_type.equity")}
-                        </SelectItem>
-                        <SelectItem value="INCOME">
-                          {t("finance.account_type.income")}
-                        </SelectItem>
-                        <SelectItem value="EXPENSE">
-                          {t("finance.account_type.expense")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </FormField>
-              <FormField
-                label={t("common.field.currency")}
-                error={errors.currency?.message}
-              >
-                <Input
-                  aria-invalid={Boolean(errors.currency)}
-                  {...register("currency")}
-                />
-              </FormField>
-              <Button
-                className="w-full"
-                type="submit"
-                disabled={isSubmitting || saving}
-              >
-                {t("common.action.create")}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <CreateAccountDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onCreated={async () => {
+            await refetch()
+          }}
+        />
       }
     />
   )

@@ -188,14 +188,17 @@ export function ProvincesPage() {
       })
       notify.success(
         isEditing
-          ? "Cap nhat tinh thanh thanh cong"
-          : "Them tinh thanh thanh cong"
+          ? t("platform.provinces.toast.update_success")
+          : t("platform.provinces.toast.create_success")
       )
       setDialogOpen(false)
       reset(provinceDefaultValues)
       await loadProvinces()
     } catch (err) {
-      notify.error("Luu tinh thanh that bai", translateApiError(err))
+      notify.error(
+        t("platform.provinces.toast.save_failed"),
+        translateApiError(err)
+      )
     } finally {
       setSaving(false)
     }

@@ -3,5 +3,147 @@
     "set_status": "Đặt trạng thái",
     "settings": "Cài đặt tài khoản",
     "help_support": "Trợ giúp & Hỗ trợ"
+  },
+  "hrm": {
+    "count": "{count, plural, one {# bản ghi} other {# bản ghi}}",
+    "status": {
+      "active": "Hiệu lực",
+      "inactive": "Không hiệu lực"
+    },
+    "common": {
+      "yes": "Có",
+      "no": "Không"
+    },
+    "employees": {
+      "title": "Nhân sự",
+      "create": "Thêm nhân sự",
+      "create_title": "Thêm nhân sự",
+      "edit_title": "Sửa nhân sự",
+      "form_description": "Mã nhân sự và họ tên là bắt buộc.",
+      "create_success": "Đã thêm nhân sự",
+      "update_success": "Đã cập nhật nhân sự",
+      "save_failed": "Lưu nhân sự thất bại",
+      "delete_success": "Đã xóa nhân sự",
+      "delete_failed": "Xóa nhân sự thất bại",
+      "load_failed": "Không thể tải danh sách nhân sự",
+      "search_placeholder": "Tìm mã hoặc tên nhân sự",
+      "field": {
+        "employee_code": "Mã nhân sự",
+        "full_name": "Họ tên",
+        "department": "Phòng ban",
+        "position": "Chức vụ",
+        "job_title": "Chức danh",
+        "status": "Trạng thái"
+      },
+      "select": {
+        "department": "Chọn phòng ban",
+        "position": "Chọn chức vụ",
+        "job_title": "Chọn chức danh"
+      },
+      "validation": {
+        "code_required": "Mã nhân sự là bắt buộc",
+        "code_too_long": "Mã nhân sự quá dài",
+        "name_required": "Họ tên là bắt buộc",
+        "name_too_long": "Họ tên quá dài"
+      }
+    },
+    "job_titles": {
+      "title": "Chức danh",
+      "create": "Thêm chức danh",
+      "create_title": "Thêm chức danh",
+      "edit_title": "Sửa chức danh",
+      "form_description": "Mã và tên chức danh là bắt buộc.",
+      "create_success": "Đã thêm chức danh",
+      "update_success": "Đã cập nhật chức danh",
+      "save_failed": "Lưu chức danh thất bại",
+      "delete_success": "Đã xóa chức danh",
+      "delete_failed": "Xóa chức danh thất bại",
+      "load_failed": "Không thể tải danh sách chức danh",
+      "search_placeholder": "Tìm mã hoặc tên chức danh",
+      "field": {
+        "code": "Mã chức danh",
+        "name": "Tên chức danh",
+        "description": "Mô tả"
+      },
+      "placeholder": {
+        "name": "Kế toán"
+      },
+      "validation": {
+        "code_required": "Mã chức danh là bắt buộc",
+        "code_too_long": "Mã chức danh quá dài",
+        "name_required": "Tên chức danh là bắt buộc",
+        "name_too_long": "Tên chức danh quá dài",
+        "description_too_long": "Mô tả quá dài"
+      }
+    },
+    "positions": {
+      "title": "Chức vụ",
+      "create": "Thêm chức vụ",
+      "create_title": "Thêm chức vụ",
+      "edit_title": "Sửa chức vụ",
+      "form_description": "Mã và tên chức vụ là bắt buộc.",
+      "create_success": "Đã thêm chức vụ",
+      "update_success": "Đã cập nhật chức vụ",
+      "save_failed": "Lưu chức vụ thất bại",
+      "delete_success": "Đã xóa chức vụ",
+      "delete_failed": "Xóa chức vụ thất bại",
+      "load_failed": "Không thể tải danh sách chức vụ",
+      "search_placeholder": "Tìm mã hoặc tên chức vụ",
+      "field": {
+        "code": "Mã chức vụ",
+        "name": "Tên chức vụ",
+        "status": "Trạng thái",
+        "is_manager": "Cấp quản lý",
+        "description": "Mô tả"
+      },
+      "placeholder": {
+        "name": "Giám đốc"
+      },
+      "validation": {
+        "code_required": "Mã chức vụ là bắt buộc",
+        "code_too_long": "Mã chức vụ quá dài",
+        "name_required": "Tên chức vụ là bắt buộc",
+        "name_too_long": "Tên chức vụ quá dài",
+        "description_too_long": "Mô tả quá dài"
+      }
+    },
+    "org_units": {
+      "title": "Cơ cấu tổ chức",
+      "create": "Thêm phòng ban",
+      "create_title": "Thêm phòng ban",
+      "edit_title": "Sửa phòng ban",
+      "form_description": "Mã đơn vị lấy từ platform.organizations.",
+      "create_success": "Đã thêm phòng ban",
+      "update_success": "Đã cập nhật phòng ban",
+      "save_failed": "Lưu phòng ban thất bại",
+      "delete_success": "Đã xóa phòng ban",
+      "delete_failed": "Xóa phòng ban thất bại",
+      "load_failed": "Không thể tải danh sách phòng ban",
+      "search_placeholder": "Tìm mã hoặc tên phòng ban",
+      "field": {
+        "code": "Mã phòng ban",
+        "organization": "Đơn vị",
+        "name": "Tên phòng ban",
+        "org_level": "Cấp tổ chức",
+        "parent": "Cấp cha",
+        "department_type": "Loại",
+        "status": "Trạng thái",
+        "description": "Mô tả"
+      },
+      "select": {
+        "organization": "Chọn đơn vị",
+        "no_parent": "Không có"
+      },
+      "validation": {
+        "code_required": "Mã phòng ban là bắt buộc",
+        "code_too_long": "Mã phòng ban quá dài",
+        "organization_required": "Đơn vị là bắt buộc",
+        "name_required": "Tên phòng ban là bắt buộc",
+        "name_too_long": "Tên phòng ban quá dài",
+        "org_level_required": "Cấp tổ chức là bắt buộc",
+        "department_type_required": "Loại phòng ban là bắt buộc",
+        "description_too_long": "Mô tả quá dài"
+      }
+    }
   }
 }

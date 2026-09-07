@@ -1,5 +1,15 @@
 import { getCanonicalList, postCanonical } from "@workspace/api"
-import { buildSearchParams } from "@workspace/api/query"
+import { buildSearchParams, type SearchParams } from "@workspace/api/query"
+
+/**
+ * Builds list query params. Server-paged calls (page set) never send
+ * `all`; legacy fetch-all callers (dropdown lookups) keep all=true.
+ */
+function listQuery(params: SearchParams = {}) {
+  const search = buildSearchParams(params)
+  if (params.page === undefined) search.set("all", "true")
+  return search
+}
 
 export interface LoanContract {
   id: string
@@ -49,11 +59,19 @@ export const loanAdjustmentKinds = [
 export type LoanAdjustmentKind = (typeof loanAdjustmentKinds)[number]["key"]
 
 export const loanApi = {
-  listContracts: (params: { q?: string; status?: string } = {}) => {
-    const search = buildSearchParams({ q: params.q, status: params.status })
-    search.set("all", "true")
-    return getCanonicalList<LoanContract>(`/api/loan/contracts?${search.toString()}`)
-  },
+  listContracts: (
+    params: {
+      q?: string
+      status?: string
+      page?: number
+      per_page?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {}
+  ) =>
+    getCanonicalList<LoanContract>(
+      `/api/loan/contracts?${listQuery(params).toString()}`
+    ),
   submitContract: (id: string) =>
     postCanonical<LoanContract>(`/api/loan/contracts/${encodeURIComponent(id)}/submit`, {}),
   createContract: (body: Partial<LoanContract>) =>
@@ -62,11 +80,10 @@ export const loanApi = {
     kind: LoanAdjustmentKind,
     params: { contract_code?: string; status?: string } = {}
   ) => {
-    const search = buildSearchParams({
+    const search = listQuery({
       contract_code: params.contract_code,
       status: params.status,
     })
-    search.set("all", "true")
     return getCanonicalList<LoanAdjustment>(
       `/api/loan/adjustments/${kind}?${search.toString()}`
     )
@@ -105,9 +122,19 @@ export interface LoanProduct {
 }
 
 export const productApi = {
-  listProducts: (includeInactive = false) =>
+  listProducts: (
+    params: {
+      include_inactive?: boolean
+      is_active?: string
+      q?: string
+      page?: number
+      per_page?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {}
+  ) =>
     getCanonicalList<LoanProduct>(
-      `/api/loan/products?all=true${includeInactive ? "&include_inactive=true" : ""}`
+      `/api/loan/products?${listQuery(params).toString()}`
     ),
   upsertProduct: (body: Partial<LoanProduct>) =>
     postCanonical<LoanProduct>("/api/loan/products", body),
@@ -158,22 +185,46 @@ export interface VfuPlan {
 }
 
 export const vfuApi = {
-  listParties: (q = "") => {
-    const qs = q ? `&q=${encodeURIComponent(q)}` : ""
-    return getCanonicalList<VfuParty>(`/api/loan/vfu/parties?all=true${qs}`)
-  },
+  listParties: (
+    params: {
+      q?: string
+      page?: number
+      per_page?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {}
+  ) =>
+    getCanonicalList<VfuParty>(
+      `/api/loan/vfu/parties?${listQuery(params).toString()}`
+    ),
   createParty: (body: Partial<VfuParty>) =>
     postCanonical<VfuParty>("/api/loan/vfu/parties", body),
-  listMandates: (q = "") => {
-    const qs = q ? `&q=${encodeURIComponent(q)}` : ""
-    return getCanonicalList<VfuMandate>(`/api/loan/vfu/mandates?all=true${qs}`)
-  },
+  listMandates: (
+    params: {
+      q?: string
+      page?: number
+      per_page?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {}
+  ) =>
+    getCanonicalList<VfuMandate>(
+      `/api/loan/vfu/mandates?${listQuery(params).toString()}`
+    ),
   createMandate: (body: Partial<VfuMandate>) =>
     postCanonical<VfuMandate>("/api/loan/vfu/mandates", body),
-  listPlans: (mandateCode = "") => {
-    const qs = mandateCode ? `&mandate_code=${encodeURIComponent(mandateCode)}` : ""
-    return getCanonicalList<VfuPlan>(`/api/loan/vfu/plans?all=true${qs}`)
-  },
+  listPlans: (
+    params: {
+      mandate_code?: string
+      page?: number
+      per_page?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {}
+  ) =>
+    getCanonicalList<VfuPlan>(
+      `/api/loan/vfu/plans?${listQuery(params).toString()}`
+    ),
   createPlan: (body: Partial<VfuPlan>) =>
     postCanonical<VfuPlan>("/api/loan/vfu/plans", body),
 }
@@ -197,10 +248,20 @@ export interface LoanDisbursement {
 }
 
 export const disbursementApi = {
-  list: (params: { status?: string; contract_code?: string } = {}) => {
-    const p = buildSearchParams({ status: params.status, contract_code: params.contract_code })
-    return getCanonicalList<LoanDisbursement>(`/api/loan/disbursements${p.toString() ? `?${p.toString()}` : ""}`)
-  },
+  list: (
+    params: {
+      status?: string
+      contract_code?: string
+      q?: string
+      page?: number
+      per_page?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {}
+  ) =>
+    getCanonicalList<LoanDisbursement>(
+      `/api/loan/disbursements?${buildSearchParams(params).toString()}`
+    ),
   create: (body: Partial<LoanDisbursement>) =>
     postCanonical<LoanDisbursement>("/api/loan/disbursements", body),
   submit: (id: string) =>
@@ -226,10 +287,20 @@ export interface LoanCollection {
 }
 
 export const collectionApi = {
-  list: (params: { status?: string; contract_code?: string } = {}) => {
-    const p = buildSearchParams({ status: params.status, contract_code: params.contract_code })
-    return getCanonicalList<LoanCollection>(`/api/loan/collections${p.toString() ? `?${p.toString()}` : ""}`)
-  },
+  list: (
+    params: {
+      status?: string
+      contract_code?: string
+      q?: string
+      page?: number
+      per_page?: number
+      sort?: string
+      order?: "asc" | "desc"
+    } = {}
+  ) =>
+    getCanonicalList<LoanCollection>(
+      `/api/loan/collections?${buildSearchParams(params).toString()}`
+    ),
   create: (body: Partial<LoanCollection>) =>
     postCanonical<LoanCollection>("/api/loan/collections", body),
   submit: (id: string) =>

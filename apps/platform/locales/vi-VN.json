@@ -29,6 +29,7 @@
     },
     "placeholder": {
       "search": "Tìm theo tiêu đề, mã, đường dẫn...",
+      "code": "vd: finance.reports",
       "path": "/route hoặc để trống nếu là nhóm",
       "permission": "vd: iam.read,platform.manage"
     },
@@ -102,7 +103,13 @@
       "description": "Bạn chắc chắn muốn xóa {name} khỏi danh mục?",
       "confirm": "Xóa bỏ"
     },
-    "empty": "Chưa có loại khu vực nào."
+    "empty": "Chưa có loại khu vực nào.",
+    "toast": {
+      "save_success": "Lưu loại khu vực thành công",
+      "save_failed": "Lưu loại khu vực thất bại",
+      "delete_success": "Xóa loại khu vực thành công",
+      "delete_failed": "Xóa loại khu vực thất bại"
+    }
   },
   "organizations": {
     "title": "Đơn vị & Tổ chức",
@@ -221,7 +228,8 @@
       "effective_from": "Hiệu lực từ",
       "effective_to": "Hiệu lực đến",
       "status": "Trạng thái",
-      "actions": "Thao tác"
+      "actions": "Thao tác",
+      "created_at": "Tạo lúc"
     },
     "placeholder": {
       "search": "Tìm theo mã, tên...",
@@ -270,7 +278,8 @@
       "status": "Trạng thái",
       "description": "Ghi chú / mô tả",
       "effective_from": "Hiệu lực từ (MM/DD/YYYY)",
-      "effective_to": "Hiệu lực đến (MM/DD/YYYY)"
+      "effective_to": "Hiệu lực đến (MM/DD/YYYY)",
+      "created_at": "Tạo lúc"
     },
     "placeholder": {
       "search": "Tìm theo mã, tên hoặc mô tả...",
@@ -297,6 +306,13 @@
       "title": "Xác nhận ngưng hiệu lực khu vực?",
       "description": "Hành động này sẽ chuyển khu vực {name} sang trạng thái ngưng hiệu lực.",
       "confirm": "Xác nhận"
+    },
+    "toast": {
+      "create_success": "Thêm khu vực thành công",
+      "update_success": "Cập nhật khu vực thành công",
+      "save_failed": "Lưu khu vực thất bại",
+      "delete_success": "Ngừng hiệu lực khu vực thành công",
+      "delete_failed": "Cập nhật trạng thái khu vực thất bại"
     }
   },
   "parameters": {
@@ -452,6 +468,16 @@
       "value_title": "Xác nhận xóa giá trị?",
       "value_description": "Bạn chắc chắn muốn xóa giá trị {name} khỏi danh mục này?",
       "confirm": "Xóa bỏ"
+    },
+    "toast": {
+      "category_save_success": "Lưu danh mục thành công",
+      "category_save_failed": "Lưu danh mục thất bại",
+      "category_delete_success": "Xóa danh mục thành công",
+      "category_delete_failed": "Xóa danh mục thất bại",
+      "value_save_success": "Lưu giá trị thành công",
+      "value_save_failed": "Lưu giá trị thất bại",
+      "value_delete_success": "Xóa giá trị thành công",
+      "value_delete_failed": "Xóa giá trị thất bại"
     }
   },
   "templates": {
@@ -520,6 +546,13 @@
       "title": "Xác nhận xóa mẫu biểu?",
       "description": "Hành động này sẽ xóa vĩnh viễn cấu hình mẫu biểu {name} khỏi danh sách quản lý. Đường dẫn file gốc trên Storage không bị ảnh hưởng.",
       "confirm": "Xóa bỏ"
+    },
+    "toast": {
+      "create_success": "Thêm mẫu biểu thành công",
+      "update_success": "Cập nhật mẫu biểu thành công",
+      "save_failed": "Lưu mẫu biểu thất bại",
+      "delete_success": "Xóa mẫu biểu thành công",
+      "delete_failed": "Xóa mẫu biểu thất bại"
     }
   },
   "credit_institutions": {
@@ -544,7 +577,8 @@
       "tax_code": "Mã số thuế",
       "website": "Website",
       "note": "Ghi chú",
-      "actions": "Thao tác"
+      "actions": "Thao tác",
+      "created_at": "Tạo lúc"
     },
     "placeholder": {
       "code": "BIDV",
@@ -577,6 +611,13 @@
       "title": "Xác nhận xóa tổ chức tín dụng?",
       "description": "Bạn chắc chắn muốn xóa {name} khỏi danh mục?",
       "confirm": "Xóa bỏ"
+    },
+    "toast": {
+      "create_success": "Thêm tổ chức tín dụng thành công",
+      "update_success": "Cập nhật tổ chức tín dụng thành công",
+      "save_failed": "Lưu tổ chức tín dụng thất bại",
+      "delete_success": "Xóa tổ chức tín dụng thành công",
+      "delete_failed": "Xóa tổ chức tín dụng thất bại"
     }
   }
 }

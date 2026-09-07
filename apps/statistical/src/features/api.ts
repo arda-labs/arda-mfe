@@ -1,4 +1,8 @@
-import { getCanonicalList, postCanonical } from "@workspace/api"
+import {
+  getCanonicalList,
+  postCanonical,
+} from "@workspace/api"
+import { buildListSearchParams } from "@workspace/api/list"
 
 export interface ReportDefinition {
   id: string
@@ -11,6 +15,7 @@ export interface ReportDefinition {
   template_file_id?: string
   output_format: string
   is_active: boolean
+  created_at?: string
 }
 
 export interface Indicator {
@@ -21,6 +26,7 @@ export interface Indicator {
   unit?: string
   group_code?: string
   is_active: boolean
+  created_at?: string
 }
 
 export interface ReportSubmission {
@@ -37,16 +43,79 @@ export interface ReportSubmission {
   created_at?: string
 }
 
+export type IndicatorUpsertInput = {
+  code: string
+  name: string
+  unit?: string
+  group_code?: string
+}
+
+export type ReportDefinitionUpsertInput = {
+  code: string
+  name: string
+  group_code?: string
+  query_id: string
+  param_schema?: Record<string, unknown>
+  output_format?: string
+}
+
+/** Builds `?q&sort&order&page&per_page` for the catalog list endpoints. */
+function listQuery(params: {
+  q?: string
+  sort?: string
+  order?: string
+  page?: number
+  perPage?: number
+}): string {
+  const search = buildListSearchParams({
+    q: params.q,
+    sort: params.sort,
+    order: params.order === "asc" || params.order === "desc" ? params.order : undefined,
+    ...(params.page !== undefined ? { page: params.page } : {}),
+    ...(params.perPage !== undefined ? { perPage: params.perPage } : {}),
+  })
+  const qs = search.toString()
+  return qs ? `?${qs}` : ""
+}
+
 export const statisticalApi = {
-  listReportDefinitions: () =>
-    getCanonicalList<ReportDefinition>("/api/statistical/report-definitions"),
-  listIndicators: () =>
-    getCanonicalList<Indicator>("/api/statistical/indicators"),
-  listSubmissions: (params: { report_code?: string; period_code?: string; status?: string } = {}) => {
+  listReportDefinitions: (params: {
+    q?: string
+    sort?: string
+    order?: string
+    page?: number
+    perPage?: number
+  } = {}) =>
+    getCanonicalList<ReportDefinition>(`/api/statistical/report-definitions${listQuery(params)}`),
+  upsertReportDefinition: (body: ReportDefinitionUpsertInput) =>
+    postCanonical<ReportDefinition>("/api/statistical/report-definitions", body),
+  listIndicators: (params: {
+    q?: string
+    sort?: string
+    order?: string
+    page?: number
+    perPage?: number
+  } = {}) =>
+    getCanonicalList<Indicator>(`/api/statistical/indicators${listQuery(params)}`),
+  upsertIndicator: (body: IndicatorUpsertInput) =>
+    postCanonical<Indicator>("/api/statistical/indicators", body),
+  listSubmissions: (params: {
+    report_code?: string
+    period_code?: string
+    status?: string
+    page?: number
+    perPage?: number
+    sort?: string
+    order?: string
+  } = {}) => {
     const search = new URLSearchParams()
     if (params.report_code) search.set("report_code", params.report_code)
     if (params.period_code) search.set("period_code", params.period_code)
     if (params.status) search.set("status", params.status)
+    if (params.page !== undefined) search.set("page", String(params.page))
+    if (params.perPage !== undefined) search.set("per_page", String(params.perPage))
+    if (params.sort) search.set("sort", params.sort)
+    if (params.order) search.set("order", params.order)
     const qs = search.toString()
     return getCanonicalList<ReportSubmission>(`/api/statistical/submissions${qs ? `?${qs}` : ""}`)
   },

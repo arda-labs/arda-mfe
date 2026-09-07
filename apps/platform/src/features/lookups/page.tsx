@@ -131,14 +131,17 @@ export function LookupsPage() {
     setCatDeletePending(true)
     try {
       await platformApi.deleteLookupCategory(deleteCatTarget.id)
-      notify.success("Xóa danh mục thành công")
+      notify.success(t("platform.lookups.toast.category_delete_success"))
       if (selectedCat?.id === deleteCatTarget.id) {
         setSelectedCat(null)
       }
       setDeleteCatTarget(null)
       await loadCategories()
     } catch (err) {
-      notify.error("Xóa danh mục thất bại", translateApiError(err))
+      notify.error(
+        t("platform.lookups.toast.category_delete_failed"),
+        translateApiError(err)
+      )
     } finally {
       setCatDeletePending(false)
     }
@@ -160,11 +163,14 @@ export function LookupsPage() {
     setValDeletePending(true)
     try {
       await platformApi.deleteLookupValue(deleteValTarget.id)
-      notify.success("Xóa giá trị thành công")
+      notify.success(t("platform.lookups.toast.value_delete_success"))
       setDeleteValTarget(null)
       await loadValues(selectedCat.code)
     } catch (err) {
-      notify.error("Xóa giá trị thất bại", translateApiError(err))
+      notify.error(
+        t("platform.lookups.toast.value_delete_failed"),
+        translateApiError(err)
+      )
     } finally {
       setValDeletePending(false)
     }

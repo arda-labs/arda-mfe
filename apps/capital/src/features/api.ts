@@ -43,9 +43,21 @@ export interface CapitalMovement {
 export const capitalApi = {
   listFundTypes: () =>
     getCanonicalList<FundType>("/api/capital/fund-types"),
-  listContracts: (params: { status?: string } = {}) => {
+  listContracts: (params: {
+    status?: string
+    q?: string
+    sort?: string
+    order?: string
+    page?: number
+    perPage?: number
+  } = {}) => {
     const search = new URLSearchParams()
     if (params.status) search.set("status", params.status)
+    if (params.q) search.set("q", params.q)
+    if (params.sort) search.set("sort", params.sort)
+    if (params.order) search.set("order", params.order)
+    if (params.page !== undefined) search.set("page", String(params.page))
+    if (params.perPage !== undefined) search.set("per_page", String(params.perPage))
     const qs = search.toString()
     return getCanonicalList<CapitalContract>(`/api/capital/contracts${qs ? `?${qs}` : ""}`)
   },
