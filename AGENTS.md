@@ -6,18 +6,26 @@ Tài liệu hướng dẫn toàn diện dành cho các AI Agent (Antigravity, Cu
 
 ## 1. Tổng quan Kiến trúc Micro-Frontend (MFE Architecture)
 
-Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host Shell và 7 Remote Micro-frontends độc lập:
+Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host Shell và 13 Remote Micro-frontends độc lập:
 
 | App / Remote | Cổng Dev | Route Prefix | Chức năng chính |
 | :--- | :---: | :--- | :--- |
 | **`shell`** | `5000` | `/*` | Host container, xác thực, điều hướng layout, nạp dynamic remotes |
 | **`iam`** | `5101` | `/admin/*` | Quản trị IAM: Users, Groups, Roles, Permissions, Audit |
 | **`platform`** | `5102` | `/admin/*` | Master data: Organizations, Parameters, Lookups, Geo, Templates |
-| **`finance`** | `5103` | `/finance/*` | Kế toán: Accounts, Transactions, Approvals, Trial balance |
+| **`finance`** | `5103` | `/finance/*` | Kế toán: Accounts, Journal, Operations, Trial balance |
 | **`account`** | `5104` | `/my-account/*`, `/settings/*`, `/in/*` | Quản lý Profile, Security, Sessions, Devices, Appearance |
 | **`hrm`** | `5105` | `/hrm/*` | Quản trị nhân sự: Positions, Job Titles, Org Units, Employees |
 | **`workflow`** | `5106` | `/workflow/*` | Quy trình & BPMN: Case Types, SLA, Roles, Zeebe 8.5 Monitoring |
 | **`crm`** | `5107` | `/customers/*`, `/workbench/*` | Quản lý khách hàng hội viên, bàn làm việc xử lý giao dịch |
+| **`ai`** | `5108` | `/ai` | AI assistant full-page workspace (dock panel vẫn nằm ở shell) |
+| **`loan`** | `5109` | `/loans/*` | Cho vay: products, VFU, collections, disbursements |
+| **`mdm`** | `5110` | `/admin/mdm/*` | Master data: currencies, countries, interest rates |
+| **`deposit`** | `8110` | `/deposit/*` | Tiền gửi: savings, products, interbank |
+| **`capital`** | `8111` | `/capital/*` | Quản lý vốn: contracts |
+| **`statistical`** | `8112` | `/statistical/*` | Báo cáo thống kê: report definitions, indicators, submissions |
+
+Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
 
 ---
 
@@ -101,7 +109,7 @@ bun install
 # Kiểm tra ranh giới package (Package boundaries & no circular deps)
 bun run check:packages
 
-# Kiểm tra TypeScript toàn bộ monorepo (18 workspaces: 8 apps + 10 packages)
+# Kiểm tra TypeScript toàn bộ monorepo (25 workspaces: 14 apps + 11 packages)
 # Bao gồm các invariant: check:packages, check:credentials, check:fallbacks,
 # check:federation (chính sách shared deps tự động), check:pages (giới hạn
 # độ dài page.tsx với LEGACY_BASELINE cho debt cũ)
@@ -110,7 +118,7 @@ bun run typecheck
 # Kiểm tra ESLint
 bun run lint
 
-# Build production toàn bộ 8 apps
+# Build production toàn bộ 14 apps
 bun run build
 
 # Build từng app cho Cloudflare Workers

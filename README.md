@@ -10,16 +10,24 @@ Bun + Vite micro frontend workspace for Arda.
 
 ## Apps
 
-| App        | Port | Role                                          |
-| ---------- | ---- | --------------------------------------------- |
-| `shell`    | 5000 | Layout, auth, navigation, lazy remote loading |
-| `iam`      | 5101 | IAM admin remote                              |
-| `platform` | 5102 | Platform master data remote                   |
-| `finance`  | 5103 | Finance operations remote                     |
-| `account`  | 5104 | Profile & account settings remote             |
-| `hrm`      | 5105 | HRM remote                                    |
-| `workflow` | 5106 | Workflow / BPMN admin remote                  |
-| `crm`      | 5107 | CRM & workbench remote                        |
+| App           | Port | Role                                          |
+| ------------- | ---- | --------------------------------------------- |
+| `shell`       | 5000 | Layout, auth, navigation, lazy remote loading |
+| `iam`         | 5101 | IAM admin remote                              |
+| `platform`    | 5102 | Platform master data remote                   |
+| `finance`     | 5103 | Finance operations remote                     |
+| `account`     | 5104 | Profile & account settings remote             |
+| `hrm`         | 5105 | HRM remote                                    |
+| `workflow`    | 5106 | Workflow / BPMN admin remote                  |
+| `crm`         | 5107 | CRM & workbench remote                        |
+| `ai`          | 5108 | AI assistant full-page workspace (`/ai`)      |
+| `loan`        | 5109 | Loan lifecycle remote (collections, disbursements) |
+| `mdm`         | 5110 | Master data management remote                 |
+| `deposit`     | 8110 | Deposit accounts remote                       |
+| `capital`     | 8111 | Capital management remote                     |
+| `statistical` | 8112 | Statistical reporting remote                  |
+
+Ports are the single source of truth in `federation.shared.ts` (`remotePorts`).
 
 ## Packages
 
@@ -35,6 +43,7 @@ Bun + Vite micro frontend workspace for Arda.
 | `@workspace/theme`         | Theme, appearance and branding                      |
 | `@workspace/media`         | Media API and URL helpers                           |
 | `@workspace/ai`            | Olorin assistant panel: provider wrapper, tool renderer registry, approval card |
+| `@workspace/format`        | Pure formatting helpers (money/percent/date)        |
 
 Dependency direction is enforced by `bun run check:packages`. Workspace code
 must import package exports, never another package's `src` directory. The only
@@ -59,8 +68,7 @@ apps/<remote>/src/features/<domain>/
 - Heavy dependencies (BPMN, large forms): `lazy()` at tab/dialog open.
 - Server state: `@workspace/query`; server-backed lists use
   `@workspace/admin-list/server-list` instead of page-local fetch effects.
-  Migration checklist: [docs/conventions/server-list-migration.md](docs/conventions/server-list-migration.md);
-  working exemplar: `apps/finance/src/features/finance/transactions/page.tsx`.
+  Migration checklist: [docs/conventions/server-list-migration.md](docs/conventions/server-list-migration.md).
 - List URL state: declare one filter/search mapping with `defineServerList` and
   reuse it for table filters and advanced search.
 
@@ -68,11 +76,17 @@ apps/<remote>/src/features/<domain>/
 
 - **IAM** — users, groups, roles, permissions, audit, system settings
 - **Platform** — orgs, areas, lookups, templates, geo reference data
-- **Finance** — accounts, transactions, approvals, trial balance, accounting config
+- **Finance** — accounts, journal, operations, trial balance, accounting config
 - **HRM** — positions, job titles, org units, registrations, employees
 - **Account** — profile, security, sessions, devices, appearance
 - **Workflow** — case types, process config, SLA, templates, roles, BPMN monitoring (Zeebe 8.5)
-- **CRM** — customers, workbench (transaction ops, drafts)
+- **CRM** — customers, workbench (transaction ops, drafts, BPM cases)
+- **AI** — assistant full-page workspace and settings
+- **Loan** — collections, disbursements, BPM-driven loan cases
+- **MDM** — master data (currencies, countries, reference data)
+- **Deposit** — deposit accounts, term deposits
+- **Capital** — capital management
+- **Statistical** — statistical reports and analytics
 
 Workflow admin lives in `apps/workflow` (not shell). BPMN viewer/modeler: `apps/workflow/src/features/workflow/components/bpmn-monitor.tsx`.
 
@@ -138,7 +152,8 @@ and switches only the production `https://arda.io.vn` origin to
 `https://api.arda.io.vn`. Fetch, SSE, and media URLs must use the shared
 resolver/client so credentialed cross-origin requests remain consistent.
 
-All eight Workers are connected directly to `arda-labs/arda-mfe` through
+All 14 Workers (shell + 13 remotes) are connected directly to
+`arda-labs/arda-mfe` through
 Cloudflare Workers Builds. Pushes to `main` deploy production; non-production
 branches create preview versions. Build watch paths keep app-only changes scoped
 to that deployment unit, while shared packages and Cloudflare build files trigger

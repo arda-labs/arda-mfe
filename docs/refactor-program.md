@@ -2,7 +2,7 @@
 
 Status: execution in progress; migrated surfaces use the target contract directly.
 
-Last updated: 2026-08-25
+Last updated: 2026-09-07
 
 The cross-stack master plan lives in the workspace at
 `arda-be/docs/refactor-program/README.md`. This document is the frontend execution
@@ -43,12 +43,12 @@ same generation/drift gate to every public OpenAPI document is still a QA-02
 release gate.
 
 Server-state adoption status (tracked by `bun run check:pages` baseline):
-`finance/transactions` is migrated to `defineServerList` +
-`useServerDataTable` as the working exemplar; every remote now mounts
-`QueryProvider` at its route root, so remaining large list pages can migrate
-one-by-one following
+every remote now mounts `QueryProvider` at its route root, so remaining large
+list pages can migrate one-by-one following
 [docs/conventions/server-list-migration.md](./conventions/server-list-migration.md)
-without transport/provider plumbing.
+without transport/provider plumbing. (The former `finance/transactions`
+exemplar was removed in the P0 rebuild — commit `a2da20c`; finance now ships
+accounts, journal, operations, and trial-balance features.)
 
 ## 3. Required feature layering
 

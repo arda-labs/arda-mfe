@@ -1,14 +1,14 @@
 # Hướng Dẫn Cấu Hình Build & Deploy Cloudflare Workers (Monorepo)
 
-> **⚠️ Note:** This file lives in `docs/archive/` but its content is still applicable — the 8 Workers described here are actively deployed. The archive placement is historical (superseded by automated Cloudflare Workers Builds integration).
+> **⚠️ Note:** This file lives in `docs/archive/` but its content is still applicable — the 14 Workers (shell + 13 remotes) are actively deployed. The archive placement is historical (superseded by automated Cloudflare Workers Builds integration). Newer remotes (`loan`, `mdm`, `deposit`, `capital`, `statistical`) follow the same per-app wrangler config pattern under `cloudflare/wrangler.<app>.jsonc`.
 
-Tài liệu này mô tả chi tiết cách thiết lập build và deploy 8 Cloudflare Workers cho hệ thống `arda-mfe` trên Cloudflare Dashboard.
+Tài liệu này mô tả chi tiết cách thiết lập build và deploy Cloudflare Workers cho hệ thống `arda-mfe` trên Cloudflare Dashboard.
 
 ---
 
 ## 1. Cấu Trúc Các Workers
 
-Hệ thống Micro-Frontend gồm có 9 Workers phân tán:
+Hệ thống Micro-Frontend gồm có 14 Workers phân tán:
 1. `arda-shell` (Host container điều phối routing & layout)
 2. `arda-mfe-crm` (Customer Relationship Management)
 3. `arda-mfe-iam` (Identity & Access Management)
@@ -18,12 +18,17 @@ Hệ thống Micro-Frontend gồm có 9 Workers phân tán:
 7. `arda-mfe-hrm` (Human Resource Management)
 8. `arda-mfe-workflow` (Workflow & Zeebe BPM Monitoring)
 9. `arda-mfe-ai` (AI Center & Knowledge Base)
+10. `arda-mfe-loan` (Loan: products, VFU, collections, disbursements)
+11. `arda-mfe-mdm` (Master Data Management)
+12. `arda-mfe-deposit` (Deposit: savings, products, interbank)
+13. `arda-mfe-capital` (Capital management)
+14. `arda-mfe-statistical` (Statistical reporting)
 
 ---
 
 ## 2. Cấu Hình Build Watch Paths Trên Cloudflare Dashboard
 
-Để tránh việc Cloudflare kích hoạt build đồng loạt cả 8 Workers khi chỉ có thay đổi ở Backend (`arda-be`) hoặc một App MFE đơn lẻ, cần thiết lập **Build watch paths** như sau:
+Để tránh việc Cloudflare kích hoạt build đồng loạt cả 14 Workers khi chỉ có thay đổi ở Backend (`arda-be`) hoặc một App MFE đơn lẻ, cần thiết lập **Build watch paths** như sau:
 
 > **Lưu ý:** Cấu hình dưới đây áp dụng khi đặt **Root directory** trên Cloudflare là: `arda-mfe`.
 

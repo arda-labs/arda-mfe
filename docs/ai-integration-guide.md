@@ -134,7 +134,9 @@ const unregister = registerToolRenderer({
 ### Renderer Matching Priority
 
 Renderers are checked in registration order. The first `match(result) === true`
-wins. Default renderers (`CustomerSummaryCard`, `KnowledgeCitationList`) are
+wins. Default renderers (`CustomerSummaryCard`, `KnowledgeCitationList`,
+`EmployeeCard`, `FinanceAccountCard`, `InvoiceListCard`,
+`KnowledgeSearchFeedback`) are
 registered first — domain renderers registered later override the fallback
 `GenericToolView` for matching shapes.
 
@@ -280,18 +282,36 @@ pure UI event handlers that the AI can invoke.
 
 ## 5. Package Exports
 
-`packages/ai` exports the following for domain MFEs to use:
+`packages/ai` exports the following for domain MFEs to use (authoritative
+list: `packages/ai/src/index.ts`):
 
 ```ts
-// @workspace/ai
+// @workspace/ai — core runtime & UI
 export { OlorinProvider } from "./src/components/provider"
 export { OlorinWorkspace } from "./src/components/olorin-workspace"
 export { OlorinPanel } from "./src/components/olorin-panel"
 export { useOlorinContext } from "./src/lib/context"
+export { useOlorinConversations } from "./src/lib/conversations"
 export { registerOlorinContext, registerToolRenderer, collectOlorinContext } from "./src/lib/registry"
 export type { ToolResultViewProps, ToolRendererEntry } from "./src/lib/registry"
 export type { OlorinConversation, OlorinConversationMessage } from "./src/lib/conversations"
+
+// default tool renderers (each card has a matching register*Renderer helper)
+export {
+  CustomerSummaryCard, EmployeeCard, FinanceAccountCard, InvoiceListCard,
+  KnowledgeCitationList, KnowledgeSearchFeedback, GenericToolView,
+  RunStatusBanner, RunErrorCard, ApprovalCard, DataTableView,
+}
+
+// settings & error handling
+export {
+  AISettingsDialog, resolveAiError, fetchAISettings, saveAISettings,
+  testAIConnection, parseToolResult, messageText,
+}
 ```
+
+The exact export set grows with each renderer/settings addition; treat
+`packages/ai/src/index.ts` as the source of truth when this snippet drifts.
 
 Domain MFEs import from `@workspace/ai` (resolved via Bun workspace symlinks).
 They do **not** directly import from `@assistant-ui/react` or the AG-UI
