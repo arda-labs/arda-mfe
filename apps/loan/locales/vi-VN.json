@@ -53,7 +53,7 @@
   },
   "disbursements": {
     "title": "Giải ngân",
-    "description": "Tạo phiếu giải ngân, trình duyệt qua workbench; duyệt xong bút toán tự post vào kế toán.",
+    "description": "Khởi tạo và hoàn tất giải ngân, trình duyệt qua workbench; duyệt xong bút toán tự post vào kế toán.",
     "create": "Thêm giải ngân",
     "dialog_description": "Chọn hợp đồng ACTIVE, nhập số tiền giải ngân. Sau khi tạo, trình duyệt qua workbench — duyệt xong bút toán tự post.",
     "created_draft": "Đã tạo phiếu giải ngân (DRAFT)",
@@ -63,11 +63,51 @@
       "amount": "Số tiền giải ngân",
       "amount_short": "Số tiền",
       "currency": "Loại tiền",
-      "disburse_date": "Ngày giải ngân"
+      "disburse_date": "Ngày giải ngân",
+      "fund_source": "Nguồn vốn",
+      "flow_type": "Luồng"
+    },
+    "placeholder": {
+      "fund_source": "Mã nguồn vốn (tùy chọn)"
+    },
+    "group": {
+      "disbursement_info": "Thông tin giải ngân",
+      "control_info": "Thông tin kiểm soát"
+    },
+    "control": {
+      "created_by": "Người tạo",
+      "created_at": "Ngày tạo",
+      "status": "Trạng thái"
+    },
+    "flow": {
+      "register": "Khởi tạo",
+      "complete": "Hoàn tất"
+    },
+    "register": {
+      "title": "Khởi tạo giải ngân",
+      "dialog_description": "Tạo phiếu giải ngân gốc cho hợp đồng ACTIVE. Sau khi phiếu được định khoản (POSTED), có thể rút vốn tiếp bằng luồng Hoàn tất giải ngân."
+    },
+    "complete": {
+      "action": "Hoàn tất giải ngân",
+      "title": "Hoàn tất giải ngân",
+      "dialog_description": "Chọn phiếu giải ngân khởi tạo đã POSTED để rút vốn tiếp theo. Số tiền mặc định bằng phiếu gốc; backend kiểm tra giới hạn còn lại của phiếu.",
+      "created": "Đã tạo phiếu hoàn tất giải ngân (DRAFT)",
+      "failed": "Không thể tạo phiếu hoàn tất giải ngân",
+      "field": {
+        "source_register": "Phiếu giải ngân gốc (POSTED)",
+        "source_amount": "Số tiền phiếu gốc",
+        "amount": "Số tiền hoàn tất"
+      },
+      "placeholder": {
+        "amount": "Mặc định bằng số tiền phiếu gốc"
+      },
+      "remainder_note": "Backend từ chối nếu số tiền vượt phần chưa hoàn tất của phiếu gốc (cùng hợp đồng giải ngân, trạng thái POSTED).",
+      "disabled_hint": "Cần ít nhất một phiếu khởi tạo đã POSTED để hoàn tất giải ngân"
     },
     "validation": {
       "contract_required": "Chọn hợp đồng và nhập số tiền",
-      "amount_positive": "Số tiền phải dương"
+      "amount_positive": "Số tiền phải dương",
+      "source_required": "Chọn phiếu giải ngân gốc đã POSTED"
     }
   },
   "kind": {

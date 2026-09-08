@@ -231,6 +231,12 @@ export const vfuApi = {
 
 // ── Disbursements (P1b, LNM.300.02) ──
 
+/**
+ * P1b v2 flow split: REGISTER = khởi tạo giải ngân (phiếu gốc),
+ * COMPLETE = hoàn tất giải ngân (rút theo phiếu REGISTER đã POSTED).
+ */
+export type LoanDisbursementFlowType = "REGISTER" | "COMPLETE"
+
 export interface LoanDisbursement {
   id: string
   tenant_id: string
@@ -245,6 +251,9 @@ export interface LoanDisbursement {
   journal_entry_id?: string
   created_by: string
   created_at?: string
+  flow_type?: LoanDisbursementFlowType
+  /** Chỉ có trên row COMPLETE: id phiếu REGISTER gốc (POSTED, cùng agreement). */
+  source_register_id?: string
 }
 
 export const disbursementApi = {
@@ -252,6 +261,7 @@ export const disbursementApi = {
     params: {
       status?: string
       contract_code?: string
+      flow_type?: LoanDisbursementFlowType
       q?: string
       page?: number
       per_page?: number

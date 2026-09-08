@@ -53,7 +53,7 @@
   },
   "disbursements": {
     "title": "Disbursements",
-    "description": "Create drawdown requests, submit through the workbench; after approval the entry posts to the ledger automatically.",
+    "description": "Register and complete disbursements, submit through the workbench; after approval the entry posts to the ledger automatically.",
     "create": "New disbursement",
     "dialog_description": "Pick an ACTIVE contract and enter the disbursement amount. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
     "created_draft": "Disbursement created (DRAFT)",
@@ -63,11 +63,51 @@
       "amount": "Disbursement amount",
       "amount_short": "Amount",
       "currency": "Currency",
-      "disburse_date": "Disbursement date"
+      "disburse_date": "Disbursement date",
+      "fund_source": "Fund source",
+      "flow_type": "Flow"
+    },
+    "placeholder": {
+      "fund_source": "Fund source code (optional)"
+    },
+    "group": {
+      "disbursement_info": "Disbursement information",
+      "control_info": "Control information"
+    },
+    "control": {
+      "created_by": "Created by",
+      "created_at": "Created at",
+      "status": "Status"
+    },
+    "flow": {
+      "register": "Register",
+      "complete": "Complete"
+    },
+    "register": {
+      "title": "Register disbursement",
+      "dialog_description": "Create the original disbursement for an ACTIVE contract. Once the row is posted (POSTED), further drawdowns can be recorded via the Complete disbursement flow."
+    },
+    "complete": {
+      "action": "Complete disbursement",
+      "title": "Complete disbursement",
+      "dialog_description": "Pick a posted (POSTED) register disbursement to draw against. The amount defaults to the source register amount; the backend validates the source's remaining limit.",
+      "created": "Completion disbursement created (DRAFT)",
+      "failed": "Failed to create the completion disbursement",
+      "field": {
+        "source_register": "Source register disbursement (POSTED)",
+        "source_amount": "Source register amount",
+        "amount": "Completion amount"
+      },
+      "placeholder": {
+        "amount": "Defaults to the source register amount"
+      },
+      "remainder_note": "The backend rejects amounts exceeding the remaining un-completed portion of the source register (same agreement, POSTED).",
+      "disabled_hint": "At least one posted register disbursement is required to complete a disbursement"
     },
     "validation": {
       "contract_required": "Select a contract and enter the amount",
-      "amount_positive": "Amount must be positive"
+      "amount_positive": "Amount must be positive",
+      "source_required": "Select a posted register disbursement"
     }
   },
   "kind": {

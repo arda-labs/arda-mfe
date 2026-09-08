@@ -12,11 +12,16 @@ import {
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, CornerDownRight } from "lucide-react"
 import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
-import { disbursementApi, type LoanDisbursement } from "../api"
+import {
+  disbursementApi,
+  type LoanDisbursement,
+  type LoanDisbursementFlowType,
+} from "../api"
 import { disbursementsListDefinition } from "./list-query"
-import { DisbursementCreateDialog } from "./components/DisbursementCreateDialog"
+import { DisbursementRegisterDialog } from "./components/DisbursementRegisterDialog"
+import { DisbursementCompleteDialog } from "./components/DisbursementCompleteDialog"
 
 const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   DRAFT: "outline",
@@ -29,12 +34,20 @@ const statusVariant: Record<string, "default" | "secondary" | "outline" | "destr
 
 const STATUS_VALUES = ["DRAFT", "SUBMITTED", "APPROVED", "POSTED", "REJECTED", "CANCELLED"] as const
 
-/** Disbursements — drawdown flow (LNM.300.02): create → submit case →
- * approval → finance posting. Server tier after the BE adopted
- * ParseListRequest (q ILIKE + sort whitelist + SQL paging). */
+const FLOW_VALUES: LoanDisbursementFlowType[] = ["REGISTER", "COMPLETE"]
+
+const flowVariant: Record<LoanDisbursementFlowType, "default" | "info"> = {
+  REGISTER: "default",
+  COMPLETE: "info",
+}
+
+/** Disbursements — drawdown flow (LNM.300.02), P1b v2 two flow flavors on one
+ * page: REGISTER (khởi tạo) + COMPLETE (hoàn tất, drawn against a POSTED
+ * register row). Server tier after the BE adopted ParseListRequest. */
 export function DisbursementsPage(_props: { pathname: string }) {
   const { t } = useI18n()
-  const [createOpen, setCreateOpen] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const [completeOpen, setCompleteOpen] = useState(false)
 
   const statusLabels = useMemo<Record<string, string>>(
     () => ({
@@ -44,6 +57,14 @@ export function DisbursementsPage(_props: { pathname: string }) {
       POSTED: t("loan.status.posted"),
       REJECTED: t("loan.status.rejected"),
       CANCELLED: t("loan.status.cancelled"),
+    }),
+    [t]
+  )
+
+  const flowLabels = useMemo<Record<string, string>>(
+    () => ({
+      REGISTER: t("loan.disbursements.flow.register"),
+      COMPLETE: t("loan.disbursements.flow.complete"),
     }),
     [t]
   )
@@ -104,6 +125,27 @@ export function DisbursementsPage(_props: { pathname: string }) {
         ),
       },
       {
+        id: "flow_type",
+        accessorKey: "flow_type",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.disbursements.field.flow_type")} />
+        ),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: selectFilterMeta(
+          t("loan.disbursements.field.flow_type"),
+          FLOW_VALUES.map((value) => ({ label: flowLabels[value], value }))
+        ),
+        cell: ({ row }) => {
+          const flow = row.original.flow_type ?? "REGISTER"
+          return (
+            <Badge variant={flowVariant[flow]} className="px-2 py-0 text-[10px]">
+              {flowLabels[flow] ?? flow}
+            </Badge>
+          )
+        },
+      },
+      {
         id: "status",
         accessorKey: "status",
         header: ({ column }) => (
@@ -142,11 +184,12 @@ export function DisbursementsPage(_props: { pathname: string }) {
         ),
       },
     ],
-    [statusLabels, submit, t]
+    [flowLabels, statusLabels, submit, t]
   )
 
   const {
     total,
+    items,
     isLoading,
     isFetching,
     error: loadError,
@@ -159,12 +202,22 @@ export function DisbursementsPage(_props: { pathname: string }) {
       disbursementApi.list({
         q: query.q === undefined ? undefined : String(query.q),
         status: query.status === undefined ? undefined : String(query.status),
+        flow_type:
+          query.flow_type === undefined
+            ? undefined
+            : (String(query.flow_type) as LoanDisbursementFlowType),
         page: query.page,
         per_page: query.perPage,
         sort: query.sort,
         order: query.order,
       }),
   })
+
+  // "Hoàn tất giải ngân" only makes sense when at least one POSTED register
+  // row exists to draw against (filtered server-side by the picker anyway).
+  const hasPostedRegister = items.some(
+    (item) => item.status === "POSTED" && (item.flow_type ?? "REGISTER") === "REGISTER"
+  )
 
   return (
     <ListPageShell
@@ -181,18 +234,38 @@ export function DisbursementsPage(_props: { pathname: string }) {
       table={table}
       header={<p className="text-sm text-muted-foreground">{t("loan.disbursements.description")}</p>}
       toolbar={
-        <ListTableToolbar
-          table={table}
-          onCreate={() => setCreateOpen(true)}
-          createLabel={t("loan.disbursements.create")}
-        />
+        <ListTableToolbar table={table}>
+          <Button
+            variant="outline"
+            className="h-8 px-3 text-xs font-semibold"
+            disabled={!hasPostedRegister}
+            title={hasPostedRegister ? undefined : t("loan.disbursements.complete.disabled_hint")}
+            onClick={() => setCompleteOpen(true)}
+          >
+            <CornerDownRight className="mr-1 size-3.5" />
+            {t("loan.disbursements.complete.action")}
+          </Button>
+          <Button
+            onClick={() => setRegisterOpen(true)}
+            className="h-8 px-3 text-xs font-semibold"
+          >
+            {t("loan.disbursements.create")}
+          </Button>
+        </ListTableToolbar>
       }
       dialogs={
-        <DisbursementCreateDialog
-          open={createOpen}
-          onOpenChange={setCreateOpen}
-          onSaved={() => void refetch()}
-        />
+        <>
+          <DisbursementRegisterDialog
+            open={registerOpen}
+            onOpenChange={setRegisterOpen}
+            onSaved={() => void refetch()}
+          />
+          <DisbursementCompleteDialog
+            open={completeOpen}
+            onOpenChange={setCompleteOpen}
+            onSaved={() => void refetch()}
+          />
+        </>
       }
     />
   )
