@@ -3,15 +3,31 @@
 // exported. Consumers keep importing the per-module subpaths.
 export type {
   AccountOption,
+  AccountQueryExtra,
+  ChooseTransactionDialogLabels,
   EntryLineRow,
   FetchAccountsFn,
+  FetchTransactionsFn,
+  ObjectInfoCardLabels,
+  ObjectInfoValue,
   PostingDirection,
+  PostingTabItem,
+  PostingTabsShellLabels,
   PostingValidateInput,
   PostingValidateLine,
   PostingValidateResult,
+  TransactionOption,
   ValidateFn,
 } from "./types"
-export { PostingFlowPage, TransactionInfoCard, ControlInfoCard, DetailCard } from "./posting-flow-shell"
+export {
+  ObjectInfoCard,
+  PostingFlowPage,
+  PostingTabsShell,
+  TransactionInfoCard,
+  ControlInfoCard,
+  DetailCard,
+} from "./posting-flow-shell"
 export { EntryLinesGrid } from "./entry-lines-grid"
 export { computeTotals, newEntryLineRow } from "./entry-lines"
 export { PostingPreviewPanel } from "./posting-preview-panel"
+export { ChooseTransactionDialog, formatEntryNo } from "./choose-transaction-dialog"

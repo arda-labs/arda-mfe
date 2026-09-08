@@ -30,11 +30,15 @@ import { usePostingFlowLabels } from "./labels"
 const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
   SINGLE_ENTRY: "FIN_SINGLE_ENTRY",
   DOUBLE_ENTRY: "FIN_DOUBLE_ENTRY",
+  OFF_BALANCE: "FIN_OFF_BALANCE",
+  CANCELLATION: "FIN_TXN_CANCEL",
 }
 
 const FLOW_LIST_PATH: Record<PostingFlow, string> = {
   SINGLE_ENTRY: "/finance/posting/single-entry",
   DOUBLE_ENTRY: "/finance/posting/double-entry",
+  OFF_BALANCE: "/finance/posting/off-balance",
+  CANCELLATION: "/finance/posting/cancellation",
 }
 
 function initialRows(flow: PostingFlow): EntryLineRow[] {
@@ -46,6 +50,8 @@ function initialRows(flow: PostingFlow): EntryLineRow[] {
   }
   return [newEntryLineRow(), newEntryLineRow()]
 }
+
+const MANUAL_FLOWS: PostingFlow[] = ["SINGLE_ENTRY", "DOUBLE_ENTRY"]
 
 /**
  * Posting-case init form (FAC bút toán lẻ / bút toán kép) on the shared
@@ -67,6 +73,7 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
   const [savePending, setSavePending] = useState(false)
 
   const single = flow === "SINGLE_ENTRY"
+  const manual = MANUAL_FLOWS.includes(flow)
   const documentType = FLOW_DOCUMENT_TYPE[flow]
   const totals = useMemo(() => computeTotals(rows, currency), [rows, currency])
 
@@ -98,7 +105,7 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
       notify.error(t("finance.posting.validation.amount_required"))
       return
     }
-    if (!single && !totals.balanced) {
+    if (manual && !single && !totals.balanced) {
       notify.error(t("finance.posting.validation.not_balanced"))
       return
     }
@@ -106,17 +113,19 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
     setSavePending(true)
     try {
       const created = await postingCaseApi.create(flow, {
-        idempotency_key: crypto.randomUUID(),
-        accounting_date: accountingDate,
-        currency_code: currency,
-        description,
-        lines: rows.map((row, index) => ({
-          line_no: index + 1,
-          direction: row.direction,
-          amount_minor: toMinor(parseMoneyInput(row.amount) ?? 0, currency),
-          account_code: row.account_code,
-          description: row.description || undefined,
-        })),
+        posting_request: {
+          idempotency_key: crypto.randomUUID(),
+          accounting_date: accountingDate,
+          currency_code: currency,
+          description,
+          lines: rows.map((row, index) => ({
+            line_no: index + 1,
+            direction: row.direction,
+            amount_minor: toMinor(parseMoneyInput(row.amount) ?? 0, currency),
+            account_code: row.account_code,
+            description: row.description || undefined,
+          })),
+        },
       })
       notify.success(t("finance.posting.notify.created", { case_code: created.case_code }))
       navigate(FLOW_LIST_PATH[flow])
@@ -130,7 +139,13 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <PageHeader
-        title={t(single ? "finance.posting.single.init_title" : "finance.posting.double.init_title")}
+        title={t(
+          flow === "SINGLE_ENTRY"
+            ? "finance.posting.single.init_title"
+            : flow === "DOUBLE_ENTRY"
+              ? "finance.posting.double.init_title"
+              : "",
+        )}
         actions={
           <Button variant="outline" size="sm" onClick={() => navigate(FLOW_LIST_PATH[flow])}>
             <ArrowLeft className="mr-1 size-3.5" />
@@ -146,7 +161,11 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
             <div className="space-y-1.5">
               <Label>{t("finance.posting.field.business_type")}</Label>
               <p className="rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                {t(single ? "finance.posting.single.business_type" : "finance.posting.double.business_type")}
+                {t(
+                  single
+                    ? "finance.posting.single.business_type"
+                    : "finance.posting.double.business_type",
+                )}
               </p>
             </div>
             <div className="space-y-1.5">
@@ -239,8 +258,7 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
                 currency={currency}
                 canAddRows={!single}
                 canDeleteRows={!single}
-                minRows={2}
-                fetchAccounts={(params) =>
+                minRows={2}                fetchAccounts={(params) =>
                   financeApi
                     .listAccountsPaged({ q: params.q, page: params.page, perPage: params.perPage })
                     .then((res) => ({

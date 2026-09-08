@@ -56,6 +56,26 @@ const DoubleEntryPostingInitPage = lazyWithPreload(() =>
     default: m.DoubleEntryPostingInitPage,
   }))
 )
+const OffBalancePostingPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/off-balance/page").then((m) => ({
+    default: m.OffBalancePostingPage,
+  }))
+)
+const OffBalancePostingInitPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/off-balance/init").then((m) => ({
+    default: m.OffBalancePostingInitPage,
+  }))
+)
+const CancellationPostingPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/cancellation/page").then((m) => ({
+    default: m.CancellationPostingPage,
+  }))
+)
+const CancellationPostingInitPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/cancellation/init").then((m) => ({
+    default: m.CancellationPostingInitPage,
+  }))
+)
 
 async function preload(pathname = "") {
   let page = AccountsPage
@@ -69,6 +89,10 @@ async function preload(pathname = "") {
   else if (pathname.startsWith("/finance/posting/single-entry")) page = SingleEntryPostingPage
   if (pathname.startsWith("/finance/posting/double-entry/init")) page = DoubleEntryPostingInitPage
   else if (pathname.startsWith("/finance/posting/double-entry")) page = DoubleEntryPostingPage
+  if (pathname.startsWith("/finance/posting/off-balance/init")) page = OffBalancePostingInitPage
+  else if (pathname.startsWith("/finance/posting/off-balance")) page = OffBalancePostingPage
+  if (pathname.startsWith("/finance/posting/cancellation/init")) page = CancellationPostingInitPage
+  else if (pathname.startsWith("/finance/posting/cancellation")) page = CancellationPostingPage
   await page.preload()
 }
 
@@ -92,6 +116,17 @@ function RemoteRoutes() {
     page = <DoubleEntryPostingInitPage />
   } else if (pathname.startsWith("/finance/posting/double-entry")) {
     page = <DoubleEntryPostingPage />
+  }
+  // Init branches before list branches — same prefix, init is the longer path.
+  if (pathname.startsWith("/finance/posting/off-balance/init")) {
+    page = <OffBalancePostingInitPage />
+  } else if (pathname.startsWith("/finance/posting/off-balance")) {
+    page = <OffBalancePostingPage />
+  }
+  if (pathname.startsWith("/finance/posting/cancellation/init")) {
+    page = <CancellationPostingInitPage />
+  } else if (pathname.startsWith("/finance/posting/cancellation")) {
+    page = <CancellationPostingPage />
   }
 
   return (

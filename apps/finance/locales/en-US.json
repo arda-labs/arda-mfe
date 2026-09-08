@@ -149,6 +149,85 @@
     "notify": {
       "created": "Posting case {case_code} created, pending approval",
       "create_failed": "Could not create the posting case"
+    },
+    "cancellation": {
+      "title": "Transaction cancellation",
+      "init_title": "New transaction cancellation",
+      "business_type": "Cancellation (reversal)",
+      "tab_info": "Cancellation information",
+      "tab_original": "Original transaction entries",
+      "reference_label": "Transaction to cancel",
+      "reference_placeholder": "Pick the original transaction...",
+      "placeholder": {
+        "reason": "Cancellation reason..."
+      },
+      "validation": {
+        "reference_required": "Pick the original transaction to cancel",
+        "reason_required": "A cancellation reason is required"
+      },
+      "summary_trader": "Trader",
+      "summary_date": "Date",
+      "summary_amount": "Amount",
+      "summary_status": "Status",
+      "summary_unknown": "Unknown",
+      "col_line_type": "Entry type",
+      "empty_lines": "The original transaction has no posting lines",
+      "no_reference": "Pick the original transaction on the Cancellation information tab to see its entries.",
+      "action": {
+        "create": "New cancellation"
+      },
+      "notify": {
+        "created": "Cancellation case {case_code} created, pending approval",
+        "create_failed": "Could not create the cancellation case",
+        "detail_failed": "Failed to load the original transaction detail"
+      }
+    },
+    "off_balance": {
+      "title": "Off-balance entries",
+      "init_title": "New off-balance transaction",
+      "business_type": "Off-balance",
+      "tab_info": "Transaction information",
+      "tab_lines": "Accounting lines",
+      "kind_import": "Off-balance import",
+      "kind_export": "Off-balance export",
+      "pinned_debit": "Pinned direction: Debit (off-balance import)",
+      "pinned_credit": "Pinned direction: Credit (off-balance export)",
+      "total": "Total amount",
+      "validation": {
+        "direction_required": "Pick an off-balance kind"
+      },
+      "action": {
+        "create": "New off-balance transaction"
+      },
+      "notify": {
+        "created": "Off-balance case {case_code} created, pending approval",
+        "create_failed": "Could not create the off-balance case"
+      }
+    },
+    "object": {
+      "title": "Object information",
+      "object_type": "Object type",
+      "object_code": "Object code",
+      "object_name": "Object name",
+      "id_number": "ID number",
+      "issue_date": "Issued on",
+      "issue_place": "Issued by",
+      "address": "Address",
+      "type_employee": "Employee",
+      "type_customer": "Customer",
+      "type_other": "Other"
+    },
+    "choose_transaction": {
+      "title": "Pick the original transaction",
+      "doc_type": "Transaction type",
+      "doc_type_all": "All",
+      "search_code": "Transaction code",
+      "search_code_placeholder": "Enter a transaction code...",
+      "from_date": "From date",
+      "to_date": "To date",
+      "col_type": "Type",
+      "empty": "No matching transactions",
+      "choose": "Pick"
     }
   },
   "operation": {

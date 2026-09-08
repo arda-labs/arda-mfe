@@ -27,6 +27,7 @@
     "./entry-lines": "./src/entry-lines.ts",
     "./posting-preview-panel": "./src/posting-preview-panel.tsx",
     "./choose-account-dialog": "./src/choose-account-dialog.tsx",
+    "./choose-transaction-dialog": "./src/choose-transaction-dialog.tsx",
     "./types": "./src/types.ts"
   }
 }

@@ -22,6 +22,7 @@ import { ChooseAccountDialog } from "./choose-account-dialog"
 import { computeTotals, newEntryLineRow } from "./entry-lines"
 import {
   type AccountOption,
+  type AccountQueryExtra,
   type EntryLineRow,
   type EntryLinesGridLabels,
   type FetchAccountsFn,
@@ -43,6 +44,9 @@ export function EntryLinesGrid({
   canAddRows = false,
   canDeleteRows = false,
   minRows = 0,
+  lockAmounts = false,
+  hideTotals = false,
+  accountQuery,
   fetchAccounts,
 }: {
   rows: EntryLineRow[]
@@ -53,6 +57,15 @@ export function EntryLinesGrid({
   canDeleteRows?: boolean
   /** Rows below this count cannot be deleted (e.g. pinned Nợ/Có pair). */
   minRows?: number
+  /** Disables the per-row amount input (off-balance: one total drives every
+   * line, so rows render their amount read-only). */
+  lockAmounts?: boolean
+  /** Hides the Dr/Cr totals footer (off-balance shows a single total). */
+  hideTotals?: boolean
+  /** Extra BE filters forwarded to `fetchAccounts` (off-balance passes
+   * `nature: "B"`); the shared dialog's query key includes them so cached
+   * results never leak between differently-filtered grids. */
+  accountQuery?: AccountQueryExtra
   fetchAccounts: FetchAccountsFn
 }) {
   const decimals = currencyDecimals(currency)
@@ -131,6 +144,7 @@ export function EntryLinesGrid({
                     className="h-8 text-right tabular-nums"
                     inputMode="decimal"
                     value={row.amount}
+                    disabled={lockAmounts}
                     onChange={(e) => update(row.id, { amount: e.target.value })}
                   />
                 </TableCell>
@@ -172,20 +186,22 @@ export function EntryLinesGrid({
         ) : (
           <span />
         )}
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-muted-foreground">
-            {labels.totalDebit}:{" "}
-            <span className="font-semibold tabular-nums text-foreground">
-              {formatAmount(totals.totalDebitMinor / 10 ** decimals, currency)}
+        {hideTotals ? null : (
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-muted-foreground">
+              {labels.totalDebit}:{" "}
+              <span className="font-semibold tabular-nums text-foreground">
+                {formatAmount(totals.totalDebitMinor / 10 ** decimals, currency)}
+              </span>
             </span>
-          </span>
-          <span className="text-muted-foreground">
-            {labels.totalCredit}:{" "}
-            <span className="font-semibold tabular-nums text-foreground">
-              {formatAmount(totals.totalCreditMinor / 10 ** decimals, currency)}
+            <span className="text-muted-foreground">
+              {labels.totalCredit}:{" "}
+              <span className="font-semibold tabular-nums text-foreground">
+                {formatAmount(totals.totalCreditMinor / 10 ** decimals, currency)}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
+        )}
       </div>
 
       <ChooseAccountDialog
@@ -193,7 +209,7 @@ export function EntryLinesGrid({
         onOpenChange={(open) => {
           if (!open) setPickerRowId(null)
         }}
-        fetchAccounts={fetchAccounts}
+        fetchAccounts={(params) => fetchAccounts({ ...params, extra: accountQuery })}
         onSelect={(account: AccountOption) => {
           if (pickerRowId) update(pickerRowId, { account_code: account.code, account_name: account.name })
         }}

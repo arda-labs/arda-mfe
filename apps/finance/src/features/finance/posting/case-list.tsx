@@ -14,10 +14,36 @@ import { postingApi, type JournalEntry } from "../api"
 import { postingListDefinition } from "./list-query"
 import type { PostingFlow } from "../api"
 
+/** Title key + create-route per flow — the four posting case lists share the
+ * same columns and list contract, only the pinned document type differs. */
+const FLOW_META: Record<PostingFlow, { titleKey: string; createPath: string; createKey: string }> = {
+  SINGLE_ENTRY: {
+    titleKey: "finance.posting.single.title",
+    createPath: "/finance/posting/single-entry/init",
+    createKey: "finance.posting.action.create",
+  },
+  DOUBLE_ENTRY: {
+    titleKey: "finance.posting.double.title",
+    createPath: "/finance/posting/double-entry/init",
+    createKey: "finance.posting.action.create",
+  },
+  OFF_BALANCE: {
+    titleKey: "finance.posting.off_balance.title",
+    createPath: "/finance/posting/off-balance/init",
+    createKey: "finance.posting.off_balance.action.create",
+  },
+  CANCELLATION: {
+    titleKey: "finance.posting.cancellation.title",
+    createPath: "/finance/posting/cancellation/init",
+    createKey: "finance.posting.cancellation.action.create",
+  },
+}
+
 /**
- * Shared list controller for the two manual posting screens (bút toán lẻ /
- * bút toán kép): server-tier list over the journal endpoint pinned to one
- * document_type + a "create" action that navigates to the flow's init route.
+ * Shared list controller for the manual posting screens (bút toán lẻ /
+ * bút toán kép / ngoại bảng / hủy giao dịch): server-tier list over the
+ * journal endpoint pinned to one document_type + a "create" action that
+ * navigates to the flow's init route.
  */
 export function PostingCaseListPage({
   flow,
@@ -29,10 +55,8 @@ export function PostingCaseListPage({
   const { t } = useI18n()
   const navigate = useNavigate()
 
-  const titleKey =
-    flow === "SINGLE_ENTRY"
-      ? "finance.posting.single.title"
-      : "finance.posting.double.title"
+  const meta = FLOW_META[flow]
+  const titleKey = meta.titleKey
 
   const columns = useMemo<ColumnDef<JournalEntry>[]>(
     () => [
@@ -154,10 +178,10 @@ export function PostingCaseListPage({
           <Button
             variant="outline"
             className="h-8 px-3 text-xs font-semibold"
-            onClick={() => navigate(`/finance/posting/${flow === "SINGLE_ENTRY" ? "single-entry" : "double-entry"}/init`)}
+            onClick={() => navigate(meta.createPath)}
           >
             <Plus className="mr-1 size-3.5" />
-            {t("finance.posting.action.create")}
+            {t(meta.createKey)}
           </Button>
         </ListTableToolbar>
       }

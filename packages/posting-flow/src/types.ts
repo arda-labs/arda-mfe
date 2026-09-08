@@ -8,6 +8,8 @@
  * locale-agnostic; generic fallbacks use the shared `common:*` namespace.
  */
 
+import type { ReactNode } from "react"
+
 export type PostingDirection = "DEBIT" | "CREDIT"
 
 /** Account row shape the `ChooseAccountDialog` understands. */
@@ -37,7 +39,14 @@ export type FetchAccountsFn = (params: {
   q?: string
   page: number
   perPage: number
+  /** Consumer-defined BE filters the grid forwards verbatim (e.g. the
+   * off-balance screen pins `nature: "B"` to offer only off-balance accounts).
+   * Optional — screens that don't set `accountQuery` never see a value. */
+  extra?: AccountQueryExtra
 }) => Promise<{ items: AccountOption[]; total: number }>
+
+/** Free-form BE filter bag (merged into the wired list query as-is). */
+export type AccountQueryExtra = Record<string, string | number | boolean | undefined>
 
 /** Minimal validate-endpoint contract (structural subset of finance's
  * `ValidationResult` — any backend following the posting spec matches). */
@@ -140,4 +149,90 @@ export interface PostingFlowShellLabels {
   controlStatus: string
   controlEnteredAt: string
   controlEnteredBy: string
+}
+
+// ── PostingTabsShell (CRM-registration-style tabbed FAC screens) ────────────
+
+/** Labels for `PostingTabsShell` — the shell owns layout only; every display
+ * string is supplied by the consumer (mirrors `PostingFlowShellLabels`). */
+export interface PostingTabsShellLabels {
+  title: string
+  description?: string
+}
+
+/** One repeatable tab instance — `id` must be unique, `label` pre-translated. */
+export interface PostingTabItem {
+  id: string
+  label: string
+  content: ReactNode
+}
+
+// ── ObjectInfoCard (Thông tin đối tượng — FAC.201.01 / FAC.300.01) ──────────
+
+/** Controlled value shape of the object-info block. */
+export interface ObjectInfoValue {
+  object_type: string
+  object_code: string
+  object_name: string
+  id_number: string
+  issue_date: string
+  issue_place: string
+  address: string
+}
+
+/** Labels for `ObjectInfoCard` (plus the Loại đối tượng select options). */
+export interface ObjectInfoCardLabels {
+  title: string
+  objectType: string
+  objectCode: string
+  objectName: string
+  idNumber: string
+  issueDate: string
+  issuePlace: string
+  address: string
+}
+
+// ── ChooseTransactionDialog (chọn giao dịch gốc — FAC.300.01) ───────────────
+
+/** Row shape the `ChooseTransactionDialog` understands. Summary fields the BE
+ * hasn't landed yet stay optional so the dialog degrades to "—". */
+export interface TransactionOption {
+  entry_no: number
+  accounting_date: string
+  document_type: string
+  description?: string
+  status?: string
+  total_amount_minor?: number
+  currency_code?: string
+}
+
+export type FetchTransactionsFn = (params: {
+  document_type?: string
+  from_date?: string
+  to_date?: string
+  q?: string
+  page: number
+  perPage: number
+}) => Promise<{ items: TransactionOption[]; total: number }>
+
+/** Labels for `ChooseTransactionDialog`. */
+export interface ChooseTransactionDialogLabels {
+  title: string
+  docType: string
+  docTypeAll: string
+  searchCode: string
+  searchCodePlaceholder: string
+  fromDate: string
+  toDate: string
+  colEntryNo: string
+  colDate: string
+  colType: string
+  colDescription: string
+  empty: string
+  prev: string
+  next: string
+  pageOf: string
+  close: string
+  /** Per-row pick button (Chọn). */
+  choose: string
 }

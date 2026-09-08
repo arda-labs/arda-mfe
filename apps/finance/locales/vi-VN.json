@@ -149,6 +149,85 @@
     "notify": {
       "created": "Đã tạo bút toán {case_code}, chờ duyệt",
       "create_failed": "Không thể tạo bút toán"
+    },
+    "cancellation": {
+      "title": "Hủy giao dịch",
+      "init_title": "Tạo hủy giao dịch",
+      "business_type": "Hủy giao dịch (reversal)",
+      "tab_info": "Thông tin giao dịch hủy",
+      "tab_original": "Bút toán giao dịch gốc",
+      "reference_label": "Giao dịch cần hủy",
+      "reference_placeholder": "Chọn giao dịch gốc...",
+      "placeholder": {
+        "reason": "Lý do hủy giao dịch..."
+      },
+      "validation": {
+        "reference_required": "Cần chọn giao dịch gốc cần hủy",
+        "reason_required": "Cần nhập lý do hủy"
+      },
+      "summary_trader": "Người giao dịch",
+      "summary_date": "Ngày",
+      "summary_amount": "Số tiền",
+      "summary_status": "Trạng thái",
+      "summary_unknown": "Không xác định",
+      "col_line_type": "Loại phát sinh",
+      "empty_lines": "Giao dịch gốc chưa có bút toán",
+      "no_reference": "Chọn giao dịch gốc ở tab Thông tin giao dịch hủy để xem bút toán.",
+      "action": {
+        "create": "Tạo hủy giao dịch"
+      },
+      "notify": {
+        "created": "Đã tạo case hủy giao dịch {case_code}, chờ duyệt",
+        "create_failed": "Không thể tạo case hủy giao dịch",
+        "detail_failed": "Không thể tải chi tiết giao dịch gốc"
+      }
+    },
+    "off_balance": {
+      "title": "Nhập xuất ngoại bảng",
+      "init_title": "Tạo giao dịch ngoại bảng",
+      "business_type": "Ngoại bảng",
+      "tab_info": "Thông tin giao dịch",
+      "tab_lines": "Hạch toán",
+      "kind_import": "Nhập ngoại bảng",
+      "kind_export": "Xuất ngoại bảng",
+      "pinned_debit": "Ghim chiều: Nợ (Nhập ngoại bảng)",
+      "pinned_credit": "Ghim chiều: Có (Xuất ngoại bảng)",
+      "total": "Tổng tiền",
+      "validation": {
+        "direction_required": "Cần chọn loại nghiệp vụ ngoại bảng"
+      },
+      "action": {
+        "create": "Tạo giao dịch ngoại bảng"
+      },
+      "notify": {
+        "created": "Đã tạo case ngoại bảng {case_code}, chờ duyệt",
+        "create_failed": "Không thể tạo case ngoại bảng"
+      }
+    },
+    "object": {
+      "title": "Thông tin đối tượng",
+      "object_type": "Loại đối tượng",
+      "object_code": "Mã đối tượng",
+      "object_name": "Tên đối tượng",
+      "id_number": "CMND/Số định danh",
+      "issue_date": "Ngày cấp",
+      "issue_place": "Nơi cấp",
+      "address": "Địa chỉ",
+      "type_employee": "Nhân viên",
+      "type_customer": "Khách hàng",
+      "type_other": "Đối tượng khác"
+    },
+    "choose_transaction": {
+      "title": "Chọn giao dịch gốc",
+      "doc_type": "Loại giao dịch",
+      "doc_type_all": "Tất cả",
+      "search_code": "Mã giao dịch",
+      "search_code_placeholder": "Nhập mã giao dịch...",
+      "from_date": "Từ ngày",
+      "to_date": "Đến ngày",
+      "col_type": "Loại",
+      "empty": "Không có giao dịch phù hợp",
+      "choose": "Chọn"
     }
   },
   "operation": {

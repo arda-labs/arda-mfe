@@ -185,7 +185,7 @@ export interface PostingPreviewInput {
 
 // ── Posting cases (iteration 9 — bút toán lẻ / bút toán kép) ────────────────
 
-export type PostingFlow = "SINGLE_ENTRY" | "DOUBLE_ENTRY"
+export type PostingFlow = "SINGLE_ENTRY" | "DOUBLE_ENTRY" | "OFF_BALANCE" | "CANCELLATION"
 
 export interface PostingCaseLine {
   line_no: number
@@ -206,6 +206,27 @@ export interface PostingCaseRequest {
   lines: PostingCaseLine[]
 }
 
+/** Trader/object info block (Thông tin đối tượng) — FAC.201.01 / FAC.300.01. */
+export interface TraderInfo {
+  object_type: string
+  object_code?: string
+  object_name?: string
+  id_number?: string
+  issue_date?: string
+  issue_place?: string
+  address?: string
+}
+
+/** Cancellation body (FAC.300.01) — references the journal entry to reverse;
+ * the BE writes document_type FIN_TXN_CANCEL on the reversal record. */
+export interface CancellationRequest {
+  idempotency_key?: string
+  reference_entry_no: number
+  reason: string
+  accounting_date: string
+  trader: TraderInfo
+}
+
 export interface PostingCaseCreated {
   case_id: string
   case_code: string
@@ -214,17 +235,47 @@ export interface PostingCaseCreated {
 /**
  * Manual posting cases (FAC): the BE validates structure per flow
  * (SINGLE_ENTRY = exactly 1 DEBIT + 1 CREDIT with equal amounts,
- * DOUBLE_ENTRY = balanced) and resolves the accounts, then routes the case
- * to the workbench for approval (FIN_SINGLE_ENTRY_V2 / FIN_DOUBLE_ENTRY_V2).
+ * DOUBLE_ENTRY = balanced, OFF_BALANCE = N same-direction lines over
+ * nature-B accounts, CANCELLATION = reversal reference) and routes the case
+ * to the workbench for approval (FIN_SINGLE_ENTRY_V2 / FIN_DOUBLE_ENTRY_V2 /
+ * FIN_OFF_BALANCE_V2 / FIN_TXN_CANCEL_V2).
  */
 export const postingCaseApi = {
-  create: (flow: PostingFlow, posting_request: PostingCaseRequest) =>
+  create: (
+    flow: PostingFlow,
+    request: { posting_request?: PostingCaseRequest; cancellation_request?: CancellationRequest },
+  ) =>
     api
       .post<ApiSuccess<PostingCaseCreated>>("/api/finance/posting-cases", {
         flow,
-        posting_request,
+        posting_request: request.posting_request,
+        cancellation_request: request.cancellation_request,
       })
       .then((res) => res.result),
+}
+
+// ── Journal entry detail (cancellation reference) ───────────────────────────
+
+/** One line of the original journal entry (read-only display). */
+export interface JournalEntryLine {
+  line_no: number
+  direction: "DEBIT" | "CREDIT"
+  account_code: string
+  account_name: string
+  amount_minor: number
+  currency_code?: string
+  description?: string
+}
+
+/**
+ * GET /api/finance/journal-entries/{entry_no}. Summary fields beyond the
+ * lines (trader, total) stay optional until the BE contract fully lands —
+ * the cancellation summary degrades to "—" for missing values.
+ */
+export interface JournalEntryDetail extends JournalEntry {
+  lines: JournalEntryLine[]
+  total_amount_minor?: number
+  trader?: TraderInfo
 }
 
 export interface StatementSummary {
@@ -267,7 +318,9 @@ export const postingApi = {
   /**
    * Server-tier journal list: q ILIKEs document_type / document_code /
    * description, sort whitelist (entry_no | accounting_date), page/per_page.
-   * The BE answers with the standard ListResponse envelope.
+   * Extra filters pass through verbatim: `document_type` (exact),
+   * `from_date`/`to_date` (accounting_date range) — used by the case lists
+   * and the ChooseTransactionDialog picker.
    */
   listJournalPaged: (params?: ListQueryInput) =>
     api
@@ -297,5 +350,28 @@ export const postingApi = {
   }) =>
     api
       .post<ApiSuccess<{ saved: boolean }>>("/api/finance/opening-balances", data)
+      .then((res) => res.result),
+}
+
+/**
+ * Journal-entry read API for the cancellation flow:
+ * - `paged`: same endpoint as postingApi.listJournalPaged (search/paginated
+ *   picker over GET /api/finance/journal-entries) with the ChooseTransactionDialog
+ *   filter params (document_type, from_date, to_date, q, page, page_size).
+ * - `detail`: GET /api/finance/journal-entries/{entry_no} — original-entry
+ *   detail (read-only bút toán grid + summary).
+ */
+export const journalEntryApi = {
+  paged: (params?: ListQueryInput) =>
+    api
+      .get<ApiSuccess<ListResponse<JournalEntry>>>(
+        `/api/finance/journal-entries?${buildListSearchParams(params).toString()}`
+      )
+      .then((res) => res.result),
+  detail: (entryNo: number) =>
+    api
+      .get<ApiSuccess<JournalEntryDetail>>(
+        `/api/finance/journal-entries/${encodeURIComponent(entryNo)}`
+      )
       .then((res) => res.result),
 }

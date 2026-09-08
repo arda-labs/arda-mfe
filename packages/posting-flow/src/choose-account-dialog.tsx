@@ -18,7 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import type { AccountOption, ChooseAccountDialogLabels, FetchAccountsFn } from "./types"
+import type {
+  AccountOption,
+  AccountQueryExtra,
+  ChooseAccountDialogLabels,
+  FetchAccountsFn,
+} from "./types"
 
 const PAGE_SIZE = 8
 
@@ -35,12 +40,15 @@ export function ChooseAccountDialog({
   fetchAccounts,
   onSelect,
   labels,
+  extra,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   fetchAccounts: FetchAccountsFn
   onSelect: (account: AccountOption) => void
   labels: ChooseAccountDialogLabels
+  /** Extra BE filters forwarded to `fetchAccounts` (see EntryLinesGrid). */
+  extra?: AccountQueryExtra
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,6 +62,7 @@ export function ChooseAccountDialog({
             onSelect={onSelect}
             onClose={() => onOpenChange(false)}
             labels={labels}
+            extra={extra}
           />
         </DialogContent>
       ) : null}
@@ -66,18 +75,20 @@ function AccountPickerContent({
   onSelect,
   onClose,
   labels,
+  extra,
 }: {
   fetchAccounts: FetchAccountsFn
   onSelect: (account: AccountOption) => void
   onClose: () => void
   labels: ChooseAccountDialogLabels
+  extra?: AccountQueryExtra
 }) {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
 
   const { data, isLoading } = useQuery({
-    queryKey: ["posting-flow", "accounts", search, page],
-    queryFn: () => fetchAccounts({ q: search || undefined, page, perPage: PAGE_SIZE }),
+    queryKey: ["posting-flow", "accounts", search, page, extra],
+    queryFn: () => fetchAccounts({ q: search || undefined, page, perPage: PAGE_SIZE, extra }),
     placeholderData: (prev) => prev,
   })
 
