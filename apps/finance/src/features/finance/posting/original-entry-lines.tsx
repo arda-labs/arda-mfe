@@ -75,10 +75,10 @@ export function OriginalEntryLines({
             lines.map((line) => (
               <TableRow key={line.line_no}>
                 <TableCell className="text-xs text-muted-foreground">
-                  {detail?.document_type
-                    ? (DOCUMENT_TYPE_LABEL_KEY[detail.document_type]
-                      ? t(DOCUMENT_TYPE_LABEL_KEY[detail.document_type])
-                      : detail.document_type)
+                  {detail?.business_doc_type
+                    ? (DOCUMENT_TYPE_LABEL_KEY[detail.business_doc_type]
+                      ? t(DOCUMENT_TYPE_LABEL_KEY[detail.business_doc_type])
+                      : detail.business_doc_type)
                     : "—"}
                 </TableCell>
                 <TableCell className="text-sm">

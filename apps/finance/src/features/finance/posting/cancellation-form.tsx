@@ -223,6 +223,7 @@ export function CancellationFormPage() {
                       detailPending
                         ? "…"
                         : (detail?.trader?.object_name ??
+                          detail?.created_by ??
                           t("finance.posting.cancellation.summary_unknown"))
                     }
                   />

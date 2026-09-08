@@ -37,8 +37,9 @@ const TAB_LINES = "accounting-lines"
  * PostingTabsShell. Loại nghiệp vụ pins the direction of every line
  * (Nhập ngoại bảng → DEBIT, Xuất ngoại bảng → CREDIT); the single Số tiền
  * total syncs to all rows (each row's amount is disabled in the grid). The
- * account picker only offers nature-B accounts (extra `nature: "B"` filter
- * forwarded through EntryLinesGrid → ChooseAccountDialog). No payment
+ * account picker only offers nature-B accounts — it reads the COA v2 chart
+ * (`/api/finance/coa/accounts?nature=B`, the table posting validation
+ * resolves against) with postable rows + q filtered client-side. No payment
  * method/account/document type, no Dr/Cr totals pair — one total.
  */
 export function OffBalanceFormPage() {
@@ -262,21 +263,29 @@ export function OffBalanceFormPage() {
                 accountQuery={{ nature: "B" }}
                 fetchAccounts={(params) =>
                   financeApi
-                    .listAccountsPaged({
-                      q: params.q,
-                      page: params.page,
-                      perPage: params.perPage,
-                      nature: params.extra?.nature,
+                    .listCoaAccounts({ nature: params.extra?.nature as string | undefined })
+                    .then((res) => {
+                      // COA endpoint is an unpaged lookup; filter postable
+                      // rows + q and paginate client-side (small static set).
+                      const q = params.q?.trim().toLowerCase()
+                      const filtered = res.items.filter(
+                        (account) =>
+                          account.isPostable &&
+                          (!q ||
+                            account.accCode.toLowerCase().includes(q) ||
+                            account.name.toLowerCase().includes(q)),
+                      )
+                      const start = (params.page - 1) * params.perPage
+                      return {
+                        items: filtered
+                          .slice(start, start + params.perPage)
+                          .map((account) => ({
+                            code: account.accCode,
+                            name: account.name,
+                          })),
+                        total: filtered.length,
+                      }
                     })
-                    .then((res) => ({
-                      items: res.items.map((account) => ({
-                        code: account.code,
-                        name: account.name,
-                        currency: account.currency,
-                        isActive: account.isActive,
-                      })),
-                      total: res.total,
-                    }))
                 }
               />
             </div>
