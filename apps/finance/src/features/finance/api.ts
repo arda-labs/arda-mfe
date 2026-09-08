@@ -159,9 +159,57 @@ export interface PostingPreviewInput {
     line_no: number
     direction: string
     amount_minor: number
-    analytics: Record<string, string>
+    /** Manual posting path (account_code set → direct COA resolution). */
+    account_code?: string
+    /** Empty = the COA version effective on the accounting_date. */
+    coa_version?: string
+    analytics?: Record<string, string>
     description?: string
   }[]
+}
+
+// ── Posting cases (iteration 9 — bút toán lẻ / bút toán kép) ────────────────
+
+export type PostingFlow = "SINGLE_ENTRY" | "DOUBLE_ENTRY"
+
+export interface PostingCaseLine {
+  line_no: number
+  direction: "DEBIT" | "CREDIT"
+  amount_minor: number
+  currency_code?: string
+  account_code: string
+  coa_version?: string
+  counterparty_code?: string
+  description?: string
+}
+
+export interface PostingCaseRequest {
+  idempotency_key?: string
+  accounting_date: string
+  currency_code: string
+  description: string
+  lines: PostingCaseLine[]
+}
+
+export interface PostingCaseCreated {
+  case_id: string
+  case_code: string
+}
+
+/**
+ * Manual posting cases (FAC): the BE validates structure per flow
+ * (SINGLE_ENTRY = exactly 1 DEBIT + 1 CREDIT with equal amounts,
+ * DOUBLE_ENTRY = balanced) and resolves the accounts, then routes the case
+ * to the workbench for approval (FIN_SINGLE_ENTRY_V2 / FIN_DOUBLE_ENTRY_V2).
+ */
+export const postingCaseApi = {
+  create: (flow: PostingFlow, posting_request: PostingCaseRequest) =>
+    api
+      .post<ApiSuccess<PostingCaseCreated>>("/api/finance/posting-cases", {
+        flow,
+        posting_request,
+      })
+      .then((res) => res.result),
 }
 
 export const postingApi = {

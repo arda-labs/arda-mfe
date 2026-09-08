@@ -32,6 +32,13 @@ export const remoteSharedDeps = {
   // mọi remote hiển thị tiền phải đi qua đây thay vì Intl inline.
   "@workspace/format": { singleton: true, requiredVersion: false },
   "@workspace/format/": { singleton: true, requiredVersion: false },
+  // Posting-flow shell (iteration 9): EPAS-style FAC layout + entry-lines grid
+  // + validate preview + account picker. Presentational and stateless (locale
+  // via props, transport qua callback) — thêm singleton ngay từ đầu để các
+  // remote tương lai (loan disbursement rework, các FAC screen còn lại) dùng
+  // chung 1 instance thay vì duplicate bundle mỗi remote.
+  "@workspace/posting-flow": { singleton: true, requiredVersion: false },
+  "@workspace/posting-flow/": { singleton: true, requiredVersion: false },
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
   // ToastContainer từ cùng instance — thiếu share = toast remote không hiện UI shell.
   "react-toastify": { singleton: true, requiredVersion: false },

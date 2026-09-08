@@ -80,6 +80,77 @@
       "errors": "Lỗi"
     }
   },
+  "posting": {
+    "single": {
+      "title": "Bút toán lẻ",
+      "init_title": "Tạo bút toán lẻ",
+      "business_type": "Bút toán lẻ (1 Nợ - 1 Có)"
+    },
+    "double": {
+      "title": "Bút toán kép",
+      "init_title": "Tạo bút toán kép",
+      "business_type": "Bút toán kép (N-N-C)"
+    },
+    "group": {
+      "transaction_info": "Thông tin giao dịch",
+      "control_info": "Thông tin kiểm soát",
+      "detail_lines": "Chi tiết bút toán"
+    },
+    "control": {
+      "unit": "Đơn vị",
+      "status": "Trạng thái",
+      "status_draft": "Chờ gửi duyệt",
+      "entered_at": "Ngày nhập",
+      "entered_by": "Người nhập"
+    },
+    "field": {
+      "business_type": "Loại nghiệp vụ",
+      "txn_date": "Ngày giao dịch",
+      "amount": "Số tiền"
+    },
+    "col": {
+      "direction": "Nợ/Có",
+      "account": "Tài khoản",
+      "account_name": "Tên tài khoản",
+      "amount": "Số tiền",
+      "description": "Diễn giải",
+      "document_code": "Mã chứng từ"
+    },
+    "action": {
+      "create": "Tạo bút toán",
+      "add_row": "Thêm dòng",
+      "delete_row": "Xóa dòng",
+      "submit": "Gửi bút toán"
+    },
+    "choose_account": "Chọn tài khoản",
+    "total_debit": "Tổng Nợ",
+    "total_credit": "Tổng Có",
+    "balanced": "Cân đối",
+    "not_balanced": "Chưa cân đối",
+    "placeholder": {
+      "description": "Diễn giải giao dịch..."
+    },
+    "account_dialog": {
+      "title": "Chọn tài khoản kế toán",
+      "search": "Tìm theo mã hoặc tên tài khoản...",
+      "empty": "Không có tài khoản phù hợp"
+    },
+    "preview": {
+      "run": "Kiểm tra bút toán",
+      "coa_version": "Phiên bản COA",
+      "stale": "Cần kiểm tra lại"
+    },
+    "validation": {
+      "date_required": "Cần ngày giao dịch hợp lệ",
+      "account_required": "Mỗi dòng bút toán phải có tài khoản",
+      "amount_required": "Số tiền mỗi dòng phải dương",
+      "not_balanced": "Tổng Nợ phải bằng Tổng Có"
+    },
+    "notify": {
+      "created": "Đã tạo bút toán {case_code}, chờ duyệt",
+      "create_failed": "Không thể tạo bút toán"
+    }
+  },
   "operation": {
     "title": "Cấu hình kế toán",
     "description": "Quản lý ánh xạ quy trình, phân loại tài khoản, mẫu bút toán và tài khoản phục vụ hạch toán.",

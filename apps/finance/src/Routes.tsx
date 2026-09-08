@@ -31,12 +31,38 @@ const JournalPage = lazyWithPreload(() =>
     default: m.JournalPage,
   }))
 )
+const SingleEntryPostingPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/single-entry/page").then((m) => ({
+    default: m.SingleEntryPostingPage,
+  }))
+)
+const SingleEntryPostingInitPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/single-entry/init").then((m) => ({
+    default: m.SingleEntryPostingInitPage,
+  }))
+)
+const DoubleEntryPostingPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/double-entry/page").then((m) => ({
+    default: m.DoubleEntryPostingPage,
+  }))
+)
+const DoubleEntryPostingInitPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/double-entry/init").then((m) => ({
+    default: m.DoubleEntryPostingInitPage,
+  }))
+)
 
 async function preload(pathname = "") {
   let page = AccountsPage
   if (pathname.startsWith("/finance/accounting-config")) page = AccountingConfigPage
   if (pathname.startsWith("/finance/trial-balance")) page = TrialBalancePage
   if (pathname.startsWith("/finance/journal")) page = JournalPage
+  // Posting init routes must match BEFORE the list prefix (both start with
+  // /finance/posting/<flow>).
+  if (pathname.startsWith("/finance/posting/single-entry/init")) page = SingleEntryPostingInitPage
+  else if (pathname.startsWith("/finance/posting/single-entry")) page = SingleEntryPostingPage
+  if (pathname.startsWith("/finance/posting/double-entry/init")) page = DoubleEntryPostingInitPage
+  else if (pathname.startsWith("/finance/posting/double-entry")) page = DoubleEntryPostingPage
   await page.preload()
 }
 
@@ -49,6 +75,17 @@ function RemoteRoutes() {
   }
   if (pathname.startsWith("/finance/trial-balance")) page = <TrialBalancePage />
   if (pathname.startsWith("/finance/journal")) page = <JournalPage pathname={pathname} />
+  // Init branches before list branches — same prefix, init is the longer path.
+  if (pathname.startsWith("/finance/posting/single-entry/init")) {
+    page = <SingleEntryPostingInitPage />
+  } else if (pathname.startsWith("/finance/posting/single-entry")) {
+    page = <SingleEntryPostingPage />
+  }
+  if (pathname.startsWith("/finance/posting/double-entry/init")) {
+    page = <DoubleEntryPostingInitPage />
+  } else if (pathname.startsWith("/finance/posting/double-entry")) {
+    page = <DoubleEntryPostingPage />
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">

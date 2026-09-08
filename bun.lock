@@ -230,6 +230,7 @@
         "@workspace/i18n": "workspace:*",
         "@workspace/list-page": "workspace:*",
         "@workspace/notifications": "workspace:*",
+        "@workspace/posting-flow": "workspace:*",
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
@@ -705,6 +706,22 @@
         "@types/node": "^24",
         "@types/react": "^19",
         "eslint": "^10",
+        "typescript": "~6",
+      },
+    },
+    "packages/posting-flow": {
+      "name": "@workspace/posting-flow",
+      "version": "0.0.0",
+      "dependencies": {
+        "@tanstack/react-query": "^5.90.0",
+        "@workspace/format": "workspace:*",
+        "@workspace/i18n": "workspace:*",
+        "@workspace/ui": "workspace:*",
+        "lucide-react": "^1.22.0",
+        "react": "^19.2.6",
+      },
+      "devDependencies": {
+        "@types/react": "^19",
         "typescript": "~6",
       },
     },
@@ -1399,6 +1416,8 @@
     "@workspace/media": ["@workspace/media@workspace:packages/media"],
 
     "@workspace/notifications": ["@workspace/notifications@workspace:packages/notifications"],
+
+    "@workspace/posting-flow": ["@workspace/posting-flow@workspace:packages/posting-flow"],
 
     "@workspace/query": ["@workspace/query@workspace:packages/query"],
 

@@ -80,6 +80,77 @@
       "errors": "Errors"
     }
   },
+  "posting": {
+    "single": {
+      "title": "Single-entry postings",
+      "init_title": "New single-entry posting",
+      "business_type": "Single entry (1 debit - 1 credit)"
+    },
+    "double": {
+      "title": "Double-entry postings",
+      "init_title": "New double-entry posting",
+      "business_type": "Double entry (1-N-N)"
+    },
+    "group": {
+      "transaction_info": "Transaction information",
+      "control_info": "Control information",
+      "detail_lines": "Posting lines"
+    },
+    "control": {
+      "unit": "Org unit",
+      "status": "Status",
+      "status_draft": "Pending submission",
+      "entered_at": "Entered on",
+      "entered_by": "Entered by"
+    },
+    "field": {
+      "business_type": "Business type",
+      "txn_date": "Transaction date",
+      "amount": "Amount"
+    },
+    "col": {
+      "direction": "Dr/Cr",
+      "account": "Account",
+      "account_name": "Account name",
+      "amount": "Amount",
+      "description": "Description",
+      "document_code": "Document code"
+    },
+    "action": {
+      "create": "New posting",
+      "add_row": "Add line",
+      "delete_row": "Delete line",
+      "submit": "Submit posting"
+    },
+    "choose_account": "Choose account",
+    "total_debit": "Total debit",
+    "total_credit": "Total credit",
+    "balanced": "Balanced",
+    "not_balanced": "Unbalanced",
+    "placeholder": {
+      "description": "Transaction description..."
+    },
+    "account_dialog": {
+      "title": "Choose a ledger account",
+      "search": "Search by account code or name...",
+      "empty": "No matching accounts"
+    },
+    "preview": {
+      "run": "Validate posting",
+      "coa_version": "COA version",
+      "stale": "Re-validate needed"
+    },
+    "validation": {
+      "date_required": "A valid transaction date is required",
+      "account_required": "Every posting line needs an account",
+      "amount_required": "Line amounts must be positive",
+      "not_balanced": "Total debit must equal total credit"
+    },
+    "notify": {
+      "created": "Posting case {case_code} created, pending approval",
+      "create_failed": "Could not create the posting case"
+    }
+  },
   "operation": {
     "title": "Accounting configuration",
     "description": "Manage process mappings, account classifications, posting definitions and accounts used for bookkeeping.",
