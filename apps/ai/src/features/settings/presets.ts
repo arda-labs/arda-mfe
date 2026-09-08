@@ -54,6 +54,18 @@ export const PRESETS: ProviderPreset[] = [
     models: ["llama3.2", "qwen2.5", "mistral", "deepseek-r1"],
   },
   {
+    id: "cf-ai-gateway",
+    name: "Cloudflare AI Gateway (Arda)",
+    baseUrl: "https://ai-gateway.arda.io.vn/compat/v1",
+    defaultModel: "custom-bai/glm-5.3-flash",
+    models: [
+      "custom-bai/glm-5.3-flash",
+      "workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      "workers-ai/@cf/qwen/qwen3-30b-a3b-fp8",
+      "workers-ai/@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
+    ],
+  },
+  {
     id: "custom",
     name: "Tùy chỉnh (OpenAI-compatible)",
     baseUrl: "",
