@@ -48,7 +48,16 @@ import {
 } from "react"
 import { useTheme } from "@workspace/theme"
 import { AuthLoadingScreen } from "./loading-screen"
-import { acceptHydraConsent, exchangeCode, redirectToHydraLogin } from "./oauth"
+import {
+  acceptHydraConsent,
+  clearLoginChallengeRemint,
+  exchangeCode,
+  canRemintLoginChallenge,
+  isExpiredLoginChallengeError,
+  markLoginChallengeRemint,
+  redirectToHydraLogin,
+  validateLoginChallenge,
+} from "./oauth"
 import { normalizeAuthUser, useAuthStore, type AuthUserSource } from "./store"
 
 function getSearch() {
@@ -81,6 +90,9 @@ export function LoginPage() {
   const [mfaOTPAuthURL, setMfaOTPAuthURL] = useState("")
   const [backupCodes, setBackupCodes] = useState<string[]>([])
   const [pendingRedirectURL, setPendingRedirectURL] = useState("")
+  const [challengeState, setChallengeState] = useState<
+    "checking" | "valid" | "stale"
+  >(() => (loginChallenge ? "checking" : "stale"))
   const isDarkMode =
     typeof document !== "undefined"
       ? document.documentElement.classList.contains("dark")
@@ -104,7 +116,31 @@ export function LoginPage() {
       redirectToHydraLogin()
   }, [loginChallenge, isAuthenticated, searchError])
 
+  useEffect(() => {
+    if (!loginChallenge || challengeState !== "checking") return
+    let cancelled = false
+    validateLoginChallenge(loginChallenge).then((valid) => {
+      if (cancelled) return
+      if (valid === false && canRemintLoginChallenge()) {
+        markLoginChallengeRemint()
+        redirectToHydraLogin()
+        return
+      }
+      // A confirmed-dead challenge with the remint guard exhausted goes to the
+      // retry screen; a transient validation failure fails open to the form,
+      // where submit-time recovery still covers staleness.
+      setChallengeState(valid === false ? "stale" : "valid")
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [loginChallenge, challengeState])
+
   if (!loginChallenge && !searchError) {
+    return <AuthLoadingScreen />
+  }
+
+  if (challengeState === "checking") {
     return <AuthLoadingScreen />
   }
 
@@ -159,9 +195,7 @@ export function LoginPage() {
         const err = await readJsonResponse(res, "auth.login.error.failed")
         const flowError = getKratosFlowError(err)
         if (flowError) throw new Error(flowError)
-        throw new Error(
-          err.error?.code ?? err.error ?? "auth.login.error.failed"
-        )
+        throw new Error(readProblemCode(err, "auth.login.error.failed"))
       }
       const loginResult = await readJsonResponse(res, "auth.login.error.failed")
       const flowError = getKratosFlowError(loginResult)
@@ -175,6 +209,14 @@ export function LoginPage() {
       )
       handleMFAResult(result, sessionToken)
     } catch (err) {
+      // The Hydra challenge is one-shot: consumed by a completed login
+      // (e.g. Back button) or expired while the form was open. Re-minting a
+      // fresh flow is seamless when the Kratos session already exists.
+      if (isExpiredLoginChallengeError(err) && canRemintLoginChallenge()) {
+        markLoginChallengeRemint()
+        redirectToHydraLogin()
+        return
+      }
       setError(translateApiError(err, "auth.login.error.failed"))
     } finally {
       setIsPending(false)
@@ -244,7 +286,8 @@ export function LoginPage() {
     )
   }
 
-  const showRetryButton = !loginChallenge && searchError
+  const showRetryButton =
+    challengeState === "stale" || (!loginChallenge && Boolean(searchError))
   const mfaSubmitDisabled = mfaEnrollmentRequired
     ? mfaCode.length !== 6
     : mfaRequired
@@ -331,7 +374,10 @@ export function LoginPage() {
                 configuration issues.
               </div>
               <Button
-                onClick={() => redirectToHydraLogin()}
+                onClick={() => {
+                  clearLoginChallengeRemint()
+                  redirectToHydraLogin()
+                }}
                 className="h-10 w-full font-semibold"
               >
                 Retry Secure Sign In
@@ -745,7 +791,7 @@ async function acceptKratosLogin(
   })
   if (!res.ok) {
     const err = await readJsonResponse(res, "auth.login.error.failed")
-    throw new Error(err.error?.code ?? err.error ?? "auth.login.error.failed")
+    throw new Error(readProblemCode(err, "auth.login.error.failed"))
   }
   const data = await readJsonResponse(res, "auth.login.error.failed")
   if (
@@ -766,4 +812,23 @@ async function readJsonResponse(res: Response, fallbackError: string) {
     throw new Error(fallbackError)
   }
   return res.json()
+}
+
+// BFF errors are RFC 7807 problem documents whose `code` carries the machine
+// code (e.g. login_challenge_expired); Kratos proxy errors nest under `error`.
+function readProblemCode(payload: unknown, fallback: string): string {
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>
+    if (typeof record.code === "string" && record.code) return record.code
+    const nested = record.error
+    if (typeof nested === "string" && nested) return nested
+    if (nested && typeof nested === "object") {
+      const nestedCode = (nested as Record<string, unknown>).code
+      if (typeof nestedCode === "string" && nestedCode) return nestedCode
+    }
+    if (typeof record.message === "string" && record.message) {
+      return record.message
+    }
+  }
+  return fallback
 }
