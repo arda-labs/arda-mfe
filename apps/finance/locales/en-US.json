@@ -226,6 +226,7 @@
       "from_date": "From date",
       "to_date": "To date",
       "col_type": "Type",
+      "col_amount": "Amount",
       "empty": "No matching transactions",
       "choose": "Pick"
     }

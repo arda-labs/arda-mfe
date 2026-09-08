@@ -226,6 +226,7 @@
       "from_date": "Từ ngày",
       "to_date": "Đến ngày",
       "col_type": "Loại",
+      "col_amount": "Số tiền",
       "empty": "Không có giao dịch phù hợp",
       "choose": "Chọn"
     }

@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { formatDateShort } from "@workspace/format"
+import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
 import type { ChooseTransactionDialogLabels, FetchTransactionsFn, TransactionOption } from "./types"
 
 const PAGE_SIZE = 8
@@ -184,6 +184,7 @@ function TransactionPickerContent({
               <TableHead className="w-28">{labels.colEntryNo}</TableHead>
               <TableHead className="w-28">{labels.colDate}</TableHead>
               <TableHead className="w-36">{labels.colType}</TableHead>
+              <TableHead className="w-32 text-right">{labels.colAmount}</TableHead>
               <TableHead>{labels.colDescription}</TableHead>
               <TableHead className="w-16 text-right" />
             </TableRow>
@@ -192,7 +193,7 @@ function TransactionPickerContent({
             {items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="py-6 text-center text-sm text-muted-foreground"
                 >
                   {isLoading ? "…" : labels.empty}
@@ -208,6 +209,11 @@ function TransactionPickerContent({
                     {formatDateShort(entry.accounting_date)}
                   </TableCell>
                   <TableCell className="text-xs">{typeLabel(entry.document_type)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-right text-xs tabular-nums">
+                    {entry.total_amount_minor !== undefined
+                      ? formatAmount(fromMinor(entry.total_amount_minor, entry.currency_code ?? "VND"), entry.currency_code ?? "VND")
+                      : "—"}
+                  </TableCell>
                   <TableCell className="max-w-64 truncate text-sm">{entry.description}</TableCell>
                   <TableCell className="text-right">
                     <Button

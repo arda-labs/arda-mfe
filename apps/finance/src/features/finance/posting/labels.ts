@@ -123,6 +123,7 @@ export function useChooseTransactionLabels(): ChooseTransactionDialogLabels {
     colEntryNo: t("finance.journal.field.entry_no"),
     colDate: t("finance.journal.field.accounting_date"),
     colType: t("finance.posting.choose_transaction.col_type"),
+    colAmount: t("finance.posting.choose_transaction.col_amount"),
     colDescription: t("finance.posting.col.description"),
     empty: t("finance.posting.choose_transaction.empty"),
     prev: t("common.action.prev"),

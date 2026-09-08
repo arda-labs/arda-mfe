@@ -227,6 +227,7 @@ export interface ChooseTransactionDialogLabels {
   colEntryNo: string
   colDate: string
   colType: string
+  colAmount: string
   colDescription: string
   empty: string
   prev: string
