@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
- * Audit: find i18n keys used via t("...") that are missing from any locale
- * JSON (app locales + packages/i18n namespaces), and hardcoded Vietnamese
- * literals in tsx/ts sources. Report-only; exit 0 always.
+ * i18n gate: fails (exit 1) when any t("...") key used in code is missing
+ * from every locale JSON (app locales + packages/i18n namespaces), or when
+ * a hardcoded Vietnamese literal remains in tsx/ts sources. Complements
+ * check-i18n.mjs, which only verifies en-US/vi-VN key parity.
+ * Baseline: known intentional leftovers are exempted below.
  */
 import { readdir, readFile } from "node:fs/promises"
 import { existsSync } from "node:fs"
@@ -50,6 +52,13 @@ async function walk(dir, out = []) {
   return out
 }
 
+// Domain data values persisted to the backend (not display strings) — translating
+// them would corrupt API payloads. Keyed by file path suffix.
+const VN_BASELINE_FILES = new Set([
+  "apps/crm/src/features/customers/schemas.ts",
+])
+
+let violations = 0
 for (const app of apps) {
   const appDir = path.join(appsDir, app)
   const viFile = path.join(appDir, "locales", "vi-VN.json")
@@ -76,12 +85,19 @@ for (const app of apps) {
       }
     }
     // skip comments naively: count only JSX/string literals lines containing VN text
+    const isBaselined = [...VN_BASELINE_FILES].some((suffix) =>
+      path
+        .relative(appDir, f)
+        .replace(/\\/g, "/")
+        .endsWith(suffix.replace(/^apps\/[^/]+\//, ""))
+    )
     const lines = s.split("\n")
     let cnt = 0
     lines.forEach((line, i) => {
       const t = line.trim()
       if (t.startsWith("//") || t.startsWith("*")) return
       if (vnLiteral.test(line) && (/["'`>]/.test(line))) {
+        if (isBaselined) return
         cnt++
         if (!hardVnFiles.has(path.relative(appDir, f))) hardVnFiles.set(path.relative(appDir, f), [])
         hardVnFiles.get(path.relative(appDir, f)).push(i + 1)
@@ -90,6 +106,7 @@ for (const app of apps) {
     hardVn += cnt
   }
   if (missing.size > 0 || hardVn > 0) {
+    violations += missing.size + hardVn
     console.log(`\n=== ${app} ===`)
     if (missing.size > 0) {
       console.log(`  MISSING KEYS (${missing.size}):`)
@@ -106,4 +123,8 @@ for (const app of apps) {
     }
   }
 }
-console.log("\n-- audit done --")
+if (violations > 0) {
+  console.log(`\n-- i18n audit FAILED: ${violations} violation(s) --`)
+  process.exit(1)
+}
+console.log("\n-- i18n audit OK: no missing t() keys, no hardcoded VN literals --")
