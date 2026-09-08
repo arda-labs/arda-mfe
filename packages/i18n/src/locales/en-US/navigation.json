@@ -29,6 +29,7 @@
     "transactions": "Transactions",
     "approvals": "Approvals",
     "trial_balance": "Trial Balance",
+    "statements": "Financial Statements",
     "accounting_config": "Accounting Configuration"
   },
   "hrm": {

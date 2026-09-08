@@ -29,6 +29,7 @@
     "transactions": "Giao dịch",
     "approvals": "Phê duyệt",
     "trial_balance": "Bảng cân đối thử",
+    "statements": "Báo cáo tài chính",
     "accounting_config": "Cấu hình kế toán"
   },
   "hrm": {

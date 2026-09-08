@@ -38,8 +38,7 @@ export const financeApi = {
   listAccounts: () =>
     api
       .get<ApiSuccess<{ accounts: Account[] }>>("/api/finance/accounts")
-      .then((res) => res.result),
-  /**
+      .then((res) => res.result),  /**
    * Server-tier account list: q ILIKEs code+name, sort whitelist
    * (code | name | created_at), page/per_page. The BE keeps the
    * `{ accounts: [...] }` result shape and adds page/per_page/total — this
@@ -80,6 +79,22 @@ export const financeApi = {
     return api
       .get<ApiSuccess<TrialBalanceResult>>(
         `/api/finance/trial-balance?${p.toString()}`
+      )
+      .then((res) => res.result)
+  },
+  // ── Statements (P3b) — fixed-format reports over fin_trial_balance_daily ──
+
+  listStatements: () =>
+    api
+      .get<ApiSuccess<{ statements: StatementSummary[] }>>(
+        "/api/finance/statements"
+      )
+      .then((res) => res.result.statements),
+  runStatement: (code: string, asOf?: string, coaVersion?: string) => {
+    const p = buildSearchParams({ as_of: asOf, coa_version: coaVersion })
+    return api
+      .get<ApiSuccess<StatementResult>>(
+        `/api/finance/statements/${encodeURIComponent(code)}/run?${p.toString()}`
       )
       .then((res) => res.result)
   },
@@ -210,6 +225,31 @@ export const postingCaseApi = {
         posting_request,
       })
       .then((res) => res.result),
+}
+
+export interface StatementSummary {
+  statement_code: string
+  row_count: number
+}
+
+/** One rendered statement line (fin_statement_formula row, evaluated). */
+export interface StatementRow {
+  row_code: string
+  parent_code?: string
+  label: string
+  level: number
+  sort_order: number
+  is_total: boolean
+  amount_minor: number
+  has_amount: boolean
+}
+
+export interface StatementResult {
+  tenant_id: string
+  statement_code: string
+  as_of: string
+  coa_version?: string
+  rows: StatementRow[]
 }
 
 export const postingApi = {

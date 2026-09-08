@@ -213,6 +213,11 @@ export const navItems: NavNode[] = [
         labelKey: "nav.finance.trial_balance",
         icon: LayoutDashboard,
       },
+      {
+        href: "/finance/statements",
+        labelKey: "nav.finance.statements",
+        icon: FileText,
+      },
     ],
   },
   {
