@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
@@ -10,6 +11,7 @@ import {
 import { fetchQuotas, saveQuotas, type DepartmentBudgetDTO } from "../api"
 
 export function BudgetQuotasTab() {
+  const { t } = useI18n()
   const [budgets, setBudgets] = useState<DepartmentBudgetDTO[]>([])
   const [webhookUrl, setWebhookUrl] = useState("")
   const [monthlyTokenLimit, setMonthlyTokenLimit] = useState(0)
@@ -51,9 +53,9 @@ export function BudgetQuotasTab() {
         webhookUrl,
         monthlyTokenLimit,
       })
-      notify.success("Đã lưu hạn mức ngân sách và giới hạn tốc độ (Rate Limits)!")
+      notify.success(t("ai.settings.quotas.toast.save_success"))
     } catch (err) {
-      notify.error("Không thể lưu cấu hình hạn mức", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.quotas.toast.save_failed"), err instanceof Error ? err.message : String(err))
     } finally {
       setSaving(false)
     }
@@ -67,18 +69,18 @@ export function BudgetQuotasTab() {
             <div className="flex items-center gap-2">
               <Wallet className="h-4 w-4 text-primary" />
               <CardTitle className="text-sm font-semibold">
-                Hạn mức Ngân sách theo Phòng ban (Monthly Department Budgets)
+                {t("ai.settings.quotas.budget.title")}
               </CardTitle>
             </div>
             <CardDescription className="text-xs">
-              Thiết lập ngân sách trần (Hard Cap) bằng USD cho từng bộ phận để ngăn ngừa rủi ro vượt ngưỡng chi phí
+              {t("ai.settings.quotas.budget.description")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-0 text-xs">
             <div className="space-y-3">
               {!loading && budgets.length === 0 && (
                 <p className="rounded-lg border border-dashed p-4 text-muted-foreground">
-                  Chưa có hạn mức phòng ban nào được cấu hình.
+                  {t("ai.settings.quotas.budget.empty")}
                 </p>
               )}
               {budgets.map((b) => {
@@ -107,7 +109,7 @@ export function BudgetQuotasTab() {
 
                     <div className="mt-2.5 space-y-1">
                       <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                        <span>Đã sử dụng trong kỳ</span>
+                        <span>{t("ai.settings.quotas.budget.used_label")}</span>
                         <span className={`font-mono font-medium ${isWarning ? "text-amber-600 font-bold" : ""}`}>
                           {percent}%
                         </span>
@@ -132,7 +134,7 @@ export function BudgetQuotasTab() {
 
             <div className="flex justify-end pt-2">
               <Button size="sm" onClick={handleSave}>
-                Lưu Hạn mức Ngân sách
+                {t("ai.settings.quotas.budget.save_btn")}
               </Button>
             </div>
           </CardContent>
@@ -143,32 +145,32 @@ export function BudgetQuotasTab() {
             <div className="flex items-center gap-2">
               <Gauge className="h-4 w-4 text-primary" />
               <CardTitle className="text-sm font-semibold">
-                Giới hạn Tốc độ (Rate Limiting)
+                {t("ai.settings.quotas.rate.title")}
               </CardTitle>
             </div>
             <CardDescription className="text-xs">
-              Chống nghẽn hạ tầng và lạm dụng API
+              {t("ai.settings.quotas.rate.description")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-0 text-xs">
             <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
-              <span className="font-semibold text-foreground">Hạn ngạch Toàn hệ thống (Global Limits)</span>
+              <span className="font-semibold text-foreground">{t("ai.settings.quotas.rate.global_limits")}</span>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <div className="rounded border bg-card p-2 text-center">
                   <div className="text-[10px] text-muted-foreground">Max RPM</div>
                   <div className="font-mono text-sm font-bold text-primary">—</div>
-                  <div className="text-[9px] text-muted-foreground">req / phút</div>
+                  <div className="text-[9px] text-muted-foreground">{t("ai.settings.quotas.rate.req_per_min")}</div>
                 </div>
                 <div className="rounded border bg-card p-2 text-center">
                   <div className="text-[10px] text-muted-foreground">Max TPM</div>
                   <div className="font-mono text-sm font-bold text-primary">—</div>
-                  <div className="text-[9px] text-muted-foreground">token / phút</div>
+                  <div className="text-[9px] text-muted-foreground">{t("ai.settings.quotas.rate.token_per_min")}</div>
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-medium text-foreground">Hạn mức token theo tháng (0 = không giới hạn)</label>
+              <label className="font-medium text-foreground">{t("ai.settings.quotas.rate.monthly_token_label")}</label>
               <Input
                 type="number"
                 min={0}
@@ -178,10 +180,13 @@ export function BudgetQuotasTab() {
               />
               {monthlyTokenLimit > 0 && (
                 <p className="text-[10px] text-muted-foreground">
-                  Đã dùng {tokensUsed.toLocaleString()} / {monthlyTokenLimit.toLocaleString()} token trong kỳ hiện tại.
+                  {t("ai.settings.quotas.rate.token_usage", {
+                    used: tokensUsed.toLocaleString(),
+                    limit: monthlyTokenLimit.toLocaleString(),
+                  })}
                 </p>
               )}
-              <label className="font-medium text-foreground">Webhook Cảnh báo khi chạm 80% hạn mức</label>
+              <label className="font-medium text-foreground">{t("ai.settings.quotas.rate.webhook_label")}</label>
               <Input
                 className="h-8 text-xs font-mono"
                 value={webhookUrl}
@@ -189,13 +194,13 @@ export function BudgetQuotasTab() {
                 placeholder="https://hooks.slack.com/..."
               />
               <p className="text-[10px] text-muted-foreground">
-                Gửi thông báo tức thời qua Slack hoặc Microsoft Teams khi một phòng ban sắp hết ngân sách AI.
+                {t("ai.settings.quotas.rate.webhook_hint")}
               </p>
             </div>
 
             <div className="flex justify-end pt-3">
               <Button size="sm" className="text-xs" disabled={saving} onClick={handleSave}>
-                {saving ? "Đang lưu..." : "Lưu Hạn mức & Ngân sách"}
+                {saving ? t("common.action.saving") : t("ai.settings.quotas.rate.save_btn")}
               </Button>
             </div>
           </CardContent>

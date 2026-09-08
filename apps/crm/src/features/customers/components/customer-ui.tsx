@@ -41,12 +41,13 @@ export function FieldGrid({
   form: UseFormReturn<CustomerFormValues>
   bare?: boolean
 }) {
+  const { t } = useI18n()
   const content = (
     <>
       {fields.map(([name, label, type]) => (
         <FormField
           key={name}
-          label={label}
+          label={t(label)}
           error={form.formState.errors[name]?.message}
         >
           {type === "select" ? (
@@ -66,7 +67,7 @@ export function FieldGrid({
                   <SelectContent>
                     {optionsFor(name).map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {t(option.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>

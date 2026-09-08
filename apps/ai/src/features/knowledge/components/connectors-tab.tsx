@@ -26,52 +26,59 @@ import {
 } from "lucide-react"
 import { type DataConnector, knowledgeApi } from "../api"
 
-const DEFAULT_CONNECTORS: DataConnector[] = [
-  {
-    id: "conn-gdrive-hr",
-    name: "Google Drive - Sổ tay Nhân sự & Chính sách",
-    provider: "google_drive",
-    targetSource: "Quy chế & Chế độ đãi ngộ 2026",
-    syncSchedule: "Hourly (Mỗi giờ)",
-    status: "synced",
-    lastSyncAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-    docCount: 18,
-    totalChunks: 342,
-  },
-  {
-    id: "conn-confluence-eng",
-    name: "Confluence - Kiến trúc Kỹ thuật & SOP",
-    provider: "confluence",
-    targetSource: "Arda Technical Architecture & Standards",
-    syncSchedule: "Real-time Webhook",
-    status: "synced",
-    lastSyncAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    docCount: 45,
-    totalChunks: 1120,
-  },
-  {
-    id: "conn-s3-raw",
-    name: "Garage S3 - Tài liệu PDF Hợp đồng & Pháp lý",
-    provider: "s3_bucket",
-    targetSource: "Kho Lưu trữ Hợp đồng Kinh doanh",
-    syncSchedule: "Daily at 02:00 AM",
-    status: "synced",
-    lastSyncAt: new Date(Date.now() - 14 * 3600 * 1000).toISOString(),
-    docCount: 82,
-    totalChunks: 2450,
-  },
-  {
-    id: "conn-sharepoint-sales",
-    name: "SharePoint - Báo giá & Hồ sơ Năng lực",
-    provider: "sharepoint",
-    targetSource: "Sales Collateral & Price Books",
-    syncSchedule: "Every 6 Hours",
-    status: "synced",
-    lastSyncAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    docCount: 29,
-    totalChunks: 615,
-  },
-]
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
+
+function buildDefaultConnectors(t: TranslateFn): DataConnector[] {
+  return [
+    {
+      id: "conn-gdrive-hr",
+      name: t("ai.knowledge.connectors.defaults.gdrive_hr_name"),
+      provider: "google_drive",
+      targetSource: t("ai.knowledge.connectors.defaults.gdrive_hr_target"),
+      syncSchedule: "Hourly",
+      status: "synced",
+      lastSyncAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+      docCount: 18,
+      totalChunks: 342,
+    },
+    {
+      id: "conn-confluence-eng",
+      name: t("ai.knowledge.connectors.defaults.confluence_eng_name"),
+      provider: "confluence",
+      targetSource: "Arda Technical Architecture & Standards",
+      syncSchedule: "Real-time Webhook",
+      status: "synced",
+      lastSyncAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      docCount: 45,
+      totalChunks: 1120,
+    },
+    {
+      id: "conn-s3-raw",
+      name: t("ai.knowledge.connectors.defaults.s3_raw_name"),
+      provider: "s3_bucket",
+      targetSource: t("ai.knowledge.connectors.defaults.s3_raw_target"),
+      syncSchedule: "Daily at 02:00 AM",
+      status: "synced",
+      lastSyncAt: new Date(Date.now() - 14 * 3600 * 1000).toISOString(),
+      docCount: 82,
+      totalChunks: 2450,
+    },
+    {
+      id: "conn-sharepoint-sales",
+      name: t("ai.knowledge.connectors.defaults.sharepoint_sales_name"),
+      provider: "sharepoint",
+      targetSource: "Sales Collateral & Price Books",
+      syncSchedule: "Every 6 Hours",
+      status: "synced",
+      lastSyncAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+      docCount: 29,
+      totalChunks: 615,
+    },
+  ]
+}
 
 function getProviderIcon(provider: DataConnector["provider"]) {
   switch (provider) {
@@ -107,7 +114,9 @@ function getProviderName(provider: DataConnector["provider"]) {
 
 export function ConnectorsTab() {
   const { t, formatDate } = useI18n()
-  const [connectors, setConnectors] = useState<DataConnector[]>(DEFAULT_CONNECTORS)
+  const [connectors, setConnectors] = useState<DataConnector[]>(() =>
+    buildDefaultConnectors(t)
+  )
   const [syncingId, setSyncingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
@@ -252,56 +261,56 @@ export function ConnectorsTab() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
           <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-            <span>Đường dẫn Kết nối (Pipelines)</span>
+            <span>{t("ai.knowledge.connectors.kpi.pipelines")}</span>
             <Status variant="success">
               <StatusIndicator />
-              <StatusLabel>Hoạt động</StatusLabel>
+              <StatusLabel>{t("ai.knowledge.connectors.kpi.active")}</StatusLabel>
             </Status>
           </div>
           <div className="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground">
             {connectors.length}
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Đồng bộ tự động định kỳ
+            {t("ai.knowledge.connectors.kpi.pipelines_hint")}
           </p>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
           <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-            <span>Tài liệu Đã nạp (Ingested)</span>
+            <span>{t("ai.knowledge.connectors.kpi.docs_ingested")}</span>
             <FileCheck2 className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground">
             {totalDocs}
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Tập tin được lập chỉ mục đầy đủ
+            {t("ai.knowledge.connectors.kpi.docs_hint")}
           </p>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
           <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-            <span>Vector Chunks Tạo ra</span>
+            <span>{t("ai.knowledge.connectors.kpi.chunks")}</span>
             <Layers className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground">
             {totalChunks.toLocaleString()}
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Chỉ mục HNSW pgvector
+            {t("ai.knowledge.connectors.kpi.chunks_hint")}
           </p>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-3.5 shadow-2xs">
           <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-            <span>Chu kỳ Đồng bộ</span>
+            <span>{t("ai.knowledge.connectors.kpi.schedule")}</span>
             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <div className="mt-2 font-mono text-lg font-bold text-foreground">
             Real-time + Hourly
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Tự động kích hoạt qua Webhook
+            {t("ai.knowledge.connectors.kpi.schedule_hint")}
           </p>
         </div>
       </div>
@@ -328,7 +337,7 @@ export function ConnectorsTab() {
                         {c.name}
                       </h4>
                       <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <span>Kho lưu trữ đích: <strong className="text-foreground">{c.targetSource}</strong></span>
+                        <span>{t("ai.knowledge.connectors.field.target_source_prefix")} <strong className="text-foreground">{c.targetSource}</strong></span>
                       </div>
                     </div>
                   </div>
@@ -342,17 +351,17 @@ export function ConnectorsTab() {
                 {/* Tabular Telemetry specs */}
                 <div className="divide-y divide-border/60 rounded-md border border-border/70 bg-background/50 text-[11px]">
                   <div className="flex items-center justify-between px-2.5 py-1.5">
-                    <span className="text-muted-foreground">Nhà cung cấp hạ tầng:</span>
+                    <span className="text-muted-foreground">{t("ai.knowledge.connectors.field.infra_provider")}</span>
                     <span className="font-medium text-foreground">{getProviderName(c.provider)}</span>
                   </div>
                   <div className="flex items-center justify-between px-2.5 py-1.5">
-                    <span className="text-muted-foreground">Khối lượng dữ liệu:</span>
+                    <span className="text-muted-foreground">{t("ai.knowledge.connectors.field.data_volume")}</span>
                     <span className="font-mono font-medium text-foreground text-[10.5px]">
-                      {c.docCount} tài liệu • {c.totalChunks.toLocaleString()} chunks
+                      {t("ai.knowledge.connectors.field.docs_chunks_stat", { docs: c.docCount, chunks: c.totalChunks.toLocaleString() })}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-2.5 py-1.5">
-                    <span className="text-muted-foreground">Lần đồng bộ gần nhất:</span>
+                    <span className="text-muted-foreground">{t("ai.knowledge.connectors.field.last_sync_prefix")}</span>
                     <span className="font-mono text-[10.5px] text-foreground">
                       {formatDate(c.lastSyncAt, { dateStyle: "short", timeStyle: "short" })}
                     </span>
@@ -372,7 +381,7 @@ export function ConnectorsTab() {
                     className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
                     onClick={() => handleDeleteConnector(c.id)}
                     disabled={deletingId === c.id}
-                    title="Xóa connector"
+                    title={t("ai.knowledge.connectors.btn.delete_title")}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -410,7 +419,7 @@ export function ConnectorsTab() {
               <label className="font-medium">{t("ai.knowledge.connectors.field.name")}</label>
               <Input
                 className="mt-1 h-8 text-xs"
-                placeholder="VD: Google Drive Marketing SOPs"
+                placeholder={t("ai.knowledge.connectors.placeholder.name")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -434,7 +443,7 @@ export function ConnectorsTab() {
               <label className="font-medium">{t("ai.knowledge.connectors.field.target_source")}</label>
               <Input
                 className="mt-1 h-8 text-xs"
-                placeholder="VD: Sổ tay & Hướng dẫn Vận hành 2026"
+                placeholder={t("ai.knowledge.connectors.placeholder.target_source")}
                 value={targetSource}
                 onChange={(e) => setTargetSource(e.target.value)}
               />
@@ -447,9 +456,9 @@ export function ConnectorsTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Real-time Webhook">Real-time (Webhook Trigger)</SelectItem>
-                  <SelectItem value="Hourly">Hourly (Mỗi giờ)</SelectItem>
-                  <SelectItem value="Every 6 Hours">Every 6 Hours (Mỗi 6 tiếng)</SelectItem>
-                  <SelectItem value="Daily at 02:00 AM">Daily at 02:00 AM (Hàng ngày lúc 2 giờ sáng)</SelectItem>
+                  <SelectItem value="Hourly">{t("ai.knowledge.connectors.schedule.hourly")}</SelectItem>
+                  <SelectItem value="Every 6 Hours">{t("ai.knowledge.connectors.schedule.every_6h")}</SelectItem>
+                  <SelectItem value="Daily at 02:00 AM">{t("ai.knowledge.connectors.schedule.daily_2am")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

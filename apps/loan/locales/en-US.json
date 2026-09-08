@@ -37,19 +37,37 @@
     "title": "Collections",
     "description": "Principal + interest receipts per agreement; submitted through the workbench — the posting is journaled automatically after approval.",
     "create": "New collection",
+    "dialog_description": "Collect principal + interest per disbursement agreement. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
+    "created_draft": "Collection created (DRAFT)",
+    "create_failed": "Failed to create the collection",
     "field": {
+      "contract": "Credit contract (ACTIVE)",
       "principal": "Principal",
       "interest": "Interest",
       "collection_date": "Collection date"
+    },
+    "validation": {
+      "contract_required": "Select a contract and enter the disbursement agreement code",
+      "amounts_positive": "Principal or interest must be positive"
     }
   },
   "disbursements": {
     "title": "Disbursements",
     "description": "Create drawdown requests, submit through the workbench; after approval the entry posts to the ledger automatically.",
     "create": "New disbursement",
+    "dialog_description": "Pick an ACTIVE contract and enter the disbursement amount. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
+    "created_draft": "Disbursement created (DRAFT)",
+    "create_failed": "Failed to create the disbursement",
     "field": {
+      "contract": "Credit contract (ACTIVE)",
       "amount": "Disbursement amount",
+      "amount_short": "Amount",
+      "currency": "Currency",
       "disburse_date": "Disbursement date"
+    },
+    "validation": {
+      "contract_required": "Select a contract and enter the amount",
+      "amount_positive": "Amount must be positive"
     }
   },
   "kind": {
@@ -125,7 +143,9 @@
   "dialog_description": "The contract is submitted into the multi-level formation case.",
   "placeholder": {
     "search": "Search...",
-    "product": "Select product"
+    "product": "Select product",
+    "select": "— select —",
+    "agreement": "e.g. AG-2026-001"
   },
   "validation": {
     "required": "Contract code and customer are required",

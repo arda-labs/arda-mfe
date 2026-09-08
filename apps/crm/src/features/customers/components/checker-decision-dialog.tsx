@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,19 +18,17 @@ export type CheckerDecision = "APPROVE" | "REQUEST_CHANGES" | "REJECT"
 
 const decisionCopy: Record<
   Exclude<CheckerDecision, "APPROVE">,
-  { title: string; description: string; confirm: string; destructive?: boolean }
+  { titleKey: string; descriptionKey: string; confirmKey: string; destructive?: boolean }
 > = {
   REQUEST_CHANGES: {
-    title: "Yêu cầu chỉnh sửa",
-    description:
-      "Maker sẽ nhận thông báo in-app và phải bổ sung hồ sơ trước khi gửi lại.",
-    confirm: "Gửi yêu cầu chỉnh sửa",
+    titleKey: "crm.customers.checker.request_changes_title",
+    descriptionKey: "crm.customers.checker.request_changes_description",
+    confirmKey: "crm.customers.checker.request_changes_confirm",
   },
   REJECT: {
-    title: "Từ chối đăng ký",
-    description:
-      "Hồ sơ sẽ bị hủy (REJECTED). Maker nhận thông báo; không thể chỉnh sửa tiếp trên case này.",
-    confirm: "Xác nhận từ chối",
+    titleKey: "crm.customers.checker.reject_title",
+    descriptionKey: "crm.customers.checker.reject_description",
+    confirmKey: "crm.customers.checker.reject_confirm",
     destructive: true,
   },
 }
@@ -48,6 +47,7 @@ export function CheckerDecisionDialog({
   onConfirm: (comment: string) => void
 }) {
   const [comment, setComment] = useState("")
+  const { t } = useI18n()
   const copy = decision ? decisionCopy[decision] : null
   const trimmed = comment.trim()
 
@@ -65,27 +65,32 @@ export function CheckerDecisionDialog({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{copy?.title}</AlertDialogTitle>
-          <AlertDialogDescription>{copy?.description}</AlertDialogDescription>
+          <AlertDialogTitle>{copy ? t(copy.titleKey) : ""}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {copy ? t(copy.descriptionKey) : ""}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex flex-col gap-2">
           <label
             className="text-sm font-medium"
             htmlFor="checker-review-comment"
           >
-            Lý do <span className="text-destructive">*</span>
+            {t("crm.customers.checker.reason_label")}{" "}
+            <span className="text-destructive">*</span>
           </label>
           <Textarea
             id="checker-review-comment"
             rows={4}
             value={comment}
             disabled={submitting}
-            placeholder="Nhập lý do để maker hiểu cần sửa gì..."
+            placeholder={t("crm.customers.checker.reason_placeholder")}
             onChange={(e) => setComment(e.target.value)}
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Hủy</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>
+            {t("crm.customers.checker.cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             disabled={submitting || !trimmed}
             className={cn(
@@ -97,7 +102,7 @@ export function CheckerDecisionDialog({
               onConfirm(trimmed)
             }}
           >
-            {copy?.confirm}
+            {copy ? t(copy.confirmKey) : ""}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

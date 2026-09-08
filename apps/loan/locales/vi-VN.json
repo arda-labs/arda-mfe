@@ -37,19 +37,37 @@
     "title": "Thu nợ",
     "description": "Thu gốc + lãi theo hợp đồng giải ngân; trình duyệt qua workbench — duyệt xong bút toán tự post.",
     "create": "Thêm thu nợ",
+    "dialog_description": "Thu gốc + lãi theo hợp đồng giải ngân. Sau khi tạo, trình duyệt qua workbench — duyệt xong bút toán tự post.",
+    "created_draft": "Đã tạo phiếu thu nợ (DRAFT)",
+    "create_failed": "Không thể tạo thu nợ",
     "field": {
+      "contract": "Hợp đồng tín dụng (ACTIVE)",
       "principal": "Thu gốc",
       "interest": "Thu lãi",
       "collection_date": "Ngày thu"
+    },
+    "validation": {
+      "contract_required": "Chọn hợp đồng và nhập mã hợp đồng giải ngân",
+      "amounts_positive": "Gốc hoặc lãi phải dương"
     }
   },
   "disbursements": {
     "title": "Giải ngân",
     "description": "Tạo phiếu giải ngân, trình duyệt qua workbench; duyệt xong bút toán tự post vào kế toán.",
     "create": "Thêm giải ngân",
+    "dialog_description": "Chọn hợp đồng ACTIVE, nhập số tiền giải ngân. Sau khi tạo, trình duyệt qua workbench — duyệt xong bút toán tự post.",
+    "created_draft": "Đã tạo phiếu giải ngân (DRAFT)",
+    "create_failed": "Không thể tạo giải ngân",
     "field": {
+      "contract": "Hợp đồng tín dụng (ACTIVE)",
       "amount": "Số tiền giải ngân",
+      "amount_short": "Số tiền",
+      "currency": "Loại tiền",
       "disburse_date": "Ngày giải ngân"
+    },
+    "validation": {
+      "contract_required": "Chọn hợp đồng và nhập số tiền",
+      "amount_positive": "Số tiền phải dương"
     }
   },
   "kind": {
@@ -125,7 +143,9 @@
   "dialog_description": "Hợp đồng sẽ được trình vào case hình thành khoản vay đa cấp.",
   "placeholder": {
     "search": "Tìm...",
-    "product": "Chọn sản phẩm"
+    "product": "Chọn sản phẩm",
+    "select": "— chọn —",
+    "agreement": "VD: AG-2026-001"
   },
   "validation": {
     "required": "Mã hợp đồng và khách hàng là bắt buộc",

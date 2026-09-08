@@ -6,6 +6,7 @@ import {
   matchTextColumnFilter,
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
+import type { TFn } from "../shared/admin-ui"
 import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
@@ -31,10 +32,10 @@ import {
 
 const DEFAULT_PAGE_SIZE = 10
 
-function subsystemLabel(value: string) {
+function subsystemLabel(value: string, t: TFn) {
   return (
-    businessSubsystemOptions.find((option) => option.value === value)?.label ??
-    value
+    businessSubsystemOptions(t).find((option) => option.value === value)
+      ?.label ?? value
   )
 }
 
@@ -85,7 +86,7 @@ export function DescriptionTemplatesPage() {
             label={t("workflow.description_templates.col_subsystem")}
           />
         ),
-        cell: ({ row }) => subsystemLabel(row.original.businessSubsystem),
+        cell: ({ row }) => subsystemLabel(row.original.businessSubsystem, t),
       },
       {
         id: "case_type",
@@ -200,7 +201,7 @@ export function DescriptionTemplatesPage() {
 
   const dialogProps = {
     caseTypeOptions,
-    subsystemOptions: businessSubsystemOptions,
+    subsystemOptions: businessSubsystemOptions(t),
     onSaved: () => void templateQuery.refetch(),
   }
 

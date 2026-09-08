@@ -8,39 +8,46 @@ import { Input } from "@workspace/ui/components/input"
 import { Globe, Plus, Server, CheckCircle2, AlertCircle } from "lucide-react"
 import type { MCPServer } from "../types"
 
-const DEFAULT_MCP_SERVERS: MCPServer[] = [
-  {
-    id: "postgres-mcp",
-    name: "PostgreSQL Database MCP",
-    endpoint: "http://postgres-mcp.platform.svc:8080/sse",
-    protocol: "sse",
-    status: "connected",
-    toolsCount: 8,
-    description: "Cho phép Agent thực thi câu lệnh SQL có kiểm soát và tra cứu schema CSDL.",
-  },
-  {
-    id: "garage-s3-mcp",
-    name: "Garage S3 Storage MCP",
-    endpoint: "http://garage.platform.svc:3900/mcp",
-    protocol: "http",
-    status: "connected",
-    toolsCount: 4,
-    description: "Tích hợp lưu trữ tệp, tạo presigned URL và đọc siêu dữ liệu tài liệu.",
-  },
-  {
-    id: "zeebe-bpm-mcp",
-    name: "Zeebe Workflow Orchestrator MCP",
-    endpoint: "http://zeebe.platform.svc:26500/mcp",
-    protocol: "sse",
-    status: "connected",
-    toolsCount: 6,
-    description: "Khởi động và theo dõi các tiến trình nghiệp vụ Camunda Zeebe qua Agent.",
-  },
-]
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
+
+function buildDefaultServers(t: TranslateFn): MCPServer[] {
+  return [
+    {
+      id: "postgres-mcp",
+      name: "PostgreSQL Database MCP",
+      endpoint: "http://postgres-mcp.platform.svc:8080/sse",
+      protocol: "sse",
+      status: "connected",
+      toolsCount: 8,
+      description: t("ai.tools.mcp.defaults.postgres_description"),
+    },
+    {
+      id: "garage-s3-mcp",
+      name: "Garage S3 Storage MCP",
+      endpoint: "http://garage.platform.svc:3900/mcp",
+      protocol: "http",
+      status: "connected",
+      toolsCount: 4,
+      description: t("ai.tools.mcp.defaults.s3_description"),
+    },
+    {
+      id: "zeebe-bpm-mcp",
+      name: "Zeebe Workflow Orchestrator MCP",
+      endpoint: "http://zeebe.platform.svc:26500/mcp",
+      protocol: "sse",
+      status: "connected",
+      toolsCount: 6,
+      description: t("ai.tools.mcp.defaults.zeebe_description"),
+    },
+  ]
+}
 
 export function MCPServerTab() {
   const { t } = useI18n()
-  const [servers, setServers] = useState<MCPServer[]>(DEFAULT_MCP_SERVERS)
+  const [servers, setServers] = useState<MCPServer[]>(() => buildDefaultServers(t))
   const [addOpen, setAddOpen] = useState(false)
   const [name, setName] = useState("")
   const [endpoint, setEndpoint] = useState("")
@@ -152,7 +159,7 @@ export function MCPServerTab() {
               <label className="text-xs font-medium">{t("ai.tools.mcp.field.name")}</label>
               <Input
                 className="mt-1"
-                placeholder="VD: Elasticsearch MCP"
+                placeholder={t("ai.tools.mcp.placeholder.name")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -170,7 +177,7 @@ export function MCPServerTab() {
               <label className="text-xs font-medium">{t("ai.tools.mcp.field.description")}</label>
               <Input
                 className="mt-1"
-                placeholder="Mô tả chức năng máy chủ MCP..."
+                placeholder={t("ai.tools.mcp.placeholder.description")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />

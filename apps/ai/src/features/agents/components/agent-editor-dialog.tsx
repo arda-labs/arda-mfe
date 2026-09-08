@@ -112,7 +112,7 @@ export function AgentEditorDialog({
               <label className="font-medium text-foreground">{t("ai.agents.field.name")}</label>
               <Input
                 className="mt-1 h-8 text-xs"
-                placeholder="VD: HR Recruiter Assistant"
+                placeholder={t("ai.agents.placeholder.name")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -141,7 +141,7 @@ export function AgentEditorDialog({
             <label className="font-medium text-foreground">{t("ai.agents.field.description")}</label>
             <Input
               className="mt-1 h-8 text-xs"
-              placeholder="Mô tả mục đích và vai trò của Agent..."
+              placeholder={t("ai.agents.placeholder.description")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -152,7 +152,7 @@ export function AgentEditorDialog({
             <Textarea
               className="mt-1 font-mono text-xs leading-relaxed"
               rows={4}
-              placeholder="Nhập System Prompt định hình Persona của Agent..."
+              placeholder={t("ai.agents.placeholder.system_prompt")}
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
             />

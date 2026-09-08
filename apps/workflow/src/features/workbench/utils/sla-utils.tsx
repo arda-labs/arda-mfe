@@ -1,5 +1,8 @@
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import { formatDateTime } from "./step-labels"
+
+type TFn = ReturnType<typeof useI18n>["t"]
 
 type SlaStatusValue = "NONE" | "MET" | "WARNING" | "BREACHED" | undefined
 
@@ -10,7 +13,8 @@ export function SlaStatus({
   dueAt?: string
   status?: SlaStatusValue
 }) {
-  const sla = slaInfo(dueAt, status)
+  const { t } = useI18n()
+  const sla = slaInfo(dueAt, status, t)
   const [detailPrimary, detailSecondary] = splitSlaDetail(sla.detail)
   return (
     <div className="space-y-1">
@@ -42,54 +46,57 @@ function splitSlaDetail(detail: string) {
 
 type BadgeVariant = "default" | "secondary" | "outline" | "destructive"
 
-const statusMeta: Record<
+const statusMeta = (
+  t: TFn
+): Record<
   string,
   { label: string; variant: BadgeVariant; className: string }
-> = {
+> => ({
   SUBMITTED: {
-    label: "Đã gửi",
+    label: t("workflow.workbench.status_submitted"),
     variant: "secondary",
     className: "bg-sky-50 text-sky-700 border-sky-200",
   },
   IN_REVIEW: {
-    label: "Đang xử lý",
+    label: t("workflow.workbench.status_in_review"),
     variant: "secondary",
     className: "bg-amber-50 text-amber-700 border-amber-200",
   },
   COMPLETED: {
-    label: "Hoàn tất",
+    label: t("workflow.workbench.status_completed"),
     variant: "default",
     className: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
   APPROVED: {
-    label: "Đã duyệt",
+    label: t("workflow.workbench.status_approved"),
     variant: "default",
     className: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
   REJECTED: {
-    label: "Từ chối",
+    label: t("workflow.workbench.status_rejected"),
     variant: "destructive",
     className: "bg-red-50 text-red-700 border-red-200",
   },
   FAILED: {
-    label: "Thất bại",
+    label: t("workflow.workbench.status_failed"),
     variant: "destructive",
     className: "bg-red-50 text-red-700 border-red-200",
   },
   DRAFT: {
-    label: "Nháp",
+    label: t("workflow.workbench.status_draft"),
     variant: "secondary",
     className: "bg-slate-50 text-slate-600 border-slate-200",
   },
   ACTIVE: {
-    label: "Đang hoạt động",
+    label: t("workflow.workbench.status_active"),
     variant: "default",
     className: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
-}
+})
 
 export function StatusBadge({ status }: { status: string }) {
-  const meta = statusMeta[status] ?? {
+  const { t } = useI18n()
+  const meta = statusMeta(t)[status] ?? {
     label: status,
     variant: "outline" as BadgeVariant,
     className: "border-border text-muted-foreground",
@@ -116,9 +123,10 @@ export function TimeProgress({
     slaDueAt?: string
   }
 }) {
+  const { t } = useI18n()
   const sla =
     item.slaDueAt && item.slaStatus !== "NONE"
-      ? slaInfo(item.slaDueAt, item.slaStatus)
+      ? slaInfo(item.slaDueAt, item.slaStatus, t)
       : null
 
   const progress = calcProgress(item.createdAt, item.slaDueAt, item.slaStatus)
@@ -150,20 +158,22 @@ export function TimeProgress({
           <p className="text-[10px] leading-tight text-muted-foreground tabular-nums">
             {formatDate(item.createdAt)}
           </p>
-          <p className="mt-0.5 text-[9px] text-muted-foreground/60">Bắt đầu</p>
+          <p className="mt-0.5 text-[9px] text-muted-foreground/60">
+            {t("workflow.workbench.start_label")}
+          </p>
         </div>
 
         {/* SLA duration */}
         {item.createdAt && item.slaDueAt ? (
           <div className="shrink-0 text-center">
             <span className="inline-flex items-center rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px] leading-none font-medium text-foreground tabular-nums">
-              {slaDurationLabel(item.createdAt, item.slaDueAt)}
+              {slaDurationLabel(item.createdAt, item.slaDueAt, t)}
             </span>
           </div>
         ) : (
           <div className="shrink-0 text-center">
             <span className="inline-flex items-center rounded-md bg-muted/30 px-1.5 py-0.5 text-[11px] text-muted-foreground">
-              Chưa có SLA
+              {t("workflow.workbench.no_sla")}
             </span>
           </div>
         )}
@@ -177,7 +187,7 @@ export function TimeProgress({
             {formatDate(item.slaDueAt)}
           </p>
           <p className="mt-0.5 text-[9px] text-muted-foreground/60">
-            Hạn xử lý
+            {t("workflow.workbench.due_label")}
           </p>
         </div>
       </div>
@@ -218,16 +228,17 @@ function formatDate(value?: string) {
   })
 }
 
-function slaDurationLabel(createdAt: string, slaDueAt: string) {
+function slaDurationLabel(createdAt: string, slaDueAt: string, t: TFn) {
   const start = new Date(createdAt).getTime()
   const end = new Date(slaDueAt).getTime()
   if (Number.isNaN(start) || Number.isNaN(end)) return "-"
-  return durationLabel(Math.max(0, end - start))
+  return durationLabel(Math.max(0, end - start), t)
 }
 
 export function slaInfo(
   dueAt?: string,
-  status?: SlaStatusValue
+  status?: SlaStatusValue,
+  t: TFn = (key) => key
 ): {
   label: string
   detail: string
@@ -236,7 +247,7 @@ export function slaInfo(
 } {
   if (!dueAt || status === "NONE") {
     return {
-      label: "Chưa có SLA",
+      label: t("workflow.workbench.no_sla"),
       detail: "",
       className: "text-muted-foreground bg-muted/30 border border-transparent",
       dotColor: "bg-muted-foreground/40",
@@ -254,36 +265,60 @@ export function slaInfo(
   const diffMs = due.getTime() - Date.now()
   if (diffMs < 0 || status === "BREACHED") {
     return {
-      label: "Quá hạn",
-      detail: `${durationLabel(-diffMs)} trước · ${formatDateTime(dueAt)}`,
+      label: t("workflow.workbench.sla_overdue"),
+      detail: formatSlaDetail(
+        t,
+        "workflow.workbench.sla_overdue_ago",
+        -diffMs,
+        dueAt
+      ),
       className: "text-red-700 bg-red-50 border border-red-200",
       dotColor: "bg-red-500",
     }
   }
   if (diffMs <= 2 * 60 * 60 * 1000) {
     return {
-      label: "Sắp hết hạn",
-      detail: `Còn ${durationLabel(diffMs)} · ${formatDateTime(dueAt)}`,
+      label: t("workflow.workbench.sla_expiring"),
+      detail: formatSlaDetail(
+        t,
+        "workflow.workbench.sla_remaining",
+        diffMs,
+        dueAt
+      ),
       className: "text-amber-700 bg-amber-50 border border-amber-200",
       dotColor: "bg-amber-500",
     }
   }
   return {
-    label: "Trong hạn",
-    detail: `Còn ${durationLabel(diffMs)} · ${formatDateTime(dueAt)}`,
+    label: t("workflow.workbench.sla_in_time"),
+    detail: formatSlaDetail(
+      t,
+      "workflow.workbench.sla_remaining",
+      diffMs,
+      dueAt
+    ),
     className: "text-emerald-700 bg-emerald-50 border border-emerald-200",
     dotColor: "bg-emerald-500",
   }
 }
 
-function durationLabel(ms: number) {
+function formatSlaDetail(t: TFn, key: string, ms: number, dueAt: string) {
+  const duration = durationLabel(ms, t)
+  return t(key, { duration, datetime: formatDateTime(dueAt) })
+}
+
+function durationLabel(ms: number, t: TFn) {
   const minutes = Math.max(1, Math.ceil(ms / 60000))
   const days = Math.floor(minutes / 1440)
   const hours = Math.floor((minutes % 1440) / 60)
   const mins = minutes % 60
   const parts: string[] = []
-  if (days) parts.push(`${days} ngày`)
-  if (hours) parts.push(`${hours} giờ`)
-  if (mins || parts.length === 0) parts.push(`${mins || minutes} phút`)
+  if (days) parts.push(t("workflow.workbench.duration_days", { count: days }))
+  if (hours)
+    parts.push(t("workflow.workbench.duration_hours", { count: hours }))
+  if (mins || parts.length === 0)
+    parts.push(
+      t("workflow.workbench.duration_minutes", { count: mins || minutes })
+    )
   return parts.join(" ")
 }

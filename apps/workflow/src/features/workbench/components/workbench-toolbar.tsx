@@ -63,22 +63,22 @@ export function WorkbenchToolbar({
         <DatePopover
           value={filters.fromDate ?? undefined}
           onChange={(v) => setFilter("fromDate", v ?? null)}
-          label="Từ ngày"
+          label={t("workflow.workbench.filter_from_date")}
         />
         <DatePopover
           value={filters.toDate ?? undefined}
           onChange={(v) => setFilter("toDate", v ?? null)}
-          label="Đến ngày"
+          label={t("workflow.workbench.filter_to_date")}
         />
         {presets.includes("accounting") && (
           <SelectPopover
             value={filters.accounting ?? undefined}
             onChange={(v) => setFilter("accounting", v || null)}
-            label="Loại hạch toán"
+            label={t("workflow.workbench.filter_accounting")}
             options={[
-              { label: "Tất cả", value: "" },
-              { label: "Có hạch toán", value: "POSTED" },
-              { label: "Không hạch toán", value: "NOT_POSTED" },
+              { label: t("workflow.workbench.accounting_all"), value: "" },
+              { label: t("workflow.workbench.accounting_posted"), value: "POSTED" },
+              { label: t("workflow.workbench.accounting_not_posted"), value: "NOT_POSTED" },
             ]}
           />
         )}
@@ -86,11 +86,11 @@ export function WorkbenchToolbar({
           <SelectPopover
             value={filters.slaStatus ?? undefined}
             onChange={(v) => setFilter("slaStatus", v || null)}
-            label="Trạng thái SLA"
+            label={t("workflow.workbench.filter_sla_status")}
             options={[
-              { label: "Tất cả", value: "" },
-              { label: "Đạt SLA", value: "MET" },
-              { label: "Không đạt SLA", value: "BREACHED" },
+              { label: t("workflow.workbench.sla_all"), value: "" },
+              { label: t("workflow.workbench.sla_met"), value: "MET" },
+              { label: t("workflow.workbench.sla_breached"), value: "BREACHED" },
             ]}
           />
         )}
@@ -98,13 +98,13 @@ export function WorkbenchToolbar({
           <SelectPopover
             value={filters.transactionStatus ?? undefined}
             onChange={(v) => setFilter("transactionStatus", v || null)}
-            label="Trạng thái giao dịch"
+            label={t("workflow.workbench.filter_transaction_status")}
             options={[
-              { label: "Tất cả", value: "" },
-              { label: "Đã gửi", value: "SUBMITTED" },
-              { label: "Đang xử lý", value: "IN_REVIEW" },
-              { label: "Hoàn tất", value: "COMPLETED" },
-              { label: "Từ chối", value: "REJECTED" },
+              { label: t("workflow.workbench.accounting_all"), value: "" },
+              { label: t("workflow.workbench.status_submitted"), value: "SUBMITTED" },
+              { label: t("workflow.workbench.status_in_review"), value: "IN_REVIEW" },
+              { label: t("workflow.workbench.status_completed"), value: "COMPLETED" },
+              { label: t("workflow.workbench.status_rejected"), value: "REJECTED" },
             ]}
           />
         )}
@@ -116,7 +116,7 @@ export function WorkbenchToolbar({
             onClick={clearAll}
           >
             <XCircle className="size-3.5" />
-            Xoá bộ lọc
+            {t("workflow.workbench.filter_clear")}
           </Button>
         )}
       </div>
@@ -125,7 +125,7 @@ export function WorkbenchToolbar({
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {resultCount !== undefined ? (
           <span className="font-medium tabular-nums">
-            {resultCount} kết quả
+            {t("workflow.workbench.result_count", { count: resultCount })}
           </span>
         ) : null}
         {Object.entries(filters)
@@ -135,7 +135,7 @@ export function WorkbenchToolbar({
               key={key}
               className="inline-flex items-center gap-1 rounded-full border bg-muted/50 px-2 py-0.5 text-[10px] font-medium"
             >
-              {filterLabel(key, value as string)}
+              {filterLabel(key, value as string, t)}
               <button
                 type="button"
                 className="ml-0.5 hover:text-foreground"
@@ -150,21 +150,31 @@ export function WorkbenchToolbar({
   )
 }
 
-function filterLabel(key: string, value: string) {
+function filterLabel(
+  key: string,
+  value: string,
+  t: ReturnType<typeof useI18n>["t"]
+) {
   const labels: Record<string, string> = {
-    keyword: `Từ khóa: ${value}`,
-    fromDate: `Từ: ${value}`,
-    toDate: `Đến: ${value}`,
-    accounting: value === "POSTED" ? "Có hạch toán" : "Không hạch toán",
-    slaStatus: value === "MET" ? "Đạt SLA" : "Không đạt SLA",
+    keyword: t("workflow.workbench.filter_keyword", { value }),
+    fromDate: t("workflow.workbench.filter_from", { value }),
+    toDate: t("workflow.workbench.filter_to", { value }),
+    accounting:
+      value === "POSTED"
+        ? t("workflow.workbench.filter_accounting_posted")
+        : t("workflow.workbench.filter_accounting_not_posted"),
+    slaStatus:
+      value === "MET"
+        ? t("workflow.workbench.filter_sla_met")
+        : t("workflow.workbench.filter_sla_breached"),
     transactionStatus:
       value === "SUBMITTED"
-        ? "Đã gửi"
+        ? t("workflow.workbench.status_submitted")
         : value === "IN_REVIEW"
-          ? "Đang xử lý"
+          ? t("workflow.workbench.status_in_review")
           : value === "COMPLETED"
-            ? "Hoàn tất"
-            : "Từ chối",
+            ? t("workflow.workbench.status_completed")
+            : t("workflow.workbench.status_rejected"),
   }
   return labels[key] ?? value
 }

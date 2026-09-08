@@ -2,6 +2,7 @@ import { useState } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import type { WorkItemSummaryNode } from "../api"
 
 export function WorkItemTree({
@@ -13,9 +14,16 @@ export function WorkItemTree({
   activeNode: string
   onSelect: (node: string) => void
 }) {
+  const { t } = useI18n()
   const visibleNodes = nodes.length
     ? nodes
-    : [{ id: "ALL", label: "Tất cả việc được phép nhận", count: 0 }]
+    : [
+        {
+          id: "ALL",
+          label: t("workflow.workbench.tree_all_tasks"),
+          count: 0,
+        },
+      ]
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>(
     {}
   )
@@ -28,7 +36,11 @@ export function WorkItemTree({
   }
 
   return (
-    <div className="space-y-0.5" role="tree" aria-label="Loại nghiệp vụ">
+    <div
+      className="space-y-0.5"
+      role="tree"
+      aria-label={t("workflow.workbench.tree_business_type")}
+    >
       {visibleNodes.map((node) => (
         <WorkItemTreeNode
           key={node.id}
@@ -59,6 +71,7 @@ function WorkItemTreeNode({
   onToggle: (nodeId: string) => void
   onSelect: (nodeId: string) => void
 }) {
+  const { t } = useI18n()
   const children = node.children ?? []
   const hasChildren = children.length > 0
   const isExpanded = expandedNodes[node.id] ?? false
@@ -82,7 +95,11 @@ function WorkItemTreeNode({
           <button
             type="button"
             className="flex size-7 shrink-0 items-center justify-center rounded-md"
-            aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
+            aria-label={
+              isExpanded
+                ? t("workflow.workbench.tree_collapse")
+                : t("workflow.workbench.tree_expand")
+            }
             aria-expanded={isExpanded}
             onClick={() => onToggle(node.id)}
           >

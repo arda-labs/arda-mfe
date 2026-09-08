@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import type { FieldPath, PathValue, UseFormReturn } from "react-hook-form"
 import {
   platformReferenceApi,
@@ -18,6 +19,7 @@ export function GeoLocationFields<T extends GeoFormValues>({
 }: {
   form: UseFormReturn<T>
 }) {
+  const { t } = useI18n()
   const provincePath = "provinceCode" as FieldPath<T>
   const wardPath = "wardCode" as FieldPath<T>
   const areaPath = "areaCode" as FieldPath<T>
@@ -121,8 +123,8 @@ export function GeoLocationFields<T extends GeoFormValues>({
       <SearchSelectField
         control={form.control}
         name={provincePath}
-        label="Tỉnh/Thành phố"
-        placeholder="Chọn tỉnh, thành phố"
+        label={t("crm.customers.geo.province_label")}
+        placeholder={t("crm.customers.geo.province_placeholder")}
         options={provinceOptions}
         loading={provincesLoading}
         error={
@@ -132,9 +134,11 @@ export function GeoLocationFields<T extends GeoFormValues>({
       <SearchSelectField
         control={form.control}
         name={wardPath}
-        label="Phường/Xã"
+        label={t("crm.customers.geo.ward_label")}
         placeholder={
-          provinceCode ? "Chọn phường, xã" : "Chọn tỉnh/thành phố trước"
+          provinceCode
+            ? t("crm.customers.geo.ward_placeholder")
+            : t("crm.customers.geo.ward_need_province")
         }
         options={wardOptions}
         disabled={!provinceCode}
@@ -144,8 +148,12 @@ export function GeoLocationFields<T extends GeoFormValues>({
       <SearchSelectField
         control={form.control}
         name={areaPath}
-        label="Khu vực"
-        placeholder={wardCode ? "Chọn khu vực" : "Chọn phường/xã trước"}
+        label={t("crm.customers.geo.area_label")}
+        placeholder={
+          wardCode
+            ? t("crm.customers.geo.area_placeholder")
+            : t("crm.customers.geo.area_need_ward")
+        }
         options={areaOptions}
         disabled={!wardCode}
         loading={Boolean(wardCode) && areasLoading}

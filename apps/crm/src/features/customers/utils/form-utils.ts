@@ -4,6 +4,7 @@ import {
   defaultValues,
   selectOptions,
   type CustomerFormValues,
+  type TFunction,
 } from "../schemas"
 
 function mutationErrorMessage(error: unknown) {
@@ -228,14 +229,23 @@ export function stringValue(value: unknown) {
   return typeof value === "string" ? value : ""
 }
 
-export function customerTypeLabel(value: CustomerType) {
-  return value === "BUSINESS" ? "Doanh nghiệp" : "Cá nhân"
+export function customerTypeLabel(
+  value: CustomerType,
+  t?: TFunction
+) {
+  const key =
+    value === "BUSINESS"
+      ? "crm.customers.options.customer_type_business"
+      : "crm.customers.options.customer_type_personal"
+  return t ? t(key) : value === "BUSINESS" ? "Doanh nghiệp" : "Cá nhân"
 }
 
-export function relationLabel(value: string) {
-  return (
-    selectOptions.relation.find((item) => item.value === value)?.label ?? value
-  )
+export function relationLabel(value: string, t?: TFunction) {
+  const label = selectOptions.relation.find(
+    (item) => item.value === value
+  )?.label
+  if (!label) return value
+  return t ? t(label) : label
 }
 
 export function toAmendmentSnapshot(

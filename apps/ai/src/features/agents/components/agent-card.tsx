@@ -48,10 +48,10 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
 
   const tempLabel =
     agent.temperature <= 0.2
-      ? "Nghiêm ngặt (Deterministic)"
+      ? t("ai.agents.temp.strict")
       : agent.temperature <= 0.5
-      ? "Cân bằng (Balanced)"
-      : "Linh hoạt (Adaptive)"
+      ? t("ai.agents.temp.balanced")
+      : t("ai.agents.temp.adaptive")
 
   return (
     <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 transition-all duration-150 hover:border-border/80 hover:shadow-xs">
@@ -68,7 +68,7 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
               </h4>
               <div className="mt-0.5 flex items-center gap-2">
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  Phân hệ: <strong className="text-foreground">{agent.department}</strong>
+                  {t("ai.agents.card.department_label")}: <strong className="text-foreground">{agent.department}</strong>
                 </span>
               </div>
             </div>
@@ -76,20 +76,20 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
 
           <Status variant="success" className="text-[10px]">
             <StatusIndicator />
-            <StatusLabel>Sẵn sàng</StatusLabel>
+            <StatusLabel>{t("ai.agents.card.status_ready")}</StatusLabel>
           </Status>
         </div>
 
         {/* Description */}
         <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-          {agent.description || "Cấu hình chỉ thị tự động hóa cho bộ phận."}
+          {agent.description || t("ai.agents.card.default_description")}
         </p>
 
         {/* System Directive Monospace Box */}
         <div className="rounded-md border border-border/70 bg-muted/30 p-2 text-[11px]">
           <div className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
             <FileText className="h-3 w-3" />
-            Chỉ thị Hệ thống (System Prompt)
+            {t("ai.agents.card.system_prompt_label")}
           </div>
           <p className="font-mono text-[10.5px] text-foreground/90 line-clamp-2 leading-relaxed">
             "{agent.systemPrompt}"
@@ -101,7 +101,7 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
           <div className="flex items-center justify-between px-2.5 py-1.5">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Cpu className="h-3 w-3" />
-              Mô hình thực thi:
+              {t("ai.agents.card.model_label")}
             </span>
             <span className="font-mono font-medium text-foreground text-[10.5px]">
               {agent.modelId}
@@ -111,7 +111,7 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
           <div className="flex items-center justify-between px-2.5 py-1.5">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <SlidersHorizontal className="h-3 w-3" />
-              Nhiệt độ (Temperature):
+              {t("ai.agents.card.temperature_label")}
             </span>
             <span className="font-mono font-medium text-foreground text-[10.5px]">
               {agent.temperature.toFixed(2)} ({tempLabel})
@@ -121,12 +121,12 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
           <div className="flex items-center justify-between px-2.5 py-1.5">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Wrench className="h-3 w-3" />
-              Quyền hạn công cụ:
+              {t("ai.agents.card.tools_label")}
             </span>
             <span className="font-mono font-medium text-foreground text-[10.5px]">
               {agent.allowedTools.includes("*")
-                ? "Toàn quyền (Unrestricted)"
-                : `${agent.allowedTools.length} công cụ gán quyền`}
+                ? t("ai.agents.card.tools_unrestricted")
+                : t("ai.agents.card.tools_count", { count: agent.allowedTools.length })}
             </span>
           </div>
         </div>
@@ -149,7 +149,7 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
             })}
             {agent.allowedTools.length > 4 && (
               <span className="font-mono text-[9.5px] text-muted-foreground">
-                +{agent.allowedTools.length - 4} khác
+                {t("ai.agents.card.more_tools", { count: agent.allowedTools.length - 4 })}
               </span>
             )}
           </div>
@@ -166,7 +166,7 @@ export function AgentCard({ agent, onEdit, onDelete }: AgentCardProps) {
             onClick={() => onDelete(agent.id)}
           >
             <Trash2 className="h-3.5 w-3.5 mr-1" />
-            {t("common.delete")}
+            {t("common.action.delete")}
           </Button>
         )}
         <Button

@@ -48,5 +48,55 @@
       "business_domain": "Domain",
       "description": "Description"
     }
+  },
+  "posting_preview": {
+    "title": "Posting preview",
+    "description": "Resolves both lines against the COA and checks balance — nothing is posted. Actual posting goes through PostingService when the case is approved.",
+    "validate_failed": "Failed to validate the posting",
+    "resolving": "Resolving...",
+    "action": "Preview",
+    "validation": {
+      "date_amount": "A valid accounting date and a positive amount are required"
+    },
+    "field": {
+      "document_type": "Doc. type",
+      "accounting_date": "Acc. date",
+      "amount": "Amount",
+      "currency": "Currency",
+      "debit_classification": "Classification (Debit)",
+      "credit_classification": "Classification (Credit)",
+      "contract": "Contract",
+      "org_unit": "Org unit"
+    },
+    "result": {
+      "valid": "Valid",
+      "invalid": "Errors",
+      "unresolved": "Unresolved"
+    },
+    "col": {
+      "direction": "Dr/Cr",
+      "account": "Account",
+      "amount": "Amount",
+      "errors": "Errors"
+    }
+  },
+  "operation": {
+    "title": "Accounting configuration",
+    "description": "Manage process mappings, account classifications, posting definitions and accounts used for bookkeeping.",
+    "empty": "No configuration in this group.",
+    "tab": {
+      "process": "Process config",
+      "classification": "Classifications",
+      "journal": "Posting definitions",
+      "regulatory": "Regulatory accounts",
+      "internal": "Internal accounts"
+    },
+    "col": {
+      "code": "Code",
+      "name": "Business name",
+      "owner": "Owner",
+      "status": "Status",
+      "updated": "Updated"
+    }
   }
 }

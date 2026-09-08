@@ -32,6 +32,7 @@ import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { useDataTable } from "@workspace/list-page/use-data-table"
 import type { ColumnDef, Row } from "@tanstack/react-table"
 import { notify } from "@workspace/ui/feedback/notify"
+import { useI18n } from "@workspace/i18n"
 import type {
   ElementInstanceStat,
   IncidentState,
@@ -95,6 +96,7 @@ async function downloadDefinition(item: WorkflowProcessDefinition) {
 }
 
 export function ProcessMonitoringPage() {
+  const { t } = useI18n()
   const [cases, setCases] = useState<WorkflowCase[]>([])
   const [caseTypes, setCaseTypes] = useState<WorkflowCaseType[]>([])
   const [definitions, setDefinitions] = useState<WorkflowProcessDefinition[]>(
@@ -221,10 +223,10 @@ export function ProcessMonitoringPage() {
     setDeployPending(id)
     try {
       await workflowApi.deployProcessDefinition(id)
-      notify.success("Đã deploy quy trình lên Zeebe")
+      notify.success(t("workflow.process_monitoring.deploy_success"))
     } catch (err) {
       notify.error(
-        "Deploy thất bại",
+        t("workflow.process_monitoring.deploy_failed"),
         err instanceof Error ? err.message : undefined
       )
     } finally {
@@ -267,7 +269,7 @@ export function ProcessMonitoringPage() {
     () => [
       {
         id: "name",
-        header: "Mã quy trình",
+        header: t("workflow.process_monitoring.col_process_code"),
         cell: ({ row }) => (
           <div>
             <button
@@ -299,7 +301,7 @@ export function ProcessMonitoringPage() {
       },
       {
         id: "status",
-        header: "Trạng thái",
+        header: t("workflow.process_monitoring.col_status"),
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
@@ -315,7 +317,7 @@ export function ProcessMonitoringPage() {
                 size="icon"
                 variant="ghost"
                 className="size-7"
-                title="Sửa BPMN"
+                title={t("workflow.process_monitoring.edit_bpmn_title")}
                 onClick={() => setUpdatingDefinition(item)}
               >
                 <FileUp className="size-3.5" />
@@ -334,11 +336,11 @@ export function ProcessMonitoringPage() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setViewingDefinition(item)}>
                     <Eye className="mr-2 size-3.5" />
-                    Xem BPMN
+                    {t("workflow.process_monitoring.menu_view_bpmn")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => downloadDefinition(item)}>
                     <Download className="mr-2 size-3.5" />
-                    Tải XML
+                    {t("workflow.process_monitoring.menu_download_xml")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -346,7 +348,7 @@ export function ProcessMonitoringPage() {
                     onClick={() => void handleDeploy(item.id)}
                   >
                     <Rocket className="mr-2 size-3.5" />
-                    Deploy lên Zeebe
+                    {t("workflow.process_monitoring.menu_deploy")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -355,7 +357,7 @@ export function ProcessMonitoringPage() {
                     onClick={() => setDeleteTarget(item)}
                   >
                     <Trash2 className="mr-2 size-3.5" />
-                    Xóa
+                    {t("workflow.process_monitoring.menu_delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -364,7 +366,7 @@ export function ProcessMonitoringPage() {
         },
       },
     ],
-    [deployPending, saving]
+    [deployPending, saving, t]
   )
 
   const { table } = useDataTable({
@@ -404,7 +406,7 @@ export function ProcessMonitoringPage() {
               onClick={() => setViewingDefinition(monitorDef)}
             >
               <FileUp className="size-4" />
-              Sửa BPMN
+              {t("workflow.process_monitoring.monitor_edit_bpmn")}
             </Button>
             <Button
               type="button"
@@ -413,7 +415,7 @@ export function ProcessMonitoringPage() {
               onClick={() => void loadPrimary()}
             >
               <RefreshCw className="size-4" />
-              Làm mới
+              {t("workflow.process_monitoring.monitor_refresh")}
             </Button>
           </div>
         </div>
@@ -448,9 +450,9 @@ export function ProcessMonitoringPage() {
   return (
     <>
       <ListPageShell
-        title="Giám sát quy trình"
+        title={t("workflow.process_monitoring.title")}
         totalRows={definitions.length}
-        meta={<Badge variant="outline">{definitions.length} định nghĩa</Badge>}
+        meta={<Badge variant="outline">{t("workflow.process_monitoring.definitions_count", { count: definitions.length })}</Badge>}
         actions={
           <Button type="button" size="sm" onClick={() => setImportOpen(true)}>
             <FileUp className="mr-1 size-4" />
@@ -469,23 +471,26 @@ export function ProcessMonitoringPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">Tất cả ({definitions.length})</option>
+              <option value="all">{t("workflow.process_monitoring.filter_all", { count: definitions.length })}</option>
               <option value="ACTIVE">
-                Đang áp dụng (
-                {definitions.filter((d) => d.status === "ACTIVE").length})
+                {t("workflow.process_monitoring.filter_active", {
+                  count: definitions.filter((d) => d.status === "ACTIVE").length,
+                })}
               </option>
               <option value="DRAFT">
-                Bản nháp (
-                {definitions.filter((d) => d.status === "DRAFT").length})
+                {t("workflow.process_monitoring.filter_draft", {
+                  count: definitions.filter((d) => d.status === "DRAFT").length,
+                })}
               </option>
               <option value="INACTIVE">
-                Ngừng áp dụng (
-                {definitions.filter((d) => d.status === "INACTIVE").length})
+                {t("workflow.process_monitoring.filter_inactive", {
+                  count: definitions.filter((d) => d.status === "INACTIVE").length,
+                })}
               </option>
             </select>
             <input
               className="h-8 w-40 rounded-md border border-input bg-background px-2 text-xs placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none"
-              placeholder="Tìm quy trình..."
+              placeholder={t("workflow.process_monitoring.search_placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -524,22 +529,23 @@ export function ProcessMonitoringPage() {
             >
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Xóa định nghĩa quy trình?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("workflow.process_monitoring.delete_confirm_title")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Định nghĩa "{deleteTarget?.name}" sẽ bị xóa khỏi danh sách
-                    quản trị.
+                    {t("workflow.process_monitoring.delete_confirm_description", {
+                      name: deleteTarget?.name ?? "",
+                    })}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel disabled={saving != null}>
-                    Hủy
+                    {t("workflow.process_monitoring.delete_cancel")}
                   </AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     disabled={saving != null}
                     onClick={confirmDelete}
                   >
-                    Xóa
+                    {t("workflow.process_monitoring.delete_action")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

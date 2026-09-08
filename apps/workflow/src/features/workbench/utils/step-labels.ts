@@ -1,23 +1,37 @@
-export function stepLabel(value: string) {
-  const labels: Record<string, string> = {
-    submitted: "Đã khởi tạo",
-    Activity_CheckerReview: "Phê duyệt hồ sơ khách hàng",
-    Activity_MakerRevise: "Chỉnh sửa hồ sơ",
-    Activity_RiskReview: "Rà soát rủi ro khách hàng",
-    Activity_ApproveCustomer: "Kích hoạt hồ sơ khách hàng",
-    "classify-account": "Phân loại tài khoản",
-    "approve-journal": "Duyệt bút toán",
-    "verify-beneficiary": "Kiểm tra người nhận",
-    "workflow.finance_incoming_classify": "Phân loại giao dịch đến",
-    "workflow.finance_incoming_approve": "Duyệt giao dịch đến",
-    "workflow.finance_outgoing_verify": "Kiểm tra giao dịch đi",
-    "workflow.finance_outgoing_approve": "Duyệt giao dịch đi",
-    "workflow.customer_checker_review": "Phê duyệt hồ sơ khách hàng",
-    "workflow.customer_maker_revise": "Chỉnh sửa hồ sơ",
-    "workflow.hrm_registration_review": "Kiểm tra hồ sơ nhân sự",
-    "workflow.hrm_registration_approve": "Phê duyệt tiếp nhận nhân sự",
-  }
-  return labels[value] ?? value
+/**
+ * Static step-code to i18n-key map. Translations live under
+ * workflow.workbench.step_* in the app locales; pass t to translate.
+ */
+const stepKeys: Record<string, string> = {
+  submitted: "workflow.workbench.step_submitted",
+  Activity_CheckerReview: "workflow.workbench.step_activity_checker_review",
+  Activity_MakerRevise: "workflow.workbench.step_activity_maker_revise",
+  Activity_RiskReview: "workflow.workbench.step_activity_risk_review",
+  Activity_ApproveCustomer: "workflow.workbench.step_activity_approve_customer",
+  "classify-account": "workflow.workbench.step_classify_account",
+  "approve-journal": "workflow.workbench.step_approve_journal",
+  "verify-beneficiary": "workflow.workbench.step_verify_beneficiary",
+  "workflow.finance_incoming_classify":
+    "workflow.workbench.step_finance_incoming_classify",
+  "workflow.finance_incoming_approve":
+    "workflow.workbench.step_finance_incoming_approve",
+  "workflow.finance_outgoing_verify":
+    "workflow.workbench.step_finance_outgoing_verify",
+  "workflow.finance_outgoing_approve":
+    "workflow.workbench.step_finance_outgoing_approve",
+  "workflow.customer_checker_review":
+    "workflow.workbench.step_customer_checker_review",
+  "workflow.customer_maker_revise":
+    "workflow.workbench.step_customer_maker_revise",
+  "workflow.hrm_registration_review":
+    "workflow.workbench.step_hrm_registration_review",
+  "workflow.hrm_registration_approve":
+    "workflow.workbench.step_hrm_registration_approve",
+}
+
+export function stepLabel(value: string, t?: TFn) {
+  const key = stepKeys[value]
+  return key && t ? t(key) : value
 }
 
 export function formatDateTime(value?: string) {
@@ -47,14 +61,16 @@ export function previousAssignee(item: {
   previousAssignedTo?: string
   previousAssignedToName?: string
   variables?: Record<string, unknown>
-}) {
+}): string | undefined {
   if (item.previousAssignedToName) return item.previousAssignedToName
   if (item.previousAssignedTo) return item.previousAssignedTo
   const variables = item.variables ?? {}
   const value = variables.previousAssignee ?? variables.previousAssignedTo
-  return typeof value === "string" && value ? value : "Chưa có"
+  return typeof value === "string" && value ? value : undefined
 }
 
-export function stepLabelOrDefault(value: string) {
-  return stepLabel(value)
+export function stepLabelOrDefault(value: string, t?: TFn) {
+  return stepLabel(value, t)
 }
+
+type TFn = (key: string, params?: Record<string, string | number>) => string

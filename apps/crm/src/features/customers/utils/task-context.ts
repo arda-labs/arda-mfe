@@ -8,6 +8,7 @@ import {
   type WorkflowTaskRole,
   type WorkflowWorkItem,
 } from "../../api"
+import type { TFunction } from "../schemas"
 
 export type CustomerTaskContext = {
   customerId: string | null
@@ -57,7 +58,8 @@ export function syncTaskContextSearch(updates: {
 
 export async function resolveWorkflowJobKey(
   context: CustomerTaskContext,
-  customerStatus?: Customer["status"]
+  customerStatus: Customer["status"] | undefined,
+  t: TFunction
 ): Promise<{
   jobKey: string
   processInstanceKey: string
@@ -66,8 +68,8 @@ export async function resolveWorkflowJobKey(
 } | null> {
   if (!context.processInstanceKey) {
     notify.error(
-      "Thiếu ngữ cảnh task BPM",
-      "Không có processInstanceKey — mở lại việc từ workbench."
+      t("crm.customers.workflow.task_context_missing_title"),
+      t("crm.customers.workflow.task_context_missing_process")
     )
     return null
   }
@@ -78,8 +80,8 @@ export async function resolveWorkflowJobKey(
   )
   if (!elementId) {
     notify.error(
-      "Thiếu ngữ cảnh task BPM",
-      "Không xác định được bước BPM (elementId)."
+      t("crm.customers.workflow.task_context_missing_title"),
+      t("crm.customers.workflow.task_context_missing_element")
     )
     return null
   }
@@ -107,8 +109,8 @@ export async function resolveWorkflowJobKey(
       const jobKey = workflowKey(task.jobKey)
       if (!jobKey) {
         notify.error(
-          "Thiếu ngữ cảnh task BPM",
-          "Không lấy được task key từ Zeebe — kiểm tra workflow-service và Zeebe."
+          t("crm.customers.workflow.task_context_missing_title"),
+          t("crm.customers.workflow.task_context_missing_job_key")
         )
         return null
       }
@@ -129,10 +131,10 @@ export async function resolveWorkflowJobKey(
       // Only show error on last attempt; earlier retries are expected to fail
       if (attempt === 2) {
         notify.error(
-          "Thiếu ngữ cảnh task BPM",
+          t("crm.customers.workflow.task_context_missing_title"),
           error instanceof Error
             ? error.message
-            : "Không claim được task từ workflow."
+            : t("crm.customers.workflow.task_context_claim_failed")
         )
       }
     }

@@ -64,11 +64,11 @@ export function CollectionCreateDialog({
     const principalMinor = toMinor(parseMoneyInput(form.principal) ?? 0, form.currency_code)
     const interestMinor = toMinor(parseMoneyInput(form.interest) ?? 0, form.currency_code)
     if (!form.contract_code || !form.agreement_code) {
-      notify.error("Chọn hợp đồng và nhập mã hợp đồng giải ngân")
+      notify.error(t("loan.collections.validation.contract_required"))
       return
     }
     if (principalMinor <= 0 && interestMinor <= 0) {
-      notify.error("Gốc hoặc lãi phải dương")
+      notify.error(t("loan.collections.validation.amounts_positive"))
       return
     }
     setSavePending(true)
@@ -81,12 +81,12 @@ export function CollectionCreateDialog({
         interest_minor: interestMinor,
         currency_code: form.currency_code,
       })
-      notify.success("Đã tạo phiếu thu nợ (DRAFT)")
+      notify.success(t("loan.collections.created_draft"))
       onOpenChange(false)
       setForm({ ...emptyForm, collection_date: todayISO() })
       await onSaved()
     } catch (error) {
-      notify.error(translateApiError(error, "Không thể tạo thu nợ"))
+      notify.error(translateApiError(error, "loan.collections.create_failed"))
     } finally {
       setSavePending(false)
     }
@@ -96,21 +96,20 @@ export function CollectionCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Thêm thu nợ</DialogTitle>
+          <DialogTitle>{t("loan.collections.create")}</DialogTitle>
           <DialogDescription>
-            Thu gốc + lãi theo hợp đồng giải ngân. Sau khi tạo, trình duyệt
-            qua workbench — duyệt xong bút toán tự post.
+            {t("loan.collections.dialog_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label>Hợp đồng tín dụng (ACTIVE)</Label>
+            <Label>{t("loan.collections.field.contract")}</Label>
             <select
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={form.contract_code}
               onChange={(e) => setForm((c) => ({ ...c, contract_code: e.target.value }))}
             >
-              <option value="">— chọn —</option>
+              <option value="">{t("loan.placeholder.select")}</option>
               {contracts.map((c) => (
                 <option key={c.id} value={c.contract_code}>
                   {c.contract_code} — {c.customer_code}
@@ -119,16 +118,16 @@ export function CollectionCreateDialog({
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label>Mã hợp đồng giải ngân</Label>
+            <Label>{t("loan.field.agreement_code")}</Label>
             <Input
               value={form.agreement_code}
               onChange={(e) => setForm((c) => ({ ...c, agreement_code: e.target.value }))}
-              placeholder="VD: AG-2026-001"
+              placeholder={t("loan.placeholder.agreement")}
             />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label>Thu gốc</Label>
+              <Label>{t("loan.collections.field.principal")}</Label>
               <Input
                 inputMode="decimal"
                 value={form.principal}
@@ -136,7 +135,7 @@ export function CollectionCreateDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Thu lãi</Label>
+              <Label>{t("loan.collections.field.interest")}</Label>
               <Input
                 inputMode="decimal"
                 value={form.interest}
@@ -144,7 +143,7 @@ export function CollectionCreateDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Ngày thu</Label>
+              <Label>{t("loan.collections.field.collection_date")}</Label>
               <Input
                 type="date"
                 value={form.collection_date}

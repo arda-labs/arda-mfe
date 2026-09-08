@@ -37,6 +37,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../api"
 import type {
@@ -62,28 +63,29 @@ type ProcessInstanceOperateProps = {
 }
 
 function InstanceStateBadge({ state }: { state: string }) {
+  const { t } = useI18n()
   const config: Record<string, { label: string; className: string }> = {
     ACTIVE: {
-      label: "Đang chạy",
+      label: t("workflow.operate.instance_state_active"),
       className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
     },
     COMPLETED: {
-      label: "Hoàn thành",
+      label: t("workflow.operate.instance_state_completed"),
       className:
         "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
     },
     CANCELED: {
-      label: "Đã hủy",
+      label: t("workflow.operate.instance_state_canceled"),
       className:
         "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
     },
     SUSPENDED: {
-      label: "Tạm dừng",
+      label: t("workflow.operate.instance_state_suspended"),
       className:
         "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     },
     INCIDENT: {
-      label: "Lỗi",
+      label: t("workflow.operate.instance_state_incident"),
       className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
     },
   }
@@ -104,18 +106,19 @@ function InstanceStateBadge({ state }: { state: string }) {
 }
 
 function IncidentStateBadge({ state }: { state: string }) {
+  const { t } = useI18n()
   const config: Record<string, { label: string; className: string }> = {
     CREATED: {
-      label: "Mới",
+      label: t("workflow.operate.incident_state_created"),
       className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
     },
     RESOLVED: {
-      label: "Đã xử lý",
+      label: t("workflow.operate.incident_state_resolved"),
       className:
         "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
     },
     PENDING: {
-      label: "Đang chờ",
+      label: t("workflow.operate.incident_state_pending"),
       className:
         "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     },
@@ -137,27 +140,28 @@ function IncidentStateBadge({ state }: { state: string }) {
 }
 
 function JobStateBadge({ state }: { state: string }) {
+  const { t } = useI18n()
   const config: Record<string, { label: string; className: string }> = {
     ACTIVATABLE: {
-      label: "Sẵn sàng",
+      label: t("workflow.operate.job_state_activatable"),
       className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
     },
     ACTIVATED: {
-      label: "Đang chạy",
+      label: t("workflow.operate.job_state_activated"),
       className:
         "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
     },
     FAILED: {
-      label: "Thất bại",
+      label: t("workflow.operate.job_state_failed"),
       className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
     },
     ERROR_THROWN: {
-      label: "Lỗi",
+      label: t("workflow.operate.job_state_error_thrown"),
       className:
         "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
     },
     SUSPENDED: {
-      label: "Tạm dừng",
+      label: t("workflow.operate.job_def_state_suspended"),
       className:
         "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     },
@@ -189,6 +193,7 @@ export function ProcessInstanceOperate({
   incidents,
   jobs,
 }: ProcessInstanceOperateProps) {
+  const { t } = useI18n()
   const [searchQuery, setSearchQuery] = useState("")
   const [instanceFilter, setInstanceFilter] = useState("all")
   const [retryJobPending, setRetryJobPending] = useState<string | null>(null)
@@ -241,22 +246,30 @@ export function ProcessInstanceOperate({
   )
 
   const instanceFilterOptions = [
-    { value: "all", label: `Tất cả (${cases.length})` },
+    { value: "all", label: t("workflow.operate.filter_all", { count: cases.length }) },
     {
       value: "ACTIVE",
-      label: `Đang chạy (${cases.filter((c) => c.status === "ACTIVE" || c.status === "IN_REVIEW" || c.status === "SUBMITTED").length})`,
+      label: t("workflow.operate.filter_running", {
+        count: cases.filter((c) => c.status === "ACTIVE" || c.status === "IN_REVIEW" || c.status === "SUBMITTED").length,
+      }),
     },
     {
       value: "INCIDENT",
-      label: `Lỗi (${cases.filter((c) => c.status === "FAILED" || c.status === "INCIDENT").length})`,
+      label: t("workflow.operate.filter_incident", {
+        count: cases.filter((c) => c.status === "FAILED" || c.status === "INCIDENT").length,
+      }),
     },
     {
       value: "SUSPENDED",
-      label: `Tạm dừng (${cases.filter((c) => c.status === "SUSPENDED").length})`,
+      label: t("workflow.operate.filter_suspended", {
+        count: cases.filter((c) => c.status === "SUSPENDED").length,
+      }),
     },
     {
       value: "COMPLETED",
-      label: `Hoàn thành (${cases.filter((c) => c.status === "COMPLETED").length})`,
+      label: t("workflow.operate.filter_completed", {
+        count: cases.filter((c) => c.status === "COMPLETED").length,
+      }),
     },
   ]
 
@@ -264,12 +277,12 @@ export function ProcessInstanceOperate({
     setRetryJobPending(jobKey)
     try {
       await workflowApi.retryWorkflowJob(jobKey)
-      notify.success("Đã retry job")
+      notify.success(t("workflow.operate.retry_success"))
       await runtimeQuery.refetch()
     } catch (error) {
       notify.error(
-        "Retry thất bại",
-        error instanceof Error ? error.message : "Lỗi không xác định"
+        t("workflow.operate.retry_failed"),
+        error instanceof Error ? error.message : t("workflow.operate.unknown_error")
       )
     } finally {
       setRetryJobPending(null)
@@ -284,15 +297,15 @@ export function ProcessInstanceOperate({
         String(selected.processInstanceKey)
       )
       if (result.status === "noop") {
-        notify.info("Không có incident service job", result.message)
+        notify.info(t("workflow.operate.noop_incident"), result.message)
       } else {
-        notify.success("Đã retry service jobs")
+        notify.success(t("workflow.operate.retry_service_success"))
       }
       await runtimeQuery.refetch()
     } catch (error) {
       notify.error(
-        "Retry thất bại",
-        error instanceof Error ? error.message : "Lỗi không xác định"
+        t("workflow.operate.retry_failed"),
+        error instanceof Error ? error.message : t("workflow.operate.unknown_error")
       )
     } finally {
       setActionPending(null)
@@ -306,10 +319,10 @@ export function ProcessInstanceOperate({
       await workflowApi.pauseProcessInstance(
         String(selected.processInstanceKey)
       )
-      notify.success("Đã tạm dừng process instance")
+      notify.success(t("workflow.operate.pause_instance_success"))
     } catch (error) {
       notify.error(
-        "Tạm dừng thất bại",
+        t("workflow.operate.pause_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -324,10 +337,10 @@ export function ProcessInstanceOperate({
       await workflowApi.resumeProcessInstance(
         String(selected.processInstanceKey)
       )
-      notify.success("Đã tiếp tục process instance")
+      notify.success(t("workflow.operate.resume_instance_success"))
     } catch (error) {
       notify.error(
-        "Tiếp tục thất bại",
+        t("workflow.operate.resume_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -342,10 +355,10 @@ export function ProcessInstanceOperate({
       await workflowApi.cancelProcessInstance(
         String(selected.processInstanceKey)
       )
-      notify.success("Đã hủy process instance")
+      notify.success(t("workflow.operate.cancel_instance_success"))
     } catch (error) {
       notify.error(
-        "Hủy thất bại",
+        t("workflow.operate.cancel_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -356,10 +369,10 @@ export function ProcessInstanceOperate({
   async function handleRetryIncident(incidentKey: string) {
     try {
       await workflowApi.retryIncident(incidentKey)
-      notify.success("Đã retry incident")
+      notify.success(t("workflow.operate.retry_incident_success"))
     } catch (err) {
       notify.error(
-        "Retry thất bại",
+        t("workflow.operate.retry_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -368,10 +381,10 @@ export function ProcessInstanceOperate({
   async function handleResolveIncident(incidentKey: string) {
     try {
       await workflowApi.resolveIncident(incidentKey)
-      notify.success("Đã resolve incident")
+      notify.success(t("workflow.operate.resolve_incident_success"))
     } catch (err) {
       notify.error(
-        "Resolve thất bại",
+        t("workflow.operate.resolve_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -380,10 +393,10 @@ export function ProcessInstanceOperate({
   async function handleRetryJobOperate(jobKey: string) {
     try {
       await workflowApi.updateJobRetries(jobKey, 3)
-      notify.success("Đã cập nhật retries cho job")
+      notify.success(t("workflow.operate.retry_job_success"))
     } catch (err) {
       notify.error(
-        "Cập nhật retries thất bại",
+        t("workflow.operate.retry_job_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -408,7 +421,7 @@ export function ProcessInstanceOperate({
         <div>
           <p className="text-sm font-medium">Process instances</p>
           <p className="text-xs text-muted-foreground">
-            Giám sát runtime — BPMN, jobs, incidents, retry
+            {t("workflow.operate.monitoring_runtime_desc")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -420,7 +433,7 @@ export function ProcessInstanceOperate({
             onClick={handleRetryServiceJobs}
           >
             <RotateCcw className="size-4" />
-            Retry service jobs
+            {t("workflow.operate.retry_service_jobs")}
           </Button>
           <Button
             type="button"
@@ -435,7 +448,7 @@ export function ProcessInstanceOperate({
                 runtimeQuery.isFetching && "animate-spin"
               )}
             />
-            Làm mới
+            {t("workflow.operate.refresh")}
           </Button>
         </div>
       </div>
@@ -448,7 +461,7 @@ export function ProcessInstanceOperate({
             <div className="relative">
               <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Tìm instance..."
+                placeholder={t("workflow.operate.search_instance_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-8 pl-8 text-xs"
@@ -477,7 +490,7 @@ export function ProcessInstanceOperate({
           <div className="flex-1 overflow-y-auto">
             {filteredCases.length === 0 ? (
               <div className="p-3 text-center text-xs text-muted-foreground">
-                Không có instance nào.
+                {t("workflow.operate.empty_instances")}
               </div>
             ) : (
               <div className="divide-y">
@@ -530,7 +543,7 @@ export function ProcessInstanceOperate({
             />
           ) : (
             <div className="flex h-full min-h-[24rem] items-center justify-center text-sm text-muted-foreground">
-              Chọn instance để xem BPMN
+              {t("workflow.operate.select_bpmn_hint")}
             </div>
           )}
         </div>
@@ -558,7 +571,7 @@ export function ProcessInstanceOperate({
                     onClick={handlePause}
                   >
                     <PauseCircle className="mr-1 size-3.5 text-amber-600" />
-                    Tạm dừng
+                    {t("workflow.operate.action_pause")}
                   </Button>
                 )}
                 {canResume && (
@@ -571,7 +584,7 @@ export function ProcessInstanceOperate({
                     onClick={handleResume}
                   >
                     <PlayCircle className="mr-1 size-3.5 text-emerald-600" />
-                    Tiếp tục
+                    {t("workflow.operate.action_resume")}
                   </Button>
                 )}
                 {canCancel && (
@@ -584,7 +597,7 @@ export function ProcessInstanceOperate({
                     onClick={handleCancel}
                   >
                     <Ban className="mr-1 size-3.5" />
-                    Hủy
+                    {t("workflow.operate.action_cancel")}
                   </Button>
                 )}
               </div>
@@ -599,21 +612,21 @@ export function ProcessInstanceOperate({
                     onClick={() => navigateToOperate(domainHref)}
                   >
                     <Eye className="size-4" />
-                    Mở hồ sơ CRM
+                    {t("workflow.operate.open_crm_case")}
                   </Button>
                 ) : null
               })()}
 
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <Field label="Trạng thái" value={selected.status} />
-                <Field label="Bước DB" value={selected.currentStep || "—"} />
+                <Field label={t("workflow.operate.field_status")} value={selected.status} />
+                <Field label={t("workflow.operate.field_db_step")} value={selected.currentStep || "—"} />
                 <Field
                   label="Active BPMN"
                   value={runtime?.activeElementId || "—"}
                 />
                 <Field
                   label="Assignee"
-                  value={selected.assignedTo || "Chưa nhận"}
+                  value={selected.assignedTo || t("workflow.operate.assignee_unassigned")}
                 />
                 <Field
                   label="PI key"
@@ -634,14 +647,14 @@ export function ProcessInstanceOperate({
               {runtimeQuery.isLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Spinner className="size-4" />
-                  Đang quét Zeebe…
+                  {t("workflow.operate.scanning_zeebe")}
                 </div>
               ) : null}
 
               {runtimeQuery.error ? (
                 <Alert variant="destructive">
                   <AlertCircle className="size-4" />
-                  <AlertTitle>Runtime lỗi</AlertTitle>
+                  <AlertTitle>{t("workflow.operate.runtime_error_title")}</AlertTitle>
                   <AlertDescription>
                     {runtimeQuery.error.message}
                   </AlertDescription>
@@ -651,7 +664,7 @@ export function ProcessInstanceOperate({
               {runtime ? (
                 <Alert>
                   <AlertCircle className="size-4" />
-                  <AlertTitle>Gợi ý</AlertTitle>
+                  <AlertTitle>{t("workflow.operate.hint_title")}</AlertTitle>
                   <AlertDescription className="space-y-2 text-xs">
                     <p>{runtime.hint}</p>
                     <p className="text-muted-foreground">
@@ -668,7 +681,7 @@ export function ProcessInstanceOperate({
                   <AccordionTrigger className="px-3 py-2 text-xs font-medium hover:no-underline [&[data-state=open]>div>svg]:rotate-0">
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="size-3.5 text-destructive" />
-                      Lỗi
+                      {t("workflow.operate.accordion_incidents")}
                       {activeIncidents.length + runtimeIncidents.length > 0 && (
                         <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] leading-tight font-bold text-white">
                           {activeIncidents.length + runtimeIncidents.length}
@@ -681,7 +694,7 @@ export function ProcessInstanceOperate({
                     filteredIncidents.length === 0 ? (
                       <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
                         <CheckCircle2 className="size-3.5 text-emerald-500" />
-                        Không có lỗi
+                        {t("workflow.operate.no_incidents")}
                       </div>
                     ) : (
                       <div className="max-h-48 space-y-px overflow-y-auto">
@@ -769,7 +782,7 @@ export function ProcessInstanceOperate({
                   <AccordionTrigger className="px-3 py-2 text-xs font-medium hover:no-underline">
                     <div className="flex items-center gap-2">
                       <CircleDot className="size-3.5 text-amber-500" />
-                      Công việc
+                      {t("workflow.operate.accordion_jobs")}
                       {failedJobs.length > 0 && (
                         <span className="inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] leading-tight font-bold text-white">
                           {failedJobs.length}
@@ -781,7 +794,7 @@ export function ProcessInstanceOperate({
                     {pendingJobs.length === 0 && filteredJobs.length === 0 ? (
                       <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
                         <CheckCircle2 className="size-3.5 text-emerald-500" />
-                        Không có công việc nền
+                        {t("workflow.operate.no_background_jobs")}
                       </div>
                     ) : (
                       <div className="max-h-48 space-y-px overflow-y-auto">
@@ -796,7 +809,7 @@ export function ProcessInstanceOperate({
                                 {job.jobType}
                               </p>
                               <p className="text-[10px] text-muted-foreground">
-                                {job.elementId} · lượt {job.retries}
+                                {job.elementId} · {t("workflow.operate.retries_round", { retries: job.retries })}
                               </p>
                             </div>
                             <Button
@@ -823,7 +836,7 @@ export function ProcessInstanceOperate({
                                 {job.type}
                               </p>
                               <p className="text-[10px] text-muted-foreground">
-                                {job.elementId} · lượt {job.retries}/
+                                {job.elementId} · {t("workflow.operate.retries_round", { retries: job.retries })}/
                                 {job.maxRetries}
                               </p>
                             </div>
@@ -854,7 +867,7 @@ export function ProcessInstanceOperate({
                   <AccordionTrigger className="px-3 py-2 text-xs font-medium hover:no-underline">
                     <div className="flex items-center gap-2">
                       <ListTree className="size-3.5 text-muted-foreground" />
-                      Lịch sử
+                      {t("workflow.operate.accordion_timeline")}
                       {timeline.length > 0 && (
                         <span className="text-muted-foreground">
                           ({timeline.length})
@@ -866,7 +879,7 @@ export function ProcessInstanceOperate({
                     {timeline.length === 0 ? (
                       <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
                         <Clock className="size-3.5" />
-                        Chưa có lịch sử
+                        {t("workflow.operate.no_history")}
                       </div>
                     ) : (
                       <div className="max-h-48 space-y-1 overflow-y-auto p-3">
@@ -900,7 +913,7 @@ export function ProcessInstanceOperate({
               </Accordion>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">Chưa chọn instance.</p>
+            <p className="text-sm text-muted-foreground">{t("workflow.operate.no_instance_selected")}</p>
           )}
         </aside>
       </div>

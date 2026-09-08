@@ -1,76 +1,109 @@
 import { z } from "zod"
+import type { useI18n } from "@workspace/i18n"
 
-export const customerSchema = z.object({
-  id: z.string().trim().optional(),
-  customerCode: z.string().trim().optional(),
-  customerType: z.enum(["PERSONAL", "BUSINESS"]),
-  avatarFileId: z.string().trim(),
-  orgUnit: z.string().trim(),
-  name: z.string().trim().min(1, "Tên khách hàng là bắt buộc"),
-  provinceCode: z.string().trim(),
-  wardCode: z.string().trim(),
-  areaCode: z.string().trim(),
-  permanentAddress: z.string().trim(),
-  currentAddress: z.string().trim(),
-  mobile: z.string().trim(),
-  fixedPhone: z.string().trim(),
-  email: z.string().trim().email("Email không hợp lệ").or(z.literal("")),
-  taxCode: z.string().trim(),
-  fax: z.string().trim(),
-  economicType: z.string().trim(),
-  economicSector: z.string().trim(),
-  bankAccount: z.string().trim(),
-  bankName: z.string().trim(),
-  gender: z.string().trim(),
-  dateOfBirth: z.string().trim(),
-  ethnicity: z.string().trim(),
-  maritalStatus: z.string().trim(),
-  birthPlace: z.string().trim(),
-  occupation: z.string().trim(),
-  educationLevel: z.string().trim(),
-  cultureLevel: z.string().trim(),
-  identityType: z.string().trim(),
-  identityNo: z.string().trim(),
-  oldIdentityNo: z.string().trim(),
-  identityIssueDate: z.string().trim(),
-  identityExpiryDate: z.string().trim(),
-  identityIssuePlace: z.string().trim(),
-  segment: z.string().trim(),
-  riskLevel: z.string().trim(),
-  rank: z.string().trim(),
-  memberCardNo: z.string().trim(),
-  memberCardIssueDate: z.string().trim(),
-  memberCardIssuePlace: z.string().trim(),
-  extendedOccupation: z.string().trim(),
-  jobTitle: z.string().trim(),
-  workDuration: z.string().trim(),
-  laborContractType: z.string().trim(),
-  workplace: z.string().trim(),
-  workplaceAddress: z.string().trim(),
-  note: z.string().trim(),
-  shortName: z.string().trim(),
-  businessRegistrationNo: z.string().trim(),
-  businessIssueDate: z.string().trim(),
-  issuingAuthority: z.string().trim(),
-  establishedDate: z.string().trim(),
-  website: z.string().trim(),
-  representative: z.string().trim(),
-  representativeTitle: z.string().trim(),
-  representativeIdentityNo: z.string().trim(),
-  businessLine: z.string().trim(),
-})
+export type TFunction = ReturnType<typeof useI18n>["t"]
 
-export type CustomerFormValues = z.infer<typeof customerSchema>
+/**
+ * Schemas are built through a factory receiving `t` (see iam GroupFormDialog):
+ * validation messages live under crm.customers.validation.* and are resolved
+ * at build time inside the component, never as static literals.
+ */
+export const buildCustomerSchema = (t: TFunction) =>
+  z.object({
+    id: z.string().trim().optional(),
+    customerCode: z.string().trim().optional(),
+    customerType: z.enum(["PERSONAL", "BUSINESS"]),
+    avatarFileId: z.string().trim(),
+    orgUnit: z.string().trim(),
+    name: z.string().trim().min(1, t("crm.customers.validation.name_required")),
+    provinceCode: z.string().trim(),
+    wardCode: z.string().trim(),
+    areaCode: z.string().trim(),
+    permanentAddress: z.string().trim(),
+    currentAddress: z.string().trim(),
+    mobile: z.string().trim(),
+    fixedPhone: z.string().trim(),
+    email: z
+      .string()
+      .trim()
+      .email(t("crm.customers.validation.email_invalid"))
+      .or(z.literal("")),
+    taxCode: z.string().trim(),
+    fax: z.string().trim(),
+    economicType: z.string().trim(),
+    economicSector: z.string().trim(),
+    bankAccount: z.string().trim(),
+    bankName: z.string().trim(),
+    gender: z.string().trim(),
+    dateOfBirth: z.string().trim(),
+    ethnicity: z.string().trim(),
+    maritalStatus: z.string().trim(),
+    birthPlace: z.string().trim(),
+    occupation: z.string().trim(),
+    educationLevel: z.string().trim(),
+    cultureLevel: z.string().trim(),
+    identityType: z.string().trim(),
+    identityNo: z.string().trim(),
+    oldIdentityNo: z.string().trim(),
+    identityIssueDate: z.string().trim(),
+    identityExpiryDate: z.string().trim(),
+    identityIssuePlace: z.string().trim(),
+    segment: z.string().trim(),
+    riskLevel: z.string().trim(),
+    rank: z.string().trim(),
+    memberCardNo: z.string().trim(),
+    memberCardIssueDate: z.string().trim(),
+    memberCardIssuePlace: z.string().trim(),
+    extendedOccupation: z.string().trim(),
+    jobTitle: z.string().trim(),
+    workDuration: z.string().trim(),
+    laborContractType: z.string().trim(),
+    workplace: z.string().trim(),
+    workplaceAddress: z.string().trim(),
+    note: z.string().trim(),
+    shortName: z.string().trim(),
+    businessRegistrationNo: z.string().trim(),
+    businessIssueDate: z.string().trim(),
+    issuingAuthority: z.string().trim(),
+    establishedDate: z.string().trim(),
+    website: z.string().trim(),
+    representative: z.string().trim(),
+    representativeTitle: z.string().trim(),
+    representativeIdentityNo: z.string().trim(),
+    businessLine: z.string().trim(),
+  })
 
-export const relationshipSchema = z.object({
-  relatedCustomerId: z.string().trim().min(1, "Mã khách hàng là bắt buộc"),
-  relationType: z.string().trim().min(1, "Loại quan hệ là bắt buộc"),
-  relationCode: z.string().trim().min(1, "Mã quan hệ là bắt buộc"),
-  reciprocalRelationCode: z.string().trim().min(1, "Mã QH đối ứng là bắt buộc"),
-  status: z.string().trim().min(1, "Trạng thái quan hệ là bắt buộc"),
-})
+export type CustomerFormValues = z.infer<
+  ReturnType<typeof buildCustomerSchema>
+>
 
-export type RelationshipFormValues = z.infer<typeof relationshipSchema>
+export const buildRelationshipSchema = (t: TFunction) =>
+  z.object({
+    relatedCustomerId: z
+      .string()
+      .trim()
+      .min(1, t("crm.customers.validation.related_customer_required")),
+    relationType: z
+      .string()
+      .trim()
+      .min(1, t("crm.customers.validation.relation_type_required")),
+    relationCode: z
+      .string()
+      .trim()
+      .min(1, t("crm.customers.validation.relation_code_required")),
+    reciprocalRelationCode: z
+      .string()
+      .trim()
+      .min(1, t("crm.customers.validation.reciprocal_code_required")),
+    status: z
+      .string()
+      .trim()
+      .min(1, t("crm.customers.validation.status_required")),
+  })
+
+export type RelationshipFormValues = z.infer<
+  ReturnType<typeof buildRelationshipSchema>
+>
 
 export const defaultValues: CustomerFormValues = {
   id: "",
@@ -132,166 +165,208 @@ export const defaultValues: CustomerFormValues = {
   businessLine: "",
 }
 
+/**
+ * Option labels are i18n keys under crm.customers.options.*; resolve them
+ * with t(option.label) at render time (see FieldGrid / RelationSelect).
+ */
 export const selectOptions = {
   customerType: [
-    { value: "PERSONAL", label: "Khách hàng cá nhân" },
-    { value: "BUSINESS", label: "Doanh nghiệp" },
+    { value: "PERSONAL", label: "crm.customers.options.customer_type_personal" },
+    { value: "BUSINESS", label: "crm.customers.options.customer_type_business" },
   ],
-  generic: [{ value: "none", label: "-- Chọn --" }],
+  generic: [{ value: "none", label: "crm.customers.options.select_none" }],
   relation: [
-    { value: "SPOUSE", label: "Vợ/Chồng" },
-    { value: "PARENT", label: "Cha/Mẹ" },
-    { value: "CHILD", label: "Con" },
-    { value: "GUARANTOR", label: "Người bảo lãnh" },
+    { value: "SPOUSE", label: "crm.customers.options.relation_spouse" },
+    { value: "PARENT", label: "crm.customers.options.relation_parent" },
+    { value: "CHILD", label: "crm.customers.options.relation_child" },
+    { value: "GUARANTOR", label: "crm.customers.options.relation_guarantor" },
   ],
   status: [
-    { value: "ACTIVE", label: "Hoạt động" },
-    { value: "INACTIVE", label: "Ngừng hiệu lực" },
+    { value: "ACTIVE", label: "crm.customers.options.status_active" },
+    { value: "INACTIVE", label: "crm.customers.options.status_inactive" },
   ],
   gender: [
-    { value: "Nam", label: "Nam" },
-    { value: "Nữ", label: "Nữ" },
-    { value: "Khác", label: "Khác" },
+    { value: "Nam", label: "crm.customers.options.gender_male" },
+    { value: "Nữ", label: "crm.customers.options.gender_female" },
+    { value: "Khác", label: "crm.customers.options.gender_other" },
   ],
   maritalStatus: [
-    { value: "Độc thân", label: "Độc thân" },
-    { value: "Đã lập gia đình", label: "Đã lập gia đình" },
-    { value: "Ly hôn", label: "Ly hôn" },
-    { value: "Góa", label: "Góa" },
+    { value: "Độc thân", label: "crm.customers.options.marital_single" },
+    {
+      value: "Đã lập gia đình",
+      label: "crm.customers.options.marital_married",
+    },
+    { value: "Ly hôn", label: "crm.customers.options.marital_divorced" },
+    { value: "Góa", label: "crm.customers.options.marital_widowed" },
   ],
   occupation: [
-    { value: "Kinh doanh", label: "Kinh doanh" },
-    { value: "Công chức", label: "Công chức" },
-    { value: "Nhân viên văn phòng", label: "Nhân viên văn phòng" },
-    { value: "Công nhân", label: "Công nhân" },
-    { value: "Nông dân", label: "Nông dân" },
-    { value: "Tự do", label: "Tự do" },
-    { value: "Khác", label: "Khác" },
+    { value: "Kinh doanh", label: "crm.customers.options.occupation_business" },
+    {
+      value: "Công chức",
+      label: "crm.customers.options.occupation_civil_servant",
+    },
+    {
+      value: "Nhân viên văn phòng",
+      label: "crm.customers.options.occupation_office_worker",
+    },
+    { value: "Công nhân", label: "crm.customers.options.occupation_worker" },
+    { value: "Nông dân", label: "crm.customers.options.occupation_farmer" },
+    { value: "Tự do", label: "crm.customers.options.occupation_freelance" },
+    { value: "Khác", label: "crm.customers.options.occupation_other" },
   ],
   educationLevel: [
-    { value: "THPT", label: "THPT" },
-    { value: "Cao đẳng", label: "Cao đẳng" },
-    { value: "Đại học", label: "Đại học" },
-    { value: "Thạc sĩ", label: "Thạc sĩ" },
-    { value: "Tiến sĩ", label: "Tiến sĩ" },
+    { value: "THPT", label: "crm.customers.options.education_high_school" },
+    { value: "Cao đẳng", label: "crm.customers.options.education_college" },
+    { value: "Đại học", label: "crm.customers.options.education_university" },
+    { value: "Thạc sĩ", label: "crm.customers.options.education_master" },
+    { value: "Tiến sĩ", label: "crm.customers.options.education_doctorate" },
   ],
   cultureLevel: [
-    { value: "THCS", label: "THCS" },
-    { value: "THPT", label: "THPT" },
-    { value: "Cao đẳng", label: "Cao đẳng" },
-    { value: "Đại học", label: "Đại học" },
-    { value: "Sau đại học", label: "Sau đại học" },
+    { value: "THCS", label: "crm.customers.options.culture_lower_secondary" },
+    { value: "THPT", label: "crm.customers.options.culture_high_school" },
+    { value: "Cao đẳng", label: "crm.customers.options.culture_college" },
+    { value: "Đại học", label: "crm.customers.options.culture_university" },
+    {
+      value: "Sau đại học",
+      label: "crm.customers.options.culture_postgraduate",
+    },
   ],
   economicType: [
-    { value: "DNNN", label: "Doanh nghiệp nhà nước" },
-    { value: "TNHH", label: "TNHH" },
-    { value: "Cổ phần", label: "Cổ phần" },
-    { value: "Tư nhân", label: "Tư nhân" },
-    { value: "Liên doanh", label: "Liên doanh" },
+    {
+      value: "DNNN",
+      label: "crm.customers.options.economic_type_state_owned",
+    },
+    { value: "TNHH", label: "crm.customers.options.economic_type_llc" },
+    {
+      value: "Cổ phần",
+      label: "crm.customers.options.economic_type_joint_stock",
+    },
+    { value: "Tư nhân", label: "crm.customers.options.economic_type_private" },
+    {
+      value: "Liên doanh",
+      label: "crm.customers.options.economic_type_joint_venture",
+    },
   ],
   economicSector: [
-    { value: "Nông nghiệp", label: "Nông nghiệp" },
-    { value: "Công nghiệp", label: "Công nghiệp" },
-    { value: "Dịch vụ", label: "Dịch vụ" },
-    { value: "Xây dựng", label: "Xây dựng" },
-    { value: "CNTT", label: "CNTT" },
+    {
+      value: "Nông nghiệp",
+      label: "crm.customers.options.economic_sector_agriculture",
+    },
+    {
+      value: "Công nghiệp",
+      label: "crm.customers.options.economic_sector_industry",
+    },
+    { value: "Dịch vụ", label: "crm.customers.options.economic_sector_service" },
+    {
+      value: "Xây dựng",
+      label: "crm.customers.options.economic_sector_construction",
+    },
+    { value: "CNTT", label: "crm.customers.options.economic_sector_it" },
   ],
   segment: [
     { value: "VIP", label: "VIP" },
-    { value: "Thường", label: "Thường" },
-    { value: "Tiềm năng", label: "Tiềm năng" },
+    { value: "Thường", label: "crm.customers.options.segment_regular" },
+    { value: "Tiềm năng", label: "crm.customers.options.segment_potential" },
   ],
   riskLevel: [
-    { value: "Thấp", label: "Thấp" },
-    { value: "Trung bình", label: "Trung bình" },
-    { value: "Cao", label: "Cao" },
+    { value: "Thấp", label: "crm.customers.options.risk_low" },
+    { value: "Trung bình", label: "crm.customers.options.risk_medium" },
+    { value: "Cao", label: "crm.customers.options.risk_high" },
   ],
   rank: [
-    { value: "Hạng 1", label: "Hạng 1" },
-    { value: "Hạng 2", label: "Hạng 2" },
-    { value: "Hạng 3", label: "Hạng 3" },
+    { value: "Hạng 1", label: "crm.customers.options.rank_1" },
+    { value: "Hạng 2", label: "crm.customers.options.rank_2" },
+    { value: "Hạng 3", label: "crm.customers.options.rank_3" },
   ],
   identityType: [
-    { value: "Căn cước công dân", label: "Căn cước công dân" },
-    { value: "Chứng minh nhân dân", label: "Chứng minh nhân dân" },
-    { value: "Hộ chiếu", label: "Hộ chiếu" },
+    { value: "Căn cước công dân", label: "crm.customers.options.identity_type_cccd" },
+    { value: "Chứng minh nhân dân", label: "crm.customers.options.identity_type_cmnd" },
+    { value: "Hộ chiếu", label: "crm.customers.options.identity_type_passport" },
   ],
   workDuration: [
-    { value: "Dưới 1 năm", label: "Dưới 1 năm" },
-    { value: "Từ 1-3 năm", label: "Từ 1-3 năm" },
-    { value: "Từ 3-5 năm", label: "Từ 3-5 năm" },
-    { value: "Trên 5 năm", label: "Trên 5 năm" },
+    { value: "Dưới 1 năm", label: "crm.customers.options.work_duration_under_1y" },
+    { value: "Từ 1-3 năm", label: "crm.customers.options.work_duration_1_3y" },
+    { value: "Từ 3-5 năm", label: "crm.customers.options.work_duration_3_5y" },
+    { value: "Trên 5 năm", label: "crm.customers.options.work_duration_over_5y" },
   ],
 }
 
 export const generalFieldsPrimary: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "textarea"]
-> = [["name", "Tên khách hàng(*)", "input"]]
+> = [["name", "crm.customers.fields.name", "input"]]
 
 export const generalFieldsRest: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "textarea"]
 > = [
-  ["permanentAddress", "Địa chỉ thường trú", "textarea"],
-  ["currentAddress", "Địa chỉ hiện tại", "textarea"],
-  ["mobile", "Số di động", "input"],
-  ["fixedPhone", "Số cố định", "input"],
-  ["email", "Email", "input"],
-  ["taxCode", "Mã số thuế", "input"],
-  ["fax", "Fax", "input"],
-  ["economicType", "Loại hình kinh tế", "select"],
-  ["economicSector", "Ngành kinh tế", "select"],
-  ["bankAccount", "Số tài khoản", "input"],
-  ["bankName", "Tại ngân hàng", "input"],
+  ["permanentAddress", "crm.customers.fields.permanent_address", "textarea"],
+  ["currentAddress", "crm.customers.fields.current_address", "textarea"],
+  ["mobile", "crm.customers.fields.mobile", "input"],
+  ["fixedPhone", "crm.customers.fields.fixed_phone", "input"],
+  ["email", "crm.customers.fields.email", "input"],
+  ["taxCode", "crm.customers.fields.tax_code", "input"],
+  ["fax", "crm.customers.fields.fax", "input"],
+  ["economicType", "crm.customers.fields.economic_type", "select"],
+  ["economicSector", "crm.customers.fields.economic_sector", "select"],
+  ["bankAccount", "crm.customers.fields.bank_account", "input"],
+  ["bankName", "crm.customers.fields.bank_name", "input"],
 ]
 
 export const personalFields: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "date"]
 > = [
-  ["gender", "Giới tính", "select"],
-  ["dateOfBirth", "Ngày sinh", "date"],
-  ["ethnicity", "Dân tộc", "input"],
-  ["maritalStatus", "Tình trạng hôn nhân", "input"],
-  ["birthPlace", "Nơi sinh", "input"],
-  ["occupation", "Nghề nghiệp", "select"],
-  ["educationLevel", "Trình độ học vấn", "select"],
-  ["cultureLevel", "Trình độ văn hóa", "select"],
-  ["identityType", "Loại định danh", "input"],
-  ["identityNo", "CCCD/CMND", "input"],
-  ["oldIdentityNo", "Số định danh cũ", "input"],
-  ["identityIssueDate", "Ngày cấp", "date"],
-  ["identityExpiryDate", "Ngày hết hiệu lực", "date"],
-  ["identityIssuePlace", "Nơi cấp", "input"],
+  ["gender", "crm.customers.fields.gender", "select"],
+  ["dateOfBirth", "crm.customers.fields.date_of_birth", "date"],
+  ["ethnicity", "crm.customers.fields.ethnicity", "input"],
+  ["maritalStatus", "crm.customers.fields.marital_status", "input"],
+  ["birthPlace", "crm.customers.fields.birth_place", "input"],
+  ["occupation", "crm.customers.fields.occupation", "select"],
+  ["educationLevel", "crm.customers.fields.education_level", "select"],
+  ["cultureLevel", "crm.customers.fields.culture_level", "select"],
+  ["identityType", "crm.customers.fields.identity_type", "input"],
+  ["identityNo", "crm.customers.fields.identity_no", "input"],
+  ["oldIdentityNo", "crm.customers.fields.old_identity_no", "input"],
+  ["identityIssueDate", "crm.customers.fields.identity_issue_date", "date"],
+  ["identityExpiryDate", "crm.customers.fields.identity_expiry_date", "date"],
+  ["identityIssuePlace", "crm.customers.fields.identity_issue_place", "input"],
 ]
 
 export const extendedFields: Array<
   [keyof CustomerFormValues, string, "input" | "select" | "date" | "textarea"]
 > = [
-  ["segment", "Phân khúc KH", "select"],
-  ["riskLevel", "Phân loại rủi ro", "select"],
-  ["rank", "Hạng khách hàng", "select"],
-  ["memberCardNo", "Số thẻ hội viên", "input"],
-  ["memberCardIssueDate", "Ngày cấp thẻ", "date"],
-  ["memberCardIssuePlace", "Nơi cấp thẻ", "input"],
-  ["extendedOccupation", "Nghề nghiệp", "input"],
-  ["jobTitle", "Chức vụ nơi công tác", "input"],
-  ["workDuration", "Thời gian công tác", "select"],
-  ["laborContractType", "Loại HĐLĐ", "input"],
-  ["workplace", "Nơi công tác", "input"],
-  ["workplaceAddress", "Địa chỉ công tác", "input"],
-  ["note", "Ghi chú", "textarea"],
+  ["segment", "crm.customers.fields.segment", "select"],
+  ["riskLevel", "crm.customers.fields.risk_level", "select"],
+  ["rank", "crm.customers.fields.rank", "select"],
+  ["memberCardNo", "crm.customers.fields.member_card_no", "input"],
+  ["memberCardIssueDate", "crm.customers.fields.member_card_issue_date", "date"],
+  ["memberCardIssuePlace", "crm.customers.fields.member_card_issue_place", "input"],
+  ["extendedOccupation", "crm.customers.fields.extended_occupation", "input"],
+  ["jobTitle", "crm.customers.fields.job_title", "input"],
+  ["workDuration", "crm.customers.fields.work_duration", "select"],
+  ["laborContractType", "crm.customers.fields.labor_contract_type", "input"],
+  ["workplace", "crm.customers.fields.workplace", "input"],
+  ["workplaceAddress", "crm.customers.fields.workplace_address", "input"],
+  ["note", "crm.customers.fields.note", "textarea"],
 ]
 
 export const businessFields: Array<
   [keyof CustomerFormValues, string, "input" | "date"]
 > = [
-  ["shortName", "Tên tắt doanh nghiệp", "input"],
-  ["businessRegistrationNo", "Số đăng ký kinh doanh", "input"],
-  ["businessIssueDate", "Ngày cấp", "date"],
-  ["issuingAuthority", "Cơ quan ban hành", "input"],
-  ["establishedDate", "Ngày thành lập", "date"],
-  ["website", "Website", "input"],
-  ["representative", "Người đại diện", "input"],
-  ["representativeTitle", "Chức vụ nơi công tác", "input"],
-  ["representativeIdentityNo", "CCCD/CMND", "input"],
-  ["businessLine", "Ngành kinh doanh", "input"],
+  ["shortName", "crm.customers.fields.short_name", "input"],
+  [
+    "businessRegistrationNo",
+    "crm.customers.fields.business_registration_no",
+    "input",
+  ],
+  ["businessIssueDate", "crm.customers.fields.business_issue_date", "date"],
+  ["issuingAuthority", "crm.customers.fields.issuing_authority", "input"],
+  ["establishedDate", "crm.customers.fields.established_date", "date"],
+  ["website", "crm.customers.fields.website", "input"],
+  ["representative", "crm.customers.fields.representative", "input"],
+  ["representativeTitle", "crm.customers.fields.representative_title", "input"],
+  [
+    "representativeIdentityNo",
+    "crm.customers.fields.representative_identity_no",
+    "input",
+  ],
+  ["businessLine", "crm.customers.fields.business_line", "input"],
 ]

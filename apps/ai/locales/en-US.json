@@ -43,7 +43,9 @@
       "chunker": "Chunker",
       "strategy": "Strategy",
       "chunk_size": "Chunk size",
-      "chunk_overlap": "Chunk overlap"
+      "chunk_overlap": "Chunk overlap",
+      "upload_file": "Upload file",
+      "classification": "Classification"
     },
     "placeholder": {
       "title": "e.g. HR policy handbook",
@@ -62,7 +64,8 @@
       "title_too_long": "Title is too long",
       "version_required": "Version is required",
       "version_too_long": "Version is too long",
-      "effective_range_invalid": "Effective to must be after effective from"
+      "effective_range_invalid": "Effective to must be after effective from",
+      "content_required_for_preview": "Content is required to preview chunks"
     },
     "source_type": {
       "docs": "Documents",
@@ -149,13 +152,19 @@
       "btn": {
         "add": "New Connector",
         "create": "Create Connector",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "delete_title": "Delete connector"
       },
       "field": {
         "name": "Connector Name",
         "provider": "Data Source Provider",
         "target_source": "Target Knowledge Source",
-        "schedule": "Sync Schedule"
+        "schedule": "Sync Schedule",
+        "target_source_prefix": "Target repository:",
+        "infra_provider": "Infrastructure provider:",
+        "data_volume": "Data volume:",
+        "docs_chunks_stat": "{docs} documents • {chunks} chunks",
+        "last_sync_prefix": "Last sync:"
       },
       "last_sync": "Last sync",
       "sync_now": "Sync Now",
@@ -166,11 +175,105 @@
       "dialog": {
         "title": "Add Data Connector",
         "description": "Connect external storage to continuously ingest and embed enterprise documents."
+      },
+      "kpi": {
+        "pipelines": "Connection Pipelines",
+        "active": "Active",
+        "pipelines_hint": "Scheduled automatic sync",
+        "docs_ingested": "Documents Ingested",
+        "docs_hint": "Files fully indexed",
+        "chunks": "Vector Chunks Generated",
+        "chunks_hint": "HNSW pgvector index",
+        "schedule": "Sync Frequency",
+        "schedule_hint": "Auto-triggered via Webhook"
+      },
+      "schedule": {
+        "realtime": "Real-time (Webhook Trigger)",
+        "hourly": "Hourly",
+        "every_6h": "Every 6 hours",
+        "daily_2am": "Daily at 02:00 AM"
+      },
+      "placeholder": {
+        "name": "e.g. Google Drive Marketing SOPs",
+        "target_source": "e.g. Operations Handbook & Guides 2026"
+      },
+      "defaults": {
+        "gdrive_hr_name": "Google Drive - HR Handbook & Policies",
+        "gdrive_hr_target": "Policies & Benefits Regulations 2026",
+        "confluence_eng_name": "Confluence - Engineering Architecture & SOPs",
+        "s3_raw_name": "Garage S3 - Contract & Legal PDF Documents",
+        "s3_raw_target": "Business Contract Repository",
+        "sharepoint_sales_name": "SharePoint - Quotations & Capability Profiles"
       }
     },
     "strategies": {
       "title": "Advanced Chunking & Reranker Pipeline",
-      "description": "Maximize retrieval precision and answer groundedness with hierarchical chunking and cross-encoder reranking."
+      "description": "Maximize retrieval precision and answer groundedness with hierarchical chunking and cross-encoder reranking.",
+      "toast": {
+        "save_success": "Chunking & Reranker configuration updated!",
+        "save_failed": "Failed to save strategy configuration"
+      },
+      "two_stage_status": "Two-Stage Pipeline (Active)",
+      "badge": {
+        "recommended": "Recommended",
+        "in_llm_prompt": "Included in LLM Prompt",
+        "not_reranked": "Not Re-ranked"
+      },
+      "card": {
+        "hierarchical": {
+          "title": "Parent-Child (Hierarchical)",
+          "description": "Store small chunks for precise vector matching while providing parent text to the LLM to preserve context."
+        },
+        "semantic": {
+          "description": "Automatically split documents when cosine similarity between consecutive sentences drops below the threshold."
+        },
+        "markdown_ast": {
+          "description": "Preserve data tables (Data Tables) and H1, H2, H3 heading structure as intact blocks."
+        },
+        "recursive": {
+          "description": "Fixed segmentation by character length and overlap window (character window overlap)."
+        }
+      },
+      "params_title": "Chunking Parameters Configuration ({strategy})",
+      "params_description": "Set token length limits and inspect the chunk structure live",
+      "parent_chunk_label": "Parent Chunk Size (Context Tokens):",
+      "parent_chunk_hint": "Large text blocks go into the model's prompt to ensure answers carry full context.",
+      "child_chunk_label": "Child Chunk Size (Embedding Vector Tokens):",
+      "child_chunk_hint": "Short sizes optimize vector matching in multidimensional space (Cosine Distance).",
+      "semantic_threshold_hint": "Auto-split threshold: when similarity between two consecutive sentences falls below this threshold, a new segment starts.",
+      "ast_label": "Structured Syntax Tree Parsing (Document AST):",
+      "ast_hint": "Preserve the table-of-contents heading structure and data table blocks (Tables) without splitting financial rows or columns.",
+      "recursive_label": "Recursive Splitting (Recursive Character Splitting):",
+      "recursive_hint": "Split text into ~512-character segments with a 64-character overlap to maintain sentence-level semantics.",
+      "inspector_title": "Document Chunk Structure Inspector:",
+      "demo_parent_label": "PARENT CHUNK #12 (Parent Chunk: ~1024 Tokens)",
+      "demo_parent_section": "Section 4.2: Travel Mode & Project Allowances",
+      "demo_child1_text": "\"Permanent staff are entitled to 14 paid annual leave days, plus 1 extra day for every 3 years of tenure...\"",
+      "demo_child2_text": "\"For staff onsite at customer projects, the travel allowance is 350,000 VND/day...\"",
+      "demo_child3_text": "\"Leave approval deadline: department heads approve at least 48 working hours in advance via the HRM system...\"",
+      "demo_table": "# 1. PAYROLL & BENEFITS POLICY 2026\n| Title | Base salary | Project allowance | Approval cycle |\n| Senior Specialist | 35,000,000 VND | 2,500,000 VND | Monthly |\n| Principal Engineer | 55,000,000 VND | 4,000,000 VND | Monthly |",
+      "reranker_title": "Two-Stage Cross-Encoder Reranker Pipeline",
+      "reranker_description": "Screen raw retrieval results with a cross-encoder model to maximize precision and remove noise",
+      "faithfulness_score": "Faithfulness: 94.2%",
+      "reranker_model_label": "Reranker Engine Model",
+      "reranker_none": "Disable Reranker (Cosine only)",
+      "topk_label": "Top-K Raw Candidates (Stage 1)",
+      "topk_hint": "Candidates from Hybrid Search (BM25 + Vector)",
+      "topn_label": "Top-N Selected Chunks (Stage 2)",
+      "topn_hint": "The most accurate passages sent to the LLM",
+      "comparator_title": "Pipeline comparison: Raw Vector Retrieval vs Cross-Encoder Rescoring",
+      "comparator_query": "Query: \"Travel allowance policy for staff on provincial trips\"",
+      "stage1_title": "Stage 1: Raw Vector Results (Cosine Distance)",
+      "stage2_title": "Stage 2: Results after Cross-Encoder Rescoring",
+      "demo_stage1_item1": "1. \"...flight ticket booking and shuttle procedures...\"",
+      "demo_stage1_item2": "2. \"...out-of-province travel allowance of VND 350,000...\"",
+      "demo_stage1_item3": "3. \"...project completion bonus policy...\" (Noise)",
+      "demo_stage2_item1": "1. \"...out-of-province travel allowance of VND 350,000...\"",
+      "demo_stage2_item2": "2. \"...hotel and meal invoices during the stay...\"",
+      "demo_stage2_item3": "3. \"...flight ticket booking and shuttle procedures...\"",
+      "quality_note_label": "Quality benchmark:",
+      "quality_note_body": "the Cross-Encoder reads the question and the full passage together to compute true relevance, discards misleading results, and pushes accurate documents to the top.",
+      "save_btn": "Save Strategy & Reranker Configuration"
     }
   },
   "approvals": {
@@ -286,6 +389,15 @@
       "dialog": {
         "title": "Add New MCP Server Connection",
         "description": "Enter the SSE or HTTP endpoint URL of the Model Context Protocol server."
+      },
+      "placeholder": {
+        "name": "e.g. Elasticsearch MCP",
+        "description": "Describe what the MCP server does..."
+      },
+      "defaults": {
+        "postgres_description": "Lets the Agent run controlled SQL queries and inspect database schemas.",
+        "s3_description": "File storage integration, presigned URL creation, and document metadata reading.",
+        "zeebe_description": "Start and monitor Camunda Zeebe business processes via the Agent."
       }
     }
   },
@@ -358,6 +470,28 @@
       "temperature": "Temperature",
       "allowed_tools": "Allowed Tools"
     },
+    "placeholder": {
+      "name": "e.g. HR Recruiter Assistant",
+      "description": "Describe the agent's purpose and role...",
+      "system_prompt": "Enter the System Prompt that shapes the agent's persona..."
+    },
+    "temp": {
+      "strict": "Strict (Deterministic)",
+      "balanced": "Balanced",
+      "adaptive": "Flexible (Adaptive)"
+    },
+    "card": {
+      "department_label": "Module",
+      "status_ready": "Ready",
+      "default_description": "Automation directives for this department.",
+      "system_prompt_label": "System Directive (System Prompt)",
+      "model_label": "Execution model:",
+      "temperature_label": "Temperature:",
+      "tools_label": "Tool permissions:",
+      "tools_unrestricted": "Unrestricted",
+      "tools_count": "{count} tools assigned",
+      "more_tools": "+{count} more"
+    },
     "tools_all": "Full System Access (*)",
     "dialog": {
       "create_title": "Create New Agent Persona",
@@ -379,6 +513,188 @@
       "routing": "Gateway & Fallback",
       "guardrails": "Enterprise Guardrails",
       "quotas": "Budgets & Rate Limits"
+    },
+    "profiles": {
+      "toast": {
+        "load_failed": "Failed to load AI configuration",
+        "test_success": "Connection test successful!",
+        "test_failed": "Connection failed: {error}",
+        "test_error": "Error while testing connection",
+        "save_success": "AI configuration saved successfully!",
+        "save_failed": "Failed to save configuration",
+        "profile_saved": "Profile \"{name}\" saved successfully!",
+        "profile_save_failed": "Failed to save profile",
+        "profile_activated": "Profile \"{name}\" activated!",
+        "profile_activate_failed": "Failed to activate profile",
+        "profile_deleted": "Profile \"{name}\" deleted",
+        "profile_delete_failed": "Failed to delete profile"
+      },
+      "active_title": "Active Model Configuration",
+      "active_description": "The model and parameters directly handling AI requests in the Arda platform.",
+      "btn": {
+        "save_as_profile": "Save as New Profile",
+        "test_connection": "Test connection",
+        "save_changes": "Save changes",
+        "refresh_list": "Refresh list",
+        "activate": "Activate",
+        "save_profile": "Save Profile"
+      },
+      "field": {
+        "provider": "Provider",
+        "temperature": "Creativity (Temperature)",
+        "profile_name": "Profile name"
+      },
+      "placeholder": {
+        "provider": "Select a provider",
+        "model_id": "e.g. gpt-4o, gemini-2.5-flash",
+        "api_key_existing": "Enter to replace the existing key...",
+        "profile_name": "e.g. Production Gemini 2.5 Flash, Local Qwen K3s"
+      },
+      "badge": {
+        "key_saved": "Key stored securely",
+        "in_use": "In use"
+      },
+      "test": {
+        "success_detail": "Connection successful! (Latency: {latency}ms)",
+        "error_label": "Error: {error}"
+      },
+      "presets": {
+        "title": "Configuration Presets",
+        "openai_desc": "OpenAI's benchmark multi-task model",
+        "ollama_desc": "Connect to an admin-configured Ollama endpoint",
+        "openrouter_desc": "Aggregate Claude 3.5, Gemini, Llama 3 behind a single key"
+      },
+      "saved": {
+        "title": "Saved Profiles",
+        "description": "Switch between LLM providers instantly without re-entering credentials or API keys",
+        "empty": "No saved profiles yet. You can save the current configuration as a profile for later reuse.",
+        "active_model": "Primary model in use"
+      },
+      "dialog": {
+        "save_title": "Save Configuration as New Profile",
+        "save_description": "Save the current provider ({provider}), model ({model}) and API key for quick switching later."
+      }
+    },
+    "guardrails": {
+      "toast": {
+        "save_success": "AI Guardrails configuration updated!",
+        "save_failed": "Failed to save Guardrails configuration"
+      },
+      "main": {
+        "title": "Safety & Data Compliance Controls (Enterprise Guardrails & DLP)",
+        "description": "Two-way (Input / Output) controls preventing sensitive data leaks and privilege-escalation attacks"
+      },
+      "status": {
+        "policy_active": "Policy Active"
+      },
+      "injection": {
+        "title": "Prompt Injection / Jailbreak Detection & Blocking",
+        "description": "Analyze user command context with a safety model to neutralize jailbreak techniques, role bypass, and system-prompt extraction attempts.",
+        "threshold_label": "Sensitivity Threshold:",
+        "threshold_default": "(Banking default: 0.85)"
+      },
+      "pii": {
+        "title": "Automatic PII & Account Masking (PII / DLP)",
+        "description": "Automatically detect and mask national ID numbers, tax codes, bank accounts, and passwords with pseudonymous labels before the payload leaves the system.",
+        "audit_title": "DLP Data Flow Audit (Data Loss Prevention Audit Log):",
+        "raw_label": "Raw user data:",
+        "raw_sample": "\"Disburse 500 million to Mr. Nguyen Van A (National ID: 001201012345, Account: 0071001234567)\"",
+        "payload_label": "Payload sent to the LLM:",
+        "payload_prefix": "Disburse 500 million to",
+        "cccd_label": "National ID",
+        "stk_label": "Account No."
+      },
+      "hallucination": {
+        "title": "Hallucination Detection",
+        "description": "Measure citation grounding (Faithfulness score). Automatically reject answers where the model invents information beyond the enterprise document scope."
+      },
+      "btn": {
+        "save": "Save Guardrails Changes"
+      },
+      "privacy": {
+        "title": "Privacy Policy (Zero Retention)",
+        "zdr_description": "Requires cloud providers (OpenAI, Google) to commit under the Enterprise agreement: no conversation logs stored on their servers and no internal data used for model training.",
+        "encryption_title": "Bank-Grade AES-256 GCM Encryption",
+        "encryption_description": "All conversation records and metadata are encrypted with internal HSM keys before being written to the platform's PostgreSQL database.",
+        "compliance": "Compliance: ISO 27001 • GDPR"
+      }
+    },
+    "routing": {
+      "toast": {
+        "save_success": "Model Gateway routing rules & fallback chain updated!",
+        "save_failed": "Failed to save routing rules"
+      },
+      "fallback": {
+        "title": "Multi-Tier High-Availability Fallback Circuit",
+        "description": "Enterprise-grade failover: automatic forwarding when Primary hits quota limits or network errors",
+        "sla": "Committed SLA: 99.99% Availability",
+        "retry_label": "Retry policy:",
+        "retry_value": "3 attempts (Exponential Backoff 100ms - 2s)",
+        "max_timeout": "Max timeout: 25.0s",
+        "primary_title": "Primary Gateway",
+        "primary_description": "The default model receiving traffic per the configured policy routing.",
+        "primary_provider_label": "Primary provider",
+        "status_label": "Status:",
+        "secondary_title": "Secondary Gateway (Tier 1 Failover)",
+        "secondary_description": "Auto-forward when the primary gateway is overloaded, out of RPM/TPM quota, or returns 5xx errors.",
+        "secondary_provider_label": "Secondary provider",
+        "failover_title": "Emergency Cluster (Air-gapped Failover)",
+        "failover_description": "Survival failover: runs on internal LAN GPU servers when Internet connectivity is lost.",
+        "failover_provider_label": "On-premise server cluster",
+        "protection_label": "Protection:"
+      },
+      "routing": {
+        "title": "Task-based Model Routing",
+        "description": "Allocate AI resources by security policy and business capability requirements"
+      },
+      "task_chat": {
+        "title": "Conversation & Operations",
+        "description": "Handles process Q&A and short text summarization. Prioritizes low latency (<500ms) and budget efficiency.",
+        "cost_label": "Estimated cost:"
+      },
+      "task_code": {
+        "title": "Coding & SQL Writing",
+        "description": "Generates source code, complex database queries, and multi-step logic analysis (Chain-of-Thought).",
+        "accuracy_label": "Logic accuracy:"
+      },
+      "model": {
+        "claude_code": "Claude 3.5 Sonnet (Code Specialist)",
+        "gpt4o_premium": "OpenAI GPT-4o (Premium Multi-task)"
+      },
+      "task_sensitive": {
+        "title": "Confidential Financial Data",
+        "description": "Payroll, contracts, and internal financial reports. Must be processed locally, never sent outside.",
+        "infra_label": "Execution infrastructure:",
+        "infra_value": "LAN K3s servers"
+      },
+      "btn": {
+        "save": "Save Gateway Routing Rules"
+      }
+    },
+    "quotas": {
+      "toast": {
+        "save_success": "Budget caps and rate limits saved!",
+        "save_failed": "Failed to save quota configuration"
+      },
+      "budget": {
+        "title": "Monthly Department Budgets",
+        "description": "Set a hard cap in USD per department to prevent cost overrun risks",
+        "empty": "No department budgets configured yet.",
+        "used_label": "Used this period",
+        "save_btn": "Save Budget Caps"
+      },
+      "rate": {
+        "title": "Rate Limiting",
+        "description": "Protect infrastructure against congestion and API abuse",
+        "global_limits": "Global Limits",
+        "req_per_min": "req / min",
+        "token_per_min": "tokens / min",
+        "monthly_token_label": "Monthly token limit (0 = unlimited)",
+        "token_usage": "Used {used} / {limit} tokens in the current period.",
+        "webhook_label": "Alert webhook at 80% of quota",
+        "webhook_hint": "Send instant notifications via Slack or Microsoft Teams when a department is about to exhaust its AI budget.",
+        "save_btn": "Save Quotas & Budget"
+      }
     }
   }
 }

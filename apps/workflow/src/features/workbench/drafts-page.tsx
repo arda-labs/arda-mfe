@@ -233,15 +233,15 @@ export function DraftWorkbenchPage() {
     setCancelling(true)
     try {
       if (deleteTarget.domain !== "crm_customer_registration") {
-        throw new Error("Chưa hỗ trợ hủy nháp cho nghiệp vụ này")
+        throw new Error(t("workflow.workbench.cancel_unsupported"))
       }
       await customerDraftApi.cancel(deleteTarget.id)
-      notify.success("Đã hủy hồ sơ nháp")
+      notify.success(t("workflow.workbench.cancel_success"))
       setDeleteTarget(null)
       await load()
     } catch (error) {
       notify.error(
-        "Hủy hồ sơ thất bại",
+        t("workflow.workbench.cancel_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -287,7 +287,7 @@ export function DraftWorkbenchPage() {
               onClick={() => void load()}
             >
               <RefreshCw className="size-4" />
-              {t("crm.actions.refresh")}
+              {t("workflow.workbench.actions_refresh")}
             </Button>
           </div>
         }
@@ -403,7 +403,7 @@ export function DraftWorkbenchPage() {
               />
               <Button type="submit" size="sm" className="h-8">
                 <Search className="size-4" />
-                {t("crm.actions.search")}
+                {t("workflow.workbench.actions_search")}
               </Button>
               {hasActiveFilter ? (
                 <Button

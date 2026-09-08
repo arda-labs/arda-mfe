@@ -253,8 +253,8 @@ function TransactionWorkbenchInner({
   const claiming = direction === "incoming" && claimPending
 
   const columns = useMemo(
-    () => workItemColumns(direction, claiming, openItem),
-    [direction, claiming, openItem]
+    () => workItemColumns(direction, claiming, openItem, t),
+    [direction, claiming, openItem, t]
   )
 
   const table = useReactTable({
@@ -284,7 +284,7 @@ function TransactionWorkbenchInner({
             onClick={() => void reload()}
           >
             <RefreshCw className="size-4" />
-            Làm mới
+            {t("workflow.workbench.actions_refresh")}
           </Button>
         }
       />
@@ -293,7 +293,7 @@ function TransactionWorkbenchInner({
           title={t("workflow.workbench.business_type")}
           collapsed={treeCollapsed}
           onCollapsedChange={setTreeCollapsed}
-          meta={`${items.length} việc`}
+          meta={t("workflow.workbench.tree_count", { count: items.length })}
           embedded
         >
           <WorkItemTree
@@ -313,7 +313,7 @@ function TransactionWorkbenchInner({
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
               <p className="text-sm">
-                Đang xử lý hồ sơ, vui lòng đợi trong giây lát...
+                {t("workflow.workbench.processing_wait")}
               </p>
               <Button
                 variant="outline"
@@ -321,7 +321,7 @@ function TransactionWorkbenchInner({
                 onClick={() => void reload()}
               >
                 <RefreshCw className="size-4" />
-                Làm mới ngay
+                {t("workflow.workbench.refresh_now")}
               </Button>
             </div>
           ) : (
@@ -424,7 +424,7 @@ export function TransactionSearchPage() {
     )
   }, [])
 
-  const columns = useMemo(() => searchColumns(openItem), [openItem])
+  const columns = useMemo(() => searchColumns(openItem, t), [openItem, t])
   const table = useReactTable({
     data: items,
     columns,

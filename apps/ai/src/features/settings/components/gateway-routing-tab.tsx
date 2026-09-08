@@ -1,4 +1,5 @@
 import { notify } from "@workspace/ui/feedback/notify"
+import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
@@ -22,6 +23,7 @@ import { useCallback, useEffect, useState } from "react"
 import { fetchRoutingRules, saveRoutingRules } from "../api"
 
 export function GatewayRoutingTab() {
+  const { t } = useI18n()
   const [fastModel, setFastModel] = useState("gemini-2.5-flash")
   const [codeModel, setCodeModel] = useState("claude-3.5-sonnet")
   const [sensitiveModel, setSensitiveModel] = useState("qwen2.5:7b-instruct-q4_K_M")
@@ -62,9 +64,9 @@ export function GatewayRoutingTab() {
         secondaryProvider,
         failoverProvider,
       })
-      notify.success("Đã cập nhật quy tắc định tuyến Model Gateway & Chuỗi Dự phòng!")
+      notify.success(t("ai.settings.routing.toast.save_success"))
     } catch (err) {
-      notify.error("Không thể lưu quy tắc định tuyến", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.routing.toast.save_failed"), err instanceof Error ? err.message : String(err))
     } finally {
       setSaving(false)
     }
@@ -80,16 +82,16 @@ export function GatewayRoutingTab() {
               <Network className="h-4 w-4 text-foreground shrink-0" />
               <div>
                 <CardTitle className="text-sm font-semibold">
-                  Mạch Dự phòng Đa Tầng (High-Availability Fallback Circuit)
+                  {t("ai.settings.routing.fallback.title")}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Cơ chế dự phòng cấp doanh nghiệp: Tự động chuyển tiếp khi Primary chạm ngưỡng quota hoặc lỗi mạng
+                  {t("ai.settings.routing.fallback.description")}
                 </CardDescription>
               </div>
             </div>
             <Status variant="success" className="text-[11px]">
               <StatusIndicator />
-              <StatusLabel>SLA Cam kết: 99.99% Availability</StatusLabel>
+              <StatusLabel>{t("ai.settings.routing.fallback.sla")}</StatusLabel>
             </Status>
           </div>
         </CardHeader>
@@ -98,9 +100,9 @@ export function GatewayRoutingTab() {
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5 text-foreground" />
-              Chính sách tái thử nghiệm (Retry Policy): <strong className="text-foreground">3 lần (Exponential Backoff 100ms - 2s)</strong>
+              {t("ai.settings.routing.fallback.retry_label")} <strong className="text-foreground">{t("ai.settings.routing.fallback.retry_value")}</strong>
             </span>
-            <span className="font-mono text-[10.5px]">Giới hạn thời gian (Max Timeout): 25.0s</span>
+            <span className="font-mono text-[10.5px]">{t("ai.settings.routing.fallback.max_timeout")}</span>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -112,17 +114,17 @@ export function GatewayRoutingTab() {
                     <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">
                       1
                     </div>
-                    <span className="font-bold text-foreground text-xs">Cổng Chính (Primary Gateway)</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.routing.fallback.primary_title")}</span>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-mono">Tier 1</Badge>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
-                  Mô hình mặc định nhận lưu lượng theo policy routing đang được cấu hình.
+                  {t("ai.settings.routing.fallback.primary_description")}
                 </p>
               </div>
 
               <div className="mt-4 space-y-2 border-t border-border pt-3">
-                <Label className="text-[11px] text-muted-foreground">Nhà cung cấp chính</Label>
+                <Label className="text-[11px] text-muted-foreground">{t("ai.settings.routing.fallback.primary_provider_label")}</Label>
                 <Select value={primaryProvider} onValueChange={setPrimaryProvider}>
                   <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
@@ -135,7 +137,7 @@ export function GatewayRoutingTab() {
                 </Select>
 
                 <div className="flex items-center justify-between rounded border border-border/70 bg-background px-2.5 py-1.5 text-[10.5px]">
-                  <span className="text-muted-foreground">Trạng thái:</span>
+                  <span className="text-muted-foreground">{t("ai.settings.routing.fallback.status_label")}</span>
                   <Status variant="success" className="h-4 px-1.5 text-[9.5px]">
                     <StatusIndicator />
                     <StatusLabel>Online (118ms)</StatusLabel>
@@ -152,17 +154,17 @@ export function GatewayRoutingTab() {
                     <div className="flex h-6 w-6 items-center justify-center rounded bg-muted text-xs font-bold text-foreground">
                       2
                     </div>
-                    <span className="font-bold text-foreground text-xs">Cổng Dự phòng 1 (Secondary)</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.routing.fallback.secondary_title")}</span>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-mono">Trigger: 429</Badge>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
-                  Tự kích hoạt chuyển tiếp khi cổng chính quá tải, hết quota RPM/TPM hoặc lỗi 5xx.
+                  {t("ai.settings.routing.fallback.secondary_description")}
                 </p>
               </div>
 
               <div className="mt-4 space-y-2 border-t border-border pt-3">
-                <Label className="text-[11px] text-muted-foreground">Nhà cung cấp dự phòng 1</Label>
+                <Label className="text-[11px] text-muted-foreground">{t("ai.settings.routing.fallback.secondary_provider_label")}</Label>
                 <Select value={secondaryProvider} onValueChange={setSecondaryProvider}>
                   <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
@@ -175,7 +177,7 @@ export function GatewayRoutingTab() {
                 </Select>
 
                 <div className="flex items-center justify-between rounded border border-border/70 bg-background px-2.5 py-1.5 text-[10.5px]">
-                  <span className="text-muted-foreground">Trạng thái:</span>
+                  <span className="text-muted-foreground">{t("ai.settings.routing.fallback.status_label")}</span>
                   <Status variant="warning" className="h-4 px-1.5 text-[9.5px]">
                     <StatusIndicator />
                     <StatusLabel>Hot-Standby</StatusLabel>
@@ -192,17 +194,17 @@ export function GatewayRoutingTab() {
                     <div className="flex h-6 w-6 items-center justify-center rounded bg-muted text-xs font-bold text-foreground">
                       3
                     </div>
-                    <span className="font-bold text-foreground text-xs">Cụm Khẩn cấp (Air-gapped Failover)</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.routing.fallback.failover_title")}</span>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-mono">On-Prem K3s</Badge>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
-                  Cơ chế dự phòng sống còn: Chạy trên máy chủ GPU LAN nội bộ khi mất kết nối Internet.
+                  {t("ai.settings.routing.fallback.failover_description")}
                 </p>
               </div>
 
               <div className="mt-4 space-y-2 border-t border-border pt-3">
-                <Label className="text-[11px] text-muted-foreground">Cụm máy chủ nội bộ</Label>
+                <Label className="text-[11px] text-muted-foreground">{t("ai.settings.routing.fallback.failover_provider_label")}</Label>
                 <Select value={failoverProvider} onValueChange={setFailoverProvider}>
                   <SelectTrigger className="h-8 text-xs font-mono">
                     <SelectValue />
@@ -214,7 +216,7 @@ export function GatewayRoutingTab() {
                 </Select>
 
                 <div className="flex items-center justify-between rounded border border-border/70 bg-background px-2.5 py-1.5 text-[10.5px]">
-                  <span className="text-muted-foreground">Bảo vệ:</span>
+                  <span className="text-muted-foreground">{t("ai.settings.routing.fallback.protection_label")}</span>
                   <span className="font-mono font-medium text-foreground flex items-center gap-1">
                     <Shield className="h-3 w-3 text-muted-foreground" />
                     Zero Internet Dependency
@@ -233,10 +235,10 @@ export function GatewayRoutingTab() {
             <GitBranch className="h-4 w-4 text-foreground" />
             <div>
               <CardTitle className="text-sm font-semibold">
-                Định tuyến Mô hình theo Tác vụ (Task-based Model Routing)
+                {t("ai.settings.routing.routing.title")}
               </CardTitle>
               <CardDescription className="text-xs">
-                Phân bổ tài nguyên AI theo chính sách bảo mật và yêu cầu năng lực xử lý nghiệp vụ
+                {t("ai.settings.routing.routing.description")}
               </CardDescription>
             </div>
           </div>
@@ -251,12 +253,12 @@ export function GatewayRoutingTab() {
                     <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-muted/40 text-foreground">
                       <MessageSquare className="h-3.5 w-3.5" />
                     </div>
-                    <span className="font-bold text-foreground text-xs">Hội thoại & Vận hành</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.routing.task_chat.title")}</span>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-mono">Triage</Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Xử lý hỏi-đáp quy trình, tóm tắt văn bản ngắn. Ưu tiên độ trễ thấp (&lt;500ms) và tối ưu ngân sách.
+                  {t("ai.settings.routing.task_chat.description")}
                 </p>
               </div>
 
@@ -272,7 +274,7 @@ export function GatewayRoutingTab() {
                   </SelectContent>
                 </Select>
                 <div className="flex items-center justify-between text-[10.5px] text-muted-foreground">
-                  <span>Ước tính chi phí:</span>
+                  <span>{t("ai.settings.routing.task_chat.cost_label")}</span>
                   <span className="font-mono text-foreground font-semibold">&lt; $0.0001 / request</span>
                 </div>
               </div>
@@ -286,12 +288,12 @@ export function GatewayRoutingTab() {
                     <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-muted/40 text-foreground">
                       <FileCode className="h-3.5 w-3.5" />
                     </div>
-                    <span className="font-bold text-foreground text-xs">Lập trình & Viết SQL</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.routing.task_code.title")}</span>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-mono">Reasoning</Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Sinh mã nguồn, tạo câu lệnh truy vấn CSDL phức tạp và phân tích logic đa bước (Chain-of-Thought).
+                  {t("ai.settings.routing.task_code.description")}
                 </p>
               </div>
 
@@ -301,13 +303,13 @@ export function GatewayRoutingTab() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="claude-3.5-sonnet">Claude 3.5 Sonnet (Chuyên sâu Code)</SelectItem>
+                    <SelectItem value="claude-3.5-sonnet">{t("ai.settings.routing.model.claude_code")}</SelectItem>
                     <SelectItem value="deepseek-r1">DeepSeek R1 (Reasoning CoT)</SelectItem>
-                    <SelectItem value="gpt-4o">OpenAI GPT-4o (Đa nhiệm cao cấp)</SelectItem>
+                    <SelectItem value="gpt-4o">{t("ai.settings.routing.model.gpt4o_premium")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="flex items-center justify-between text-[10.5px] text-muted-foreground">
-                  <span>Độ chính xác logic:</span>
+                  <span>{t("ai.settings.routing.task_code.accuracy_label")}</span>
                   <span className="font-mono text-foreground font-semibold">92.4% Benchmark</span>
                 </div>
               </div>
@@ -321,12 +323,12 @@ export function GatewayRoutingTab() {
                     <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-muted/40 text-foreground">
                       <Lock className="h-3.5 w-3.5" />
                     </div>
-                    <span className="font-bold text-foreground text-xs">Dữ liệu Tài chính Mật</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.routing.task_sensitive.title")}</span>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-mono">On-Prem Only</Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Bảng lương, hợp đồng và báo cáo tài chính nội bộ. Bắt buộc xử lý cục bộ, không gửi ra ngoài.
+                  {t("ai.settings.routing.task_sensitive.description")}
                 </p>
               </div>
 
@@ -341,9 +343,9 @@ export function GatewayRoutingTab() {
                   </SelectContent>
                 </Select>
                 <div className="flex items-center justify-between text-[10.5px] text-muted-foreground">
-                  <span>Hạ tầng thực thi:</span>
+                  <span>{t("ai.settings.routing.task_sensitive.infra_label")}</span>
                   <span className="font-mono text-foreground font-semibold flex items-center gap-1">
-                    <Server className="h-3 w-3 text-muted-foreground" /> Máy chủ LAN K3s
+                    <Server className="h-3 w-3 text-muted-foreground" /> {t("ai.settings.routing.task_sensitive.infra_value")}
                   </span>
                 </div>
               </div>
@@ -352,7 +354,7 @@ export function GatewayRoutingTab() {
 
           <div className="flex justify-end pt-2">
             <Button size="sm" className="text-xs" onClick={handleSave} disabled={saving}>
-              {saving ? "Đang lưu..." : "Lưu Quy tắc Định tuyến Gateway"}
+              {saving ? t("common.action.saving") : t("ai.settings.routing.btn.save")}
             </Button>
           </div>
         </CardContent>

@@ -5,6 +5,7 @@ import {
   isSafeBrandImageUrl,
 } from "@workspace/theme/branding"
 import { api, type ApiSuccess } from "@workspace/api"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 
 type Parameter = {
@@ -187,6 +188,7 @@ const fields: Record<keyof SystemSettings, { key: string }> = {
 }
 
 export function SystemSettingsPage() {
+  const { t } = useI18n()
   const [settings, setSettings] = useState<SystemSettings>(defaults)
   const [parameters, setParameters] = useState<Parameter[]>([])
   const [loading, setLoading] = useState(true)
@@ -202,11 +204,11 @@ export function SystemSettingsPage() {
       setParameters(data)
       setSettings(readSettingsFromList(data))
     } catch {
-      notify.error("Không thể tải cấu hình hệ thống")
+      notify.error(t("iam.system_settings.load_failed"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void loadParameters()
@@ -225,7 +227,7 @@ export function SystemSettingsPage() {
   )
 
   async function saveSettings() {
-    const validationError = validateSettings(settings)
+    const validationError = validateSettings(settings, t)
     if (validationError) {
       notify.error(validationError)
       return
@@ -247,10 +249,10 @@ export function SystemSettingsPage() {
         is_secret: false,
       })
       cacheBranding(settings)
-      notify.success("Đã lưu cấu hình hệ thống")
+      notify.success(t("iam.system_settings.save_success"))
       await loadParameters()
     } catch {
-      notify.error("Lưu cấu hình thất bại")
+      notify.error(t("iam.system_settings.save_failed"))
     } finally {
       setSaving(false)
     }
@@ -261,9 +263,13 @@ export function SystemSettingsPage() {
       <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
         <div className="space-y-4 p-4 pb-3">
           <PageTitle
-            title="Cài đặt hệ thống"
-            description="Cấu hình hiển thị login, mật khẩu, phiên đăng nhập và giới hạn bảo mật."
-            meta={<Badge variant="secondary">Toàn cục</Badge>}
+            title={t("iam.system_settings.title")}
+            description={t("iam.system_settings.description")}
+            meta={
+              <Badge variant="secondary">
+                {t("iam.system_settings.badge.global")}
+              </Badge>
+            }
           />
         </div>
 
@@ -272,15 +278,15 @@ export function SystemSettingsPage() {
             <TabsList className="grid h-auto min-w-0 flex-1 grid-cols-3 md:w-fit md:flex-none">
               <TabsTrigger value="display" className="gap-2">
                 <Settings2 className="size-4" />
-                Hiển thị
+                {t("iam.system_settings.tab.display")}
               </TabsTrigger>
               <TabsTrigger value="password" className="gap-2">
                 <KeyRound className="size-4" />
-                Mật khẩu
+                {t("iam.system_settings.tab.password")}
               </TabsTrigger>
               <TabsTrigger value="login" className="gap-2">
                 <MonitorSmartphone className="size-4" />
-                Đăng nhập
+                {t("iam.system_settings.tab.login")}
               </TabsTrigger>
             </TabsList>
             <Button
@@ -289,7 +295,9 @@ export function SystemSettingsPage() {
               className="shrink-0 gap-2"
             >
               <Save className="size-4" />
-              {saving ? "Đang lưu..." : "Lưu cấu hình"}
+              {saving
+                ? t("iam.system_settings.actions.saving")
+                : t("iam.system_settings.actions.save")}
             </Button>
           </div>
 
@@ -298,90 +306,94 @@ export function SystemSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    Thương hiệu và hiển thị
+                    {t("iam.system_settings.display.branding_title")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
                   <div className="grid gap-4 md:grid-cols-2">
                     <TextInput
-                      label="Tên ứng dụng"
+                      label={t("iam.system_settings.display.app_name")}
                       value={settings.appName}
                       onChange={(appName) =>
                         setSettings((s) => ({ ...s, appName }))
                       }
                     />
                     <TextInput
-                      label="Tên rút gọn"
+                      label={t("iam.system_settings.display.short_name")}
                       value={settings.shortName}
                       onChange={(shortName) =>
                         setSettings((s) => ({ ...s, shortName }))
                       }
                     />
                     <TextInput
-                      label="Tổ chức"
+                      label={t("iam.system_settings.display.organization")}
                       value={settings.organizationName}
                       onChange={(organizationName) =>
                         setSettings((s) => ({ ...s, organizationName }))
                       }
                     />
                     <TextInput
-                      label="Email hỗ trợ"
+                      label={t("iam.system_settings.display.support_email")}
                       value={settings.supportEmail}
                       onChange={(supportEmail) =>
                         setSettings((s) => ({ ...s, supportEmail }))
                       }
                     />
                     <TextInput
-                      label="Số điện thoại hỗ trợ"
+                      label={t("iam.system_settings.display.support_phone")}
                       value={settings.supportPhone}
                       onChange={(supportPhone) =>
                         setSettings((s) => ({ ...s, supportPhone }))
                       }
                     />
                     <TextInput
-                      label="Help center URL"
+                      label={t("iam.system_settings.display.help_url")}
                       value={settings.helpUrl}
                       onChange={(helpUrl) =>
                         setSettings((s) => ({ ...s, helpUrl }))
                       }
                     />
                     <TextInput
-                      label="Login logo URL"
+                      label={t("iam.system_settings.display.login_logo_url")}
                       value={settings.loginLogoUrl}
                       onChange={(loginLogoUrl) =>
                         setSettings((s) => ({ ...s, loginLogoUrl }))
                       }
                     />
                     <TextInput
-                      label="Dashboard logo URL"
+                      label={t(
+                        "iam.system_settings.display.dashboard_logo_url"
+                      )}
                       value={settings.dashboardLogoUrl}
                       onChange={(dashboardLogoUrl) =>
                         setSettings((s) => ({ ...s, dashboardLogoUrl }))
                       }
                     />
                     <TextInput
-                      label="Favicon URL"
+                      label={t("iam.system_settings.display.favicon_url")}
                       value={settings.faviconUrl}
                       onChange={(faviconUrl) =>
                         setSettings((s) => ({ ...s, faviconUrl }))
                       }
                     />
                     <TextInput
-                      label="Login background URL"
+                      label={t(
+                        "iam.system_settings.display.login_background_url"
+                      )}
                       value={settings.loginBackgroundUrl}
                       onChange={(loginBackgroundUrl) =>
                         setSettings((s) => ({ ...s, loginBackgroundUrl }))
                       }
                     />
                     <TextInput
-                      label="Tiêu đề login"
+                      label={t("iam.system_settings.display.login_title")}
                       value={settings.loginWelcomeTitle}
                       onChange={(loginWelcomeTitle) =>
                         setSettings((s) => ({ ...s, loginWelcomeTitle }))
                       }
                     />
                     <TextInput
-                      label="Mô tả login"
+                      label={t("iam.system_settings.display.login_subtitle")}
                       value={settings.loginWelcomeSubtitle}
                       onChange={(loginWelcomeSubtitle) =>
                         setSettings((s) => ({ ...s, loginWelcomeSubtitle }))
@@ -389,7 +401,7 @@ export function SystemSettingsPage() {
                     />
                     <SettingSwitch
                       className="md:col-span-2"
-                      label="Bật ảnh nền login"
+                      label={t("iam.system_settings.display.login_background")}
                       checked={settings.loginBackgroundEnabled}
                       onCheckedChange={(loginBackgroundEnabled) =>
                         setSettings((s) => ({ ...s, loginBackgroundEnabled }))
@@ -407,12 +419,12 @@ export function SystemSettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">
-                      Quy định mật khẩu
+                      {t("iam.system_settings.password.rules_title")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <NumberInput
-                      label="Độ dài tối thiểu"
+                      label={t("iam.system_settings.password.min_length")}
                       min={8}
                       value={settings.minPasswordLength}
                       onChange={(minPasswordLength) =>
@@ -420,7 +432,7 @@ export function SystemSettingsPage() {
                       }
                     />
                     <SettingSwitch
-                      label="Chặn mật khẩu đã bị lộ"
+                      label={t("iam.system_settings.password.block_pwned")}
                       checked={settings.blockPwnedPassword}
                       onCheckedChange={(blockPwnedPassword) =>
                         setSettings((s) => ({ ...s, blockPwnedPassword }))
@@ -428,7 +440,9 @@ export function SystemSettingsPage() {
                       source="Kratos"
                     />
                     <SettingSwitch
-                      label="Chặn mật khẩu giống email/tên đăng nhập"
+                      label={t(
+                        "iam.system_settings.password.block_similarity"
+                      )}
                       checked={settings.blockIdentifierSimilarity}
                       onCheckedChange={(blockIdentifierSimilarity) =>
                         setSettings((s) => ({
@@ -439,7 +453,7 @@ export function SystemSettingsPage() {
                       source="Kratos"
                     />
                     <SettingSwitch
-                      label="Bắt buộc có chữ hoa"
+                      label={t("iam.system_settings.password.require_uppercase")}
                       checked={settings.requireUppercase}
                       onCheckedChange={(requireUppercase) =>
                         setSettings((s) => ({ ...s, requireUppercase }))
@@ -447,7 +461,7 @@ export function SystemSettingsPage() {
                       source="Arda"
                     />
                     <SettingSwitch
-                      label="Bắt buộc có chữ số"
+                      label={t("iam.system_settings.password.require_number")}
                       checked={settings.requireNumber}
                       onCheckedChange={(requireNumber) =>
                         setSettings((s) => ({ ...s, requireNumber }))
@@ -455,7 +469,7 @@ export function SystemSettingsPage() {
                       source="Arda"
                     />
                     <SettingSwitch
-                      label="Bắt buộc có ký tự đặc biệt"
+                      label={t("iam.system_settings.password.require_symbol")}
                       checked={settings.requireSymbol}
                       onCheckedChange={(requireSymbol) =>
                         setSettings((s) => ({ ...s, requireSymbol }))
@@ -463,7 +477,7 @@ export function SystemSettingsPage() {
                       source="Arda"
                     />
                     <NumberInput
-                      label="Số ngày phải đổi mật khẩu"
+                      label={t("iam.system_settings.password.max_age_days")}
                       min={0}
                       value={settings.passwordMaxAgeDays}
                       onChange={(passwordMaxAgeDays) =>
@@ -477,24 +491,24 @@ export function SystemSettingsPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
                       <LockKeyhole className="size-4" />
-                      Tóm tắt
+                      {t("iam.system_settings.password.summary_title")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">
                     <SummaryRow
-                      label="Độ dài"
-                      value={`${settings.minPasswordLength}+ ký tự`}
+                      label={t("iam.system_settings.summary.length")}
+                      value={`${settings.minPasswordLength}+ ${t("iam.system_settings.summary.characters")}`}
                     />
                     <SummaryRow
-                      label="Rule đang bật"
+                      label={t("iam.system_settings.summary.rules_enabled")}
                       value={`${passwordRuleCount}/5`}
                     />
                     <SummaryRow
-                      label="Đổi định kỳ"
+                      label={t("iam.system_settings.summary.rotation")}
                       value={
                         settings.passwordMaxAgeDays > 0
-                          ? `${settings.passwordMaxAgeDays} ngày`
-                          : "Tắt"
+                          ? `${settings.passwordMaxAgeDays} ${t("iam.system_settings.summary.days")}`
+                          : t("iam.system_settings.summary.off")
                       }
                     />
                   </CardContent>
@@ -506,13 +520,13 @@ export function SystemSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    Bảo mật đăng nhập và phiên
+                    {t("iam.system_settings.login_security.title")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2">
                   <SettingSwitch
                     className="md:col-span-2"
-                    label="Chỉ cho phép 1 thiết bị đăng nhập"
+                    label={t("iam.system_settings.login_security.single_device")}
                     checked={settings.loginSingleDevice}
                     onCheckedChange={(loginSingleDevice) =>
                       setSettings((s) => ({ ...s, loginSingleDevice }))
@@ -520,7 +534,9 @@ export function SystemSettingsPage() {
                     source="Arda"
                   />
                   <NumberInput
-                    label="Số lần đăng nhập sai tối đa"
+                    label={t(
+                      "iam.system_settings.login_security.max_failed_attempts"
+                    )}
                     min={1}
                     value={settings.maxFailedAttempts}
                     onChange={(maxFailedAttempts) =>
@@ -528,7 +544,7 @@ export function SystemSettingsPage() {
                     }
                   />
                   <NumberInput
-                    label="Khóa đăng nhập trong bao nhiêu phút"
+                    label={t("iam.system_settings.login_security.lockout_minutes")}
                     min={1}
                     value={settings.lockoutMinutes}
                     onChange={(lockoutMinutes) =>
@@ -536,7 +552,7 @@ export function SystemSettingsPage() {
                     }
                   />
                   <NumberInput
-                    label="Cửa sổ đếm lỗi đăng nhập (phút)"
+                    label={t("iam.system_settings.login_security.attempt_window")}
                     min={1}
                     value={settings.attemptWindowMinutes}
                     onChange={(attemptWindowMinutes) =>
@@ -544,7 +560,7 @@ export function SystemSettingsPage() {
                     }
                   />
                   <NumberInput
-                    label="Thời hạn phiên đăng nhập (giờ)"
+                    label={t("iam.system_settings.login_security.session_hours")}
                     min={1}
                     value={settings.sessionLifespanHours}
                     onChange={(sessionLifespanHours) =>
@@ -552,7 +568,7 @@ export function SystemSettingsPage() {
                     }
                   />
                   <NumberInput
-                    label="Recent-auth cho thao tác nhạy cảm (phút)"
+                    label={t("iam.system_settings.login_security.recent_auth")}
                     min={1}
                     value={settings.privilegedSessionMaxAgeMinutes}
                     onChange={(privilegedSessionMaxAgeMinutes) =>
@@ -573,6 +589,7 @@ export function SystemSettingsPage() {
 }
 
 function BrandingPreview({ settings }: { settings: SystemSettings }) {
+  const { t } = useI18n()
   const logoUrl = settings.dashboardLogoUrl || settings.loginLogoUrl
   return (
     <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
@@ -606,7 +623,7 @@ function BrandingPreview({ settings }: { settings: SystemSettings }) {
         </p>
       </div>
       <p className="text-xs text-muted-foreground">
-        URL ảnh chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS.
+        {t("iam.system_settings.preview.url_hint")}
       </p>
     </div>
   )
@@ -734,29 +751,38 @@ function parseValue(
   return value
 }
 
-function validateSettings(settings: SystemSettings) {
-  if (!settings.appName.trim()) return "Tên ứng dụng không được để trống"
+function validateSettings(
+  settings: SystemSettings,
+  t: (key: string, params?: Record<string, string | number>) => string
+) {
+  if (!settings.appName.trim())
+    return t("iam.system_settings.validation.app_name_required")
   if (
     settings.supportEmail &&
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.supportEmail)
   )
-    return "Email hỗ trợ không hợp lệ"
+    return t("iam.system_settings.validation.support_email_invalid")
   if (settings.helpUrl) {
     try {
       new URL(settings.helpUrl)
     } catch {
-      return "Help center URL không hợp lệ"
+      return t("iam.system_settings.validation.help_url_invalid")
     }
   }
   const urlFields: Array<[string, string]> = [
-    ["Login logo URL", settings.loginLogoUrl],
-    ["Dashboard logo URL", settings.dashboardLogoUrl],
-    ["Favicon URL", settings.faviconUrl],
-    ["Login background URL", settings.loginBackgroundUrl],
+    ["iam.system_settings.display.login_logo_url", settings.loginLogoUrl],
+    ["iam.system_settings.display.dashboard_logo_url", settings.dashboardLogoUrl],
+    ["iam.system_settings.display.favicon_url", settings.faviconUrl],
+    [
+      "iam.system_settings.display.login_background_url",
+      settings.loginBackgroundUrl,
+    ],
   ]
-  for (const [label, value] of urlFields) {
+  for (const [labelKey, value] of urlFields) {
     if (!isSafeBrandImageUrl(value)) {
-      return `${label} chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS`
+      return t("iam.system_settings.validation.url_not_allowed", {
+        field: t(labelKey),
+      })
     }
   }
   return ""

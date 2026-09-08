@@ -130,7 +130,9 @@ export function CustomerTable({
                   {mode === "profiles" ? (
                     <TableCell>{item.segment || "-"}</TableCell>
                   ) : null}
-                  <TableCell>{customerTypeLabel(item.customerType)}</TableCell>
+                  <TableCell>
+                    {customerTypeLabel(item.customerType, t)}
+                  </TableCell>
                   <TableCell>
                     {mode === "profiles"
                       ? item.rank || "-"

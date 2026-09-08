@@ -149,15 +149,21 @@ async function loadSource(
 ): Promise<{
   source: PlatformDraftSource
   items: PlatformDraft[]
+  /** i18n key describing the source-level load failure. */
+  errorKey?: string
   error?: string
 }> {
   try {
     const items = await loader()
     return { source, items }
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Không tải được nguồn nháp"
-    return { source, items: [], error: message }
+    const message = error instanceof Error ? error.message : undefined
+    return {
+      source,
+      items: [],
+      errorKey: "workflow.workbench.load_source_failed",
+      error: message,
+    }
   }
 }
 
@@ -173,7 +179,9 @@ export async function fetchPlatformDrafts(): Promise<PlatformDraftsResult> {
   const items: PlatformDraft[] = []
 
   for (const result of results) {
-    if (result.error) {
+    if (result.errorKey) {
+      errors[result.source] = result.errorKey
+    } else if (result.error) {
       errors[result.source] = result.error
     }
     items.push(...result.items)

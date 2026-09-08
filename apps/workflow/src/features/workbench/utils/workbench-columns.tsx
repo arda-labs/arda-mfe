@@ -4,17 +4,23 @@ import { WorkItemCard } from "../components/work-item-card"
 import { SlaStatus, StatusBadge, TimeProgress } from "./sla-utils"
 import { completionTime, formatDateTime, previousAssignee } from "./step-labels"
 import { getMediaContentUrl } from "@workspace/media/urls"
+import { useI18n } from "@workspace/i18n"
+
+type TFn = ReturnType<typeof useI18n>["t"]
 
 export function workItemColumns(
   direction: WorkbenchDirection,
   claiming: boolean,
-  onOpen: (item: WorkItem) => void
+  onOpen: (item: WorkItem) => void,
+  t: TFn
 ): ColumnDef<WorkItem>[] {
   const isIncoming = direction === "incoming"
   const cols: ColumnDef<WorkItem>[] = [
     {
       id: "info",
-      header: isIncoming ? "Thông tin giao dịch" : "Thông tin tác vụ giao dịch",
+      header: isIncoming
+        ? t("workflow.workbench.col_transaction_info")
+        : t("workflow.workbench.col_task_info"),
       size: 420,
       minSize: 280,
       maxSize: 560,
@@ -46,7 +52,7 @@ export function workItemColumns(
       },
       {
         id: "progress",
-        header: "Tiến độ",
+        header: t("workflow.workbench.col_progress"),
         cell: ({ row }) => (
           <div className="min-w-44">
             <TimeProgress item={row.original} />
@@ -55,7 +61,7 @@ export function workItemColumns(
       },
       {
         id: "assignee",
-        header: "Người xử lý",
+        header: t("workflow.workbench.col_assignee"),
         cell: ({ row }) => (
           <div className="min-w-44">
             <AssigneeFlow item={row.original} />
@@ -67,7 +73,7 @@ export function workItemColumns(
     cols.push(
       {
         id: "completed",
-        header: "Hoàn thành",
+        header: t("workflow.workbench.col_completed"),
         cell: ({ row }) => (
           <div className="min-w-36 tabular-nums">
             {completionTime(row.original)}
@@ -76,7 +82,7 @@ export function workItemColumns(
       },
       {
         id: "due",
-        header: "Hạn xử lý",
+        header: t("workflow.workbench.col_due"),
         cell: ({ row }) => (
           <div className="min-w-36 tabular-nums">
             {formatDateTime(row.original.slaDueAt)}
@@ -97,9 +103,15 @@ export function workItemColumns(
       },
       {
         id: "prev",
-        header: "Người xử lý trước",
+        header: t("workflow.workbench.col_prev_assignee"),
         cell: ({ row }) => (
-          <div className="min-w-36">{previousAssignee(row.original)}</div>
+          <div className="min-w-36">
+            {previousAssignee(row.original) ?? (
+              <span className="text-muted-foreground">
+                {"—"}
+              </span>
+            )}
+          </div>
         ),
       }
     )
@@ -108,12 +120,13 @@ export function workItemColumns(
 }
 
 export function searchColumns(
-  onOpen: (item: WorkItem) => void
+  onOpen: (item: WorkItem) => void,
+  t: TFn
 ): ColumnDef<WorkItem>[] {
   return [
     {
       id: "info",
-      header: "Thông tin giao dịch",
+      header: t("workflow.workbench.col_transaction_info"),
       size: 420,
       minSize: 280,
       maxSize: 560,
@@ -125,7 +138,7 @@ export function searchColumns(
     },
     {
       id: "status",
-      header: "Trạng thái",
+      header: t("workflow.workbench.col_status"),
       cell: ({ row }) => (
         <div className="min-w-32">
           <StatusBadge
@@ -136,7 +149,7 @@ export function searchColumns(
     },
     {
       id: "due",
-      header: "Hạn xử lý",
+      header: t("workflow.workbench.col_due"),
       cell: ({ row }) => (
         <div className="min-w-36 tabular-nums">
           {formatDateTime(row.original.slaDueAt)}
@@ -145,7 +158,7 @@ export function searchColumns(
     },
     {
       id: "completed",
-      header: "Hoàn thành",
+      header: t("workflow.workbench.col_completed"),
       cell: ({ row }) => (
         <div className="min-w-36 tabular-nums">
           {completionTime(row.original)}
@@ -166,7 +179,7 @@ export function searchColumns(
     },
     {
       id: "creator",
-      header: "Người tạo",
+      header: t("workflow.workbench.col_creator"),
       cell: ({ row }) => {
         const c = row.original
         const name = c.createdByName || displayNameFromId(c.createdBy ?? "")
@@ -194,31 +207,48 @@ export function searchColumns(
 }
 
 export function AssigneeFlow({ item }: { item: WorkItem }) {
+  const { t } = useI18n()
+  const prev = previousAssignee(item)
   return (
     <div className="text-xs">
       <div className="flex items-center gap-1.5">
-        {previousAssigneeDisplay({
-          id: item.previousAssignedTo,
-          name: previousAssignee(item),
-          avatar: item.previousAssignedToAvatar,
-        })}
+        {prev
+          ? previousAssigneeDisplay({
+              id: item.previousAssignedTo,
+              name: prev,
+              avatar: item.previousAssignedToAvatar,
+            })
+          : (
+            <span className="text-muted-foreground">{"—"}</span>
+          )}
         <span className="text-muted-foreground">→</span>
-        {assigneeDisplay({
-          id: item.assignedTo,
-          name: item.assignedToName,
-          avatar: item.assignedToAvatar,
-        })}
+        {assigneeDisplay(
+          {
+            id: item.assignedTo,
+            name: item.assignedToName,
+            avatar: item.assignedToAvatar,
+          },
+          t
+        )}
       </div>
     </div>
   )
 }
 
-function assigneeDisplay(info: {
-  id?: string | null
-  name?: string | null
-  avatar?: string | null
-}) {
-  if (!info.id) return <span className="text-muted-foreground">Chưa nhận</span>
+function assigneeDisplay(
+  info: {
+    id?: string | null
+    name?: string | null
+    avatar?: string | null
+  },
+  t: TFn
+) {
+  if (!info.id)
+    return (
+      <span className="text-muted-foreground">
+        {t("workflow.workbench.not_claimed")}
+      </span>
+    )
   const display = info.name || displayNameFromId(info.id)
   const initial = display.charAt(0).toUpperCase()
   return (
@@ -250,7 +280,7 @@ function previousAssigneeDisplay(info: {
   avatar?: string | null
 }) {
   const name = info.name || ""
-  if (name === "Chưa có" || !name) {
+  if (!name) {
     return <span className="text-muted-foreground">—</span>
   }
   const display = displayNameFromId(name)

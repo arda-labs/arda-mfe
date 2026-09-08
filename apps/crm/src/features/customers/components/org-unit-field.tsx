@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import type { FieldPath, UseFormReturn } from "react-hook-form"
 import { platformReferenceApi, type PlatformOrganization } from "../../api"
 import { SearchSelectField } from "./search-select-field"
@@ -15,6 +16,7 @@ export function OrgUnitField<T extends OrgUnitFormValues>({
   disabled?: boolean
 }) {
   const orgUnitPath = "orgUnit" as FieldPath<T>
+  const { t } = useI18n()
   const [orgs, setOrgs] = useState<PlatformOrganization[]>([])
   const [orgsLoading, setOrgsLoading] = useState(true)
   useEffect(() => {
@@ -45,8 +47,8 @@ export function OrgUnitField<T extends OrgUnitFormValues>({
     <SearchSelectField
       control={form.control}
       name={orgUnitPath}
-      label="Đơn vị"
-      placeholder="Chọn đơn vị"
+      label={t("crm.customers.org_unit.label")}
+      placeholder={t("crm.customers.org_unit.placeholder")}
       options={options}
       loading={orgsLoading}
       disabled={disabled}

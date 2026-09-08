@@ -191,7 +191,7 @@ export function CaseTypesPage() {
 
   const businessAreaOptions = uniqueOptions(
     items.map((item) => item.businessArea),
-    defaultBusinessAreaOptions
+    defaultBusinessAreaOptions(t)
   )
   const roleOptions = roleOptionsFromCaseTypes(items)
   const dialogProps = {

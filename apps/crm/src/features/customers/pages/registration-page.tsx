@@ -34,7 +34,7 @@ import { OrgUnitField } from "../components/org-unit-field"
 import { runMutation, toFormValues, toPayload } from "../utils/form-utils"
 import {
   businessFields,
-  customerSchema,
+  buildCustomerSchema,
   defaultValues,
   extendedFields,
   generalFieldsPrimary,
@@ -92,6 +92,7 @@ export function CustomerRegistrationPage({
     "APPROVE"
   > | null>(null)
   const viewOnly = isViewOnlyTaskContext()
+  const customerSchema = useMemo(() => buildCustomerSchema(t), [t])
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues,
@@ -115,14 +116,14 @@ export function CustomerRegistrationPage({
     hasTaskContext(taskContext) &&
     taskContext.role !== "CUSTOMER_MAKER"
   const pageTitle = canEditTask
-    ? "Chỉnh sửa hồ sơ khách hàng"
+    ? t("crm.customers.registrations.edit_title")
     : canCompleteTask
-      ? "Phê duyệt hồ sơ khách hàng"
+      ? t("crm.customers.registrations.approve_title")
       : t("crm.customers.registrations.title")
   const pageDescription = viewOnly
     ? t("crm.customers.registrations.outgoing_tracking_description")
     : canEditTask
-      ? "Cập nhật thông tin khách hàng theo yêu cầu của quy trình."
+      ? t("crm.customers.registrations.edit_description")
       : t("crm.customers.registrations.description")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isWaitingForTask, setIsWaitingForTask] = useState(false)
@@ -269,12 +270,14 @@ export function CustomerRegistrationPage({
 
   async function saveDraftWithToast(payload: CustomerPayload) {
     return runMutation(() => customerApi.save(payload), {
-      success: "Đã lưu nháp",
-      error: "Lưu hồ sơ khách hàng thất bại",
+      success: t("crm.customers.registrations.toast_save_draft_success"),
+      error: t("crm.customers.registrations.toast_save_failed"),
       description: (customer) =>
         customer.customerCode
-          ? `Mã hồ sơ: ${customer.customerCode}. Tiếp theo: chỉnh sửa hồ sơ rồi bấm Hoàn thành.`
-          : "Tiếp theo: chỉnh sửa hồ sơ rồi bấm Hoàn thành.",
+          ? t("crm.customers.registrations.toast_save_with_code", {
+              code: customer.customerCode,
+            })
+          : t("crm.customers.registrations.toast_save_next_hint"),
     })
   }
 
@@ -296,13 +299,15 @@ export function CustomerRegistrationPage({
       }
 
       const submitted = await runMutation(() => customerApi.submit(saved.id), {
-        success: "Đã khởi tạo hồ sơ khách hàng",
-        error: "Khởi tạo hồ sơ thất bại",
+        success: t("crm.customers.registrations.toast_submit_success"),
+        error: t("crm.customers.registrations.toast_submit_failed"),
         description: (customer) => {
           const caseHint = customer.workflowCaseId
-            ? `Case BPM: ${customer.workflowCaseId}. `
-            : ""
-          return `${caseHint}Tiếp tục chỉnh sửa hồ sơ rồi bấm Hoàn thành.`
+            ? t("crm.customers.registrations.toast_submit_case_next", {
+                caseId: customer.workflowCaseId,
+              })
+            : t("crm.customers.registrations.toast_save_next_hint")
+          return caseHint
         },
       })
       refreshCustomer(submitted)
@@ -320,10 +325,10 @@ export function CustomerRegistrationPage({
 
       if (!ready) {
         notify.warning(
-          "Đang xử lý hồ sơ",
+          t("crm.customers.workflow.processing_title"),
           timedOut
-            ? "Hệ thống đang xử lý, vui lòng vào Giao dịch đến sau vài phút."
-            : "Vui lòng vào Giao dịch đến để tiếp tục chỉnh sửa."
+            ? t("crm.customers.workflow.processing_timeout_hint")
+            : t("crm.customers.workflow.processing_continue_hint")
         )
         navigateTo(postTaskWorkbenchHref())
         return
@@ -344,8 +349,8 @@ export function CustomerRegistrationPage({
     variables: Record<string, unknown>
   }) {
     return runMutation(() => customerApi.completeTask(input), {
-      success: "Đã hoàn tất task quy trình",
-      error: "Hoàn tất task thất bại",
+      success: t("crm.customers.workflow.task_complete_success"),
+      error: t("crm.customers.workflow.task_complete_failed"),
     })
   }
 
@@ -359,7 +364,7 @@ export function CustomerRegistrationPage({
       )
       refreshCustomer(saved)
 
-      const resolved = await resolveWorkflowJobKey(taskContext, saved.status)
+      const resolved = await resolveWorkflowJobKey(taskContext, saved.status, t)
       if (!resolved) return
       await completeWorkflowTask({
         jobKey: resolved.jobKey,
@@ -374,8 +379,8 @@ export function CustomerRegistrationPage({
       })
       if (timedOut) {
         notify.warning(
-          "Đang xử lý quy trình",
-          "Quá trình chuyển bước chưa hoàn tất, nhưng hồ sơ đã được gửi. Vào Giao dịch đến để kiểm tra."
+          t("crm.customers.workflow.workflow_processing_title"),
+          t("crm.customers.workflow.workflow_step_timeout_hint")
         )
       }
       navigateTo(postTaskWorkbenchHref())
@@ -387,8 +392,8 @@ export function CustomerRegistrationPage({
 
   function handleInvalid() {
     notify.error(
-      "Chưa gửi được",
-      "Vui lòng kiểm tra các trường bắt buộc (Tên khách hàng, Email hợp lệ...)."
+      t("crm.customers.registrations.submit_invalid_title"),
+      t("crm.customers.registrations.submit_invalid_description")
     )
   }
 
@@ -400,7 +405,8 @@ export function CustomerRegistrationPage({
     try {
       const resolved = await resolveWorkflowJobKey(
         taskContext,
-        savedCustomer?.status
+        savedCustomer?.status,
+        t
       )
       if (!resolved) return
       const variables =
@@ -435,15 +441,15 @@ export function CustomerRegistrationPage({
   async function uploadAvatarFile(file: File) {
     const cid = savedCustomer?.id ?? form.getValues("id")?.trim()
     if (!cid) {
-      notify.error("Lưu hồ sơ trước khi upload ảnh đại diện")
+      notify.error(t("crm.customers.registrations.avatar_need_save"))
       return
     }
     if (!file.type.startsWith("image/")) {
-      notify.error("File ảnh không hợp lệ")
+      notify.error(t("crm.customers.registrations.avatar_invalid_file"))
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      notify.error("Ảnh đại diện tối đa 5MB")
+      notify.error(t("crm.customers.registrations.avatar_too_large"))
       return
     }
     setUploadingAvatar(true)
@@ -451,8 +457,8 @@ export function CustomerRegistrationPage({
       const result = await runMutation(
         () => uploadFile(file, "crm", "customer_avatar", cid),
         {
-          success: "Đã tải ảnh đại diện lên media-service",
-          error: "Tải ảnh đại diện thất bại",
+          success: t("crm.customers.registrations.avatar_upload_success"),
+          error: t("crm.customers.registrations.avatar_upload_failed"),
         }
       )
       form.setValue("avatarFileId", result.public_id, { shouldDirty: true })
@@ -464,8 +470,8 @@ export function CustomerRegistrationPage({
   async function handleCancel() {
     if (!savedCustomer?.id) return
     await runMutation(() => customerApi.cancel(savedCustomer.id), {
-      success: "Đã hủy hồ sơ nháp",
-      error: "Hủy hồ sơ thất bại",
+      success: t("crm.customers.registrations.toast_cancel_success"),
+      error: t("crm.customers.registrations.toast_cancel_failed"),
     })
     navigateTo("/workbench/drafts")
   }
@@ -494,8 +500,8 @@ export function CustomerRegistrationPage({
           <PageTitle title={pageTitle} description={pageDescription} />
           <div className="mt-4 rounded-md border px-4 py-3 text-sm text-muted-foreground">
             {taskContextError
-              ? "Khong tai duoc thong tin task. Vui long quay lai Giao dich den va mo lai ho so."
-              : "Dang tai ho so..."}
+              ? t("crm.customers.registrations.task_load_error")
+              : t("crm.customers.registrations.loading_profile")}
           </div>
         </div>
         <FooterBackButton onBack={goBack} />
@@ -508,12 +514,14 @@ export function CustomerRegistrationPage({
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
         <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter:stable]">
           <PageTitle
-            title="Đang chuẩn bị hồ sơ chỉnh sửa..."
-            description="Hệ thống đang khởi tạo phiên chỉnh sửa. Vui lòng đợi trong giây lát."
+            title={t("crm.customers.registrations.preparing_edit_title")}
+            description={t(
+              "crm.customers.registrations.preparing_edit_description"
+            )}
           />
           <div className="mt-4 flex flex-col items-center rounded-md border px-4 py-10 text-sm text-muted-foreground">
             <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-            <p>Đang chờ quy trình xử lý...</p>
+            <p>{t("crm.customers.registrations.waiting_workflow")}</p>
           </div>
         </div>
         <FooterBackButton onBack={goBack} />
@@ -554,7 +562,7 @@ export function CustomerRegistrationPage({
             <div className="space-y-4 p-4">
               {customerFetching ? (
                 <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-                  Đang tải hồ sơ...
+                  {t("crm.customers.registrations.loading_profile")}
                 </div>
               ) : null}
               <RegistrationStatusBar customer={savedCustomer} />
@@ -586,10 +594,12 @@ export function CustomerRegistrationPage({
               ) : null}
               <TabsContent value="general" className="mt-0 space-y-4">
                 <fieldset disabled={isReadonly} className="space-y-4">
-                  <Panel title="Thông tin chung">
+                  <Panel title={t("crm.customers.panels.general")}>
                     <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
                       <div className="space-y-3">
-                        <FormField label="Loại khách hàng">
+                        <FormField
+                          label={t("crm.customers.fields.customer_type")}
+                        >
                           <Controller
                             control={form.control}
                             name="customerType"
@@ -609,7 +619,7 @@ export function CustomerRegistrationPage({
                                       key={option.value}
                                       value={option.value}
                                     >
-                                      {option.label}
+                                      {t(option.label)}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -646,15 +656,15 @@ export function CustomerRegistrationPage({
                   </Panel>
                   {isPersonal ? (
                     <>
-                      <Panel title="Thông tin định danh">
+                      <Panel title={t("crm.customers.panels.identity")}>
                         <FieldGrid fields={personalFields} form={form} />
                       </Panel>
-                      <Panel title="Thông tin mở rộng">
+                      <Panel title={t("crm.customers.panels.extended")}>
                         <FieldGrid fields={extendedFields} form={form} />
                       </Panel>
                     </>
                   ) : (
-                    <Panel title="Thông tin doanh nghiệp">
+                    <Panel title={t("crm.customers.panels.business")}>
                       <FieldGrid fields={businessFields} form={form} />
                     </Panel>
                   )}
@@ -666,8 +676,9 @@ export function CustomerRegistrationPage({
                     <RelationshipsPanel customer={savedCustomer} />
                   ) : (
                     <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
-                      Gửi hồ sơ khách hàng trước khi khai báo người có liên
-                      quan.
+                      {t(
+                        "crm.customers.relationships.require_saved_customer"
+                      )}
                     </div>
                   )}
                 </TabsContent>

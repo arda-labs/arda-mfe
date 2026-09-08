@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -58,6 +59,7 @@ export function PostingPreviewDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const { t } = useI18n()
   const [form, setForm] = useState<PreviewForm>(() => ({
     ...emptyForm,
     accounting_date: todayISO(),
@@ -72,7 +74,7 @@ export function PostingPreviewDialog({
   const runPreview = async () => {
     const amountMinor = toMinor(Number(form.amount) || 0, form.currency_code)
     if (!isValidISODate(form.accounting_date) || amountMinor <= 0) {
-      notify.error("Cần ngày kế toán hợp lệ và số tiền dương")
+      notify.error(t("finance.posting_preview.validation.date_amount"))
       return
     }
     const input: PostingPreviewInput = {
@@ -107,7 +109,7 @@ export function PostingPreviewDialog({
       const result = await postingApi.validate(input)
       setResult(result)
     } catch {
-      notify.error("Không thể validate bút toán")
+      notify.error(t("finance.posting_preview.validate_failed"))
     } finally {
       setPending(false)
     }
@@ -117,23 +119,22 @@ export function PostingPreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Preview bút toán</DialogTitle>
+          <DialogTitle>{t("finance.posting_preview.title")}</DialogTitle>
           <DialogDescription>
-            Resolve tài khoản theo COA + kiểm tra cân — chưa ghi sổ. Post thật
-            đi qua PostingService khi duyệt case.
+            {t("finance.posting_preview.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <div className="space-y-1.5">
-            <Label>Loại CT</Label>
+            <Label>{t("finance.posting_preview.field.document_type")}</Label>
             <Input
               value={form.document_type}
               onChange={(e) => setForm((c) => ({ ...c, document_type: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Ngày KT</Label>
+            <Label>{t("finance.posting_preview.field.accounting_date")}</Label>
             <Input
               type="date"
               value={form.accounting_date}
@@ -141,7 +142,7 @@ export function PostingPreviewDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Số tiền</Label>
+            <Label>{t("finance.posting_preview.field.amount")}</Label>
             <Input
               inputMode="decimal"
               value={form.amount}
@@ -149,35 +150,35 @@ export function PostingPreviewDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Loại tiền</Label>
+            <Label>{t("finance.posting_preview.field.currency")}</Label>
             <Input
               value={form.currency_code}
               onChange={(e) => setForm((c) => ({ ...c, currency_code: e.target.value.toUpperCase() }))}
             />
           </div>
           <div className="space-y-1.5 col-span-2">
-            <Label>Classification (Nợ)</Label>
+            <Label>{t("finance.posting_preview.field.debit_classification")}</Label>
             <Input
               value={form.classification_debit}
               onChange={(e) => setForm((c) => ({ ...c, classification_debit: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5 col-span-2">
-            <Label>Classification (Có)</Label>
+            <Label>{t("finance.posting_preview.field.credit_classification")}</Label>
             <Input
               value={form.classification_credit}
               onChange={(e) => setForm((c) => ({ ...c, classification_credit: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Hợp đồng</Label>
+            <Label>{t("finance.posting_preview.field.contract")}</Label>
             <Input
               value={form.contract_code}
               onChange={(e) => setForm((c) => ({ ...c, contract_code: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Đơn vị</Label>
+            <Label>{t("finance.posting_preview.field.org_unit")}</Label>
             <Input
               value={form.org_unit_code}
               onChange={(e) => setForm((c) => ({ ...c, org_unit_code: e.target.value }))}
@@ -189,7 +190,9 @@ export function PostingPreviewDialog({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Badge variant={result.valid ? "default" : "destructive"}>
-                {result.valid ? "Hợp lệ" : "Có lỗi"}
+                {result.valid
+                  ? t("finance.posting_preview.result.valid")
+                  : t("finance.posting_preview.result.invalid")}
               </Badge>
               <span className="text-xs text-muted-foreground">
                 COA version: {result.coa_version_id || "—"}
@@ -205,10 +208,12 @@ export function PostingPreviewDialog({
                 <TableHeader>
                   <TableRow>
                     <TableHead>#</TableHead>
-                    <TableHead>Nợ/Có</TableHead>
-                    <TableHead>Tài khoản</TableHead>
-                    <TableHead className="text-right">Số tiền</TableHead>
-                    <TableHead>Lỗi</TableHead>
+                    <TableHead>{t("finance.posting_preview.col.direction")}</TableHead>
+                    <TableHead>{t("finance.posting_preview.col.account")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("finance.posting_preview.col.amount")}
+                    </TableHead>
+                    <TableHead>{t("finance.posting_preview.col.errors")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -227,7 +232,9 @@ export function PostingPreviewDialog({
                             {line.account_name}
                           </span>
                         ) : (
-                          <span className="text-destructive">Không resolve</span>
+                          <span className="text-destructive">
+                            {t("finance.posting_preview.result.unresolved")}
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
@@ -249,10 +256,12 @@ export function PostingPreviewDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Đóng
+            {t("common.action.close")}
           </Button>
           <Button onClick={() => void runPreview()} disabled={pending}>
-            {pending ? "Đang resolve…" : "Preview"}
+            {pending
+              ? t("finance.posting_preview.resolving")
+              : t("finance.posting_preview.action")}
           </Button>
         </DialogFooter>
       </DialogContent>

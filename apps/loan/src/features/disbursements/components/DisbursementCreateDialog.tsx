@@ -59,12 +59,12 @@ export function DisbursementCreateDialog({
 
   const submit = async () => {
     if (!form.contract_code || !form.amount) {
-      notify.error("Chọn hợp đồng và nhập số tiền")
+      notify.error(t("loan.disbursements.validation.contract_required"))
       return
     }
     const amountMinor = toMinor(Number(form.amount) || 0, form.currency_code)
     if (amountMinor <= 0) {
-      notify.error("Số tiền phải dương")
+      notify.error(t("loan.disbursements.validation.amount_positive"))
       return
     }
     setSavePending(true)
@@ -76,12 +76,12 @@ export function DisbursementCreateDialog({
         disburse_amt_minor: amountMinor,
         currency_code: form.currency_code,
       })
-      notify.success("Đã tạo phiếu giải ngân (DRAFT)")
+      notify.success(t("loan.disbursements.created_draft"))
       onOpenChange(false)
       setForm({ ...emptyForm, disburse_date: todayISO() })
       await onSaved()
     } catch (error) {
-      notify.error(translateApiError(error, "Không thể tạo giải ngân"))
+      notify.error(translateApiError(error, "loan.disbursements.create_failed"))
     } finally {
       setSavePending(false)
     }
@@ -91,21 +91,20 @@ export function DisbursementCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Thêm giải ngân</DialogTitle>
+          <DialogTitle>{t("loan.disbursements.create")}</DialogTitle>
           <DialogDescription>
-            Chọn hợp đồng ACTIVE, nhập số tiền giải ngân. Sau khi tạo, trình
-            duyệt qua workbench — duyệt xong bút toán tự post.
+            {t("loan.disbursements.dialog_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label>Hợp đồng tín dụng (ACTIVE)</Label>
+            <Label>{t("loan.disbursements.field.contract")}</Label>
             <select
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={form.contract_code}
               onChange={(e) => setForm((c) => ({ ...c, contract_code: e.target.value }))}
             >
-              <option value="">— chọn —</option>
+              <option value="">{t("loan.placeholder.select")}</option>
               {contracts.map((c) => (
                 <option key={c.id} value={c.contract_code}>
                   {c.contract_code} — {c.customer_code}
@@ -114,16 +113,16 @@ export function DisbursementCreateDialog({
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label>Mã hợp đồng giải ngân</Label>
+            <Label>{t("loan.field.agreement_code")}</Label>
             <Input
               value={form.agreement_code}
               onChange={(e) => setForm((c) => ({ ...c, agreement_code: e.target.value }))}
-              placeholder="VD: AG-2026-001"
+              placeholder={t("loan.placeholder.agreement")}
             />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label>Số tiền</Label>
+              <Label>{t("loan.disbursements.field.amount_short")}</Label>
               <Input
                 inputMode="decimal"
                 value={form.amount}
@@ -131,7 +130,7 @@ export function DisbursementCreateDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Loại tiền</Label>
+              <Label>{t("loan.disbursements.field.currency")}</Label>
               <Input
                 value={form.currency_code}
                 maxLength={3}
@@ -139,7 +138,7 @@ export function DisbursementCreateDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Ngày giải ngân</Label>
+              <Label>{t("loan.disbursements.field.disburse_date")}</Label>
               <Input
                 type="date"
                 value={form.disburse_date}

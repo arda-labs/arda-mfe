@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/ui/shell/routing"
@@ -26,8 +26,8 @@ import {
   toFormValues,
 } from "../utils/form-utils"
 import {
+  buildCustomerSchema,
   businessFields,
-  customerSchema,
   defaultValues,
   extendedFields,
   generalFieldsPrimary,
@@ -64,6 +64,7 @@ function goBack() {
 }
 
 function AdjustmentTabsList({ compact = false }: { compact?: boolean }) {
+  const { t } = useI18n()
   return (
     <TabsList
       className={cn(
@@ -73,7 +74,9 @@ function AdjustmentTabsList({ compact = false }: { compact?: boolean }) {
           : "flex-wrap"
       )}
     >
-      <TabsTrigger value="general">Thông tin khách hàng</TabsTrigger>
+      <TabsTrigger value="general">
+        {t("crm.customers.adjustments.tab_general")}
+      </TabsTrigger>
     </TabsList>
   )
 }
@@ -88,6 +91,7 @@ export function CustomerAdjustmentPage({
     useCustomerTaskContext()
   const customerId = (taskContext.customerId ?? initialCustomerId)?.trim() || ""
   const viewOnly = isViewOnlyTaskContext()
+  const customerSchema = useMemo(() => buildCustomerSchema(t), [t])
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues,
@@ -125,7 +129,7 @@ export function CustomerAdjustmentPage({
           setCustomer(null)
           setCustomerError(err)
           notify.error(
-            "Không tải được thông tin khách hàng",
+            t("crm.customers.adjustments.load_customer_failed"),
             translateApiError(err)
           )
         }
@@ -180,12 +184,12 @@ export function CustomerAdjustmentPage({
     hasTaskContext(taskContext) &&
     taskContext.role === "CUSTOMER_MAKER"
   const pageTitle = canEditTask
-    ? "Chỉnh sửa điều chỉnh hồ sơ"
+    ? t("crm.customers.adjustments.edit_title")
     : canCompleteTask
-      ? "Phê duyệt điều chỉnh hồ sơ"
+      ? t("crm.customers.adjustments.approve_title")
       : t("crm.customers.adjustments.title")
   const pageDescription = canEditTask
-    ? "Cập nhật thông tin điều chỉnh theo yêu cầu của quy trình."
+    ? t("crm.customers.adjustments.edit_description")
     : t("crm.customers.adjustments.description")
 
   useEffect(() => {
@@ -203,8 +207,8 @@ export function CustomerAdjustmentPage({
           changedFields: computeChangedFields(customer, afterSnapshot),
         }),
       {
-        success: "Đã lưu thay đổi điều chỉnh",
-        error: "Lưu điều chỉnh thất bại",
+        success: t("crm.customers.adjustments.toast_save_success"),
+        error: t("crm.customers.adjustments.toast_save_failed"),
       }
     )
   }
@@ -214,7 +218,8 @@ export function CustomerAdjustmentPage({
     try {
       const resolved = await resolveWorkflowJobKey(
         taskContext,
-        customer?.status
+        customer?.status,
+        t
       )
       if (!resolved) return
       const variables =
@@ -226,8 +231,8 @@ export function CustomerAdjustmentPage({
       await runMutation(
         () => customerApi.completeTask({ ...resolved, variables }),
         {
-          success: "Đã hoàn tất task quy trình",
-          error: "Hoàn tất task thất bại",
+          success: t("crm.customers.workflow.task_complete_success"),
+          error: t("crm.customers.workflow.task_complete_failed"),
         }
       )
       navigateTo(postTaskWorkbenchHref())
@@ -257,10 +262,10 @@ export function CustomerAdjustmentPage({
 
         if (!ready) {
           notify.warning(
-            "Đang xử lý hồ sơ",
+            t("crm.customers.workflow.processing_title"),
             timedOut
-              ? "Hệ thống đang xử lý, vui lòng vào Giao dịch đến sau vài phút."
-              : "Vui lòng vào Giao dịch đến để tiếp tục chỉnh sửa."
+              ? t("crm.customers.workflow.processing_timeout_hint")
+              : t("crm.customers.workflow.processing_continue_hint")
           )
           navigateTo(postTaskWorkbenchHref())
           return
@@ -268,12 +273,15 @@ export function CustomerAdjustmentPage({
 
         navigateTo(await adjustmentMakerEditHref(result))
       } catch (error) {
-        notify.error(t("crm:customers.adjustments.init_failed"), translateApiError(error))
+        notify.error(
+          t("crm.customers.adjustments.init_failed"),
+          translateApiError(error)
+        )
         setAutoStarting(false)
         setAutoStartFailed(true)
       }
     })()
-  }, [canAutoStart, customerId])
+  }, [canAutoStart, customerId, t])
 
   async function handleSaveDraft(values: CustomerFormValues) {
     setIsSubmitting(true)
@@ -293,8 +301,8 @@ export function CustomerAdjustmentPage({
       await runMutation(
         () => customerApi.submitAmendment(customerId, amendment.id),
         {
-          success: "Đã hoàn thành điều chỉnh",
-          error: "Hoàn thành điều chỉnh thất bại",
+          success: t("crm.customers.adjustments.toast_complete_success"),
+          error: t("crm.customers.adjustments.toast_complete_failed"),
         }
       )
       if (canEditTask) {
@@ -314,8 +322,8 @@ export function CustomerAdjustmentPage({
       await runMutation(
         () => customerApi.cancelAmendment(customerId, amendment.id),
         {
-          success: "Đã hủy phiên điều chỉnh nháp",
-          error: "Hủy điều chỉnh thất bại",
+          success: t("crm.customers.adjustments.toast_cancel_success"),
+          error: t("crm.customers.adjustments.toast_cancel_failed"),
         }
       )
       await loadAmendment()
@@ -330,7 +338,7 @@ export function CustomerAdjustmentPage({
         <div className="[scrollbar-gutter-stable] min-h-0 flex-1 overflow-y-auto p-4">
           <PageTitle title={pageTitle} description={pageDescription} />
           <div className="mt-4 rounded-md border px-4 py-3 text-sm text-muted-foreground">
-            Đang tải ngữ cảnh giao dịch...
+            {t("crm.customers.adjustments.loading_context")}
           </div>
         </div>
         <FooterBackButton onBack={goBack} />
@@ -343,7 +351,9 @@ export function CustomerAdjustmentPage({
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
         <div className="[scrollbar-gutter-stable] min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
           <PageTitle title={pageTitle} description={pageDescription} />
-          <EmptyState text="Thiếu customerId trên URL." />
+          <EmptyState
+            text={t("crm.customers.adjustments.missing_customer_id")}
+          />
         </div>
         <FooterBackButton onBack={goBack} />
       </section>
@@ -380,12 +390,11 @@ export function CustomerAdjustmentPage({
             <div className="space-y-4 p-4">
               {isCustomerLoading ? (
                 <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-                  Đang tải hồ sơ khách hàng...
+                  {t("crm.customers.adjustments.loading_customer")}
                 </div>
               ) : hasCustomerError ? (
                 <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                  Không tải được thông tin khách hàng. Vui lòng thử lại hoặc
-                  kiểm tra customerId.
+                  {t("crm.customers.adjustments.load_customer_error_detail")}
                 </div>
               ) : null}
 
@@ -394,7 +403,7 @@ export function CustomerAdjustmentPage({
               {amendment ? (
                 <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
                   <span>
-                    Phiên điều chỉnh:{" "}
+                    {t("crm.customers.adjustments.amendment_id_label")}{" "}
                     <span className="font-mono font-medium">
                       {amendment.id}
                     </span>
@@ -402,7 +411,9 @@ export function CustomerAdjustmentPage({
                   <StatusBadge status={amendment.status} />
                   {amendment.changedFields?.length ? (
                     <span className="text-muted-foreground">
-                      Trường đổi: {amendment.changedFields.join(", ")}
+                      {t("crm.customers.adjustments.changed_fields_label", {
+                        fields: amendment.changedFields.join(", "),
+                      })}
                     </span>
                   ) : null}
                 </div>
@@ -426,25 +437,29 @@ export function CustomerAdjustmentPage({
               !autoStartFailed ? (
                 <div className="rounded-md border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
                   {customer.status === "ACTIVE"
-                    ? "Khách hàng này chưa có phiên điều chỉnh. Hệ thống sẽ tự động khởi tạo..."
-                    : `Không thể bắt đầu điều chỉnh — trạng thái khách hàng là "${customer.status}".`}
+                    ? t("crm.customers.adjustments.autostart_pending")
+                    : t("crm.customers.adjustments.autostart_blocked_status", {
+                        status: customer.status,
+                      })}
                 </div>
               ) : null}
 
               {autoStarting ? (
                 <div className="flex flex-col items-center rounded-md border px-4 py-10 text-sm text-muted-foreground">
                   <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-                  <p>Đang khởi tạo phiên điều chỉnh...</p>
+                  <p>{t("crm.customers.adjustments.autostart_loading")}</p>
                 </div>
               ) : null}
               {amendment ? (
                 <TabsContent value="general" className="mt-0 space-y-4">
                   <fieldset disabled={readOnly} className="space-y-4">
-                    <Panel title="Thông tin chung">
+                    <Panel title={t("crm.customers.panels.general")}>
                       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        <FormField label="Loại khách hàng">
+                        <FormField
+                          label={t("crm.customers.fields.customer_type")}
+                        >
                           <Input
-                            value={customerTypeLabel(customerType)}
+                            value={customerTypeLabel(customerType, t)}
                             readOnly
                           />
                         </FormField>
@@ -464,15 +479,15 @@ export function CustomerAdjustmentPage({
                     </Panel>
                     {isPersonal ? (
                       <>
-                        <Panel title="Thông tin định danh">
+                        <Panel title={t("crm.customers.panels.identity")}>
                           <FieldGrid fields={personalFields} form={form} />
                         </Panel>
-                        <Panel title="Thông tin mở rộng">
+                        <Panel title={t("crm.customers.panels.extended")}>
                           <FieldGrid fields={extendedFields} form={form} />
                         </Panel>
                       </>
                     ) : (
-                      <Panel title="Thông tin doanh nghiệp">
+                      <Panel title={t("crm.customers.panels.business")}>
                         <FieldGrid fields={businessFields} form={form} />
                       </Panel>
                     )}

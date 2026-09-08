@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus } from "lucide-react"
@@ -28,13 +29,14 @@ import {
 } from "../../api"
 import { runMutation, relationLabel } from "../utils/form-utils"
 import {
-  relationshipSchema,
+  buildRelationshipSchema,
   selectOptions,
   type RelationshipFormValues,
 } from "../schemas"
 import { EmptyTable, Panel } from "./customer-ui"
 
 export function RelationshipsPanel({ customer }: { customer: Customer }) {
+  const { t } = useI18n()
   const [relationships, setRelationships] = useState<CustomerRelationship[]>([])
   const [relationshipsLoading, setRelationshipsLoading] = useState(true)
   const [candidates, setCandidates] = useState<Customer[]>([])
@@ -72,6 +74,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
     }
   }, [customer.id])
 
+  const relationshipSchema = useMemo(() => buildRelationshipSchema(t), [t])
   const form = useForm<RelationshipFormValues>({
     resolver: zodResolver(relationshipSchema),
     defaultValues: {
@@ -89,8 +92,8 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
       await runMutation(
         () => customerApi.createRelationship(customer.id, values),
         {
-          success: "Đã thêm quan hệ khách hàng",
-          error: "Thêm quan hệ thất bại",
+          success: t("crm.customers.relationships.add_success"),
+          error: t("crm.customers.relationships.add_failed"),
         }
       )
       form.reset({
@@ -107,13 +110,13 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
   })
 
   return (
-    <Panel title="Người có liên quan">
+    <Panel title={t("crm.customers.relationships.title")}>
       <form
         className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5"
         onSubmit={submit}
       >
         <FormField
-          label="Mã khách hàng(*)"
+          label={t("crm.customers.relationships.related_customer_label")}
           error={form.formState.errors.relatedCustomerId?.message}
         >
           <Controller
@@ -128,10 +131,16 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
                 disabled={candidatesLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn khách hàng" />
+                  <SelectValue
+                    placeholder={t(
+                      "crm.customers.relationships.select_customer_placeholder"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">-- Chọn khách hàng --</SelectItem>
+                  <SelectItem value="none">
+                    {t("crm.customers.relationships.select_customer_none")}
+                  </SelectItem>
                   {candidates.map((item) => (
                     <SelectItem key={item.id} value={item.id}>
                       {item.customerCode || item.id} - {item.name}
@@ -143,13 +152,13 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
           />
         </FormField>
         <FormField
-          label="Loại quan hệ(*)"
+          label={t("crm.customers.relationships.relation_type_label")}
           error={form.formState.errors.relationType?.message}
         >
           <Input {...form.register("relationType")} />
         </FormField>
         <FormField
-          label="Mã quan hệ(*)"
+          label={t("crm.customers.relationships.relation_code_label")}
           error={form.formState.errors.relationCode?.message}
         >
           <Controller
@@ -161,7 +170,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
           />
         </FormField>
         <FormField
-          label="Mã QH đối ứng(*)"
+          label={t("crm.customers.relationships.reciprocal_code_label")}
           error={form.formState.errors.reciprocalRelationCode?.message}
         >
           <Controller
@@ -173,7 +182,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
           />
         </FormField>
         <FormField
-          label="Trạng thái quan hệ(*)"
+          label={t("crm.customers.relationships.status_label")}
           error={form.formState.errors.status?.message}
         >
           <Controller
@@ -187,7 +196,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
                 <SelectContent>
                   {selectOptions.status.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {t(option.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -201,20 +210,28 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
             disabled={submitting || !candidates.length || candidatesLoading}
           >
             <Plus className="size-4" />
-            Thêm mới
+            {t("crm.customers.relationships.add")}
           </Button>
         </div>
       </form>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>TT</TableHead>
-            <TableHead>Mã khách hàng</TableHead>
-            <TableHead>Tên khách hàng</TableHead>
-            <TableHead>Địa chỉ</TableHead>
-            <TableHead>Tên quan hệ</TableHead>
-            <TableHead>Tên quan hệ đối ứng</TableHead>
-            <TableHead>Trạng thái quan hệ</TableHead>
+            <TableHead>{t("common.index")}</TableHead>
+            <TableHead>{t("crm.customers.columns.customer_code")}</TableHead>
+            <TableHead>{t("crm.customers.columns.customer_name")}</TableHead>
+            <TableHead>{t("crm.customers.columns.address")}</TableHead>
+            <TableHead>
+              {t("crm.customers.relationships.columns.relation_name")}
+            </TableHead>
+            <TableHead>
+              {t(
+                "crm.customers.relationships.columns.reciprocal_relation_name"
+              )}
+            </TableHead>
+            <TableHead>
+              {t("crm.customers.relationships.columns.status")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         {relationshipsLoading ? (
@@ -224,7 +241,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
                 colSpan={7}
                 className="py-4 text-center text-sm text-muted-foreground"
               >
-                Đang tải...
+                {t("crm.customers.relationships.loading")}
               </TableCell>
             </TableRow>
           </TableBody>
@@ -240,9 +257,11 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
                 <TableCell className="max-w-64 truncate">
                   {item.relatedCustomerAddress || "-"}
                 </TableCell>
-                <TableCell>{relationLabel(item.relationCode)}</TableCell>
                 <TableCell>
-                  {relationLabel(item.reciprocalRelationCode)}
+                  {relationLabel(item.relationCode, t)}
+                </TableCell>
+                <TableCell>
+                  {relationLabel(item.reciprocalRelationCode, t)}
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary">{item.status}</Badge>
@@ -250,7 +269,10 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
               </TableRow>
             ))}
             {!relationships.length ? (
-              <EmptyTable colSpan={7} text="Chưa có quan hệ khách hàng." />
+              <EmptyTable
+                colSpan={7}
+                text={t("crm.customers.relationships.empty")}
+              />
             ) : null}
           </TableBody>
         )}
@@ -266,6 +288,7 @@ export function RelationSelect({
   value: string
   onChange: (value: string) => void
 }) {
+  const { t } = useI18n()
   return (
     <Select
       value={value || "none"}
@@ -275,10 +298,12 @@ export function RelationSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="none">-- Chọn Mã quan hệ --</SelectItem>
+        <SelectItem value="none">
+          {t("crm.customers.relationships.select_relation_none")}
+        </SelectItem>
         {selectOptions.relation.map((option) => (
           <SelectItem key={option.value} value={option.value}>
-            {option.label}
+            {t(option.label)}
           </SelectItem>
         ))}
       </SelectContent>

@@ -48,5 +48,55 @@
       "business_domain": "Domain",
       "description": "Diễn giải"
     }
+  },
+  "posting_preview": {
+    "title": "Preview bút toán",
+    "description": "Resolve tài khoản theo COA + kiểm tra cân — chưa ghi sổ. Post thật đi qua PostingService khi duyệt case.",
+    "validate_failed": "Không thể validate bút toán",
+    "resolving": "Đang resolve…",
+    "action": "Preview",
+    "validation": {
+      "date_amount": "Cần ngày kế toán hợp lệ và số tiền dương"
+    },
+    "field": {
+      "document_type": "Loại CT",
+      "accounting_date": "Ngày KT",
+      "amount": "Số tiền",
+      "currency": "Loại tiền",
+      "debit_classification": "Classification (Nợ)",
+      "credit_classification": "Classification (Có)",
+      "contract": "Hợp đồng",
+      "org_unit": "Đơn vị"
+    },
+    "result": {
+      "valid": "Hợp lệ",
+      "invalid": "Có lỗi",
+      "unresolved": "Không resolve"
+    },
+    "col": {
+      "direction": "Nợ/Có",
+      "account": "Tài khoản",
+      "amount": "Số tiền",
+      "errors": "Lỗi"
+    }
+  },
+  "operation": {
+    "title": "Cấu hình kế toán",
+    "description": "Quản lý ánh xạ quy trình, phân loại tài khoản, mẫu bút toán và tài khoản phục vụ hạch toán.",
+    "empty": "Chưa có cấu hình trong nhóm này.",
+    "tab": {
+      "process": "Cấu hình quy trình",
+      "classification": "Phân loại tài khoản",
+      "journal": "Định nghĩa bút toán",
+      "regulatory": "Tài khoản quy định",
+      "internal": "Tài khoản nội bộ"
+    },
+    "col": {
+      "code": "Mã cấu hình",
+      "name": "Tên nghiệp vụ",
+      "owner": "Đơn vị sở hữu",
+      "status": "Trạng thái",
+      "updated": "Cập nhật"
+    }
   }
 }

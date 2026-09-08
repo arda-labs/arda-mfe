@@ -68,6 +68,34 @@ function shouldDebounceFilterChange<TData>(
   return true
 }
 
+/**
+ * Content equality for URL-derived filter lists. `initialColumnFilters` is
+ * re-derived on every render whenever the caller passes unmemoized columns,
+ * so the sync effect below must compare by content — syncing by reference
+ * would loop setState -> render -> effect forever (React error #185).
+ */
+function isSameColumnFilters(
+  a: ColumnFiltersState,
+  b: ColumnFiltersState
+): boolean {
+  if (a.length !== b.length) return false
+  return a.every((filter, index) => {
+    const next = b[index]
+    if (next === undefined || filter.id !== next.id) return false
+    const prevValue = filter.value
+    const nextValue = next.value
+    if (Array.isArray(prevValue) || Array.isArray(nextValue)) {
+      return (
+        Array.isArray(prevValue) &&
+        Array.isArray(nextValue) &&
+        prevValue.length === nextValue.length &&
+        prevValue.every((item, i) => item === nextValue[i])
+      )
+    }
+    return prevValue === nextValue
+  })
+}
+
 export interface UseDataTableProps<TData>
   extends
     Omit<
@@ -222,7 +250,11 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     React.useState<ColumnFiltersState>(initialColumnFilters)
 
   React.useEffect(() => {
-    setColumnFilters(initialColumnFilters)
+    setColumnFilters((previous) =>
+      isSameColumnFilters(previous, initialColumnFilters)
+        ? previous
+        : initialColumnFilters
+    )
   }, [initialColumnFilters])
 
   const writeFilters = React.useCallback(

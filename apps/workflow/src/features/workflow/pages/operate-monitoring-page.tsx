@@ -42,6 +42,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../api"
 import type {
@@ -88,28 +89,29 @@ function computeRunningTime(startTime: string, endTime?: string) {
 // ─── Status Badges ──────────────────────────────────────────────────────────────
 
 function InstanceStateBadge({ state }: { state: string }) {
+  const { t } = useI18n()
   const config: Record<string, { label: string; className: string }> = {
     ACTIVE: {
-      label: "Đang chạy",
+      label: t("workflow.operate.instance_state_active"),
       className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
     },
     COMPLETED: {
-      label: "Hoàn thành",
+      label: t("workflow.operate.instance_state_completed"),
       className:
         "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
     },
     CANCELED: {
-      label: "Đã hủy",
+      label: t("workflow.operate.instance_state_canceled"),
       className:
         "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
     },
     SUSPENDED: {
-      label: "Tạm dừng",
+      label: t("workflow.operate.instance_state_suspended"),
       className:
         "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     },
     INCIDENT: {
-      label: "Lỗi",
+      label: t("workflow.operate.instance_state_incident"),
       className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
     },
   }
@@ -135,18 +137,19 @@ function InstanceStateBadge({ state }: { state: string }) {
 }
 
 function IncidentStateBadge({ state }: { state: string }) {
+  const { t } = useI18n()
   const config: Record<string, { label: string; className: string }> = {
     CREATED: {
-      label: "Mới",
+      label: t("workflow.operate.incident_state_created"),
       className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
     },
     RESOLVED: {
-      label: "Đã xử lý",
+      label: t("workflow.operate.incident_state_resolved"),
       className:
         "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
     },
     PENDING: {
-      label: "Đang chờ",
+      label: t("workflow.operate.incident_state_pending"),
       className:
         "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     },
@@ -168,27 +171,28 @@ function IncidentStateBadge({ state }: { state: string }) {
 }
 
 function JobStateBadge({ state }: { state: string }) {
+  const { t } = useI18n()
   const config: Record<string, { label: string; className: string }> = {
     ACTIVATABLE: {
-      label: "Sẵn sàng",
+      label: t("workflow.operate.job_state_activatable"),
       className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
     },
     ACTIVATED: {
-      label: "Đang chạy",
+      label: t("workflow.operate.job_state_activated"),
       className:
         "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
     },
     FAILED: {
-      label: "Thất bại",
+      label: t("workflow.operate.job_state_failed"),
       className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
     },
     ERROR_THROWN: {
-      label: "Lỗi",
+      label: t("workflow.operate.job_state_error_thrown"),
       className:
         "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
     },
     SUSPENDED: {
-      label: "Tạm dừng",
+      label: t("workflow.operate.job_def_state_suspended"),
       className:
         "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     },
@@ -210,14 +214,15 @@ function JobStateBadge({ state }: { state: string }) {
 }
 
 function JobDefStateBadge({ state }: { state: string }) {
+  const { t } = useI18n()
   const config: Record<string, { label: string; className: string }> = {
     ACTIVE: {
-      label: "Hoạt động",
+      label: t("workflow.operate.job_def_state_active"),
       className:
         "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
     },
     SUSPENDED: {
-      label: "Tạm dừng",
+      label: t("workflow.operate.job_def_state_suspended"),
       className:
         "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     },
@@ -241,6 +246,7 @@ function JobDefStateBadge({ state }: { state: string }) {
 // ─── Main Page ──────────────────────────────────────────────────────────────────
 
 export function OperateMonitoringPage() {
+  const { t } = useI18n()
   const [definitions, setDefinitions] = useState<ProcessDefinitionOperate[]>([])
   const [instances, setInstances] = useState<ProcessInstanceState[]>([])
   const [incidents, setIncidents] = useState<IncidentState[]>([])
@@ -369,11 +375,11 @@ export function OperateMonitoringPage() {
   async function handlePause(key: string) {
     try {
       await workflowApi.pauseProcessInstance(key)
-      notify.success("Đã tạm dừng", `Process instance ${key}`)
+      notify.success(t("workflow.operate.pause_success"), `Process instance ${key}`)
       void loadAll()
     } catch (err) {
       notify.error(
-        "Tạm dừng thất bại",
+        t("workflow.operate.pause_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -382,11 +388,11 @@ export function OperateMonitoringPage() {
   async function handleResume(key: string) {
     try {
       await workflowApi.resumeProcessInstance(key)
-      notify.success("Đã tiếp tục", `Process instance ${key}`)
+      notify.success(t("workflow.operate.resume_success"), `Process instance ${key}`)
       void loadAll()
     } catch (err) {
       notify.error(
-        "Tiếp tục thất bại",
+        t("workflow.operate.resume_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -395,11 +401,11 @@ export function OperateMonitoringPage() {
   async function handleCancel(key: string) {
     try {
       await workflowApi.cancelProcessInstance(key)
-      notify.success("Đã hủy", `Process instance ${key}`)
+      notify.success(t("workflow.operate.cancel_success"), `Process instance ${key}`)
       void loadAll()
     } catch (err) {
       notify.error(
-        "Hủy thất bại",
+        t("workflow.operate.cancel_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -408,11 +414,11 @@ export function OperateMonitoringPage() {
   async function handleRetryIncident(incidentKey: string) {
     try {
       await workflowApi.retryIncident(incidentKey)
-      notify.success("Đã retry incident")
+      notify.success(t("workflow.operate.retry_incident_success"))
       void loadAll()
     } catch (err) {
       notify.error(
-        "Retry thất bại",
+        t("workflow.operate.retry_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -421,11 +427,11 @@ export function OperateMonitoringPage() {
   async function handleResolveIncident(incidentKey: string) {
     try {
       await workflowApi.resolveIncident(incidentKey)
-      notify.success("Đã resolve incident")
+      notify.success(t("workflow.operate.resolve_incident_success"))
       void loadAll()
     } catch (err) {
       notify.error(
-        "Resolve thất bại",
+        t("workflow.operate.resolve_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -434,11 +440,11 @@ export function OperateMonitoringPage() {
   async function handleRetryJob(jobKey: string) {
     try {
       await workflowApi.updateJobRetries(jobKey, 3)
-      notify.success("Đã cập nhật retries cho job")
+      notify.success(t("workflow.operate.retry_job_success"))
       void loadAll()
     } catch (err) {
       notify.error(
-        "Cập nhật retries thất bại",
+        t("workflow.operate.retry_job_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -447,11 +453,11 @@ export function OperateMonitoringPage() {
   async function handleSuspendJobDef(jdKey: string) {
     try {
       await workflowApi.suspendJobDefinition(jdKey)
-      notify.success("Đã tạm dừng job definition")
+      notify.success(t("workflow.operate.suspend_job_def_success"))
       void loadAll()
     } catch (err) {
       notify.error(
-        "Tạm dừng thất bại",
+        t("workflow.operate.pause_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -460,22 +466,22 @@ export function OperateMonitoringPage() {
   async function handleActivateJobDef(jdKey: string) {
     try {
       await workflowApi.activateJobDefinition(jdKey)
-      notify.success("Đã kích hoạt job definition")
+      notify.success(t("workflow.operate.activate_job_def_success"))
       void loadAll()
     } catch (err) {
       notify.error(
-        "Kích hoạt thất bại",
+        t("workflow.operate.activate_failed"),
         err instanceof Error ? err.message : undefined
       )
     }
   }
 
   const instanceFilterOptions = [
-    { value: "all", label: `Tất cả (${metrics.total})` },
-    { value: "ACTIVE", label: `Đang chạy (${metrics.active})` },
-    { value: "INCIDENT", label: `Lỗi (${metrics.incident})` },
-    { value: "SUSPENDED", label: `Tạm dừng (${metrics.suspended})` },
-    { value: "COMPLETED", label: `Hoàn thành (${metrics.completed})` },
+    { value: "all", label: t("workflow.operate.filter_all", { count: metrics.total }) },
+    { value: "ACTIVE", label: t("workflow.operate.filter_running", { count: metrics.active }) },
+    { value: "INCIDENT", label: t("workflow.operate.filter_incident", { count: metrics.incident }) },
+    { value: "SUSPENDED", label: t("workflow.operate.filter_suspended", { count: metrics.suspended }) },
+    { value: "COMPLETED", label: t("workflow.operate.filter_completed", { count: metrics.completed }) },
   ]
 
   if (loading) {
@@ -492,7 +498,7 @@ export function OperateMonitoringPage() {
       <div className="flex flex-col gap-3 border-b bg-background px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold">Giám sát quy trình</h1>
+            <h1 className="text-lg font-semibold">{t("workflow.operate.title")}</h1>
             <Badge variant="outline" className="font-mono text-xs">
               {metrics.total} instance
             </Badge>
@@ -500,7 +506,7 @@ export function OperateMonitoringPage() {
           <div className="flex items-center gap-2">
             <Select value={selectedDefId} onValueChange={setSelectedDefId}>
               <SelectTrigger className="w-64">
-                <SelectValue placeholder="Chọn định nghĩa quy trình" />
+                <SelectValue placeholder={t("workflow.operate.select_definition_placeholder")} />
               </SelectTrigger>
               <SelectContent>
                 {definitions.map((def) => (
@@ -517,35 +523,35 @@ export function OperateMonitoringPage() {
               onClick={() => void loadAll()}
             >
               <RefreshCw className="size-4" />
-              Làm mới
+              {t("workflow.operate.refresh")}
             </Button>
           </div>
         </div>
         {/* Metrics strip */}
         <div className="flex gap-4 text-sm">
           <MetricCard
-            label="Tổng số"
+            label={t("workflow.operate.metric_total")}
             value={String(metrics.total)}
             color="default"
           />
           <MetricCard
-            label="Đang chạy"
+            label={t("workflow.operate.metric_running")}
             value={String(metrics.active)}
             color="sky"
           />
           <MetricCard
-            label="Lỗi"
+            label={t("workflow.operate.metric_incident")}
             value={String(metrics.incident)}
             color="red"
             highlight
           />
           <MetricCard
-            label="Tạm dừng"
+            label={t("workflow.operate.metric_suspended")}
             value={String(metrics.suspended)}
             color="amber"
           />
           <MetricCard
-            label="Hoàn thành"
+            label={t("workflow.operate.metric_completed")}
             value={String(metrics.completed)}
             color="emerald"
           />
@@ -560,7 +566,7 @@ export function OperateMonitoringPage() {
             <div className="relative">
               <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Tìm instance..."
+                placeholder={t("workflow.operate.search_instance_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-8 pl-8 text-sm"
@@ -589,7 +595,7 @@ export function OperateMonitoringPage() {
           <div className="flex-1 overflow-y-auto">
             {filteredInstances.length === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
-                Không có instance nào.
+                {t("workflow.operate.empty_instances")}
               </div>
             ) : (
               <div className="divide-y">
@@ -645,7 +651,7 @@ export function OperateMonitoringPage() {
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              Chọn định nghĩa quy trình để xem sơ đồ.
+              {t("workflow.operate.select_definition_hint")}
             </div>
           )}
         </div>
@@ -663,8 +669,8 @@ export function OperateMonitoringPage() {
             <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">
               <div className="text-center">
                 <FileSearch className="mx-auto mb-2 size-8 text-muted-foreground/50" />
-                <p>Chọn một process instance</p>
-                <p className="text-xs">bên trái để xem chi tiết</p>
+                <p>{t("workflow.operate.select_instance_hint")}</p>
+                <p className="text-xs">{t("workflow.operate.select_instance_hint_sub")}</p>
               </div>
             </div>
           )}
@@ -742,6 +748,7 @@ function InstanceDetailPanel({
   onResume: (key: string) => void
   onCancel: (key: string) => void
 }) {
+  const { t } = useI18n()
   const canPause = instance.state === "ACTIVE" || instance.state === "INCIDENT"
   const canResume = instance.state === "SUSPENDED"
   const canCancel =
@@ -751,7 +758,7 @@ function InstanceDetailPanel({
     <div className="flex h-full flex-col">
       <div className="border-b px-4 py-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">Chi tiết instance</h2>
+          <h2 className="text-sm font-semibold">{t("workflow.operate.detail_title")}</h2>
           <div className="flex gap-1">
             {canPause && (
               <Button
@@ -759,7 +766,7 @@ function InstanceDetailPanel({
                 size="icon"
                 variant="ghost"
                 className="size-7"
-                title="Tạm dừng"
+                title={t("workflow.operate.pause_title")}
                 onClick={() => onPause(instance.processInstanceKey)}
               >
                 <PauseCircle className="size-4 text-amber-600" />
@@ -771,7 +778,7 @@ function InstanceDetailPanel({
                 size="icon"
                 variant="ghost"
                 className="size-7"
-                title="Tiếp tục"
+                title={t("workflow.operate.resume_title")}
                 onClick={() => onResume(instance.processInstanceKey)}
               >
                 <PlayCircle className="size-4 text-emerald-600" />
@@ -783,7 +790,7 @@ function InstanceDetailPanel({
                 size="icon"
                 variant="ghost"
                 className="size-7"
-                title="Hủy instance"
+                title={t("workflow.operate.cancel_title")}
                 onClick={() => onCancel(instance.processInstanceKey)}
               >
                 <Ban className="size-4 text-red-600" />
@@ -795,7 +802,7 @@ function InstanceDetailPanel({
       <div className="flex-1 space-y-4 overflow-y-auto p-4 text-sm">
         <div className="grid grid-cols-2 gap-3">
           <DetailField
-            label="Trạng thái"
+            label={t("workflow.operate.field_status")}
             value={<InstanceStateBadge state={instance.state} />}
           />
           <DetailField
@@ -814,16 +821,16 @@ function InstanceDetailPanel({
           <DetailField label="Version" value={`v${instance.version}`} />
           <DetailField label="Element" value={instance.elementId || "—"} />
           <DetailField
-            label="Bắt đầu"
+            label={t("workflow.operate.detail_start")}
             value={formatDateTime(instance.startTime)}
           />
           <DetailField
-            label="Thời gian chạy"
+            label={t("workflow.operate.detail_running_time")}
             value={computeRunningTime(instance.startTime, instance.endTime)}
           />
           {instance.endTime && (
             <DetailField
-              label="Kết thúc"
+              label={t("workflow.operate.detail_end")}
               value={formatDateTime(instance.endTime)}
             />
           )}
@@ -888,6 +895,7 @@ function BottomDock({
   onSuspendJobDef: (key: string) => void
   onActivateJobDef: (key: string) => void
 }) {
+  const { t } = useI18n()
   const filteredIncidents = selectedDef
     ? incidents.filter((i) => i.bpmnProcessId === selectedDef.bpmnProcessId)
     : incidents
@@ -941,7 +949,7 @@ function BottomDock({
             </TabsTrigger>
           </TabsList>
           <span className="text-xs text-muted-foreground">
-            {selectedDef ? selectedDef.bpmnProcessId : "Tất cả"}
+            {selectedDef ? selectedDef.bpmnProcessId : t("workflow.operate.scope_all")}
           </span>
         </div>
         <TabsContent value="incidents" className="m-0 flex-1 overflow-y-auto">
@@ -966,7 +974,7 @@ function BottomDock({
         </TabsContent>
         <TabsContent value="timeline" className="m-0 flex-1 overflow-y-auto">
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            Timeline tính năng đang phát triển.
+            {t("workflow.operate.timeline_wip")}
           </div>
         </TabsContent>
       </Tabs>
@@ -985,10 +993,11 @@ function IncidentsTable({
   onRetry: (key: string) => void
   onResolve: (key: string) => void
 }) {
+  const { t } = useI18n()
   if (items.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Không có incident nào.
+        {t("workflow.operate.empty_incidents")}
       </div>
     )
   }
@@ -997,12 +1006,12 @@ function IncidentsTable({
     <Table>
       <TableHeader className="sticky top-0 bg-muted/30">
         <TableRow>
-          <TableHead className="w-24 text-xs">Trạng thái</TableHead>
+          <TableHead className="w-24 text-xs">{t("workflow.operate.col_status")}</TableHead>
           <TableHead className="text-xs">Element</TableHead>
-          <TableHead className="text-xs">Loại lỗi</TableHead>
+          <TableHead className="text-xs">{t("workflow.operate.col_error_type")}</TableHead>
           <TableHead className="max-w-md text-xs">Error message</TableHead>
           <TableHead className="text-xs">Job key</TableHead>
-          <TableHead className="text-xs">Thời gian</TableHead>
+          <TableHead className="text-xs">{t("workflow.operate.col_time")}</TableHead>
           <TableHead className="w-28 text-xs" />
         </TableRow>
       </TableHeader>
@@ -1074,10 +1083,11 @@ function JobsTable({
   items: JobState[]
   onRetry: (key: string) => void
 }) {
+  const { t } = useI18n()
   if (items.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Không có job nào.
+        {t("workflow.operate.empty_jobs")}
       </div>
     )
   }
@@ -1086,13 +1096,13 @@ function JobsTable({
     <Table>
       <TableHeader className="sticky top-0 bg-muted/30">
         <TableRow>
-          <TableHead className="w-24 text-xs">Trạng thái</TableHead>
+          <TableHead className="w-24 text-xs">{t("workflow.operate.col_status")}</TableHead>
           <TableHead className="text-xs">Type</TableHead>
           <TableHead className="text-xs">Element</TableHead>
           <TableHead className="text-xs">Job key</TableHead>
           <TableHead className="text-xs">Retries</TableHead>
           <TableHead className="text-xs">Worker</TableHead>
-          <TableHead className="text-xs">Thời gian</TableHead>
+          <TableHead className="text-xs">{t("workflow.operate.col_time")}</TableHead>
           <TableHead className="w-24 text-xs" />
         </TableRow>
       </TableHeader>
@@ -1164,10 +1174,11 @@ function JobDefinitionsTable({
   onSuspend: (key: string) => void
   onActivate: (key: string) => void
 }) {
+  const { t } = useI18n()
   if (items.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Không có job definition nào.
+        {t("workflow.operate.empty_job_definitions")}
       </div>
     )
   }
@@ -1176,12 +1187,12 @@ function JobDefinitionsTable({
     <Table>
       <TableHeader className="sticky top-0 bg-muted/30">
         <TableRow>
-          <TableHead className="w-28 text-xs">Trạng thái</TableHead>
+          <TableHead className="w-28 text-xs">{t("workflow.operate.col_status")}</TableHead>
           <TableHead className="text-xs">Type</TableHead>
           <TableHead className="text-xs">Job def key</TableHead>
           <TableHead className="text-xs">Worker</TableHead>
           <TableHead className="text-xs">Retries</TableHead>
-          <TableHead className="text-xs">Ngày tạo</TableHead>
+          <TableHead className="text-xs">{t("workflow.operate.col_created")}</TableHead>
           <TableHead className="w-28 text-xs" />
         </TableRow>
       </TableHeader>

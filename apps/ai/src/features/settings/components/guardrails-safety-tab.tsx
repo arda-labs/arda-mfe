@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -20,6 +21,7 @@ import {
 import { fetchGuardrails, saveGuardrails } from "../api"
 
 export function GuardrailsSafetyTab() {
+  const { t } = useI18n()
   const [promptInjectionDefense, setPromptInjectionDefense] = useState(true)
   const [piiMasking, setPiiMasking] = useState(true)
   const [hallucinationCheck, setHallucinationCheck] = useState(true)
@@ -58,9 +60,9 @@ export function GuardrailsSafetyTab() {
         zeroRetention,
         injectionThreshold,
       })
-      notify.success("Đã cập nhật cấu hình Rào chắn An toàn AI (Guardrails)!")
+      notify.success(t("ai.settings.guardrails.toast.save_success"))
     } catch (err) {
-      notify.error("Không thể lưu cấu hình Guardrails", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.guardrails.toast.save_failed"), err instanceof Error ? err.message : String(err))
     } finally {
       setSaving(false)
     }
@@ -77,16 +79,16 @@ export function GuardrailsSafetyTab() {
                 <ShieldCheck className="h-4 w-4 text-foreground shrink-0" />
                 <div>
                   <CardTitle className="text-sm font-semibold">
-                    Kiểm soát An toàn & Tuân thủ Dữ liệu (Enterprise Guardrails & DLP)
+                    {t("ai.settings.guardrails.main.title")}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Kiểm soát 2 chiều (Input / Output) ngăn chặn rò rỉ dữ liệu mật và các cuộc tấn công vượt quyền
+                    {t("ai.settings.guardrails.main.description")}
                   </CardDescription>
                 </div>
               </div>
               <Status variant="success" className="text-[10px]">
                 <StatusIndicator />
-                <StatusLabel>Chính sách Hoạt động</StatusLabel>
+                <StatusLabel>{t("ai.settings.guardrails.status.policy_active")}</StatusLabel>
               </Status>
             </div>
           </CardHeader>
@@ -96,11 +98,11 @@ export function GuardrailsSafetyTab() {
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1 pr-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-foreground text-xs">Phát hiện & Chặn Prompt Injection / Jailbreak</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.guardrails.injection.title")}</span>
                     <Badge variant="outline" className="text-[10px] font-mono">Input Guard</Badge>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Phân tích ngữ cảnh câu lệnh người dùng qua mô hình an toàn để vô hiệu hóa các kỹ thuật bẻ khóa (jailbreak), bypass vai trò và ép AI tiết lộ system prompt bí mật.
+                    {t("ai.settings.guardrails.injection.description")}
                   </p>
                 </div>
                 <Switch
@@ -114,7 +116,7 @@ export function GuardrailsSafetyTab() {
                 <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-3">
                   <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
                     <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
-                    Ngưỡng nhạy cảm (Sensitivity Threshold):
+                    {t("ai.settings.guardrails.injection.threshold_label")}
                   </span>
                   <input
                     type="range"
@@ -126,7 +128,7 @@ export function GuardrailsSafetyTab() {
                     className="w-32"
                   />
                   <span className="font-mono font-bold text-foreground">{injectionThreshold}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">(Mặc định ngân hàng: 0.85)</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">{t("ai.settings.guardrails.injection.threshold_default")}</span>
                 </div>
               )}
             </div>
@@ -136,11 +138,11 @@ export function GuardrailsSafetyTab() {
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1 pr-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-foreground text-xs">Tự động Ẩn Danh Dữ liệu Cá nhân & Tài khoản (PII / DLP)</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.guardrails.pii.title")}</span>
                     <Badge variant="outline" className="text-[10px] font-mono">Privacy Guard</Badge>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Tự động nhận diện và che giấu số CCCD, mã số thuế, số tài khoản ngân hàng, mật khẩu bằng nhãn ẩn danh giả lập trước khi truyền payload ra ngoài.
+                    {t("ai.settings.guardrails.pii.description")}
                   </p>
                 </div>
                 <Switch
@@ -156,16 +158,19 @@ export function GuardrailsSafetyTab() {
                   <div className="flex items-center justify-between text-[10px] font-medium text-muted-foreground border-b border-border/60 pb-1.5">
                     <span className="flex items-center gap-1.5 font-mono text-foreground">
                       <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                      Kiểm định Luồng Dữ liệu DLP (Data Loss Prevention Audit Log):
+                      {t("ai.settings.guardrails.pii.audit_title")}
                     </span>
                     <span className="font-mono text-[9.5px]">Zero Information Leakage</span>
                   </div>
                   <div className="space-y-1.5 font-mono text-[10.5px] leading-relaxed">
                     <div className="rounded border border-border bg-background p-2 text-muted-foreground">
-                      <strong className="text-foreground">Dữ liệu gốc người dùng:</strong> "Thực hiện giải ngân 500tr cho ông Nguyễn Văn A (CCCD: 001201012345, STK: 0071001234567)"
+                      <strong className="text-foreground">{t("ai.settings.guardrails.pii.raw_label")}</strong> {t("ai.settings.guardrails.pii.raw_sample")}
                     </div>
                     <div className="rounded border border-border bg-card p-2 text-foreground">
-                      <strong className="text-foreground">Payload gửi đến LLM:</strong> "Thực hiện giải ngân 500tr cho <span className="border rounded px-1 py-0.5 bg-muted font-bold">[PERSON_1]</span> (CCCD: <span className="border rounded px-1 py-0.5 bg-muted font-bold">[CCCD_REDACTED]</span>, STK: <span className="border rounded px-1 py-0.5 bg-muted font-bold">[BANK_ACCOUNT_REDACTED]</span>)"
+                      <strong className="text-foreground">{t("ai.settings.guardrails.pii.payload_label")}</strong> {t("ai.settings.guardrails.pii.payload_prefix")}{" "}
+                      <span className="border rounded px-1 py-0.5 bg-muted font-bold">[PERSON_1]</span> ({t("ai.settings.guardrails.pii.cccd_label")}:{" "}
+                      <span className="border rounded px-1 py-0.5 bg-muted font-bold">[CCCD_REDACTED]</span>, {t("ai.settings.guardrails.pii.stk_label")}:{" "}
+                      <span className="border rounded px-1 py-0.5 bg-muted font-bold">[BANK_ACCOUNT_REDACTED]</span>)
                     </div>
                   </div>
                 </div>
@@ -177,11 +182,11 @@ export function GuardrailsSafetyTab() {
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1 pr-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-foreground text-xs">Kiểm soát Ảo giác (Hallucination Detection)</span>
+                    <span className="font-bold text-foreground text-xs">{t("ai.settings.guardrails.hallucination.title")}</span>
                     <Badge variant="outline" className="text-[10px] font-mono">Output Guard</Badge>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Đo lường mức độ bám sát trích dẫn (Faithfulness score). Tự động từ chối câu trả lời nếu mô hình tự bịa đặt thông tin nằm ngoài phạm vi tài liệu doanh nghiệp.
+                    {t("ai.settings.guardrails.hallucination.description")}
                   </p>
                 </div>
                 <Switch
@@ -194,7 +199,7 @@ export function GuardrailsSafetyTab() {
 
             <div className="flex justify-end pt-2">
               <Button size="sm" className="text-xs" onClick={handleSave} disabled={saving}>
-                {saving ? "Đang lưu..." : "Lưu Thay đổi Guardrails"}
+                {saving ? t("common.action.saving") : t("ai.settings.guardrails.btn.save")}
               </Button>
             </div>
           </CardContent>
@@ -207,7 +212,7 @@ export function GuardrailsSafetyTab() {
               <div className="flex items-center gap-2">
                 <Lock className="h-4 w-4 text-foreground" />
                 <CardTitle className="text-sm font-semibold">
-                  Chính sách Quyền riêng tư (Zero Retention)
+                  {t("ai.settings.guardrails.privacy.title")}
                 </CardTitle>
               </div>
             </CardHeader>
@@ -222,20 +227,20 @@ export function GuardrailsSafetyTab() {
                   />
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Bắt buộc nhà cung cấp Cloud (OpenAI, Google) cam kết theo thỏa thuận Enterprise: Không lưu trữ nhật ký hội thoại trên máy chủ của họ và không dùng dữ liệu nội bộ để huấn luyện mô hình.
+                  {t("ai.settings.guardrails.privacy.zdr_description")}
                 </p>
               </div>
 
               <div className="rounded-lg border border-border bg-muted/20 p-3.5 space-y-2">
                 <div className="flex items-center gap-1.5 font-bold text-foreground text-xs">
                   <Shield className="h-4 w-4 text-muted-foreground" />
-                  Mã hóa Chuẩn Ngân hàng AES-256 GCM
+                  {t("ai.settings.guardrails.privacy.encryption_title")}
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Toàn bộ bản ghi hội thoại và metadata đều được mã hóa bằng khóa bảo mật HSM nội bộ trước khi ghi vào cơ sở dữ liệu PostgreSQL của hệ điều hành Arda.
+                  {t("ai.settings.guardrails.privacy.encryption_description")}
                 </p>
                 <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground font-mono">
-                  <span>Tuân thủ: ISO 27001 • GDPR</span>
+                  <span>{t("ai.settings.guardrails.privacy.compliance")}</span>
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                 </div>
               </div>

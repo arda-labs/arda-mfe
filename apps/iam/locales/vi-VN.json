@@ -37,6 +37,14 @@
       "name_required": "Tên là bắt buộc",
       "name_too_long": "Tên quá dài",
       "tenant_required": "Tenant là bắt buộc"
+    },
+    "permissions": {
+      "title": "Phân quyền cho {role}",
+      "load_failed": "Không tải được danh sách quyền",
+      "update_success": "Đã cập nhật quyền",
+      "update_failed": "Không cập nhật được quyền",
+      "loading": "Đang tải quyền...",
+      "empty": "Chưa có quyền để gán."
     }
   },
   "permissions": {
@@ -114,5 +122,77 @@
     "system_user_protected": "Tài khoản superadmin hệ thống được bảo vệ",
     "role_protected": "Vai trò superadmin hệ thống được bảo vệ",
     "permission_protected": "Quyền superadmin hệ thống được bảo vệ"
+  },
+  "system_settings": {
+    "title": "Cài đặt hệ thống",
+    "description": "Cấu hình hiển thị login, mật khẩu, phiên đăng nhập và giới hạn bảo mật.",
+    "badge": {
+      "global": "Toàn cục"
+    },
+    "load_failed": "Không thể tải cấu hình hệ thống",
+    "save_success": "Đã lưu cấu hình hệ thống",
+    "save_failed": "Lưu cấu hình thất bại",
+    "actions": {
+      "save": "Lưu cấu hình",
+      "saving": "Đang lưu..."
+    },
+    "tab": {
+      "display": "Hiển thị",
+      "password": "Mật khẩu",
+      "login": "Đăng nhập"
+    },
+    "display": {
+      "branding_title": "Thương hiệu và hiển thị",
+      "app_name": "Tên ứng dụng",
+      "short_name": "Tên rút gọn",
+      "organization": "Tổ chức",
+      "support_email": "Email hỗ trợ",
+      "support_phone": "Số điện thoại hỗ trợ",
+      "help_url": "Help center URL",
+      "login_logo_url": "Login logo URL",
+      "dashboard_logo_url": "Dashboard logo URL",
+      "favicon_url": "Favicon URL",
+      "login_background_url": "Login background URL",
+      "login_title": "Tiêu đề login",
+      "login_subtitle": "Mô tả login",
+      "login_background": "Bật ảnh nền login"
+    },
+    "password": {
+      "rules_title": "Quy định mật khẩu",
+      "min_length": "Độ dài tối thiểu",
+      "block_pwned": "Chặn mật khẩu đã bị lộ",
+      "block_similarity": "Chặn mật khẩu giống email/tên đăng nhập",
+      "require_uppercase": "Bắt buộc có chữ hoa",
+      "require_number": "Bắt buộc có chữ số",
+      "require_symbol": "Bắt buộc có ký tự đặc biệt",
+      "max_age_days": "Số ngày phải đổi mật khẩu",
+      "summary_title": "Tóm tắt"
+    },
+    "summary": {
+      "length": "Độ dài",
+      "characters": "ký tự",
+      "rules_enabled": "Rule đang bật",
+      "rotation": "Đổi định kỳ",
+      "days": "ngày",
+      "off": "Tắt"
+    },
+    "login_security": {
+      "title": "Bảo mật đăng nhập và phiên",
+      "single_device": "Chỉ cho phép 1 thiết bị đăng nhập",
+      "max_failed_attempts": "Số lần đăng nhập sai tối đa",
+      "lockout_minutes": "Khóa đăng nhập trong bao nhiêu phút",
+      "attempt_window": "Cửa sổ đếm lỗi đăng nhập (phút)",
+      "session_hours": "Thời hạn phiên đăng nhập (giờ)",
+      "recent_auth": "Recent-auth cho thao tác nhạy cảm (phút)"
+    },
+    "preview": {
+      "url_hint": "URL ảnh chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS."
+    },
+    "validation": {
+      "app_name_required": "Tên ứng dụng không được để trống",
+      "support_email_invalid": "Email hỗ trợ không hợp lệ",
+      "help_url_invalid": "Help center URL không hợp lệ",
+      "url_not_allowed": "{field} chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS"
+    }
   }
 }

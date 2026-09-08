@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { useI18n } from "@workspace/i18n"
 import {
   createTransactionWorkbench,
   TransactionSearchPage,
@@ -32,7 +33,8 @@ export function TransactionWorkbench({
   title?: string
   description?: string
 }) {
-  const meta = directionMeta[direction]
+  const { t } = useI18n()
+  const meta = directionMeta[direction](t)
   const WorkbenchComponent = createTransactionWorkbench(
     direction,
     title ?? meta.title,
@@ -42,15 +44,17 @@ export function TransactionWorkbench({
 }
 
 const directionMeta = {
-  incoming: {
-    title: "Giao dịch đến",
-    description: "Các việc cần xử lý",
-  },
-  outgoing: {
-    title: "Giao dịch đi",
-    description: "Các việc đã gửi đi",
-  },
+  incoming: (t: TFn) => ({
+    title: t("workflow.workbench.incoming_title"),
+    description: t("workflow.workbench.incoming_description"),
+  }),
+  outgoing: (t: TFn) => ({
+    title: t("workflow.workbench.outgoing_title"),
+    description: t("workflow.workbench.outgoing_description"),
+  }),
 }
+
+type TFn = ReturnType<typeof useI18n>["t"]
 
 function routeFromPath(pathname: string): WorkbenchRoute {
   if (pathname.startsWith("/workbench/incoming-transactions")) return "incoming"

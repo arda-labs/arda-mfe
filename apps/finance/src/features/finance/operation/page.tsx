@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Table,
@@ -22,6 +23,7 @@ import { financeOperationApi } from "./api"
  * definitions, named accounts. Legacy incoming/outgoing transaction UI was
  * removed in the Phase 0 rebuild — posting is journal-first (PostingService). */
 export function AccountingConfigPage() {
+  const { t } = useI18n()
   const [result, setResult] = useState<{ items: AccountingConfigItem[] }>({
     items: [],
   })
@@ -48,11 +50,10 @@ export function AccountingConfigPage() {
     <div className="space-y-4">
       <div className="min-w-0 space-y-1">
         <h1 className="text-2xl font-semibold tracking-normal">
-          Cấu hình kế toán
+          {t("finance.operation.title")}
         </h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Quản lý ánh xạ quy trình, phân loại tài khoản, mẫu bút toán và tài
-          khoản phục vụ hạch toán.
+          {t("finance.operation.description")}
         </p>
       </div>
       {loading ? (
@@ -60,13 +61,21 @@ export function AccountingConfigPage() {
       ) : (
         <Tabs defaultValue="process" className="space-y-3">
           <TabsList className="flex h-auto flex-wrap justify-start">
-            <TabsTrigger value="process">Cấu hình quy trình</TabsTrigger>
-            <TabsTrigger value="classification">
-              Phân loại tài khoản
+            <TabsTrigger value="process">
+              {t("finance.operation.tab.process")}
             </TabsTrigger>
-            <TabsTrigger value="journal">Định nghĩa bút toán</TabsTrigger>
-            <TabsTrigger value="regulatory">Tài khoản quy định</TabsTrigger>
-            <TabsTrigger value="internal">Tài khoản nội bộ</TabsTrigger>
+            <TabsTrigger value="classification">
+              {t("finance.operation.tab.classification")}
+            </TabsTrigger>
+            <TabsTrigger value="journal">
+              {t("finance.operation.tab.journal")}
+            </TabsTrigger>
+            <TabsTrigger value="regulatory">
+              {t("finance.operation.tab.regulatory")}
+            </TabsTrigger>
+            <TabsTrigger value="internal">
+              {t("finance.operation.tab.internal")}
+            </TabsTrigger>
           </TabsList>
           {(
             [
@@ -90,10 +99,11 @@ export function AccountingConfigPage() {
 }
 
 function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
+  const { t } = useI18n()
   if (!items.length) {
     return (
       <div className="rounded-lg border p-6 text-sm text-muted-foreground">
-        Chưa có cấu hình trong nhóm này.
+        {t("finance.operation.empty")}
       </div>
     )
   }
@@ -103,11 +113,11 @@ function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Mã cấu hình</TableHead>
-            <TableHead>Tên nghiệp vụ</TableHead>
-            <TableHead>Đơn vị sở hữu</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead>Cập nhật</TableHead>
+            <TableHead>{t("finance.operation.col.code")}</TableHead>
+            <TableHead>{t("finance.operation.col.name")}</TableHead>
+            <TableHead>{t("finance.operation.col.owner")}</TableHead>
+            <TableHead>{t("finance.operation.col.status")}</TableHead>
+            <TableHead>{t("finance.operation.col.updated")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

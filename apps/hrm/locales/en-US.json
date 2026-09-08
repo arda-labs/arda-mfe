@@ -12,7 +12,152 @@
     },
     "common": {
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "add": "Add",
+      "add_row": "Add row",
+      "deleting": "Deleting...",
+      "delete_warning": "This action cannot be undone."
+    },
+    "registrations": {
+      "title": "Employee registration",
+      "description": "Fill in the employee profile and submit it through the HRM_EMPLOYEE_REGISTRATION BPM process.",
+      "load_failed": "Failed to load organization units or positions",
+      "create_success": "Registration created",
+      "update_success": "Registration saved",
+      "create_failed": "Failed to create registration",
+      "update_failed": "Failed to save registration",
+      "submit_success": "Registration submitted",
+      "submit_failed": "Failed to submit registration",
+      "tab": {
+        "general": "General",
+        "family": "Family",
+        "delegation": "Delegation",
+        "attachments": "Documents"
+      },
+      "field": {
+        "employee_code": "Employee code",
+        "employee_type": "Employee type (*)",
+        "org_unit": "Org unit (*)",
+        "full_name": "Employee name (*)",
+        "date_of_birth": "Date of birth",
+        "gender": "Gender",
+        "mobile": "Mobile number",
+        "email": "Email",
+        "marital_status": "Marital status",
+        "identity_no": "ID number (*)",
+        "identity_issue_place": "Issue place",
+        "identity_issue_date": "Issue date",
+        "identity_expiry_date": "Expiry date",
+        "start_date": "Start date",
+        "official_date": "Official date",
+        "address": "Address (*)",
+        "permanent_address": "Permanent address (*)"
+      },
+      "select": {
+        "org_unit": "Select org unit",
+        "gender": "Select gender",
+        "marital": "Select status",
+        "department": "Select department",
+        "position": "Select position"
+      },
+      "option": {
+        "employee": "Employee",
+        "collaborator": "Collaborator",
+        "intern": "Intern",
+        "male": "Male",
+        "female": "Female",
+        "other": "Other",
+        "single": "Single",
+        "married": "Married"
+      },
+      "validation": {
+        "employee_type_required": "Employee type is required",
+        "org_unit_required": "Org unit is required",
+        "full_name_required": "Employee name is required",
+        "email_invalid": "Invalid email address",
+        "address_required": "Address is required",
+        "permanent_address_required": "Permanent address is required",
+        "identity_no_required": "ID number is required"
+      },
+      "avatar": {
+        "alt": "Employee avatar",
+        "placeholder": "Avatar",
+        "upload": "Upload",
+        "uploading": "Uploading",
+        "clear": "Remove photo",
+        "save_first": "Save the draft before uploading an avatar",
+        "invalid_file": "Invalid image file",
+        "too_large": "Avatar must be at most 5MB",
+        "upload_success": "Avatar uploaded to media-service",
+        "upload_failed": "Failed to upload avatar"
+      },
+      "actions": {
+        "new_profile": "New profile",
+        "save_draft": "Save draft",
+        "submit": "Submit"
+      },
+      "meta": {
+        "registration_code": "Registration no.:",
+        "case_bpm": "BPM case:",
+        "workflow_case": "Workflow case:"
+      },
+      "status": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "table": {
+        "assignments": {
+          "title": "Position assignments",
+          "work_unit": "Work unit",
+          "department": "Department",
+          "position": "Position",
+          "effective_date": "Effective date",
+          "expiry_date": "Expiry date",
+          "empty": "No position rows yet."
+        },
+        "educations": {
+          "title": "Education",
+          "level": "Education level",
+          "training_type": "Training type",
+          "school": "School",
+          "major": "Major",
+          "from_year": "From year",
+          "to_year": "To year",
+          "empty": "No education rows yet."
+        },
+        "family": {
+          "title": "Family & dependents",
+          "relationship": "Relationship",
+          "full_name": "Full name",
+          "date_of_birth": "Date of birth",
+          "phone": "Phone",
+          "address": "Address",
+          "dependent": "Dependent",
+          "empty": "No family information yet."
+        },
+        "delegations": {
+          "title": "Delegated employees",
+          "employee_code": "Delegate employee code",
+          "employee_name": "Employee name",
+          "department": "Department",
+          "position": "Position",
+          "decision_no": "Decision no.",
+          "content": "Content",
+          "effective_date": "Effective date",
+          "expiry_date": "Expiry date",
+          "empty": "No delegation information yet."
+        },
+        "attachments": {
+          "title": "Attached documents",
+          "document_type": "Document type",
+          "document_name": "Document name",
+          "file_name": "File/Media ID",
+          "note": "Note",
+          "empty": "No attached documents yet."
+        }
+      }
     },
     "employees": {
       "title": "Employees",

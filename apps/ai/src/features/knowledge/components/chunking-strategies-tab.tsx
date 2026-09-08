@@ -72,9 +72,9 @@ export function ChunkingStrategiesTab() {
         topK,
         topN,
       })
-      notify.success("Đã cập nhật cấu hình Chiến lược Phân mảnh & Reranker!")
+      notify.success(t("ai.knowledge.strategies.toast.save_success"))
     } catch (err) {
-      notify.error("Không thể lưu cấu hình chiến lược", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.knowledge.strategies.toast.save_failed"), err instanceof Error ? err.message : String(err))
     } finally {
       setSaving(false)
     }
@@ -95,7 +95,7 @@ export function ChunkingStrategiesTab() {
         </div>
         <Status variant="success" className="text-[11px]">
           <StatusIndicator />
-          <StatusLabel>Đường ống Hai giai đoạn (Two-Stage Active)</StatusLabel>
+          <StatusLabel>{t("ai.knowledge.strategies.two_stage_status")}</StatusLabel>
         </Status>
       </div>
 
@@ -114,13 +114,13 @@ export function ChunkingStrategiesTab() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background">
               <Layers className="h-4 w-4 text-foreground" />
             </div>
-            <Badge variant="outline" className="text-[10px] font-mono">Khuyên dùng</Badge>
+            <Badge variant="outline" className="text-[10px] font-mono">{t("ai.knowledge.strategies.badge.recommended")}</Badge>
           </div>
           <h4 className="mt-2.5 text-xs font-bold text-foreground truncate">
-            Parent-Child (Phân cấp)
+            {t("ai.knowledge.strategies.card.hierarchical.title")}
           </h4>
           <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-            Lưu chunk nhỏ để so khớp vector chính xác, cung cấp văn bản cha cho LLM để bảo toàn ngữ cảnh.
+            {t("ai.knowledge.strategies.card.hierarchical.description")}
           </p>
         </button>
 
@@ -143,7 +143,7 @@ export function ChunkingStrategiesTab() {
             Semantic Chunking
           </h4>
           <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-            Tự động chia tách tài liệu khi độ tương đồng cosine giữa các câu liên tiếp giảm sút dưới ngưỡng.
+            {t("ai.knowledge.strategies.card.semantic.description")}
           </p>
         </button>
 
@@ -166,7 +166,7 @@ export function ChunkingStrategiesTab() {
             Markdown / Document AST
           </h4>
           <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-            Bảo toàn nguyên khối các bảng biểu số liệu (Data Tables) và cấu trúc tiêu đề theo mục H1, H2, H3.
+            {t("ai.knowledge.strategies.card.markdown_ast.description")}
           </p>
         </button>
 
@@ -189,7 +189,7 @@ export function ChunkingStrategiesTab() {
             Recursive Character
           </h4>
           <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-            Phân đoạn cố định theo độ dài ký tự và khoảng chồng lấn (character window overlap).
+            {t("ai.knowledge.strategies.card.recursive.description")}
           </p>
         </button>
       </div>
@@ -202,10 +202,10 @@ export function ChunkingStrategiesTab() {
               <SlidersHorizontal className="h-4 w-4 text-foreground shrink-0" />
               <div>
                 <CardTitle className="text-sm font-semibold">
-                  Cấu hình Tham số Phân đoạn ({strategy.toUpperCase()})
+                  {t("ai.knowledge.strategies.params_title", { strategy: strategy.toUpperCase() })}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Thiết lập giới hạn độ dài token và kiểm tra cấu trúc phân đoạn trực tiếp
+                  {t("ai.knowledge.strategies.params_description")}
                 </CardDescription>
               </div>
             </div>
@@ -221,7 +221,7 @@ export function ChunkingStrategiesTab() {
               <>
                 <div className="rounded-lg border border-border p-3 space-y-2 bg-card">
                   <div className="flex items-center justify-between font-medium">
-                    <span>Parent Chunk Size (Tokens ngữ cảnh gốc):</span>
+                    <span>{t("ai.knowledge.strategies.parent_chunk_label")}</span>
                     <span className="font-mono font-bold text-foreground">{parentChunkSize} tokens</span>
                   </div>
                   <input
@@ -234,13 +234,13 @@ export function ChunkingStrategiesTab() {
                     onChange={(e) => setParentChunkSize(Number(e.target.value))}
                   />
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Khối văn bản lớn chuyển vào prompt của mô hình để đảm bảo câu trả lời có tính bối cảnh đầy đủ.
+                    {t("ai.knowledge.strategies.parent_chunk_hint")}
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-border p-3 space-y-2 bg-card">
                   <div className="flex items-center justify-between font-medium">
-                    <span>Child Chunk Size (Tokens vector embedding):</span>
+                    <span>{t("ai.knowledge.strategies.child_chunk_label")}</span>
                     <span className="font-mono font-bold text-foreground">{childChunkSize} tokens</span>
                   </div>
                   <input
@@ -253,7 +253,7 @@ export function ChunkingStrategiesTab() {
                     onChange={(e) => setChildChunkSize(Number(e.target.value))}
                   />
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Kích thước ngắn tối ưu hóa khả năng so khớp vector trong không gian đa chiều (Cosine Distance).
+                    {t("ai.knowledge.strategies.child_chunk_hint")}
                   </p>
                 </div>
               </>
@@ -275,25 +275,25 @@ export function ChunkingStrategiesTab() {
                   onChange={(e) => setSimilarityThreshold(Number(e.target.value))}
                 />
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Ngưỡng ngắt đoạn tự động: Khi điểm tương đồng giữa hai câu liên tiếp nhỏ hơn ngưỡng này, đoạn mới sẽ được khởi tạo.
+                  {t("ai.knowledge.strategies.semantic_threshold_hint")}
                 </p>
               </div>
             )}
 
             {strategy === "markdown_ast" && (
               <div className="rounded-lg border border-border p-3 space-y-1.5 bg-card lg:col-span-2">
-                <span className="font-semibold text-foreground">Phân tích Cây Cú pháp Cấu trúc (Document AST):</span>
+                <span className="font-semibold text-foreground">{t("ai.knowledge.strategies.ast_label")}</span>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Bảo tồn nguyên vẹn cấu trúc tiêu đề mục lục và khối bảng biểu số liệu (Tables), không chia cắt các hàng cột dữ liệu tài chính.
+                  {t("ai.knowledge.strategies.ast_hint")}
                 </p>
               </div>
             )}
 
             {strategy === "recursive" && (
               <div className="rounded-lg border border-border p-3 space-y-1.5 bg-card lg:col-span-2">
-                <span className="font-semibold text-foreground">Phân mảnh Đệ quy (Recursive Character Splitting):</span>
+                <span className="font-semibold text-foreground">{t("ai.knowledge.strategies.recursive_label")}</span>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Phân chia đoạn văn theo chuẩn 512 ký tự với khoảng chồng lấn 64 ký tự để duy trì liên kết ngữ nghĩa câu.
+                  {t("ai.knowledge.strategies.recursive_hint")}
                 </p>
               </div>
             )}
@@ -304,7 +304,7 @@ export function ChunkingStrategiesTab() {
             <div className="flex items-center justify-between border-b border-border pb-2 text-xs">
               <span className="font-semibold text-foreground flex items-center gap-1.5">
                 <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                Kiểm tra Phân đoạn Văn bản (Document Chunk Structure):
+                {t("ai.knowledge.strategies.inspector_title")}
               </span>
               <span className="font-mono text-[10.5px] text-muted-foreground">
                 Quy_che_Che_do_Dai_ngo_2026.pdf
@@ -315,10 +315,10 @@ export function ChunkingStrategiesTab() {
               <div className="rounded border border-border bg-muted/20 p-3 space-y-2.5">
                 <div className="flex items-center justify-between text-[11px] border-b border-border/60 pb-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-foreground">KHỐI CHA #12 (Parent Chunk: ~1024 Tokens)</span>
-                    <Badge variant="outline" className="text-[9.5px] font-mono">Đưa vào Prompt LLM</Badge>
+                    <span className="font-mono font-bold text-foreground">{t("ai.knowledge.strategies.demo_parent_label")}</span>
+                    <Badge variant="outline" className="text-[9.5px] font-mono">{t("ai.knowledge.strategies.badge.in_llm_prompt")}</Badge>
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-mono">Mục 4.2: Chế độ Công tác & Phụ cấp Dự án</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">{t("ai.knowledge.strategies.demo_parent_section")}</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
@@ -328,7 +328,7 @@ export function ChunkingStrategiesTab() {
                       <span className="font-mono text-muted-foreground">198 tok</span>
                     </div>
                     <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                      "Nhân sự chính thức được hưởng 14 ngày phép năm có lương, tăng thêm 1 ngày sau mỗi 3 năm thâm niên..."
+                      {t("ai.knowledge.strategies.demo_child1_text")}
                     </p>
                   </div>
 
@@ -341,7 +341,7 @@ export function ChunkingStrategiesTab() {
                       </Status>
                     </div>
                     <p className="text-[10.5px] text-foreground font-medium leading-relaxed">
-                      "Đối với nhân sự tham gia dự án Onsite tại khách hàng, phụ cấp công tác phí là 350.000 VNĐ/ngày..."
+                      {t("ai.knowledge.strategies.demo_child2_text")}
                     </p>
                   </div>
 
@@ -351,7 +351,7 @@ export function ChunkingStrategiesTab() {
                       <span className="font-mono text-muted-foreground">214 tok</span>
                     </div>
                     <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                      "Thời hạn phê duyệt nghỉ phép: Trưởng bộ phận duyệt trước ít nhất 48 giờ làm việc qua hệ thống HRM..."
+                      {t("ai.knowledge.strategies.demo_child3_text")}
                     </p>
                   </div>
                 </div>
@@ -364,10 +364,14 @@ export function ChunkingStrategiesTab() {
                   <Badge variant="outline" className="font-mono text-[10px]">Table Data Intact</Badge>
                 </div>
                 <div className="rounded border border-border/80 bg-muted/30 p-2.5 font-mono text-[10.5px] leading-relaxed text-foreground">
-                  # 1. QUY CHẾ TIỀN LƯƠNG VÀ ĐÃI NGỘ NĂM 2026<br />
-                  | Chức danh | Lương căn bản | Phụ cấp dự án | Chu kỳ duyệt |<br />
-                  | Chuyên viên Cao cấp | 35.000.000 VNĐ | 2.500.000 VNĐ | Hàng tháng |<br />
-                  | Kỹ sư Trưởng | 55.000.000 VNĐ | 4.000.000 VNĐ | Hàng tháng |
+                  {t("ai.knowledge.strategies.demo_table")
+                    .split("\n")
+                    .map((line, idx, arr) => (
+                      <span key={idx}>
+                        {line}
+                        {idx < arr.length - 1 ? <br /> : null}
+                      </span>
+                    ))}
                 </div>
               </div>
             )}
@@ -383,16 +387,16 @@ export function ChunkingStrategiesTab() {
               <Filter className="h-4 w-4 text-foreground shrink-0" />
               <div>
                 <CardTitle className="text-sm font-semibold">
-                  Đường ống Reranker Hai Giai đoạn (Two-Stage Cross-Encoder Pipeline)
+                  {t("ai.knowledge.strategies.reranker_title")}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Sàng lọc kết quả truy xuất thô bằng mô hình Cross-Encoder để tối ưu độ chính xác và loại bỏ nhiễu
+                  {t("ai.knowledge.strategies.reranker_description")}
                 </CardDescription>
               </div>
             </div>
             <Status variant="success" className="text-[10px]">
               <StatusIndicator />
-              <StatusLabel>Độ trung thực: 94.2%</StatusLabel>
+              <StatusLabel>{t("ai.knowledge.strategies.faithfulness_score")}</StatusLabel>
             </Status>
           </div>
         </CardHeader>
@@ -400,7 +404,7 @@ export function ChunkingStrategiesTab() {
           {/* Parameter Inputs */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="font-medium text-foreground">Mô hình Reranker Engine</label>
+              <label className="font-medium text-foreground">{t("ai.knowledge.strategies.reranker_model_label")}</label>
               <Select value={rerankerModel} onValueChange={setRerankerModel}>
                 <SelectTrigger className="mt-1.5 h-8 text-xs font-mono">
                   <SelectValue />
@@ -412,31 +416,31 @@ export function ChunkingStrategiesTab() {
                   <SelectItem value="bge-reranker-large">
                     BAAI / BGE-Reranker-Large (On-Prem K3s GPU)
                   </SelectItem>
-                  <SelectItem value="none">Tắt Reranker (Chỉ dùng Cosine)</SelectItem>
+                  <SelectItem value="none">{t("ai.knowledge.strategies.reranker_none")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <label className="font-medium text-foreground">Top-K Ứng viên Thô (Stage 1)</label>
+              <label className="font-medium text-foreground">{t("ai.knowledge.strategies.topk_label")}</label>
               <Input
                 type="number"
                 className="mt-1.5 h-8 text-xs font-mono"
                 value={topK}
                 onChange={(e) => setTopK(Number(e.target.value))}
               />
-              <span className="text-[10px] text-muted-foreground">Ứng viên từ Hybrid Search (BM25 + Vector)</span>
+              <span className="text-[10px] text-muted-foreground">{t("ai.knowledge.strategies.topk_hint")}</span>
             </div>
 
             <div>
-              <label className="font-medium text-foreground">Top-N Chunks Chọn lọc (Stage 2)</label>
+              <label className="font-medium text-foreground">{t("ai.knowledge.strategies.topn_label")}</label>
               <Input
                 type="number"
                 className="mt-1.5 h-8 text-xs font-mono"
                 value={topN}
                 onChange={(e) => setTopN(Number(e.target.value))}
               />
-              <span className="text-[10px] text-muted-foreground">Số đoạn trích chuẩn xác nhất gửi vào LLM</span>
+              <span className="text-[10px] text-muted-foreground">{t("ai.knowledge.strategies.topn_hint")}</span>
             </div>
           </div>
 
@@ -445,10 +449,10 @@ export function ChunkingStrategiesTab() {
             <div className="flex items-center justify-between text-xs border-b border-border pb-2">
               <span className="font-semibold text-foreground flex items-center gap-1.5">
                 <Search className="h-3.5 w-3.5 text-muted-foreground" />
-                Đối chiếu Quy trình: Truy xuất Vector Thô vs Qua Cross-Encoder Rescoring
+                {t("ai.knowledge.strategies.comparator_title")}
               </span>
               <span className="text-[10.5px] text-muted-foreground font-mono">
-                Truy vấn: "Chính sách trợ cấp công tác phí cho nhân sự đi tỉnh"
+                {t("ai.knowledge.strategies.comparator_query")}
               </span>
             </div>
 
@@ -458,21 +462,21 @@ export function ChunkingStrategiesTab() {
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-muted-foreground text-[11px] flex items-center gap-1">
                     <Database className="h-3 w-3" />
-                    Giai đoạn 1: Kết quả Vector Thô (Cosine Distance)
+                    {t("ai.knowledge.strategies.stage1_title")}
                   </span>
-                  <Badge variant="outline" className="text-[9px] font-mono">Chưa qua Rerank</Badge>
+                  <Badge variant="outline" className="text-[9px] font-mono">{t("ai.knowledge.strategies.badge.not_reranked")}</Badge>
                 </div>
                 <div className="divide-y divide-border/60 text-[11px]">
                   <div className="py-1.5 flex items-center justify-between">
-                    <span className="truncate pr-2 text-muted-foreground">1. "...thủ tục đăng ký vé máy bay và xe đưa đón..."</span>
+                    <span className="truncate pr-2 text-muted-foreground">{t("ai.knowledge.strategies.demo_stage1_item1")}</span>
                     <span className="font-mono text-[10px] font-semibold text-foreground shrink-0">0.84</span>
                   </div>
                   <div className="py-1.5 flex items-center justify-between">
-                    <span className="truncate pr-2 text-muted-foreground">2. "...mức phụ cấp công tác phí ngoại tỉnh 350.000đ..."</span>
+                    <span className="truncate pr-2 text-muted-foreground">{t("ai.knowledge.strategies.demo_stage1_item2")}</span>
                     <span className="font-mono text-[10px] font-semibold text-foreground shrink-0">0.81</span>
                   </div>
                   <div className="py-1.5 flex items-center justify-between opacity-60">
-                    <span className="truncate pr-2 text-muted-foreground">3. "...chính sách thưởng hoàn thành dự án..." (Nhiễu)</span>
+                    <span className="truncate pr-2 text-muted-foreground">{t("ai.knowledge.strategies.demo_stage1_item3")}</span>
                     <span className="font-mono text-[10px] text-destructive shrink-0">0.78</span>
                   </div>
                 </div>
@@ -483,7 +487,7 @@ export function ChunkingStrategiesTab() {
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-foreground text-[11px] flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                    Giai đoạn 2: Kết quả Qua Cross-Encoder Rescoring
+                    {t("ai.knowledge.strategies.stage2_title")}
                   </span>
                   <Badge variant="outline" className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400 bg-emerald-50/50 text-[9px] font-mono">
                     Re-Ranked ✓
@@ -491,15 +495,15 @@ export function ChunkingStrategiesTab() {
                 </div>
                 <div className="divide-y divide-border/60 text-[11px]">
                   <div className="py-1.5 flex items-center justify-between font-medium">
-                    <span className="truncate pr-2 text-foreground">1. "...mức phụ cấp công tác phí ngoại tỉnh 350.000đ..."</span>
+                    <span className="truncate pr-2 text-foreground">{t("ai.knowledge.strategies.demo_stage2_item1")}</span>
                     <span className="font-mono text-[10.5px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">0.97 (Relevance)</span>
                   </div>
                   <div className="py-1.5 flex items-center justify-between">
-                    <span className="truncate pr-2 text-foreground">2. "...hóa đơn khách sạn và ăn uống khi lưu trú..."</span>
+                    <span className="truncate pr-2 text-foreground">{t("ai.knowledge.strategies.demo_stage2_item2")}</span>
                     <span className="font-mono text-[10.5px] font-medium text-foreground shrink-0">0.91 (Relevance)</span>
                   </div>
                   <div className="py-1.5 flex items-center justify-between text-muted-foreground opacity-75">
-                    <span className="truncate pr-2">3. "...thủ tục đăng ký vé máy bay và xe đưa đón..."</span>
+                    <span className="truncate pr-2">{t("ai.knowledge.strategies.demo_stage2_item3")}</span>
                     <span className="font-mono text-[10.5px] shrink-0">0.76 (Relevance)</span>
                   </div>
                 </div>
@@ -509,13 +513,14 @@ export function ChunkingStrategiesTab() {
             <div className="rounded border border-border bg-background p-2.5 text-[11px] text-muted-foreground flex items-center gap-2">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
               <span>
-                <strong>Kiểm định chất lượng:</strong> Cross-Encoder đọc đồng thời câu hỏi và toàn văn đoạn trích để tính toán độ tương quan thực tế, loại bỏ kết quả sai lệch và đẩy tài liệu chính xác lên vị trí ưu tiên hàng đầu.
+                <strong>{t("ai.knowledge.strategies.quality_note_label")}</strong>{" "}
+                {t("ai.knowledge.strategies.quality_note_body")}
               </span>
             </div>
 
             <div className="flex justify-end pt-3">
               <Button size="sm" className="text-xs" disabled={saving} onClick={handleSave}>
-                {saving ? "Đang lưu..." : "Lưu Cấu hình Chiến lược & Reranker"}
+                {saving ? t("common.action.saving") : t("ai.knowledge.strategies.save_btn")}
               </Button>
             </div>
           </div>

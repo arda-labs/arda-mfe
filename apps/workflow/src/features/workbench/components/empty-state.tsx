@@ -1,4 +1,5 @@
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 
 export function EmptyState({
   title,
@@ -48,12 +49,13 @@ export function EmptyState({
 }
 
 export function TableEmptyState({ colSpan }: { colSpan: number }) {
+  const { t } = useI18n()
   return (
     <tr>
       <td colSpan={colSpan}>
         <EmptyState
-          title="Không có việc cần xử lý"
-          description="Khi có giao dịch được giao, chúng sẽ xuất hiện ở đây."
+          title={t("workflow.workbench.empty_title")}
+          description={t("workflow.workbench.empty_description")}
         />
       </td>
     </tr>

@@ -45,6 +45,7 @@ import {
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../api"
 import type {
@@ -184,6 +185,7 @@ export function BpmnViewerPanel({
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState("")
+  const { t } = useI18n()
 
   useEffect(() => {
     if (!containerRef.current || !xml) return
@@ -209,14 +211,16 @@ export function BpmnViewerPanel({
               canvas.addMarker(highlightId, "highlight-current")
             } catch {
               setError(
-                `Không tìm thấy BPMN element "${highlightId}" để highlight.`
+                t("workflow.bpmn.highlight_not_found", { id: highlightId })
               )
             }
           }
         })
         .catch((err: unknown) => {
           const message =
-            err instanceof Error ? err.message : "Không đọc được BPMN XML."
+            err instanceof Error
+              ? err.message
+              : t("workflow.bpmn.xml_parse_failed")
           setError(message)
         })
     })
@@ -230,12 +234,12 @@ export function BpmnViewerPanel({
         container.replaceChildren()
       }
     }
-  }, [xml, highlightId])
+  }, [xml, highlightId, t])
 
   if (loading) return <LoadingBlock />
   if (!xml)
     return (
-      <EmptyState text="Chọn hoặc import một định nghĩa BPMN để xem sơ đồ." />
+      <EmptyState text={t("workflow.bpmn.viewer_empty")} />
     )
 
   return (
@@ -304,6 +308,7 @@ export function OperateBpmnViewer({
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState("")
+  const { t } = useI18n()
 
   useEffect(() => {
     if (!containerRef.current || !xml) return
@@ -333,7 +338,7 @@ export function OperateBpmnViewer({
               canvas.addMarker(highlightId, "highlight-current")
             } catch {
               setError(
-                `Không tìm thấy BPMN element "${highlightId}" để highlight.`
+                t("workflow.bpmn.highlight_not_found", { id: highlightId })
               )
             }
           }
@@ -371,7 +376,9 @@ export function OperateBpmnViewer({
         })
         .catch((err: unknown) => {
           const message =
-            err instanceof Error ? err.message : "Không đọc được BPMN XML."
+            err instanceof Error
+              ? err.message
+              : t("workflow.bpmn.xml_parse_failed")
           setError(message)
         })
     })
@@ -385,12 +392,12 @@ export function OperateBpmnViewer({
         container.replaceChildren()
       }
     }
-  }, [xml, highlightId, elementStats])
+  }, [xml, highlightId, elementStats, t])
 
   if (loading) return <LoadingBlock />
   if (!xml)
     return (
-      <EmptyState text="Chọn hoặc import một định nghĩa BPMN để xem sơ đồ." />
+      <EmptyState text={t("workflow.bpmn.viewer_empty")} />
     )
 
   return (
@@ -545,6 +552,7 @@ function BpmnModelerWorkspace({
   const [sidebarWidth, setSidebarWidth] = useState(300)
   const [dockHeight, setDockHeight] = useState(200)
   const [saving, setSaving] = useState(false)
+  const { t } = useI18n()
   useEffect(() => {
     if (!containerRef.current || !xml) return
     let disposed = false
@@ -601,7 +609,9 @@ function BpmnModelerWorkspace({
         })
         .catch((err: unknown) => {
           const message =
-            err instanceof Error ? err.message : "Không đọc được BPMN XML."
+            err instanceof Error
+              ? err.message
+              : t("workflow.bpmn.xml_parse_failed")
           setError(message)
         })
     })
@@ -633,7 +643,7 @@ function BpmnModelerWorkspace({
     const selection = modeler.get("selection") as BpmnSelection
     const element = findBpmnElement(registry.getAll(), ref)
     if (!element) {
-      setError(`Không tìm thấy BPMN element "${ref}" trên sơ đồ.`)
+      setError(t("workflow.bpmn.element_not_found_on_diagram", { ref }))
       return
     }
     selection.select(registry.get(element.id) ?? element)
@@ -748,10 +758,10 @@ function BpmnModelerWorkspace({
         status: item.status,
         file,
       })
-      notify.success("Đã lưu BPMN")
+      notify.success(t("workflow.bpmn.save_success"))
     } catch (error) {
       notify.error(
-        "Lưu BPMN thất bại",
+        t("workflow.bpmn.save_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -867,7 +877,7 @@ function BpmnModelerWorkspace({
   if (!xml)
     return (
       <div className="p-4">
-        <EmptyState text="Chưa có XML để mở modeler." />
+        <EmptyState text={t("workflow.bpmn.modeler_empty")} />
       </div>
     )
 
@@ -976,8 +986,8 @@ function BpmnModelerWorkspace({
           <Button
             type="button"
             size="icon"
-            title="Lưu BPMN"
-            aria-label="Lưu BPMN"
+            title={t("workflow.bpmn.save_title")}
+            aria-label={t("workflow.bpmn.save_title")}
             onClick={saveXml}
             disabled={saving}
           >
@@ -1053,11 +1063,13 @@ function BpmnInspector({
     ? bpmnJobTypes.has(selectedElement.type)
     : false
 
+  const { t } = useI18n()
+
   return (
     <aside className="h-full min-h-0 overflow-y-auto border-r bg-background p-3 pr-4 text-foreground">
       <div className="space-y-3">
         <div>
-          <p className="text-xs font-medium text-foreground/70">Quy trình</p>
+          <p className="text-xs font-medium text-foreground/70">{t("workflow.bpmn.inspector_process")}</p>
           <h3 className="text-sm font-semibold text-foreground">
             {item.processCode}
           </h3>
@@ -1089,7 +1101,7 @@ function BpmnInspector({
                     onChange={(id) => onUpdateProperties({ id })}
                   />
                   <TextInput
-                    label="Tên hiển thị"
+                    label={t("workflow.bpmn.field_display_name")}
                     value={businessObject?.name ?? ""}
                     onChange={(name) => onUpdateProperties({ name })}
                   />
@@ -1099,7 +1111,7 @@ function BpmnInspector({
                     onChange={onUpdateDocumentation}
                   />
                   <Field
-                    label="Loại"
+                    label={t("workflow.bpmn.field_type")}
                     value={businessObject?.$type ?? selectedElement.type}
                   />
                 </AccordionContent>
@@ -1157,7 +1169,7 @@ function BpmnInspector({
                       />
                     </>
                   ) : (
-                    <EmptyState text="Chọn task để cấu hình job/form." />
+                    <EmptyState text={t("workflow.bpmn.task_empty")} />
                   )}
                 </AccordionContent>
               </AccordionItem>
@@ -1173,7 +1185,7 @@ function BpmnInspector({
                       onChange={onUpdateCondition}
                     />
                   ) : (
-                    <EmptyState text="Chọn sequence flow để cấu hình điều kiện rẽ nhánh." />
+                    <EmptyState text={t("workflow.bpmn.routing_empty")} />
                   )}
                   <Field
                     label="Incoming"
@@ -1227,7 +1239,7 @@ function BpmnInspector({
             </Accordion>
           ) : (
             <p className="text-sm text-foreground/70">
-              Chọn một task/event/gateway trên canvas để xem và sửa thông tin.
+              {t("workflow.bpmn.inspector_empty")}
             </p>
           )}
         </div>
@@ -1250,6 +1262,7 @@ function BpmnOperationsDock({
   onSelectElement: (ref?: string) => void
 }) {
   const [activeTab, setActiveTab] = useState("instances")
+  const { t } = useI18n()
   const incidents = cases.filter((item) =>
     ["FAILED", "SUSPENDED", "INCIDENT"].includes(item.status)
   )
@@ -1290,7 +1303,7 @@ function BpmnOperationsDock({
           style={{ height: height - 56 }}
         >
           <OperationsCasesTable
-            emptyText="Chưa có process instance cho định nghĩa này."
+            emptyText={t("workflow.bpmn.empty_instances_for_definition")}
             items={cases}
             onSelectElement={onSelectElement}
           />
@@ -1301,7 +1314,7 @@ function BpmnOperationsDock({
           style={{ height: height - 56 }}
         >
           <OperationsCasesTable
-            emptyText="Chưa có incident."
+            emptyText={t("workflow.bpmn.empty_incidents")}
             items={incidents}
             onSelectElement={onSelectElement}
           />
@@ -1312,7 +1325,7 @@ function BpmnOperationsDock({
           style={{ height: height - 56 }}
         >
           <OperationsElementsTable
-            emptyText="Không có call activity trong BPMN này."
+            emptyText={t("workflow.bpmn.empty_call_activities")}
             items={calledInstances}
             onSelectElement={onSelectElement}
           />
@@ -1323,7 +1336,7 @@ function BpmnOperationsDock({
           style={{ height: height - 56 }}
         >
           <OperationsElementsTable
-            emptyText="Không có job/task definition trong BPMN này."
+            emptyText={t("workflow.bpmn.empty_job_definitions")}
             items={jobDefinitions}
             onSelectElement={onSelectElement}
           />
@@ -1407,12 +1420,13 @@ function SelectInput({
   options: SelectOption[]
   onChange: (value: string) => void
 }) {
+  const { t } = useI18n()
   return (
     <label className="grid gap-1 text-sm">
       <span className="text-xs font-medium text-foreground/80">{label}</span>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue placeholder="Chọn giá trị" />
+          <SelectValue placeholder={t("workflow.bpmn.select_value_placeholder")} />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
@@ -1547,7 +1561,8 @@ function EmptyState({ text }: { text: string }) {
 }
 
 function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
-  if (!info) return <EmptyState text="Chưa nhận diện được nội dung BPMN." />
+  const { t } = useI18n()
+  if (!info) return <EmptyState text={t("workflow.bpmn.file_not_recognized")} />
 
   const hasWarnings =
     info.missingJobTypes.length > 0 || info.legacyConditions.length > 0
@@ -1565,7 +1580,7 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
           </p>
         </div>
         <Badge variant={hasWarnings ? "outline" : "secondary"}>
-          {hasWarnings ? "Cần sửa" : "Sẵn sàng"}
+          {hasWarnings ? t("workflow.bpmn.file_needs_fix") : t("workflow.bpmn.file_ready")}
         </Badge>
       </div>
       <div className="grid grid-cols-3 gap-1.5 text-sm">
@@ -1582,7 +1597,9 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
         </Badge>
         {info.missingJobTypes.length ? (
           <Badge variant="outline">
-            {info.missingJobTypes.length} task thiếu job type
+            {t("workflow.bpmn.missing_job_types", {
+              count: info.missingJobTypes.length,
+            })}
           </Badge>
         ) : null}
         {info.legacyConditions.length ? (

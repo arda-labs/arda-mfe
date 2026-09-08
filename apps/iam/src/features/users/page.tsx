@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { downloadFile } from "@workspace/api"
 import { useAppQueryClient } from "@workspace/query/provider"
 import { translateApiError, useI18n } from "@workspace/i18n"
@@ -89,24 +89,24 @@ export function UsersPage() {
     }
   }
 
-  const handleSetStatus = async (
-    user: User,
-    nextStatus: "ACTIVE" | "DISABLED"
-  ) => {
-    try {
-      await usersApi.updateUser(user.id, user.tenantId, {
-        status: nextStatus,
-      })
-      notify.success(
-        nextStatus === "ACTIVE"
-          ? t("admin.users.enable_success")
-          : t("admin.users.disable_success")
-      )
-      invalidateList()
-    } catch (err) {
-      notify.error(t("admin.users.update_failed"), translateApiError(err))
-    }
-  }
+  const handleSetStatus = useCallback(
+    async (user: User, nextStatus: "ACTIVE" | "DISABLED") => {
+      try {
+        await usersApi.updateUser(user.id, user.tenantId, {
+          status: nextStatus,
+        })
+        notify.success(
+          nextStatus === "ACTIVE"
+            ? t("admin.users.enable_success")
+            : t("admin.users.disable_success")
+        )
+        invalidateList()
+      } catch (err) {
+        notify.error(t("admin.users.update_failed"), translateApiError(err))
+      }
+    },
+    [t, invalidateList]
+  )
 
   const handleDelete = async (user: User) => {
     setDeleting(true)
@@ -182,18 +182,24 @@ export function UsersPage() {
     }
   }
 
-  const rowHandlers: UserRowActionHandlers = {
-    onEdit: setEditTarget,
-    onManageRoles: setRoleTarget,
-    onManageSessions: setSessionTarget,
-    onResetPassword: setResetTarget,
-    onResetMfa: setMfaResetTarget,
-    onProvisionIdentity: setProvisionTarget,
-    onToggleStatus: (user, nextStatus) => {
-      void handleSetStatus(user, nextStatus)
-    },
-    onDelete: setDeleteTarget,
-  }
+  // Stable identity: `columns` (useUserColumns) memoizes on this object, and
+  // use-data-table derives filter state from `columns` — a fresh object per
+  // render would re-run the URL-filter sync effect forever (React error #185).
+  const rowHandlers: UserRowActionHandlers = useMemo(
+    () => ({
+      onEdit: setEditTarget,
+      onManageRoles: setRoleTarget,
+      onManageSessions: setSessionTarget,
+      onResetPassword: setResetTarget,
+      onResetMfa: setMfaResetTarget,
+      onProvisionIdentity: setProvisionTarget,
+      onToggleStatus: (user, nextStatus) => {
+        void handleSetStatus(user, nextStatus)
+      },
+      onDelete: setDeleteTarget,
+    }),
+    [handleSetStatus]
+  )
 
   const columns = useUserColumns(rowHandlers)
 

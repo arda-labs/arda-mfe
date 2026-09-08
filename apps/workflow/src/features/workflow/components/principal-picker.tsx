@@ -20,6 +20,7 @@ import {
 } from "@workspace/ui/components/table"
 import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback"
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import {
   listIamGroups,
   listIamUsers,
@@ -53,6 +54,7 @@ export function PrincipalPicker({
   value,
   onChange,
 }: PrincipalPickerProps) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
@@ -145,7 +147,9 @@ export function PrincipalPicker({
   const buttonText = useMemo(() => {
     if (displayLabel) return displayLabel
     if (value) return value
-    return principalType === "USER" ? "Chọn người dùng" : "Chọn nhóm"
+    return principalType === "USER"
+      ? t("workflow.principal.select_user")
+      : t("workflow.principal.select_group")
   }, [displayLabel, principalType, value])
 
   const selectUser = (user: IamPrincipalUser) => {
@@ -177,11 +181,12 @@ export function PrincipalPicker({
         <DialogContent className="z-[260] flex max-h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
           <DialogHeader className="border-b px-6 py-4">
             <DialogTitle>
-              {principalType === "USER" ? "Chọn người dùng" : "Chọn nhóm"}
+              {principalType === "USER" ? t("workflow.principal.select_user") : t("workflow.principal.select_group")}
             </DialogTitle>
             <DialogDescription>
-              Chọn một {principalType === "USER" ? "user" : "group"} từ IAM để
-              gán membership.
+              {principalType === "USER"
+                ? t("workflow.principal.pick_user_desc")
+                : t("workflow.principal.pick_group_desc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -197,8 +202,8 @@ export function PrincipalPicker({
                 }}
                 placeholder={
                   principalType === "USER"
-                    ? "Tìm theo tên, username, email..."
-                    : "Tìm theo mã hoặc tên nhóm..."
+                    ? t("workflow.principal.search_user")
+                    : t("workflow.principal.search_group")
                 }
                 className="pl-9"
               />
@@ -209,12 +214,12 @@ export function PrincipalPicker({
             {loading ? (
               <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
                 <Spinner className="size-4" />
-                Đang tải...
+                {t("workflow.principal.loading")}
               </div>
             ) : principalType === "USER" ? (
               users.length === 0 ? (
                 <div className="py-10 text-sm text-muted-foreground">
-                  Không có người dùng phù hợp.
+                  {t("workflow.principal.empty_users")}
                 </div>
               ) : (
                 <Table>
@@ -222,9 +227,9 @@ export function PrincipalPicker({
                     <TableRow>
                       <TableHead className="w-10" />
                       <TableHead>Username</TableHead>
-                      <TableHead>Tên</TableHead>
+                      <TableHead>{t("workflow.principal.col_name")}</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Trạng thái</TableHead>
+                      <TableHead>{t("workflow.principal.col_status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -257,16 +262,16 @@ export function PrincipalPicker({
               )
             ) : groups.length === 0 ? (
               <div className="py-10 text-sm text-muted-foreground">
-                Không có nhóm phù hợp.
+                {t("workflow.principal.empty_groups")}
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10" />
-                    <TableHead>Mã</TableHead>
-                    <TableHead>Tên nhóm</TableHead>
-                    <TableHead>Trạng thái</TableHead>
+                    <TableHead>{t("workflow.principal.col_code")}</TableHead>
+                    <TableHead>{t("workflow.principal.col_group_name")}</TableHead>
+                    <TableHead>{t("workflow.principal.col_status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -298,7 +303,7 @@ export function PrincipalPicker({
 
           <div className="flex items-center justify-between border-t px-6 py-3 text-sm">
             <span className="text-muted-foreground">
-              Trang {page}/{totalPages}
+              {t("workflow.principal.page", { page, total: totalPages })}
             </span>
             <div className="flex gap-2">
               <Button
@@ -308,7 +313,7 @@ export function PrincipalPicker({
                 disabled={page <= 1 || fetching}
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               >
-                Trước
+                {t("workflow.principal.prev")}
               </Button>
               <Button
                 type="button"
@@ -319,7 +324,7 @@ export function PrincipalPicker({
                   setPage((prev) => Math.min(totalPages, prev + 1))
                 }
               >
-                Sau
+                {t("workflow.principal.next")}
               </Button>
               <Button
                 type="button"
@@ -327,7 +332,7 @@ export function PrincipalPicker({
                 size="sm"
                 onClick={() => setOpen(false)}
               >
-                Đóng
+                {t("workflow.principal.close")}
               </Button>
             </div>
           </div>

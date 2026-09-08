@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { notify } from "@workspace/ui/feedback/notify"
-import { translateApiError } from "@workspace/i18n"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { rolesApi } from "../api"
 import { permissionsApi } from "../../permissions/api"
 import type { Permission } from "../../permissions/types"
@@ -24,6 +24,7 @@ interface RolePermissionsDialogProps {
  * the page only holds which role is open.
  */
 export function RolePermissionsDialog({ role, onClose }: RolePermissionsDialogProps) {
+  const { t } = useI18n()
   const [catalogue, setCatalogue] = useState<Permission[]>([])
   const [assigned, setAssigned] = useState<Permission[]>([])
   const [loading, setLoading] = useState(false)
@@ -48,7 +49,10 @@ export function RolePermissionsDialog({ role, onClose }: RolePermissionsDialogPr
       })
       .catch((err) => {
         if (cancelled) return
-        notify.error("Không tải được danh sách quyền", translateApiError(err))
+        notify.error(
+          t("iam.roles.permissions.load_failed"),
+          translateApiError(err)
+        )
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -79,9 +83,12 @@ export function RolePermissionsDialog({ role, onClose }: RolePermissionsDialogPr
         )
         setAssigned((previous) => [...previous, permission])
       }
-      notify.success("Đã cập nhật quyền")
+      notify.success(t("iam.roles.permissions.update_success"))
     } catch (err) {
-      notify.error("Không cập nhật được quyền", translateApiError(err))
+      notify.error(
+        t("iam.roles.permissions.update_failed"),
+        translateApiError(err)
+      )
     } finally {
       setBusy(null)
     }
@@ -101,17 +108,19 @@ export function RolePermissionsDialog({ role, onClose }: RolePermissionsDialogPr
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            Phân quyền cho {role?.name || role?.code || ""}
+            {t("iam.roles.permissions.title", {
+              role: role?.name || role?.code || "",
+            })}
           </DialogTitle>
         </DialogHeader>
         <div className="max-h-[65vh] space-y-4 overflow-auto pr-1">
           {loading ? (
             <div className="text-sm text-muted-foreground">
-              Đang tải quyền...
+              {t("iam.roles.permissions.loading")}
             </div>
           ) : catalogue.length === 0 ? (
             <div className="text-sm text-muted-foreground">
-              Chưa có quyền để gán.
+              {t("iam.roles.permissions.empty")}
             </div>
           ) : (
             byModule.map(([module, items]) => (

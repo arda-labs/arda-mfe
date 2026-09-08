@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -58,6 +59,7 @@ import {
 import { PRESETS } from "../presets"
 
 export function ModelProfilesTab() {
+  const { t } = useI18n()
   const [providerType, setProviderType] = React.useState<string>("openai")
   const [baseUrl, setBaseUrl] = React.useState<string>("https://api.openai.com/v1")
   const [apiKey, setApiKey] = React.useState<string>("")
@@ -101,7 +103,7 @@ export function ModelProfilesTab() {
       loadProfilesList(),
     ])
       .catch((err) => {
-        notify.error("Không thể tải cấu hình AI", err instanceof Error ? err.message : String(err))
+        notify.error(t("ai.settings.profiles.toast.load_failed"), err instanceof Error ? err.message : String(err))
       })
       .finally(() => setLoading(false))
   }, [loadProfilesList])
@@ -128,12 +130,12 @@ export function ModelProfilesTab() {
       })
       setTestResult(res)
       if (res.success) {
-        notify.success("Kiểm tra kết nối thành công!")
+        notify.success(t("ai.settings.profiles.toast.test_success"))
       } else {
-        notify.error("Kết nối thất bại: " + (res.error || "Unknown error"))
+        notify.error(t("ai.settings.profiles.toast.test_failed", { error: res.error || "Unknown error" }))
       }
     } catch (err) {
-      notify.error("Lỗi khi test kết nối", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.profiles.toast.test_error"), err instanceof Error ? err.message : String(err))
     } finally {
       setTesting(false)
     }
@@ -154,10 +156,10 @@ export function ModelProfilesTab() {
         setHasExistingKey(true)
         setApiKey("")
       }
-      notify.success("Cấu hình AI đã được lưu thành công!")
+      notify.success(t("ai.settings.profiles.toast.save_success"))
       loadProfilesList()
     } catch (err) {
-      notify.error("Lưu cấu hình thất bại", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.profiles.toast.save_failed"), err instanceof Error ? err.message : String(err))
     } finally {
       setSaving(false)
     }
@@ -174,19 +176,19 @@ export function ModelProfilesTab() {
         modelId,
         temperature,
       })
-      notify.success(`Đã lưu profile "${profileName}" thành công!`)
+      notify.success(t("ai.settings.profiles.toast.profile_saved", { name: profileName }))
       setSaveProfileOpen(false)
       setProfileName("")
       loadProfilesList()
     } catch (err) {
-      notify.error("Không thể lưu profile", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.profiles.toast.profile_save_failed"), err instanceof Error ? err.message : String(err))
     }
   }
 
   const handleActivateProfile = async (id: string, name: string) => {
     try {
       await activateProfile(id)
-      notify.success(`Đã kích hoạt profile "${name}"!`)
+      notify.success(t("ai.settings.profiles.toast.profile_activated", { name }))
       // Refresh current active settings
       const updated = await fetchAISettings()
       setProviderType(updated.providerType || "openai")
@@ -196,17 +198,17 @@ export function ModelProfilesTab() {
       setHasExistingKey(Boolean(updated.hasApiKey))
       loadProfilesList()
     } catch (err) {
-      notify.error("Kích hoạt profile thất bại", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.profiles.toast.profile_activate_failed"), err instanceof Error ? err.message : String(err))
     }
   }
 
   const handleDeleteProfile = async (id: string, name: string) => {
     try {
       await deleteProfile(id)
-      notify.success(`Đã xóa profile "${name}"`)
+      notify.success(t("ai.settings.profiles.toast.profile_deleted", { name }))
       loadProfilesList()
     } catch (err) {
-      notify.error("Xóa profile thất bại", err instanceof Error ? err.message : String(err))
+      notify.error(t("ai.settings.profiles.toast.profile_delete_failed"), err instanceof Error ? err.message : String(err))
     }
   }
 
@@ -226,9 +228,9 @@ export function ModelProfilesTab() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base font-semibold">Cấu hình Mô hình Đang Sử Dụng (Active Model)</CardTitle>
+                  <CardTitle className="text-base font-semibold">{t("ai.settings.profiles.active_title")}</CardTitle>
                   <CardDescription className="text-xs">
-                    Mô hình và thông số đang trực tiếp xử lý các yêu cầu AI trong hệ điều hành Arda.
+                    {t("ai.settings.profiles.active_description")}
                   </CardDescription>
                 </div>
                 <Button
@@ -239,7 +241,7 @@ export function ModelProfilesTab() {
                   onClick={() => setSaveProfileOpen(true)}
                 >
                   <BookmarkPlus className="h-3.5 w-3.5 text-primary" />
-                  Lưu thành Profile mới
+                  {t("ai.settings.profiles.btn.save_as_profile")}
                 </Button>
               </div>
             </CardHeader>
@@ -247,10 +249,10 @@ export function ModelProfilesTab() {
               <CardContent className="space-y-4 text-xs">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Nhà cung cấp (Provider)</Label>
+                    <Label className="text-xs">{t("ai.settings.profiles.field.provider")}</Label>
                     <Select value={providerType} onValueChange={setProviderType}>
                       <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Chọn nhà cung cấp" />
+                        <SelectValue placeholder={t("ai.settings.profiles.placeholder.provider")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="openai">OpenAI (Official)</SelectItem>
@@ -270,7 +272,7 @@ export function ModelProfilesTab() {
                         className="h-8 pl-8 font-mono text-xs"
                         value={modelId}
                         onChange={(e) => setModelId(e.target.value)}
-                        placeholder="vd: gpt-4o, gemini-2.5-flash"
+                        placeholder={t("ai.settings.profiles.placeholder.model_id")}
                         required
                       />
                     </div>
@@ -296,7 +298,7 @@ export function ModelProfilesTab() {
                     <Label className="text-xs">API Key</Label>
                     {hasExistingKey && !apiKey && (
                       <Badge variant="outline" className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-[10px] text-emerald-600">
-                        <Lock className="h-3 w-3" /> Đã lưu khóa bảo mật
+                        <Lock className="h-3 w-3" /> {t("ai.settings.profiles.badge.key_saved")}
                       </Badge>
                     )}
                   </div>
@@ -307,7 +309,7 @@ export function ModelProfilesTab() {
                       className="h-8 pl-8 pr-8 font-mono text-xs"
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      placeholder={hasExistingKey ? "Nhập nếu muốn đổi khóa mới..." : "sk-..."}
+                      placeholder={hasExistingKey ? t("ai.settings.profiles.placeholder.api_key_existing") : "sk-..."}
                     />
                     <button
                       type="button"
@@ -321,7 +323,7 @@ export function ModelProfilesTab() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Độ sáng tạo (Temperature)</Label>
+                    <Label className="text-xs">{t("ai.settings.profiles.field.temperature")}</Label>
                     <span className="font-mono text-xs font-semibold text-primary">{temperature}</span>
                   </div>
                   <input
@@ -341,10 +343,10 @@ export function ModelProfilesTab() {
                       {testResult.success ? (
                         <>
                           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                          <span className="text-emerald-700">Kết nối thành công! (Độ trễ: {testResult.latencyMs ?? 0}ms)</span>
+                          <span className="text-emerald-700">{t("ai.settings.profiles.test.success_detail", { latency: testResult.latencyMs ?? 0 })}</span>
                         </>
                       ) : (
-                        <span className="text-destructive font-semibold">Lỗi: {testResult.error || testResult.message}</span>
+                        <span className="text-destructive font-semibold">{t("ai.settings.profiles.test.error_label", { error: testResult.error ?? testResult.message ?? "" })}</span>
                       )}
                     </div>
                   </div>
@@ -354,10 +356,10 @@ export function ModelProfilesTab() {
               <CardFooter className="flex items-center justify-between border-t pt-4">
                 <Button type="button" variant="outline" size="sm" onClick={handleTest} disabled={testing}>
                   <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${testing ? "animate-spin" : ""}`} />
-                  Kiểm tra kết nối
+                  {t("ai.settings.profiles.btn.test_connection")}
                 </Button>
                 <Button type="submit" size="sm" disabled={saving}>
-                  {saving ? "Đang lưu..." : "Lưu thay đổi"}
+                  {saving ? t("common.action.saving") : t("ai.settings.profiles.btn.save_changes")}
                 </Button>
               </CardFooter>
             </form>
@@ -368,7 +370,7 @@ export function ModelProfilesTab() {
           <Card className="shadow-xs">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <Zap className="h-3.5 w-3.5 text-primary" /> Cấu hình mẫu (Presets)
+                <Zap className="h-3.5 w-3.5 text-primary" /> {t("ai.settings.profiles.presets.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-0">
@@ -382,7 +384,7 @@ export function ModelProfilesTab() {
                   <span className="font-semibold text-xs text-foreground">OpenAI GPT-4o</span>
                   <Badge variant="secondary" className="text-[10px]">Cloud Standard</Badge>
                 </div>
-                <span className="mt-1 text-[11px] text-muted-foreground">Mô hình đa nhiệm chuẩn mực của OpenAI</span>
+                <span className="mt-1 text-[11px] text-muted-foreground">{t("ai.settings.profiles.presets.openai_desc")}</span>
               </Button>
 
               <Button
@@ -395,7 +397,7 @@ export function ModelProfilesTab() {
                   <span className="font-semibold text-xs text-foreground">Ollama Local (Cluster LAN)</span>
                   <Badge variant="outline" className="text-[10px]">On-Premise</Badge>
                 </div>
-                <span className="mt-1 text-[11px] text-muted-foreground">Kết nối tới endpoint Ollama do quản trị viên cấu hình</span>
+                <span className="mt-1 text-[11px] text-muted-foreground">{t("ai.settings.profiles.presets.ollama_desc")}</span>
               </Button>
 
               <Button
@@ -408,7 +410,7 @@ export function ModelProfilesTab() {
                   <span className="font-semibold text-xs text-foreground">OpenRouter Aggregator</span>
                   <Badge variant="secondary" className="text-[10px]">Multi-Model</Badge>
                 </div>
-                <span className="mt-1 text-[11px] text-muted-foreground">Cổng tổng hợp Claude 3.5, Gemini, Llama 3 qua 1 key duy nhất</span>
+                <span className="mt-1 text-[11px] text-muted-foreground">{t("ai.settings.profiles.presets.openrouter_desc")}</span>
               </Button>
             </CardContent>
           </Card>
@@ -420,9 +422,9 @@ export function ModelProfilesTab() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-semibold">Danh sách Cấu hình đã lưu (Saved Profiles)</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t("ai.settings.profiles.saved.title")}</CardTitle>
               <CardDescription className="text-xs">
-                Chuyển đổi tức thời giữa các nhà cung cấp LLM mà không cần nhập lại thông tin hay API Key
+                {t("ai.settings.profiles.saved.description")}
               </CardDescription>
             </div>
             <Button
@@ -433,14 +435,14 @@ export function ModelProfilesTab() {
               disabled={profilesLoading}
             >
               <RefreshCw className={`h-3.5 w-3.5 ${profilesLoading ? "animate-spin" : ""}`} />
-              Làm mới danh sách
+              {t("ai.settings.profiles.btn.refresh_list")}
             </Button>
           </div>
         </CardHeader>
         <CardContent className="pt-0 text-xs">
           {profiles.length === 0 ? (
             <div className="rounded-lg border border-dashed py-8 text-center text-muted-foreground">
-              Chưa có profile nào được lưu. Bạn có thể lưu cấu hình hiện tại thành profile để tái sử dụng sau.
+              {t("ai.settings.profiles.saved.empty")}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -458,7 +460,7 @@ export function ModelProfilesTab() {
                       <span className="font-semibold text-foreground text-xs">{p.name}</span>
                       {p.isActive ? (
                         <Badge variant="default" className="gap-1 text-[10px] bg-primary">
-                          <Check className="h-3 w-3" /> Đang dùng
+                          <Check className="h-3 w-3" /> {t("ai.settings.profiles.badge.in_use")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="text-[10px] text-muted-foreground">
@@ -491,14 +493,14 @@ export function ModelProfilesTab() {
                           onClick={() => handleActivateProfile(p.id!, p.name)}
                         >
                           <Power className="h-3 w-3" />
-                          Kích hoạt
+                          {t("ai.settings.profiles.btn.activate")}
                         </Button>
                       </>
                     )}
                     {p.isActive && (
                       <span className="text-[11px] font-medium text-primary flex items-center gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                        Đang làm Model chính
+                        {t("ai.settings.profiles.saved.active_model")}
                       </span>
                     )}
                   </div>
@@ -515,18 +517,18 @@ export function ModelProfilesTab() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookmarkPlus className="h-4 w-4 text-primary" />
-              Lưu Cấu hình thành Profile mới
+              {t("ai.settings.profiles.dialog.save_title")}
             </DialogTitle>
             <DialogDescription>
-              Lưu toàn bộ thông tin nhà cung cấp ({providerType}), Model ({modelId}) và API Key hiện tại để chuyển đổi nhanh khi cần.
+              {t("ai.settings.profiles.dialog.save_description", { provider: providerType, model: modelId })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2 text-xs">
             <div>
-              <Label className="font-medium">Tên Profile</Label>
+              <Label className="font-medium">{t("ai.settings.profiles.field.profile_name")}</Label>
               <Input
                 className="mt-1 h-8 text-xs"
-                placeholder="VD: Production Gemini 2.5 Flash, Local Qwen K3s"
+                placeholder={t("ai.settings.profiles.placeholder.profile_name")}
                 value={profileName}
                 onChange={(e) => setProfileName(e.target.value)}
                 autoFocus
@@ -535,10 +537,10 @@ export function ModelProfilesTab() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setSaveProfileOpen(false)}>
-              Hủy
+              {t("common.action.cancel")}
             </Button>
             <Button onClick={handleSaveNewProfile} disabled={!profileName.trim()}>
-              Lưu Profile
+              {t("ai.settings.profiles.btn.save_profile")}
             </Button>
           </DialogFooter>
         </DialogContent>

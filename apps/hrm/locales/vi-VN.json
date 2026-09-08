@@ -12,7 +12,152 @@
     },
     "common": {
       "yes": "Có",
-      "no": "Không"
+      "no": "Không",
+      "add": "Thêm",
+      "add_row": "Thêm dòng",
+      "deleting": "Đang xóa...",
+      "delete_warning": "Thao tác này không thể hoàn tác."
+    },
+    "registrations": {
+      "title": "Đăng ký nhân sự",
+      "description": "Nhập hồ sơ nhân sự và trình duyệt theo quy trình BPM HRM_EMPLOYEE_REGISTRATION.",
+      "load_failed": "Không thể tải danh sách đơn vị hoặc chức vụ",
+      "create_success": "Đã tạo đăng ký nhân sự",
+      "update_success": "Đã lưu đăng ký nhân sự",
+      "create_failed": "Tạo đăng ký nhân sự thất bại",
+      "update_failed": "Lưu đăng ký nhân sự thất bại",
+      "submit_success": "Đã gửi đăng ký nhân sự",
+      "submit_failed": "Gửi đăng ký nhân sự thất bại",
+      "tab": {
+        "general": "Thông tin chung",
+        "family": "Gia đình",
+        "delegation": "Ủy quyền",
+        "attachments": "Hồ sơ tài liệu"
+      },
+      "field": {
+        "employee_code": "Mã nhân viên",
+        "employee_type": "Loại nhân viên (*)",
+        "org_unit": "Mã đơn vị (*)",
+        "full_name": "Tên nhân viên (*)",
+        "date_of_birth": "Ngày sinh",
+        "gender": "Giới tính",
+        "mobile": "Số di động",
+        "email": "Email",
+        "marital_status": "Tình trạng hôn nhân",
+        "identity_no": "Số định danh (*)",
+        "identity_issue_place": "Nơi cấp",
+        "identity_issue_date": "Ngày cấp",
+        "identity_expiry_date": "Ngày hết hiệu lực",
+        "start_date": "Ngày vào làm việc",
+        "official_date": "Ngày chính thức",
+        "address": "Địa chỉ (*)",
+        "permanent_address": "Địa chỉ thường trú (*)"
+      },
+      "select": {
+        "org_unit": "Chọn đơn vị",
+        "gender": "Chọn giới tính",
+        "marital": "Chọn tình trạng",
+        "department": "Chọn phòng ban",
+        "position": "Chọn chức vụ"
+      },
+      "option": {
+        "employee": "Nhân viên",
+        "collaborator": "Cộng tác viên",
+        "intern": "Thực tập sinh",
+        "male": "Nam",
+        "female": "Nữ",
+        "other": "Khác",
+        "single": "Độc thân",
+        "married": "Đã kết hôn"
+      },
+      "validation": {
+        "employee_type_required": "Loại nhân viên là bắt buộc",
+        "org_unit_required": "Mã đơn vị là bắt buộc",
+        "full_name_required": "Tên nhân viên là bắt buộc",
+        "email_invalid": "Email không hợp lệ",
+        "address_required": "Địa chỉ là bắt buộc",
+        "permanent_address_required": "Địa chỉ thường trú là bắt buộc",
+        "identity_no_required": "Số định danh là bắt buộc"
+      },
+      "avatar": {
+        "alt": "Ảnh đại diện nhân sự",
+        "placeholder": "Ảnh đại diện",
+        "upload": "Upload",
+        "uploading": "Đang tải",
+        "clear": "Xóa ảnh",
+        "save_first": "Lưu nháp hồ sơ trước khi upload ảnh đại diện",
+        "invalid_file": "File ảnh không hợp lệ",
+        "too_large": "Ảnh đại diện tối đa 5MB",
+        "upload_success": "Đã tải ảnh đại diện lên media-service",
+        "upload_failed": "Tải ảnh đại diện thất bại"
+      },
+      "actions": {
+        "new_profile": "Hồ sơ mới",
+        "save_draft": "Lưu nháp",
+        "submit": "Trình duyệt"
+      },
+      "meta": {
+        "registration_code": "Mã hồ sơ:",
+        "case_bpm": "Case BPM:",
+        "workflow_case": "Workflow case:"
+      },
+      "status": {
+        "draft": "Nháp",
+        "submitted": "Đã trình",
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối"
+      },
+      "table": {
+        "assignments": {
+          "title": "Thông tin chức vụ",
+          "work_unit": "Đơn vị làm việc",
+          "department": "Phòng ban",
+          "position": "Chức vụ",
+          "effective_date": "Ngày hiệu lực",
+          "expiry_date": "Ngày hết hiệu lực",
+          "empty": "Chưa có dòng chức vụ."
+        },
+        "educations": {
+          "title": "Thông tin trình độ học vấn",
+          "level": "Cấp đào tạo",
+          "training_type": "Loại hình đào tạo",
+          "school": "Trường đào tạo",
+          "major": "Chuyên ngành",
+          "from_year": "Từ năm",
+          "to_year": "Đến năm",
+          "empty": "Chưa có dòng trình độ học vấn."
+        },
+        "family": {
+          "title": "Thông tin gia đình & người phụ thuộc",
+          "relationship": "Quan hệ",
+          "full_name": "Họ tên",
+          "date_of_birth": "Ngày sinh",
+          "phone": "Số điện thoại",
+          "address": "Địa chỉ",
+          "dependent": "Người phụ thuộc",
+          "empty": "Chưa có thông tin gia đình."
+        },
+        "delegations": {
+          "title": "Thông tin nhân sự nhận ủy quyền",
+          "employee_code": "Mã nhân viên nhận ủy quyền",
+          "employee_name": "Tên nhân viên",
+          "department": "Phòng ban",
+          "position": "Chức vụ",
+          "decision_no": "Quyết định số",
+          "content": "Nội dung",
+          "effective_date": "Ngày hiệu lực",
+          "expiry_date": "Ngày hết hiệu lực",
+          "empty": "Chưa có thông tin ủy quyền."
+        },
+        "attachments": {
+          "title": "Hồ sơ tài liệu đính kèm",
+          "document_type": "Loại tài liệu",
+          "document_name": "Tên tài liệu",
+          "file_name": "Tệp/Media ID",
+          "note": "Ghi chú",
+          "empty": "Chưa có tài liệu đính kèm."
+        }
+      }
     },
     "employees": {
       "title": "Nhân sự",

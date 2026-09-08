@@ -37,6 +37,14 @@
       "name_required": "Name is required",
       "name_too_long": "Name is too long",
       "tenant_required": "Tenant is required"
+    },
+    "permissions": {
+      "title": "Permissions for {role}",
+      "load_failed": "Failed to load permissions",
+      "update_success": "Permissions updated",
+      "update_failed": "Failed to update permissions",
+      "loading": "Loading permissions...",
+      "empty": "No permissions to assign yet."
     }
   },
   "permissions": {
@@ -114,5 +122,77 @@
     "system_user_protected": "System superadmin user is protected",
     "role_protected": "System superadmin role is protected",
     "permission_protected": "System superadmin permission is protected"
+  },
+  "system_settings": {
+    "title": "System settings",
+    "description": "Configure login display, passwords, sessions and security limits.",
+    "badge": {
+      "global": "Global"
+    },
+    "load_failed": "Failed to load system settings",
+    "save_success": "System settings saved",
+    "save_failed": "Failed to save settings",
+    "actions": {
+      "save": "Save settings",
+      "saving": "Saving..."
+    },
+    "tab": {
+      "display": "Display",
+      "password": "Password",
+      "login": "Sign-in"
+    },
+    "display": {
+      "branding_title": "Branding and display",
+      "app_name": "App name",
+      "short_name": "Short name",
+      "organization": "Organization",
+      "support_email": "Support email",
+      "support_phone": "Support phone",
+      "help_url": "Help center URL",
+      "login_logo_url": "Login logo URL",
+      "dashboard_logo_url": "Dashboard logo URL",
+      "favicon_url": "Favicon URL",
+      "login_background_url": "Login background URL",
+      "login_title": "Login title",
+      "login_subtitle": "Login subtitle",
+      "login_background": "Enable login background image"
+    },
+    "password": {
+      "rules_title": "Password rules",
+      "min_length": "Minimum length",
+      "block_pwned": "Block breached passwords",
+      "block_similarity": "Block passwords similar to email/username",
+      "require_uppercase": "Require uppercase letter",
+      "require_number": "Require a digit",
+      "require_symbol": "Require a special character",
+      "max_age_days": "Password rotation (days)",
+      "summary_title": "Summary"
+    },
+    "summary": {
+      "length": "Length",
+      "characters": "characters",
+      "rules_enabled": "Rules enabled",
+      "rotation": "Rotation",
+      "days": "days",
+      "off": "Off"
+    },
+    "login_security": {
+      "title": "Sign-in and session security",
+      "single_device": "Allow only one signed-in device",
+      "max_failed_attempts": "Max failed sign-in attempts",
+      "lockout_minutes": "Sign-in lockout duration (minutes)",
+      "attempt_window": "Failed-attempt counting window (minutes)",
+      "session_hours": "Session lifespan (hours)",
+      "recent_auth": "Recent-auth for sensitive actions (minutes)"
+    },
+    "preview": {
+      "url_hint": "Image URLs must be internal paths or HTTPS."
+    },
+    "validation": {
+      "app_name_required": "App name must not be empty",
+      "support_email_invalid": "Invalid support email",
+      "help_url_invalid": "Invalid help center URL",
+      "url_not_allowed": "{field} must be an internal path or HTTPS"
+    }
   }
 }

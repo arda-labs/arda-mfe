@@ -43,7 +43,9 @@
       "chunker": "Chunker",
       "strategy": "Chiến lược",
       "chunk_size": "Kích thước chunk",
-      "chunk_overlap": "Chunk overlap"
+      "chunk_overlap": "Chunk overlap",
+      "upload_file": "Tải tệp lên",
+      "classification": "Phân loại"
     },
     "placeholder": {
       "title": "VD: Sổ tay chính sách nhân sự",
@@ -62,7 +64,8 @@
       "title_too_long": "Tiêu đề quá dài",
       "version_required": "Phiên bản là bắt buộc",
       "version_too_long": "Phiên bản quá dài",
-      "effective_range_invalid": "Hiệu lực đến phải sau hiệu lực từ"
+      "effective_range_invalid": "Hiệu lực đến phải sau hiệu lực từ",
+      "content_required_for_preview": "Cần nhập nội dung để xem trước chunk"
     },
     "source_type": {
       "docs": "Tài liệu",
@@ -149,13 +152,19 @@
       "btn": {
         "add": "Thêm kết nối mới",
         "create": "Tạo kết nối",
-        "cancel": "Hủy"
+        "cancel": "Hủy",
+        "delete_title": "Xóa connector"
       },
       "field": {
         "name": "Tên kết nối",
         "provider": "Hệ thống nguồn",
         "target_source": "Nguồn tri thức đích",
-        "schedule": "Tần suất đồng bộ"
+        "schedule": "Tần suất đồng bộ",
+        "target_source_prefix": "Kho lưu trữ đích:",
+        "infra_provider": "Nhà cung cấp hạ tầng:",
+        "data_volume": "Khối lượng dữ liệu:",
+        "docs_chunks_stat": "{docs} tài liệu • {chunks} chunks",
+        "last_sync_prefix": "Lần đồng bộ gần nhất:"
       },
       "last_sync": "Đồng bộ gần nhất",
       "sync_now": "Đồng bộ ngay",
@@ -166,11 +175,105 @@
       "dialog": {
         "title": "Thêm Data Connector mới",
         "description": "Kết nối kho lưu trữ ngoài để tự động chuyển hóa tài liệu thành vector tri thức."
+      },
+      "kpi": {
+        "pipelines": "Đường dẫn Kết nối (Pipelines)",
+        "active": "Hoạt động",
+        "pipelines_hint": "Đồng bộ tự động định kỳ",
+        "docs_ingested": "Tài liệu Đã nạp (Ingested)",
+        "docs_hint": "Tập tin được lập chỉ mục đầy đủ",
+        "chunks": "Vector Chunks Tạo ra",
+        "chunks_hint": "Chỉ mục HNSW pgvector",
+        "schedule": "Chu kỳ Đồng bộ",
+        "schedule_hint": "Tự động kích hoạt qua Webhook"
+      },
+      "schedule": {
+        "realtime": "Real-time (Webhook Trigger)",
+        "hourly": "Hàng giờ",
+        "every_6h": "Mỗi 6 tiếng",
+        "daily_2am": "Hàng ngày lúc 02:00 sáng"
+      },
+      "placeholder": {
+        "name": "VD: Google Drive Marketing SOPs",
+        "target_source": "VD: Sổ tay & Hướng dẫn Vận hành 2026"
+      },
+      "defaults": {
+        "gdrive_hr_name": "Google Drive - Sổ tay Nhân sự & Chính sách",
+        "gdrive_hr_target": "Quy chế & Chế độ đãi ngộ 2026",
+        "confluence_eng_name": "Confluence - Kiến trúc Kỹ thuật & SOP",
+        "s3_raw_name": "Garage S3 - Tài liệu PDF Hợp đồng & Pháp lý",
+        "s3_raw_target": "Kho Lưu trữ Hợp đồng Kinh doanh",
+        "sharepoint_sales_name": "SharePoint - Báo giá & Hồ sơ Năng lực"
       }
     },
     "strategies": {
       "title": "Chiến lược Phân mảnh & Cross-Encoder Reranker",
-      "description": "Tối ưu hóa độ bám ngữ cảnh và chất lượng câu trả lời với các kỹ thuật phân mảnh phân cấp và mô hình chấm lại điểm."
+      "description": "Tối ưu hóa độ bám ngữ cảnh và chất lượng câu trả lời với các kỹ thuật phân mảnh phân cấp và mô hình chấm lại điểm.",
+      "toast": {
+        "save_success": "Đã cập nhật cấu hình Chiến lược Phân mảnh & Reranker!",
+        "save_failed": "Không thể lưu cấu hình chiến lược"
+      },
+      "two_stage_status": "Đường ống Hai giai đoạn (Two-Stage Active)",
+      "badge": {
+        "recommended": "Khuyên dùng",
+        "in_llm_prompt": "Đưa vào Prompt LLM",
+        "not_reranked": "Chưa qua Rerank"
+      },
+      "card": {
+        "hierarchical": {
+          "title": "Parent-Child (Phân cấp)",
+          "description": "Lưu chunk nhỏ để so khớp vector chính xác, cung cấp văn bản cha cho LLM để bảo toàn ngữ cảnh."
+        },
+        "semantic": {
+          "description": "Tự động chia tách tài liệu khi độ tương đồng cosine giữa các câu liên tiếp giảm sút dưới ngưỡng."
+        },
+        "markdown_ast": {
+          "description": "Bảo toàn nguyên khối các bảng biểu số liệu (Data Tables) và cấu trúc tiêu đề theo mục H1, H2, H3."
+        },
+        "recursive": {
+          "description": "Phân đoạn cố định theo độ dài ký tự và khoảng chồng lấn (character window overlap)."
+        }
+      },
+      "params_title": "Cấu hình Tham số Phân đoạn ({strategy})",
+      "params_description": "Thiết lập giới hạn độ dài token và kiểm tra cấu trúc phân đoạn trực tiếp",
+      "parent_chunk_label": "Parent Chunk Size (Tokens ngữ cảnh gốc):",
+      "parent_chunk_hint": "Khối văn bản lớn chuyển vào prompt của mô hình để đảm bảo câu trả lời có tính bối cảnh đầy đủ.",
+      "child_chunk_label": "Child Chunk Size (Tokens vector embedding):",
+      "child_chunk_hint": "Kích thước ngắn tối ưu hóa khả năng so khớp vector trong không gian đa chiều (Cosine Distance).",
+      "semantic_threshold_hint": "Ngưỡng ngắt đoạn tự động: Khi điểm tương đồng giữa hai câu liên tiếp nhỏ hơn ngưỡng này, đoạn mới sẽ được khởi tạo.",
+      "ast_label": "Phân tích Cây Cú pháp Cấu trúc (Document AST):",
+      "ast_hint": "Bảo tồn nguyên vẹn cấu trúc tiêu đề mục lục và khối bảng biểu số liệu (Tables), không chia cắt các hàng cột dữ liệu tài chính.",
+      "recursive_label": "Phân mảnh Đệ quy (Recursive Character Splitting):",
+      "recursive_hint": "Phân chia đoạn văn theo chuẩn 512 ký tự với khoảng chồng lấn 64 ký tự để duy trì liên kết ngữ nghĩa câu.",
+      "inspector_title": "Kiểm tra Phân đoạn Văn bản (Document Chunk Structure):",
+      "demo_parent_label": "KHỐI CHA #12 (Parent Chunk: ~1024 Tokens)",
+      "demo_parent_section": "Mục 4.2: Chế độ Công tác & Phụ cấp Dự án",
+      "demo_child1_text": "\"Nhân sự chính thức được hưởng 14 ngày phép năm có lương, tăng thêm 1 ngày sau mỗi 3 năm thâm niên...\"",
+      "demo_child2_text": "\"Đối với nhân sự tham gia dự án Onsite tại khách hàng, phụ cấp công tác phí là 350.000 VNĐ/ngày...\"",
+      "demo_child3_text": "\"Thời hạn phê duyệt nghỉ phép: Trưởng bộ phận duyệt trước ít nhất 48 giờ làm việc qua hệ thống HRM...\"",
+      "demo_table": "# 1. QUY CHẾ TIỀN LƯƠNG VÀ ĐÃI NGỘ NĂM 2026\n| Chức danh | Lương căn bản | Phụ cấp dự án | Chu kỳ duyệt |\n| Chuyên viên Cao cấp | 35.000.000 VNĐ | 2.500.000 VNĐ | Hàng tháng |\n| Kỹ sư Trưởng | 55.000.000 VNĐ | 4.000.000 VNĐ | Hàng tháng |",
+      "reranker_title": "Đường ống Reranker Hai Giai đoạn (Two-Stage Cross-Encoder Pipeline)",
+      "reranker_description": "Sàng lọc kết quả truy xuất thô bằng mô hình Cross-Encoder để tối ưu độ chính xác và loại bỏ nhiễu",
+      "faithfulness_score": "Độ trung thực: 94.2%",
+      "reranker_model_label": "Mô hình Reranker Engine",
+      "reranker_none": "Tắt Reranker (Chỉ dùng Cosine)",
+      "topk_label": "Top-K Ứng viên Thô (Stage 1)",
+      "topk_hint": "Ứng viên từ Hybrid Search (BM25 + Vector)",
+      "topn_label": "Top-N Chunks Chọn lọc (Stage 2)",
+      "topn_hint": "Số đoạn trích chuẩn xác nhất gửi vào LLM",
+      "comparator_title": "Đối chiếu Quy trình: Truy xuất Vector Thô vs Qua Cross-Encoder Rescoring",
+      "comparator_query": "Truy vấn: \"Chính sách trợ cấp công tác phí cho nhân sự đi tỉnh\"",
+      "stage1_title": "Giai đoạn 1: Kết quả Vector Thô (Cosine Distance)",
+      "stage2_title": "Giai đoạn 2: Kết quả Qua Cross-Encoder Rescoring",
+      "demo_stage1_item1": "1. \"...thủ tục đăng ký vé máy bay và xe đưa đón...\"",
+      "demo_stage1_item2": "2. \"...mức phụ cấp công tác phí ngoại tỉnh 350.000đ...\"",
+      "demo_stage1_item3": "3. \"...chính sách thưởng hoàn thành dự án...\" (Nhiễu)",
+      "demo_stage2_item1": "1. \"...mức phụ cấp công tác phí ngoại tỉnh 350.000đ...\"",
+      "demo_stage2_item2": "2. \"...hóa đơn khách sạn và ăn uống khi lưu trú...\"",
+      "demo_stage2_item3": "3. \"...thủ tục đăng ký vé máy bay và xe đưa đón...\"",
+      "quality_note_label": "Kiểm định chất lượng:",
+      "quality_note_body": "Cross-Encoder đọc đồng thời câu hỏi và toàn văn đoạn trích để tính toán độ tương quan thực tế, loại bỏ kết quả sai lệch và đẩy tài liệu chính xác lên vị trí ưu tiên hàng đầu.",
+      "save_btn": "Lưu Cấu hình Chiến lược & Reranker"
     }
   },
   "approvals": {
@@ -286,6 +389,15 @@
       "dialog": {
         "title": "Thêm kết nối MCP Server mới",
         "description": "Nhập địa chỉ endpoint SSE hoặc HTTP của máy chủ Model Context Protocol."
+      },
+      "placeholder": {
+        "name": "VD: Elasticsearch MCP",
+        "description": "Mô tả chức năng máy chủ MCP..."
+      },
+      "defaults": {
+        "postgres_description": "Cho phép Agent thực thi câu lệnh SQL có kiểm soát và tra cứu schema CSDL.",
+        "s3_description": "Tích hợp lưu trữ tệp, tạo presigned URL và đọc siêu dữ liệu tài liệu.",
+        "zeebe_description": "Khởi động và theo dõi các tiến trình nghiệp vụ Camunda Zeebe qua Agent."
       }
     }
   },
@@ -358,6 +470,28 @@
       "temperature": "Độ sáng tạo (Temperature)",
       "allowed_tools": "Công cụ được phép dùng (Allowed Tools)"
     },
+    "placeholder": {
+      "name": "VD: HR Recruiter Assistant",
+      "description": "Mô tả mục đích và vai trò của Agent...",
+      "system_prompt": "Nhập System Prompt định hình Persona của Agent..."
+    },
+    "temp": {
+      "strict": "Nghiêm ngặt (Deterministic)",
+      "balanced": "Cân bằng (Balanced)",
+      "adaptive": "Linh hoạt (Adaptive)"
+    },
+    "card": {
+      "department_label": "Phân hệ",
+      "status_ready": "Sẵn sàng",
+      "default_description": "Cấu hình chỉ thị tự động hóa cho bộ phận.",
+      "system_prompt_label": "Chỉ thị Hệ thống (System Prompt)",
+      "model_label": "Mô hình thực thi:",
+      "temperature_label": "Nhiệt độ (Temperature):",
+      "tools_label": "Quyền hạn công cụ:",
+      "tools_unrestricted": "Toàn quyền (Unrestricted)",
+      "tools_count": "{count} công cụ gán quyền",
+      "more_tools": "+{count} khác"
+    },
     "tools_all": "Toàn quyền hệ thống (*)",
     "dialog": {
       "create_title": "Tạo Agent / Persona mới",
@@ -379,6 +513,188 @@
       "routing": "Định tuyến & Dự phòng",
       "guardrails": "Rào chắn An toàn",
       "quotas": "Hạn mức & Rate Limit"
+    },
+    "profiles": {
+      "toast": {
+        "load_failed": "Không thể tải cấu hình AI",
+        "test_success": "Kiểm tra kết nối thành công!",
+        "test_failed": "Kết nối thất bại: {error}",
+        "test_error": "Lỗi khi test kết nối",
+        "save_success": "Cấu hình AI đã được lưu thành công!",
+        "save_failed": "Lưu cấu hình thất bại",
+        "profile_saved": "Đã lưu profile \"{name}\" thành công!",
+        "profile_save_failed": "Không thể lưu profile",
+        "profile_activated": "Đã kích hoạt profile \"{name}\"!",
+        "profile_activate_failed": "Kích hoạt profile thất bại",
+        "profile_deleted": "Đã xóa profile \"{name}\"",
+        "profile_delete_failed": "Xóa profile thất bại"
+      },
+      "active_title": "Cấu hình Mô hình Đang Sử Dụng (Active Model)",
+      "active_description": "Mô hình và thông số đang trực tiếp xử lý các yêu cầu AI trong hệ điều hành Arda.",
+      "btn": {
+        "save_as_profile": "Lưu thành Profile mới",
+        "test_connection": "Kiểm tra kết nối",
+        "save_changes": "Lưu thay đổi",
+        "refresh_list": "Làm mới danh sách",
+        "activate": "Kích hoạt",
+        "save_profile": "Lưu Profile"
+      },
+      "field": {
+        "provider": "Nhà cung cấp (Provider)",
+        "temperature": "Độ sáng tạo (Temperature)",
+        "profile_name": "Tên Profile"
+      },
+      "placeholder": {
+        "provider": "Chọn nhà cung cấp",
+        "model_id": "vd: gpt-4o, gemini-2.5-flash",
+        "api_key_existing": "Nhập nếu muốn đổi khóa mới...",
+        "profile_name": "VD: Production Gemini 2.5 Flash, Local Qwen K3s"
+      },
+      "badge": {
+        "key_saved": "Đã lưu khóa bảo mật",
+        "in_use": "Đang dùng"
+      },
+      "test": {
+        "success_detail": "Kết nối thành công! (Độ trễ: {latency}ms)",
+        "error_label": "Lỗi: {error}"
+      },
+      "presets": {
+        "title": "Cấu hình mẫu (Presets)",
+        "openai_desc": "Mô hình đa nhiệm chuẩn mực của OpenAI",
+        "ollama_desc": "Kết nối tới endpoint Ollama do quản trị viên cấu hình",
+        "openrouter_desc": "Cổng tổng hợp Claude 3.5, Gemini, Llama 3 qua 1 key duy nhất"
+      },
+      "saved": {
+        "title": "Danh sách Cấu hình đã lưu (Saved Profiles)",
+        "description": "Chuyển đổi tức thời giữa các nhà cung cấp LLM mà không cần nhập lại thông tin hay API Key",
+        "empty": "Chưa có profile nào được lưu. Bạn có thể lưu cấu hình hiện tại thành profile để tái sử dụng sau.",
+        "active_model": "Đang làm Model chính"
+      },
+      "dialog": {
+        "save_title": "Lưu Cấu hình thành Profile mới",
+        "save_description": "Lưu toàn bộ thông tin nhà cung cấp ({provider}), Model ({model}) và API Key hiện tại để chuyển đổi nhanh khi cần."
+      }
+    },
+    "guardrails": {
+      "toast": {
+        "save_success": "Đã cập nhật cấu hình Rào chắn An toàn AI (Guardrails)!",
+        "save_failed": "Không thể lưu cấu hình Guardrails"
+      },
+      "main": {
+        "title": "Kiểm soát An toàn & Tuân thủ Dữ liệu (Enterprise Guardrails & DLP)",
+        "description": "Kiểm soát 2 chiều (Input / Output) ngăn chặn rò rỉ dữ liệu mật và các cuộc tấn công vượt quyền"
+      },
+      "status": {
+        "policy_active": "Chính sách Hoạt động"
+      },
+      "injection": {
+        "title": "Phát hiện & Chặn Prompt Injection / Jailbreak",
+        "description": "Phân tích ngữ cảnh câu lệnh người dùng qua mô hình an toàn để vô hiệu hóa các kỹ thuật bẻ khóa (jailbreak), bypass vai trò và ép AI tiết lộ system prompt bí mật.",
+        "threshold_label": "Ngưỡng nhạy cảm (Sensitivity Threshold):",
+        "threshold_default": "(Mặc định ngân hàng: 0.85)"
+      },
+      "pii": {
+        "title": "Tự động Ẩn Danh Dữ liệu Cá nhân & Tài khoản (PII / DLP)",
+        "description": "Tự động nhận diện và che giấu số CCCD, mã số thuế, số tài khoản ngân hàng, mật khẩu bằng nhãn ẩn danh giả lập trước khi truyền payload ra ngoài.",
+        "audit_title": "Kiểm định Luồng Dữ liệu DLP (Data Loss Prevention Audit Log):",
+        "raw_label": "Dữ liệu gốc người dùng:",
+        "raw_sample": "\"Thực hiện giải ngân 500tr cho ông Nguyễn Văn A (CCCD: 001201012345, STK: 0071001234567)\"",
+        "payload_label": "Payload gửi đến LLM:",
+        "payload_prefix": "Thực hiện giải ngân 500tr cho",
+        "cccd_label": "CCCD",
+        "stk_label": "STK"
+      },
+      "hallucination": {
+        "title": "Kiểm soát Ảo giác (Hallucination Detection)",
+        "description": "Đo lường mức độ bám sát trích dẫn (Faithfulness score). Tự động từ chối câu trả lời nếu mô hình tự bịa đặt thông tin nằm ngoài phạm vi tài liệu doanh nghiệp."
+      },
+      "btn": {
+        "save": "Lưu Thay đổi Guardrails"
+      },
+      "privacy": {
+        "title": "Chính sách Quyền riêng tư (Zero Retention)",
+        "zdr_description": "Bắt buộc nhà cung cấp Cloud (OpenAI, Google) cam kết theo thỏa thuận Enterprise: Không lưu trữ nhật ký hội thoại trên máy chủ của họ và không dùng dữ liệu nội bộ để huấn luyện mô hình.",
+        "encryption_title": "Mã hóa Chuẩn Ngân hàng AES-256 GCM",
+        "encryption_description": "Toàn bộ bản ghi hội thoại và metadata đều được mã hóa bằng khóa bảo mật HSM nội bộ trước khi ghi vào cơ sở dữ liệu PostgreSQL của hệ điều hành Arda.",
+        "compliance": "Tuân thủ: ISO 27001 • GDPR"
+      }
+    },
+    "routing": {
+      "toast": {
+        "save_success": "Đã cập nhật quy tắc định tuyến Model Gateway & Chuỗi Dự phòng!",
+        "save_failed": "Không thể lưu quy tắc định tuyến"
+      },
+      "fallback": {
+        "title": "Mạch Dự phòng Đa Tầng (High-Availability Fallback Circuit)",
+        "description": "Cơ chế dự phòng cấp doanh nghiệp: Tự động chuyển tiếp khi Primary chạm ngưỡng quota hoặc lỗi mạng",
+        "sla": "SLA Cam kết: 99.99% Availability",
+        "retry_label": "Chính sách tái thử nghiệm (Retry Policy):",
+        "retry_value": "3 lần (Exponential Backoff 100ms - 2s)",
+        "max_timeout": "Giới hạn thời gian (Max Timeout): 25.0s",
+        "primary_title": "Cổng Chính (Primary Gateway)",
+        "primary_description": "Mô hình mặc định nhận lưu lượng theo policy routing đang được cấu hình.",
+        "primary_provider_label": "Nhà cung cấp chính",
+        "status_label": "Trạng thái:",
+        "secondary_title": "Cổng Dự phòng 1 (Secondary)",
+        "secondary_description": "Tự kích hoạt chuyển tiếp khi cổng chính quá tải, hết quota RPM/TPM hoặc lỗi 5xx.",
+        "secondary_provider_label": "Nhà cung cấp dự phòng 1",
+        "failover_title": "Cụm Khẩn cấp (Air-gapped Failover)",
+        "failover_description": "Cơ chế dự phòng sống còn: Chạy trên máy chủ GPU LAN nội bộ khi mất kết nối Internet.",
+        "failover_provider_label": "Cụm máy chủ nội bộ",
+        "protection_label": "Bảo vệ:"
+      },
+      "routing": {
+        "title": "Định tuyến Mô hình theo Tác vụ (Task-based Model Routing)",
+        "description": "Phân bổ tài nguyên AI theo chính sách bảo mật và yêu cầu năng lực xử lý nghiệp vụ"
+      },
+      "task_chat": {
+        "title": "Hội thoại & Vận hành",
+        "description": "Xử lý hỏi-đáp quy trình, tóm tắt văn bản ngắn. Ưu tiên độ trễ thấp (<500ms) và tối ưu ngân sách.",
+        "cost_label": "Ước tính chi phí:"
+      },
+      "task_code": {
+        "title": "Lập trình & Viết SQL",
+        "description": "Sinh mã nguồn, tạo câu lệnh truy vấn CSDL phức tạp và phân tích logic đa bước (Chain-of-Thought).",
+        "accuracy_label": "Độ chính xác logic:"
+      },
+      "model": {
+        "claude_code": "Claude 3.5 Sonnet (Chuyên sâu Code)",
+        "gpt4o_premium": "OpenAI GPT-4o (Đa nhiệm cao cấp)"
+      },
+      "task_sensitive": {
+        "title": "Dữ liệu Tài chính Mật",
+        "description": "Bảng lương, hợp đồng và báo cáo tài chính nội bộ. Bắt buộc xử lý cục bộ, không gửi ra ngoài.",
+        "infra_label": "Hạ tầng thực thi:",
+        "infra_value": "Máy chủ LAN K3s"
+      },
+      "btn": {
+        "save": "Lưu Quy tắc Định tuyến Gateway"
+      }
+    },
+    "quotas": {
+      "toast": {
+        "save_success": "Đã lưu hạn mức ngân sách và giới hạn tốc độ (Rate Limits)!",
+        "save_failed": "Không thể lưu cấu hình hạn mức"
+      },
+      "budget": {
+        "title": "Hạn mức Ngân sách theo Phòng ban (Monthly Department Budgets)",
+        "description": "Thiết lập ngân sách trần (Hard Cap) bằng USD cho từng bộ phận để ngăn ngừa rủi ro vượt ngưỡng chi phí",
+        "empty": "Chưa có hạn mức phòng ban nào được cấu hình.",
+        "used_label": "Đã sử dụng trong kỳ",
+        "save_btn": "Lưu Hạn mức Ngân sách"
+      },
+      "rate": {
+        "title": "Giới hạn Tốc độ (Rate Limiting)",
+        "description": "Chống nghẽn hạ tầng và lạm dụng API",
+        "global_limits": "Hạn ngạch Toàn hệ thống (Global Limits)",
+        "req_per_min": "req / phút",
+        "token_per_min": "token / phút",
+        "monthly_token_label": "Hạn mức token theo tháng (0 = không giới hạn)",
+        "token_usage": "Đã dùng {used} / {limit} token trong kỳ hiện tại.",
+        "webhook_label": "Webhook Cảnh báo khi chạm 80% hạn mức",
+        "webhook_hint": "Gửi thông báo tức thời qua Slack hoặc Microsoft Teams khi một phòng ban sắp hết ngân sách AI.",
+        "save_btn": "Lưu Hạn mức & Ngân sách"
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { translateApiError } from "@workspace/i18n"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { uploadFile } from "@workspace/media"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -16,8 +16,8 @@ import {
   type Position,
 } from "../api"
 import {
+  buildRegistrationSchema,
   registrationDefaults,
-  registrationSchema,
   type RegistrationValues,
 } from "../shared/schemas"
 import {
@@ -34,6 +34,7 @@ import {
 } from "../shared/ui"
 
 export function RegistrationsPage() {
+  const { t } = useI18n()
   const [savedRegistration, setSavedRegistration] =
     useState<EmployeeRegistration | null>(null)
   const [orgUnits, setOrgUnits] = useState<OrgUnit[]>([])
@@ -41,6 +42,10 @@ export function RegistrationsPage() {
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const registrationSchema = useMemo(
+    () => buildRegistrationSchema(t),
+    [t]
+  )
   const form = useForm<RegistrationValues>({
     resolver: zodResolver(registrationSchema),
     defaultValues: registrationDefaults,
@@ -59,7 +64,7 @@ export function RegistrationsPage() {
       setOrgUnits(units)
       setPositions(pos)
     } catch {
-      notify.error("Khong the tai danh sach don vi hoac chuc vu")
+      notify.error(t("hrm.registrations.load_failed"))
     }
   }, [])
 
@@ -79,10 +84,10 @@ export function RegistrationsPage() {
       let current = savedRegistration
       if (!current) {
         current = await hrmApi.createEmployeeRegistration({ payload })
-        notify.success("Da tao dang ky nhan su")
+        notify.success(t("hrm.registrations.create_success"))
       } else if (current.status === "draft") {
         current = await hrmApi.updateEmployeeRegistration(current.id, payload)
-        notify.success("Da luu dang ky nhan su")
+        notify.success(t("hrm.registrations.update_success"))
       }
       setSavedRegistration(current)
       form.reset(values)
@@ -91,11 +96,11 @@ export function RegistrationsPage() {
         setSubmitting(true)
         try {
           const submitted = await hrmApi.submitEmployeeRegistration(current.id)
-          notify.success("Da gui dang ky nhan su")
+          notify.success(t("hrm.registrations.submit_success"))
           setSavedRegistration(submitted)
         } catch (reason) {
           notify.error(
-            "Gui dang ky nhan su that bai",
+            t("hrm.registrations.submit_failed"),
             translateApiError(reason)
           )
         } finally {
@@ -105,9 +110,15 @@ export function RegistrationsPage() {
       }
     } catch (reason) {
       if (!savedRegistration) {
-        notify.error("Tao dang ky nhan su that bai", translateApiError(reason))
+        notify.error(
+          t("hrm.registrations.create_failed"),
+          translateApiError(reason)
+        )
       } else {
-        notify.error("Luu dang ky nhan su that bai", translateApiError(reason))
+        notify.error(
+          t("hrm.registrations.update_failed"),
+          translateApiError(reason)
+        )
       }
     } finally {
       setSaving(false)
@@ -116,15 +127,15 @@ export function RegistrationsPage() {
 
   async function uploadAvatarFile(file: File) {
     if (!savedRegistration?.id) {
-      notify.error("Lưu nháp hồ sơ trước khi upload ảnh đại diện")
+      notify.error(t("hrm.registrations.avatar.save_first"))
       return
     }
     if (!file.type.startsWith("image/")) {
-      notify.error("File ảnh không hợp lệ")
+      notify.error(t("hrm.registrations.avatar.invalid_file"))
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      notify.error("Ảnh đại diện tối đa 5MB")
+      notify.error(t("hrm.registrations.avatar.too_large"))
       return
     }
     const registrationCode = savedRegistration.registration_code
@@ -136,11 +147,11 @@ export function RegistrationsPage() {
         "employee_avatar",
         registrationCode
       )
-      notify.success("Đã tải ảnh đại diện lên media-service")
+      notify.success(t("hrm.registrations.avatar.upload_success"))
       form.setValue("avatar_file_id", result.public_id, { shouldDirty: true })
     } catch (reason) {
       notify.error(
-        "Tải ảnh đại diện thất bại",
+        t("hrm.registrations.avatar.upload_failed"),
         reason instanceof Error ? reason.message : undefined
       )
     } finally {
@@ -158,18 +169,19 @@ export function RegistrationsPage() {
           <div className="space-y-4 p-4 pb-3">
             <RegistrationMetaBar registration={savedRegistration} />
             <CollapsingPageTitle
-              title="Đăng ký nhân sự"
-              description="Nhập hồ sơ nhân sự và trình duyệt theo quy trình BPM HRM_EMPLOYEE_REGISTRATION."
+              title={t("hrm.registrations.title")}
+              description={t("hrm.registrations.description")}
               meta={
                 <>
                   {savedRegistration ? (
                     <Badge className="shrink-0" variant="secondary">
-                      {registrationStatusLabel(savedRegistration.status)}
+                      {registrationStatusLabel(savedRegistration.status, t)}
                     </Badge>
                   ) : null}
                   {savedRegistration?.workflow_case_id ? (
                     <span className="truncate font-mono text-xs text-muted-foreground">
-                      Workflow case: {savedRegistration.workflow_case_id}
+                      {t("hrm.registrations.meta.workflow_case")}{" "}
+                      {savedRegistration.workflow_case_id}
                     </span>
                   ) : null}
                 </>
@@ -183,7 +195,7 @@ export function RegistrationsPage() {
                     onClick={resetDraft}
                   >
                     <Plus className="size-4" />
-                    Hồ sơ mới
+                    {t("hrm.registrations.actions.new_profile")}
                   </Button>
                 ) : null
               }
@@ -237,7 +249,7 @@ export function RegistrationsPage() {
                   savedRegistration.status !== "draft")
               }
             >
-              Lưu nháp
+              {t("hrm.registrations.actions.save_draft")}
             </Button>
             <Button
               className="h-8"
@@ -253,7 +265,7 @@ export function RegistrationsPage() {
               onClick={form.handleSubmit((values) => save(values, true))}
             >
               <Send className="size-4" />
-              Trình duyệt
+              {t("hrm.registrations.actions.submit")}
             </Button>
           </div>
         </div>

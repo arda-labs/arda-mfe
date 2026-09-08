@@ -67,6 +67,7 @@ import {
 } from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
+import { useI18n } from "@workspace/i18n"
 import { useEffect, useState } from "react"
 import { workflowApi } from "../api"
 import { PrincipalPicker } from "../components/principal-picker"
@@ -129,21 +130,22 @@ export function CaseTypeTable({
   mode: "catalog" | "process"
   onEdit?: (item: WorkflowCaseType) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có loại nghiệp vụ." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_case_types")} />
 
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Loại nghiệp vụ</TableHead>
-            <TableHead>Menu</TableHead>
-            <TableHead>Tên vận hành</TableHead>
+            <TableHead>{t("workflow.admin.col_case_type")}</TableHead>
+            <TableHead>{t("workflow.admin.col_menu")}</TableHead>
+            <TableHead>{t("workflow.admin.col_operation_name")}</TableHead>
             <TableHead>
               {mode === "process" ? "BPMN process" : "Service"}
             </TableHead>
             <TableHead>Role</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             {onEdit ? <TableHead /> : null}
           </TableRow>
         </TableHeader>
@@ -179,7 +181,7 @@ export function CaseTypeTable({
                     onClick={() => onEdit(item)}
                   >
                     <Edit className="size-4" />
-                    Sửa
+                    {t("workflow.admin.edit")}
                   </Button>
                 </TableCell>
               ) : null}
@@ -198,21 +200,22 @@ export function SlaTable({
   items: SlaPolicy[]
   onEdit: (item: SlaPolicy) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có SLA policy." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_sla_policies")} />
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Mã SLA</TableHead>
-            <TableHead>Tên SLA</TableHead>
-            <TableHead>Loại nghiệp vụ</TableHead>
-            <TableHead>Thời hạn</TableHead>
-            <TableHead>Cảnh báo</TableHead>
-            <TableHead>Tác vụ</TableHead>
-            <TableHead>Hiệu lực</TableHead>
+            <TableHead>{t("workflow.admin.col_sla_code")}</TableHead>
+            <TableHead>{t("workflow.admin.col_sla_name")}</TableHead>
+            <TableHead>{t("workflow.admin.col_case_type")}</TableHead>
+            <TableHead>{t("workflow.admin.col_due")}</TableHead>
+            <TableHead>{t("workflow.admin.col_warning")}</TableHead>
+            <TableHead>{t("workflow.admin.col_tasks")}</TableHead>
+            <TableHead>{t("workflow.admin.col_effective")}</TableHead>
             <TableHead>Escalation</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -222,8 +225,8 @@ export function SlaTable({
               <TableCell className="font-mono text-xs">{item.code}</TableCell>
               <TableCell className="font-medium">{item.name}</TableCell>
               <TableCell>{item.caseType}</TableCell>
-              <TableCell>{item.dueInHours} giờ</TableCell>
-              <TableCell>{item.warningInHours} giờ trước hạn</TableCell>
+              <TableCell>{t("workflow.admin.due_hours", { hours: item.dueInHours })}</TableCell>
+              <TableCell>{t("workflow.admin.warning_hours", { hours: item.warningInHours })}</TableCell>
               <TableCell>{item.taskPolicies?.length ?? 0}</TableCell>
               <TableCell>{formatDateOnly(item.effectiveFrom) || "-"}</TableCell>
               <TableCell>{item.escalationRole}</TableCell>
@@ -238,7 +241,7 @@ export function SlaTable({
                   onClick={() => onEdit(item)}
                 >
                   <Edit className="size-4" />
-                  Sửa
+                  {t("workflow.admin.edit")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -256,18 +259,19 @@ export function DescriptionTemplateTable({
   items: DescriptionTemplate[]
   onEdit: (item: DescriptionTemplate) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có cấu trúc diễn giải." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_description_templates")} />
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Mã</TableHead>
-            <TableHead>Phân hệ</TableHead>
-            <TableHead>Loại nghiệp vụ</TableHead>
-            <TableHead>Cấu trúc</TableHead>
-            <TableHead>Xem trước</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_code")}</TableHead>
+            <TableHead>{t("workflow.admin.col_subsystem")}</TableHead>
+            <TableHead>{t("workflow.admin.col_case_type")}</TableHead>
+            <TableHead>{t("workflow.admin.col_pattern")}</TableHead>
+            <TableHead>{t("workflow.admin.col_preview")}</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -275,7 +279,7 @@ export function DescriptionTemplateTable({
           {items.map((item) => (
             <TableRow key={item.id}>
               <TableCell className="font-mono text-xs">{item.code}</TableCell>
-              <TableCell>{subsystemLabel(item.businessSubsystem)}</TableCell>
+              <TableCell>{subsystemLabel(item.businessSubsystem, t)}</TableCell>
               <TableCell>{item.caseType}</TableCell>
               <TableCell className="max-w-md font-mono text-xs">
                 {item.pattern}
@@ -294,7 +298,7 @@ export function DescriptionTemplateTable({
                   onClick={() => onEdit(item)}
                 >
                   <Edit className="size-4" />
-                  Sửa
+                  {t("workflow.admin.edit")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -312,18 +316,19 @@ export function ProcessRoleTable({
   items: ProcessRole[]
   onEdit: (item: ProcessRole) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có vai trò quy trình." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_process_roles")} />
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Loại nghiệp vụ</TableHead>
-            <TableHead>Bước</TableHead>
-            <TableHead>Vai trò nghiệp vụ</TableHead>
+            <TableHead>{t("workflow.admin.col_case_type")}</TableHead>
+            <TableHead>{t("workflow.admin.col_step")}</TableHead>
+            <TableHead>{t("workflow.admin.col_business_role")}</TableHead>
             <TableHead>IAM role</TableHead>
-            <TableHead>Quyền thao tác</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_action_scope")}</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -350,7 +355,7 @@ export function ProcessRoleTable({
                   onClick={() => onEdit(item)}
                 >
                   <Edit className="size-4" />
-                  Sửa
+                  {t("workflow.admin.edit")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -368,17 +373,18 @@ export function RoleCatalogTable({
   items: WorkflowRoleCatalog[]
   onEdit: (item: WorkflowRoleCatalog) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có role vận hành." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_role_catalog")} />
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
             <TableHead>Role code</TableHead>
-            <TableHead>Tên role</TableHead>
-            <TableHead>Loại</TableHead>
-            <TableHead>Phân hệ</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_role_name")}</TableHead>
+            <TableHead>{t("workflow.admin.col_role_type")}</TableHead>
+            <TableHead>{t("workflow.admin.col_subsystem")}</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -390,7 +396,7 @@ export function RoleCatalogTable({
               </TableCell>
               <TableCell className="font-medium">{item.roleName}</TableCell>
               <TableCell>{item.roleType}</TableCell>
-              <TableCell>{subsystemLabel(item.businessSubsystem)}</TableCell>
+              <TableCell>{subsystemLabel(item.businessSubsystem, t)}</TableCell>
               <TableCell>
                 <StatusBadge status={item.status} />
               </TableCell>
@@ -402,7 +408,7 @@ export function RoleCatalogTable({
                   onClick={() => onEdit(item)}
                 >
                   <Edit className="size-4" />
-                  Sửa
+                  {t("workflow.admin.edit")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -420,18 +426,19 @@ export function RoleMembershipTable({
   items: WorkflowRoleMembership[]
   onEdit: (item: WorkflowRoleMembership) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có thành viên role." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_role_membership")} />
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Role</TableHead>
-            <TableHead>Principal</TableHead>
-            <TableHead>Scope</TableHead>
-            <TableHead>Hạn mức</TableHead>
-            <TableHead>Hiệu lực</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_role")}</TableHead>
+            <TableHead>{t("workflow.admin.col_principal")}</TableHead>
+            <TableHead>{t("workflow.admin.col_scope")}</TableHead>
+            <TableHead>{t("workflow.admin.col_limits")}</TableHead>
+            <TableHead>{t("workflow.admin.col_effective")}</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -447,7 +454,7 @@ export function RoleMembershipTable({
               <TableCell className="text-xs text-muted-foreground">
                 {[item.orgId, item.branchId, item.productCode]
                   .filter(Boolean)
-                  .join(" / ") || "Toàn hệ thống"}
+                  .join(" / ") || t("workflow.admin.scope_all")}
               </TableCell>
               <TableCell>
                 {formatAmountRange(item.minAmount, item.maxAmount)}
@@ -467,7 +474,7 @@ export function RoleMembershipTable({
                   onClick={() => onEdit(item)}
                 >
                   <Edit className="size-4" />
-                  Sửa
+                  {t("workflow.admin.edit")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -485,20 +492,21 @@ export function AssignmentRuleTable({
   items: WorkflowAssignmentRule[]
   onEdit: (item: WorkflowAssignmentRule) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có luật phân công." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_assignment_rules")} />
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Loại nghiệp vụ</TableHead>
-            <TableHead>Bước</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Mode</TableHead>
-            <TableHead>Maker/checker</TableHead>
-            <TableHead>Fallback</TableHead>
-            <TableHead>Ưu tiên</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_case_type")}</TableHead>
+            <TableHead>{t("workflow.admin.col_step")}</TableHead>
+            <TableHead>{t("workflow.admin.col_role")}</TableHead>
+            <TableHead>{t("workflow.admin.col_mode")}</TableHead>
+            <TableHead>{t("workflow.admin.col_maker_checker")}</TableHead>
+            <TableHead>{t("workflow.admin.col_fallback")}</TableHead>
+            <TableHead>{t("workflow.admin.col_priority")}</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -513,8 +521,8 @@ export function AssignmentRuleTable({
               <TableCell>{item.assignmentMode}</TableCell>
               <TableCell>
                 {item.requireSeparationOfDuties
-                  ? "Bắt buộc tách"
-                  : "Không bắt buộc"}
+                  ? t("workflow.admin.sod_required")
+                  : t("workflow.admin.sod_optional")}
               </TableCell>
               <TableCell>{item.fallbackRoleCode || "-"}</TableCell>
               <TableCell>{item.priority}</TableCell>
@@ -529,7 +537,7 @@ export function AssignmentRuleTable({
                   onClick={() => onEdit(item)}
                 >
                   <Edit className="size-4" />
-                  Sửa
+                  {t("workflow.admin.edit")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -547,18 +555,19 @@ export function DelegationTable({
   items: WorkflowDelegation[]
   onEdit: (item: WorkflowDelegation) => void
 }) {
-  if (!items.length) return <EmptyState text="Chưa có ủy quyền xử lý." />
+  const { t } = useI18n()
+  if (!items.length) return <EmptyState text={t("workflow.admin.empty_delegations")} />
   return (
     <DataShell>
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Role</TableHead>
-            <TableHead>Từ người</TableHead>
-            <TableHead>Sang người</TableHead>
-            <TableHead>Hiệu lực</TableHead>
-            <TableHead>Lý do</TableHead>
-            <TableHead>Trạng thái</TableHead>
+            <TableHead>{t("workflow.admin.col_role")}</TableHead>
+            <TableHead>{t("workflow.admin.col_from_user")}</TableHead>
+            <TableHead>{t("workflow.admin.col_to_user")}</TableHead>
+            <TableHead>{t("workflow.admin.col_effective")}</TableHead>
+            <TableHead>{t("workflow.admin.col_reason")}</TableHead>
+            <TableHead>{t("workflow.admin.col_status")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -586,7 +595,7 @@ export function DelegationTable({
                   onClick={() => onEdit(item)}
                 >
                   <Edit className="size-4" />
-                  Sửa
+                  {t("workflow.admin.edit")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -616,6 +625,7 @@ export function ProcessDefinitionsTable({
   onDelete?: (id: string) => void
   saving?: boolean
 }) {
+  const { t } = useI18n()
   const [deployPending, setDeployPending] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] =
     useState<WorkflowProcessDefinition | null>(null)
@@ -638,7 +648,7 @@ export function ProcessDefinitionsTable({
 
   if (!items.length)
     return (
-      <EmptyState text="Chưa có định nghĩa BPMN. Import file BPMN/XML để bắt đầu." />
+      <EmptyState text={t("workflow.admin.empty_process_definitions")} />
     )
 
   return (
@@ -647,11 +657,11 @@ export function ProcessDefinitionsTable({
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead>Mã quy trình</TableHead>
+              <TableHead>{t("workflow.admin.col_process_code")}</TableHead>
               <TableHead>BPMN process</TableHead>
               <TableHead>Version</TableHead>
               <TableHead>Deploy</TableHead>
-              <TableHead>Trạng thái</TableHead>
+              <TableHead>{t("workflow.admin.col_status")}</TableHead>
               <TableHead className="w-[20rem]" />
             </TableRow>
           </TableHeader>
@@ -678,7 +688,7 @@ export function ProcessDefinitionsTable({
                 </TableCell>
                 <TableCell>v{item.version}</TableCell>
                 <TableCell className="font-mono text-xs">
-                  {item.deploymentKey ?? "Chưa deploy"}
+                  {item.deploymentKey ?? t("workflow.admin.not_deployed")}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={item.status} />
@@ -740,22 +750,23 @@ export function ProcessDefinitionsTable({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xóa định nghĩa quy trình?</AlertDialogTitle>
+            <AlertDialogTitle>{t("workflow.admin.delete_dialog_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Định nghĩa "{deleteTarget?.name}" sẽ bị xóa khỏi danh sách quản
-              trị. Bản đã deploy trên Zeebe sẽ không bị gỡ khỏi engine.
+              {t("workflow.admin.delete_dialog_description", {
+                name: deleteTarget?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={Boolean(pending)}>
-              Hủy
+              {t("workflow.admin.delete_cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={Boolean(pending)}
               onClick={confirmDeleteDefinition}
             >
-              Xóa
+              {t("workflow.admin.delete_confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -765,6 +776,7 @@ export function ProcessDefinitionsTable({
 }
 
 export function MonitoringDetail({ item }: { item: WorkflowCase }) {
+  const { t } = useI18n()
   const domainHref = workflowDomainHref(item)
   const runtimeQuery = useProcessInstanceRuntime(item.processInstanceKey)
   const runtime = runtimeQuery.data
@@ -788,17 +800,23 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
             onClick={() => navigateTo(domainHref)}
           >
             <Eye className="size-4" />
-            Mở hồ sơ CRM
+            {t("workflow.admin.open_crm_case")}
           </Button>
         ) : null}
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <Field label="Trạng thái" value={item.status} />
-        <Field label="Bước DB" value={item.currentStep || "-"} />
-        <Field label="Assignee" value={item.assignedTo || "Chưa nhận"} />
-        <Field label="Candidate role" value={item.candidateRole || "-"} />
+        <Field label={t("workflow.admin.field_status")} value={item.status} />
+        <Field label={t("workflow.admin.field_db_step")} value={item.currentStep || "-"} />
         <Field
-          label="Process instance"
+          label={t("workflow.admin.field_assignee")}
+          value={item.assignedTo || t("workflow.admin.assignee_unassigned")}
+        />
+        <Field
+          label={t("workflow.admin.field_candidate_role")}
+          value={item.candidateRole || "-"}
+        />
+        <Field
+          label={t("workflow.admin.field_process_instance")}
           value={
             item.processInstanceKey ? String(item.processInstanceKey) : "-"
           }
@@ -807,7 +825,7 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
           label="Zeebe"
           value={
             runtime?.zeebeStatus ??
-            (runtimeQuery.isLoading ? "Đang kiểm tra..." : "-")
+            (runtimeQuery.isLoading ? t("workflow.admin.checking") : "-")
           }
         />
       </div>
@@ -815,7 +833,7 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
       {item.processInstanceKey ? (
         <div className="space-y-3 rounded-md border bg-muted/20 p-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-medium">Runtime Zeebe</p>
+            <p className="text-sm font-medium">{t("workflow.admin.runtime_zeebe")}</p>
             <Button
               type="button"
               size="sm"
@@ -824,22 +842,22 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
               disabled={runtimeQuery.isFetching}
             >
               <RefreshCw className="size-4" />
-              Quét lại
+              {t("workflow.admin.rescan")}
             </Button>
           </div>
           {runtimeQuery.isLoading ? (
             <p className="text-sm text-muted-foreground">
-              Đang quét job trên Zeebe...
+              {t("workflow.admin.scanning_jobs")}
             </p>
           ) : null}
           {runtimeQuery.error ? (
             <Alert variant="destructive">
               <AlertCircle className="size-4" />
-              <AlertTitle>Không tải được runtime</AlertTitle>
+              <AlertTitle>{t("workflow.admin.runtime_error_title")}</AlertTitle>
               <AlertDescription>
                 {runtimeQuery.error instanceof Error
                   ? runtimeQuery.error.message
-                  : "Lỗi không xác định"}
+                  : t("workflow.admin.unknown_error")}
               </AlertDescription>
             </Alert>
           ) : null}
@@ -847,7 +865,7 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
             <>
               <Alert>
                 <AlertCircle className="size-4" />
-                <AlertTitle>Gợi ý xử lý</AlertTitle>
+                <AlertTitle>{t("workflow.admin.hint_title")}</AlertTitle>
                 <AlertDescription className="space-y-2">
                   <p>{runtime.hint}</p>
                   <p className="text-xs text-muted-foreground">
@@ -857,21 +875,21 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
               </Alert>
               {runtime.activeWorkTask ? (
                 <div className="text-sm">
-                  <p className="font-medium">Work task trong DB</p>
+                  <p className="font-medium">{t("workflow.admin.work_task_in_db")}</p>
                   <p className="font-mono text-xs text-muted-foreground">
                     {runtime.activeWorkTask.stepCode} ·{" "}
                     {runtime.activeWorkTask.taskType ?? "-"} · job{" "}
-                    {runtime.activeWorkTask.jobKey ?? "chưa bind"}
+                    {runtime.activeWorkTask.jobKey ?? t("workflow.admin.job_not_bound")}
                   </p>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Chưa có work task active có job_key trong DB.
+                  {t("workflow.admin.no_active_work_task")}
                 </p>
               )}
               {pendingJobs.length ? (
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Job đang chờ trên Zeebe</p>
+                  <p className="text-sm font-medium">{t("workflow.admin.pending_jobs_title")}</p>
                   {pendingJobs.map((job) => (
                     <div
                       key={job.jobKey}
@@ -883,16 +901,16 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Không tìm thấy job pending cho process này
-                  {runtime.pendingJobsError
-                    ? ` (${runtime.pendingJobsError})`
-                    : ""}
-                  .
+                  {t("workflow.admin.no_pending_jobs", {
+                    detail: runtime.pendingJobsError
+                      ? ` (${runtime.pendingJobsError})`
+                      : "",
+                  })}
                 </p>
               )}
               {timeline.length ? (
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Timeline case</p>
+                  <p className="text-sm font-medium">{t("workflow.admin.timeline_title")}</p>
                   <div className="max-h-40 space-y-1 overflow-y-auto text-xs text-muted-foreground">
                     {timeline.map((event) => (
                       <p key={event.id}>
@@ -908,7 +926,7 @@ export function MonitoringDetail({ item }: { item: WorkflowCase }) {
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Case chưa có process instance — workflow chưa start trên Zeebe.
+          {t("workflow.admin.no_process_instance")}
         </p>
       )}
     </aside>
@@ -924,7 +942,8 @@ export function MonitoringCaseList({
   selectedId?: string
   onSelect: (item: WorkflowCase) => void
 }) {
-  if (!cases.length) return <EmptyState text="Chưa có instance đang chạy." />
+  const { t } = useI18n()
+  if (!cases.length) return <EmptyState text={t("workflow.admin.no_running_instances")} />
 
   return (
     <div className="space-y-2">
@@ -965,6 +984,7 @@ export function ProcessDefinitionDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     processCode: item?.processCode ?? "",
@@ -996,7 +1016,9 @@ export function ProcessDefinitionDialog({
       onSaved?.()
     } catch (error) {
       notify.error(
-        item ? "Cập nhật BPMN thất bại" : "Import BPMN thất bại",
+        item
+          ? t("workflow.admin.update_bpmn_failed")
+          : t("workflow.admin.import_bpmn_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -1008,35 +1030,41 @@ export function ProcessDefinitionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{item ? "Cập nhật BPMN" : "Import BPMN"}</DialogTitle>
+          <DialogTitle>
+            {item
+              ? t("workflow.admin.dialog_bpmn_update")
+              : t("workflow.admin.dialog_bpmn_import")}
+          </DialogTitle>
           <DialogDescription>
-            Chọn file BPMN/XML. Hệ thống tự đọc process id trong XML để tránh
-            nhập sai.
+            {t("workflow.admin.dialog_bpmn_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           {item ? (
-            <Field label="Mã quy trình" value={item.processCode} />
+            <Field
+              label={t("workflow.admin.field_process_code")}
+              value={item.processCode}
+            />
           ) : (
             <TextInput
-              label="Mã quy trình"
+              label={t("workflow.admin.field_process_code")}
               value={form.processCode}
               onChange={(processCode) => setForm({ ...form, processCode })}
             />
           )}
           <TextInput
-            label="Tên hiển thị"
+            label={t("workflow.admin.field_display_name")}
             value={form.name}
             onChange={(name) => setForm({ ...form, name })}
           />
           <SelectInput
-            label="Trạng thái sau khi import"
+            label={t("workflow.admin.field_status_after_import")}
             value={form.status}
-            options={configStatusOptions}
+            options={configStatusOptions(t)}
             onChange={(status) => setForm({ ...form, status })}
           />
           <label className="grid gap-1 text-sm">
-            <span className="font-medium">File BPMN/XML</span>
+            <span className="font-medium">{t("workflow.admin.field_bpmn_file")}</span>
             <Input
               type="file"
               accept=".bpmn,.xml,application/xml,text/xml"
@@ -1072,6 +1100,7 @@ export function CaseTypeDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     caseType: item?.caseType ?? "",
@@ -1114,8 +1143,8 @@ export function CaseTypeDialog({
     } catch (error) {
       notify.error(
         item
-          ? "Cập nhật loại nghiệp vụ thất bại"
-          : "Tạo loại nghiệp vụ thất bại",
+          ? t("workflow.admin.update_case_type_failed")
+          : t("workflow.admin.create_case_type_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -1125,61 +1154,65 @@ export function CaseTypeDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa loại nghiệp vụ" : "Tạo loại nghiệp vụ"}
+      title={
+        item
+          ? t("workflow.admin.dialog_case_type_edit")
+          : t("workflow.admin.dialog_case_type_create")
+      }
       open={open}
       onOpenChange={onOpenChange}
     >
       <TextInput
-        label="Mã loại nghiệp vụ"
+        label={t("workflow.admin.field_case_type_code")}
         value={form.caseType}
         onChange={(caseType) => setForm({ ...form, caseType })}
         disabled={Boolean(item)}
       />
       <SelectInput
-        label="Nhóm menu"
+        label={t("workflow.admin.field_business_area")}
         value={form.businessArea}
         options={businessAreaOptions}
         onChange={(businessArea) => setForm({ ...form, businessArea })}
       />
       <TextInput
-        label="Tên vận hành"
+        label={t("workflow.admin.field_operation_name")}
         value={form.operationName}
         onChange={(operationName) => setForm({ ...form, operationName })}
       />
       <SelectInput
-        label="Owner service"
+        label={t("workflow.admin.field_owner_service")}
         value={form.ownerService}
         options={ownerServiceOptions}
         onChange={(ownerService) => setForm({ ...form, ownerService })}
       />
       <TextInput
-        label="BPMN process id"
+        label={t("workflow.admin.field_bpmn_process_id")}
         value={form.bpmnProcessId}
         onChange={(bpmnProcessId) => setForm({ ...form, bpmnProcessId })}
       />
       <TextInput
-        label="BPMN version"
+        label={t("workflow.admin.field_bpmn_version")}
         value={form.bpmnVersion}
         onChange={(bpmnVersion) => setForm({ ...form, bpmnVersion })}
       />
       <SearchSelect
-        label="Maker role"
+        label={t("workflow.admin.field_maker_role")}
         value={form.makerRole}
         options={roleOptions}
         allowCustom
         onChange={(makerRole) => setForm({ ...form, makerRole })}
       />
       <SearchSelect
-        label="Checker role"
+        label={t("workflow.admin.field_checker_role")}
         value={form.checkerRole}
         options={roleOptions}
         allowCustom
         onChange={(checkerRole) => setForm({ ...form, checkerRole })}
       />
       <SelectInput
-        label="Trạng thái"
+        label={t("workflow.admin.field_status")}
         value={form.status}
-        options={configStatusOptions}
+        options={configStatusOptions(t)}
         onChange={(status) => setForm({ ...form, status })}
       />
       <label className="flex items-center gap-2 text-sm">
@@ -1190,7 +1223,7 @@ export function CaseTypeDialog({
             setForm({ ...form, workflowEnabled: event.target.checked })
           }
         />
-        Bật workflow
+        {t("workflow.admin.field_workflow_enabled")}
       </label>
       <DialogActions
         onCancel={() => onOpenChange(false)}
@@ -1213,6 +1246,7 @@ export function ProcessConfigDialog({
   slaOptions: SelectOption[]
   onOpenChange: (open: boolean) => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     bpmnProcessId: item?.bpmnProcessId ?? "",
@@ -1235,7 +1269,7 @@ export function ProcessConfigDialog({
       onOpenChange(false)
     } catch (error) {
       notify.error(
-        "Cập nhật cấu hình quy trình thất bại",
+        t("workflow.admin.update_process_config_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -1247,47 +1281,47 @@ export function ProcessConfigDialog({
     <Dialog open={Boolean(item)} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Cấu hình quy trình</DialogTitle>
+          <DialogTitle>{t("workflow.admin.dialog_process_config_title")}</DialogTitle>
           <DialogDescription>{item?.caseType}</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <TextInput
-            label="BPMN process id"
+            label={t("workflow.admin.field_bpmn_process_id")}
             value={form.bpmnProcessId}
             onChange={(bpmnProcessId) => setForm({ ...form, bpmnProcessId })}
           />
           <TextInput
-            label="BPMN version"
+            label={t("workflow.admin.field_bpmn_version")}
             value={form.bpmnVersion}
             onChange={(bpmnVersion) => setForm({ ...form, bpmnVersion })}
           />
           <SearchSelect
-            label="SLA mặc định"
+            label={t("workflow.admin.field_default_sla")}
             value={form.defaultSlaPolicyId}
             options={slaOptions}
-            emptyLabel="Không gán SLA"
+            emptyLabel={t("workflow.admin.empty_no_sla")}
             onChange={(defaultSlaPolicyId) =>
               setForm({ ...form, defaultSlaPolicyId })
             }
           />
           <SearchSelect
-            label="Maker role"
+            label={t("workflow.admin.field_maker_role")}
             value={form.makerRole}
             options={roleOptions}
             allowCustom
             onChange={(makerRole) => setForm({ ...form, makerRole })}
           />
           <SearchSelect
-            label="Checker role"
+            label={t("workflow.admin.field_checker_role")}
             value={form.checkerRole}
             options={roleOptions}
             allowCustom
             onChange={(checkerRole) => setForm({ ...form, checkerRole })}
           />
           <SelectInput
-            label="Trạng thái"
+            label={t("workflow.admin.field_status")}
             value={form.status}
-            options={configStatusOptions}
+            options={configStatusOptions(t)}
             onChange={(status) => setForm({ ...form, status })}
           />
           <label className="flex items-center gap-2 text-sm">
@@ -1298,7 +1332,7 @@ export function ProcessConfigDialog({
                 setForm({ ...form, workflowEnabled: event.target.checked })
               }
             />
-            Bật workflow
+            {t("workflow.admin.field_workflow_enabled")}
           </label>
           <DialogActions
             onCancel={() => onOpenChange(false)}
@@ -1326,6 +1360,7 @@ export function SlaPolicyDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     code: item?.code ?? "",
@@ -1377,7 +1412,9 @@ export function SlaPolicyDialog({
       onSaved?.()
     } catch (error) {
       notify.error(
-        item ? "Cập nhật SLA thất bại" : "Tạo SLA thất bại",
+        item
+          ? t("workflow.admin.update_sla_failed")
+          : t("workflow.admin.create_sla_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -1387,49 +1424,51 @@ export function SlaPolicyDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa SLA" : "Tạo SLA"}
+      title={
+        item ? t("workflow.admin.dialog_sla_edit") : t("workflow.admin.dialog_sla_create")
+      }
       open={open}
       wide
       onOpenChange={onOpenChange}
     >
       <div className="grid gap-3 lg:grid-cols-3">
         <TextInput
-          label="Mã SLA"
+          label={t("workflow.admin.col_sla_code")}
           value={form.code}
           onChange={(code) => setForm({ ...form, code })}
         />
         <TextInput
-          label="Tên SLA"
+          label={t("workflow.admin.col_sla_name")}
           value={form.name}
           onChange={(name) => setForm({ ...form, name })}
         />
         <SearchSelect
-          label="Loại nghiệp vụ"
+          label={t("workflow.admin.col_case_type")}
           value={form.caseType}
           options={caseTypeOptions}
           onChange={(caseType) => setForm({ ...form, caseType })}
         />
         <SearchSelect
-          label="Escalation role mặc định"
+          label={t("workflow.admin.field_escalation_role")}
           value={form.escalationRole}
           options={roleOptions}
           allowCustom
           onChange={(escalationRole) => setForm({ ...form, escalationRole })}
         />
         <DateInput
-          label="Ngày hiệu lực"
+          label={t("workflow.admin.field_effective_from")}
           value={form.effectiveFrom}
           onChange={(effectiveFrom) => setForm({ ...form, effectiveFrom })}
         />
         <DateInput
-          label="Ngày hết hiệu lực"
+          label={t("workflow.admin.field_effective_to")}
           value={form.effectiveTo}
           onChange={(effectiveTo) => setForm({ ...form, effectiveTo })}
         />
         <SelectInput
-          label="Trạng thái"
+          label={t("workflow.admin.field_status")}
           value={form.status}
-          options={configStatusOptions}
+          options={configStatusOptions(t)}
           onChange={(status) => setForm({ ...form, status })}
         />
       </div>
@@ -1477,6 +1516,7 @@ function SlaTaskPolicyEditor({
   defaultEscalationRole: string
   onChange: (items: SlaTaskForm[]) => void
 }) {
+  const { t } = useI18n()
   function update(index: number, patch: Partial<SlaTaskForm>) {
     onChange(
       items.map((item, i) => (i === index ? { ...item, ...patch } : item))
@@ -1486,7 +1526,7 @@ function SlaTaskPolicyEditor({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-medium">Tác vụ trong quy trình</h3>
+        <h3 className="text-sm font-medium">{t("workflow.admin.sla_tasks_title")}</h3>
         <Button
           type="button"
           size="sm"
@@ -1499,24 +1539,24 @@ function SlaTaskPolicyEditor({
           }
         >
           <Plus className="size-4" />
-          Thêm tác vụ
+          {t("workflow.admin.sla_task_add")}
         </Button>
       </div>
       <DataShell>
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="min-w-36">Mã bước</TableHead>
-              <TableHead className="min-w-44">Tên tác vụ</TableHead>
-              <TableHead className="min-w-24">Thời hạn</TableHead>
-              <TableHead className="min-w-28">Đơn vị</TableHead>
-              <TableHead className="min-w-28">Kiểu cảnh báo</TableHead>
-              <TableHead className="min-w-24">Cảnh báo</TableHead>
-              <TableHead className="min-w-28">Đơn vị CB</TableHead>
+              <TableHead className="min-w-36">{t("workflow.admin.sla_col_step_code")}</TableHead>
+              <TableHead className="min-w-44">{t("workflow.admin.sla_col_task_name")}</TableHead>
+              <TableHead className="min-w-24">{t("workflow.admin.sla_col_duration")}</TableHead>
+              <TableHead className="min-w-28">{t("workflow.admin.sla_col_unit")}</TableHead>
+              <TableHead className="min-w-28">{t("workflow.admin.sla_col_warning_mode")}</TableHead>
+              <TableHead className="min-w-24">{t("workflow.admin.sla_col_warning")}</TableHead>
+              <TableHead className="min-w-28">{t("workflow.admin.sla_col_warning_unit")}</TableHead>
               <TableHead className="min-w-44">Escalation</TableHead>
-              <TableHead className="min-w-36">Hiệu lực</TableHead>
-              <TableHead className="min-w-36">Hết hiệu lực</TableHead>
-              <TableHead className="min-w-28">Trạng thái</TableHead>
+              <TableHead className="min-w-36">{t("workflow.admin.sla_col_effective")}</TableHead>
+              <TableHead className="min-w-36">{t("workflow.admin.sla_col_expired")}</TableHead>
+              <TableHead className="min-w-28">{t("workflow.admin.col_status")}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -1552,7 +1592,7 @@ function SlaTaskPolicyEditor({
                 <TableCell>
                   <InlineSelect
                     value={item.durationUnit}
-                    options={durationUnitOptions}
+                    options={durationUnitOptions(t)}
                     onChange={(durationUnit) =>
                       update(index, {
                         durationUnit:
@@ -1564,7 +1604,7 @@ function SlaTaskPolicyEditor({
                 <TableCell>
                   <InlineSelect
                     value={item.warningMode}
-                    options={warningModeOptions}
+                    options={warningModeOptions(t)}
                     onChange={(warningMode) =>
                       update(index, {
                         warningMode: warningMode as SlaTaskForm["warningMode"],
@@ -1591,7 +1631,7 @@ function SlaTaskPolicyEditor({
                 <TableCell>
                   <InlineSelect
                     value={item.warningUnit}
-                    options={warningUnitOptions(item.warningMode)}
+                    options={warningUnitOptions(item.warningMode, t)}
                     onChange={(warningUnit) =>
                       update(index, {
                         warningUnit: warningUnit as SlaTaskForm["warningUnit"],
@@ -1630,7 +1670,7 @@ function SlaTaskPolicyEditor({
                 <TableCell>
                   <InlineSelect
                     value={item.status}
-                    options={configStatusOptions}
+                    options={configStatusOptions(t)}
                     onChange={(status) => update(index, { status })}
                   />
                 </TableCell>
@@ -1671,6 +1711,7 @@ export function DescriptionTemplateDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     code: item?.code ?? "",
@@ -1679,8 +1720,8 @@ export function DescriptionTemplateDialog({
     pattern: item?.pattern ?? "",
     status: item?.status ?? "ACTIVE",
   })
-  const tokens = templateTokens(form.businessSubsystem)
-  const preview = renderDescriptionPreview(form.pattern)
+  const tokens = templateTokens(form.businessSubsystem, t)
+  const preview = renderDescriptionPreview(form.pattern, t)
   const canSave =
     form.code && form.businessSubsystem && form.caseType && form.pattern
 
@@ -1704,8 +1745,8 @@ export function DescriptionTemplateDialog({
     } catch (error) {
       notify.error(
         item
-          ? "Cập nhật cấu trúc diễn giải thất bại"
-          : "Tạo cấu trúc diễn giải thất bại",
+          ? t("workflow.admin.update_template_failed")
+          : t("workflow.admin.create_template_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -1715,19 +1756,23 @@ export function DescriptionTemplateDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa cấu trúc diễn giải" : "Tạo cấu trúc diễn giải"}
+      title={
+        item
+          ? t("workflow.admin.dialog_template_edit")
+          : t("workflow.admin.dialog_template_create")
+      }
       open={open}
       wide
       onOpenChange={onOpenChange}
     >
       <div className="grid gap-3 lg:grid-cols-2">
         <TextInput
-          label="Mã cấu trúc"
+          label={t("workflow.admin.field_template_code")}
           value={form.code}
           onChange={(code) => setForm({ ...form, code })}
         />
         <SelectInput
-          label="Phân hệ nghiệp vụ"
+          label={t("workflow.admin.field_business_subsystem")}
           value={form.businessSubsystem}
           options={subsystemOptions}
           onChange={(businessSubsystem) =>
@@ -1735,22 +1780,22 @@ export function DescriptionTemplateDialog({
           }
         />
         <SearchSelect
-          label="Loại nghiệp vụ"
+          label={t("workflow.admin.col_case_type")}
           value={form.caseType}
           options={caseTypeOptions}
           onChange={(caseType) => setForm({ ...form, caseType })}
         />
         <SelectInput
-          label="Trạng thái"
+          label={t("workflow.admin.field_status")}
           value={form.status}
-          options={configStatusOptions}
+          options={configStatusOptions(t)}
           onChange={(status) => setForm({ ...form, status })}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <label className="grid gap-1 text-sm">
-          <span className="font-medium">Cấu trúc diễn giải</span>
+          <span className="font-medium">{t("workflow.admin.field_pattern")}</span>
           <Textarea
             className="min-h-32 font-mono"
             value={form.pattern}
@@ -1760,7 +1805,7 @@ export function DescriptionTemplateDialog({
           />
         </label>
         <div className="space-y-2">
-          <p className="text-sm font-medium">Chèn trường dữ liệu</p>
+          <p className="text-sm font-medium">{t("workflow.admin.insert_token")}</p>
           <div className="flex flex-wrap gap-2">
             {tokens.map((token) => (
               <Button
@@ -1778,9 +1823,11 @@ export function DescriptionTemplateDialog({
       </div>
 
       <div className="rounded-lg border bg-muted/30 p-3">
-        <p className="text-xs font-medium text-muted-foreground">Xem trước</p>
+        <p className="text-xs font-medium text-muted-foreground">
+          {t("workflow.admin.col_preview")}
+        </p>
         <p className="mt-1 text-sm break-words">
-          {preview || "Chưa có cấu trúc diễn giải."}
+          {preview || t("workflow.admin.template_preview_empty")}
         </p>
       </div>
 
@@ -1809,6 +1856,7 @@ export function ProcessRoleDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     caseType: item?.caseType ?? "",
@@ -1832,8 +1880,8 @@ export function ProcessRoleDialog({
     } catch (error) {
       notify.error(
         item
-          ? "Cập nhật vai trò quy trình thất bại"
-          : "Tạo vai trò quy trình thất bại",
+          ? t("workflow.admin.update_process_role_failed")
+          : t("workflow.admin.create_process_role_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -1843,43 +1891,47 @@ export function ProcessRoleDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa vai trò quy trình" : "Tạo vai trò quy trình"}
+      title={
+        item
+          ? t("workflow.admin.dialog_process_role_edit")
+          : t("workflow.admin.dialog_process_role_create")
+      }
       open={open}
       onOpenChange={onOpenChange}
     >
       <SearchSelect
-        label="Loại nghiệp vụ"
+        label={t("workflow.admin.col_case_type")}
         value={form.caseType}
         options={caseTypeOptions}
         onChange={(caseType) => setForm({ ...form, caseType })}
       />
       <TextInput
-        label="Bước quy trình"
+        label={t("workflow.admin.field_process_step")}
         value={form.stepCode}
         onChange={(stepCode) => setForm({ ...form, stepCode })}
       />
       <TextInput
-        label="Vai trò nghiệp vụ"
+        label={t("workflow.admin.field_business_role")}
         value={form.businessRole}
         onChange={(businessRole) => setForm({ ...form, businessRole })}
       />
       <SearchSelect
-        label="IAM role"
+        label={t("workflow.admin.col_iam_role")}
         value={form.iamRole}
         options={iamRoleOptions}
         allowCustom
         onChange={(iamRole) => setForm({ ...form, iamRole })}
       />
       <SelectInput
-        label="Quyền thao tác"
+        label={t("workflow.admin.col_action_scope")}
         value={form.actionScope}
-        options={actionScopeOptions}
+        options={actionScopeOptions(t)}
         onChange={(actionScope) => setForm({ ...form, actionScope })}
       />
       <SelectInput
-        label="Trạng thái"
+        label={t("workflow.admin.field_status")}
         value={form.status}
-        options={configStatusOptions}
+        options={configStatusOptions(t)}
         onChange={(status) => setForm({ ...form, status })}
       />
       <DialogActions
@@ -1902,6 +1954,7 @@ export function RoleCatalogDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     roleCode: item?.roleCode ?? "",
@@ -1926,7 +1979,9 @@ export function RoleCatalogDialog({
       onSaved?.()
     } catch (error) {
       notify.error(
-        item ? "Cập nhật role vận hành thất bại" : "Tạo role vận hành thất bại",
+        item
+          ? t("workflow.admin.update_role_catalog_failed")
+          : t("workflow.admin.create_role_catalog_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -1936,39 +1991,43 @@ export function RoleCatalogDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa role vận hành" : "Tạo role vận hành"}
+      title={
+        item
+          ? t("workflow.admin.dialog_role_catalog_edit")
+          : t("workflow.admin.dialog_role_catalog_create")
+      }
       open={open}
       onOpenChange={onOpenChange}
     >
       <TextInput
-        label="Role code"
+        label={t("workflow.admin.field_role_code")}
         value={form.roleCode}
         disabled={Boolean(item)}
         onChange={(roleCode) => setForm({ ...form, roleCode })}
       />
       <TextInput
-        label="Tên role"
+        label={t("workflow.admin.field_role_name")}
         value={form.roleName}
         onChange={(roleName) => setForm({ ...form, roleName })}
       />
       <SelectInput
-        label="Loại role"
+        label={t("workflow.admin.field_role_type")}
         value={form.roleType}
-        options={roleTypeOptions}
+        options={roleTypeOptions(t)}
         onChange={(roleType) => setForm({ ...form, roleType })}
       />
       <SelectInput
-        label="Phân hệ"
+        label={t("workflow.admin.col_subsystem")}
         value={form.businessSubsystem}
-        options={businessSubsystemOptions}
+        options={businessSubsystemOptions(t)}
         onChange={(businessSubsystem) =>
           setForm({ ...form, businessSubsystem })
         }
       />
       <SelectInput
-        label="Trạng thái"
+        label={t("workflow.admin.field_status")}
         value={form.status}
-        options={configStatusOptions}
+        options={configStatusOptions(t)}
         onChange={(status) => setForm({ ...form, status })}
       />
       <DialogActions
@@ -1994,6 +2053,7 @@ export function RoleMembershipDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     roleCode: item?.roleCode ?? "",
@@ -2051,8 +2111,8 @@ export function RoleMembershipDialog({
     } catch (error) {
       notify.error(
         item
-          ? "Cập nhật thành viên role thất bại"
-          : "Thêm thành viên role thất bại",
+          ? t("workflow.admin.update_role_membership_failed")
+          : t("workflow.admin.add_role_membership_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -2062,18 +2122,22 @@ export function RoleMembershipDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa thành viên role" : "Thêm thành viên role"}
+      title={
+        item
+          ? t("workflow.admin.dialog_role_membership_edit")
+          : t("workflow.admin.dialog_role_membership_add")
+      }
       open={open}
       onOpenChange={onOpenChange}
     >
       <SearchSelect
-        label="Role"
+        label={t("workflow.admin.col_role")}
         value={form.roleCode}
         options={roleOptions}
         onChange={(roleCode) => setForm({ ...form, roleCode })}
       />
       <SelectInput
-        label="Loại principal"
+        label={t("workflow.admin.field_principal_type")}
         value={form.principalType}
         options={principalTypeOptions}
         onChange={(principalType) =>
@@ -2081,7 +2145,11 @@ export function RoleMembershipDialog({
         }
       />
       <PrincipalPicker
-        label={form.principalType === "USER" ? "Người dùng" : "Nhóm"}
+        label={
+          form.principalType === "USER"
+            ? t("workflow.admin.field_user")
+            : t("workflow.admin.field_group")
+        }
         principalType={form.principalType === "GROUP" ? "GROUP" : "USER"}
         value={form.principalId}
         onChange={(principalId) => setForm({ ...form, principalId })}
@@ -2093,45 +2161,45 @@ export function RoleMembershipDialog({
           onChange={(tenantId) => setForm({ ...form, tenantId })}
         />
         <TextInput
-          label="Đơn vị"
+          label={t("workflow.admin.field_org_unit")}
           value={form.orgId}
           onChange={(orgId) => setForm({ ...form, orgId })}
         />
         <TextInput
-          label="Chi nhánh"
+          label={t("workflow.admin.field_branch")}
           value={form.branchId}
           onChange={(branchId) => setForm({ ...form, branchId })}
         />
         <TextInput
-          label="Sản phẩm"
+          label={t("workflow.admin.field_product")}
           value={form.productCode}
           onChange={(productCode) => setForm({ ...form, productCode })}
         />
         <TextInput
-          label="Hạn mức từ"
+          label={t("workflow.admin.field_min_amount")}
           value={form.minAmount}
           onChange={(minAmount) => setForm({ ...form, minAmount })}
         />
         <TextInput
-          label="Hạn mức đến"
+          label={t("workflow.admin.field_max_amount")}
           value={form.maxAmount}
           onChange={(maxAmount) => setForm({ ...form, maxAmount })}
         />
         <DateInput
-          label="Ngày hiệu lực"
+          label={t("workflow.admin.field_effective_from")}
           value={form.effectiveFrom}
           onChange={(effectiveFrom) => setForm({ ...form, effectiveFrom })}
         />
         <DateInput
-          label="Ngày hết hiệu lực"
+          label={t("workflow.admin.field_effective_to")}
           value={form.effectiveTo}
           onChange={(effectiveTo) => setForm({ ...form, effectiveTo })}
         />
       </div>
       <SelectInput
-        label="Trạng thái"
+        label={t("workflow.admin.field_status")}
         value={form.status}
-        options={configStatusOptions}
+        options={configStatusOptions(t)}
         onChange={(status) => setForm({ ...form, status })}
       />
       <DialogActions
@@ -2159,6 +2227,7 @@ export function AssignmentRuleDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     caseType: item?.caseType ?? "",
@@ -2191,8 +2260,8 @@ export function AssignmentRuleDialog({
     } catch (error) {
       notify.error(
         item
-          ? "Cập nhật luật phân công thất bại"
-          : "Tạo luật phân công thất bại",
+          ? t("workflow.admin.update_assignment_failed")
+          : t("workflow.admin.create_assignment_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -2202,42 +2271,46 @@ export function AssignmentRuleDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa luật phân công" : "Tạo luật phân công"}
+      title={
+        item
+          ? t("workflow.admin.dialog_assignment_edit")
+          : t("workflow.admin.dialog_assignment_create")
+      }
       open={open}
       onOpenChange={onOpenChange}
     >
       <SearchSelect
-        label="Loại nghiệp vụ"
+        label={t("workflow.admin.col_case_type")}
         value={form.caseType}
         options={caseTypeOptions}
         onChange={(caseType) => setForm({ ...form, caseType })}
       />
       <TextInput
-        label="Bước quy trình"
+        label={t("workflow.admin.field_process_step")}
         value={form.stepCode}
         onChange={(stepCode) => setForm({ ...form, stepCode })}
       />
       <SearchSelect
-        label="Role xử lý"
+        label={t("workflow.admin.field_process_role")}
         value={form.roleCode}
         options={roleOptions}
         onChange={(roleCode) => setForm({ ...form, roleCode })}
       />
       <SelectInput
-        label="Cách phân công"
+        label={t("workflow.admin.field_assignment_mode")}
         value={form.assignmentMode}
-        options={assignmentModeOptions}
+        options={assignmentModeOptions(t)}
         onChange={(assignmentMode) => setForm({ ...form, assignmentMode })}
       />
       <SearchSelect
-        label="Fallback role"
+        label={t("workflow.admin.col_fallback")}
         value={form.fallbackRoleCode}
         options={roleOptions}
-        emptyLabel="Không có"
+        emptyLabel={t("workflow.admin.empty_none")}
         onChange={(fallbackRoleCode) => setForm({ ...form, fallbackRoleCode })}
       />
       <TextInput
-        label="Ưu tiên"
+        label={t("workflow.admin.field_priority")}
         value={form.priority}
         onChange={(priority) => setForm({ ...form, priority })}
       />
@@ -2252,12 +2325,12 @@ export function AssignmentRuleDialog({
             })
           }
         />
-        Bắt buộc tách maker/checker
+        {t("workflow.admin.field_sod")}
       </label>
       <SelectInput
-        label="Trạng thái"
+        label={t("workflow.admin.field_status")}
         value={form.status}
-        options={configStatusOptions}
+        options={configStatusOptions(t)}
         onChange={(status) => setForm({ ...form, status })}
       />
       <DialogActions
@@ -2285,6 +2358,7 @@ export function DelegationDialog({
   onOpenChange: (open: boolean) => void
   onSaved?: () => void
 }) {
+  const { t } = useI18n()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     fromPrincipalId: item?.fromPrincipalId ?? "",
@@ -2316,7 +2390,9 @@ export function DelegationDialog({
       onSaved?.()
     } catch (error) {
       notify.error(
-        item ? "Cập nhật ủy quyền thất bại" : "Tạo ủy quyền thất bại",
+        item
+          ? t("workflow.admin.update_delegation_failed")
+          : t("workflow.admin.create_delegation_failed"),
         error instanceof Error ? error.message : undefined
       )
     } finally {
@@ -2326,47 +2402,51 @@ export function DelegationDialog({
 
   return (
     <ConfigDialog
-      title={item ? "Sửa ủy quyền" : "Tạo ủy quyền"}
+      title={
+        item
+          ? t("workflow.admin.dialog_delegation_edit")
+          : t("workflow.admin.dialog_delegation_create")
+      }
       open={open}
       onOpenChange={onOpenChange}
     >
       <SearchSelect
-        label="Role được ủy quyền"
+        label={t("workflow.admin.field_delegation_role")}
         value={form.roleCode}
         options={roleOptions}
         onChange={(roleCode) => setForm({ ...form, roleCode })}
       />
       <TextInput
-        label="Từ user"
+        label={t("workflow.admin.field_from_user")}
         value={form.fromPrincipalId}
         onChange={(fromPrincipalId) => setForm({ ...form, fromPrincipalId })}
       />
       <TextInput
-        label="Sang user"
+        label={t("workflow.admin.field_to_user")}
         value={form.toPrincipalId}
         onChange={(toPrincipalId) => setForm({ ...form, toPrincipalId })}
       />
       <DateInput
-        label="Ngày hiệu lực"
+        label={t("workflow.admin.field_effective_from")}
         value={form.effectiveFrom}
         onChange={(effectiveFrom) => setForm({ ...form, effectiveFrom })}
       />
       <DateInput
-        label="Ngày hết hiệu lực"
+        label={t("workflow.admin.field_effective_to")}
         value={form.effectiveTo}
         onChange={(effectiveTo) => setForm({ ...form, effectiveTo })}
       />
       <label className="grid gap-1 text-sm">
-        <span className="font-medium">Lý do</span>
+        <span className="font-medium">{t("workflow.admin.field_reason")}</span>
         <Textarea
           value={form.reason}
           onChange={(event) => setForm({ ...form, reason: event.target.value })}
         />
       </label>
       <SelectInput
-        label="Trạng thái"
+        label={t("workflow.admin.field_status")}
         value={form.status}
-        options={configStatusOptions}
+        options={configStatusOptions(t)}
         onChange={(status) => setForm({ ...form, status })}
       />
       <DialogActions
@@ -2392,13 +2472,14 @@ function ConfigDialog({
   wide?: boolean
   children: React.ReactNode
 }) {
+  const { t } = useI18n()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(wide && "max-w-[min(96vw,1200px)]")}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Thay đổi sẽ được lưu vào workflow-service.
+            {t("workflow.admin.config_dialog_description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">{children}</div>
@@ -2468,12 +2549,13 @@ function SelectInput({
   options: SelectOption[]
   onChange: (value: string) => void
 }) {
+  const { t } = useI18n()
   return (
     <label className="grid gap-1 text-sm">
       <span className="text-xs font-medium text-foreground/80">{label}</span>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue placeholder="Chọn giá trị" />
+          <SelectValue placeholder={t("workflow.admin.select_value_placeholder")} />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
@@ -2496,10 +2578,11 @@ function InlineSelect({
   options: SelectOption[]
   onChange: (value: string) => void
 }) {
+  const { t } = useI18n()
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
-        <SelectValue placeholder="Chọn" />
+        <SelectValue placeholder={t("workflow.admin.select_placeholder")} />
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
@@ -2527,6 +2610,7 @@ function SearchSelect({
   allowCustom?: boolean
   onChange: (value: string) => void
 }) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const selected = options.find((option) => option.value === value)
@@ -2551,7 +2635,7 @@ function SearchSelect({
             className="justify-between font-normal"
           >
             <span className="truncate">
-              {selected?.label || value || emptyLabel || "Chọn giá trị"}
+              {selected?.label || value || emptyLabel || t("workflow.admin.select_value_placeholder")}
             </span>
             <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
           </Button>
@@ -2564,10 +2648,10 @@ function SearchSelect({
             <CommandInput
               value={search}
               onValueChange={setSearch}
-              placeholder="Tìm theo mã hoặc tên"
+              placeholder={t("workflow.admin.search_by_code_or_name")}
             />
             <CommandList>
-              <CommandEmpty>Không có dữ liệu phù hợp.</CommandEmpty>
+              <CommandEmpty>{t("workflow.admin.search_empty")}</CommandEmpty>
               <CommandGroup>
                 {emptyLabel ? (
                   <CommandItem
@@ -2620,7 +2704,7 @@ function SearchSelect({
                     }}
                   >
                     <Check className="size-4 opacity-0" />
-                    Dùng giá trị "{customValue}"
+                    {t("workflow.admin.use_custom_value", { value: customValue })}
                   </CommandItem>
                 ) : null}
               </CommandGroup>
@@ -2643,13 +2727,14 @@ function DialogActions({
   pending: boolean
   disabled?: boolean
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex justify-end gap-2 pt-2">
       <Button type="button" variant="outline" onClick={onCancel}>
-        Đóng
+        {t("workflow.admin.close")}
       </Button>
       <Button type="button" onClick={onSave} disabled={pending || disabled}>
-        {pending ? "Đang lưu" : "Lưu"}
+        {pending ? t("workflow.admin.saving") : t("workflow.admin.save")}
       </Button>
     </div>
   )
@@ -2749,7 +2834,9 @@ function downloadText(content: string, filename: string, type: string) {
   URL.revokeObjectURL(url)
 }
 
-export function monitoringMetrics(cases: WorkflowCase[]) {
+export type TFn = ReturnType<typeof useI18n>["t"]
+
+export function monitoringMetrics(cases: WorkflowCase[], t: TFn) {
   const running = cases.filter(
     (item) => !["COMPLETED", "CANCELLED"].includes(item.status)
   ).length
@@ -2761,9 +2848,9 @@ export function monitoringMetrics(cases: WorkflowCase[]) {
   ).length
 
   return [
-    { label: "Đang chạy", value: String(running), tone: "default" as const },
+    { label: t("workflow.admin.metric_running"), value: String(running), tone: "default" as const },
     {
-      label: "Quá hạn SLA",
+      label: t("workflow.admin.metric_sla_overdue"),
       value: String(overdue),
       tone: overdue ? ("warning" as const) : ("success" as const),
     },
@@ -2789,16 +2876,16 @@ function formatDateTime(value: string) {
   }).format(new Date(value))
 }
 
-const configStatusOptions: SelectOption[] = [
-  { value: "DRAFT", label: "Bản nháp" },
-  { value: "ACTIVE", label: "Đang áp dụng" },
-  { value: "INACTIVE", label: "Ngừng áp dụng" },
+const configStatusOptions = (t: TFn): SelectOption[] => [
+  { value: "DRAFT", label: t("workflow.status.draft") },
+  { value: "ACTIVE", label: t("workflow.status.active") },
+  { value: "INACTIVE", label: t("workflow.status.inactive") },
 ]
 
-export const defaultBusinessAreaOptions: SelectOption[] = [
-  { value: "CUSTOMER", label: "Khách hàng hội viên" },
-  { value: "FINANCE", label: "Kế toán" },
-  { value: "WORKFLOW", label: "Quy trình" },
+export const defaultBusinessAreaOptions = (t: TFn): SelectOption[] => [
+  { value: "CUSTOMER", label: t("workflow.admin.area_customer") },
+  { value: "FINANCE", label: t("workflow.admin.area_finance") },
+  { value: "WORKFLOW", label: t("workflow.admin.area_workflow") },
 ]
 
 const ownerServiceOptions: SelectOption[] = [
@@ -2807,19 +2894,19 @@ const ownerServiceOptions: SelectOption[] = [
   { value: "workflow-service", label: "workflow-service" },
 ]
 
-const actionScopeOptions: SelectOption[] = [
-  { value: "claim,save,submit", label: "Tiếp nhận, lưu, trình duyệt" },
-  { value: "approve,reject,suspend", label: "Duyệt, từ chối, tạm treo" },
-  { value: "review,request_supplement", label: "Rà soát, yêu cầu bổ sung" },
-  { value: "monitor,reassign,retry", label: "Giám sát, phân công, chạy lại" },
+const actionScopeOptions = (t: TFn): SelectOption[] => [
+  { value: "claim,save,submit", label: t("workflow.admin.scope_claim_save_submit") },
+  { value: "approve,reject,suspend", label: t("workflow.admin.scope_approve_reject_suspend") },
+  { value: "review,request_supplement", label: t("workflow.admin.scope_review_request_supplement") },
+  { value: "monitor,reassign,retry", label: t("workflow.admin.scope_monitor_reassign_retry") },
 ]
 
-const roleTypeOptions: SelectOption[] = [
+const roleTypeOptions = (t: TFn): SelectOption[] => [
   { value: "MAKER", label: "Maker" },
   { value: "CHECKER", label: "Checker" },
   { value: "SUPERVISOR", label: "Supervisor" },
   { value: "OPS_ADMIN", label: "Operations admin" },
-  { value: "CUSTOM", label: "Khác" },
+  { value: "CUSTOM", label: t("workflow.admin.role_type_custom") },
 ]
 
 const principalTypeOptions: SelectOption[] = [
@@ -2827,36 +2914,36 @@ const principalTypeOptions: SelectOption[] = [
   { value: "GROUP", label: "Group" },
 ]
 
-const assignmentModeOptions: SelectOption[] = [
+const assignmentModeOptions = (t: TFn): SelectOption[] => [
   { value: "CANDIDATE_POOL", label: "Candidate pool" },
-  { value: "AUTO_ASSIGN", label: "Tự động gán" },
-  { value: "ROUND_ROBIN", label: "Chia vòng" },
-  { value: "SUPERVISOR_QUEUE", label: "Queue giám sát" },
+  { value: "AUTO_ASSIGN", label: t("workflow.admin.mode_auto_assign") },
+  { value: "ROUND_ROBIN", label: t("workflow.admin.mode_round_robin") },
+  { value: "SUPERVISOR_QUEUE", label: t("workflow.admin.mode_supervisor_queue") },
 ]
 
-export const businessSubsystemOptions: SelectOption[] = [
-  { value: "LNM", label: "LNM - Cho vay" },
-  { value: "DPM", label: "DPM - Huy động tiền gửi" },
-  { value: "FAC", label: "FAC - Kế toán" },
-  { value: "IBM", label: "IBM - Tiền gửi TCTD khác" },
-  { value: "CRM", label: "CRM - Khách hàng" },
-  { value: "HRM", label: "HRM - Nhân sự" },
-  { value: "CFM", label: "CFM - Nguồn vốn" },
+export const businessSubsystemOptions = (t: TFn): SelectOption[] => [
+  { value: "LNM", label: t("workflow.admin.subsystem_lnm") },
+  { value: "DPM", label: t("workflow.admin.subsystem_dpm") },
+  { value: "FAC", label: t("workflow.admin.subsystem_fac") },
+  { value: "IBM", label: t("workflow.admin.subsystem_ibm") },
+  { value: "CRM", label: t("workflow.admin.subsystem_crm") },
+  { value: "HRM", label: t("workflow.admin.subsystem_hrm") },
+  { value: "CFM", label: t("workflow.admin.subsystem_cfm") },
 ]
 
-const durationUnitOptions: SelectOption[] = [
-  { value: "MINUTE", label: "Phút" },
-  { value: "HOUR", label: "Giờ" },
+const durationUnitOptions = (t: TFn): SelectOption[] => [
+  { value: "MINUTE", label: t("workflow.admin.unit_minute") },
+  { value: "HOUR", label: t("workflow.admin.unit_hour") },
 ]
 
-const warningModeOptions: SelectOption[] = [
-  { value: "ABSOLUTE", label: "Theo số" },
-  { value: "PERCENT", label: "Theo %" },
+const warningModeOptions = (t: TFn): SelectOption[] => [
+  { value: "ABSOLUTE", label: t("workflow.admin.warning_mode_absolute") },
+  { value: "PERCENT", label: t("workflow.admin.warning_mode_percent") },
 ]
 
-function warningUnitOptions(mode: string): SelectOption[] {
+function warningUnitOptions(mode: string, t: TFn): SelectOption[] {
   if (mode === "PERCENT") return [{ value: "PERCENT", label: "%" }]
-  return durationUnitOptions
+  return durationUnitOptions(t)
 }
 
 export function caseTypeOptionsFromCaseTypes(
@@ -2893,95 +2980,95 @@ export function uniqueOptions(values: string[], presets: SelectOption[]) {
   return out
 }
 
-function subsystemLabel(value: string) {
+function subsystemLabel(value: string, t: TFn) {
   return (
-    businessSubsystemOptions.find((item) => item.value === value)?.label ??
+    businessSubsystemOptions(t).find((item) => item.value === value)?.label ??
     value
   )
 }
 
-function templateTokens(subsystem: string): SelectOption[] {
+function templateTokens(subsystem: string, t: TFn): SelectOption[] {
   const common = [
-    { value: "caseCode", label: "Mã hồ sơ" },
-    { value: "caseTitle", label: "Tiêu đề" },
-    { value: "operationName", label: "Nghiệp vụ" },
-    { value: "currentStep", label: "Bước xử lý" },
-    { value: "createdDate", label: "Ngày tạo" },
+    { value: "caseCode", label: t("workflow.admin.token_case_code") },
+    { value: "caseTitle", label: t("workflow.admin.token_case_title") },
+    { value: "operationName", label: t("workflow.admin.token_operation_name") },
+    { value: "currentStep", label: t("workflow.admin.token_current_step") },
+    { value: "createdDate", label: t("workflow.admin.token_created_date") },
   ]
   const bySubsystem: Record<string, SelectOption[]> = {
     FAC: [
-      { value: "amount", label: "Số tiền" },
-      { value: "currency", label: "Tiền tệ" },
-      { value: "counterpartyName", label: "Đối tác" },
-      { value: "debitAccount", label: "TK nợ" },
-      { value: "creditAccount", label: "TK có" },
+      { value: "amount", label: t("workflow.admin.token_amount") },
+      { value: "currency", label: t("workflow.admin.token_currency") },
+      { value: "counterpartyName", label: t("workflow.admin.token_counterparty_name") },
+      { value: "debitAccount", label: t("workflow.admin.token_debit_account") },
+      { value: "creditAccount", label: t("workflow.admin.token_credit_account") },
     ],
     CRM: [
-      { value: "customerName", label: "Khách hàng" },
-      { value: "customerNo", label: "Mã KH" },
-      { value: "identityNo", label: "Định danh" },
-      { value: "riskLevel", label: "Mức rủi ro" },
+      { value: "customerName", label: t("workflow.admin.token_customer_name") },
+      { value: "customerNo", label: t("workflow.admin.token_customer_no") },
+      { value: "identityNo", label: t("workflow.admin.token_identity_no") },
+      { value: "riskLevel", label: t("workflow.admin.token_risk_level") },
     ],
     LNM: [
-      { value: "loanAccount", label: "Tài khoản vay" },
-      { value: "loanProduct", label: "Sản phẩm vay" },
-      { value: "principalAmount", label: "Dư nợ gốc" },
+      { value: "loanAccount", label: t("workflow.admin.token_loan_account") },
+      { value: "loanProduct", label: t("workflow.admin.token_loan_product") },
+      { value: "principalAmount", label: t("workflow.admin.token_principal_amount") },
     ],
     DPM: [
-      { value: "depositAccount", label: "TK tiền gửi" },
-      { value: "depositProduct", label: "Sản phẩm TG" },
-      { value: "term", label: "Kỳ hạn" },
+      { value: "depositAccount", label: t("workflow.admin.token_deposit_account") },
+      { value: "depositProduct", label: t("workflow.admin.token_deposit_product") },
+      { value: "term", label: t("workflow.admin.token_term") },
     ],
     IBM: [
-      { value: "bankName", label: "TCTD" },
-      { value: "nostroAccount", label: "TK Nostro" },
-      { value: "settlementDate", label: "Ngày thanh toán" },
+      { value: "bankName", label: t("workflow.admin.token_bank_name") },
+      { value: "nostroAccount", label: t("workflow.admin.token_nostro_account") },
+      { value: "settlementDate", label: t("workflow.admin.token_settlement_date") },
     ],
     HRM: [
-      { value: "employeeCode", label: "Mã NV" },
-      { value: "employeeName", label: "Nhân sự" },
-      { value: "departmentName", label: "Phòng ban" },
+      { value: "employeeCode", label: t("workflow.admin.token_employee_code") },
+      { value: "employeeName", label: t("workflow.admin.token_employee_name") },
+      { value: "departmentName", label: t("workflow.admin.token_department_name") },
     ],
     CFM: [
-      { value: "fundingSource", label: "Nguồn vốn" },
-      { value: "dealCode", label: "Mã giao dịch vốn" },
-      { value: "maturityDate", label: "Ngày đáo hạn" },
+      { value: "fundingSource", label: t("workflow.admin.token_funding_source") },
+      { value: "dealCode", label: t("workflow.admin.token_deal_code") },
+      { value: "maturityDate", label: t("workflow.admin.token_maturity_date") },
     ],
   }
   return [...common, ...(bySubsystem[subsystem] ?? [])]
 }
 
-function renderDescriptionPreview(pattern: string) {
+function renderDescriptionPreview(pattern: string, t: TFn) {
   const sample: Record<string, string> = {
     amount: "125.000.000",
     bankName: "BIDV",
     caseCode: "FAC-20260702-001",
-    caseTitle: "Giao dịch đến",
-    counterpartyName: "Công ty Minh An",
+    caseTitle: t("workflow.admin.sample_case_title"),
+    counterpartyName: t("workflow.admin.sample_counterparty_name"),
     createdDate: "02/07/2026",
     creditAccount: "421101001",
     currency: "VND",
-    currentStep: "Duyệt bút toán",
-    customerName: "Nguyễn Hoàng Nam",
+    currentStep: t("workflow.admin.sample_current_step"),
+    customerName: t("workflow.admin.sample_customer_name"),
     customerNo: "CUS000912",
     debitAccount: "101101001",
     dealCode: "CFM-00042",
-    departmentName: "Khối vận hành",
+    departmentName: t("workflow.admin.sample_department_name"),
     depositAccount: "DPM000012",
-    depositProduct: "Tiền gửi có kỳ hạn",
+    depositProduct: t("workflow.admin.sample_deposit_product"),
     employeeCode: "E00128",
-    employeeName: "Trần Minh Anh",
-    fundingSource: "Nguồn vốn ngắn hạn",
+    employeeName: t("workflow.admin.sample_employee_name"),
+    fundingSource: t("workflow.admin.sample_funding_source"),
     identityNo: "012345678901",
     loanAccount: "LNM000088",
-    loanProduct: "Vay kinh doanh",
+    loanProduct: t("workflow.admin.sample_loan_product"),
     maturityDate: "31/12/2026",
     nostroAccount: "IBM-NOSTRO-01",
-    operationName: "Giao dịch đến",
+    operationName: t("workflow.admin.sample_operation_name"),
     principalAmount: "2.500.000.000",
-    riskLevel: "Cao",
+    riskLevel: t("workflow.admin.sample_risk_level"),
     settlementDate: "02/07/2026",
-    term: "12 tháng",
+    term: t("workflow.admin.sample_term"),
   }
   return pattern.replace(
     /\{([a-zA-Z0-9_]+)\}/g,
