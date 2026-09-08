@@ -32,13 +32,11 @@ export const remoteSharedDeps = {
   // mọi remote hiển thị tiền phải đi qua đây thay vì Intl inline.
   "@workspace/format": { singleton: true, requiredVersion: false },
   "@workspace/format/": { singleton: true, requiredVersion: false },
-  // Posting-flow shell (iteration 9): EPAS-style FAC layout + entry-lines grid
-  // + validate preview + account picker. Presentational and stateless (locale
-  // via props, transport qua callback) — thêm singleton ngay từ đầu để các
-  // remote tương lai (loan disbursement rework, các FAC screen còn lại) dùng
-  // chung 1 instance thay vì duplicate bundle mỗi remote.
-  "@workspace/posting-flow": { singleton: true, requiredVersion: false },
-  "@workspace/posting-flow/": { singleton: true, requiredVersion: false },
+  // Posting-flow (iteration 9) deliberately NOT shared — see
+  // sharedWorkspaceExemptions below (root cause: 2026-09-08 arda.io.vn white
+  // screen, React #130 — registering it reshuffled the shell's pre-bundled
+  // share groups so @workspace/auth/loading-screen loaded async and the first
+  // render mounted undefined AuthShellLoadingScreen).
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
   // ToastContainer từ cùng instance — thiếu share = toast remote không hiện UI shell.
   "react-toastify": { singleton: true, requiredVersion: false },
@@ -88,4 +86,10 @@ export const sharedWorkspaceExemptions = {
   // When a second remote needs the panel: move "@workspace/ai" out of this map
   // into remoteSharedDeps AND declare it in every app's package.json.
   "@workspace/ai": "shell-only until CRM tool-renderer integration lands",
+  // Presentational-only (locale via props, state via callbacks): a per-remote
+  // bundle is semantically safe. Registering it as a shared singleton
+  // reshuffles the shell's pre-bundled share groups (2026-09-08 incident:
+  // loading-screen share degraded to async load -> React #130 white screen).
+  // Revisit ONLY with a hard-repro harness proving the boot order stays sync.
+  "@workspace/posting-flow": "presentational-only; sharing broke shell boot order (React #130)",
 } as const
