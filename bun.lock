@@ -468,6 +468,7 @@
         "@workspace/i18n": "workspace:*",
         "@workspace/media": "workspace:*",
         "@workspace/notifications": "workspace:*",
+        "@workspace/posting-flow": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
         "date-fns": "^4.4.0",

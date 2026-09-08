@@ -21,6 +21,7 @@
     "typescript": "~6"
   },
   "exports": {
+    ".": "./src/index.ts",
     "./posting-flow-shell": "./src/posting-flow-shell.tsx",
     "./entry-lines-grid": "./src/entry-lines-grid.tsx",
     "./entry-lines": "./src/entry-lines.ts",
