@@ -74,6 +74,21 @@ export const financeApi = {
     api
       .post<ApiSuccess<Account>>("/api/finance/accounts", data)
       .then((res) => res.result),
+  /**
+   * COA v2 chart (fin_coa_accounts) — the table the posting resolver
+   * validates against. `nature` narrows to D | C | B (off-balance memo);
+   * `version` pins a COA version, otherwise the tenant's active one. The BE
+   * returns the full (unpaged) filtered set as the standard list envelope.
+   */
+  listCoaAccounts: (params?: { version?: string; nature?: string }) =>
+    api
+      .get<ApiSuccess<ListResponse<CoaAccount>>>(
+        `/api/finance/coa/accounts?${buildSearchParams({
+          version: params?.version,
+          nature: params?.nature,
+        }).toString()}`
+      )
+      .then((res) => res.result),
   trialBalance: (asOf?: string) => {
     const p = buildSearchParams({ as_of: asOf })
     return api
@@ -133,6 +148,26 @@ export interface JournalEntry {
   document_code: string
   case_id: string
   created_at: string
+  total_amount_minor?: number
+}
+
+/** fin_coa_accounts row (COA v2 — the table posting validation resolves). */
+export interface CoaAccount {
+  id: string
+  tenantId: string
+  versionCode: string
+  accCode: string
+  name: string
+  accType: string
+  accNature: "DEBIT" | "CREDIT" | "B"
+  parentCode?: string | null
+  isInternal: boolean
+  isPostable: boolean
+  effectiveDate: string
+  expiryDate?: string | null
+  description?: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ValidationLine {
@@ -268,13 +303,27 @@ export interface JournalEntryLine {
 }
 
 /**
- * GET /api/finance/journal-entries/{entry_no}. Summary fields beyond the
- * lines (trader, total) stay optional until the BE contract fully lands —
- * the cancellation summary degrades to "—" for missing values.
+ * GET /api/finance/journal-entries/{entry_no}. The detail maps header fields
+ * from the snake_case wire shape (business_doc_type, business_doc_code,
+ * business_doc_id — not the list-row document_type/document_code names);
+ * trader stays optional until the BE stamps it on entries.
  */
-export interface JournalEntryDetail extends JournalEntry {
+export interface JournalEntryDetail {
+  journal_entry_id: string
+  entry_no: number
+  accounting_date: string
+  currency_code: string
+  status: string
+  description: string
+  business_domain: string
+  business_doc_type: string
+  business_doc_id?: string
+  case_id: string
+  reversed_by_entry_id?: string
+  total_amount_minor: number
+  created_by?: string
+  created_at: string
   lines: JournalEntryLine[]
-  total_amount_minor?: number
   trader?: TraderInfo
 }
 
