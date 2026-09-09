@@ -15,8 +15,8 @@ export const loanContractsListDefinition = defineServerList({
   queryKey: ["loan", "contracts", "list"] as const,
   queryConfig: {
     defaultPageSize: LOAN_DEFAULT_PAGE_SIZE,
-    // Own URL namespace: the adjustments sub-table (client tier) shares the
-    // page and reads the default ?page/?perPage/?sort keys.
+    // Own URL namespace (contractPage/…) — deep-linked sort from the loans hub
+    // must not clash with other list pages sharing the shell URL.
     queryKeys: { page: "contractPage", perPage: "contractPerPage", sort: "contractSort" },
     sortableColumns: ["created_at", "contract_no", "loan_amt_minor"],
     filters: [{ urlKey: "contract_no", apiKey: "q", mode: "text" }],

@@ -498,22 +498,24 @@ const CASE_TYPE_HREF: Record<string, string> = {
   FIN_OFF_BALANCE_V2: "/finance/posting/off-balance",
   FIN_TXN_CANCEL_V2: "/finance/posting/cancellation",
   FIN_CLOSING_V2: "/finance/posting/closing",
-  // Loan flows all land on the /loans hub today — loan có màn riêng từng
-  // flow thì refine đích tại đây.
-  LOAN_FORMATION_V2: "/loans",
+  // Loan: formation deep-link được màn stage riêng đọc workItemId
+  // (iteration 14). Wave FE-2: 10 LNM adjustment kinds đổ về màn riêng
+  // /loans/adjustments/{kind} (kind từ path param); LNM_DISB_* / LNM_COLLECTION
+  // giữ /loans — batch screens chưa đọc workItemId.
+  LOAN_FORMATION_V2: "/loans/formation",
   LNM_DISB_REGISTER_V2: "/loans",
   LNM_DISB_COMPLETE_V2: "/loans",
   LNM_COLLECTION_V2: "/loans",
-  LNM_DEBT_CHANGE_V2: "/loans",
-  LNM_RATE_CHANGE_V2: "/loans",
-  LNM_RESTRUCTURE_V2: "/loans",
-  LNM_WAIVER_V2: "/loans",
-  LNM_WRITEOFF_V2: "/loans",
-  LNM_RECOVERY_V2: "/loans",
-  LNM_FUND_CHECK_V2: "/loans",
-  LNM_REVENUE_ALLOCATION_V2: "/loans",
-  LNM_VFU_FEE_ALLOCATION_V2: "/loans",
-  LNM_OFF_BALANCE_EXPORT_V2: "/loans",
+  LNM_DEBT_CHANGE_V2: "/loans/adjustments/debt-change",
+  LNM_RATE_CHANGE_V2: "/loans/adjustments/rate-change",
+  LNM_RESTRUCTURE_V2: "/loans/adjustments/restructure",
+  LNM_WAIVER_V2: "/loans/adjustments/waiver",
+  LNM_WRITEOFF_V2: "/loans/adjustments/writeoff",
+  LNM_RECOVERY_V2: "/loans/adjustments/recovery",
+  LNM_FUND_CHECK_V2: "/loans/adjustments/fund-check",
+  LNM_REVENUE_ALLOCATION_V2: "/loans/adjustments/revenue-allocation",
+  LNM_VFU_FEE_ALLOCATION_V2: "/loans/adjustments/vfu-fee-allocation",
+  LNM_OFF_BALANCE_EXPORT_V2: "/loans/adjustments/off-balance-export",
 }
 
 function workItemHref(

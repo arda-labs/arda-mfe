@@ -1,4 +1,4 @@
-import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
+import { getCanonical, getCanonicalList, postCanonical, putCanonical } from "@workspace/api"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 
 /**
@@ -46,6 +46,22 @@ export interface LoanContract {
   updated_at?: string
 }
 
+/**
+ * Loan adjustment row — mirrors loan-service `domain.Adjustment`
+ * (internal/domain/loan.go:179-195). Flow-specific data lives in `payload`
+ * (jsonb) — the exact keys per kind are enforced BE-side by
+ * `validateKindPayload` (internal/service/adjustment_service.go:183):
+ *   - debt-change → payload.to_debt_group_code (GROUP_1..5)
+ *   - rate-change → payload.new_rate
+ *   - restructure → payload.new_term + payload.new_maturity_date
+ *   - waiver      → amount_minor OR payload.waiver_percent
+ *   - writeoff    → amount_minor AND payload.reason
+ *   - recovery    → amount_minor AND top-level agreement_code
+ *   - fund-check  → payload.result
+ *   - revenue-allocation / vfu-fee-allocation → amount_minor
+ *   - off-balance-export → payload.reason (amount optional)
+ *   - mortgage-adjust → no payload validation
+ */
 export interface LoanAdjustment {
   id: string
   tenant_id: string
@@ -54,11 +70,15 @@ export interface LoanAdjustment {
   agreement_code?: string
   effective_date?: string
   amount_minor?: number
+  /** JSON object — per-kind payload keys (see validateKindPayload note). */
+  payload?: Record<string, unknown>
   status: string
   workflow_case_id?: string
   decision_note?: string
+  decided_by?: string
   created_by?: string
   created_at?: string
+  updated_at?: string
 }
 
 export const loanAdjustmentKinds = [
@@ -76,6 +96,80 @@ export const loanAdjustmentKinds = [
 ] as const
 
 export type LoanAdjustmentKind = (typeof loanAdjustmentKinds)[number]["key"]
+
+/**
+ * Summary column spec per kind — `adjustmentFields(kind)` feeds the
+ * adjustment list grid (tab 2) so each kind shows its own "main" column
+ * (amount / percent / rate / reason / result...) instead of a generic one.
+ * `labelKeys` are full i18n keys (loan.adjustment_screen.field.*), except
+ * the `kind` entry which reuses `loan.kind.*`.
+ */
+export interface AdjustmentFieldSpec {
+  /** Key in the top-level LoanAdjustment row, or prefixed "payload." for the jsonb. */
+  field: string
+  labelKey: string
+  type: "money" | "percent" | "text"
+  /** When the row has neither this field nor `orField`, the cell shows "—". */
+  orField?: string
+}
+
+const ADJUSTMENT_LIST_FIELDS: Record<LoanAdjustmentKind, AdjustmentFieldSpec[]> = {
+  "debt-change": [
+    { field: "payload.to_debt_group_code", labelKey: "loan.adjustment_field.to_debt_group_code", type: "text" },
+  ],
+  "rate-change": [
+    { field: "payload.new_rate", labelKey: "loan.adjustment_field.new_rate", type: "percent" },
+  ],
+  restructure: [
+    { field: "payload.new_term", labelKey: "loan.adjustment_field.new_term", type: "text" },
+    { field: "payload.new_maturity_date", labelKey: "loan.adjustment_field.new_maturity_date", type: "text" },
+  ],
+  waiver: [
+    { field: "amount_minor", labelKey: "loan.field.amount", type: "money", orField: "payload.waiver_percent" },
+  ],
+  writeoff: [
+    { field: "amount_minor", labelKey: "loan.field.amount", type: "money" },
+    { field: "payload.reason", labelKey: "loan.adjustment_field.reason", type: "text" },
+  ],
+  recovery: [
+    { field: "amount_minor", labelKey: "loan.field.amount", type: "money" },
+    { field: "agreement_code", labelKey: "loan.field.agreement_code", type: "text" },
+  ],
+  "fund-check": [
+    { field: "payload.result", labelKey: "loan.adjustment_field.result", type: "text" },
+  ],
+  "revenue-allocation": [
+    { field: "amount_minor", labelKey: "loan.field.amount", type: "money" },
+  ],
+  "vfu-fee-allocation": [
+    { field: "amount_minor", labelKey: "loan.field.amount", type: "money" },
+  ],
+  "off-balance-export": [
+    { field: "payload.reason", labelKey: "loan.adjustment_field.reason", type: "text" },
+  ],
+  "mortgage-adjust": [
+    { field: "decision_note", labelKey: "loan.field.note", type: "text" },
+  ],
+}
+
+/** Kind → the "main" summary column(s) for the list grid (tab 2). */
+export function adjustmentFields(kind: LoanAdjustmentKind): AdjustmentFieldSpec[] {
+  return ADJUSTMENT_LIST_FIELDS[kind] ?? []
+}
+
+/** Reads a (possibly payload-nested) field path from an adjustment row. */
+export function adjustmentFieldValue(
+  item: LoanAdjustment,
+  field: string
+): string | number | undefined {
+  if (field.startsWith("payload.")) {
+    const key = field.slice("payload.".length)
+    const value = item.payload?.[key]
+    return typeof value === "number" || typeof value === "string" ? value : undefined
+  }
+  const value = (item as unknown as Record<string, unknown>)[field]
+  return typeof value === "number" || typeof value === "string" ? value : undefined
+}
 
 export const loanApi = {
   listContracts: (
@@ -95,13 +189,25 @@ export const loanApi = {
     postCanonical<LoanContract>(`/api/loan/contracts/${encodeURIComponent(id)}/submit`, {}),
   createContract: (body: Partial<LoanContract>) =>
     postCanonical<LoanContract>("/api/loan/contracts", body),
+  /**
+   * Per-kind adjustment list. With `page` set the call runs server-paged
+   * (BE listEnvelope paginates in memory over the LIMIT-500 slice); without
+   * it the legacy fetch-all (`all=true`) applies for dropdown lookups.
+   */
   listAdjustments: (
     kind: LoanAdjustmentKind,
-    params: { contract_code?: string; status?: string } = {}
+    params: {
+      contract_code?: string
+      status?: string
+      page?: number
+      per_page?: number
+    } = {}
   ) => {
     const search = listQuery({
       contract_code: params.contract_code,
       status: params.status,
+      page: params.page,
+      per_page: params.per_page,
     })
     return getCanonicalList<LoanAdjustment>(
       `/api/loan/adjustments/${kind}?${search.toString()}`
@@ -543,5 +649,163 @@ export const collectionBatchApi = {
   detail: (id: string) =>
     getCanonical<LoanCollectionBatch>(
       `/api/loan/collection-batches/${encodeURIComponent(id)}`
+    ),
+}
+
+// ── Formation (iteration 14 — LOAN_FORMATION_V2 stage screen) ───────────────
+
+/** Candidate roles của lnm-loan-formation-v2 (zeebe candidateGroups). */
+export type LoanFormationRole =
+  | "LNM_MAKER"
+  | "LNM_TWTD"
+  | "LNM_POGD"
+  | "LNM_GIDO"
+  | "LNM_HODO"
+
+/** User-task elementId của lnm-loan-formation-v2 (BPMN bpmn:userTask id). */
+export type LoanFormationStepCode =
+  | "UT_MakerInput"
+  | "UT_TWRevalidate"
+  | "UT_PGDReview"
+  | "UT_GDReview"
+  | "UT_BoardReview"
+
+/**
+ * Work item — mirrors workflow-service `repository.WorkItem` (fields the
+ * formation screen consumes). `canClaim` is computed by the BE per caller.
+ */
+export interface FormationWorkItem {
+  id: string
+  caseId: string
+  caseCode?: string
+  caseType?: string
+  title?: string
+  status?: string
+  stepCode?: string
+  taskType?: string
+  primaryObjectId?: string
+  processInstanceKey?: string | number
+  jobKey?: string | number
+  candidateRole?: string
+  assignedTo?: string
+  assignedToName?: string
+  canClaim?: boolean
+}
+
+/** Claim response — mirrors the CRM `WorkflowTask` shape (claim WorkflowTask). */
+export interface FormationClaimedTask {
+  jobKey: string | number
+  type?: string
+  elementId?: string
+  processInstanceKey?: string | number
+  caseId?: string
+  candidateRole?: string
+}
+
+/** Body của PUT /api/loan/contracts/{id} — whitelist BE UpdateContract. */
+export interface LoanContractUpdateInput {
+  contract_no?: string
+  loan_amt_minor: number
+  interest_rate: number
+  loan_term: number
+  term_unit?: string
+  contract_date?: string
+  maturity_date?: string
+  interest_schedule_day?: number
+  interest_payment_freq?: string
+  principal_payment_freq?: string
+  purpose_code?: string
+  employee_code?: string
+  industry_code?: string
+  loan_method_code?: string
+}
+
+/** Response của GET /api/workflow/cases/{id}/variables (caseVariables handler). */
+export interface FormationCaseVariables {
+  case_id: string
+  process_instance_key: string
+  variables: Record<string, unknown>
+}
+
+/**
+ * Composite dossier — mirrors loan-service `repository.Dossier`; only the
+ * sections the two FE screens read are typed, the rest stays opaque.
+ */
+export interface LoanDossier {
+  contract: LoanContract
+  agreements: LoanAgreement[]
+  repay_plans: LoanRepayPlan[]
+  disbursements: unknown[]
+  collections: unknown[]
+  mortgages: unknown[]
+  collaterals: unknown[]
+  workflow_case_ids: string[]
+}
+
+/**
+ * One repay schedule row — mirrors loan-service `domain.RepayPlan` json tags
+ * (internal/domain/loan.go:104-122). `to_date` is the payment due date; the
+ * outstanding-after-period column is computed FE-side (previous balance −
+ * plan principal) because BE stores the running `coln_*` paid amounts only.
+ */
+export interface LoanRepayPlan {
+  id: string
+  tenant_id: string
+  contract_code: string
+  agreement_code: string
+  plan_no: number
+  term_no: number
+  from_date: string
+  to_date: string
+  interest_rate: number
+  plan_principal_amt_minor: number
+  plan_interest_amt_minor: number
+  coln_principal_amt_minor: number
+  coln_interest_amt_minor: number
+  is_active: boolean
+}
+
+export const formationApi = {
+  getWorkItem: (id: string) =>
+    getCanonical<FormationWorkItem>(
+      `/api/workflow/work-items/${encodeURIComponent(id)}`
+    ),
+  getCaseVariables: (caseId: string) =>
+    getCanonical<FormationCaseVariables>(
+      `/api/workflow/cases/${encodeURIComponent(caseId)}/variables`
+    ),
+  claimTask: (input: {
+    role: string
+    taskType?: string
+    processInstanceKey?: string | number
+    caseId?: string | null
+    elementId?: string | null
+  }) => postCanonical<FormationClaimedTask>("/api/workflow/tasks/claim", input),
+  getTaskReadiness: (caseId: string, stepCode: string) =>
+    getCanonical<{ ready: boolean; status: string }>(
+      `/api/workflow/cases/${encodeURIComponent(caseId)}/task-readiness?stepCode=${encodeURIComponent(stepCode)}`
+    ),
+  completeTask: (input: {
+    jobKey: string
+    processInstanceKey: string
+    elementId: string
+    variables: Record<string, unknown>
+  }) =>
+    postCanonical<{ status: string }>(
+      `/api/workflow/tasks/${encodeURIComponent(input.jobKey)}/complete`,
+      {
+        processInstanceKey: input.processInstanceKey,
+        elementId: input.elementId,
+        variables: input.variables,
+      }
+    ),
+  getDossier: (contractId: string) =>
+    getCanonical<LoanDossier>(
+      `/api/loan/contracts/${encodeURIComponent(contractId)}/dossier`
+    ),
+  updateContract: (id: string, body: LoanContractUpdateInput) =>
+    putCanonical<LoanContract>(
+      `/api/loan/contracts/${encodeURIComponent(id)}`,
+      body
     ),
 }

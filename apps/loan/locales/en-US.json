@@ -26,7 +26,8 @@
     "org_unit": "Org unit",
     "case": "Case",
     "case_code": "Case code",
-    "created_at": "Created at"
+    "created_at": "Created at",
+    "note": "Note"
   },
   "status": {
     "draft": "Draft",
@@ -147,6 +148,54 @@
     "waiver_percent": "Waiver percentage",
     "reason": "Reason",
     "result": "Check result"
+  },
+  "adjustment_screen": {
+    "index_title": "Loan adjustments",
+    "index_description": "EPAS adjustment flows — one dedicated screen per flow with its own form.",
+    "open": "Open screen",
+    "tab_info": "Adjustment information",
+    "tab_list": "{{kind}} adjustments",
+    "action_create": "Create record",
+    "created_with_case": "Adjustment record created — code: {{case}}",
+    "status_all": "All",
+    "unknown_kind": "No adjustment flow \"{{kind}}\".",
+    "repay_plan_hint": "Select a contract to view its current repayment plan.",
+    "no_repay_plan": "This contract has no repayment plan yet",
+    "kind_desc": {
+      "debt_change": "Move the disbursement agreement to a new debt group based on repayment status.",
+      "rate_change": "Change the interest rate applied to the agreement.",
+      "restructure": "Restructure — adjust the term and the maturity date.",
+      "waiver": "Interest waiver by amount or percentage.",
+      "writeoff": "Write-off — reduce the loan balance.",
+      "recovery": "Debt recovery per disbursement agreement.",
+      "fund_check": "Fund-usage check conclusion.",
+      "revenue_allocation": "Revenue allocation for the contract.",
+      "vfu_fee_allocation": "VFU trust-fee accrual per plan.",
+      "off_balance_export": "Off-balance export per record.",
+      "mortgage_adjust": "Adjust collateral information."
+    },
+    "field": {
+      "apply_date": "Apply date",
+      "effective_date": "Effective date",
+      "check_date": "Check date"
+    },
+    "debt_group": {
+      "GROUP_1": "Group 1 (Current)",
+      "GROUP_2": "Group 2 (Special mention)",
+      "GROUP_3": "Group 3 (Sub-standard)",
+      "GROUP_4": "Group 4 (Doubtful)",
+      "GROUP_5": "Group 5 (Loss)"
+    },
+    "check_result": {
+      "PASS": "Pass",
+      "FAIL": "Fail"
+    },
+    "placeholder": {
+      "contract": "Select a contract",
+      "agreement": "Select an agreement",
+      "rate": "e.g. 8.5",
+      "percent": "e.g. 50"
+    }
   },
   "collections": {
     "title": "Collections",
@@ -393,5 +442,136 @@
   },
   "cancel": "Cancel",
   "status_active": "Active",
-  "status_inactive": "Inactive"
+  "status_inactive": "Inactive",
+  "formation": {
+    "title": "Loan Formation",
+    "description": "Multi-level loan formation process (LNM.201.01) — proposal, appraisal and tiered approval.",
+    "view_only": "View only",
+    "loading": "Loading work item...",
+    "load_failed": "Failed to load the work item / loan dossier",
+    "missing_contract": "Cannot resolve the contract attached to this work item",
+    "tab": {
+      "proposal": "Proposal",
+      "appraisal": "Appraisal",
+      "approval": "Approval",
+      "contract": "Contract"
+    },
+    "stage": {
+      "UT_MakerInput": "Loan proposal input",
+      "UT_TWRevalidate": "HQ revalidation",
+      "UT_PGDReview": "Deputy director review",
+      "UT_GDReview": "Director approval",
+      "UT_BoardReview": "Credit committee approval",
+      "unknown": "Unknown stage",
+      "empty": "No stage data yet"
+    },
+    "variable": {
+      "amount": "Requested amount",
+      "fund_source": "Fund source"
+    },
+    "proposal": {
+      "validation": "Amount, interest rate and term must be greater than 0",
+      "save_failed": "Failed to update the loan proposal",
+      "field": {
+        "contract_no": "Contract no.",
+        "loan_amt": "Loan amount",
+        "interest_rate": "Interest rate (%/yr)",
+        "loan_term": "Term",
+        "term_unit": "Term unit",
+        "contract_date": "Contract date",
+        "maturity_date": "Maturity date",
+        "interest_schedule_day": "Interest schedule day",
+        "interest_payment_freq": "Interest payment frequency",
+        "principal_payment_freq": "Principal payment frequency",
+        "purpose_code": "Purpose code",
+        "employee_code": "Managing unit",
+        "industry_code": "Industry code",
+        "loan_method_code": "Loan method code"
+      },
+      "term_unit": {
+        "MONTH": "Month",
+        "WEEK": "Week",
+        "DAY": "Day"
+      },
+      "freq": {
+        "none": "Not specified",
+        "MONTHLY": "Monthly",
+        "QUARTERLY": "Quarterly",
+        "SEMI_ANNUALLY": "Semi-annually",
+        "ANNUALLY": "Annually",
+        "AT_MATURITY": "At maturity"
+      }
+    },
+    "appraisal": {
+      "validation": "Appraisal number and date are required",
+      "field": {
+        "appraisal_number": "Appraisal no.",
+        "appraisal_date": "Appraisal date",
+        "appraisal_officer": "Appraisal officer",
+        "appraisal_opinion": "Appraisal opinion",
+        "appraisal_amount": "Re-appraised amount",
+        "appraisal_rate": "Interest rate",
+        "appraisal_term": "Term"
+      }
+    },
+    "approval": {
+      "validation_number": "Decision number is required at the {tier} tier",
+      "placeholder": {
+        "number_required": "Required for this tier"
+      },
+      "tier": {
+        "PGD": "Deputy Director",
+        "GD": "Director",
+        "BOARD": "Credit Committee"
+      },
+      "field": {
+        "approval_officer": "Approver",
+        "approval_number": "Decision no.",
+        "approval_date": "Decision date",
+        "approval_comment": "Approval comment"
+      }
+    },
+    "action": {
+      "submit_maker": "Submit",
+      "approve": "Approve",
+      "reject": "Reject",
+      "back": "Back"
+    },
+    "workflow": {
+      "task_context_missing_title": "Missing task context",
+      "task_context_missing_process": "Missing processInstanceKey — cannot claim the user task",
+      "task_context_missing_element": "Missing elementId (BPMN stage) — cannot claim the user task",
+      "task_context_missing_job_key": "Task claim did not return a jobKey",
+      "task_context_claim_failed": "Failed to claim the user task after 3 attempts",
+      "task_complete_success": "Task completed",
+      "task_complete_failed": "Failed to complete the task"
+    },
+    "contract": {
+      "missing": "No contract snapshot in the dossier"
+    }
+  },
+  "repay_plan": {
+    "title": "Repayment Plan",
+    "description": "Period-by-period principal/interest schedule of a credit contract (dossier repay_plans).",
+    "field": {
+      "contract": "Credit contract"
+    },
+    "placeholder": {
+      "contract": "Select a contract"
+    },
+    "pick_contract": "Select a contract to view its repayment plan",
+    "loading": "Loading...",
+    "load_failed": "Failed to load data",
+    "empty": "This contract has no repayment plan yet",
+    "count_badge": "{count} periods",
+    "col": {
+      "plan_no": "No.",
+      "to_date": "Due date",
+      "principal": "Principal due",
+      "outstanding": "Outstanding after",
+      "rate": "Rate (%)",
+      "interest": "Interest",
+      "total": "Total due"
+    }
+  }
 }

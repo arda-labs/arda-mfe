@@ -3,6 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAppQueryClient } from "@workspace/query/provider"
 import { notify } from "@workspace/ui/feedback/notify"
+import { navigateTo } from "@workspace/ui/shell/routing"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -14,7 +15,6 @@ import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { loanApi, type LoanContract } from "../api"
 import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { loanContractsListDefinition } from "./list-query"
-import { AdjustmentsSection } from "./components/AdjustmentsSection"
 import { ContractDialog } from "./components/ContractDialog"
 import { ContractDetailDialog } from "./components/ContractDetailDialog"
 
@@ -304,7 +304,19 @@ export function LoanPage(_props: { pathname: string }) {
       header={
         <>
           <p className="text-sm text-muted-foreground">{t("loan.description")}</p>
-          <AdjustmentsSection />
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">
+                {t("loan.adjustment_screen.index_title")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("loan.adjustment_screen.index_description")}
+              </p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => navigateTo("/loans/adjustments")}>
+              {t("loan.adjustment_screen.open")}
+            </Button>
+          </div>
         </>
       }
       dialogs={

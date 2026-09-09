@@ -26,7 +26,8 @@
     "org_unit": "Đơn vị",
     "case": "Case",
     "case_code": "Mã hồ sơ",
-    "created_at": "Ngày tạo"
+    "created_at": "Ngày tạo",
+    "note": "Ghi chú"
   },
   "status": {
     "draft": "Nháp",
@@ -147,6 +148,54 @@
     "waiver_percent": "Phần trăm miễn giảm",
     "reason": "Lý do",
     "result": "Kết quả kiểm tra"
+  },
+  "adjustment_screen": {
+    "index_title": "Điều chỉnh khoản vay",
+    "index_description": "Các luồng điều chỉnh theo EPAS — mỗi luồng một màn riêng với biểu mẫu riêng.",
+    "open": "Mở màn",
+    "tab_info": "Thông tin điều chỉnh",
+    "tab_list": "Danh sách điều chỉnh {{kind}}",
+    "action_create": "Tạo hồ sơ",
+    "created_with_case": "Đã tạo hồ sơ điều chỉnh — mã: {{case}}",
+    "status_all": "Tất cả",
+    "unknown_kind": "Không có luồng điều chỉnh \"{{kind}}\".",
+    "repay_plan_hint": "Chọn hợp đồng để xem kế hoạch trả nợ hiện hành.",
+    "no_repay_plan": "Hợp đồng chưa có kế hoạch trả nợ",
+    "kind_desc": {
+      "debt_change": "Chuyển hợp đồng giải ngân sang nhóm nợ mới theo tình trạng trả nợ.",
+      "rate_change": "Thay đổi lãi suất áp dụng cho hợp đồng giải ngân.",
+      "restructure": "Gia hạn — điều chỉnh kỳ hạn và ngày đáo hạn.",
+      "waiver": "Miễn/giảm lãi theo số tiền hoặc phần trăm.",
+      "writeoff": "Xử lý nợ — ghi giảm khoản vay.",
+      "recovery": "Thu hồi nợ theo hợp đồng giải ngân.",
+      "fund_check": "Kết luận kiểm tra sử dụng vốn vay.",
+      "revenue_allocation": "Phân bổ doanh thu cho hợp đồng.",
+      "vfu_fee_allocation": "Trích phí ủy thác theo kế hoạch VFU.",
+      "off_balance_export": "Xuất toán ngoại bảng theo hồ sơ.",
+      "mortgage_adjust": "Điều chỉnh thông tin tài sản bảo đảm."
+    },
+    "field": {
+      "apply_date": "Ngày áp dụng",
+      "effective_date": "Ngày hiệu lực",
+      "check_date": "Ngày kiểm tra"
+    },
+    "debt_group": {
+      "GROUP_1": "Nhóm 1 (Đang hoạt động)",
+      "GROUP_2": "Nhóm 2 (Cần chú ý)",
+      "GROUP_3": "Nhóm 3 (Dưới chuẩn)",
+      "GROUP_4": "Nhóm 4 (Nghi ngờ)",
+      "GROUP_5": "Nhóm 5 (Có khả năng mất vốn)"
+    },
+    "check_result": {
+      "PASS": "Đạt",
+      "FAIL": "Không đạt"
+    },
+    "placeholder": {
+      "contract": "Chọn hợp đồng",
+      "agreement": "Chọn thuận từ",
+      "rate": "VD: 8.5",
+      "percent": "VD: 50"
+    }
   },
   "collections": {
     "title": "Thu nợ",
@@ -393,5 +442,136 @@
   },
   "cancel": "Hủy",
   "status_active": "Hoạt động",
-  "status_inactive": "Ngưng"
+  "status_inactive": "Ngưng",
+  "formation": {
+    "title": "Hình thành khoản vay",
+    "description": "Quy trình hình thành khoản vay đa cấp (LNM.201.01) — hồ sơ, thẩm định và phê duyệt theo hạn mức.",
+    "view_only": "Chế độ xem",
+    "loading": "Đang tải hồ sơ...",
+    "load_failed": "Không thể tải work item / hồ sơ khoản vay",
+    "missing_contract": "Không xác định được hợp đồng gắn với work item này",
+    "tab": {
+      "proposal": "Hồ sơ đề nghị",
+      "appraisal": "Thẩm định",
+      "approval": "Phê duyệt",
+      "contract": "Hợp đồng"
+    },
+    "stage": {
+      "UT_MakerInput": "Nhập hồ sơ khoản vay",
+      "UT_TWRevalidate": "Tái thẩm định - Trung ương",
+      "UT_PGDReview": "Xem xét cấp Phó giám đốc",
+      "UT_GDReview": "Phê duyệt cấp Giám đốc",
+      "UT_BoardReview": "Phê duyệt Hội đồng tín dụng",
+      "unknown": "Chưa xác định",
+      "empty": "Chưa có dữ liệu giai đoạn này"
+    },
+    "variable": {
+      "amount": "Số tiền đề nghị vay",
+      "fund_source": "Nguồn vốn"
+    },
+    "proposal": {
+      "validation": "Số tiền, lãi suất và kỳ hạn phải lớn hơn 0",
+      "save_failed": "Không thể cập nhật hồ sơ khoản vay",
+      "field": {
+        "contract_no": "Số hợp đồng",
+        "loan_amt": "Số tiền vay",
+        "interest_rate": "Lãi suất (%/năm)",
+        "loan_term": "Kỳ hạn",
+        "term_unit": "Đơn vị kỳ hạn",
+        "contract_date": "Ngày hợp đồng",
+        "maturity_date": "Ngày đáo hạn",
+        "interest_schedule_day": "Ngày đáo hạn lãi",
+        "interest_payment_freq": "Kỳ trả lãi",
+        "principal_payment_freq": "Kỳ trả gốc",
+        "purpose_code": "Mã mục đích vay",
+        "employee_code": "Đơn vị quản lý",
+        "industry_code": "Mã ngành nghề",
+        "loan_method_code": "Mã phương thức cho vay"
+      },
+      "term_unit": {
+        "MONTH": "Tháng",
+        "WEEK": "Tuần",
+        "DAY": "Ngày"
+      },
+      "freq": {
+        "none": "Không xác định",
+        "MONTHLY": "Hàng tháng",
+        "QUARTERLY": "Hàng quý",
+        "SEMI_ANNUALLY": "Nửa năm một lần",
+        "ANNUALLY": "Hàng năm",
+        "AT_MATURITY": "Đáo hạn"
+      }
+    },
+    "appraisal": {
+      "validation": "Số thẩm định và ngày thẩm định là bắt buộc",
+      "field": {
+        "appraisal_number": "Số thẩm định",
+        "appraisal_date": "Ngày thẩm định",
+        "appraisal_officer": "Cán bộ thẩm định",
+        "appraisal_opinion": "Ý kiến thẩm định",
+        "appraisal_amount": "Số tiền thẩm định lại",
+        "appraisal_rate": "Lãi suất",
+        "appraisal_term": "Kỳ hạn"
+      }
+    },
+    "approval": {
+      "validation_number": "Số quyết định bắt buộc ở cấp {tier}",
+      "placeholder": {
+        "number_required": "Bắt buộc với cấp này"
+      },
+      "tier": {
+        "PGD": "Phó giám đốc",
+        "GD": "Giám đốc",
+        "BOARD": "Hội đồng tín dụng"
+      },
+      "field": {
+        "approval_officer": "Người phê duyệt",
+        "approval_number": "Số quyết định",
+        "approval_date": "Ngày phê duyệt",
+        "approval_comment": "Ý kiến phê duyệt"
+      }
+    },
+    "action": {
+      "submit_maker": "Trình duyệt",
+      "approve": "Phê duyệt",
+      "reject": "Từ chối",
+      "back": "Quay lại"
+    },
+    "workflow": {
+      "task_context_missing_title": "Thiếu ngữ cảnh công việc",
+      "task_context_missing_process": "Thiếu processInstanceKey — không thể nhận nhiệm vụ",
+      "task_context_missing_element": "Thiếu elementId (stage BPMN) — không thể nhận nhiệm vụ",
+      "task_context_missing_job_key": "Task không trả về jobKey",
+      "task_context_claim_failed": "Không nhận được nhiệm vụ sau 3 lần thử",
+      "task_complete_success": "Đã hoàn thành công việc",
+      "task_complete_failed": "Không thể hoàn thành công việc"
+    },
+    "contract": {
+      "missing": "Không có snapshot hợp đồng trong hồ sơ"
+    }
+  },
+  "repay_plan": {
+    "title": "Kế hoạch trả nợ",
+    "description": "Lịch trả nợ gốc/lãi theo kỳ của hợp đồng tín dụng (dossier repay_plans).",
+    "field": {
+      "contract": "Hợp đồng tín dụng"
+    },
+    "placeholder": {
+      "contract": "Chọn hợp đồng"
+    },
+    "pick_contract": "Chọn hợp đồng để xem kế hoạch trả nợ",
+    "loading": "Đang tải...",
+    "load_failed": "Không thể tải dữ liệu",
+    "empty": "Hợp đồng chưa có kế hoạch trả nợ",
+    "count_badge": "{count} kỳ",
+    "col": {
+      "plan_no": "STT",
+      "to_date": "Ngày kỳ",
+      "principal": "Gốc phải trả",
+      "outstanding": "Dư nợ sau kỳ",
+      "rate": "Lãi suất (%)",
+      "interest": "Tiền lãi",
+      "total": "Tổng phải trả"
+    }
+  }
 }
