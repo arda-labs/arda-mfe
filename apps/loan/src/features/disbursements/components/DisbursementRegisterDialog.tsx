@@ -88,7 +88,7 @@ export function DisbursementRegisterDialog({
         fund_source_code: form.fund_source_code || undefined,
         flow_type: "REGISTER",
       })
-      notify.success(t("loan.disbursements.created_draft"))
+      notify.success(t("loan.disbursements.created_draft"), t("loan.draft_created_hint"))
       onOpenChange(false)
       setForm({ ...emptyForm, disburse_date: todayISO() })
       await onSaved()

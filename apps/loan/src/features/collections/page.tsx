@@ -51,8 +51,12 @@ export function CollectionsPage(_props: { pathname: string }) {
   const submit = useCallback(
     async (item: LoanCollection) => {
       try {
-        await collectionApi.submit(item.id)
-        notify.success(t("loan.submitted"))
+        const updated = await collectionApi.submit(item.id)
+        notify.success(
+          updated.workflow_case_id
+            ? t("loan.submitted_with_case", { case: updated.workflow_case_id })
+            : t("loan.submitted")
+        )
       } catch (error) {
         notify.error(translateApiError(error, t("loan.submit_failed")))
       }
@@ -114,6 +118,25 @@ export function CollectionsPage(_props: { pathname: string }) {
         cell: ({ row }) => (
           <span className="whitespace-nowrap">{formatDateShort(row.original.collection_date)}</span>
         ),
+      },
+      {
+        id: "workflow_case_id",
+        accessorKey: "workflow_case_id",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.field.case")} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.workflow_case_id ? (
+            <span
+              className="block max-w-40 truncate font-mono text-xs text-muted-foreground"
+              title={row.original.workflow_case_id}
+            >
+              {row.original.workflow_case_id}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          ),
       },
       {
         id: "status",
@@ -191,7 +214,12 @@ export function CollectionsPage(_props: { pathname: string }) {
       onRetry={() => void refetch()}
       fetching={isFetching}
       table={table}
-      header={<p className="text-sm text-muted-foreground">{t("loan.collections.description")}</p>}
+      header={
+        <>
+          <p className="text-sm text-muted-foreground">{t("loan.collections.description")}</p>
+          <p className="text-xs text-muted-foreground">{t("loan.workbench_hint")}</p>
+        </>
+      }
       toolbar={
         <ListTableToolbar
           table={table}

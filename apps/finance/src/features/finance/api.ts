@@ -220,7 +220,15 @@ export interface PostingPreviewInput {
 
 // ── Posting cases (iteration 9 — bút toán lẻ / bút toán kép) ────────────────
 
-export type PostingFlow = "SINGLE_ENTRY" | "DOUBLE_ENTRY" | "OFF_BALANCE" | "CANCELLATION"
+export type PostingFlow =
+  | "SINGLE_ENTRY"
+  | "DOUBLE_ENTRY"
+  | "OFF_BALANCE"
+  | "CANCELLATION"
+  | "CLOSING"
+
+/** Kỳ kết chuyển (FAC.203.01): D = Ngày, M = Tháng, Q = Quý, Y = Năm. */
+export type ClosingPeriodType = "D" | "M" | "Q" | "Y"
 
 export interface PostingCaseLine {
   line_no: number
@@ -262,6 +270,32 @@ export interface CancellationRequest {
   trader: TraderInfo
 }
 
+/** One row of GET /api/finance/closing/accounts (unpaged list envelope). */
+export interface ClosingAccountRow {
+  acc_code: string
+  acc_name: string
+  acc_purpose: "INC" | "EXP"
+  acc_nature: string
+  balance_minor: number
+  closing_amount_minor: number
+}
+
+/** Closing body (FAC.203.01) — the BE builds the bút toán itself (INC →
+ * DEBIT tài khoản thu + CREDIT đích, EXP → CREDIT tài khoản chi + DEBIT
+ * đích); the FE sends only the per-account closing amounts, never lines. */
+export interface ClosingRequest {
+  idempotency_key?: string
+  accounting_date: string
+  period_type: ClosingPeriodType
+  description?: string
+  trader: TraderInfo
+  rows: {
+    acc_code: string
+    acc_purpose: "INC" | "EXP"
+    amount_minor: number
+  }[]
+}
+
 export interface PostingCaseCreated {
   case_id: string
   case_code: string
@@ -271,21 +305,44 @@ export interface PostingCaseCreated {
  * Manual posting cases (FAC): the BE validates structure per flow
  * (SINGLE_ENTRY = exactly 1 DEBIT + 1 CREDIT with equal amounts,
  * DOUBLE_ENTRY = balanced, OFF_BALANCE = N same-direction lines over
- * nature-B accounts, CANCELLATION = reversal reference) and routes the case
- * to the workbench for approval (FIN_SINGLE_ENTRY_V2 / FIN_DOUBLE_ENTRY_V2 /
- * FIN_OFF_BALANCE_V2 / FIN_TXN_CANCEL_V2).
+ * nature-B accounts, CANCELLATION = reversal reference, CLOSING =
+ * per-account closing rows) and routes the case to the workbench for
+ * approval (FIN_SINGLE_ENTRY_V2 / FIN_DOUBLE_ENTRY_V2 / FIN_OFF_BALANCE_V2 /
+ * FIN_TXN_CANCEL_V2 / FIN_CLOSING_V2).
  */
 export const postingCaseApi = {
   create: (
     flow: PostingFlow,
-    request: { posting_request?: PostingCaseRequest; cancellation_request?: CancellationRequest },
+    request: {
+      posting_request?: PostingCaseRequest
+      cancellation_request?: CancellationRequest
+      closing_request?: ClosingRequest
+    },
   ) =>
     api
       .post<ApiSuccess<PostingCaseCreated>>("/api/finance/posting-cases", {
         flow,
         posting_request: request.posting_request,
         cancellation_request: request.cancellation_request,
+        closing_request: request.closing_request,
       })
+      .then((res) => res.result),
+}
+
+/**
+ * Closing accounts (FAC.203.01) — GET /api/finance/closing/accounts returns
+ * the closable account set for one accounting date (unpaged standard list
+ * envelope; read `.items`). Every returned row is closed at
+ * `closing_amount_minor` — the tab-2 table is read-only, no selection.
+ */
+export const closingApi = {
+  accounts: (accountingDate: string) =>
+    api
+      .get<ApiSuccess<ListResponse<ClosingAccountRow>>>(
+        `/api/finance/closing/accounts?${buildSearchParams({
+          accounting_date: accountingDate,
+        }).toString()}`
+      )
       .then((res) => res.result),
 }
 

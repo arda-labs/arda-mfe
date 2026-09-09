@@ -76,6 +76,16 @@ const CancellationPostingInitPage = lazyWithPreload(() =>
     default: m.CancellationPostingInitPage,
   }))
 )
+const ClosingPostingPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/closing/page").then((m) => ({
+    default: m.ClosingPostingPage,
+  }))
+)
+const ClosingPostingInitPage = lazyWithPreload(() =>
+  import("@/features/finance/posting/closing/init").then((m) => ({
+    default: m.ClosingPostingInitPage,
+  }))
+)
 
 async function preload(pathname = "") {
   let page = AccountsPage
@@ -93,6 +103,8 @@ async function preload(pathname = "") {
   else if (pathname.startsWith("/finance/posting/off-balance")) page = OffBalancePostingPage
   if (pathname.startsWith("/finance/posting/cancellation/init")) page = CancellationPostingInitPage
   else if (pathname.startsWith("/finance/posting/cancellation")) page = CancellationPostingPage
+  if (pathname.startsWith("/finance/posting/closing/init")) page = ClosingPostingInitPage
+  else if (pathname.startsWith("/finance/posting/closing")) page = ClosingPostingPage
   await page.preload()
 }
 
@@ -127,6 +139,12 @@ function RemoteRoutes() {
     page = <CancellationPostingInitPage />
   } else if (pathname.startsWith("/finance/posting/cancellation")) {
     page = <CancellationPostingPage />
+  }
+  // Init branches before list branches — same prefix, init is the longer path.
+  if (pathname.startsWith("/finance/posting/closing/init")) {
+    page = <ClosingPostingInitPage />
+  } else if (pathname.startsWith("/finance/posting/closing")) {
+    page = <ClosingPostingPage />
   }
 
   return (

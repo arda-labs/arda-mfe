@@ -37,6 +37,11 @@ const FLOW_META: Record<PostingFlow, { titleKey: string; createPath: string; cre
     createPath: "/finance/posting/cancellation/init",
     createKey: "finance.posting.cancellation.action.create",
   },
+  CLOSING: {
+    titleKey: "finance.posting.closing.title",
+    createPath: "/finance/posting/closing/init",
+    createKey: "finance.posting.closing.action.create",
+  },
 }
 
 /**

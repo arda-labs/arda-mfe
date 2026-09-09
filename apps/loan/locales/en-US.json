@@ -18,8 +18,14 @@
     "effective_date": "Effective date",
     "contract_no": "Contract no.",
     "product": "Product",
-    "term": "Term (months)",
-    "agreement_code": "Agreement code"
+    "term": "Term",
+    "agreement_code": "Agreement code",
+    "interest_rate": "Interest rate",
+    "contract_date": "Contract date",
+    "maturity_date": "Maturity date",
+    "org_unit": "Org unit",
+    "case": "Case",
+    "created_at": "Created at"
   },
   "status": {
     "draft": "Draft",
@@ -27,12 +33,49 @@
     "approved": "Approved",
     "posted": "Posted",
     "rejected": "Rejected",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "pending": "Pending",
+    "active": "Active",
+    "closed": "Closed"
   },
   "count_badge": "{count} records",
   "retry": "Retry",
   "reload": "Reload",
   "adjustments_hint": "Pick an adjustment kind and press Reload to load its flows.",
+  "submitted_with_case": "Submitted — case: {{case}}",
+  "workbench_hint": "Track and approve the cases in the Workbench (Workbench menu).",
+  "draft_created_hint": "The record is in DRAFT — submit it through the Workbench to run the posting.",
+  "detail": {
+    "action": "Detail",
+    "description": "Credit contract header and the loan formation case status.",
+    "pending_hint": "The contract is awaiting approval — follow the progress in the Workbench.",
+    "rejected_hint": "The contract was rejected — see the decision note in the Workbench, adjust and recreate the contract.",
+    "open_disbursements": "Disbursements",
+    "open_collections": "Collections"
+  },
+  "adjustment_create": {
+    "action": "New adjustment",
+    "title": "New adjustment flow",
+    "description": "Create a DRAFT record for the adjustment flow; submit it from the list above."
+  },
+  "adjustment_validation": {
+    "contract_required": "Enter the contract code",
+    "agreement_required": "This flow requires the disbursement agreement code",
+    "amount_required": "This flow requires an amount",
+    "amount_or_percent_required": "Enter the amount or the waiver percentage",
+    "payload_required": "A required flow field is missing"
+  },
+  "adjustment_created": "Adjustment flow created (DRAFT)",
+  "adjustment_create_failed": "Failed to create the adjustment flow",
+  "adjustment_field": {
+    "to_debt_group_code": "New debt group",
+    "new_rate": "New rate (%/year)",
+    "new_term": "New term",
+    "new_maturity_date": "New maturity date",
+    "waiver_percent": "Waiver percentage",
+    "reason": "Reason",
+    "result": "Check result"
+  },
   "collections": {
     "title": "Collections",
     "description": "Principal + interest receipts per agreement; submitted through the workbench — the posting is journaled automatically after approval.",
@@ -120,7 +163,8 @@
     "fund_check": "Fund usage check",
     "revenue_allocation": "Revenue allocation",
     "vfu_fee_allocation": "VFU fee allocation",
-    "off_balance_export": "Off-balance export"
+    "off_balance_export": "Off-balance export",
+    "mortgage_adjust": "Mortgage adjustment"
   },
   "loan_products": {
     "title": "Credit products",

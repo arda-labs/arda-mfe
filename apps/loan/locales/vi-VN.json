@@ -18,8 +18,14 @@
     "effective_date": "Hiệu lực",
     "contract_no": "Số hợp đồng",
     "product": "Sản phẩm",
-    "term": "Kỳ hạn (tháng)",
-    "agreement_code": "Mã hợp đồng giải ngân"
+    "term": "Kỳ hạn",
+    "agreement_code": "Mã hợp đồng giải ngân",
+    "interest_rate": "Lãi suất",
+    "contract_date": "Ngày hợp đồng",
+    "maturity_date": "Ngày đáo hạn",
+    "org_unit": "Đơn vị",
+    "case": "Case",
+    "created_at": "Ngày tạo"
   },
   "status": {
     "draft": "Nháp",
@@ -27,12 +33,49 @@
     "approved": "Đã duyệt",
     "posted": "Đã định khoản",
     "rejected": "Từ chối",
-    "cancelled": "Đã hủy"
+    "cancelled": "Đã hủy",
+    "pending": "Chờ duyệt",
+    "active": "Hoạt động",
+    "closed": "Đã đóng"
   },
   "count_badge": "{count} bản ghi",
   "retry": "Thử lại",
   "reload": "Tải lại",
   "adjustments_hint": "Chọn loại điều chỉnh rồi bấm Tải lại để xem các flow.",
+  "submitted_with_case": "Đã trình duyệt — case: {{case}}",
+  "workbench_hint": "Theo dõi và duyệt các case tại Workbench (menu Workbench).",
+  "draft_created_hint": "Bản ghi ở trạng thái DRAFT — trình duyệt qua Workbench để chạy bút toán.",
+  "detail": {
+    "action": "Chi tiết",
+    "description": "Thông tin hợp đồng tín dụng và trạng thái case hình thành khoản vay.",
+    "pending_hint": "Hợp đồng đang chờ duyệt — xem tiến trình tại Workbench.",
+    "rejected_hint": "Hợp đồng bị từ chối — xem ghi chú quyết định tại Workbench, điều chỉnh rồi tạo lại hợp đồng.",
+    "open_disbursements": "Giải ngân",
+    "open_collections": "Thu nợ"
+  },
+  "adjustment_create": {
+    "action": "Tạo điều chỉnh",
+    "title": "Tạo flow điều chỉnh",
+    "description": "Tạo bản ghi DRAFT cho flow điều chỉnh; trình duyệt từ danh sách phía trên."
+  },
+  "adjustment_validation": {
+    "contract_required": "Nhập mã hợp đồng",
+    "agreement_required": "Flow này yêu cầu mã hợp đồng giải ngân",
+    "amount_required": "Flow này yêu cầu số tiền",
+    "amount_or_percent_required": "Nhập số tiền hoặc phần trăm miễn giảm",
+    "payload_required": "Thiếu trường bắt buộc của flow"
+  },
+  "adjustment_created": "Đã tạo flow điều chỉnh (DRAFT)",
+  "adjustment_create_failed": "Không thể tạo flow điều chỉnh",
+  "adjustment_field": {
+    "to_debt_group_code": "Nhóm nợ mới",
+    "new_rate": "Lãi suất mới (%/năm)",
+    "new_term": "Kỳ hạn mới",
+    "new_maturity_date": "Ngày đáo hạn mới",
+    "waiver_percent": "Phần trăm miễn giảm",
+    "reason": "Lý do",
+    "result": "Kết quả kiểm tra"
+  },
   "collections": {
     "title": "Thu nợ",
     "description": "Thu gốc + lãi theo hợp đồng giải ngân; trình duyệt qua workbench — duyệt xong bút toán tự post.",
@@ -120,7 +163,8 @@
     "fund_check": "Kiểm tra sử dụng vốn",
     "revenue_allocation": "Phân bổ doanh thu",
     "vfu_fee_allocation": "Trích phí ủy thác",
-    "off_balance_export": "Xuất toán ngoại bảng"
+    "off_balance_export": "Xuất toán ngoại bảng",
+    "mortgage_adjust": "Điều chỉnh tài sản bảo đảm"
   },
   "loan_products": {
     "title": "Sản phẩm tín dụng",

@@ -81,7 +81,7 @@ export function CollectionCreateDialog({
         interest_minor: interestMinor,
         currency_code: form.currency_code,
       })
-      notify.success(t("loan.collections.created_draft"))
+      notify.success(t("loan.collections.created_draft"), t("loan.draft_created_hint"))
       onOpenChange(false)
       setForm({ ...emptyForm, collection_date: todayISO() })
       await onSaved()
@@ -148,6 +148,16 @@ export function CollectionCreateDialog({
                 type="date"
                 value={form.collection_date}
                 onChange={(e) => setForm((c) => ({ ...c, collection_date: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>{t("loan.disbursements.field.currency")}</Label>
+              <Input
+                value={form.currency_code}
+                maxLength={3}
+                onChange={(e) => setForm((c) => ({ ...c, currency_code: e.target.value.toUpperCase() }))}
               />
             </div>
           </div>

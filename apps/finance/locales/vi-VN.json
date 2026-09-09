@@ -204,6 +204,47 @@
         "create_failed": "Không thể tạo case ngoại bảng"
       }
     },
+    "closing": {
+      "title": "Kết chuyển thu chi",
+      "init_title": "Tạo kết chuyển thu chi",
+      "tab_info": "Thông tin kết chuyển",
+      "tab_accounts": "Danh sách tài khoản kết chuyển",
+      "period": "Kỳ kết chuyển",
+      "period_day": "Ngày",
+      "period_month": "Tháng",
+      "period_quarter": "Quý",
+      "period_year": "Năm",
+      "business_result": "Kết quả kinh doanh",
+      "total_income": "Tổng thu",
+      "total_expense": "Tổng chi",
+      "get_data": "Lấy dữ liệu",
+      "accounts_hint": "Mọi tài khoản có số dư đều được kết chuyển (số tiền kết chuyển = số dư).",
+      "not_loaded": "Chưa có dữ liệu tài khoản — bấm Lấy dữ liệu hoặc đổi kỳ kết chuyển.",
+      "empty": "Không có tài khoản cần kết chuyển cho ngày giao dịch này",
+      "col_code": "Mã TK",
+      "col_name": "Tên TK",
+      "col_purpose": "Mục đích",
+      "col_nature": "Nature",
+      "col_balance": "Số dư",
+      "col_closing_amount": "Số tiền kết chuyển",
+      "purpose_income": "Thu",
+      "purpose_expense": "Chi",
+      "description_auto": "Kết chuyển thu chi kỳ {period} — {date}",
+      "placeholder": {
+        "description": "Kết chuyển thu chi kỳ..."
+      },
+      "validation": {
+        "rows_required": "Không có dòng kết chuyển nào — cần lấy dữ liệu tài khoản trước"
+      },
+      "action": {
+        "create": "Tạo kết chuyển thu chi"
+      },
+      "notify": {
+        "created": "Đã tạo case kết chuyển thu chi {case_code}, chờ duyệt",
+        "create_failed": "Không thể tạo case kết chuyển thu chi",
+        "load_failed": "Không thể tải danh sách tài khoản kết chuyển"
+      }
+    },
     "object": {
       "title": "Thông tin đối tượng",
       "object_type": "Loại đối tượng",

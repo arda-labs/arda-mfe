@@ -476,17 +476,54 @@ function filterWorkItemsByNode(items: WorkItem[], node: string) {
   )
 }
 
+/**
+ * Case type → target screen, deep-linked the CRM way:
+ * `?workItemId=...&returnUrl=...` (+ `&mode=view` for outgoing / search so
+ * the screen opens read-only). Unmapped case types fall back to the
+ * case-code workbench URL.
+ *
+ * LIMITATION: the finance posting lists and the loans hub do NOT read
+ * `workItemId` — approve/reject still happens inside the workbench. The
+ * mapping only routes the user to the right domain list; when finance/loan
+ * grow dedicated per-flow detail screens, refine the targets (and read the
+ * work-item params there).
+ */
+const CASE_TYPE_HREF: Record<string, string> = {
+  // CRM (deep-link fully consumed by the registration/adjustment screens).
+  CUSTOMER_REGISTRATION: "/customers/registrations",
+  CUSTOMER_ADJUSTMENT: "/customers/adjustments",
+  // Finance manual posting flows — domain list screens (no workItemId read).
+  FIN_SINGLE_ENTRY_V2: "/finance/posting/single-entry",
+  FIN_DOUBLE_ENTRY_V2: "/finance/posting/double-entry",
+  FIN_OFF_BALANCE_V2: "/finance/posting/off-balance",
+  FIN_TXN_CANCEL_V2: "/finance/posting/cancellation",
+  FIN_CLOSING_V2: "/finance/posting/closing",
+  // Loan flows all land on the /loans hub today — loan có màn riêng từng
+  // flow thì refine đích tại đây.
+  LOAN_FORMATION_V2: "/loans",
+  LNM_DISB_REGISTER_V2: "/loans",
+  LNM_DISB_COMPLETE_V2: "/loans",
+  LNM_COLLECTION_V2: "/loans",
+  LNM_DEBT_CHANGE_V2: "/loans",
+  LNM_RATE_CHANGE_V2: "/loans",
+  LNM_RESTRUCTURE_V2: "/loans",
+  LNM_WAIVER_V2: "/loans",
+  LNM_WRITEOFF_V2: "/loans",
+  LNM_RECOVERY_V2: "/loans",
+  LNM_FUND_CHECK_V2: "/loans",
+  LNM_REVENUE_ALLOCATION_V2: "/loans",
+  LNM_VFU_FEE_ALLOCATION_V2: "/loans",
+  LNM_OFF_BALANCE_EXPORT_V2: "/loans",
+}
+
 function workItemHref(
   item: WorkItem,
   direction: WorkbenchDirection,
   viewOnly = direction === "outgoing"
 ) {
   const returnUrl = window.location.pathname + window.location.search
-  if (
-    (item.caseType === "CUSTOMER_REGISTRATION" ||
-      item.caseType === "CUSTOMER_ADJUSTMENT") &&
-    item.id
-  ) {
+  const targetPath = item.caseType ? CASE_TYPE_HREF[item.caseType] : undefined
+  if (targetPath && item.id) {
     const search = new URLSearchParams({
       workItemId: item.id,
       returnUrl,
@@ -494,11 +531,7 @@ function workItemHref(
     if (viewOnly) {
       search.set("mode", "view")
     }
-    const path =
-      item.caseType === "CUSTOMER_ADJUSTMENT"
-        ? "/customers/adjustments"
-        : "/customers/registrations"
-    return `${path}?${search.toString()}`
+    return `${targetPath}?${search.toString()}`
   }
   return (
     caseCodeHref(direction, item.caseCode) +

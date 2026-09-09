@@ -204,6 +204,47 @@
         "create_failed": "Could not create the off-balance case"
       }
     },
+    "closing": {
+      "title": "Income & expense closing",
+      "init_title": "New income & expense closing",
+      "tab_info": "Closing information",
+      "tab_accounts": "Closing account list",
+      "period": "Closing period",
+      "period_day": "Day",
+      "period_month": "Month",
+      "period_quarter": "Quarter",
+      "period_year": "Year",
+      "business_result": "Business result",
+      "total_income": "Total income",
+      "total_expense": "Total expense",
+      "get_data": "Fetch data",
+      "accounts_hint": "Every account with a balance is closed (closing amount = balance).",
+      "not_loaded": "No account data yet — press Fetch data or change the closing period.",
+      "empty": "No accounts to close for this transaction date",
+      "col_code": "Account code",
+      "col_name": "Account name",
+      "col_purpose": "Purpose",
+      "col_nature": "Nature",
+      "col_balance": "Balance",
+      "col_closing_amount": "Closing amount",
+      "purpose_income": "Income",
+      "purpose_expense": "Expense",
+      "description_auto": "Income & expense closing, {period} period — {date}",
+      "placeholder": {
+        "description": "Income & expense closing period..."
+      },
+      "validation": {
+        "rows_required": "No closing rows — fetch the account data first"
+      },
+      "action": {
+        "create": "New income & expense closing"
+      },
+      "notify": {
+        "created": "Closing case {case_code} created, pending approval",
+        "create_failed": "Could not create the closing case",
+        "load_failed": "Failed to load the closing account list"
+      }
+    },
     "object": {
       "title": "Object information",
       "object_type": "Object type",

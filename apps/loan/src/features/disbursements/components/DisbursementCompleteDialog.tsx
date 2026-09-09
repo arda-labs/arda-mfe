@@ -109,7 +109,7 @@ export function DisbursementCompleteDialog({
         flow_type: "COMPLETE",
         source_register_id: source.id,
       })
-      notify.success(t("loan.disbursements.complete.created"))
+      notify.success(t("loan.disbursements.complete.created"), t("loan.draft_created_hint"))
       onOpenChange(false)
       reset()
       await onSaved()

@@ -32,6 +32,7 @@ const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
   DOUBLE_ENTRY: "FIN_DOUBLE_ENTRY",
   OFF_BALANCE: "FIN_OFF_BALANCE",
   CANCELLATION: "FIN_TXN_CANCEL",
+  CLOSING: "FIN_CLOSING",
 }
 
 const FLOW_LIST_PATH: Record<PostingFlow, string> = {
@@ -39,6 +40,7 @@ const FLOW_LIST_PATH: Record<PostingFlow, string> = {
   DOUBLE_ENTRY: "/finance/posting/double-entry",
   OFF_BALANCE: "/finance/posting/off-balance",
   CANCELLATION: "/finance/posting/cancellation",
+  CLOSING: "/finance/posting/closing",
 }
 
 function initialRows(flow: PostingFlow): EntryLineRow[] {
