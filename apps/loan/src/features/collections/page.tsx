@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
+import { useNavigate } from "react-router-dom"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -12,12 +13,11 @@ import {
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Plus } from "lucide-react"
 import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
 import { collectionApi, type LoanCollection } from "../api"
 import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { collectionsListDefinition } from "./list-query"
-import { CollectionCreateDialog } from "./components/CollectionCreateDialog"
 
 const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   DRAFT: "outline",
@@ -35,7 +35,7 @@ const STATUS_VALUES = ["DRAFT", "SUBMITTED", "APPROVED", "POSTED", "REJECTED", "
  * adopted ParseListRequest (q ILIKE + sort whitelist + SQL paging). */
 export function CollectionsPage(_props: { pathname: string }) {
   const { t } = useI18n()
-  const [createOpen, setCreateOpen] = useState(false)
+  const navigate = useNavigate()
 
   const statusLabels = useMemo<Record<string, string>>(
     () => ({
@@ -232,18 +232,15 @@ export function CollectionsPage(_props: { pathname: string }) {
         </>
       }
       toolbar={
-        <ListTableToolbar
-          table={table}
-          onCreate={() => setCreateOpen(true)}
-          createLabel={t("loan.collections.create")}
-        />
-      }
-      dialogs={
-        <CollectionCreateDialog
-          open={createOpen}
-          onOpenChange={setCreateOpen}
-          onSaved={() => void refetch()}
-        />
+        <ListTableToolbar table={table}>
+          <Button
+            onClick={() => navigate("/loans/collections/new")}
+            className="h-8 px-3 text-xs font-semibold"
+          >
+            <Plus className="mr-1 size-3.5" />
+            {t("loan.collections.batch_create_action")}
+          </Button>
+        </ListTableToolbar>
       }
     />
   )

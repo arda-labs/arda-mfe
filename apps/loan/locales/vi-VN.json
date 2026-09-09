@@ -41,6 +41,77 @@
   },
   "count_badge": "{count} bản ghi",
   "retry": "Thử lại",
+  "batch": {
+    "status_draft": "Nháp",
+    "action": {
+      "submit": "Tạo hồ sơ"
+    },
+    "validation": {
+      "date_required": "Ngày hạch toán không hợp lệ"
+    },
+    "object": {
+      "title": "Thông tin đối tượng",
+      "object_type": "Loại đối tượng",
+      "object_code": "Mã đối tượng",
+      "object_name": "Tên đối tượng",
+      "id_number": "Số CMND/CCCD",
+      "issue_date": "Ngày cấp",
+      "issue_place": "Nơi cấp",
+      "address": "Địa chỉ",
+      "type_employee": "Nhân viên",
+      "type_customer": "Khách hàng",
+      "type_other": "Khác"
+    },
+    "control": {
+      "title": "Thông tin kiểm soát",
+      "unit": "Đơn vị",
+      "status": "Trạng thái",
+      "entered_at": "Ngày nhập",
+      "entered_by": "Người nhập"
+    }
+  },
+  "batch_grid": {
+    "col_contract": "Số HĐ",
+    "col_from": "Thuận từ",
+    "col_customer": "Khách hàng",
+    "remove_row": "Xoá dòng",
+    "plan_label": "Mã phương án: {plan}",
+    "no_plan": "Chưa phân phương án",
+    "group_total": "Tổng nhóm",
+    "remove_group": "Xoá nhóm",
+    "total_label": "Tổng hồ sơ"
+  },
+  "contract_picker": {
+    "title": "Chọn hợp đồng tín dụng",
+    "search": "Tìm kiếm",
+    "search_placeholder": "Số hợp đồng / mã khách hàng",
+    "col_contract": "Số HĐ",
+    "col_customer": "Khách hàng",
+    "col_loan_amount": "Số tiền đề nghị vay",
+    "col_agreement": "Hợp đồng giải ngân",
+    "col_limit": "Hạn mức giải ngân",
+    "col_outstanding": "Đã giải ngân",
+    "col_pending": "Đang chờ",
+    "col_plan": "Khu vực/Phương án",
+    "choose": "Chọn",
+    "done": "Thêm vào hồ sơ",
+    "picked_count": "Đã chọn {count} dòng",
+    "clear_picked": "Xoá hết",
+    "expand_hint": "Bấm vào dòng hợp đồng để xem các hợp đồng giải ngân.",
+    "empty": "Không có dữ liệu",
+    "no_agreements": "Hợp đồng chưa có hợp đồng giải ngân"
+  },
+  "posting_preview": {
+    "title": "Bút toán dự kiến",
+    "col_direction": "Nợ/Có",
+    "col_account": "Tài khoản",
+    "col_resolution": "Phân giải",
+    "col_classification": "Classification",
+    "debit": "Nợ",
+    "credit": "Có",
+    "empty": "Chưa khai báo quy tắc định khoản",
+    "load_failed": "Không tải được bút toán dự kiến"
+  },
   "reload": "Tải lại",
   "adjustments_hint": "Chọn loại điều chỉnh rồi bấm Tải lại để xem các flow.",
   "submitted_with_case": "Đã trình duyệt — case: {{case}}",
@@ -81,6 +152,29 @@
     "title": "Thu nợ",
     "description": "Thu gốc + lãi theo hợp đồng giải ngân; trình duyệt qua workbench — duyệt xong bút toán tự post.",
     "create": "Thêm thu nợ",
+    "batch_create_action": "Tạo thu nợ",
+    "batch": {
+      "title": "Thu nợ (gốc + lãi)",
+      "description": "Hồ sơ thu nợ theo phương án: chọn hợp đồng giải ngân, nhập gốc/lãi từng dòng; trình duyệt qua workbench — duyệt xong bút toán tự post.",
+      "tab_info": "Thông tin thu nợ",
+      "field": {
+        "txn_date": "Ngày thu"
+      },
+      "description_auto": "Thu nợ ngày {date}",
+      "contracts_hint": "Grid gom nhóm theo Mã phương án; tổng hồ sơ bằng tổng (gốc + lãi + lãi quá hạn) của các dòng.",
+      "empty": "Chưa có dòng — bấm Chọn hợp đồng để thêm.",
+      "col_principal": "Số tiền gốc",
+      "col_interest": "Lãi trong hạn",
+      "col_overdue_interest": "Lãi quá hạn",
+      "outstanding_hint": "Dư nợ gốc: {amount}",
+      "validation": {
+        "rows_required": "Thêm ít nhất một dòng hợp đồng",
+        "amounts_required": "Dòng {row}: nhập ít nhất một khoản (gốc/lãi/lãi quá hạn)",
+        "principal_exceeds_outstanding": "Dòng {row}: số tiền gốc vượt dư nợ gốc"
+      },
+      "created": "Đã tạo hồ sơ thu nợ — case: {case}",
+      "create_failed": "Không thể tạo hồ sơ thu nợ"
+    },
     "dialog_description": "Thu gốc + lãi theo hợp đồng giải ngân. Sau khi tạo, trình duyệt qua workbench — duyệt xong bút toán tự post.",
     "created_draft": "Đã tạo phiếu thu nợ (DRAFT)",
     "create_failed": "Không thể tạo thu nợ",
@@ -99,6 +193,67 @@
     "title": "Giải ngân",
     "description": "Khởi tạo và hoàn tất giải ngân, trình duyệt qua workbench; duyệt xong bút toán tự post vào kế toán.",
     "create": "Thêm giải ngân",
+    "batch_register_action": "Đăng ký giải ngân",
+    "batch": {
+      "register_title": "Đăng ký giải ngân",
+      "register_description": "Hồ sơ giải ngân theo phương án: mỗi dòng một hợp đồng với số tiền riêng; tổng hồ sơ bằng tổng các dòng.",
+      "complete_title": "Hoàn tất giải ngân",
+      "complete_description": "Rút vốn theo phiếu đăng ký giải ngân đã POSTED; dòng Đóng HĐ có số tiền bằng 0.",
+      "tab_info": "Thông tin giải ngân",
+      "field": {
+        "txn_date": "Ngày giải ngân",
+        "payment_method": "Hình thức hạch toán",
+        "account_code": "Tài khoản"
+      },
+      "payment": {
+        "transfer": "Chuyển khoản",
+        "cash": "Tiền mặt"
+      },
+      "placeholder": {
+        "account_code": "Mã tài khoản ngân hàng",
+        "account_cash": "Không áp dụng với tiền mặt"
+      },
+      "description_auto": "Giải ngân theo hồ sơ ngày {date}",
+      "complete_tab_info": "Thông tin hoàn tất",
+      "tab_contracts": "Danh sách hợp đồng tín dụng",
+      "complete_field_txn_date": "Ngày hoàn tất",
+      "complete_description_auto": "Hoàn tất giải ngân phiếu {case}",
+      "source_label": "Phiếu đăng ký giải ngân (gốc)",
+      "source_placeholder": "Chọn phiếu đã POSTED",
+      "source_value": "{case} — {date} — {amount}",
+      "no_source_hint": "Chọn phiếu đăng ký giải ngân ở tab Thông tin hoàn tất để xem các dòng.",
+      "rows_hint": "Số tiền hoàn tất mặc định bằng phiếu gốc và không vượt phiếu gốc; tick Đóng HĐ để đóng hợp đồng (số tiền = 0).",
+      "contracts_hint": "Thêm dòng qua Chọn hợp đồng; grid gom nhóm theo Mã phương án; tổng hồ sơ bằng tổng các dòng.",
+      "empty": "Chưa có dòng — bấm Chọn hợp đồng để thêm.",
+      "add_contracts": "Chọn hợp đồng",
+      "col_amount": "Số tiền giải ngân",
+      "col_initial_amount": "Số tiền phiếu gốc",
+      "col_complete_amount": "Số tiền hoàn tất",
+      "col_is_closed": "Đóng HĐ",
+      "headroom_hint": "Còn có thể giải ngân: {amount}",
+      "source_dialog": {
+        "title": "Chọn phiếu đăng ký giải ngân",
+        "search": "Tìm kiếm",
+        "search_placeholder": "Mã hồ sơ / diễn giải",
+        "col_case": "Mã hồ sơ",
+        "col_date": "Ngày",
+        "col_method": "Hình thức",
+        "col_total": "Tổng tiền",
+        "detail_failed": "Không tải được dòng của phiếu gốc"
+      },
+      "validation": {
+        "rows_required": "Thêm ít nhất một dòng hợp đồng",
+        "account_required": "Hình thức chuyển khoản yêu cầu mã tài khoản",
+        "amount_positive": "Dòng {row}: số tiền giải ngân phải lớn hơn 0",
+        "headroom_exceeded": "Dòng {row}: số tiền vượt hạn mức còn được giải ngân",
+        "amount_exceeds_initial": "Dòng {row}: số tiền hoàn tất vượt số tiền phiếu gốc",
+        "source_required": "Chọn phiếu đăng ký giải ngân gốc đã POSTED"
+      },
+      "created": "Đã tạo hồ sơ giải ngân — case: {case}",
+      "create_failed": "Không thể tạo hồ sơ giải ngân",
+      "complete_created": "Đã tạo hồ sơ hoàn tất giải ngân — case: {case}",
+      "complete_failed": "Không thể tạo hồ sơ hoàn tất giải ngân"
+    },
     "dialog_description": "Chọn hợp đồng ACTIVE, nhập số tiền giải ngân. Sau khi tạo, trình duyệt qua workbench — duyệt xong bút toán tự post.",
     "created_draft": "Đã tạo phiếu giải ngân (DRAFT)",
     "create_failed": "Không thể tạo giải ngân",

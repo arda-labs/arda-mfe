@@ -41,6 +41,77 @@
   },
   "count_badge": "{count} records",
   "retry": "Retry",
+  "batch": {
+    "status_draft": "Draft",
+    "action": {
+      "submit": "Create batch"
+    },
+    "validation": {
+      "date_required": "Accounting date is invalid"
+    },
+    "object": {
+      "title": "Object info",
+      "object_type": "Object type",
+      "object_code": "Object code",
+      "object_name": "Object name",
+      "id_number": "ID number",
+      "issue_date": "Issue date",
+      "issue_place": "Issue place",
+      "address": "Address",
+      "type_employee": "Employee",
+      "type_customer": "Customer",
+      "type_other": "Other"
+    },
+    "control": {
+      "title": "Control info",
+      "unit": "Unit",
+      "status": "Status",
+      "entered_at": "Entered at",
+      "entered_by": "Entered by"
+    }
+  },
+  "batch_grid": {
+    "col_contract": "Contract no.",
+    "col_from": "Effective from",
+    "col_customer": "Customer",
+    "remove_row": "Remove row",
+    "plan_label": "Plan code: {plan}",
+    "no_plan": "No plan assigned",
+    "group_total": "Group total",
+    "remove_group": "Remove group",
+    "total_label": "Batch total"
+  },
+  "contract_picker": {
+    "title": "Choose credit contract",
+    "search": "Search",
+    "search_placeholder": "Contract no. / customer code",
+    "col_contract": "Contract no.",
+    "col_customer": "Customer",
+    "col_loan_amount": "Proposed loan amount",
+    "col_agreement": "Disbursement agreement",
+    "col_limit": "Disbursement limit",
+    "col_outstanding": "Disbursed",
+    "col_pending": "Pending",
+    "col_plan": "Area / Plan",
+    "choose": "Choose",
+    "done": "Add to batch",
+    "picked_count": "{count} rows picked",
+    "clear_picked": "Clear all",
+    "expand_hint": "Click a contract row to list its disbursement agreements.",
+    "empty": "No data",
+    "no_agreements": "This contract has no disbursement agreements yet"
+  },
+  "posting_preview": {
+    "title": "Expected postings",
+    "col_direction": "Dr/Cr",
+    "col_account": "Account",
+    "col_resolution": "Resolution",
+    "col_classification": "Classification",
+    "debit": "Debit",
+    "credit": "Credit",
+    "empty": "No posting rules declared",
+    "load_failed": "Failed to load expected postings"
+  },
   "reload": "Reload",
   "adjustments_hint": "Pick an adjustment kind and press Reload to load its flows.",
   "submitted_with_case": "Submitted — case: {{case}}",
@@ -81,6 +152,29 @@
     "title": "Collections",
     "description": "Principal + interest receipts per agreement; submitted through the workbench — the posting is journaled automatically after approval.",
     "create": "New collection",
+    "batch_create_action": "New collection batch",
+    "batch": {
+      "title": "Collection (principal + interest)",
+      "description": "Collection batch by plan: pick disbursement agreements and enter principal/interest per row; submit through the workbench — the posting is journaled automatically once approved.",
+      "tab_info": "Collection information",
+      "field": {
+        "txn_date": "Collection date"
+      },
+      "description_auto": "Debt collection on {date}",
+      "contracts_hint": "Rows group by plan code; the batch total equals the sum of (principal + interest + overdue interest) of the rows.",
+      "empty": "No rows yet — use Choose contracts to add.",
+      "col_principal": "Principal amount",
+      "col_interest": "Interest (in term)",
+      "col_overdue_interest": "Overdue interest",
+      "outstanding_hint": "Outstanding principal: {amount}",
+      "validation": {
+        "rows_required": "Add at least one contract row",
+        "amounts_required": "Row {row}: enter at least one of principal/interest/overdue interest",
+        "principal_exceeds_outstanding": "Row {row}: principal exceeds the outstanding balance"
+      },
+      "created": "Collection batch created — case: {case}",
+      "create_failed": "Failed to create the collection batch"
+    },
     "dialog_description": "Collect principal + interest per disbursement agreement. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
     "created_draft": "Collection created (DRAFT)",
     "create_failed": "Failed to create the collection",
@@ -99,6 +193,67 @@
     "title": "Disbursements",
     "description": "Register and complete disbursements, submit through the workbench; after approval the entry posts to the ledger automatically.",
     "create": "New disbursement",
+    "batch_register_action": "Register disbursement",
+    "batch": {
+      "register_title": "Register disbursement",
+      "register_description": "Disbursement batch by plan: one row per contract with its own amount; the batch total equals the sum of the rows.",
+      "complete_title": "Complete disbursement",
+      "complete_description": "Draw against a posted (POSTED) register batch; the Close-contract rows carry amount 0.",
+      "tab_info": "Disbursement information",
+      "field": {
+        "txn_date": "Disbursement date",
+        "payment_method": "Payment method",
+        "account_code": "Account"
+      },
+      "payment": {
+        "transfer": "Bank transfer",
+        "cash": "Cash"
+      },
+      "placeholder": {
+        "account_code": "Bank account code",
+        "account_cash": "Not applicable for cash"
+      },
+      "description_auto": "Disbursement batch dated {date}",
+      "complete_tab_info": "Completion information",
+      "tab_contracts": "Credit contract list",
+      "complete_field_txn_date": "Completion date",
+      "complete_description_auto": "Complete disbursement of {case}",
+      "source_label": "Source register batch",
+      "source_placeholder": "Pick a POSTED register batch",
+      "source_value": "{case} — {date} — {amount}",
+      "no_source_hint": "Pick a source register batch in the Completion information tab to load its rows.",
+      "rows_hint": "The completion amount defaults to the source row and cannot exceed it; tick Close contract to close it (amount = 0).",
+      "contracts_hint": "Add rows via Choose contracts; rows group by plan code; the batch total equals the sum of the rows.",
+      "empty": "No rows yet — use Choose contracts to add.",
+      "add_contracts": "Choose contracts",
+      "col_amount": "Disbursement amount",
+      "col_initial_amount": "Source amount",
+      "col_complete_amount": "Completion amount",
+      "col_is_closed": "Close contract",
+      "headroom_hint": "Remaining headroom: {amount}",
+      "source_dialog": {
+        "title": "Choose source register batch",
+        "search": "Search",
+        "search_placeholder": "Case code / description",
+        "col_case": "Case code",
+        "col_date": "Date",
+        "col_method": "Method",
+        "col_total": "Total",
+        "detail_failed": "Failed to load the source batch rows"
+      },
+      "validation": {
+        "rows_required": "Add at least one contract row",
+        "account_required": "Bank transfer requires an account code",
+        "amount_positive": "Row {row}: the disbursement amount must be greater than 0",
+        "headroom_exceeded": "Row {row}: the amount exceeds the remaining disbursement headroom",
+        "amount_exceeds_initial": "Row {row}: the completion amount exceeds the source amount",
+        "source_required": "Pick a posted register disbursement"
+      },
+      "created": "Disbursement batch created — case: {case}",
+      "create_failed": "Failed to create the disbursement batch",
+      "complete_created": "Completion batch created — case: {case}",
+      "complete_failed": "Failed to create the completion batch"
+    },
     "dialog_description": "Pick an ACTIVE contract and enter the disbursement amount. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
     "created_draft": "Disbursement created (DRAFT)",
     "create_failed": "Failed to create the disbursement",

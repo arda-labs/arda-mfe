@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
+import { useNavigate } from "react-router-dom"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -12,7 +13,7 @@ import {
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { CheckCircle2, CornerDownRight } from "lucide-react"
+import { CheckCircle2, CornerDownRight, FilePlus2 } from "lucide-react"
 import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
 import {
   disbursementApi,
@@ -21,8 +22,6 @@ import {
 } from "../api"
 import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { disbursementsListDefinition } from "./list-query"
-import { DisbursementRegisterDialog } from "./components/DisbursementRegisterDialog"
-import { DisbursementCompleteDialog } from "./components/DisbursementCompleteDialog"
 
 const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   DRAFT: "outline",
@@ -47,8 +46,7 @@ const flowVariant: Record<LoanDisbursementFlowType, "default" | "info"> = {
  * register row). Server tier after the BE adopted ParseListRequest. */
 export function DisbursementsPage(_props: { pathname: string }) {
   const { t } = useI18n()
-  const [registerOpen, setRegisterOpen] = useState(false)
-  const [completeOpen, setCompleteOpen] = useState(false)
+  const navigate = useNavigate()
 
   const statusLabels = useMemo<Record<string, string>>(
     () => ({
@@ -292,32 +290,19 @@ export function DisbursementsPage(_props: { pathname: string }) {
             className="h-8 px-3 text-xs font-semibold"
             disabled={!hasPostedRegister}
             title={hasPostedRegister ? undefined : t("loan.disbursements.complete.disabled_hint")}
-            onClick={() => setCompleteOpen(true)}
+            onClick={() => navigate("/loans/disbursements/complete")}
           >
             <CornerDownRight className="mr-1 size-3.5" />
             {t("loan.disbursements.complete.action")}
           </Button>
           <Button
-            onClick={() => setRegisterOpen(true)}
+            onClick={() => navigate("/loans/disbursements/register")}
             className="h-8 px-3 text-xs font-semibold"
           >
-            {t("loan.disbursements.create")}
+            <FilePlus2 className="mr-1 size-3.5" />
+            {t("loan.disbursements.batch_register_action")}
           </Button>
         </ListTableToolbar>
-      }
-      dialogs={
-        <>
-          <DisbursementRegisterDialog
-            open={registerOpen}
-            onOpenChange={setRegisterOpen}
-            onSaved={() => void refetch()}
-          />
-          <DisbursementCompleteDialog
-            open={completeOpen}
-            onOpenChange={setCompleteOpen}
-            onSaved={() => void refetch()}
-          />
-        </>
       }
     />
   )

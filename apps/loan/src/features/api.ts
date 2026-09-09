@@ -1,4 +1,4 @@
-import { getCanonicalList, postCanonical } from "@workspace/api"
+import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
 
 /**
@@ -115,6 +115,17 @@ export const loanApi = {
     postCanonical<LoanAdjustment>(
       `/api/loan/adjustments/${kind}/${encodeURIComponent(id)}/submit`,
       {}
+    ),
+  /** Agreements of one contract (plan_code + dư nợ + đang chờ) — contract
+   * picker + batch grids đọc headroom từ đây. */
+  listAgreements: (contractCode: string) =>
+    getCanonicalList<LoanAgreement>(
+      `/api/loan/agreements?contract_code=${encodeURIComponent(contractCode)}`
+    ),
+  /** Quy tắc định khoản khai báo sẵn theo document_type (preview bút toán). */
+  postingRules: (documentType: LoanBatchDocumentType) =>
+    getCanonicalList<LoanPostingRule>(
+      `/api/loan/posting-rules?document_type=${encodeURIComponent(documentType)}`
     ),
 }
 
@@ -336,4 +347,201 @@ export const collectionApi = {
     postCanonical<LoanCollection>("/api/loan/collections", body),
   submit: (id: string) =>
     postCanonical<LoanCollection>(`/api/loan/collections/${encodeURIComponent(id)}/submit`, {}),
+}
+
+// ── Agreements (hợp đồng giải ngân thuộc contract) ──
+
+/**
+ * Disbursement agreement — mirrors loan-service agreement rows. `plan_code`
+ * groups contracts into posting plans (batch grids group rows by it);
+ * `outstanding_amt_minor` (dư nợ đã giải ngân) + `pending_disburse_amt_minor`
+ * (đang chờ duyệt) are the headroom inputs against `loan_amt_minor`.
+ */
+export interface LoanAgreement {
+  agreement_code: string
+  contract_code: string
+  plan_code?: string
+  currency_code: string
+  outstanding_amt_minor: number
+  pending_disburse_amt_minor: number
+  disburse_amt_minor?: number
+  status: string
+}
+
+// ── Posting rules (preview bút toán theo document_type) ──
+
+export type LoanBatchDocumentType =
+  | "LNM_DISB_REGISTER"
+  | "LNM_DISB_COMPLETE"
+  | "LNM_COLLECTION"
+
+/** One resolved posting-rule line (STT / Nợ-Có / phân giải / tài khoản). */
+export interface LoanPostingRule {
+  line_no: number
+  direction: "DEBIT" | "CREDIT"
+  resolution_type: string
+  account_ref: string
+  acc_classification?: string
+}
+
+// ── Disbursement batches (iteration 13 — batch theo EPAS) ──
+
+export type LoanBatchPaymentMethod = "CASH" | "TRANSFER"
+
+/**
+ * Trader (người giao dịch) — mirror của `ObjectInfoValue` (posting-flow) trên wire.
+ */
+export interface LoanBatchTrader {
+  object_type: string
+  object_code: string
+  object_name: string
+  id_number?: string
+  issue_date?: string
+  issue_place?: string
+  address?: string
+}
+
+/** Response chung của create batch: case (workflow) + batch ledger id. */
+export interface LoanBatchCreated {
+  case_id: string
+  case_code: string
+  batch_id: string
+}
+
+export interface DisbursementBatchRegisterInput {
+  org_code?: string
+  txn_date: string
+  payment_method: LoanBatchPaymentMethod
+  account_code?: string
+  description?: string
+  trader?: LoanBatchTrader
+  rows: {
+    contract_code: string
+    agreement_code: string
+    amount_minor: number
+  }[]
+}
+
+export interface DisbursementBatchCompleteInput {
+  source_batch_id: string
+  txn_date: string
+  description?: string
+  trader?: LoanBatchTrader
+  /** amount_minor = 0 khi is_closed (đóng hợp đồng, không rút tiếp). */
+  rows: {
+    contract_code: string
+    agreement_code: string
+    amount_minor: number
+    is_closed?: boolean
+  }[]
+}
+
+export interface CollectionBatchCreateInput {
+  txn_date: string
+  description?: string
+  trader?: LoanBatchTrader
+  rows: {
+    contract_code: string
+    agreement_code: string
+    principal_minor: number
+    interest_minor: number
+    overdue_interest_minor?: number
+  }[]
+}
+
+/** Batch list item: header fields + friendly workflow_case_code. */
+export interface LoanDisbursementBatch {
+  id: string
+  tenant_id?: string
+  txn_date: string
+  payment_method?: LoanBatchPaymentMethod
+  account_code?: string
+  description?: string
+  flow_type?: LoanDisbursementFlowType
+  source_batch_id?: string
+  total_amt_minor?: number
+  currency_code?: string
+  status: string
+  case_id?: string
+  case_code?: string
+  workflow_case_code?: string
+  created_by?: string
+  created_at?: string
+  /** Chỉ có trên detail (GET /{id}). */
+  rows?: LoanDisbursementBatchRow[]
+}
+
+export interface LoanDisbursementBatchRow {
+  contract_code: string
+  agreement_code: string
+  amount_minor: number
+  status?: string
+  is_closed?: boolean
+}
+
+export interface LoanCollectionBatch {
+  id: string
+  tenant_id?: string
+  txn_date: string
+  description?: string
+  total_amt_minor?: number
+  currency_code?: string
+  status: string
+  case_id?: string
+  case_code?: string
+  workflow_case_code?: string
+  created_by?: string
+  created_at?: string
+  rows?: LoanCollectionBatchRow[]
+}
+
+export interface LoanCollectionBatchRow {
+  contract_code: string
+  agreement_code: string
+  principal_minor: number
+  interest_minor: number
+  overdue_interest_minor?: number
+}
+
+export const disbursementBatchApi = {
+  createRegister: (body: DisbursementBatchRegisterInput) =>
+    postCanonical<LoanBatchCreated>("/api/loan/disbursement-batches", body),
+  createComplete: (body: DisbursementBatchCompleteInput) =>
+    postCanonical<LoanBatchCreated>("/api/loan/disbursement-batches/complete", body),
+  list: (
+    params: {
+      status?: string
+      flow_type?: LoanDisbursementFlowType
+      q?: string
+      page?: number
+      per_page?: number
+    } = {}
+  ) =>
+    getCanonicalList<LoanDisbursementBatch>(
+      `/api/loan/disbursement-batches?${buildSearchParams(params).toString()}`
+    ),
+  detail: (id: string) =>
+    getCanonical<LoanDisbursementBatch>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}`
+    ),
+}
+
+export const collectionBatchApi = {
+  create: (body: CollectionBatchCreateInput) =>
+    postCanonical<LoanBatchCreated>("/api/loan/collection-batches", body),
+  list: (
+    params: {
+      status?: string
+      q?: string
+      page?: number
+      per_page?: number
+    } = {}
+  ) =>
+    getCanonicalList<LoanCollectionBatch>(
+      `/api/loan/collection-batches?${buildSearchParams(params).toString()}`
+    ),
+  detail: (id: string) =>
+    getCanonical<LoanCollectionBatch>(
+      `/api/loan/collection-batches/${encodeURIComponent(id)}`
+    ),
 }
