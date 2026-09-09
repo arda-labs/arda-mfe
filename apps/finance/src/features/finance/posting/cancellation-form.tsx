@@ -220,11 +220,14 @@ export function CancellationFormPage() {
                   <SummaryField
                     label={t("finance.posting.cancellation.summary_trader")}
                     value={
+                      // Trader stamp comes from the originating case — the BE
+                      // mirrors it into entry metadata (trader_* keys).
                       detailPending
                         ? "…"
                         : (detail?.trader?.object_name ??
+                          detail?.metadata?.trader_object_name ??
                           detail?.created_by ??
-                          t("finance.posting.cancellation.summary_unknown"))
+                          "—")
                     }
                   />
                   <SummaryField

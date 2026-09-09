@@ -15,7 +15,8 @@ function listQuery(params: SearchParams = {}) {
  * Credit contract header — mirrors loan-service `domain.Contract`
  * (internal/domain/loan.go). The BE list/get/submit responses all carry the
  * full row, including `workflow_case_id` once the formation case exists
- * (SubmitContract sets it together with status PENDING).
+ * (SubmitContract sets it together with status PENDING). `workflow_case_code`
+ * is the friendly human-readable case code (e.g. LOAN-20260909-000123).
  */
 export interface LoanContract {
   id: string
@@ -39,6 +40,7 @@ export interface LoanContract {
   maturity_date?: string
   status: string
   workflow_case_id?: string
+  workflow_case_code?: string
   created_by?: string
   created_at?: string
   updated_at?: string
@@ -265,6 +267,7 @@ export interface LoanDisbursement {
   fund_source_code: string
   status: string
   workflow_case_id?: string
+  workflow_case_code?: string
   journal_entry_id?: string
   created_by: string
   created_at?: string
@@ -308,6 +311,7 @@ export interface LoanCollection {
   currency_code: string
   status: string
   workflow_case_id?: string
+  workflow_case_code?: string
   journal_entry_id?: string
   created_by: string
   created_at?: string

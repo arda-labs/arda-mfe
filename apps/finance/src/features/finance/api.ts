@@ -363,7 +363,11 @@ export interface JournalEntryLine {
  * GET /api/finance/journal-entries/{entry_no}. The detail maps header fields
  * from the snake_case wire shape (business_doc_type, business_doc_code,
  * business_doc_id — not the list-row document_type/document_code names);
- * trader stays optional until the BE stamps it on entries.
+ * trader stays optional until the BE stamps it on entries. `metadata` is the
+ * free-form key/value stamp from the originating case — the BE mirrors the
+ * trader block there as trader_object_type | trader_object_code |
+ * trader_object_name | trader_id_number | trader_issue_date |
+ * trader_issue_place | trader_address.
  */
 export interface JournalEntryDetail {
   journal_entry_id: string
@@ -382,6 +386,7 @@ export interface JournalEntryDetail {
   created_at: string
   lines: JournalEntryLine[]
   trader?: TraderInfo
+  metadata?: Record<string, string>
 }
 
 export interface StatementSummary {

@@ -19,6 +19,7 @@ import {
   type LoanDisbursement,
   type LoanDisbursementFlowType,
 } from "../api"
+import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { disbursementsListDefinition } from "./list-query"
 import { DisbursementRegisterDialog } from "./components/DisbursementRegisterDialog"
 import { DisbursementCompleteDialog } from "./components/DisbursementCompleteDialog"
@@ -73,9 +74,14 @@ export function DisbursementsPage(_props: { pathname: string }) {
     async (item: LoanDisbursement) => {
       try {
         const updated = await disbursementApi.submit(item.id)
-        notify.success(
+        // Prefer the friendly case_code; the uuid is the fallback.
+        const caseLabel = caseDisplayLabel(
+          updated.workflow_case_code,
           updated.workflow_case_id
-            ? t("loan.submitted_with_case", { case: updated.workflow_case_id })
+        )
+        notify.success(
+          caseLabel
+            ? t("loan.submitted_with_case", { case: caseLabel })
             : t("loan.submitted")
         )
       } catch (error) {
@@ -169,17 +175,22 @@ export function DisbursementsPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.field.case")} />
         ),
         enableSorting: false,
-        cell: ({ row }) =>
-          row.original.workflow_case_id ? (
+        cell: ({ row }) => {
+          const caseLabel = caseDisplayLabel(
+            row.original.workflow_case_code,
+            row.original.workflow_case_id
+          )
+          return caseLabel ? (
             <span
               className="block max-w-40 truncate font-mono text-xs text-muted-foreground"
-              title={row.original.workflow_case_id}
+              title={caseLabel}
             >
-              {row.original.workflow_case_id}
+              {truncateMiddle(caseLabel)}
             </span>
           ) : (
             <span className="text-xs text-muted-foreground">—</span>
-          ),
+          )
+        },
       },
       {
         id: "status",

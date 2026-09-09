@@ -3,11 +3,13 @@ import { defineServerList } from "@workspace/list-page/server-list"
 export const LOAN_DEFAULT_PAGE_SIZE = 10
 
 /**
- * URL-synced list contract for credit contracts. BE loanListSpec whitelist
- * covers code/name/amount/created_at, but the repo only ORDER BYs
- * created_at today — restricting the FE to created_at keeps the sort
- * contract honest (sortableColumns must match the effective BE behavior
- * 1:1). q filters contract_code/contract_no/customer_code in SQL.
+ * URL-synced list contract for credit contracts. BE contract list spec: q is
+ * a SQL ILIKE over contract_no + customer_code, the sort whitelist is
+ * created_at | contract_no | loan_amt_minor, and paging uses the standard
+ * items/page/per_page/total envelope. sortableColumns matches the BE
+ * whitelist 1:1 (a mismatch silently drops the sort). created_at has no
+ * table column — it stays reachable through deep-link URL sort, like the
+ * disbursements ledger.
  */
 export const loanContractsListDefinition = defineServerList({
   queryKey: ["loan", "contracts", "list"] as const,
@@ -16,7 +18,7 @@ export const loanContractsListDefinition = defineServerList({
     // Own URL namespace: the adjustments sub-table (client tier) shares the
     // page and reads the default ?page/?perPage/?sort keys.
     queryKeys: { page: "contractPage", perPage: "contractPerPage", sort: "contractSort" },
-    sortableColumns: ["created_at"],
-    filters: [{ urlKey: "contract_code", apiKey: "q", mode: "text" }],
+    sortableColumns: ["created_at", "contract_no", "loan_amt_minor"],
+    filters: [{ urlKey: "contract_no", apiKey: "q", mode: "text" }],
   },
 } as const)

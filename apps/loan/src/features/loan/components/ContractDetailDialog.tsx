@@ -18,6 +18,7 @@ import {
   fromMinor,
 } from "@workspace/format"
 import type { LoanContract } from "../../api"
+import { caseDisplayLabel, truncateMiddle } from "../../case-display"
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
@@ -86,6 +87,10 @@ export function ContractDetailDialog({
 
   if (!contract) return null
   const status = contract.status
+  const caseLabel = caseDisplayLabel(
+    contract.workflow_case_code,
+    contract.workflow_case_id
+  )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,6 +137,15 @@ export function ContractDetailDialog({
           <DetailField label={t("loan.field.created_at")}>
             {formatDateShort(contract.created_at)}
           </DetailField>
+          <div className="col-span-2 md:col-span-3">
+            <DetailField label={t("loan.field.case_code")}>
+              {caseLabel ? (
+                <span className="font-mono text-xs" title={caseLabel}>
+                  {truncateMiddle(caseLabel)}
+                </span>
+              ) : undefined}
+            </DetailField>
+          </div>
           <div className="col-span-2 md:col-span-3">
             <DetailField label={t("loan.field.case")}>
               {contract.workflow_case_id ? (

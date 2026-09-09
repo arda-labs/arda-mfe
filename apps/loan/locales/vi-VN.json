@@ -25,6 +25,7 @@
     "maturity_date": "Ngày đáo hạn",
     "org_unit": "Đơn vị",
     "case": "Case",
+    "case_code": "Mã hồ sơ",
     "created_at": "Ngày tạo"
   },
   "status": {

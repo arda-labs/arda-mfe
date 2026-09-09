@@ -169,7 +169,6 @@
       "summary_date": "Date",
       "summary_amount": "Amount",
       "summary_status": "Status",
-      "summary_unknown": "Unknown",
       "col_line_type": "Entry type",
       "empty_lines": "The original transaction has no posting lines",
       "no_reference": "Pick the original transaction on the Cancellation information tab to see its entries.",

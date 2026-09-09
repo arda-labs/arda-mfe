@@ -169,7 +169,6 @@
       "summary_date": "Ngày",
       "summary_amount": "Số tiền",
       "summary_status": "Trạng thái",
-      "summary_unknown": "Không xác định",
       "col_line_type": "Loại phát sinh",
       "empty_lines": "Giao dịch gốc chưa có bút toán",
       "no_reference": "Chọn giao dịch gốc ở tab Thông tin giao dịch hủy để xem bút toán.",

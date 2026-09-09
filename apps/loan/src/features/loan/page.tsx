@@ -12,6 +12,7 @@ import { formatDateShort, formatMoney, fromMinor } from "@workspace/format"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { loanApi, type LoanContract } from "../api"
+import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { loanContractsListDefinition } from "./list-query"
 import { AdjustmentsSection } from "./components/AdjustmentsSection"
 import { ContractDialog } from "./components/ContractDialog"
@@ -71,11 +72,16 @@ export function LoanPage(_props: { pathname: string }) {
       setSubmittingId(contract.id)
       try {
         const updated = await loanApi.submitContract(contract.id)
-        // BE SubmitContract returns the row with workflow_case_id set — show
-        // it so the case is traceable in the workbench from the start.
-        notify.success(
+        // BE SubmitContract returns the row with the formation case stamped —
+        // show the friendly case_code (fallback: the case uuid) so the case
+        // is traceable in the workbench from the start.
+        const caseLabel = caseDisplayLabel(
+          updated.workflow_case_code,
           updated.workflow_case_id
-            ? t("loan.submitted_with_case", { case: updated.workflow_case_id })
+        )
+        notify.success(
+          caseLabel
+            ? t("loan.submitted_with_case", { case: caseLabel })
             : t("loan.submitted")
         )
         await queryClient.invalidateQueries({ queryKey: ["loan", "contracts", "list"] })
@@ -93,16 +99,35 @@ export function LoanPage(_props: { pathname: string }) {
   const columns = useMemo<ColumnDef<LoanContract>[]>(
     () => [
       {
+        // Outside the BE sort whitelist (created_at | contract_no |
+        // loan_amt_minor) — headers must not advertise a sort the API drops.
         id: "contract_code",
         accessorKey: "contract_code",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.contract_code")} />
         ),
-        enableColumnFilter: true,
-        meta: textSearchMeta(t("loan.field.contract_code"), t("loan.placeholder.search")),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="font-mono text-xs text-primary">
             {row.original.contract_code}
+          </span>
+        ),
+      },
+      {
+        // Toolbar search box: urlKey `contract_no` maps to the API `q`
+        // parameter (BE ILIKEs contract_no + customer_code together), same
+        // remap pattern as the finance journal list.
+        id: "contract_no",
+        accessorKey: "contract_no",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.field.contract_no")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("loan.field.contract_no"), t("loan.placeholder.search")),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">
+            {row.original.contract_no ?? "—"}
           </span>
         ),
       },
@@ -112,6 +137,7 @@ export function LoanPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.customer")} />
         ),
+        enableSorting: false,
       },
       {
         id: "loan_amt_minor",
@@ -131,6 +157,7 @@ export function LoanPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.interest_rate")} />
         ),
+        enableSorting: false,
       },
       {
         id: "loan_term",
@@ -138,6 +165,7 @@ export function LoanPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.term")} />
         ),
+        enableSorting: false,
         cell: ({ row }) =>
           row.original.loan_term != null ? (
             <span className="tabular-nums">
@@ -153,6 +181,7 @@ export function LoanPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.contract_date")} />
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="whitespace-nowrap">
             {formatDateShort(row.original.contract_date)}
@@ -165,6 +194,7 @@ export function LoanPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.status")} />
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <Badge variant={statusVariant(row.original.status)}>
             {t(contractStatusLabelKey(row.original.status))}
@@ -178,17 +208,22 @@ export function LoanPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("loan.field.case")} />
         ),
         enableSorting: false,
-        cell: ({ row }) =>
-          row.original.workflow_case_id ? (
+        cell: ({ row }) => {
+          const caseLabel = caseDisplayLabel(
+            row.original.workflow_case_code,
+            row.original.workflow_case_id
+          )
+          return caseLabel ? (
             <span
               className="block max-w-44 truncate font-mono text-xs text-muted-foreground"
-              title={row.original.workflow_case_id}
+              title={caseLabel}
             >
-              {row.original.workflow_case_id}
+              {truncateMiddle(caseLabel)}
             </span>
           ) : (
             <span className="text-xs text-muted-foreground">—</span>
-          ),
+          )
+        },
       },
       {
         id: "actions",

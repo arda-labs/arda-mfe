@@ -25,6 +25,7 @@
     "maturity_date": "Maturity date",
     "org_unit": "Org unit",
     "case": "Case",
+    "case_code": "Case code",
     "created_at": "Created at"
   },
   "status": {
