@@ -90,5 +90,27 @@
   },
   "profile": {
     "title": "Tài khoản & Hồ sơ"
+  },
+  "nav": {
+    "finance": {
+      "_self": "Tài chính",
+      "posting": {
+        "single": "Bút toán lẻ",
+        "double": "Bút toán kép đỏ đen",
+        "off_balance": "Ngoại bảng",
+        "closing": "Kết chuyển thu chi",
+        "cancellation": "Hủy giao dịch"
+      }
+    },
+    "loan": {
+      "_self": "Tín dụng",
+      "contracts": "Hợp đồng tín dụng",
+      "products": "Sản phẩm tín dụng",
+      "disbursements": "Giải ngân",
+      "collections": "Thu nợ",
+      "vfu": "VFU",
+      "adjustments": "Điều chỉnh khoản vay",
+      "repay_plan": "Kế hoạch trả nợ"
+    }
   }
 }

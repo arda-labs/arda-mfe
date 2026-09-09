@@ -90,5 +90,27 @@
   },
   "profile": {
     "title": "Account & Profile"
+  },
+  "nav": {
+    "finance": {
+      "_self": "Finance",
+      "posting": {
+        "single": "Single entry",
+        "double": "Double entry",
+        "off_balance": "Off-balance",
+        "closing": "Income/expense closing",
+        "cancellation": "Transaction cancellation"
+      }
+    },
+    "loan": {
+      "_self": "Credit",
+      "contracts": "Credit contracts",
+      "products": "Loan products",
+      "disbursements": "Disbursements",
+      "collections": "Collections",
+      "vfu": "VFU",
+      "adjustments": "Loan adjustments",
+      "repay_plan": "Repayment plan"
+    }
   }
 }
