@@ -16,6 +16,8 @@ export interface ApiClientErrorPayload {
   request_id?: string
   trace_id?: string
   errors?: Array<ApiClientValidationError>
+  /** RFC problem `type` URL — stable docs link, resolved at docs.arda.io.vn. */
+  problem_type?: string
 }
 
 export interface ApiClientValidationError {
@@ -60,6 +62,8 @@ export class ApiClientError extends Error {
   // Canonical Problem.request_id — trace correlation cho dev debug. Parse ở
   // parseApiClientError, lưu vào đây để dialog lỗi hiển thị + copy.
   requestId?: string
+  // Problem.type URL từ BE — dialog dùng làm link "xem chi tiết" tới docs.
+  problemType?: string
 
   constructor(
     code: string,
@@ -67,7 +71,8 @@ export class ApiClientError extends Error {
     status: number,
     fields?: Record<string, string>,
     requestId?: string,
-    errors?: Array<ApiClientValidationError>
+    errors?: Array<ApiClientValidationError>,
+    problemType?: string
   ) {
     super(message)
     this.name = "ApiClientError"
@@ -76,6 +81,7 @@ export class ApiClientError extends Error {
     this.fields = fields
     this.requestId = requestId
     this.errors = errors
+    this.problemType = problemType
   }
 }
 
@@ -172,7 +178,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
         res.status,
         payload.fields,
         payload.request_id ?? res.headers.get("X-Request-Id") ?? undefined,
-        payload.errors
+        payload.errors,
+        payload.problem_type
       )
     }
 
@@ -200,7 +207,8 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
         res.status,
         payload.fields,
         payload.request_id ?? res.headers.get("X-Request-Id") ?? undefined,
-        payload.errors
+        payload.errors,
+        payload.problem_type
       )
     }
 
@@ -292,6 +300,7 @@ async function parseApiClientError(
           : fallback.request_id,
       trace_id: typeof json.trace_id === "string" ? json.trace_id : undefined,
       errors,
+      problem_type: json.type,
     }
   } catch {
     return { code: fallback.code, message: text, fields: undefined }

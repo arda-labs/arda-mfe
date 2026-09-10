@@ -127,6 +127,7 @@ describe("createApiClient GET lifecycle", () => {
       code: "validation.invalid_input",
       status: 400,
       requestId: "req-test",
+      problemType: "https://arda.io.vn/problems/validation.invalid_input",
     })
   })
 

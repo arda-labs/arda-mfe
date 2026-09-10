@@ -67,7 +67,8 @@
       "body": "Page not found"
     },
     "page_load_title": "Could not load this page",
-    "trace_id": "Trace ID"
+    "trace_id": "Trace ID",
+    "docs_link": "Learn more about this error"
   },
   "field": {
     "action": "Actions",

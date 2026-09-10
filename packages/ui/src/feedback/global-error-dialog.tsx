@@ -22,7 +22,24 @@ type ApiClientErrorLike = {
   code?: string
   status?: number
   requestId?: string
+  problemType?: string
   fields?: Record<string, string>
+}
+
+// Problem `type` URL từ BE là link docs ổn định; fallback suy từ code cho
+// lỗi FE tự tạo (group-members-dialog throw ApiClientError thủ công).
+const DOCS_PROBLEMS_BASE = "https://docs.arda.io.vn/problems/"
+
+function readProblemDocsUrl(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("code" in error)) return undefined
+  const typed = error as ApiClientErrorLike
+  if (typeof typed.problemType === "string" && typed.problemType.startsWith("http")) {
+    return typed.problemType
+  }
+  if (typeof typed.code === "string" && typed.code) {
+    return `${DOCS_PROBLEMS_BASE}${typed.code}`
+  }
+  return undefined
 }
 
 function readTraceId(error: unknown): string | undefined {
@@ -40,6 +57,7 @@ export function GlobalErrorDialog() {
 
   const message = translateApiError(error)
   const traceId = readTraceId(error)
+  const docsUrl = readProblemDocsUrl(error)
 
   const copyTrace = async () => {
     if (!traceId) return
@@ -62,6 +80,16 @@ export function GlobalErrorDialog() {
           <AlertDialogDescription asChild>
             <div className="flex flex-col gap-2">
               <span>{message}</span>
+              {docsUrl ? (
+                <a
+                  href={docsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs underline"
+                >
+                  {t("common.error.docs_link")}
+                </a>
+              ) : null}
               {traceId ? (
                 <div className="flex items-center gap-2 rounded border bg-muted px-2 py-1 text-xs">
                   <span className="font-mono">

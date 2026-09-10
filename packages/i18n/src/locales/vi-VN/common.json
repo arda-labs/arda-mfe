@@ -67,7 +67,8 @@
       "body": "Không tìm thấy trang"
     },
     "page_load_title": "Không tải được trang",
-    "trace_id": "Mã truy vết"
+    "trace_id": "Mã truy vết",
+    "docs_link": "Tìm hiểu thêm về lỗi này"
   },
   "field": {
     "action": "Thao tác",
