@@ -22,16 +22,14 @@ export interface DayTrend {
   date: string
   runs: number
   tokens: number
-  costUsd: number
   errors: number
 }
 
-export interface ModelCost {
+export interface ModelUsage {
   modelId: string
   provider: string
   runs: number
   tokens: number
-  costUsd: number
 }
 
 export interface AnalyticsSummary {
@@ -42,10 +40,9 @@ export interface AnalyticsSummary {
   totalTokens: number
   promptTokens: number
   completionTokens: number
-  estimatedCostUsd: number
   latency: LatencyStats
   feedback: FeedbackStats
   ragQuality: RAGQualityStats
   runsByDay: DayTrend[]
-  costByModel: ModelCost[]
+  modelsByUsage: ModelUsage[]
 }

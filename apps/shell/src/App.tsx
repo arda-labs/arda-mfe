@@ -263,14 +263,6 @@ export function App() {
             </RemoteRoute>
           }
         />
-        <Route
-          path="/ai/agents/*"
-          element={
-            <RemoteRoute>
-              <AiRoutes />
-            </RemoteRoute>
-          }
-        />
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route
           path="/admin/users/*"

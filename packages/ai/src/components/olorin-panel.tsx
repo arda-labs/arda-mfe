@@ -1,4 +1,3 @@
-import * as React from "react"
 import {
   AuiIf,
   ThreadPrimitive,
@@ -36,7 +35,6 @@ import {
   Quote,
   RefreshCw,
   Send,
-  Settings,
   Sparkles,
   Square,
   Trash2,
@@ -62,7 +60,6 @@ import {
   ExecuteMetaToolUI,
   GenericToolView,
 } from "./tools/generic-tool-view"
-import { AISettingsDialog } from "./ai-settings-dialog"
 import { RunStatusBar, RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
 import { useOlorinContext } from "../lib/context"
 
@@ -100,7 +97,6 @@ export function OlorinPanel({
 }: OlorinPanelProps) {
   const { t, formatDate } = useI18n()
   const { newThread, switchToThread, threadId, conversations } = useOlorinContext()
-  const [settingsOpen, setSettingsOpen] = React.useState(false)
 
   return (
     <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col bg-background text-foreground", className)}>
@@ -193,18 +189,6 @@ export function OlorinPanel({
             >
               <Plus className="size-3.5" />
               <span>{t("ai.threads.new")}</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setSettingsOpen(true)}
-              aria-label={t("ai.settings.title") || "Cài đặt AI"}
-              title={t("ai.settings.title") || "Cài đặt AI"}
-              className="size-7 rounded-md text-muted-foreground hover:text-foreground"
-            >
-              <Settings className="size-3.5" />
             </Button>
           </div>
         </div>
@@ -340,7 +324,6 @@ export function OlorinPanel({
         </ComposerPrimitive.Root>
       </ThreadPrimitive.Root>
 
-      <AISettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       {/* Registered meta-tool UIs — mounted once so part.toolUI can resolve
           them by name inside GroupedParts. */}
       <SearchMetaToolUI />

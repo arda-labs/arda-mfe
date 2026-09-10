@@ -7,12 +7,11 @@ import {
   Activity,
   BarChart3,
   Clock,
-  Coins,
   Cpu,
   RefreshCw,
 } from "lucide-react"
 import { analyticsApi } from "./api"
-import { CostModelTable } from "./components/cost-model-table"
+import { ModelUsageTable } from "./components/model-usage-table"
 import { RAGQualityCard } from "./components/rag-quality-card"
 import { StatKpiCard } from "./components/stat-kpi-card"
 import { TrendChart } from "./components/trend-chart"
@@ -79,12 +78,6 @@ export function AnalyticsPage() {
               trendPositive
             />
             <StatKpiCard
-              title={t("ai.analytics.kpi.estimated_cost")}
-              value={`$${data.estimatedCostUsd.toFixed(3)}`}
-              subtext={t("ai.analytics.kpi.cost_per_tenant")}
-              icon={Coins}
-            />
-            <StatKpiCard
               title={t("ai.analytics.kpi.latency_p95")}
               value={`${data.latency.p95Ms}ms`}
               subtext={`Avg: ${data.latency.avgMs}ms • P99: ${data.latency.p99Ms}ms`}
@@ -98,7 +91,7 @@ export function AnalyticsPage() {
           </div>
 
           <div>
-            <CostModelTable models={data.costByModel} />
+            <ModelUsageTable models={data.modelsByUsage} />
           </div>
         </div>
       )}

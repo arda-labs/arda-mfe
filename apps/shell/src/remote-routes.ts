@@ -55,7 +55,7 @@ const remoteRoutes: Array<{
   { prefixes: ["/customers"], component: CrmRoutes },
   { prefixes: ["/workflow", "/workbench"], component: WorkflowRoutes },
   { prefixes: ["/loans"], component: LoanRoutes },
-  { prefixes: ["/ai/knowledge", "/ai/settings", "/ai/approvals", "/ai/tools", "/ai/analytics", "/ai/agents"], component: AiRoutes },
+  { prefixes: ["/ai/knowledge", "/ai/settings", "/ai/approvals", "/ai/tools", "/ai/analytics"], component: AiRoutes },
   {
     prefixes: ["/my-account", "/in", "/settings"],
     component: AccountRoutes,

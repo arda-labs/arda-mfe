@@ -2,13 +2,13 @@ import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Cpu } from "lucide-react"
-import type { ModelCost } from "../types"
+import type { ModelUsage } from "../types"
 
-interface CostModelTableProps {
-  models: ModelCost[]
+interface ModelUsageTableProps {
+  models: ModelUsage[]
 }
 
-export function CostModelTable({ models }: CostModelTableProps) {
+export function ModelUsageTable({ models }: ModelUsageTableProps) {
   const { t, formatNumber } = useI18n()
 
   return (
@@ -33,7 +33,6 @@ export function CostModelTable({ models }: CostModelTableProps) {
                 <th className="pb-2 font-medium">{t("ai.analytics.table.provider")}</th>
                 <th className="pb-2 text-right font-medium">{t("ai.analytics.table.runs")}</th>
                 <th className="pb-2 text-right font-medium">{t("ai.analytics.table.tokens")}</th>
-                <th className="pb-2 text-right font-medium">{t("ai.analytics.table.cost")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
@@ -50,9 +49,6 @@ export function CostModelTable({ models }: CostModelTableProps) {
                   </td>
                   <td className="py-2.5 text-right font-mono">
                     {formatNumber(m.tokens)}
-                  </td>
-                  <td className="py-2.5 text-right font-mono font-semibold text-primary">
-                    ${m.costUsd.toFixed(4)}
                   </td>
                 </tr>
               ))}

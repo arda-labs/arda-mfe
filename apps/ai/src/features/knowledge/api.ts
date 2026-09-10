@@ -1,4 +1,4 @@
-import { api, deleteCanonical, getCanonical, postCanonical, putCanonical } from "@workspace/api"
+import { api } from "@workspace/api"
 
 export type SourceType = "docs" | "admin" | "url"
 export type SourceScope = "tenant" | "global" | "system"
@@ -198,40 +198,4 @@ export const knowledgeApi = {
     formData.append("chunk_overlap", String(chunkOverlap))
     return api.post<ChunkPreviewResponse>("/api/rag/sources/parse-preview", formData)
   },
-  fetchStrategies: () => getCanonical<StrategyDTO>("/api/rag/strategies"),
-  saveStrategies: (data: StrategyDTO) => putCanonical<StrategyDTO>("/api/rag/strategies", data),
-  listConnectors: () => getCanonical<DataConnector[]>("/api/rag/connectors"),
-  createConnector: (data: CreateConnectorDTO) => postCanonical<DataConnector>("/api/rag/connectors", data),
-  deleteConnector: (id: string) => deleteCanonical<void>(`/api/rag/connectors/${id}`),
-  syncConnector: (id: string) => postCanonical<DataConnector>(`/api/rag/connectors/${id}/sync`, {}),
-}
-
-export interface StrategyDTO {
-  strategy: string
-  parentChunkSize: number
-  childChunkSize: number
-  similarityThreshold: number
-  rerankerModel: string
-  topK: number
-  topN: number
-}
-
-export interface DataConnector {
-  id: string
-  tenantId?: string
-  name: string
-  provider: "google_drive" | "sharepoint" | "confluence" | "s3_bucket" | "postgres"
-  targetSource: string
-  syncSchedule: string
-  status: "synced" | "syncing" | "error" | "paused"
-  lastSyncAt: string
-  docCount: number
-  totalChunks: number
-}
-
-export interface CreateConnectorDTO {
-  name: string
-  provider: string
-  targetSource: string
-  syncSchedule: string
 }

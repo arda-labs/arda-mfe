@@ -7,8 +7,7 @@
     "settings": "Cài đặt AI",
     "approvals": "Phê duyệt & Kiểm toán",
     "tools": "Công cụ & MCP Registry",
-    "analytics": "Giám sát & Chi phí",
-    "agents": "Agent Studio"
+    "analytics": "Giám sát & Chất lượng"
   },
   "admin": {
     "_self": "Quản trị",

@@ -5,10 +5,8 @@ import { Button } from "@workspace/ui/components/button"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { Database, FolderSync, Layers, Plus, Sparkles } from "lucide-react"
+import { Database, Plus, Sparkles } from "lucide-react"
 import { knowledgeApi, type SourceOut, type VersionOut } from "./api"
-import { ChunkingStrategiesTab } from "./components/chunking-strategies-tab"
-import { ConnectorsTab } from "./components/connectors-tab"
 import { CreateSourceDialog } from "./components/create-source-dialog"
 import { CreateVersionDialog } from "./components/create-version-dialog"
 import { RetrievalPlayground } from "./components/retrieval-playground"
@@ -125,14 +123,6 @@ export function KnowledgePage() {
                   <Database className="size-3.5 shrink-0" />
                   <span>{t("ai.knowledge.tabs.corpus")}</span>
                 </TabsTrigger>
-                <TabsTrigger value="connectors" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
-                  <FolderSync className="size-3.5 shrink-0" />
-                  <span>{t("ai.knowledge.tabs.connectors")}</span>
-                </TabsTrigger>
-                <TabsTrigger value="strategies" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
-                  <Layers className="size-3.5 shrink-0" />
-                  <span>{t("ai.knowledge.tabs.strategies")}</span>
-                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -142,14 +132,6 @@ export function KnowledgePage() {
                 onSelect={(source) => void openSource(source)}
                 formatDate={formatDate}
               />
-            </TabsContent>
-
-            <TabsContent value="connectors" className="m-0">
-              <ConnectorsTab />
-            </TabsContent>
-
-            <TabsContent value="strategies" className="m-0">
-              <ChunkingStrategiesTab />
             </TabsContent>
           </Tabs>
         </>
