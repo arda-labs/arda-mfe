@@ -1,5 +1,10 @@
 export type AiErrorCode =
   | "ai.model_unavailable"
+  | "ai.model_unauthorized"
+  | "ai.model_rate_limited"
+  | "ai.model_timeout"
+  | "ai.run_timeout"
+  | "ai.run_cancelled"
   | "ai.tool_forbidden"
   | "ai.tool_not_found"
   | "ai.tool_invalid"
@@ -8,6 +13,9 @@ export type AiErrorCode =
   | "ai.persistence_unavailable"
   | "ai.sandbox_quota_exceeded"
   | "ai.sandbox_script_rejected"
+  | "ai.sandbox_busy"
+  | "ai.sandbox_timeout"
+  | "ai.sandbox_output_too_large"
   | "ai.approval_unavailable"
   | "ai.approval_expired"
   | "ai.approval_persistence_unavailable"
@@ -16,13 +24,16 @@ export type AiErrorCode =
   | "ai.quota_exceeded"
   | "ai.quota_unavailable"
   | "ai.not_ready"
-  | "ai.connector_persistence_unavailable"
   | "ai.analytics_persistence_unavailable"
-  | "ai.agent_persistence_unavailable"
 
 export type AiErrorSeverity = "transient" | "user" | "system"
 
-export type AiErrorAction = "retry" | "rephrase" | "contact_admin" | "split_query"
+export type AiErrorAction =
+  | "retry"
+  | "rephrase"
+  | "contact_admin"
+  | "split_query"
+  | "open_settings"
 
 export type AiErrorMeta = {
   /** Translation key in ai namespace */
@@ -40,7 +51,36 @@ export const AI_ERROR_MAP: Record<string, AiErrorMeta> = {
     i18nKey: "ai.error.model_unavailable",
     retryable: true,
     severity: "transient",
+    action: "open_settings",
+  },
+  "ai.model_unauthorized": {
+    i18nKey: "ai.error.model_unauthorized",
+    retryable: false,
+    severity: "user",
+    action: "open_settings",
+  },
+  "ai.model_rate_limited": {
+    i18nKey: "ai.error.model_rate_limited",
+    retryable: true,
+    severity: "transient",
     action: "retry",
+  },
+  "ai.model_timeout": {
+    i18nKey: "ai.error.model_timeout",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
+  },
+  "ai.run_timeout": {
+    i18nKey: "ai.error.run_timeout",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
+  },
+  "ai.run_cancelled": {
+    i18nKey: "ai.error.cancelled",
+    retryable: false,
+    severity: "user",
   },
   "ai.tool_forbidden": {
     i18nKey: "ai.error.tool_forbidden",
@@ -77,19 +117,7 @@ export const AI_ERROR_MAP: Record<string, AiErrorMeta> = {
     severity: "transient",
     action: "retry",
   },
-  "ai.connector_persistence_unavailable": {
-    i18nKey: "ai.error.persistence_unavailable",
-    retryable: true,
-    severity: "transient",
-    action: "retry",
-  },
   "ai.analytics_persistence_unavailable": {
-    i18nKey: "ai.error.persistence_unavailable",
-    retryable: true,
-    severity: "transient",
-    action: "retry",
-  },
-  "ai.agent_persistence_unavailable": {
     i18nKey: "ai.error.persistence_unavailable",
     retryable: true,
     severity: "transient",
@@ -105,6 +133,24 @@ export const AI_ERROR_MAP: Record<string, AiErrorMeta> = {
     i18nKey: "ai.error.sandbox_rejected",
     retryable: false,
     severity: "system",
+  },
+  "ai.sandbox_busy": {
+    i18nKey: "ai.error.sandbox_busy",
+    retryable: true,
+    severity: "transient",
+    action: "retry",
+  },
+  "ai.sandbox_timeout": {
+    i18nKey: "ai.error.sandbox_timeout",
+    retryable: false,
+    severity: "user",
+    action: "split_query",
+  },
+  "ai.sandbox_output_too_large": {
+    i18nKey: "ai.error.sandbox_output_too_large",
+    retryable: false,
+    severity: "user",
+    action: "split_query",
   },
   "ai.rate_limited": {
     i18nKey: "ai.error.rate_limited",

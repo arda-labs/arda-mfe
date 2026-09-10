@@ -195,7 +195,7 @@ export function OlorinPanel({
       )}
 
       <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <ThreadPrimitive.Viewport className="relative flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth">
+        <ThreadPrimitive.Viewport className="relative flex-1 overflow-y-auto px-4 py-4 space-y-3 scroll-smooth">
           <ThreadPrimitive.Empty>
             <OlorinEmptyState />
           </ThreadPrimitive.Empty>
@@ -310,8 +310,8 @@ export function OlorinPanel({
                       type="button"
                       size="icon"
                       variant="destructive"
-                      aria-label="Dừng tạo"
-                      title="Dừng tạo"
+                      aria-label={t("ai.composer.stop")}
+                      title={t("ai.composer.stop")}
                       className="size-7.5 rounded-full shadow-2xs"
                     >
                       <Square className="size-3 fill-current" />
@@ -382,7 +382,7 @@ function UserMessage() {
       <div className="flex max-w-[85%] flex-col items-end gap-1">
         <div className="flex items-end gap-2 flex-row-reverse">
           <div
-            title={displayName || "Người dùng"}
+            title={displayName || t("ai.message.you")}
             className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-2xs select-none"
           >
             {initials}
@@ -391,7 +391,7 @@ function UserMessage() {
             <MessagePrimitive.Content />
           </div>
         </div>
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover/message:opacity-100 pr-1">
+        <div className="flex items-center gap-1 opacity-100 transition-opacity pr-1 md:opacity-0 md:group-hover/message:opacity-100 md:group-focus-within/message:opacity-100">
           <ActionBarPrimitive.Root className="flex items-center gap-0.5">
             <ActionBarPrimitive.Edit asChild>
               <Button
@@ -453,6 +453,7 @@ function getInitials(name?: string): string | undefined {
 }
 
 function AssistantMessage() {
+  const { t } = useI18n()
   return (
     <MessagePrimitive.Root className="group/message flex w-full justify-start py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
       <div className="flex max-w-[90%] items-start gap-2.5">
@@ -533,14 +534,15 @@ function AssistantMessage() {
               }}
             </MessagePrimitive.GroupedParts>
           </div>
-          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover/message:opacity-100 pl-1">
+          <div className="flex items-center gap-1 opacity-100 transition-opacity pl-1 md:opacity-0 md:group-hover/message:opacity-100 md:group-focus-within/message:opacity-100">
             <ActionBarPrimitive.Root className="flex items-center gap-0.5">
               <ActionBarPrimitive.Copy asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="size-6 text-muted-foreground hover:text-foreground rounded"
-                  title="Sao chép"
+                  aria-label={t("ai.message.copy")}
+                  title={t("ai.message.copy")}
                 >
                   <Copy className="size-3" />
                 </Button>
@@ -550,7 +552,8 @@ function AssistantMessage() {
                   variant="ghost"
                   size="icon"
                   className="size-6 text-muted-foreground hover:text-foreground rounded"
-                  title="Tạo lại"
+                  aria-label={t("ai.message.regenerate")}
+                  title={t("ai.message.regenerate")}
                 >
                   <RefreshCw className="size-3" />
                 </Button>

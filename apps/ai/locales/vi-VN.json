@@ -366,5 +366,163 @@
         "save_failed": "Lưu cấu hình thất bại"
       }
     }
+  },
+  "action": {
+    "retry": "Thử lại",
+    "rephrase": "Sửa câu hỏi",
+    "split_query": "Chia nhỏ yêu cầu",
+    "open_settings": "Mở cài đặt AI"
+  },
+  "approval": {
+    "title": "Yêu cầu phê duyệt",
+    "description": "Hành động này cần con người phê duyệt trước khi thực hiện.",
+    "badge": "Cần phê duyệt",
+    "approve": "Phê duyệt",
+    "approve_aria": "Phê duyệt yêu cầu",
+    "reject": "Từ chối",
+    "approved": "Đã phê duyệt",
+    "rejected": "Đã từ chối",
+    "executed": "Đã thực thi",
+    "expired": "Hết hạn",
+    "expires": "Hết hạn sau",
+    "expires_in": "Hết hạn sau {minutes} phút",
+    "expired_notice": "Yêu cầu đã hết hạn, vui lòng tạo lại.",
+    "saving": "Đang xử lý...",
+    "error": "Không thể xử lý phê duyệt."
+  },
+  "composer": {
+    "placeholder": "Hỏi Olorin về dữ liệu hoặc quy trình…",
+    "hint": "Enter để gửi · Shift+Enter xuống dòng",
+    "send": "Gửi",
+    "dictate": "Nhập bằng giọng nói",
+    "stop_dictation": "Dừng nhập giọng nói",
+    "quote_dismiss": "Bỏ trích dẫn",
+    "stop": "Dừng tạo câu trả lời"
+  },
+  "edit": {
+    "title": "Sửa tin nhắn",
+    "placeholder": "Chỉnh sửa tin nhắn…",
+    "cancel": "Huỷ",
+    "save": "Lưu & gửi lại"
+  },
+  "empty": {
+    "title": "Olorin có thể giúp gì?",
+    "hint": "Hỏi về khách hàng, nhân sự, tài chính hoặc chính sách nội bộ."
+  },
+  "error": {
+    "model_unavailable": "Trợ lý AI tạm thời không phản hồi. Vui lòng thử lại sau giây lát.",
+    "model_unauthorized": "Cấu hình model chưa đúng hoặc thiếu quyền. Kiểm tra lại AI Settings.",
+    "model_rate_limited": "Nhà cung cấp model đang giới hạn tốc độ. Vui lòng thử lại sau ít giây.",
+    "model_timeout": "Model phản hồi quá chậm. Vui lòng thử lại.",
+    "run_timeout": "Yêu cầu vượt quá thời gian xử lý. Hãy thử lại hoặc chia nhỏ câu hỏi.",
+    "tool_forbidden": "Bạn không có quyền thực hiện thao tác này.",
+    "tool_not_found": "Không tìm thấy công cụ phù hợp cho yêu cầu này.",
+    "tool_invalid": "Tham số yêu cầu chưa hợp lệ. Hãy diễn đạt lại.",
+    "step_limit": "Yêu cầu quá phức tạp để xử lý trong một lần. Hãy chia nhỏ câu hỏi.",
+    "run_replay": "Yêu cầu này đã được xử lý. Vui lòng gửi lại.",
+    "persistence_unavailable": "Không lưu được hội thoại. Vui lòng thử lại.",
+    "sandbox_quota": "Tác vụ vượt quá giới hạn xử lý. Hãy thu hẹp phạm vi dữ liệu.",
+    "sandbox_rejected": "Mã thực thi bị từ chối vì lý do an toàn.",
+    "sandbox_busy": "Hệ thống đang bận xử lý tác vụ khác. Vui lòng thử lại.",
+    "sandbox_timeout": "Tác vụ xử lý quá lâu. Hãy chia nhỏ yêu cầu.",
+    "sandbox_output_too_large": "Kết quả quá lớn để hiển thị. Hãy thu hẹp truy vấn.",
+    "rate_limited": "Hệ thống đang nhận quá nhiều yêu cầu. Vui lòng đợi một lát.",
+    "budget_exceeded": "Tài khoản đã đạt hạn mức sử dụng AI trong tháng.",
+    "quota_exceeded": "Đã đạt hạn mức token AI trong tháng.",
+    "quota_unavailable": "Dịch vụ hạn mức tạm thời không khả dụng. Vui lòng thử lại.",
+    "approval_expired": "Yêu cầu phê duyệt đã hết hạn.",
+    "not_ready": "Dịch vụ AI chưa sẵn sàng. Vui lòng thử lại sau ít phút.",
+    "unknown": "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+    "cancelled": "Đã dừng tạo câu trả lời."
+  },
+  "feedback": {
+    "rate": "Đánh giá câu trả lời này",
+    "helpful": "Hữu ích",
+    "not_helpful": "Không hữu ích",
+    "rated": "Cảm ơn phản hồi của bạn",
+    "error": "Không gửi được phản hồi"
+  },
+  "message": {
+    "copy": "Sao chép",
+    "regenerate": "Tạo lại",
+    "you": "Người dùng"
+  },
+  "name": "Olorin",
+  "tagline": "Trợ lý AI của Arda",
+  "panel": {
+    "minimize": "Thu nhỏ"
+  },
+  "scroll": {
+    "bottom": "Tin nhắn mới nhất"
+  },
+  "selection": {
+    "quote": "Trích dẫn"
+  },
+  "status": {
+    "thinking": "Olorin đang phân tích yêu cầu…",
+    "searching": "Đang tìm kiếm tri thức phù hợp…",
+    "executing": "Đang truy vấn và xử lý dữ liệu…",
+    "responding": "Đang soạn câu trả lời…",
+    "elapsed": "Đã {seconds}s"
+  },
+  "table": {
+    "result_title": "Dữ liệu ({count} bản ghi)",
+    "show_more": "Xem thêm",
+    "show_less": "Thu gọn"
+  },
+  "threads": {
+    "title": "Cuộc trò chuyện",
+    "new": "Cuộc trò chuyện mới",
+    "current_new": "Cuộc trò chuyện mới",
+    "history": "Lịch sử",
+    "empty": "Chưa có cuộc trò chuyện nào",
+    "delete": "Xoá cuộc trò chuyện",
+    "messages_suffix": "tin nhắn"
+  },
+  "tool": {
+    "citations": {
+      "title": "Nguồn tham khảo",
+      "details": "Chi tiết",
+      "no_evidence": "Không tìm thấy tài liệu phù hợp",
+      "fallback": "Tài liệu",
+      "open": "Mở tài liệu",
+      "effective": "Hiệu lực {from} – {to}"
+    },
+    "customer": {
+      "code": "Mã KH",
+      "rank": "Hạng",
+      "risk": "Rủi ro",
+      "segment": "Phân khúc",
+      "status": "Trạng thái"
+    },
+    "employee": {
+      "code": "Mã NV",
+      "department": "Phòng ban",
+      "position": "Chức danh",
+      "status": "Trạng thái"
+    },
+    "execute": {
+      "title": "Thực thi mã",
+      "pending": "Đang thực thi…"
+    },
+    "executed": "Công cụ {name} đã chạy",
+    "financeAccount": {
+      "code": "Số TK",
+      "type": "Loại",
+      "balance": "Số dư",
+      "currency": "Tiền tệ",
+      "status": "Trạng thái"
+    },
+    "invoiceList": {
+      "header": "Hoá đơn",
+      "number": "Số HĐ",
+      "amount": "Số tiền",
+      "status": "Trạng thái"
+    },
+    "search": {
+      "title": "Tìm kiếm API",
+      "methods": "Phương thức",
+      "pending": "Đang tìm kiếm…"
+    }
   }
 }

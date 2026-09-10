@@ -123,6 +123,42 @@ for (const app of apps) {
     }
   }
 }
+
+// Shared UI packages live under packages/* but resolve keys through an app
+// namespace (e.g. @workspace/ai -> apps/ai). Audit those too so a component
+// can never ship a t() key that no locale defines.
+for (const pkg of await readdir(path.join(root, "packages"))) {
+  const pkgSrc = path.join(root, "packages", pkg, "src")
+  if (!existsSync(pkgSrc)) continue
+  const appDir = path.join(appsDir, pkg)
+  const viFile = path.join(appDir, "locales", "vi-VN.json")
+  if (!existsSync(viFile)) continue
+  const appKeys = new Set(getAllKeys(JSON.parse(await readFile(viFile, "utf8"))))
+  const files = await walk(pkgSrc)
+  const missing = new Map()
+  for (const f of files) {
+    const s = await readFile(f, "utf8")
+    for (const m of s.matchAll(tCall)) {
+      const key = m[1]
+      if (!key.startsWith(`${pkg}.`)) continue
+      const raw = key.slice(pkg.length + 1)
+      if (!appKeys.has(raw) && !appKeys.has(key)) {
+        if (!missing.has(key)) missing.set(key, [])
+        missing.get(key).push(path.relative(root, f))
+      }
+    }
+  }
+  if (missing.size > 0) {
+    violations += missing.size
+    console.log(`\n=== packages/${pkg} ===`)
+    console.log(`  MISSING KEYS (${missing.size}):`)
+    for (const [k, fs] of [...missing.entries()].slice(0, 60)) {
+      console.log(`    ${k}  <- ${fs[0]}${fs.length > 1 ? ` (+${fs.length - 1} files)` : ""}`)
+    }
+    if (missing.size > 60) console.log(`    ... and ${missing.size - 60} more`)
+  }
+}
+
 if (violations > 0) {
   console.log(`\n-- i18n audit FAILED: ${violations} violation(s) --`)
   process.exit(1)

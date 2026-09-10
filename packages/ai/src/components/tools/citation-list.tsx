@@ -4,7 +4,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, ExternalLink } from "lucide-react"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import type { ToolResultViewProps } from "../../lib/registry"
 import { registerToolRenderer } from "../../lib/registry"
@@ -22,31 +22,58 @@ function citationItems(result: ToolResultPayload): CitationItem[] {
 }
 
 export function KnowledgeCitationList({ result }: ToolResultViewProps) {
-  const { t } = useI18n()
+  const { t, formatDate } = useI18n()
   if (!isCitationResult(result)) return null
   const citations = citationItems(result)
+
+  const formatEffective = (citation: CitationItem): string => {
+    const from = textValue(citation.effective_from)
+    const to = textValue(citation.effective_to)
+    if (!from && !to) return ""
+    const format = (value: string) =>
+      formatDate(value, { day: "2-digit", month: "2-digit", year: "numeric" })
+    return t("ai.tool.citations.effective", {
+      from: from ? format(from) : "—",
+      to: to ? format(to) : "—",
+    })
+  }
 
   return (
     <div className="mt-3 space-y-2 border-t pt-3 text-xs">
       {citations.length > 0 && (
         <div className="space-y-1.5">
           <p className="font-medium">{t("ai.tool.citations.title")}</p>
-          <ul className="space-y-1.5 text-muted-foreground">
-            {citations.map((citation, index) => (
-              <li key={`${textValue(citation.sourceKey, textValue(citation.sourceId, "source"))}-${index}`}>
-                <span className="font-medium text-foreground">
-                  {textValue(citation.title, t("ai.tool.citations.fallback"))}
-                </span>
-                <span>
-                  {" · "}
-                  {textValue(
-                    citation.heading,
-                    textValue(citation.sourceKey, t("ai.tool.citations.fallback"))
+          <ul className="space-y-1.5">
+            {citations.map((citation, index) => {
+              const url = textValue(citation.url)
+              const title = textValue(citation.title, t("ai.tool.citations.fallback"))
+              const heading = textValue(citation.heading)
+              const version = textValue(citation.version)
+              const effective = formatEffective(citation)
+              const key = `${textValue(citation.sourceKey, textValue(citation.source_id, "source"))}-${index}`
+              return (
+                <li
+                  key={key}
+                  className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-border/60 bg-muted/30 px-2 py-1.5"
+                >
+                  <span className="font-medium text-foreground">{title}</span>
+                  {heading && <span className="text-muted-foreground">· {heading}</span>}
+                  {version && <span className="text-muted-foreground">· v{version}</span>}
+                  {effective && <span className="text-muted-foreground">· {effective}</span>}
+                  {url && (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ml-auto inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                    >
+                      {t("ai.tool.citations.open")}
+                      <ExternalLink className="size-3" />
+                    </a>
                   )}
-                  {textValue(citation.version) && ` · v${textValue(citation.version)}`}
-                </span>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
         </div>
       )}

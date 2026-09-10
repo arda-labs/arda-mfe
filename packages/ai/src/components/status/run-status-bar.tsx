@@ -132,9 +132,10 @@ function useLastRunError(): string | null {
 
 // RunErrorBubble surfaces the terminal error of a failed run inline in the
 // thread, driven by the message status the runtime set for the failed run.
+// A user-requested cancel is not an error and renders nothing.
 export function RunErrorBubble() {
   const error = useLastRunError()
-  if (!error) return null
+  if (!error || error === "ai.run_cancelled") return null
   return <RunErrorCard error={error} className="mx-auto w-full max-w-[90%]" />
 }
 
@@ -145,6 +146,7 @@ export function RunErrorBubble() {
 // AssistantMessage component renders its own avatar + the empty:hidden card,
 // so showing the skeleton here too would produce two avatars.
 export function ThinkingBubble() {
+  const { t } = useI18n()
   const isRunning = useAuiState((s) => s.thread.isRunning)
   const messages = useAuiState((s) => s.thread.messages)
   const last = messages[messages.length - 1]
@@ -171,7 +173,7 @@ export function ThinkingBubble() {
               />
             ))}
           </div>
-          <span className="sr-only">Đang suy nghĩ…</span>
+          <span className="sr-only">{t("ai.status.thinking")}</span>
         </div>
       </div>
     </div>

@@ -366,5 +366,163 @@
         "save_failed": "Failed to save AI settings"
       }
     }
+  },
+  "action": {
+    "retry": "Retry",
+    "rephrase": "Rephrase",
+    "split_query": "Split request",
+    "open_settings": "Open AI settings"
+  },
+  "approval": {
+    "title": "Approval required",
+    "description": "This action needs human approval before it runs.",
+    "badge": "Approval needed",
+    "approve": "Approve",
+    "approve_aria": "Approve request",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "executed": "Executed",
+    "expired": "Expired",
+    "expires": "Expires in",
+    "expires_in": "Expires in {minutes} min",
+    "expired_notice": "This request expired; please create it again.",
+    "saving": "Processing...",
+    "error": "Could not process the approval."
+  },
+  "composer": {
+    "placeholder": "Ask Olorin about data or policies…",
+    "hint": "Enter to send · Shift+Enter for a new line",
+    "send": "Send",
+    "dictate": "Dictate",
+    "stop_dictation": "Stop dictation",
+    "quote_dismiss": "Remove quote",
+    "stop": "Stop generating"
+  },
+  "edit": {
+    "title": "Edit message",
+    "placeholder": "Edit your message…",
+    "cancel": "Cancel",
+    "save": "Save & resend"
+  },
+  "empty": {
+    "title": "How can Olorin help?",
+    "hint": "Ask about customers, HR, finance, or internal policies."
+  },
+  "error": {
+    "model_unavailable": "The AI assistant is temporarily unavailable. Please try again shortly.",
+    "model_unauthorized": "The model configuration is missing or unauthorized. Check AI Settings.",
+    "model_rate_limited": "The model provider is rate-limiting requests. Please retry in a few seconds.",
+    "model_timeout": "The model took too long to respond. Please retry.",
+    "run_timeout": "The request exceeded its time budget. Retry or split the question.",
+    "tool_forbidden": "You do not have permission for this action.",
+    "tool_not_found": "No matching tool was found for this request.",
+    "tool_invalid": "The request arguments were invalid. Try rephrasing.",
+    "step_limit": "The request is too complex for one run. Split it into smaller questions.",
+    "run_replay": "This run was already processed. Please resend.",
+    "persistence_unavailable": "Could not persist the conversation. Please retry.",
+    "sandbox_quota": "The task exceeded processing limits. Narrow the data scope.",
+    "sandbox_rejected": "The generated script was rejected for safety.",
+    "sandbox_busy": "The sandbox is busy with another task. Please retry.",
+    "sandbox_timeout": "The task ran too long. Split it into smaller steps.",
+    "sandbox_output_too_large": "The result is too large to display. Narrow the query.",
+    "rate_limited": "Too many requests right now. Please wait a moment.",
+    "budget_exceeded": "The monthly AI budget has been reached.",
+    "quota_exceeded": "The monthly AI token quota has been reached.",
+    "quota_unavailable": "The quota service is temporarily unavailable. Please retry.",
+    "approval_expired": "The approval request expired.",
+    "not_ready": "The AI service is not ready yet. Please retry shortly.",
+    "unknown": "Something went wrong while processing the request.",
+    "cancelled": "Generation stopped."
+  },
+  "feedback": {
+    "rate": "Rate this answer",
+    "helpful": "Helpful",
+    "not_helpful": "Not helpful",
+    "rated": "Thanks for your feedback",
+    "error": "Could not send feedback"
+  },
+  "message": {
+    "copy": "Copy",
+    "regenerate": "Regenerate",
+    "you": "You"
+  },
+  "name": "Olorin",
+  "tagline": "Arda AI assistant",
+  "panel": {
+    "minimize": "Minimize"
+  },
+  "scroll": {
+    "bottom": "Jump to latest"
+  },
+  "selection": {
+    "quote": "Quote"
+  },
+  "status": {
+    "thinking": "Olorin is analysing your request…",
+    "searching": "Searching the knowledge base…",
+    "executing": "Querying and processing data…",
+    "responding": "Composing the answer…",
+    "elapsed": "{seconds}s"
+  },
+  "table": {
+    "result_title": "Data ({count} records)",
+    "show_more": "Show more",
+    "show_less": "Show less"
+  },
+  "threads": {
+    "title": "Conversations",
+    "new": "New chat",
+    "current_new": "New conversation",
+    "history": "History",
+    "empty": "No conversations yet",
+    "delete": "Delete conversation",
+    "messages_suffix": "messages"
+  },
+  "tool": {
+    "citations": {
+      "title": "Sources",
+      "details": "Details",
+      "no_evidence": "No matching documents found",
+      "fallback": "Document",
+      "open": "Open document",
+      "effective": "Effective {from} – {to}"
+    },
+    "customer": {
+      "code": "Customer code",
+      "rank": "Rank",
+      "risk": "Risk",
+      "segment": "Segment",
+      "status": "Status"
+    },
+    "employee": {
+      "code": "Employee code",
+      "department": "Department",
+      "position": "Position",
+      "status": "Status"
+    },
+    "execute": {
+      "title": "Run code",
+      "pending": "Running…"
+    },
+    "executed": "Tool {name} finished",
+    "financeAccount": {
+      "code": "Account no.",
+      "type": "Type",
+      "balance": "Balance",
+      "currency": "Currency",
+      "status": "Status"
+    },
+    "invoiceList": {
+      "header": "Invoices",
+      "number": "Invoice no.",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "search": {
+      "title": "Search API",
+      "methods": "Methods",
+      "pending": "Searching…"
+    }
   }
 }
