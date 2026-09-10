@@ -48,7 +48,10 @@
         "rate_number": "Interest rate must be a number",
         "rate_non_negative": "Interest rate cannot be negative",
         "rate_too_high": "Interest rate must be at most 100"
-      }
+      },
+      "request_success": "Product request submitted for approval",
+      "request_failed": "Failed to submit the product request",
+      "submit_request": "Submit for approval"
     },
     "interbank": {
       "title": "Interbank deposits",
@@ -69,8 +72,8 @@
       "open_success": "Savings account opened",
       "open_failed": "Failed to open savings account",
       "settle": "Settle",
-      "settle_confirm_title": "Settle savings account?",
-      "settle_confirm_description": "The account {code} will be settled and closed; posting goes through the finance journal. This action cannot be undone.",
+      "settle_confirm_title": "Submit settlement for approval?",
+      "settle_confirm_description": "Savings {code} will be submitted for maker/checker approval. The settlement posting is journaled once the checker approves.",
       "settle_success": "Savings account settled",
       "settle_failed": "Failed to settle savings account",
       "field": {
@@ -81,11 +84,19 @@
         "accrued": "Accrued interest",
         "amount": "Amount",
         "open_date": "Open date",
-        "maturity_date": "Maturity"
+        "maturity_date": "Maturity",
+        "txn_date": "Transaction date"
       },
       "validation": {
         "required": "Enter account code, customer, product and a positive amount"
-      }
+      },
+      "settle_submitted": "Settlement submitted for approval",
+      "deposit": "Deposit",
+      "deposit_title": "Additional deposit",
+      "deposit_description": "Savings {code}: enter the additional amount. The ticket goes through maker/checker approval before the principal is bumped.",
+      "deposit_success": "Additional deposit submitted",
+      "deposit_failed": "Failed to submit the additional deposit",
+      "deposit_validation": "The additional amount must be greater than 0"
     }
   }
 }

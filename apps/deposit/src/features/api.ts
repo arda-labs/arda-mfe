@@ -60,6 +60,27 @@ export interface InterbankDeposit {
   created_at?: string
 }
 
+/** Workflow submission handle returned by settle/deposit endpoints. */
+export interface DepositSubmission {
+  case_id: string
+  case_code: string
+}
+
+/** DPM.102/103 staged product register/edit request. */
+export interface ProductRequest {
+  id: string
+  request_type: "REGISTER" | "EDIT"
+  product_code: string
+  name: string
+  term_months: number
+  interest_rate: number
+  currency_code: string
+  status: "SUBMITTED" | "APPLIED" | "REJECTED"
+  workflow_case_code?: string
+  created_by?: string
+  created_at?: string
+}
+
 export const depositApi = {
   listProducts: (
     params: { q?: string; is_active?: string; sort?: string; order?: string } = {},
@@ -81,6 +102,32 @@ export const depositApi = {
     interest_rate: number
     currency_code?: string
   }) => postCanonical<SavingsProduct>("/api/deposit/products", body),
+  submitProductRequest: (
+    requestType: "REGISTER" | "EDIT",
+    body: {
+      product_code: string
+      name: string
+      term_months: number
+      interest_rate: number
+      currency_code?: string
+    }
+  ) =>
+    postCanonical<DepositSubmission>("/api/deposit/product-requests", {
+      request_type: requestType,
+      ...body,
+    }),
+  listProductRequests: (
+    params: { status?: string } = {},
+    requestOptions?: ApiRequestOptions
+  ) => {
+    const search = new URLSearchParams()
+    if (params.status) search.set("status", params.status)
+    const qs = search.toString()
+    return getCanonicalList<ProductRequest>(
+      `/api/deposit/product-requests${qs ? `?${qs}` : ""}`,
+      requestOptions
+    )
+  },
   listSavings: (params: { status?: string; q?: string } = {}, requestOptions?: ApiRequestOptions) => {
     const search = new URLSearchParams()
     if (params.status) search.set("status", params.status)
@@ -97,7 +144,18 @@ export const depositApi = {
     currency_code?: string
   }) => postCanonical<Savings>("/api/deposit/savings/open", body),
   settleSavings: (savingsCode: string) =>
-    postCanonical<Savings>(`/api/deposit/savings/${encodeURIComponent(savingsCode)}/settle`, {}),
+    postCanonical<DepositSubmission>(
+      `/api/deposit/savings/${encodeURIComponent(savingsCode)}/settle`,
+      {}
+    ),
+  depositAdditional: (
+    savingsCode: string,
+    body: { amount_minor: number; txn_date?: string }
+  ) =>
+    postCanonical<DepositSubmission>(
+      `/api/deposit/savings/${encodeURIComponent(savingsCode)}/deposit`,
+      body
+    ),
   listInterbank: (params: { status?: string } = {}, requestOptions?: ApiRequestOptions) => {
     const search = new URLSearchParams()
     if (params.status) search.set("status", params.status)

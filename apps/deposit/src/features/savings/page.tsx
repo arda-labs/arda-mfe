@@ -22,6 +22,7 @@ import { sortByColumn, useClientListTable } from "@workspace/list-page/client-li
 import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
 import { depositApi, type Savings } from "../api"
 import { OpenSavingsDialog } from "./components/OpenSavingsDialog"
+import { DepositAdditionalDialog } from "./components/DepositAdditionalDialog"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -34,6 +35,7 @@ export function SavingsPage(_props: { pathname: string }) {
   const [loadError, setLoadError] = useState<unknown>(null)
   const [openDialog, setOpenDialog] = useState(false)
   const [settleTarget, setSettleTarget] = useState<Savings | null>(null)
+  const [depositTarget, setDepositTarget] = useState<Savings | null>(null)
   const [settling, setSettling] = useState(false)
 
   const load = useCallback(async (initial = false) => {
@@ -59,8 +61,11 @@ export function SavingsPage(_props: { pathname: string }) {
     async (item: Savings) => {
       setSettling(true)
       try {
-        await depositApi.settleSavings(item.savings_code)
-        notify.success(t("deposit.savings.settle_success"))
+        const submission = await depositApi.settleSavings(item.savings_code)
+        notify.success(
+          t("deposit.savings.settle_submitted"),
+          submission.case_code
+        )
         setSettleTarget(null)
         await load()
       } catch (error) {
@@ -203,14 +208,24 @@ export function SavingsPage(_props: { pathname: string }) {
         enableHiding: false,
         cell: ({ row }) =>
           row.original.status === "ACTIVE" ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => setSettleTarget(row.original)}
-            >
-              {t("deposit.savings.settle")}
-            </Button>
+            <div className="flex justify-end gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setDepositTarget(row.original)}
+              >
+                {t("deposit.savings.deposit")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setSettleTarget(row.original)}
+              >
+                {t("deposit.savings.settle")}
+              </Button>
+            </div>
           ) : null,
       },
     ],
@@ -264,6 +279,12 @@ export function SavingsPage(_props: { pathname: string }) {
             open={openDialog}
             onOpenChange={setOpenDialog}
             onSaved={() => load()}
+          />
+          <DepositAdditionalDialog
+            open={depositTarget !== null}
+            savingsCode={depositTarget?.savings_code ?? ""}
+            onOpenChange={(nextOpen) => !nextOpen && setDepositTarget(null)}
+            onSubmitted={() => load()}
           />
           <AlertDialog
             open={settleTarget !== null}

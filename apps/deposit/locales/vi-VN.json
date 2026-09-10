@@ -48,7 +48,10 @@
         "rate_number": "Lãi suất phải là số",
         "rate_non_negative": "Lãi suất không được âm",
         "rate_too_high": "Lãi suất tối đa 100"
-      }
+      },
+      "request_success": "Đã trình duyệt sản phẩm (chờ duyệt)",
+      "request_failed": "Không thể trình duyệt sản phẩm",
+      "submit_request": "Trình duyệt"
     },
     "interbank": {
       "title": "Tiền gửi liên ngân hàng",
@@ -69,8 +72,8 @@
       "open_success": "Đã mở sổ",
       "open_failed": "Không thể mở sổ",
       "settle": "Tất toán",
-      "settle_confirm_title": "Tất toán sổ tiết kiệm?",
-      "settle_confirm_description": "Sổ {code} sẽ được tất toán và đóng; bút toán ghi qua sổ nhật ký tài chính. Hành động này không thể hoàn tác.",
+      "settle_confirm_title": "Trình duyệt tất toán sổ tiết kiệm?",
+      "settle_confirm_description": "Sổ {code} sẽ được trình duyệt tất toán (maker/checker). Khi checker phê duyệt, bút toán tất toán được ghi qua sổ nhật ký tài chính.",
       "settle_success": "Đã tất toán sổ",
       "settle_failed": "Không thể tất toán sổ",
       "field": {
@@ -81,11 +84,19 @@
         "accrued": "Lãi tích lũy",
         "amount": "Số tiền",
         "open_date": "Mở sổ",
-        "maturity_date": "Đáo hạn"
+        "maturity_date": "Đáo hạn",
+        "txn_date": "Ngày giao dịch"
       },
       "validation": {
         "required": "Nhập đủ mã sổ, khách hàng, sản phẩm và số tiền dương"
-      }
+      },
+      "settle_submitted": "Đã trình duyệt tất toán",
+      "deposit": "Gửi thêm",
+      "deposit_title": "Nộp thêm tiền gửi",
+      "deposit_description": "Sổ {code}: nhập số tiền nộp thêm. Phiếu được trình duyệt maker/checker trước khi cộng vào gốc.",
+      "deposit_success": "Đã trình duyệt nộp thêm",
+      "deposit_failed": "Không thể trình duyệt nộp thêm",
+      "deposit_validation": "Số tiền nộp thêm phải lớn hơn 0"
     }
   }
 }

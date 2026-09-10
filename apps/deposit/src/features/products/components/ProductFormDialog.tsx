@@ -99,23 +99,22 @@ export function ProductFormDialog({
   const submit = handleSubmit(async (values) => {
     setSaving(true)
     try {
-      await depositApi.upsertProduct({
-        code: values.code.trim(),
-        name: values.name.trim(),
-        term_months: values.term_months,
-        interest_rate: values.interest_rate,
-        currency_code: values.currency_code.trim().toUpperCase(),
-      })
-      notify.success(
-        product
-          ? t("deposit.products.update_success")
-          : t("deposit.products.create_success")
+      const submission = await depositApi.submitProductRequest(
+        product ? "EDIT" : "REGISTER",
+        {
+          product_code: values.code.trim(),
+          name: values.name.trim(),
+          term_months: values.term_months,
+          interest_rate: values.interest_rate,
+          currency_code: values.currency_code.trim().toUpperCase(),
+        }
       )
+      notify.success(t("deposit.products.request_success"), submission.case_code)
       onOpenChange(false)
       await onSaved?.()
     } catch (err) {
       notify.error(
-        t("deposit.products.save_failed"),
+        t("deposit.products.request_failed"),
         translateApiError(err, t("deposit.save_failed"))
       )
     } finally {
@@ -180,7 +179,7 @@ export function ProductFormDialog({
             />
           </FormField>
           <Button className="w-full" type="submit" disabled={isSubmitting || saving}>
-            {product ? t("common.action.save") : t("common.action.create")}
+            {t("deposit.products.submit_request")}
           </Button>
         </form>
       </DialogContent>
