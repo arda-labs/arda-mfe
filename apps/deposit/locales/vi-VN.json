@@ -172,5 +172,92 @@
       "save_success": "Đã lưu sản phẩm",
       "save_failed": "Không thể lưu sản phẩm"
     }
+  },
+  "rates": {
+    "title": "Lãi suất huy động",
+    "create": "Đăng ký lãi suất",
+    "dialog_title": "Đăng ký/điều chỉnh lãi suất",
+    "dialog_description": "Yêu cầu sẽ được duyệt trước khi áp dụng.",
+    "field": {
+      "request_type": "Loại yêu cầu",
+      "product": "Sản phẩm",
+      "product_hint": "Để trống = mặc định",
+      "method": "Phương thức",
+      "denominator": "Mẫu số",
+      "effective_from": "Hiệu lực từ"
+    },
+    "request_type": {
+      "REGISTER": "Đăng ký",
+      "ADJUST": "Điều chỉnh",
+      "EDIT": "Sửa"
+    },
+    "validation": {
+      "required": "Nhập lãi suất và ngày hiệu lực"
+    },
+    "submit_success": "Đã trình duyệt lãi suất",
+    "submit_failed": "Không thể trình duyệt lãi suất",
+    "default_label": "— (mặc định)"
+  },
+  "interest": {
+    "dialog_title": "Trả lãi / nhập gốc",
+    "dialog_description": "Giao dịch sẽ được duyệt trước khi hạch toán.",
+    "accrued_hint": "Lãi lũy kế",
+    "field": {
+      "op_type": "Loại giao dịch",
+      "amount": "Số tiền"
+    },
+    "op_type": {
+      "PAY": "Trả lãi",
+      "CAPITALIZE": "Lãi nhập gốc"
+    },
+    "validation": {
+      "required": "Số tiền phải trong khoảng lãi lũy kế"
+    },
+    "submit_success": "Đã trình duyệt giao dịch lãi",
+    "submit_failed": "Không thể trình duyệt giao dịch lãi"
+  },
+  "batch_interest": {
+    "title": "Trả lãi hàng loạt",
+    "description": "Tổng hợp các sổ đang hoạt động có lãi lũy kế và trình duyệt một lượt.",
+    "count": "{count} sổ",
+    "submit": "Trình duyệt hàng loạt",
+    "submitted": "Đã trình duyệt {count} sổ trả lãi",
+    "total": "Tổng lãi",
+    "empty": "Không có sổ nào có lãi lũy kế",
+    "load_failed": "Không tải được danh sách sổ."
+  },
+  "savings": {
+    "detail": {
+      "load_failed": "Không tải được sổ tiết kiệm."
+    },
+    "field": {
+      "code": "Mã sổ",
+      "customer": "Khách hàng",
+      "principal": "Gốc",
+      "accrued": "Lãi lũy kế",
+      "open_date": "Ngày mở",
+      "maturity_date": "Ngày đáo hạn",
+      "org": "Đơn vị"
+    },
+    "tab": {
+      "transactions": "Giao dịch",
+      "accruals": "Dự chi lãi",
+      "interest": "Trả lãi/nhập gốc"
+    },
+    "txn": {
+      "type": "Loại giao dịch",
+      "date": "Ngày",
+      "amount": "Số tiền",
+      "empty": "Chưa có giao dịch"
+    },
+    "accrual": {
+      "period_to": "Đến ngày",
+      "days": "Số ngày",
+      "amount": "Lãi dự chi",
+      "empty": "Chưa có dự chi"
+    },
+    "interest": {
+      "empty": "Chưa có giao dịch lãi"
+    }
   }
 }

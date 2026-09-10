@@ -36,9 +36,27 @@ const IbmProductsPage = lazyWithPreload(() =>
     default: m.IbmProductsPage,
   }))
 )
+const RatesPage = lazyWithPreload(() =>
+  import("@/features/rates/page").then((m) => ({
+    default: m.RatesPage,
+  }))
+)
+const SavingsDetailPage = lazyWithPreload(() =>
+  import("@/features/savings/detail-page").then((m) => ({
+    default: m.SavingsDetailPage,
+  }))
+)
+const BatchInterestPage = lazyWithPreload(() =>
+  import("@/features/batch-interest/page").then((m) => ({
+    default: m.BatchInterestPage,
+  }))
+)
 
 async function preload(pathname: string) {
   if (pathname.startsWith("/deposit/products")) await ProductsPage.preload()
+  else if (pathname.startsWith("/deposit/rates")) await RatesPage.preload()
+  else if (pathname.startsWith("/deposit/batch-interest")) await BatchInterestPage.preload()
+  else if (pathname.startsWith("/deposit/savings/")) await SavingsDetailPage.preload()
   else if (pathname.startsWith("/deposit/interbank/products")) await IbmProductsPage.preload()
   else if (pathname.startsWith("/deposit/interbank/")) await InterbankDetailPage.preload()
   else if (pathname.startsWith("/deposit/interbank")) await InterbankPage.preload()
@@ -50,6 +68,9 @@ function RemoteRoutes() {
 
   let page = <SavingsPage pathname={pathname} />
   if (pathname.startsWith("/deposit/products")) page = <ProductsPage pathname={pathname} />
+  else if (pathname.startsWith("/deposit/rates")) page = <RatesPage />
+  else if (pathname.startsWith("/deposit/batch-interest")) page = <BatchInterestPage />
+  else if (pathname.startsWith("/deposit/savings/")) page = <SavingsDetailPage />
   else if (pathname.startsWith("/deposit/interbank/products")) page = <IbmProductsPage />
   else if (pathname.startsWith("/deposit/interbank/")) page = <InterbankDetailPage />
   else if (pathname.startsWith("/deposit/interbank"))

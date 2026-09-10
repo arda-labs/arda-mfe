@@ -172,5 +172,92 @@
       "save_success": "Product saved",
       "save_failed": "Could not save the product"
     }
+  },
+  "rates": {
+    "title": "Deposit interest rates",
+    "create": "New rate request",
+    "dialog_title": "Register/adjust interest rate",
+    "dialog_description": "The request goes through approval before applying.",
+    "field": {
+      "request_type": "Request type",
+      "product": "Product",
+      "product_hint": "Blank = default",
+      "method": "Method",
+      "denominator": "Denominator",
+      "effective_from": "Effective from"
+    },
+    "request_type": {
+      "REGISTER": "Register",
+      "ADJUST": "Adjust",
+      "EDIT": "Edit"
+    },
+    "validation": {
+      "required": "Enter the rate and effective date"
+    },
+    "submit_success": "Rate request submitted",
+    "submit_failed": "Could not submit the rate request",
+    "default_label": "— (default)"
+  },
+  "interest": {
+    "dialog_title": "Pay / capitalize interest",
+    "dialog_description": "The operation goes through approval before posting.",
+    "accrued_hint": "Accrued interest",
+    "field": {
+      "op_type": "Operation",
+      "amount": "Amount"
+    },
+    "op_type": {
+      "PAY": "Pay interest",
+      "CAPITALIZE": "Capitalize interest"
+    },
+    "validation": {
+      "required": "Amount must be within accrued interest"
+    },
+    "submit_success": "Interest operation submitted",
+    "submit_failed": "Could not submit the interest operation"
+  },
+  "batch_interest": {
+    "title": "Batch interest payment",
+    "description": "Aggregates active savings with accrued interest and submits them at once.",
+    "count": "{count} savings",
+    "submit": "Submit batch",
+    "submitted": "Submitted {count} savings for payment",
+    "total": "Total interest",
+    "empty": "No savings with accrued interest",
+    "load_failed": "Could not load savings."
+  },
+  "savings": {
+    "detail": {
+      "load_failed": "Could not load the savings account."
+    },
+    "field": {
+      "code": "Savings code",
+      "customer": "Customer",
+      "principal": "Principal",
+      "accrued": "Accrued interest",
+      "open_date": "Open date",
+      "maturity_date": "Maturity date",
+      "org": "Org unit"
+    },
+    "tab": {
+      "transactions": "Transactions",
+      "accruals": "Accruals",
+      "interest": "Interest ops"
+    },
+    "txn": {
+      "type": "Type",
+      "date": "Date",
+      "amount": "Amount",
+      "empty": "No transactions yet"
+    },
+    "accrual": {
+      "period_to": "To date",
+      "days": "Days",
+      "amount": "Accrued",
+      "empty": "No accruals yet"
+    },
+    "interest": {
+      "empty": "No interest operations yet"
+    }
   }
 }

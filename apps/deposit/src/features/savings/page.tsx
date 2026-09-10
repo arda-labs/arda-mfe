@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -97,7 +98,12 @@ export function SavingsPage(_props: { pathname: string }) {
           t("deposit.placeholder.search")
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-primary">{row.original.savings_code}</span>
+          <Link
+            to={`/deposit/savings/${row.original.savings_code}`}
+            className="font-mono text-xs font-semibold text-primary hover:underline"
+          >
+            {row.original.savings_code}
+          </Link>
         ),
       },
       {

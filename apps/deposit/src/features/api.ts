@@ -78,8 +78,7 @@ export interface IbmProduct {
 }
 
 /** Staged IBM movement (TOP_UP / INTEREST / EXPECTED / WITHDRAW). */
-export interface IbmMovement {
-  id: string
+export interface IbmMovement {  id: string
   deposit_id: string
   kind: string
   amount_minor: number
@@ -98,6 +97,65 @@ export interface IbmMovement {
 export interface IbmDetail {
   deposit: InterbankDeposit
   movements: IbmMovement[]
+}
+
+/** DPM rate tier (DPM.100/101). */
+export interface InterestRate {
+  id: string
+  product_code?: string
+  term_months: number
+  method: string
+  denominator: number
+  rate: number
+  effective_from: string
+  is_active: boolean
+  created_at?: string
+}
+
+/** One accrual row (DPM.305). */
+export interface Accrual {
+  id: string
+  savings_code: string
+  period_from: string
+  period_to: string
+  days: number
+  base_minor: number
+  rate: number
+  amount_minor: number
+  status: string
+  created_at?: string
+}
+
+/** One interest pay/capitalize op (DPM.302/303/304). */
+export interface InterestOp {
+  id: string
+  savings_code: string
+  op_type: string
+  amount_minor: number
+  status: string
+  workflow_case_id?: string
+  journal_entry_id?: string
+  created_at?: string
+}
+
+/** Savings aggregate returned by the detail endpoint. */
+export interface SavingsDetail {
+  savings: Savings
+  transactions: DepositTxnLike[]
+  accruals: Accrual[]
+  interest_ops: InterestOp[]
+}
+
+/** Minimal transaction shape reused by the savings detail. */
+export interface DepositTxnLike {
+  id: string
+  txn_type: string
+  amount_minor: number
+  currency_code: string
+  txn_date: string
+  status: string
+  journal_entry_id?: string
+  created_at?: string
 }
 
 /** Workflow submission handle returned by settle/deposit endpoints. */
@@ -236,6 +294,34 @@ export const depositApi = {
     ),
   upsertIbmProduct: (body: Partial<IbmProduct>) =>
     postCanonical<IbmProduct>("/api/deposit/ibm-products", body),
+
+  listInterestRates: (productCode?: string) =>
+    getCanonicalList<InterestRate>(
+      `/api/deposit/rates${productCode ? `?product_code=${encodeURIComponent(productCode)}` : ""}`
+    ),
+  submitRate: (body: {
+    request_type: "REGISTER" | "EDIT" | "ADJUST"
+    payload: {
+      product_code?: string
+      term_months: number
+      method?: string
+      denominator?: number
+      rate: number
+      effective_from: string
+    }
+  }) => postCanonical<{ id: string; status: string }>("/api/deposit/rates", body),
+  getSavings: (code: string) =>
+    getCanonical<SavingsDetail>(`/api/deposit/savings/${encodeURIComponent(code)}`),
+  submitSavingsInterest: (
+    code: string,
+    body: { op_type: "PAY" | "CAPITALIZE"; amount_minor: number }
+  ) =>
+    postCanonical<InterestOp>(
+      `/api/deposit/savings/${encodeURIComponent(code)}/interest`,
+      body
+    ),
+  submitBatchInterest: () =>
+    postCanonical<{ items: InterestOp[]; total: number }>("/api/deposit/batch-interest", {}),
 }
 
 export interface ProductUpsertInput {
