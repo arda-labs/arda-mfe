@@ -22,6 +22,71 @@
       "normal_balance": "Normal Balance"
     }
   },
+  "opening_balances": {
+    "title": "Opening balances",
+    "description": "Enter and review opening balances per account and currency before data migration.",
+    "refresh": "Refresh",
+    "add": "Add balance",
+    "count_badge": "{count} rows",
+    "as_of_hint": "The API returns the latest snapshot effective on or before the selected date.",
+    "loading": "Loading opening balances...",
+    "empty": "No opening balances for this date.",
+    "load_failed": "Failed to load opening balances",
+    "save_success": "Opening balance saved",
+    "save_failed": "Failed to save opening balance",
+    "pick_account": "Choose account",
+    "field": {
+      "as_of": "As of date",
+      "accounting_date": "Effective date",
+      "coa_version": "COA version",
+      "account": "Account",
+      "currency": "Currency",
+      "direction": "Direction",
+      "amount": "Amount",
+      "source_key": "Source key",
+      "description": "Description"
+    },
+    "placeholder": {
+      "version": "Empty = effective version",
+      "account": "Account code",
+      "source_key": "EPAS reference (optional)"
+    },
+    "direction": {
+      "DEBIT": "Debit",
+      "CREDIT": "Credit"
+    },
+    "col": {
+      "date": "Date",
+      "version": "Version",
+      "account": "Account",
+      "currency": "Currency",
+      "direction": "Direction",
+      "amount": "Amount",
+      "description": "Description",
+      "source": "Source"
+    },
+    "dialog": {
+      "title": "Add / adjust opening balance",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "validation": {
+      "required": "Effective date and account are required",
+      "amount": "Amount must be greater than 0"
+    },
+    "account_dialog": {
+      "title": "Choose account",
+      "search": "Search by code or name...",
+      "code": "Code",
+      "name": "Name",
+      "currency": "Currency",
+      "empty": "No matching accounts",
+      "prev": "Previous",
+      "next": "Next",
+      "page_of": "Page {page}/{total}",
+      "close": "Close"
+    }
+  },
   "account_type": {
     "asset": "Asset",
     "liability": "Liability",

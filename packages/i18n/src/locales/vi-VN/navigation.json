@@ -29,6 +29,7 @@
     "approvals": "Phê duyệt",
     "trial_balance": "Bảng cân đối thử",
     "statements": "Báo cáo tài chính",
+    "opening_balances": "Số dư đầu kỳ",
     "accounting_config": "Cấu hình kế toán"
   },
   "hrm": {
@@ -109,7 +110,9 @@
       "collections": "Thu nợ",
       "vfu": "VFU",
       "adjustments": "Điều chỉnh khoản vay",
-      "repay_plan": "Kế hoạch trả nợ"
+      "repay_plan": "Kế hoạch trả nợ",
+      "dossier": "Hồ sơ khoản vay",
+      "general_provision": "Dự phòng chung"
     }
   }
 }

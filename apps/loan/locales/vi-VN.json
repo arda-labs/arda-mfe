@@ -516,6 +516,7 @@
     },
     "approval": {
       "validation_number": "Số quyết định bắt buộc ở cấp {tier}",
+      "validation_comment": "Ý kiến là bắt buộc khi yêu cầu bổ sung",
       "placeholder": {
         "number_required": "Bắt buộc với cấp này"
       },
@@ -534,6 +535,7 @@
     "action": {
       "submit_maker": "Trình duyệt",
       "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
       "reject": "Từ chối",
       "back": "Quay lại"
     },
@@ -548,6 +550,109 @@
     },
     "contract": {
       "missing": "Không có snapshot hợp đồng trong hồ sơ"
+    }
+  },
+  "dossier": {
+    "title": "Hồ sơ khoản vay",
+    "description": "Hồ sơ tổng hợp: thuận từ, lịch trả nợ, giải ngân, thu nợ, TSBĐ và case workflow.",
+    "field": {
+      "contract": "Hợp đồng tín dụng",
+      "code": "Số hợp đồng",
+      "customer": "Khách hàng",
+      "status": "Trạng thái",
+      "amount": "Số tiền vay",
+      "rate": "Lãi suất (%)",
+      "term": "Kỳ hạn",
+      "contract_date": "Ngày hợp đồng",
+      "maturity": "Ngày đáo hạn",
+      "case": "Case hình thành"
+    },
+    "placeholder": {
+      "contract": "Chọn hợp đồng"
+    },
+    "loading": "Đang tải hồ sơ...",
+    "load_failed": "Không thể tải hồ sơ khoản vay",
+    "pick_contract": "Chọn hợp đồng để xem hồ sơ tổng hợp.",
+    "empty": "Chưa có dữ liệu",
+    "tab": {
+      "overview": "Hồ sơ & thuận từ",
+      "movements": "Giải ngân & thu nợ",
+      "repay": "Lịch trả nợ",
+      "collateral": "TSBĐ & case"
+    },
+    "section": {
+      "disbursements": "Giải ngân",
+      "collections": "Thu nợ",
+      "mortgages": "Hợp đồng thế chấp",
+      "collaterals": "Tài sản bảo đảm",
+      "cases": "Case workflow liên quan"
+    },
+    "col": {
+      "agreement": "Thuận từ",
+      "plan": "Phương án",
+      "outstanding": "Dư nợ",
+      "pending": "Chờ giải ngân",
+      "status": "Trạng thái",
+      "date": "Ngày",
+      "amount": "Số tiền",
+      "flow": "Luồng",
+      "case": "Case",
+      "principal": "Gốc",
+      "interest": "Lãi",
+      "plan_no": "Kỳ",
+      "due_date": "Ngày đến hạn",
+      "mortgage": "Mã thế chấp",
+      "customer": "Khách hàng",
+      "expire": "Hết hiệu lực",
+      "collateral": "Tài sản",
+      "owner": "Chủ sở hữu",
+      "type": "Loại",
+      "value": "Giá trị sử dụng"
+    }
+  },
+  "general_provision": {
+    "title": "Trích lập dự phòng chung",
+    "description": "Tính dự phòng chung theo chi nhánh (LNM.307.01): tổng dư nợ × tỷ lệ, so với lũy kế đã trích để xác định trích thêm hoặc hoàn.",
+    "refresh": "Làm mới",
+    "count_badge": "{count} kỳ",
+    "loading": "Đang tải danh sách...",
+    "empty": "Chưa có kỳ dự phòng nào.",
+    "load_failed": "Không thể tải danh sách dự phòng chung",
+    "calculate": "Tính dự phòng",
+    "calculate_failed": "Không thể tính dự phòng",
+    "submit": "Trình duyệt",
+    "submit_success": "Đã trình duyệt dự phòng chung",
+    "submit_failed": "Không thể trình duyệt dự phòng chung",
+    "field": {
+      "org": "Chi nhánh (org code)",
+      "date": "Ngày trích lập",
+      "rate": "Tỷ lệ (%)",
+      "outstanding": "Tổng dư nợ",
+      "accum": "Lũy kế đã trích",
+      "required": "Dự phòng phải có",
+      "alloc": "Trích kỳ này",
+      "reverse": "Hoàn kỳ này"
+    },
+    "placeholder": {
+      "org": "Để trống = toàn hệ thống"
+    },
+    "col": {
+      "date": "Ngày",
+      "org": "Chi nhánh",
+      "rate": "Tỷ lệ (%)",
+      "outstanding": "Tổng dư nợ",
+      "accum": "Lũy kế",
+      "required": "Phải có",
+      "alloc": "Trích",
+      "reverse": "Hoàn",
+      "status": "Trạng thái",
+      "case": "Case"
+    },
+    "status": {
+      "SUBMITTED": "Chờ duyệt",
+      "POSTED": "Đã hạch toán",
+      "REJECTED": "Từ chối",
+      "CANCELLED": "Đã hủy"
     }
   },
   "repay_plan": {

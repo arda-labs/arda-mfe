@@ -36,6 +36,11 @@ const JournalPage = lazyWithPreload(() =>
     default: m.JournalPage,
   }))
 )
+const OpeningBalancesPage = lazyWithPreload(() =>
+  import("@/features/finance/opening-balances/page").then((m) => ({
+    default: m.OpeningBalancesPage,
+  }))
+)
 const SingleEntryPostingPage = lazyWithPreload(() =>
   import("@/features/finance/posting/single-entry/page").then((m) => ({
     default: m.SingleEntryPostingPage,
@@ -93,6 +98,7 @@ async function preload(pathname = "") {
   if (pathname.startsWith("/finance/trial-balance")) page = TrialBalancePage
   if (pathname.startsWith("/finance/statements")) page = StatementsPage
   if (pathname.startsWith("/finance/journal")) page = JournalPage
+  if (pathname.startsWith("/finance/opening-balances")) page = OpeningBalancesPage
   // Posting init routes must match BEFORE the list prefix (both start with
   // /finance/posting/<flow>).
   if (pathname.startsWith("/finance/posting/single-entry/init")) page = SingleEntryPostingInitPage
@@ -118,6 +124,9 @@ function RemoteRoutes() {
   if (pathname.startsWith("/finance/trial-balance")) page = <TrialBalancePage />
   if (pathname.startsWith("/finance/statements")) page = <StatementsPage />
   if (pathname.startsWith("/finance/journal")) page = <JournalPage pathname={pathname} />
+  if (pathname.startsWith("/finance/opening-balances")) {
+    page = <OpeningBalancesPage />
+  }
   // Init branches before list branches — same prefix, init is the longer path.
   if (pathname.startsWith("/finance/posting/single-entry/init")) {
     page = <SingleEntryPostingInitPage />

@@ -16,6 +16,7 @@ import type {
 } from "../api"
 import { workbenchApi } from "../api"
 import { WorkItemTree } from "./workbench-tree"
+import { DecisionDialog, type ReviewDecision } from "./decision-dialog"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
 import { workItemColumns, searchColumns } from "../utils/workbench-columns"
 import { transactionListTableLayout } from "../utils/workbench-table-layout"
@@ -27,6 +28,37 @@ import {
 } from "../utils/burst-refetch"
 
 const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
+
+// Case types whose domain remote does not embed the approve/reject action:
+// the workbench completes them directly (CRM registration/adjustment and
+// loan formation keep their own stage screens).
+const GENERIC_DECISION_CASE_TYPES = new Set([
+  "FIN_SINGLE_ENTRY_V2",
+  "FIN_DOUBLE_ENTRY_V2",
+  "FIN_OFF_BALANCE_V2",
+  "FIN_TXN_CANCEL_V2",
+  "FIN_CLOSING_V2",
+  "HRM_EMPLOYEE_REGISTRATION",
+  "DPM_SETTLE_V2",
+  "RPT_SUBMIT_V2",
+  "LNM_DEBT_CHANGE_V2",
+  "LNM_RATE_CHANGE_V2",
+  "LNM_RESTRUCTURE_V2",
+  "LNM_WAIVER_V2",
+  "LNM_WRITEOFF_V2",
+  "LNM_RECOVERY_V2",
+  "LNM_FUND_CHECK_V2",
+  "LNM_REVENUE_ALLOCATION_V2",
+  "LNM_VFU_FEE_ALLOCATION_V2",
+  "LNM_OFF_BALANCE_EXPORT_V2",
+  "LNM_DISB_REGISTER_V2",
+  "LNM_DISB_COMPLETE_V2",
+  "LNM_DISB_BATCH_REGISTER_V2",
+  "LNM_DISB_BATCH_COMPLETE_V2",
+  "LNM_COLLECTION_V2",
+  "LNM_COLLECTION_BATCH_V2",
+  "LNM_GENERAL_PROVISION_V2",
+])
 
 const directionMeta = {
   incoming: {
@@ -167,6 +199,8 @@ function TransactionWorkbenchInner({
     reload,
   } = useWorkbenchData(queryFilter, baseFilter)
   const [claimPending, setClaimPending] = useState(false)
+  const [decisionItem, setDecisionItem] = useState<WorkItem | null>(null)
+  const [decisionSubmitting, setDecisionSubmitting] = useState(false)
 
   const items = useMemo(
     () => filterWorkItemsByNode(allItems, activeNode),
@@ -210,6 +244,17 @@ function TransactionWorkbenchInner({
     // reset poll when filter changes
   }, [filterStable, refetchInterval])
 
+  const openClaimedItem = useCallback(
+    (item: WorkItem) => {
+      if (item.caseType && GENERIC_DECISION_CASE_TYPES.has(item.caseType)) {
+        setDecisionItem(item)
+        return
+      }
+      navigateTo(workItemHref(item, direction))
+    },
+    [direction]
+  )
+
   const openItem = useCallback(
     async (item: WorkItem) => {
       if (direction !== "incoming") {
@@ -230,7 +275,7 @@ function TransactionWorkbenchInner({
             workItemId: item.id,
           })
           await reload()
-          navigateTo(workItemHref(workItem, direction))
+          openClaimedItem(workItem)
         } catch (error) {
           notify.error(
             t("workflow.workbench.claim_error"),
@@ -242,12 +287,48 @@ function TransactionWorkbenchInner({
         return
       }
       if (item.canOpen) {
-        navigateTo(workItemHref(item, direction))
+        openClaimedItem(item)
         return
       }
       notify.error(t("workflow.workbench.claim_error"), item.claimBlockedReason)
     },
-    [direction, reload, t]
+    [direction, openClaimedItem, reload, t]
+  )
+
+  const confirmDecision = useCallback(
+    async (decision: ReviewDecision, comment: string) => {
+      const item = decisionItem
+      if (!item) return
+      if (!item.jobKey || !item.processInstanceKey) {
+        notify.error(t("workflow.workbench.decision_error"))
+        return
+      }
+      setDecisionSubmitting(true)
+      try {
+        await workbenchApi.completeTask({
+          jobKey: item.jobKey,
+          processInstanceKey: item.processInstanceKey,
+          elementId: item.stepCode,
+          variables: {
+            decision,
+            reviewDecision: decision,
+            comment,
+            reviewComment: comment,
+          },
+        })
+        notify.success(t("workflow.workbench.decision_success"))
+        setDecisionItem(null)
+        await reload()
+      } catch (error) {
+        notify.error(
+          t("workflow.workbench.decision_error"),
+          error instanceof Error ? error.message : undefined
+        )
+      } finally {
+        setDecisionSubmitting(false)
+      }
+    },
+    [decisionItem, reload, t]
   )
 
   const claiming = direction === "incoming" && claimPending
@@ -334,6 +415,14 @@ function TransactionWorkbenchInner({
           )}
         </div>
       </div>
+      <DecisionDialog
+        item={decisionItem}
+        submitting={decisionSubmitting}
+        onClose={() => setDecisionItem(null)}
+        onConfirm={(decision, comment) =>
+          void confirmDecision(decision, comment)
+        }
+      />
     </Page>
   )
 }

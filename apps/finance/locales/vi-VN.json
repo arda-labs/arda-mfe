@@ -22,6 +22,71 @@
       "normal_balance": "Số dư thông thường"
     }
   },
+  "opening_balances": {
+    "title": "Số dư đầu kỳ",
+    "description": "Nhập và tra cứu số dư đầu kỳ theo tài khoản và loại tiền trước khi chuyển dữ liệu.",
+    "refresh": "Làm mới",
+    "add": "Nhập số dư",
+    "count_badge": "{count} dòng",
+    "as_of_hint": "Hệ thống trả snapshot mới nhất có ngày hiệu lực ≤ ngày chọn.",
+    "loading": "Đang tải số dư đầu kỳ...",
+    "empty": "Chưa có số dư đầu kỳ cho ngày này.",
+    "load_failed": "Không thể tải số dư đầu kỳ",
+    "save_success": "Đã lưu số dư đầu kỳ",
+    "save_failed": "Không thể lưu số dư đầu kỳ",
+    "pick_account": "Chọn TK",
+    "field": {
+      "as_of": "Xem đến ngày",
+      "accounting_date": "Ngày hiệu lực",
+      "coa_version": "Phiên bản COA",
+      "account": "Tài khoản",
+      "currency": "Loại tiền",
+      "direction": "Chiều",
+      "amount": "Số tiền",
+      "source_key": "Khóa nguồn (source_key)",
+      "description": "Diễn giải"
+    },
+    "placeholder": {
+      "version": "Để trống = phiên bản hiệu lực",
+      "account": "Mã tài khoản",
+      "source_key": "Mã đối chiếu EPAS (nếu có)"
+    },
+    "direction": {
+      "DEBIT": "Nợ",
+      "CREDIT": "Có"
+    },
+    "col": {
+      "date": "Ngày",
+      "version": "Phiên bản",
+      "account": "Tài khoản",
+      "currency": "Loại tiền",
+      "direction": "Chiều",
+      "amount": "Số tiền",
+      "description": "Diễn giải",
+      "source": "Nguồn"
+    },
+    "dialog": {
+      "title": "Nhập / điều chỉnh số dư đầu kỳ",
+      "cancel": "Hủy",
+      "save": "Lưu"
+    },
+    "validation": {
+      "required": "Ngày hiệu lực và tài khoản là bắt buộc",
+      "amount": "Số tiền phải lớn hơn 0"
+    },
+    "account_dialog": {
+      "title": "Chọn tài khoản",
+      "search": "Tìm theo mã hoặc tên...",
+      "code": "Mã",
+      "name": "Tên",
+      "currency": "Loại tiền",
+      "empty": "Không có tài khoản phù hợp",
+      "prev": "Trước",
+      "next": "Sau",
+      "page_of": "Trang {page}/{total}",
+      "close": "Đóng"
+    }
+  },
   "account_type": {
     "asset": "Tài sản (Asset)",
     "liability": "Nợ phải trả (Liability)",

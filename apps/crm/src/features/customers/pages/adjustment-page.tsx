@@ -227,7 +227,7 @@ export function CustomerAdjustmentPage({
           ? { riskDecision: decision }
           : resolved.role === "CUSTOMER_MAKER"
             ? { revisionSubmitted: true }
-            : { reviewDecision: decision }
+            : { reviewDecision: decision, decision }
       await runMutation(
         () => customerApi.completeTask({ ...resolved, variables }),
         {

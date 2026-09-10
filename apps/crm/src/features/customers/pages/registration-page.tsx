@@ -417,6 +417,7 @@ export function CustomerRegistrationPage({
             }
           : {
               reviewDecision: decision,
+              decision,
               ...(comment ? { reviewComment: comment } : {}),
             }
       await completeWorkflowTask({

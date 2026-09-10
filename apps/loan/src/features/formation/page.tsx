@@ -20,7 +20,7 @@ import {
   useFormationTaskContext,
 } from "./utils/task-context"
 import { postTaskWorkbenchHref } from "./utils/workbench-return"
-import { approvalTierOf, stringVariable } from "./utils/stage"
+import { approvalTierOf, stageLabelKey, stepEditableTab, stringVariable } from "./utils/stage"
 import {
   proposalPayload,
   proposalValuesFromContract,
@@ -222,12 +222,19 @@ export function FormationPage() {
 
   // ── Reviewer stages: complete {…stage fields, decision} ──
   const decide = useCallback(
-    async (decision: "APPROVE" | "REJECT") => {
+    async (decision: "APPROVE" | "REQUEST_CHANGES" | "REJECT") => {
       if (submittingRef.current || !stage || !editableStage) return
       if (stage === "UT_TWRevalidate") {
         if (!appraisal) return
         if (!appraisal.appraisalNumber.trim() || !appraisal.appraisalDate.trim()) {
           notify.error(t("loan.formation.appraisal.validation"))
+          return
+        }
+        if (
+          decision === "REQUEST_CHANGES" &&
+          !appraisal.appraisalOpinion.trim()
+        ) {
+          notify.error(t("loan.formation.approval.validation_comment"))
           return
         }
         submittingRef.current = true
@@ -243,6 +250,8 @@ export function FormationPage() {
               appraisalRate: Number(appraisal.appraisalRate) || 0,
               appraisalTerm: Number(appraisal.appraisalTerm) || 0,
               decision,
+              reviewDecision: decision,
+              reviewComment: appraisal.appraisalOpinion.trim(),
             })
           )
             finish()
@@ -263,6 +272,10 @@ export function FormationPage() {
         )
         return
       }
+      if (decision === "REQUEST_CHANGES" && !approval.approvalComment.trim()) {
+        notify.error(t("loan.formation.approval.validation_comment"))
+        return
+      }
       submittingRef.current = true
       setSubmitting(true)
       try {
@@ -273,6 +286,8 @@ export function FormationPage() {
             approvalDate: approval.approvalDate.trim(),
             approvalComment: approval.approvalComment.trim(),
             decision,
+            reviewDecision: decision,
+            reviewComment: approval.approvalComment.trim(),
           })
         )
           finish()
@@ -353,14 +368,16 @@ export function FormationPage() {
         </>
       }
       tabs={tabs}
-      defaultValue={stage ? editableTabFor(stage) : "proposal"}
+      defaultValue={stage ? stepEditableTab(stage) : "proposal"}
       footer={
         <FormationFooterActions
           canComplete={Boolean(editableStage)}
           isMaker={isMakerStage}
           isSubmitting={submitting}
+          canReject={stage === "UT_GDReview" || stage === "UT_BoardReview"}
           onSubmitMaker={submitMaker}
           onApprove={() => void decide("APPROVE")}
+          onRequestChanges={() => void decide("REQUEST_CHANGES")}
           onReject={() => void decide("REJECT")}
           onBack={goBack}
         />
@@ -369,24 +386,6 @@ export function FormationPage() {
   )
 }
 
-function stageLabelKey(stage: LoanFormationStepCode | null) {
-  return stage
-    ? `loan.formation.stage.${stage}`
-    : "loan.formation.stage.unknown"
-}
-
-function editableTabFor(stage: LoanFormationStepCode) {
-  switch (stage) {
-    case "UT_MakerInput":
-      return "proposal"
-    case "UT_TWRevalidate":
-      return "appraisal"
-    default:
-      return "approval"
-  }
-}
-
-/** Trạng thái hợp đồng → label i18n (fallback: raw status). */
 function contractStatusLabel(status: string, t: (key: string) => string) {
   const key = `loan.status.${status.toLowerCase()}`
   const label = t(key)

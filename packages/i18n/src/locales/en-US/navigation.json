@@ -29,6 +29,7 @@
     "approvals": "Approvals",
     "trial_balance": "Trial Balance",
     "statements": "Financial Statements",
+    "opening_balances": "Opening Balances",
     "accounting_config": "Accounting Configuration"
   },
   "hrm": {
@@ -109,7 +110,9 @@
       "collections": "Collections",
       "vfu": "VFU",
       "adjustments": "Loan adjustments",
-      "repay_plan": "Repayment plan"
+      "repay_plan": "Repayment plan",
+      "dossier": "Loan dossier",
+      "general_provision": "General provision"
     }
   }
 }

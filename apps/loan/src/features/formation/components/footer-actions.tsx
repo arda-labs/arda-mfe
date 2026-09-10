@@ -1,26 +1,31 @@
-import { ArrowLeft, Check, Send, X } from "lucide-react"
+import { ArrowLeft, Check, MessageSquareWarning, Send, X } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 
 /**
  * Footer formation — mirror role-based `FooterActions` CRM (customer-ui.tsx):
  * maker (LNM_MAKER) → "Trình duyệt"; reviewer (TW/PGD/GD/Board) → "Phê duyệt"
- * + "Từ chối"; luôn có "Quay lại" → returnUrl ?? /loans.
+ * + "Yêu cầu bổ sung"; GD/Board thêm "Từ chối" (TW/PGD chỉ trả về maker).
+ * Luôn có "Quay lại" → returnUrl ?? /loans.
  */
 export function FormationFooterActions({
   canComplete,
   isMaker,
   isSubmitting,
+  canReject = true,
   onApprove,
   onReject,
+  onRequestChanges,
   onSubmitMaker,
   onBack,
 }: {
   canComplete: boolean
   isMaker: boolean
   isSubmitting: boolean
+  canReject?: boolean
   onApprove?: () => void
   onReject?: () => void
+  onRequestChanges?: () => void
   onSubmitMaker?: () => void
   onBack: () => void
 }) {
@@ -42,13 +47,25 @@ export function FormationFooterActions({
             <Button
               className="h-8"
               type="button"
-              variant="destructive"
+              variant="outline"
               disabled={isSubmitting}
-              onClick={onReject}
+              onClick={onRequestChanges}
             >
-              <X className="size-4" />
-              {t("loan.formation.action.reject")}
+              <MessageSquareWarning className="size-4" />
+              {t("loan.formation.action.request_changes")}
             </Button>
+            {canReject ? (
+              <Button
+                className="h-8"
+                type="button"
+                variant="destructive"
+                disabled={isSubmitting}
+                onClick={onReject}
+              >
+                <X className="size-4" />
+                {t("loan.formation.action.reject")}
+              </Button>
+            ) : null}
           </>
         ) : null}
         {canComplete && isMaker ? (

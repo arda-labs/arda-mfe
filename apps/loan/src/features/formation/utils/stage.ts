@@ -26,6 +26,12 @@ export function stepEditableTab(step: LoanFormationStepCode) {
   }
 }
 
+export function stageLabelKey(stage: LoanFormationStepCode | null) {
+  return stage
+    ? `loan.formation.stage.${stage}`
+    : "loan.formation.stage.unknown"
+}
+
 export function stepIndex(step: LoanFormationStepCode) {
   return FORMATION_STEPS.indexOf(step)
 }

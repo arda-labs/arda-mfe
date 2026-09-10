@@ -516,6 +516,7 @@
     },
     "approval": {
       "validation_number": "Decision number is required at the {tier} tier",
+      "validation_comment": "A comment is required when requesting changes",
       "placeholder": {
         "number_required": "Required for this tier"
       },
@@ -534,6 +535,7 @@
     "action": {
       "submit_maker": "Submit",
       "approve": "Approve",
+      "request_changes": "Request changes",
       "reject": "Reject",
       "back": "Back"
     },
@@ -548,6 +550,109 @@
     },
     "contract": {
       "missing": "No contract snapshot in the dossier"
+    }
+  },
+  "dossier": {
+    "title": "Loan dossier",
+    "description": "Composite record: agreements, repayment schedule, disbursements, collections, collateral and workflow cases.",
+    "field": {
+      "contract": "Credit contract",
+      "code": "Contract no.",
+      "customer": "Customer",
+      "status": "Status",
+      "amount": "Loan amount",
+      "rate": "Interest rate (%)",
+      "term": "Term",
+      "contract_date": "Contract date",
+      "maturity": "Maturity date",
+      "case": "Formation case"
+    },
+    "placeholder": {
+      "contract": "Choose a contract"
+    },
+    "loading": "Loading dossier...",
+    "load_failed": "Failed to load the loan dossier",
+    "pick_contract": "Pick a contract to view its composite dossier.",
+    "empty": "No data",
+    "tab": {
+      "overview": "Record & agreements",
+      "movements": "Disbursements & collections",
+      "repay": "Repayment schedule",
+      "collateral": "Collateral & cases"
+    },
+    "section": {
+      "disbursements": "Disbursements",
+      "collections": "Collections",
+      "mortgages": "Mortgage contracts",
+      "collaterals": "Collateral assets",
+      "cases": "Related workflow cases"
+    },
+    "col": {
+      "agreement": "Agreement",
+      "plan": "Plan",
+      "outstanding": "Outstanding",
+      "pending": "Pending disbursement",
+      "status": "Status",
+      "date": "Date",
+      "amount": "Amount",
+      "flow": "Flow",
+      "case": "Case",
+      "principal": "Principal",
+      "interest": "Interest",
+      "plan_no": "Period",
+      "due_date": "Due date",
+      "mortgage": "Mortgage code",
+      "customer": "Customer",
+      "expire": "Expires",
+      "collateral": "Asset",
+      "owner": "Owner",
+      "type": "Type",
+      "value": "Use value"
+    }
+  },
+  "general_provision": {
+    "title": "General provision",
+    "description": "Per-branch general provision (LNM.307.01): total outstanding × rate vs the accumulated provision to derive the top-up or reversal.",
+    "refresh": "Refresh",
+    "count_badge": "{count} periods",
+    "loading": "Loading periods...",
+    "empty": "No provision periods yet.",
+    "load_failed": "Failed to load general provisions",
+    "calculate": "Calculate",
+    "calculate_failed": "Failed to calculate the provision",
+    "submit": "Submit",
+    "submit_success": "General provision submitted",
+    "submit_failed": "Failed to submit the general provision",
+    "field": {
+      "org": "Branch (org code)",
+      "date": "Provision date",
+      "rate": "Rate (%)",
+      "outstanding": "Total outstanding",
+      "accum": "Accumulated",
+      "required": "Required provision",
+      "alloc": "Allocation",
+      "reverse": "Reversal"
+    },
+    "placeholder": {
+      "org": "Empty = whole system"
+    },
+    "col": {
+      "date": "Date",
+      "org": "Branch",
+      "rate": "Rate (%)",
+      "outstanding": "Outstanding",
+      "accum": "Accumulated",
+      "required": "Required",
+      "alloc": "Allocation",
+      "reverse": "Reversal",
+      "status": "Status",
+      "case": "Case"
+    },
+    "status": {
+      "SUBMITTED": "Pending approval",
+      "POSTED": "Posted",
+      "REJECTED": "Rejected",
+      "CANCELLED": "Cancelled"
     }
   },
   "repay_plan": {

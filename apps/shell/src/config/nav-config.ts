@@ -3,6 +3,7 @@ import {
   BarChart3,
   BookOpen,
   Building2,
+  Calculator,
   Calendar,
   Clock,
   FileText,
@@ -227,6 +228,11 @@ export const navItems: NavNode[] = [
         labelKey: "nav.finance.statements",
         icon: FileText,
       },
+      {
+        href: "/finance/opening-balances",
+        labelKey: "nav.finance.opening_balances",
+        icon: LayoutDashboard,
+      },
     ],
   },
   {
@@ -417,6 +423,18 @@ export const navItems: NavNode[] = [
         href: "/loans/repay-plan",
         labelKey: "nav.loan.repay_plan",
         icon: ListTree,
+        permissions: ["loan.read"],
+      },
+      {
+        href: "/loans/dossier",
+        labelKey: "nav.loan.dossier",
+        icon: FileText,
+        permissions: ["loan.read"],
+      },
+      {
+        href: "/loans/general-provision",
+        labelKey: "nav.loan.general_provision",
+        icon: Calculator,
         permissions: ["loan.read"],
       },
     ],

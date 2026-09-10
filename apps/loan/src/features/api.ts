@@ -809,3 +809,38 @@ export const formationApi = {
       body
     ),
 }
+
+// ── General provision (LNM.307.01) ─────────────────────────────────────────
+
+/** One period preview/row — mirrors loan-service GeneralProvisionPreview. */
+export interface GeneralProvision {
+  id?: string
+  org_code: string
+  provision_date: string
+  rate_percent: number
+  total_outstanding_minor: number
+  accum_provision_minor: number
+  required_provision_minor: number
+  alloc_minor: number
+  reverse_minor: number
+  status?: string
+  workflow_case_id?: string
+  workflow_case_code?: string
+  journal_entry_id?: string
+  created_by?: string
+  created_at?: string
+}
+
+export const generalProvisionApi = {
+  calculate: (body: { org_code?: string; provision_date: string }) =>
+    postCanonical<GeneralProvision>(
+      "/api/loan/general-provisions/calculate",
+      body
+    ),
+  submit: (body: { org_code?: string; provision_date: string }) =>
+    postCanonical<GeneralProvision>("/api/loan/general-provisions", body),
+  list: (params: { org?: string } = {}) =>
+    getCanonicalList<GeneralProvision>(
+      `/api/loan/general-provisions?${listQuery(params).toString()}`
+    ),
+}
