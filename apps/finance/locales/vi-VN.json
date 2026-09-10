@@ -87,6 +87,53 @@
       "close": "Đóng"
     }
   },
+  "posting_review": {
+    "title": "Duyệt bút toán",
+    "loading": "Đang tải hồ sơ...",
+    "load_failed": "Không thể tải hồ sơ giao dịch",
+    "missing_work_item": "Thiếu workItemId — mở màn này từ Hộp thư đến workbench.",
+    "back": "Quay lại",
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "submit_success": "Đã xử lý giao dịch",
+    "submit_failed": "Không thể xử lý giao dịch",
+    "info": {
+      "accounting_date": "Ngày hạch toán",
+      "currency": "Loại tiền",
+      "description": "Diễn giải",
+      "reference": "Giao dịch gốc",
+      "reason": "Lý do hủy"
+    },
+    "col": {
+      "no": "STT",
+      "direction": "Chiều",
+      "account": "Tài khoản",
+      "amount": "Số tiền",
+      "description": "Diễn giải"
+    },
+    "direction": {
+      "DEBIT": "Nợ",
+      "CREDIT": "Có"
+    },
+    "total": {
+      "debit": "Tổng nợ",
+      "credit": "Tổng có"
+    },
+    "flow": {
+      "SINGLE_ENTRY": "Bút toán lẻ",
+      "DOUBLE_ENTRY": "Bút toán kép",
+      "OFF_BALANCE": "Ngoại bảng",
+      "CANCELLATION": "Hủy giao dịch",
+      "CLOSING": "Kết chuyển thu chi"
+    },
+    "action": {
+      "confirm": "Xác nhận gửi",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    }
+  },
   "account_type": {
     "asset": "Tài sản (Asset)",
     "liability": "Nợ phải trả (Liability)",

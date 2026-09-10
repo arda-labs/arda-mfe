@@ -217,6 +217,10 @@ export const loanApi = {
     kind: LoanAdjustmentKind,
     body: Partial<LoanAdjustment> & { payload?: Record<string, unknown> }
   ) => postCanonical<LoanAdjustment>(`/api/loan/adjustments/${kind}`, body),
+  getAdjustment: (kind: LoanAdjustmentKind, id: string) =>
+    getCanonical<LoanAdjustment>(
+      `/api/loan/adjustments/${kind}/${encodeURIComponent(id)}`
+    ),
   submitAdjustment: (kind: LoanAdjustmentKind, id: string) =>
     postCanonical<LoanAdjustment>(
       `/api/loan/adjustments/${kind}/${encodeURIComponent(id)}/submit`,
@@ -769,6 +773,11 @@ export const formationApi = {
   getWorkItem: (id: string) =>
     getCanonical<FormationWorkItem>(
       `/api/workflow/work-items/${encodeURIComponent(id)}`
+    ),
+  claimWorkItem: (id: string) =>
+    postCanonical<{ workItem: FormationWorkItem }>(
+      `/api/workflow/work-items/${encodeURIComponent(id)}/claim`,
+      {}
     ),
   getCaseVariables: (caseId: string) =>
     getCanonical<FormationCaseVariables>(

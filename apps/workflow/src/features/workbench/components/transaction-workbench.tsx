@@ -30,27 +30,12 @@ import {
 const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 
 // Case types whose domain remote does not embed the approve/reject action:
-// the workbench completes them directly (CRM registration/adjustment and
-// loan formation keep their own stage screens).
+// the workbench completes them directly (CRM registration/adjustment, loan
+// formation, finance postings and loan adjustments keep their own screens).
 const GENERIC_DECISION_CASE_TYPES = new Set([
-  "FIN_SINGLE_ENTRY_V2",
-  "FIN_DOUBLE_ENTRY_V2",
-  "FIN_OFF_BALANCE_V2",
-  "FIN_TXN_CANCEL_V2",
-  "FIN_CLOSING_V2",
   "HRM_EMPLOYEE_REGISTRATION",
   "DPM_SETTLE_V2",
   "RPT_SUBMIT_V2",
-  "LNM_DEBT_CHANGE_V2",
-  "LNM_RATE_CHANGE_V2",
-  "LNM_RESTRUCTURE_V2",
-  "LNM_WAIVER_V2",
-  "LNM_WRITEOFF_V2",
-  "LNM_RECOVERY_V2",
-  "LNM_FUND_CHECK_V2",
-  "LNM_REVENUE_ALLOCATION_V2",
-  "LNM_VFU_FEE_ALLOCATION_V2",
-  "LNM_OFF_BALANCE_EXPORT_V2",
   "LNM_DISB_REGISTER_V2",
   "LNM_DISB_COMPLETE_V2",
   "LNM_DISB_BATCH_REGISTER_V2",
@@ -581,30 +566,31 @@ const CASE_TYPE_HREF: Record<string, string> = {
   // CRM (deep-link fully consumed by the registration/adjustment screens).
   CUSTOMER_REGISTRATION: "/customers/registrations",
   CUSTOMER_ADJUSTMENT: "/customers/adjustments",
-  // Finance manual posting flows — domain list screens (no workItemId read).
-  FIN_SINGLE_ENTRY_V2: "/finance/posting/single-entry",
-  FIN_DOUBLE_ENTRY_V2: "/finance/posting/double-entry",
-  FIN_OFF_BALANCE_V2: "/finance/posting/off-balance",
-  FIN_TXN_CANCEL_V2: "/finance/posting/cancellation",
-  FIN_CLOSING_V2: "/finance/posting/closing",
-  // Loan: formation deep-link được màn stage riêng đọc workItemId
-  // (iteration 14). Wave FE-2: 10 LNM adjustment kinds đổ về màn riêng
-  // /loans/adjustments/{kind} (kind từ path param); LNM_DISB_* / LNM_COLLECTION
-  // giữ /loans — batch screens chưa đọc workItemId.
+  // Finance manual posting flows — deep-link vào màn duyệt (review) đọc
+  // workItemId + case variables, hiển thị bút toán và approve/reject tại chỗ.
+  FIN_SINGLE_ENTRY_V2: "/finance/posting/review",
+  FIN_DOUBLE_ENTRY_V2: "/finance/posting/review",
+  FIN_OFF_BALANCE_V2: "/finance/posting/review",
+  FIN_TXN_CANCEL_V2: "/finance/posting/review",
+  FIN_CLOSING_V2: "/finance/posting/review",
+  // Loan formation deep-link màn stage riêng; 11 adjustment kinds deep-link
+  // màn duyệt điều chỉnh (đọc workItemId + case vars → payload read-only);
+  // LNM_DISB_* / LNM_COLLECTION giữ /loans — batch screens chưa đọc workItemId.
   LOAN_FORMATION_V2: "/loans/formation",
   LNM_DISB_REGISTER_V2: "/loans",
   LNM_DISB_COMPLETE_V2: "/loans",
   LNM_COLLECTION_V2: "/loans",
-  LNM_DEBT_CHANGE_V2: "/loans/adjustments/debt-change",
-  LNM_RATE_CHANGE_V2: "/loans/adjustments/rate-change",
-  LNM_RESTRUCTURE_V2: "/loans/adjustments/restructure",
-  LNM_WAIVER_V2: "/loans/adjustments/waiver",
-  LNM_WRITEOFF_V2: "/loans/adjustments/writeoff",
-  LNM_RECOVERY_V2: "/loans/adjustments/recovery",
-  LNM_FUND_CHECK_V2: "/loans/adjustments/fund-check",
-  LNM_REVENUE_ALLOCATION_V2: "/loans/adjustments/revenue-allocation",
-  LNM_VFU_FEE_ALLOCATION_V2: "/loans/adjustments/vfu-fee-allocation",
-  LNM_OFF_BALANCE_EXPORT_V2: "/loans/adjustments/off-balance-export",
+  LNM_DEBT_CHANGE_V2: "/loans/adjustments/review",
+  LNM_RATE_CHANGE_V2: "/loans/adjustments/review",
+  LNM_RESTRUCTURE_V2: "/loans/adjustments/review",
+  LNM_WAIVER_V2: "/loans/adjustments/review",
+  LNM_WRITEOFF_V2: "/loans/adjustments/review",
+  LNM_RECOVERY_V2: "/loans/adjustments/review",
+  LNM_FUND_CHECK_V2: "/loans/adjustments/review",
+  LNM_REVENUE_ALLOCATION_V2: "/loans/adjustments/review",
+  LNM_VFU_FEE_ALLOCATION_V2: "/loans/adjustments/review",
+  LNM_OFF_BALANCE_EXPORT_V2: "/loans/adjustments/review",
+  LNM_MORTGAGE_ADJUST_V2: "/loans/adjustments/review",
 }
 
 function workItemHref(

@@ -87,6 +87,53 @@
       "close": "Close"
     }
   },
+  "posting_review": {
+    "title": "Posting review",
+    "loading": "Loading record...",
+    "load_failed": "Failed to load the transaction record",
+    "missing_work_item": "Missing workItemId — open this screen from the workbench inbox.",
+    "back": "Back",
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "submit_success": "Transaction processed",
+    "submit_failed": "Failed to process the transaction",
+    "info": {
+      "accounting_date": "Accounting date",
+      "currency": "Currency",
+      "description": "Description",
+      "reference": "Original entry",
+      "reason": "Cancellation reason"
+    },
+    "col": {
+      "no": "No.",
+      "direction": "Direction",
+      "account": "Account",
+      "amount": "Amount",
+      "description": "Description"
+    },
+    "direction": {
+      "DEBIT": "Debit",
+      "CREDIT": "Credit"
+    },
+    "total": {
+      "debit": "Total debit",
+      "credit": "Total credit"
+    },
+    "flow": {
+      "SINGLE_ENTRY": "Single entry",
+      "DOUBLE_ENTRY": "Double entry",
+      "OFF_BALANCE": "Off-balance",
+      "CANCELLATION": "Cancellation",
+      "CLOSING": "Income/expense closing"
+    },
+    "action": {
+      "confirm": "Confirm & submit",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    }
+  },
   "account_type": {
     "asset": "Asset",
     "liability": "Liability",

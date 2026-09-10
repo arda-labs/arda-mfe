@@ -86,11 +86,17 @@ const AdjustmentKindPage = lazyWithPreload(() =>
     default: m.AdjustmentKindPage,
   }))
 )
+const AdjustmentReviewPage = lazyWithPreload(() =>
+  import("@/features/adjustments/review/page").then((m) => ({
+    default: m.AdjustmentReviewPage,
+  }))
+)
 
 async function preload(pathname: string) {
   // Adjustment routes MUST be matched before the /loans hub and before each
-  // other: index "/loans/adjustments" is a prefix of "/loans/adjustments/{kind}".
-  if (pathname.startsWith("/loans/adjustments/")) await AdjustmentKindPage.preload()
+  // other: review first, then index "/loans/adjustments", then per-kind.
+  if (pathname.startsWith("/loans/adjustments/review")) await AdjustmentReviewPage.preload()
+  else if (pathname.startsWith("/loans/adjustments/")) await AdjustmentKindPage.preload()
   else if (pathname.startsWith("/loans/adjustments")) await AdjustmentsIndexPage.preload()
   else if (pathname.startsWith("/loans/products")) await ProductsPage.preload()
   else if (pathname.startsWith("/loans/vfu")) await VfuPage.preload()
@@ -112,8 +118,9 @@ function RemoteRoutes() {
   const { pathname } = useLocation()
 
   let page = <LoanPage pathname={pathname} />
-  // Adjustment routes trước /loans hub — index rồi đến per-kind.
-  if (pathname.startsWith("/loans/adjustments/")) page = <AdjustmentKindPage pathname={pathname} />
+  // Adjustment routes trước /loans hub — review rồi index rồi đến per-kind.
+  if (pathname.startsWith("/loans/adjustments/review")) page = <AdjustmentReviewPage />
+  else if (pathname.startsWith("/loans/adjustments/")) page = <AdjustmentKindPage pathname={pathname} />
   else if (pathname.startsWith("/loans/adjustments")) page = <AdjustmentsIndexPage />
   else if (pathname.startsWith("/loans/formation")) page = <FormationPage />
   else if (pathname.startsWith("/loans/repay-plan")) page = <RepayPlanPage />

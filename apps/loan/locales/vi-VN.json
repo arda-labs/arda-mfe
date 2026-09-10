@@ -610,6 +610,37 @@
       "value": "Giá trị sử dụng"
     }
   },
+  "adjustment_review": {
+    "title": "Duyệt điều chỉnh khoản vay",
+    "loading": "Đang tải hồ sơ điều chỉnh...",
+    "load_failed": "Không thể tải hồ sơ điều chỉnh",
+    "missing_work_item": "Thiếu workItemId — mở màn này từ Hộp thư đến workbench.",
+    "back": "Quay lại",
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "submit_success": "Đã xử lý hồ sơ điều chỉnh",
+    "submit_failed": "Không thể xử lý hồ sơ điều chỉnh",
+    "empty_detail": "Không có trường thông tin bổ sung",
+    "info": {
+      "contract": "Hợp đồng",
+      "status": "Trạng thái",
+      "created_by": "Người lập",
+      "decision_note": "Ghi chú quyết định",
+      "trader_name": "Người giao dịch",
+      "trader_code": "Mã người giao dịch"
+    },
+    "section": {
+      "detail": "Thông tin điều chỉnh",
+      "trader": "Thông tin người giao dịch"
+    },
+    "action": {
+      "confirm": "Xác nhận gửi",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    }
+  },
   "general_provision": {
     "title": "Trích lập dự phòng chung",
     "description": "Tính dự phòng chung theo chi nhánh (LNM.307.01): tổng dư nợ × tỷ lệ, so với lũy kế đã trích để xác định trích thêm hoặc hoàn.",

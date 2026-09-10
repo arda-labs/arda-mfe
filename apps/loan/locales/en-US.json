@@ -610,6 +610,37 @@
       "value": "Use value"
     }
   },
+  "adjustment_review": {
+    "title": "Loan adjustment review",
+    "loading": "Loading adjustment record...",
+    "load_failed": "Failed to load the adjustment record",
+    "missing_work_item": "Missing workItemId — open this screen from the workbench inbox.",
+    "back": "Back",
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "submit_success": "Adjustment processed",
+    "submit_failed": "Failed to process the adjustment",
+    "empty_detail": "No additional detail fields",
+    "info": {
+      "contract": "Contract",
+      "status": "Status",
+      "created_by": "Created by",
+      "decision_note": "Decision note",
+      "trader_name": "Trader",
+      "trader_code": "Trader code"
+    },
+    "section": {
+      "detail": "Adjustment detail",
+      "trader": "Trader information"
+    },
+    "action": {
+      "confirm": "Confirm & submit",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    }
+  },
   "general_provision": {
     "title": "General provision",
     "description": "Per-branch general provision (LNM.307.01): total outstanding × rate vs the accumulated provision to derive the top-up or reversal.",
