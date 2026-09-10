@@ -31,7 +31,8 @@
     "clear_filters": "Clear filters",
     "clear_date": "Clear date",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "detail": "Detail"
   },
   "confirm": {
     "delete_title": "Confirm delete",

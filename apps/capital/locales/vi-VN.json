@@ -34,5 +34,104 @@
         "required": "Nhập đủ mã HĐ, loại vốn và số vốn dương"
       }
     }
+  },
+  "status": {
+    "ACTIVE": "Đang hiệu lực",
+    "PENDING_APPROVAL": "Chờ duyệt",
+    "CLOSED": "Đã đóng",
+    "REJECTED": "Từ chối"
+  },
+  "movement_type": {
+    "RECEIPT": "Thu vốn",
+    "DISBURSEMENT": "Giải ngân vốn",
+    "PAYMENT": "Thanh toán hợp đồng",
+    "SETTLEMENT": "Tất toán hợp đồng"
+  },
+  "movement_status": {
+    "DRAFT": "Nháp",
+    "SUBMITTED": "Chờ duyệt",
+    "POSTED": "Đã hạch toán",
+    "REJECTED": "Từ chối"
+  },
+  "amendment_status": {
+    "DRAFT": "Nháp",
+    "SUBMITTED": "Chờ duyệt",
+    "APPLIED": "Đã áp dụng",
+    "REJECTED": "Từ chối"
+  },
+  "action": {
+    "receipt": "Thu vốn",
+    "disbursement": "Giải ngân",
+    "payment": "Thanh toán",
+    "settlement": "Tất toán",
+    "amend": "Điều chỉnh"
+  },
+  "detail": {
+    "loading": "Đang tải...",
+    "load_failed": "Không tải được hợp đồng."
+  },
+  "field": {
+    "journal": "Bút toán"
+  },
+  "contracts": {
+    "field": {
+      "product": "Sản phẩm",
+      "maturity_date": "Ngày đáo hạn",
+      "org": "Đơn vị"
+    }
+  },
+  "movements": {
+    "title": "Giao dịch vốn",
+    "empty": "Chưa có giao dịch",
+    "dialog_title": "Lập giao dịch vốn",
+    "dialog_description": "Giao dịch sẽ được trình duyệt trước khi hạch toán.",
+    "field": {
+      "type": "Loại giao dịch",
+      "date": "Ngày giao dịch",
+      "amount": "Số tiền",
+      "note": "Ghi chú"
+    },
+    "validation": {
+      "required": "Nhập số tiền và ngày giao dịch"
+    },
+    "submit_success": "Đã trình duyệt giao dịch vốn",
+    "submit_failed": "Không thể trình duyệt giao dịch"
+  },
+  "amendments": {
+    "title": "Điều chỉnh hợp đồng",
+    "empty": "Chưa có điều chỉnh",
+    "dialog_title": "Điều chỉnh hợp đồng vốn",
+    "dialog_description": "Chỉ các trường được nhập mới được áp dụng sau khi duyệt.",
+    "field": {
+      "reason": "Lý do",
+      "payload": "Nội dung"
+    },
+    "validation": {
+      "required": "Chọn ít nhất một trường điều chỉnh"
+    },
+    "submit_success": "Đã trình duyệt điều chỉnh",
+    "submit_failed": "Không thể trình duyệt điều chỉnh"
+  },
+  "fund_types": {
+    "title": "Loại vốn",
+    "create": "Thêm loại vốn",
+    "edit": "Sửa loại vốn"
+  },
+  "products": {
+    "title": "Sản phẩm vốn",
+    "create": "Thêm sản phẩm vốn",
+    "edit": "Sửa sản phẩm vốn",
+    "field": {
+      "term_months": "Kỳ hạn (tháng)"
+    }
+  },
+  "catalogs": {
+    "validation": {
+      "required": "Nhập mã và tên"
+    },
+    "save_success": "Đã lưu",
+    "save_failed": "Không thể lưu",
+    "is_active": "Đang dùng",
+    "is_inactive": "Ngừng dùng"
   }
 }

@@ -34,5 +34,104 @@
         "required": "Enter contract code, fund type and a positive amount"
       }
     }
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "PENDING_APPROVAL": "Pending approval",
+    "CLOSED": "Closed",
+    "REJECTED": "Rejected"
+  },
+  "movement_type": {
+    "RECEIPT": "Capital receipt",
+    "DISBURSEMENT": "Fund disbursement",
+    "PAYMENT": "Contract payment",
+    "SETTLEMENT": "Contract settlement"
+  },
+  "movement_status": {
+    "DRAFT": "Draft",
+    "SUBMITTED": "Submitted",
+    "POSTED": "Posted",
+    "REJECTED": "Rejected"
+  },
+  "amendment_status": {
+    "DRAFT": "Draft",
+    "SUBMITTED": "Submitted",
+    "APPLIED": "Applied",
+    "REJECTED": "Rejected"
+  },
+  "action": {
+    "receipt": "Receipt",
+    "disbursement": "Disburse",
+    "payment": "Payment",
+    "settlement": "Settle",
+    "amend": "Amend"
+  },
+  "detail": {
+    "loading": "Loading...",
+    "load_failed": "Could not load the contract."
+  },
+  "field": {
+    "journal": "Journal"
+  },
+  "contracts": {
+    "field": {
+      "product": "Product",
+      "maturity_date": "Maturity date",
+      "org": "Org unit"
+    }
+  },
+  "movements": {
+    "title": "Capital movements",
+    "empty": "No movements yet",
+    "dialog_title": "New capital movement",
+    "dialog_description": "The movement goes through approval before posting.",
+    "field": {
+      "type": "Movement type",
+      "date": "Movement date",
+      "amount": "Amount",
+      "note": "Note"
+    },
+    "validation": {
+      "required": "Enter the amount and movement date"
+    },
+    "submit_success": "Capital movement submitted",
+    "submit_failed": "Could not submit the movement"
+  },
+  "amendments": {
+    "title": "Contract amendments",
+    "empty": "No amendments yet",
+    "dialog_title": "Amend capital contract",
+    "dialog_description": "Only the entered fields are applied after approval.",
+    "field": {
+      "reason": "Reason",
+      "payload": "Payload"
+    },
+    "validation": {
+      "required": "Enter at least one amended field"
+    },
+    "submit_success": "Amendment submitted",
+    "submit_failed": "Could not submit the amendment"
+  },
+  "fund_types": {
+    "title": "Fund types",
+    "create": "New fund type",
+    "edit": "Edit fund type"
+  },
+  "products": {
+    "title": "Fund products",
+    "create": "New fund product",
+    "edit": "Edit fund product",
+    "field": {
+      "term_months": "Term (months)"
+    }
+  },
+  "catalogs": {
+    "validation": {
+      "required": "Code and name are required"
+    },
+    "save_success": "Saved",
+    "save_failed": "Could not save",
+    "is_active": "Active",
+    "is_inactive": "Inactive"
   }
 }

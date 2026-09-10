@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
@@ -12,11 +13,18 @@ import { capitalApi, type CapitalContract } from "../api"
 import { contractsListDefinition } from "./list-query"
 import { CreateContractDialog } from "./components/CreateContractDialog"
 
+const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+  ACTIVE: "default",
+  PENDING_APPROVAL: "secondary",
+  CLOSED: "outline",
+  REJECTED: "destructive",
+}
+
 /**
- * Fund contracts (CFM): server tier, create-only — the BE exposes no
- * update/delete endpoint for contracts, so rows carry no edit action.
+ * Fund contracts (CFM): server tier. Formation is a maker/checker case —
+ * the contract becomes ACTIVE after the workbench approval.
  */
-export function ContractsPage(_props: { pathname: string }) {
+export function ContractsPage(_props?: { pathname: string }) {
   const { t } = useI18n()
   const [createOpen, setCreateOpen] = useState(false)
 
@@ -37,7 +45,12 @@ export function ContractsPage(_props: { pathname: string }) {
           t("capital.placeholder.search")
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-primary">{row.original.contract_code}</span>
+          <Link
+            to={`/capital/contracts/${row.original.id}`}
+            className="font-mono text-xs font-semibold text-primary hover:underline"
+          >
+            {row.original.contract_code}
+          </Link>
         ),
       },
       {
@@ -126,9 +139,25 @@ export function ContractsPage(_props: { pathname: string }) {
           />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
-            {row.original.status}
+          <Badge variant={STATUS_VARIANT[row.original.status] ?? "outline"}>
+            {t(`capital.status.${row.original.status}`)}
           </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => <div className="text-right">{t("common.field.action")}</div>,
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Link
+              to={`/capital/contracts/${row.original.id}`}
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              {t("common.action.detail")}
+            </Link>
+          </div>
         ),
       },
     ],

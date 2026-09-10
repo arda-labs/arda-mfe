@@ -31,7 +31,8 @@
     "clear_filters": "Xóa bộ lọc",
     "clear_date": "Xóa ngày",
     "copy": "Sao chép",
-    "copied": "Đã sao chép"
+    "copied": "Đã sao chép",
+    "detail": "Chi tiết"
   },
   "confirm": {
     "delete_title": "Xác nhận xóa",

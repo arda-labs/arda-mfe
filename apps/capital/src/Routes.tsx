@@ -1,8 +1,6 @@
-import { Suspense } from "react"
-import { useLocation } from "react-router-dom"
 import { registerAppLocales } from "@workspace/i18n"
 import { QueryProvider } from "@workspace/query/provider"
-import { lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 import enCapital from "../locales/en-US.json"
 import viCapital from "../locales/vi-VN.json"
 
@@ -17,22 +15,30 @@ const ContractsPage = lazyWithPreload(() =>
   }))
 )
 
-async function preload(_pathname?: string) {
-  await ContractsPage.preload()
-}
+const ContractDetailPage = lazyWithPreload(() =>
+  import("@/features/contracts/detail-page").then((m) => ({
+    default: m.ContractDetailPage,
+  }))
+)
 
-function RemoteRoutes() {
-  const { pathname } = useLocation()
+const FundTypesPage = lazyWithPreload(() =>
+  import("@/features/catalogs/fund-types/page").then((m) => ({
+    default: m.FundTypesPage,
+  }))
+)
 
-  let page = <ContractsPage pathname={pathname} />
+const ProductsPage = lazyWithPreload(() =>
+  import("@/features/catalogs/products/page").then((m) => ({
+    default: m.ProductsPage,
+  }))
+)
 
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>
-        <QueryProvider>{page}</QueryProvider>
-      </Suspense>
-    </div>
-  )
-}
-
-export default Object.assign(RemoteRoutes, { preload })
+export default createRemoteRoutes({
+  routes: [
+    { prefix: "/capital/fund-types", component: FundTypesPage },
+    { prefix: "/capital/products", component: ProductsPage },
+    { prefix: "/capital/contracts/", component: ContractDetailPage },
+  ],
+  defaultComponent: ContractsPage,
+  wrapper: QueryProvider,
+})
