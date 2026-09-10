@@ -49,6 +49,11 @@ const GENERIC_DECISION_CASE_TYPES = new Set([
   "CFC_CONTRACT_V1",
   "CFC_AMENDMENT_V1",
   "CFC_MOVEMENT_V1",
+  "IBM_PLACE_V1",
+  "IBM_TOP_UP_V1",
+  "IBM_INTEREST_V1",
+  "IBM_EXPECTED_V1",
+  "IBM_WITHDRAW_V1",
 ])
 
 const directionMeta = {

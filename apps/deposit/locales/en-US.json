@@ -98,5 +98,79 @@
       "deposit_failed": "Failed to submit the additional deposit",
       "deposit_validation": "The additional amount must be greater than 0"
     }
+  },
+  "loading": "Loading...",
+  "interbank": {
+    "status": {
+      "PENDING_APPROVAL": "Pending approval",
+      "ACTIVE": "Active",
+      "MATURED": "Matured",
+      "CLOSED": "Closed",
+      "REJECTED": "Rejected"
+    },
+    "field": {
+      "counterparty_name": "Partner institution name",
+      "product": "Product",
+      "accrued": "Accrued interest",
+      "last_interest": "Last interest date"
+    },
+    "create": "New contract",
+    "create_title": "New interbank deposit contract",
+    "create_description": "The contract goes through approval before posting and activation.",
+    "create_success": "Interbank contract submitted",
+    "create_failed": "Could not submit the contract",
+    "validation": {
+      "required": "Enter code, counterparty, amount and maturity date"
+    },
+    "detail": {
+      "load_failed": "Could not load the contract."
+    },
+    "action": {
+      "top_up": "Top up",
+      "interest": "Collect interest",
+      "expected": "Expected interest",
+      "withdraw": "Withdraw"
+    },
+    "movement_kind": {
+      "TOP_UP": "Top-up",
+      "INTEREST": "Interest collection",
+      "EXPECTED": "Expected interest",
+      "WITHDRAW": "Withdrawal"
+    },
+    "movement_status": {
+      "DRAFT": "Draft",
+      "SUBMITTED": "Submitted",
+      "POSTED": "Posted",
+      "REJECTED": "Rejected"
+    },
+    "movement": {
+      "title": "Interbank movements",
+      "empty": "No movements yet",
+      "dialog_title": "New interbank movement",
+      "dialog_description": "The movement goes through approval before posting.",
+      "field": {
+        "kind": "Movement type",
+        "date": "Movement date",
+        "amount": "Amount",
+        "period_from": "Period from",
+        "period_to": "Period to",
+        "note": "Note"
+      },
+      "validation": {
+        "required": "Enter the amount and movement date"
+      },
+      "submit_success": "Interbank movement submitted",
+      "submit_failed": "Could not submit the movement"
+    },
+    "product": {
+      "title": "Interbank products",
+      "create": "New product",
+      "edit": "Edit product",
+      "validation": {
+        "required": "Enter product code and name"
+      },
+      "save_success": "Product saved",
+      "save_failed": "Could not save the product"
+    }
   }
 }

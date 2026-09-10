@@ -26,9 +26,21 @@ const InterbankPage = lazyWithPreload(() =>
     default: m.InterbankPage,
   }))
 )
+const InterbankDetailPage = lazyWithPreload(() =>
+  import("@/features/interbank/detail-page").then((m) => ({
+    default: m.InterbankDetailPage,
+  }))
+)
+const IbmProductsPage = lazyWithPreload(() =>
+  import("@/features/interbank/ibm-products-page").then((m) => ({
+    default: m.IbmProductsPage,
+  }))
+)
 
 async function preload(pathname: string) {
   if (pathname.startsWith("/deposit/products")) await ProductsPage.preload()
+  else if (pathname.startsWith("/deposit/interbank/products")) await IbmProductsPage.preload()
+  else if (pathname.startsWith("/deposit/interbank/")) await InterbankDetailPage.preload()
   else if (pathname.startsWith("/deposit/interbank")) await InterbankPage.preload()
   else await SavingsPage.preload()
 }
@@ -38,7 +50,10 @@ function RemoteRoutes() {
 
   let page = <SavingsPage pathname={pathname} />
   if (pathname.startsWith("/deposit/products")) page = <ProductsPage pathname={pathname} />
-  else if (pathname.startsWith("/deposit/interbank")) page = <InterbankPage pathname={pathname} />
+  else if (pathname.startsWith("/deposit/interbank/products")) page = <IbmProductsPage />
+  else if (pathname.startsWith("/deposit/interbank/")) page = <InterbankDetailPage />
+  else if (pathname.startsWith("/deposit/interbank"))
+    page = <InterbankPage pathname={pathname} />
 
   return (
     <div className="flex h-full min-h-0 flex-col">

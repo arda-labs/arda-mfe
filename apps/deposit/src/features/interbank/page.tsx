@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
@@ -9,6 +11,7 @@ import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/colu
 import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
 import { formatDateShort, formatAmount, formatRatePercent, fromMinor } from "@workspace/format"
 import { depositApi, type InterbankDeposit } from "../api"
+import { PlaceInterbankDialog } from "./components/PlaceInterbankDialog"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -23,6 +26,7 @@ export function InterbankPage(_props: { pathname: string }) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
+  const [createOpen, setCreateOpen] = useState(false)
 
   const load = useCallback(async (initial = false) => {
     if (initial) setLoading(true)
@@ -60,7 +64,12 @@ export function InterbankPage(_props: { pathname: string }) {
           t("deposit.placeholder.search")
         ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-primary">{row.original.deposit_code}</span>
+          <Link
+            to={`/deposit/interbank/${row.original.id}`}
+            className="font-mono text-xs font-semibold text-primary hover:underline"
+          >
+            {row.original.deposit_code}
+          </Link>
         ),
       },
       {
@@ -143,7 +152,7 @@ export function InterbankPage(_props: { pathname: string }) {
         ),
         cell: ({ row }) => (
           <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
-            {row.original.status}
+            {t(`deposit.interbank.status.${row.original.status}`)}
           </Badge>
         ),
       },
@@ -183,11 +192,27 @@ export function InterbankPage(_props: { pathname: string }) {
       fetching={refreshing}
       table={table}
       toolbar={
-        <ListTableToolbar
-          table={table}
-          exportFilename={t("deposit.interbank.title")}
-          sheetName={t("deposit.interbank.title")}
-          totalRowsCount={total}
+        <div className="flex items-center gap-2">
+          <ListTableToolbar
+            table={table}
+            onCreate={() => setCreateOpen(true)}
+            createLabel={t("deposit.interbank.create")}
+            exportFilename={t("deposit.interbank.title")}
+            sheetName={t("deposit.interbank.title")}
+            totalRowsCount={total}
+          />
+          <Button asChild variant="outline" size="sm">
+            <Link to="/deposit/interbank/products">
+              {t("deposit.interbank.product.title")}
+            </Link>
+          </Button>
+        </div>
+      }
+      dialogs={
+        <PlaceInterbankDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onSaved={() => load()}
         />
       }
     />

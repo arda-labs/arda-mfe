@@ -98,5 +98,79 @@
       "deposit_failed": "Không thể trình duyệt nộp thêm",
       "deposit_validation": "Số tiền nộp thêm phải lớn hơn 0"
     }
+  },
+  "loading": "Đang tải...",
+  "interbank": {
+    "status": {
+      "PENDING_APPROVAL": "Chờ duyệt",
+      "ACTIVE": "Đang hiệu lực",
+      "MATURED": "Đáo hạn",
+      "CLOSED": "Đã đóng",
+      "REJECTED": "Từ chối"
+    },
+    "field": {
+      "counterparty_name": "Tên TCTD đối tác",
+      "product": "Sản phẩm",
+      "accrued": "Lãi lũy kế",
+      "last_interest": "Lãi gần nhất"
+    },
+    "create": "Mở hợp đồng",
+    "create_title": "Mở hợp đồng tiền gửi liên ngân hàng",
+    "create_description": "Hợp đồng sẽ được duyệt trước khi hạch toán và kích hoạt.",
+    "create_success": "Đã trình duyệt hợp đồng liên ngân hàng",
+    "create_failed": "Không thể trình duyệt hợp đồng",
+    "validation": {
+      "required": "Nhập mã, đối tác, số tiền và ngày đáo hạn"
+    },
+    "detail": {
+      "load_failed": "Không tải được hợp đồng."
+    },
+    "action": {
+      "top_up": "Nộp thêm",
+      "interest": "Thu lãi",
+      "expected": "Dự thu",
+      "withdraw": "Rút tiền"
+    },
+    "movement_kind": {
+      "TOP_UP": "Nộp thêm",
+      "INTEREST": "Thu lãi",
+      "EXPECTED": "Dự thu lãi",
+      "WITHDRAW": "Rút tiền"
+    },
+    "movement_status": {
+      "DRAFT": "Nháp",
+      "SUBMITTED": "Chờ duyệt",
+      "POSTED": "Đã hạch toán",
+      "REJECTED": "Từ chối"
+    },
+    "movement": {
+      "title": "Giao dịch liên ngân hàng",
+      "empty": "Chưa có giao dịch",
+      "dialog_title": "Lập giao dịch liên ngân hàng",
+      "dialog_description": "Giao dịch sẽ được duyệt trước khi hạch toán.",
+      "field": {
+        "kind": "Loại giao dịch",
+        "date": "Ngày giao dịch",
+        "amount": "Số tiền",
+        "period_from": "Từ ngày",
+        "period_to": "Đến ngày",
+        "note": "Ghi chú"
+      },
+      "validation": {
+        "required": "Nhập số tiền và ngày giao dịch"
+      },
+      "submit_success": "Đã trình duyệt giao dịch liên ngân hàng",
+      "submit_failed": "Không thể trình duyệt giao dịch"
+    },
+    "product": {
+      "title": "Sản phẩm liên ngân hàng",
+      "create": "Thêm sản phẩm",
+      "edit": "Sửa sản phẩm",
+      "validation": {
+        "required": "Nhập mã và tên sản phẩm"
+      },
+      "save_success": "Đã lưu sản phẩm",
+      "save_failed": "Không thể lưu sản phẩm"
+    }
   }
 }
