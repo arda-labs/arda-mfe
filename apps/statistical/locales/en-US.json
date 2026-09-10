@@ -80,5 +80,17 @@
         "rejected": "Rejected"
       }
     }
+  },
+  "reports": {
+    "title": "Run report",
+    "description": "Run a report definition with period parameters and export XLSX.",
+    "field": {
+      "org": "Org unit"
+    },
+    "run": "Run report",
+    "empty": "No data",
+    "row_count": "{count} rows",
+    "run_failed": "Could not run the report",
+    "export_failed": "Could not export the workbook"
   }
 }

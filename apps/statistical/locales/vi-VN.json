@@ -80,5 +80,17 @@
         "rejected": "Từ chối"
       }
     }
+  },
+  "reports": {
+    "title": "Chạy báo cáo",
+    "description": "Chạy định nghĩa báo cáo với tham số kỳ và xuất Excel.",
+    "field": {
+      "org": "Đơn vị"
+    },
+    "run": "Chạy báo cáo",
+    "empty": "Không có dữ liệu",
+    "row_count": "{count} dòng",
+    "run_failed": "Không chạy được báo cáo",
+    "export_failed": "Không xuất được Excel"
   }
 }

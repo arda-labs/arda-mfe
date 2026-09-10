@@ -1,4 +1,5 @@
 import {
+  getCanonical,
   getCanonicalList,
   postCanonical,
 } from "@workspace/api"
@@ -41,6 +42,17 @@ export interface ReportSubmission {
   submitted_at?: string
   created_by: string
   created_at?: string
+}
+
+/** Rendered report result returned by the run endpoint. */
+export interface ReportRunResult {
+  code: string
+  name: string
+  query_id: string
+  columns: string[]
+  rows: unknown[][]
+  row_count: number
+  period_code: string
 }
 
 export type IndicatorUpsertInput = {
@@ -121,6 +133,18 @@ export const statisticalApi = {
   },
   createSubmission: (body: { report_code: string; period_code: string; payload?: Record<string, unknown> }) =>
     postCanonical<ReportSubmission>("/api/statistical/submissions", body),
+  runReport: (code: string, params: { period_code: string; org_code?: string }) => {
+    const search = new URLSearchParams({ period_code: params.period_code })
+    if (params.org_code) search.set("org_code", params.org_code)
+    return getCanonical<ReportRunResult>(
+      `/api/statistical/reports/${encodeURIComponent(code)}/run?${search.toString()}`
+    )
+  },
+  reportExportUrl: (code: string, params: { period_code: string; org_code?: string }) => {
+    const search = new URLSearchParams({ period_code: params.period_code })
+    if (params.org_code) search.set("org_code", params.org_code)
+    return `/api/statistical/reports/${encodeURIComponent(code)}/export?${search.toString()}`
+  },
   submitSubmission: (id: string) =>
     postCanonical<ReportSubmission>(`/api/statistical/submissions/${encodeURIComponent(id)}/submit`, {}),
 }

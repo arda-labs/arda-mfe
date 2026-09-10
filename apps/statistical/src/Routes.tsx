@@ -26,10 +26,16 @@ const SubmissionsPage = lazyWithPreload(() =>
     default: m.SubmissionsPage,
   }))
 )
+const ReportsPage = lazyWithPreload(() =>
+  import("@/features/reports/page").then((m) => ({
+    default: m.ReportsPage,
+  }))
+)
 
 async function preload(pathname: string) {
   if (pathname.startsWith("/statistical/indicators")) await IndicatorsPage.preload()
   else if (pathname.startsWith("/statistical/submissions")) await SubmissionsPage.preload()
+  else if (pathname.startsWith("/statistical/reports")) await ReportsPage.preload()
   else await ReportDefinitionsPage.preload()
 }
 
@@ -39,6 +45,7 @@ function RemoteRoutes() {
   let page = <ReportDefinitionsPage pathname={pathname} />
   if (pathname.startsWith("/statistical/indicators")) page = <IndicatorsPage pathname={pathname} />
   else if (pathname.startsWith("/statistical/submissions")) page = <SubmissionsPage pathname={pathname} />
+  else if (pathname.startsWith("/statistical/reports")) page = <ReportsPage />
 
   return (
     <div className="flex h-full min-h-0 flex-col">
