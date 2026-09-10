@@ -37,5 +37,18 @@
   "cover": {
     "upload": "Tải ảnh bìa",
     "uploading": "Đang tải lên..."
+  },
+  "prefs": {
+    "title": "Múi giờ & ngôn ngữ",
+    "description": "Ngày nghiệp vụ (COB, ngày hạch toán, range) resolve theo múi giờ của bạn. Mặc định là Asia/Ho_Chi_Minh.",
+    "field_timezone": "Múi giờ (IANA)",
+    "field_locale": "Ngôn ngữ / locale",
+    "timezone_search": "Tìm múi giờ...",
+    "timezone_empty": "Không tìm thấy múi giờ.",
+    "save": "Lưu tuỳ chọn",
+    "saving": "Đang lưu...",
+    "saved": "Đã cập nhật tuỳ chọn",
+    "save_failed": "Cập nhật tuỳ chọn thất bại",
+    "load_failed": "Không tải được tuỳ chọn hiện tại"
   }
 }

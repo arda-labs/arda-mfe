@@ -37,5 +37,18 @@
   "cover": {
     "upload": "Upload cover",
     "uploading": "Uploading..."
+  },
+  "prefs": {
+    "title": "Timezone & language",
+    "description": "Business dates (COB, posting dates, ranges) resolve in your timezone. Default is Asia/Ho_Chi_Minh.",
+    "field_timezone": "Timezone (IANA)",
+    "field_locale": "Language / locale",
+    "timezone_search": "Search timezone...",
+    "timezone_empty": "No timezone matched.",
+    "save": "Save preferences",
+    "saving": "Saving...",
+    "saved": "Preferences updated successfully",
+    "save_failed": "Failed to update preferences",
+    "load_failed": "Could not load current preferences"
   }
 }
