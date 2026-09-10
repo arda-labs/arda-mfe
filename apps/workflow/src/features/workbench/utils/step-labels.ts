@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 /**
  * Static step-code to i18n-key map. Translations live under
  * workflow.workbench.step_* in the app locales; pass t to translate.
@@ -39,6 +40,7 @@ export function formatDateTime(value?: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: APP_TIMEZONE,
     dateStyle: "short",
     timeStyle: "short",
   }).format(date)

@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { useCallback, useEffect, useState } from "react"
 import type { Device } from "@/features/settings/api"
 import { sessionApi } from "@/features/settings/api"
@@ -208,7 +209,7 @@ export function DevicesPage() {
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Clock className="size-3 text-muted-foreground/60" />
-                      Last seen: {new Date(device.lastSeenAt).toLocaleString()}
+                      Last seen: {new Date(device.lastSeenAt).toLocaleString("vi-VN", { timeZone: APP_TIMEZONE })}
                     </span>
                   </div>
                   {device.isTrusted && device.trustedUntil && (
@@ -216,7 +217,7 @@ export function DevicesPage() {
                       <ShieldCheck className="size-3" />
                       <span>
                         Trusted until:{" "}
-                        {new Date(device.trustedUntil).toLocaleString()}
+                        {new Date(device.trustedUntil).toLocaleString("vi-VN", { timeZone: APP_TIMEZONE })}
                       </span>
                     </p>
                   )}

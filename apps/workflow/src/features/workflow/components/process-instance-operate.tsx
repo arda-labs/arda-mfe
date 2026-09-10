@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { useMemo, useState } from "react"
 import {
   AlertCircle,
@@ -933,7 +934,7 @@ function Field({ label, value }: { label: string; value: string }) {
 function formatOperateDateTime(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString("vi-VN")
+  return date.toLocaleString("vi-VN", { timeZone: APP_TIMEZONE })
 }
 
 function workflowDomainHref(item: WorkflowCase) {

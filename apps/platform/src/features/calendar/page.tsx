@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { APP_TIMEZONE, todayISO } from "@workspace/format"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { platformApi, type HolidayCalendar, type SystemDate } from "../api"
@@ -184,7 +185,7 @@ export function CalendarPage() {
         isRecurring: extProps.isRecurring,
       })
       notify.success(
-        `Da doi ngay nghi le sang ${new Date(newDate).toLocaleDateString("vi-VN")}`
+        `Da doi ngay nghi le sang ${new Date(newDate).toLocaleDateString("vi-VN", { timeZone: APP_TIMEZONE })}`
       )
       await loadCalendar()
     } catch (error) {
@@ -341,9 +342,7 @@ export function CalendarPage() {
                 size="icon"
                 variant="ghost"
                 className="size-7"
-                onClick={() =>
-                  openCreateHoliday(new Date().toISOString().split("T")[0])
-                }
+                onClick={() => openCreateHoliday(todayISO())}
               >
                 <Plus className="size-4" />
               </Button>

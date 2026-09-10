@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { cn } from "@workspace/ui/lib/utils"
 import { useI18n } from "@workspace/i18n"
 import { formatDateTime } from "./step-labels"
@@ -214,7 +215,11 @@ function formatTime(value?: string) {
   if (!value) return "-"
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
-  return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+  return d.toLocaleTimeString("vi-VN", {
+    timeZone: APP_TIMEZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 
 function formatDate(value?: string) {
@@ -222,6 +227,7 @@ function formatDate(value?: string) {
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
   return d.toLocaleDateString("vi-VN", {
+    timeZone: APP_TIMEZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

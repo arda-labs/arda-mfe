@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
+import { APP_TIMEZONE, dateInputValue, todayISO } from "@workspace/format"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -2871,6 +2872,7 @@ function metricTone(tone: "default" | "success" | "warning" | "error") {
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: APP_TIMEZONE,
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value))
@@ -3132,22 +3134,27 @@ function toMinutes(value: number, unit: string) {
 
 function toDateInputValue(value?: string) {
   if (!value) return ""
-  return value.slice(0, 10)
+  // Resolve the calendar day in the app timezone instead of slicing the
+  // UTC instant (docs/db-schema-conventions.md §8).
+  return dateInputValue(value)
 }
 
 function fromDateInputValue(value: string) {
-  return value ? `${value}T00:00:00Z` : undefined
+  // Day boundary at business-tz midnight so effective windows start at
+  // 00:00 Asia/Ho_Chi_Minh, not 07:00 local.
+  return value ? `${value}T00:00:00+07:00` : undefined
 }
 
 function todayDateInput() {
-  return new Date().toISOString().slice(0, 10)
+  return todayISO()
 }
 
 function formatDateOnly(value?: string) {
   if (!value) return ""
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" }).format(
-    new Date(value)
-  )
+  return new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "short",
+    timeZone: APP_TIMEZONE,
+  }).format(new Date(value))
 }
 
 function formatAmountRange(min?: number, max?: number) {

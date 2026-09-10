@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AlertTriangle,
@@ -65,6 +66,7 @@ type OperateTab =
 function formatDateTime(value: string) {
   try {
     return new Intl.DateTimeFormat("vi-VN", {
+      timeZone: APP_TIMEZONE,
       dateStyle: "short",
       timeStyle: "short",
     }).format(new Date(value))

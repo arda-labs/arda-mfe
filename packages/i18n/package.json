@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@workspace/format": "workspace:*",
     "i18next": "^26.3.3",
     "i18next-icu": "^2.4.3",
     "react": "^19.2.6",

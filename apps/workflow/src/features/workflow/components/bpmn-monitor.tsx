@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { useEffect, useRef, useState } from "react"
 import { LocateFixed, Redo2, Save, Undo2, ZoomIn, ZoomOut } from "lucide-react"
 import BpmnViewer from "bpmn-js/lib/NavigatedViewer"
@@ -1661,6 +1662,7 @@ function downloadText(content: string, filename: string, type: string) {
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: APP_TIMEZONE,
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value))

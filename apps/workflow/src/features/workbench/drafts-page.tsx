@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ChevronDown,
@@ -501,6 +502,7 @@ function formatDateTime(value?: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleString("vi-VN", {
+    timeZone: APP_TIMEZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

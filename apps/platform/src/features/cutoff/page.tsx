@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { APP_TIMEZONE, todayISO } from "@workspace/format"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
@@ -79,8 +80,10 @@ export function CutoffPage() {
     try {
       let timeParam: string | undefined
       if (simTime) {
-        const today = new Date().toISOString().split("T")[0]
-        timeParam = new Date(`${today}T${simTime}:00Z`).toISOString()
+        // simTime is business-tz wall clock — express it as +07:00, not UTC
+        // (docs/db-schema-conventions.md §8).
+        const today = todayISO()
+        timeParam = new Date(`${today}T${simTime}:00+07:00`).toISOString()
       }
       const res = await platformApi.evaluateDate(simChannel, simType, timeParam)
       setSimResult(res.accountingDate)
@@ -233,7 +236,7 @@ export function CutoffPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Ngay hach toan:</span>
                   <span className="font-semibold text-primary">
-                    {new Date(simResult).toLocaleDateString("vi-VN")}
+                    {new Date(simResult).toLocaleDateString("vi-VN", { timeZone: APP_TIMEZONE })}
                   </span>
                 </div>
                 <div className="mt-1 border-t pt-2">

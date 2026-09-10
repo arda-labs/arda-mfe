@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { I18nextProvider } from "react-i18next"
+import { APP_TIMEZONE } from "@workspace/format"
 import {
   defaultLocale,
   i18n,
@@ -59,7 +60,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setLocale: setLocaleState,
       t,
       formatDate: (dateValue, options) =>
-        new Intl.DateTimeFormat(locale, options).format(new Date(dateValue)),
+        new Intl.DateTimeFormat(locale, {
+          // Resolve in the platform business timezone, not the browser's OS
+          // setting (docs/db-schema-conventions.md §8); callers may override.
+          timeZone: APP_TIMEZONE,
+          ...options,
+        }).format(new Date(dateValue)),
       formatNumber: (numberValue, options) =>
         new Intl.NumberFormat(locale, options).format(numberValue),
       formatCurrency: (numberValue, currency = "VND") =>

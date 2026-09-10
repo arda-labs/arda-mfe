@@ -99,7 +99,7 @@ export function AccountingConfigPage() {
 }
 
 function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
-  const { t } = useI18n()
+  const { t, formatDate } = useI18n()
   if (!items.length) {
     return (
       <div className="rounded-lg border p-6 text-sm text-muted-foreground">
@@ -132,7 +132,13 @@ function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
                 <Badge variant="secondary">{item.status}</Badge>
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {item.updatedAt}
+                {formatDate(item.updatedAt, {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </TableCell>
             </TableRow>
           ))}

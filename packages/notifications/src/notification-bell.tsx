@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Bell, CheckCheck } from "lucide-react"
@@ -221,6 +222,7 @@ function formatNotificationTime(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
   return new Intl.DateTimeFormat(undefined, {
+    timeZone: APP_TIMEZONE,
     dateStyle: "short",
     timeStyle: "short",
   }).format(date)

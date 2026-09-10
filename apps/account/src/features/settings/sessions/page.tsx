@@ -1,3 +1,4 @@
+import { APP_TIMEZONE } from "@workspace/format"
 import { useCallback, useEffect, useState } from "react"
 import type { Session } from "@/features/settings/api"
 import { sessionApi } from "@/features/settings/api"
@@ -229,18 +230,18 @@ export function SessionsPage() {
                       <Clock className="size-3 text-muted-foreground/75" />
                       Last seen:{" "}
                       {session.lastSeenAt
-                        ? new Date(session.lastSeenAt).toLocaleString()
+                        ? new Date(session.lastSeenAt).toLocaleString("vi-VN", { timeZone: APP_TIMEZONE })
                         : "now"}
                     </span>
                   </div>
                   <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
                     <Calendar className="size-3 text-muted-foreground/50" />
                     <span>
-                      Created: {new Date(session.createdAt).toLocaleString()}
+                      Created: {new Date(session.createdAt).toLocaleString("vi-VN", { timeZone: APP_TIMEZONE })}
                     </span>
                     <span className="text-muted-foreground/30">•</span>
                     <span>
-                      Expires: {new Date(session.expiresAt).toLocaleString()}
+                      Expires: {new Date(session.expiresAt).toLocaleString("vi-VN", { timeZone: APP_TIMEZONE })}
                     </span>
                   </p>
                 </div>

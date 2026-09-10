@@ -661,6 +661,7 @@
       "name": "@workspace/i18n",
       "version": "0.0.0",
       "dependencies": {
+        "@workspace/format": "workspace:*",
         "i18next": "^26.3.3",
         "i18next-icu": "^2.4.3",
         "react": "^19.2.6",
@@ -709,6 +710,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@workspace/api": "workspace:*",
+        "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
         "@workspace/ui": "workspace:*",
         "lucide-react": "^1.22.0",
@@ -800,6 +802,7 @@
         "@radix-ui/react-tooltip": "^1.2.7",
         "@shadcn/react": "^0.3.0",
         "@tanstack/react-table": "^8.21.3",
+        "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
