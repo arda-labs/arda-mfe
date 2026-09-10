@@ -401,5 +401,26 @@
       "status": "Status",
       "updated": "Updated"
     }
+  },
+  "ledger": {
+    "title": "General / detail ledger",
+    "description": "Account movements with opening balance and running total.",
+    "field": {
+      "account": "Account",
+      "from": "From",
+      "to": "To"
+    },
+    "run": "Open ledger",
+    "opening": "Opening balance",
+    "empty": "No movements",
+    "load_failed": "Could not load the ledger.",
+    "col": {
+      "entry_no": "Entry no",
+      "date": "Date",
+      "description": "Description",
+      "debit": "Debit",
+      "credit": "Credit",
+      "running": "Running"
+    }
   }
 }

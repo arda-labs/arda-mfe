@@ -401,5 +401,26 @@
       "status": "Trạng thái",
       "updated": "Cập nhật"
     }
+  },
+  "ledger": {
+    "title": "Sổ cái / sổ chi tiết",
+    "description": "Xem phát sinh theo tài khoản với số dư đầu kỳ và lũy kế.",
+    "field": {
+      "account": "Tài khoản",
+      "from": "Từ ngày",
+      "to": "Đến ngày"
+    },
+    "run": "Xem sổ",
+    "opening": "Số dư đầu kỳ",
+    "empty": "Không có phát sinh",
+    "load_failed": "Không tải được sổ.",
+    "col": {
+      "entry_no": "Số bút toán",
+      "date": "Ngày",
+      "description": "Diễn giải",
+      "debit": "Nợ",
+      "credit": "Có",
+      "running": "Lũy kế"
+    }
   }
 }
