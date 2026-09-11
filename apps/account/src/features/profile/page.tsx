@@ -100,6 +100,7 @@ export function ProfilePage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
   const [coverCropFile, setCoverCropFile] = useState<File | null>(null)
+  const [avatarCropFile, setAvatarCropFile] = useState<File | null>(null)
 
   const profileDefaultValues: ProfileFormValues = {
     name: currentUser?.name || username,
@@ -150,9 +151,7 @@ export function ProfilePage() {
     .slice(0, 2)
   const location = [profile.address, profile.country].filter(Boolean).join(", ")
 
-  const handleAvatarFileChange = async (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file || !user) return
     if (!file.type.startsWith("image/")) {
@@ -164,6 +163,14 @@ export function ProfilePage() {
       return
     }
 
+    setAvatarCropFile(file)
+    if (avatarInputRef.current) avatarInputRef.current.value = ""
+  }
+
+  const handleCroppedAvatarUpload = async (file: File) => {
+    if (!user) return
+    setAvatarCropFile(null)
+
     setUploadingAvatar(true)
     try {
       const result = await uploadAvatar(file, user.userId || user.sub)
@@ -173,7 +180,6 @@ export function ProfilePage() {
       notify.error(translateApiError(reason, "profile.avatar.upload_failed"))
     } finally {
       setUploadingAvatar(false)
-      if (avatarInputRef.current) avatarInputRef.current.value = ""
     }
   }
 
@@ -693,6 +699,14 @@ export function ProfilePage() {
           </div>
         )}
       </div>
+      <ImageCropDialog
+        file={avatarCropFile}
+        aspect={1}
+        title={t("profile.crop.avatar_title")}
+        processing={uploadingAvatar}
+        onConfirm={(cropped) => void handleCroppedAvatarUpload(cropped)}
+        onClose={() => setAvatarCropFile(null)}
+      />
       <ImageCropDialog
         file={coverCropFile}
         aspect={16 / 9}
