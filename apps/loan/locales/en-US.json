@@ -771,5 +771,47 @@
     "save_success": "Plan saved",
     "save_failed": "Could not save the plan",
     "close": "Close"
+  },
+  "specific_provision": {
+    "title": "Specific provision (LNM.306)",
+    "description": "Per-loan provision: debt-group rate × (outstanding − collateral deduction); submitted as a maker/checker case.",
+    "count_badge": "{count} periods",
+    "refresh": "Refresh",
+    "field": {
+      "agreement": "Agreement",
+      "date": "Provision date",
+      "rate": "Rate (%)",
+      "outstanding": "Outstanding",
+      "deduction": "Collateral deduction",
+      "base": "Base",
+      "amount": "Provision amount"
+    },
+    "placeholder": {
+      "agreement": "e.g. HDTD-2026-001"
+    },
+    "calculate": "Calculate",
+    "submit": "Submit for approval",
+    "calculate_failed": "Could not calculate the provision",
+    "submit_failed": "Could not submit the provision",
+    "submit_success": "Specific provision submitted",
+    "load_failed": "Could not load the list",
+    "loading": "Loading...",
+    "empty": "No specific provision records yet",
+    "col": {
+      "date": "Date",
+      "agreement": "Agreement",
+      "rate": "Rate (%)",
+      "outstanding": "Outstanding",
+      "deduction": "Deduction",
+      "base": "Base",
+      "amount": "Amount",
+      "status": "Status",
+      "case": "Case"
+    },
+    "status": {
+      "SUBMITTED": "Submitted",
+      "POSTED": "Posted",
+      "REJECTED": "Rejected"
+    }
   }
 }

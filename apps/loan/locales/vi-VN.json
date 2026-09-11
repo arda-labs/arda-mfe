@@ -771,5 +771,47 @@
     "save_success": "Đã lưu kế hoạch",
     "save_failed": "Không thể lưu kế hoạch",
     "close": "Đóng"
+  },
+  "specific_provision": {
+    "title": "Dự phòng cụ thể (LNM.306)",
+    "description": "Tính dự phòng theo khoản vay: lãi suất nhóm nợ × (dư nợ − khấu trừ TSBĐ); trình duyệt case, duyệt ở workbench.",
+    "count_badge": "{count} kỳ",
+    "refresh": "Tải lại",
+    "field": {
+      "agreement": "Mã thuận từ",
+      "date": "Ngày trích lập",
+      "rate": "Tỷ lệ (%)",
+      "outstanding": "Dư nợ",
+      "deduction": "Khấu trừ TSBĐ",
+      "base": "Cơ sở tính",
+      "amount": "Số trích"
+    },
+    "placeholder": {
+      "agreement": "VD: HDTD-2026-001"
+    },
+    "calculate": "Tính toán",
+    "submit": "Trình duyệt",
+    "calculate_failed": "Không tính được dự phòng",
+    "submit_failed": "Không trình duyệt được dự phòng",
+    "submit_success": "Đã trình duyệt dự phòng cụ thể",
+    "load_failed": "Không tải được danh sách",
+    "loading": "Đang tải...",
+    "empty": "Chưa có bản ghi dự phòng cụ thể",
+    "col": {
+      "date": "Ngày",
+      "agreement": "Thuận từ",
+      "rate": "Tỷ lệ (%)",
+      "outstanding": "Dư nợ",
+      "deduction": "Khấu trừ",
+      "base": "Cơ sở",
+      "amount": "Số trích",
+      "status": "Trạng thái",
+      "case": "Case"
+    },
+    "status": {
+      "SUBMITTED": "Chờ duyệt",
+      "POSTED": "Đã hạch toán",
+      "REJECTED": "Từ chối"
+    }
   }
 }
