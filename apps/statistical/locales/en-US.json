@@ -92,5 +92,78 @@
     "row_count": "{count} rows",
     "run_failed": "Could not run the report",
     "export_failed": "Could not export the workbook"
+  },
+  "catalogs": {
+    "title": "QCMS catalogs",
+    "count": "{count} items",
+    "create": "New item",
+    "edit": "Edit item",
+    "active": "Active",
+    "inactive": "Inactive",
+    "save_success": "Saved",
+    "save_failed": "Could not save",
+    "validation": {
+      "required": "Enter code and name",
+      "invalid_json": "Attributes must be valid JSON"
+    },
+    "field": {
+      "parent": "Parent code",
+      "attributes": "Attributes (JSON)"
+    },
+    "kind": {
+      "indicator-type": "Indicator type",
+      "stat-code-map": "Stat code map",
+      "regulation": "Regulation",
+      "regulation-type": "Regulation type",
+      "response-define": "Response definition",
+      "txn-status": "Transaction status",
+      "rule-define": "Rule definition",
+      "rule-type": "Rule type",
+      "kpi-type": "KPI type",
+      "report-group": "Report group",
+      "report-param": "Report param",
+      "import-template": "Import template",
+      "import-type": "Import type",
+      "cmms-scenario-group": "CMMS scenario group",
+      "cmms-scenario": "CMMS scenario",
+      "cmms-compliance-period": "CMMS compliance period"
+    }
+  },
+  "forms": {
+    "title": "Forms & deployment",
+    "description": "Form catalog with JSON export/import (and optional workflow case type).",
+    "create": "New form",
+    "edit": "Edit form",
+    "export": "Export JSON",
+    "import": "Import JSON",
+    "loading": "Loading...",
+    "empty": "No forms yet",
+    "load_failed": "Could not load the catalog",
+    "save_success": "Form saved",
+    "save_failed": "Could not save the form",
+    "import_success": "Form imported",
+    "import_failed": "Could not import the form",
+    "export_failed": "Could not export the form",
+    "validation": {
+      "required": "Enter the form code and name"
+    },
+    "field": {
+      "case_type": "Case type",
+      "schema": "Schema (JSON)"
+    }
+  },
+  "dashboard": {
+    "title": "QCMS dashboard",
+    "description": "Catalog and report submission activity at a glance.",
+    "report_definitions": "Report definitions",
+    "indicators": "Indicators",
+    "form_templates": "Form templates",
+    "submissions": "Submissions by status",
+    "catalog": "Catalog by kind",
+    "kind": "Catalog kind",
+    "count": "Count",
+    "empty": "No data",
+    "loading": "Loading...",
+    "load_failed": "Could not load the dashboard"
   }
 }

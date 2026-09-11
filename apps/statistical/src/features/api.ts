@@ -1,4 +1,5 @@
 import {
+  deleteCanonical,
   getCanonical,
   getCanonicalList,
   postCanonical,
@@ -53,6 +54,41 @@ export interface ReportRunResult {
   rows: unknown[][]
   row_count: number
   period_code: string
+}
+
+/** QCMS generic catalog row (W5) — kind selects the EPAS catalog screen. */
+export interface CatalogItem {
+  id: string
+  tenant_id: string
+  kind: string
+  code: string
+  name: string
+  parent_code?: string
+  attributes: Record<string, unknown>
+  is_active: boolean
+  created_at?: string
+}
+
+/** QCMS form template (W5b). */
+export interface FormTemplate {
+  id: string
+  tenant_id: string
+  code: string
+  name: string
+  media_file_id?: string
+  schema: Record<string, unknown>
+  workflow_case_type?: string
+  is_active: boolean
+  created_at?: string
+}
+
+/** QCMS dashboard summary (W5c). */
+export interface DashboardSummary {
+  submissions_by_status: Record<string, number>
+  catalog_by_kind: Record<string, number>
+  report_definitions: number
+  indicators: number
+  form_templates: number
 }
 
 export type IndicatorUpsertInput = {
@@ -145,6 +181,29 @@ export const statisticalApi = {
     if (params.org_code) search.set("org_code", params.org_code)
     return `/api/statistical/reports/${encodeURIComponent(code)}/export?${search.toString()}`
   },
+  listCatalogKinds: () => getCanonicalList<string>("/api/statistical/catalogs"),
+  listCatalogItems: (kind: string, includeInactive = false) =>
+    getCanonicalList<CatalogItem>(
+      `/api/statistical/catalogs/${encodeURIComponent(kind)}${includeInactive ? "?include_inactive=true" : ""}`
+    ),
+  upsertCatalogItem: (kind: string, body: Partial<CatalogItem>) =>
+    postCanonical<CatalogItem>(`/api/statistical/catalogs/${encodeURIComponent(kind)}`, body),
+  deactivateCatalogItem: (kind: string, id: string) =>
+    deleteCanonical<{ ok: boolean }>(
+      `/api/statistical/catalogs/${encodeURIComponent(kind)}/${encodeURIComponent(id)}`
+    ),
+  listFormTemplates: (includeInactive = false) =>
+    getCanonicalList<FormTemplate>(
+      `/api/statistical/form-templates${includeInactive ? "?include_inactive=true" : ""}`
+    ),
+  upsertFormTemplate: (body: Partial<FormTemplate>) =>
+    postCanonical<FormTemplate>("/api/statistical/form-templates", body),
+  formTemplateExportUrl: (code: string) =>
+    `/api/statistical/form-templates/${encodeURIComponent(code)}/export`,
+  importFormTemplate: (body: unknown) =>
+    postCanonical<FormTemplate>("/api/statistical/form-templates/import", body),
+  getDashboard: () =>
+    getCanonical<DashboardSummary>("/api/statistical/dashboard"),
   submitSubmission: (id: string) =>
     postCanonical<ReportSubmission>(`/api/statistical/submissions/${encodeURIComponent(id)}/submit`, {}),
 }

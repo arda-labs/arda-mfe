@@ -92,5 +92,78 @@
     "row_count": "{count} dòng",
     "run_failed": "Không chạy được báo cáo",
     "export_failed": "Không xuất được Excel"
+  },
+  "catalogs": {
+    "title": "Danh mục QCMS",
+    "count": "{count} mục",
+    "create": "Thêm mục",
+    "edit": "Sửa mục",
+    "active": "Đang dùng",
+    "inactive": "Ngừng dùng",
+    "save_success": "Đã lưu",
+    "save_failed": "Không thể lưu",
+    "validation": {
+      "required": "Nhập mã và tên",
+      "invalid_json": "Thuộc tính phải là JSON hợp lệ"
+    },
+    "field": {
+      "parent": "Mã cha",
+      "attributes": "Thuộc tính (JSON)"
+    },
+    "kind": {
+      "indicator-type": "Loại chỉ tiêu",
+      "stat-code-map": "Ánh xạ mã thống kê",
+      "regulation": "Quy định thống kê",
+      "regulation-type": "Loại quy định",
+      "response-define": "Định nghĩa phản hồi",
+      "txn-status": "Trạng thái giao dịch",
+      "rule-define": "Định nghĩa quy tắc",
+      "rule-type": "Loại quy tắc",
+      "kpi-type": "Loại KPI",
+      "report-group": "Nhóm báo cáo",
+      "report-param": "Tham số báo cáo",
+      "import-template": "Mẫu nhập liệu",
+      "import-type": "Loại nhập liệu",
+      "cmms-scenario-group": "Nhóm kịch bản CMMS",
+      "cmms-scenario": "Kịch bản CMMS",
+      "cmms-compliance-period": "Kỳ tuân thủ CMMS"
+    }
+  },
+  "forms": {
+    "title": "Biểu mẫu & triển khai",
+    "description": "Danh mục biểu mẫu với xuất/nhập JSON (kèm case type nếu có workflow).",
+    "create": "Thêm biểu mẫu",
+    "edit": "Sửa biểu mẫu",
+    "export": "Xuất JSON",
+    "import": "Nhập JSON",
+    "loading": "Đang tải...",
+    "empty": "Chưa có biểu mẫu",
+    "load_failed": "Không tải được danh mục",
+    "save_success": "Đã lưu biểu mẫu",
+    "save_failed": "Không thể lưu biểu mẫu",
+    "import_success": "Đã nhập biểu mẫu",
+    "import_failed": "Không thể nhập biểu mẫu",
+    "export_failed": "Không thể xuất biểu mẫu",
+    "validation": {
+      "required": "Nhập mã và tên biểu mẫu"
+    },
+    "field": {
+      "case_type": "Case type",
+      "schema": "Schema (JSON)"
+    }
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển QCMS",
+    "description": "Tổng hợp danh mục và hoạt động nộp báo cáo.",
+    "report_definitions": "Định nghĩa báo cáo",
+    "indicators": "Chỉ tiêu",
+    "form_templates": "Biểu mẫu",
+    "submissions": "Nộp báo cáo theo trạng thái",
+    "catalog": "Danh mục theo loại",
+    "kind": "Loại danh mục",
+    "count": "Số lượng",
+    "empty": "Chưa có dữ liệu",
+    "loading": "Đang tải...",
+    "load_failed": "Không tải được bảng điều khiển"
   }
 }
