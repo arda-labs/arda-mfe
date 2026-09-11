@@ -675,5 +675,35 @@
     "load_failed": "Không tải được giờ làm việc",
     "save_success": "Đã lưu ca làm việc",
     "save_failed": "Không thể lưu ca làm việc"
+  },
+  "notifications": {
+    "title": "Mẫu thông báo & máy gửi mail",
+    "description": "Mẫu nội dung theo sự kiện/kênh và cấu hình SMTP (mật khẩu mã hoá).",
+    "tab": {
+      "templates": "Mẫu thông báo",
+      "senders": "Máy gửi mail"
+    },
+    "field": {
+      "event_code": "Mã sự kiện",
+      "channel": "Kênh",
+      "locale": "Ngôn ngữ",
+      "subject": "Tiêu đề",
+      "body": "Nội dung",
+      "host": "SMTP host",
+      "port": "Cổng",
+      "username": "Tài khoản",
+      "password": "Mật khẩu",
+      "from_address": "Địa chỉ gửi",
+      "from_name": "Tên người gửi"
+    },
+    "empty": "Chưa có dữ liệu",
+    "load_failed": "Không tải được cấu hình thông báo",
+    "validation": {
+      "required": "Nhập mã sự kiện và nội dung (hoặc host và địa chỉ gửi)"
+    },
+    "save_success": "Đã lưu cấu hình thông báo",
+    "save_failed": "Không thể lưu cấu hình thông báo",
+    "password_set": "Đã cấu hình",
+    "password_missing": "Chưa cấu hình"
   }
 }

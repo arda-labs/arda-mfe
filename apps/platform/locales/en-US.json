@@ -675,5 +675,35 @@
     "load_failed": "Could not load working hours",
     "save_success": "Working hours saved",
     "save_failed": "Could not save working hours"
+  },
+  "notifications": {
+    "title": "Notification templates & mail sender",
+    "description": "Template text by event/channel and SMTP config (password encrypted at rest).",
+    "tab": {
+      "templates": "Templates",
+      "senders": "Mail sender"
+    },
+    "field": {
+      "event_code": "Event code",
+      "channel": "Channel",
+      "locale": "Locale",
+      "subject": "Subject",
+      "body": "Body",
+      "host": "SMTP host",
+      "port": "Port",
+      "username": "Username",
+      "password": "Password",
+      "from_address": "From address",
+      "from_name": "From name"
+    },
+    "empty": "No data",
+    "load_failed": "Could not load the notification config",
+    "validation": {
+      "required": "Enter event code and body (or host and from address)"
+    },
+    "save_success": "Notification config saved",
+    "save_failed": "Could not save the notification config",
+    "password_set": "Configured",
+    "password_missing": "Not configured"
   }
 }

@@ -575,3 +575,55 @@ export function deleteWorkingHour(id: string) {
     `/api/platform/working-hours/${encodeURIComponent(id)}`
   )
 }
+
+/** Notification templates + sender configs (X2). */
+export interface NotificationTemplate {
+  id: string
+  event_code: string
+  channel: string
+  locale: string
+  subject: string
+  body: string
+  is_active: boolean
+}
+
+export interface NotificationSender {
+  id: string
+  channel: string
+  host: string
+  port: number
+  username?: string
+  has_password?: boolean
+  from_address: string
+  from_name?: string
+  use_tls: boolean
+  is_active: boolean
+}
+
+export function listNotificationTemplates() {
+  return getCanonical<{ items: NotificationTemplate[] }>(
+    "/api/notifications/templates"
+  ).then((res) => res.items)
+}
+
+export function upsertNotificationTemplate(body: Partial<NotificationTemplate>) {
+  return postCanonical<NotificationTemplate>("/api/notifications/templates", body)
+}
+
+export function deleteNotificationTemplate(id: string) {
+  return deleteCanonical<{ ok: boolean }>(
+    `/api/notifications/templates/${encodeURIComponent(id)}`
+  )
+}
+
+export function listNotificationSenders() {
+  return getCanonical<{ items: NotificationSender[] }>(
+    "/api/notifications/senders"
+  ).then((res) => res.items)
+}
+
+export function upsertNotificationSender(
+  body: Partial<NotificationSender> & { password?: string }
+) {
+  return postCanonical<NotificationSender>("/api/notifications/senders", body)
+}
