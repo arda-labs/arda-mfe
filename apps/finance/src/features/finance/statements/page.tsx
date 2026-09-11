@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import {
   financeApi,
+  type FinancialSummary,
   type StatementResult,
   type StatementSummary,
 } from "@/features/finance/api"
@@ -23,6 +24,7 @@ export function StatementsPage() {
   const [asOf, setAsOf] = useState("")
   const [from, setFrom] = useState("")
   const [result, setResult] = useState<StatementResult | null>(null)
+  const [summary, setSummary] = useState<FinancialSummary | null>(null)
   const [loadingList, setLoadingList] = useState(true)
   const [loadingRun, setLoadingRun] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -46,6 +48,21 @@ export function StatementsPage() {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    void financeApi
+      .financialSummary(asOf || undefined, from || undefined)
+      .then((res) => {
+        if (!cancelled) setSummary(res)
+      })
+      .catch(() => {
+        if (!cancelled) setSummary(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [asOf, from])
 
   const run = useCallback(() => {
     if (!selected) return
@@ -121,6 +138,16 @@ export function StatementsPage() {
         from={from}
         onFromChange={setFrom}
       />
+      {summary && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <SummaryTile label="Total assets" value={summary.total_assets_minor} />
+          <SummaryTile label="Total liabilities" value={summary.total_liabilities_minor} />
+          <SummaryTile label="Total equity" value={summary.total_equity_minor} />
+          <SummaryTile label="Total income" value={summary.total_income_minor} />
+          <SummaryTile label="Total expense" value={summary.total_expense_minor} />
+          <SummaryTile label="Profit before tax" value={summary.profit_minor} />
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         {statements.map((s) => (
           <Button
@@ -229,6 +256,17 @@ function Header({
         placeholder="As of (latest if empty)"
         aria-label={`As-of date for ${selected || "statement"}`}
       />
+    </div>
+  )
+}
+
+function SummaryTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border p-3">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="mt-1 font-mono text-sm tabular-nums">
+        {formatAmount(fromMinor(value), "VND")}
+      </div>
     </div>
   )
 }

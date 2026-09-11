@@ -118,6 +118,14 @@ export const financeApi = {
       )
       .then((res) => res.result)
   },
+  financialSummary: (asOf?: string, from?: string) => {
+    const p = buildSearchParams({ as_of: asOf, from })
+    return api
+      .get<ApiSuccess<FinancialSummary>>(
+        `/api/finance/reports/financial-summary?${p.toString()}`
+      )
+      .then((res) => res.result)
+  },
 }
 
 export interface SystemDate {
@@ -418,6 +426,17 @@ export interface StatementResult {
   from_date?: string
   coa_version?: string
   rows: StatementRow[]
+}
+
+export interface FinancialSummary {
+  as_of: string
+  from_date?: string
+  total_assets_minor: number
+  total_liabilities_minor: number
+  total_equity_minor: number
+  total_income_minor: number
+  total_expense_minor: number
+  profit_minor: number
 }
 
 export const postingApi = {
