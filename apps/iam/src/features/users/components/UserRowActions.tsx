@@ -24,6 +24,7 @@ export type UserRowActionHandlers = {
   onEdit: (user: User) => void
   onManageRoles: (user: User) => void
   onManageSessions: (user: User) => void
+  onManageScope: (user: User) => void
   onResetPassword: (user: User) => void
   onResetMfa: (user: User) => void
   onProvisionIdentity: (user: User) => void
@@ -64,6 +65,10 @@ export function UserRowActions({
           <DropdownMenuItem onClick={() => handlers.onManageSessions(user)}>
             <MonitorCog className="mr-2 size-4" />
             {t("admin.users.action.sessions")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handlers.onManageScope(user)}>
+            <ShieldCheck className="mr-2 size-4" />
+            {t("admin.users.action.scope")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handlers.onResetPassword(user)}>
             <KeyRound className="mr-2 size-4" />

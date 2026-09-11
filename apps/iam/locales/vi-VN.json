@@ -115,6 +115,16 @@
       "empty": "Chưa có vai trò để gán.",
       "update_success": "Đã cập nhật vai trò",
       "update_failed": "Không cập nhật được vai trò"
+    },
+    "action": {
+      "scope": "Phạm vi dữ liệu"
+    },
+    "scope": {
+      "title": "Phạm vi dữ liệu",
+      "description": "Gán tổ chức được phép truy cập cho {name}.",
+      "save_success": "Đã lưu phạm vi dữ liệu",
+      "save_failed": "Không thể lưu phạm vi dữ liệu",
+      "empty": "Chưa có tổ chức"
     }
   },
   "superadmin": {
@@ -193,6 +203,25 @@
       "support_email_invalid": "Email hỗ trợ không hợp lệ",
       "help_url_invalid": "Help center URL không hợp lệ",
       "url_not_allowed": "{field} chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS"
+    }
+  },
+  "resource_routes": {
+    "title": "Tài nguyên & policy",
+    "description": "Danh sách route-policy (policy.yaml) — chỉ đọc.",
+    "search": "Tìm route...",
+    "loading": "Đang tải...",
+    "empty": "Không có route phù hợp",
+    "load_failed": "Không tải được policy",
+    "all_methods": "Mọi phương thức",
+    "auth_required": "Yêu cầu đăng nhập",
+    "public": "Công khai",
+    "col": {
+      "id": "Mã",
+      "path": "Đường dẫn",
+      "methods": "Phương thức",
+      "auth": "Xác thực",
+      "risk": "Rủi ro",
+      "permissions": "Quyền"
     }
   }
 }

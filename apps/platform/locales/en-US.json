@@ -648,5 +648,32 @@
       "error": "Error",
       "finished": "Finished"
     }
+  },
+  "working_hours": {
+    "title": "Working hours",
+    "description": "Weekly shifts (working days/holidays stay in the shared calendar).",
+    "field": {
+      "org": "Org unit",
+      "day": "Day",
+      "start": "Start",
+      "end": "End",
+      "break": "Break (min)"
+    },
+    "day": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "loading": "Loading...",
+    "empty": "No working hours configured",
+    "load_failed": "Could not load working hours",
+    "save_success": "Working hours saved",
+    "save_failed": "Could not save working hours"
   }
 }

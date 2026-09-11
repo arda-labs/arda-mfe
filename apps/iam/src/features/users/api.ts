@@ -212,4 +212,13 @@ export const usersApi = {
     if (params?.tenantId) sp.set("tenant_id", params.tenantId)
     return `/api/admin/users/export?${sp.toString()}`
   },
+  listOrganizations: (userId: string) =>
+    getCanonical<{ organization_ids: string[] }>(
+      `/api/admin/users/${userId}/organizations`
+    ).then((res) => res.organization_ids),
+  setOrganizations: (userId: string, organizationIds: string[]) =>
+    putCanonical<{ organization_ids: string[] }>(
+      `/api/admin/users/${userId}/organizations`,
+      { organization_ids: organizationIds }
+    ).then((res) => res.organization_ids),
 }

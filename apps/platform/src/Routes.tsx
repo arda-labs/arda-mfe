@@ -49,6 +49,11 @@ const JobsPage = lazyWithPreload(() =>
     default: m.JobsPage,
   }))
 )
+const WorkingHoursPage = lazyWithPreload(() =>
+  import("@/features/working-hours/page").then((m) => ({
+    default: m.WorkingHoursPage,
+  }))
+)
 const OrganizationsPage = lazyWithPreload(() =>
   import("@/features/organizations/page").then((m) => ({
     default: m.OrganizationsPage,
@@ -88,6 +93,7 @@ export default createRemoteRoutes({
     { prefix: "/admin/calendar", component: CalendarPage },
     { prefix: "/admin/cutoff", component: CutoffPage },
     { prefix: "/admin/jobs", component: JobsPage },
+    { prefix: "/admin/working-hours", component: WorkingHoursPage },
     { prefix: "/admin/menus", component: MenusPage },
   ],
   defaultComponent: OrganizationsPage,

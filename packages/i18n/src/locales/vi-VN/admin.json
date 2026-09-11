@@ -140,7 +140,8 @@
       "provision_identity": "Tạo định danh Kratos",
       "manage_sessions": "Quản lý phiên",
       "save_changes": "Lưu thay đổi",
-      "revoke_sessions": "Thu hồi tất cả phiên"
+      "revoke_sessions": "Thu hồi tất cả phiên",
+      "scope": "Phạm vi dữ liệu"
     },
     "identity": {
       "reset_success": "Đã đặt lại mật khẩu",
@@ -173,6 +174,14 @@
       "loading": "Đang tải phiên...",
       "empty": "Không có phiên hoạt động.",
       "last_seen": "Lần cuối hoạt động"
+    },
+    "scope": {
+      "title": "Phạm vi dữ liệu",
+      "description": "Gán tổ chức được phép truy cập cho {name}.",
+      "save_success": "Đã lưu phạm vi dữ liệu",
+      "save_failed": "Không thể lưu phạm vi dữ liệu",
+      "empty": "Chưa có tổ chức",
+      "load_failed": "Không tải được phạm vi dữ liệu"
     }
   },
   "audit": {
@@ -210,6 +219,25 @@
       "failure": "Thất bại",
       "denied": "Từ chối",
       "blocked": "Bị chặn"
+    }
+  },
+  "resource_routes": {
+    "title": "Tài nguyên & policy",
+    "description": "Danh sách route-policy (policy.yaml) — chỉ đọc.",
+    "search": "Tìm route...",
+    "loading": "Đang tải...",
+    "empty": "Không có route phù hợp",
+    "load_failed": "Không tải được policy",
+    "all_methods": "Mọi phương thức",
+    "auth_required": "Yêu cầu đăng nhập",
+    "public": "Công khai",
+    "col": {
+      "id": "Mã",
+      "path": "Đường dẫn",
+      "methods": "Phương thức",
+      "auth": "Xác thực",
+      "risk": "Rủi ro",
+      "permissions": "Quyền"
     }
   }
 }

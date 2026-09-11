@@ -548,3 +548,30 @@ export function runCob(businessDate: string) {
 export function seedCob() {
   return postCanonical<{ seeded: boolean }>("/api/platform/eod/seed", {})
 }
+
+/** Working hours (ca làm việc, W6a). */
+export interface WorkingHour {
+  id: string
+  org_code?: string
+  day_of_week: number
+  start_time: string
+  end_time: string
+  break_minutes: number
+  is_active: boolean
+}
+
+export function listWorkingHours(orgCode = "") {
+  return getCanonicalList<WorkingHour>(
+    `/api/platform/working-hours${orgCode ? `?org_code=${encodeURIComponent(orgCode)}` : ""}`
+  )
+}
+
+export function upsertWorkingHour(body: Partial<WorkingHour>) {
+  return postCanonical<WorkingHour>("/api/platform/working-hours", body)
+}
+
+export function deleteWorkingHour(id: string) {
+  return deleteCanonical<{ ok: boolean }>(
+    `/api/platform/working-hours/${encodeURIComponent(id)}`
+  )
+}

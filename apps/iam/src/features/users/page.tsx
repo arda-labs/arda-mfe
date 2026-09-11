@@ -18,6 +18,7 @@ import { CreateUserDialog } from "./components/CreateUserDialog"
 import { EditUserDialog } from "./components/EditUserDialog"
 import { UserRolesDialog } from "./components/UserRolesDialog"
 import { UserSessionsDialog } from "./components/UserSessionsDialog"
+import { UserScopeDialog } from "./components/UserScopeDialog"
 import { UserIdentityDialog } from "./components/UserIdentityDialog"
 import {
   UserDeleteDialog,
@@ -45,6 +46,7 @@ export function UsersPage() {
   const [provisionTarget, setProvisionTarget] = useState<User | null>(null)
   const [roleTarget, setRoleTarget] = useState<User | null>(null)
   const [sessionTarget, setSessionTarget] = useState<User | null>(null)
+  const [scopeTarget, setScopeTarget] = useState<User | null>(null)
   const [identityIssues, setIdentityIssues] = useState<
     IdentityConsistencyIssue[] | null
   >(null)
@@ -190,6 +192,7 @@ export function UsersPage() {
       onEdit: setEditTarget,
       onManageRoles: setRoleTarget,
       onManageSessions: setSessionTarget,
+      onManageScope: setScopeTarget,
       onResetPassword: setResetTarget,
       onResetMfa: setMfaResetTarget,
       onProvisionIdentity: setProvisionTarget,
@@ -313,6 +316,11 @@ export function UsersPage() {
             user={sessionTarget}
             open={sessionTarget !== null}
             onOpenChange={(open) => !open && setSessionTarget(null)}
+          />
+          <UserScopeDialog
+            user={scopeTarget}
+            open={scopeTarget !== null}
+            onOpenChange={(open) => !open && setScopeTarget(null)}
           />
           <UserIdentityDialog
             kind="reset_password"

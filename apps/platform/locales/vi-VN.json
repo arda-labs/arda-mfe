@@ -648,5 +648,32 @@
       "error": "Lỗi",
       "finished": "Kết thúc"
     }
+  },
+  "working_hours": {
+    "title": "Giờ làm việc",
+    "description": "Ca làm việc theo tuần (giờ/ngày làm việc/ngày nghỉ dùng chung với lịch).",
+    "field": {
+      "org": "Đơn vị",
+      "day": "Ngày",
+      "start": "Bắt đầu",
+      "end": "Kết thúc",
+      "break": "Nghỉ (phút)"
+    },
+    "day": {
+      "mon": "Thứ 2",
+      "tue": "Thứ 3",
+      "wed": "Thứ 4",
+      "thu": "Thứ 5",
+      "fri": "Thứ 6",
+      "sat": "Thứ 7",
+      "sun": "Chủ nhật"
+    },
+    "active": "Đang dùng",
+    "inactive": "Ngừng dùng",
+    "loading": "Đang tải...",
+    "empty": "Chưa cấu hình ca làm việc",
+    "load_failed": "Không tải được giờ làm việc",
+    "save_success": "Đã lưu ca làm việc",
+    "save_failed": "Không thể lưu ca làm việc"
   }
 }

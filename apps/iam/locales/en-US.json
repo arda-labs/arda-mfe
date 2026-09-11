@@ -115,6 +115,16 @@
       "empty": "No roles available to assign.",
       "update_success": "Roles updated",
       "update_failed": "Failed to update roles"
+    },
+    "action": {
+      "scope": "Data scope"
+    },
+    "scope": {
+      "title": "Data scope",
+      "description": "Assign the organizations {name} can access.",
+      "save_success": "Data scope saved",
+      "save_failed": "Could not save the data scope",
+      "empty": "No organizations"
     }
   },
   "superadmin": {
@@ -193,6 +203,25 @@
       "support_email_invalid": "Invalid support email",
       "help_url_invalid": "Invalid help center URL",
       "url_not_allowed": "{field} must be an internal path or HTTPS"
+    }
+  },
+  "resource_routes": {
+    "title": "Resources & policy",
+    "description": "Route-policy entries (policy.yaml) — read-only.",
+    "search": "Search routes...",
+    "loading": "Loading...",
+    "empty": "No matching routes",
+    "load_failed": "Could not load the policy",
+    "all_methods": "All methods",
+    "auth_required": "Authenticated",
+    "public": "Public",
+    "col": {
+      "id": "ID",
+      "path": "Path",
+      "methods": "Methods",
+      "auth": "Auth",
+      "risk": "Risk",
+      "permissions": "Permissions"
     }
   }
 }
