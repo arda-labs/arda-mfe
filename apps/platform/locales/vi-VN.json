@@ -681,7 +681,9 @@
     "description": "Mẫu nội dung theo sự kiện/kênh và cấu hình SMTP (mật khẩu mã hoá).",
     "tab": {
       "templates": "Mẫu thông báo",
-      "senders": "Máy gửi mail"
+      "senders": "Máy gửi mail",
+      "events": "Sự kiện",
+      "dlq": "Hàng đợi lỗi"
     },
     "field": {
       "event_code": "Mã sự kiện",
@@ -704,6 +706,30 @@
     "save_success": "Đã lưu cấu hình thông báo",
     "save_failed": "Không thể lưu cấu hình thông báo",
     "password_set": "Đã cấu hình",
-    "password_missing": "Chưa cấu hình"
+    "password_missing": "Chưa cấu hình",
+    "event": {
+      "code": "Mã sự kiện",
+      "subject": "Chủ đề",
+      "domain": "Phân hệ",
+      "description": "Mô tả",
+      "has_template": "Mẫu",
+      "configured": "Đã cấu hình",
+      "missing": "Chưa có"
+    },
+    "dlq": {
+      "subject": "Chủ đề",
+      "attempts": "Số lần thử",
+      "last_error": "Lỗi cuối",
+      "dead_at": "Thời điểm lỗi",
+      "empty": "Không có sự kiện lỗi nào.",
+      "retry_success": "Đã đưa sự kiện trở lại hàng đợi.",
+      "retry_failed": "Không thể thử lại",
+      "discard_success": "Đã xóa sự kiện lỗi.",
+      "discard_failed": "Không thể xóa",
+      "btn": {
+        "retry": "Thử lại",
+        "discard": "Xóa"
+      }
+    }
   }
 }

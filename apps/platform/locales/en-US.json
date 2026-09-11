@@ -681,7 +681,9 @@
     "description": "Template text by event/channel and SMTP config (password encrypted at rest).",
     "tab": {
       "templates": "Templates",
-      "senders": "Mail sender"
+      "senders": "Mail sender",
+      "events": "Events",
+      "dlq": "Dead letter"
     },
     "field": {
       "event_code": "Event code",
@@ -704,6 +706,30 @@
     "save_success": "Notification config saved",
     "save_failed": "Could not save the notification config",
     "password_set": "Configured",
-    "password_missing": "Not configured"
+    "password_missing": "Not configured",
+    "event": {
+      "code": "Event code",
+      "subject": "Subject",
+      "domain": "Domain",
+      "description": "Description",
+      "has_template": "Template",
+      "configured": "Configured",
+      "missing": "Missing"
+    },
+    "dlq": {
+      "subject": "Subject",
+      "attempts": "Attempts",
+      "last_error": "Last error",
+      "dead_at": "Dead-lettered at",
+      "empty": "No dead-lettered events.",
+      "retry_success": "Event requeued.",
+      "retry_failed": "Retry failed",
+      "discard_success": "Dead-lettered event deleted.",
+      "discard_failed": "Discard failed",
+      "btn": {
+        "retry": "Retry",
+        "discard": "Discard"
+      }
+    }
   }
 }

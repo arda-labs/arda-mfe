@@ -14,8 +14,10 @@ import {
   type NotificationSender,
   type NotificationTemplate,
 } from "../api"
+import { DlqTab } from "./components/dlq-tab"
+import { EventsTab } from "./components/events-tab"
 
-type TabKey = "templates" | "senders"
+type TabKey = "templates" | "senders" | "events" | "dlq"
 
 /** Notification templates + mail sender config (X2). */
 export function NotificationsAdminPage() {
@@ -128,7 +130,7 @@ export function NotificationsAdminPage() {
       </div>
 
       <div className="flex gap-2">
-        {(["templates", "senders"] as TabKey[]).map((value) => (
+        {(["templates", "senders", "events", "dlq"] as TabKey[]).map((value) => (
           <button
             key={value}
             type="button"
@@ -342,6 +344,9 @@ export function NotificationsAdminPage() {
           </div>
         </>
       )}
+      {tab === "events" && <EventsTab />}
+
+      {tab === "dlq" && <DlqTab />}
     </div>
   )
 }

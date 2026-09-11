@@ -627,3 +627,48 @@ export function upsertNotificationSender(
 ) {
   return postCanonical<NotificationSender>("/api/notifications/senders", body)
 }
+
+export interface NotificationEvent {
+  code: string
+  subject: string
+  domain: string
+  description: string
+  has_template: boolean
+}
+
+export interface NotificationDLQEntry {
+  outbox_id: string
+  tenant_id: string
+  subject: string
+  event_code: string
+  payload: Record<string, unknown>
+  attempts: number
+  last_error: string
+  dead_lettered_at: string
+  replayed_at?: string
+}
+
+export function listNotificationEvents() {
+  return getCanonical<{ items: NotificationEvent[] }>(
+    "/api/notifications/events"
+  ).then((res) => res.items)
+}
+
+export function listNotificationDLQ(limit = 100) {
+  return getCanonical<{ items: NotificationDLQEntry[] }>(
+    `/api/notifications/dlq?limit=${limit}`
+  ).then((res) => res.items)
+}
+
+export function retryNotificationDLQ(id: string) {
+  return postCanonical<{ ok: boolean }>(
+    `/api/notifications/dlq/${encodeURIComponent(id)}/retry`,
+    {}
+  )
+}
+
+export function discardNotificationDLQ(id: string) {
+  return deleteCanonical<{ ok: boolean }>(
+    `/api/notifications/dlq/${encodeURIComponent(id)}`
+  )
+}
