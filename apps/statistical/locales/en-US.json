@@ -165,5 +165,41 @@
     "empty": "No data",
     "loading": "Loading...",
     "load_failed": "Could not load the dashboard"
+  },
+  "scoring": {
+    "title": "Rank score",
+    "description": "Compute a weighted score from indicators (mdm scoring catalogs) and rank it against benchmark bands; the result is persisted.",
+    "indicators": "Indicators",
+    "bands": "Benchmark bands",
+    "results": "Ranking results",
+    "result": "Result:",
+    "empty": "No ranking results yet.",
+    "field": {
+      "type": "Scoring type",
+      "subject_type": "Subject",
+      "subject_ref": "Subject ref",
+      "value": "Score",
+      "max_value": "Max score",
+      "weight": "Weight",
+      "min_score": "Min score"
+    },
+    "btn": {
+      "add_indicator": "Add indicator",
+      "add_band": "Add band",
+      "compute": "Compute & rank"
+    },
+    "col": {
+      "type": "Scoring type",
+      "subject": "Subject",
+      "score": "Score",
+      "rank": "Rank"
+    },
+    "validation": {
+      "type_required": "Enter a scoring type."
+    },
+    "toast": {
+      "computed": "Scored {score} — rank {rank}.",
+      "failed": "Scoring failed"
+    }
   }
 }

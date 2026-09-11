@@ -56,6 +56,41 @@ export interface ReportRunResult {
   period_code: string
 }
 
+/** QCMS rank-score result (fe_statistical #19). */
+export interface ScoreEntry {
+  indicator_code: string
+  value: number
+  max_value: number
+  weight: number
+}
+
+export interface ScoreBand {
+  rank_code: string
+  min_score: number
+}
+
+export interface ScoreResult {
+  id: string
+  tenant_id: string
+  scoring_type_code: string
+  subject_type: string
+  subject_ref: string
+  total_score: number
+  max_score: number
+  rank_code: string
+  indicators: ScoreEntry[]
+  created_by: string
+  created_at: string
+}
+
+export interface ScoreResultInput {
+  scoring_type_code: string
+  subject_type?: string
+  subject_ref?: string
+  entries: ScoreEntry[]
+  bands: ScoreBand[]
+}
+
 /** QCMS generic catalog row (W5) — kind selects the EPAS catalog screen. */
 export interface CatalogItem {
   id: string
@@ -204,6 +239,18 @@ export const statisticalApi = {
     postCanonical<FormTemplate>("/api/statistical/form-templates/import", body),
   getDashboard: () =>
     getCanonical<DashboardSummary>("/api/statistical/dashboard"),
+  listScoreResults: async (params: { scoring_type_code?: string; subject_ref?: string } = {}) => {
+    const search = new URLSearchParams()
+    if (params.scoring_type_code) search.set("scoring_type_code", params.scoring_type_code)
+    if (params.subject_ref) search.set("subject_ref", params.subject_ref)
+    const qs = search.toString()
+    const res = await getCanonicalList<ScoreResult>(
+      `/api/statistical/score-results${qs ? `?${qs}` : ""}`
+    )
+    return res.items ?? []
+  },
+  createScoreResult: (body: ScoreResultInput) =>
+    postCanonical<ScoreResult>("/api/statistical/score-results", body),
   submitSubmission: (id: string) =>
     postCanonical<ReportSubmission>(`/api/statistical/submissions/${encodeURIComponent(id)}/submit`, {}),
 }

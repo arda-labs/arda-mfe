@@ -165,5 +165,41 @@
     "empty": "Chưa có dữ liệu",
     "loading": "Đang tải...",
     "load_failed": "Không tải được bảng điều khiển"
+  },
+  "scoring": {
+    "title": "Xếp hạng điểm",
+    "description": "Tính điểm theo chỉ tiêu + trọng số (danh mục mdm scoring) rồi xếp hạng theo thang điểm chuẩn; kết quả được lưu lại.",
+    "indicators": "Chỉ tiêu chấm điểm",
+    "bands": "Thang điểm xếp hạng",
+    "results": "Kết quả xếp hạng",
+    "result": "Kết quả:",
+    "empty": "Chưa có kết quả xếp hạng nào.",
+    "field": {
+      "type": "Loại chấm điểm",
+      "subject_type": "Đối tượng",
+      "subject_ref": "Mã đối tượng",
+      "value": "Điểm",
+      "max_value": "Điểm tối đa",
+      "weight": "Trọng số",
+      "min_score": "Từ điểm"
+    },
+    "btn": {
+      "add_indicator": "Thêm chỉ tiêu",
+      "add_band": "Thêm thang",
+      "compute": "Tính & xếp hạng"
+    },
+    "col": {
+      "type": "Loại chấm điểm",
+      "subject": "Đối tượng",
+      "score": "Điểm",
+      "rank": "Xếp hạng"
+    },
+    "validation": {
+      "type_required": "Vui lòng nhập loại chấm điểm."
+    },
+    "toast": {
+      "computed": "Đã tính điểm {score} — xếp hạng {rank}.",
+      "failed": "Tính điểm thất bại"
+    }
   }
 }
