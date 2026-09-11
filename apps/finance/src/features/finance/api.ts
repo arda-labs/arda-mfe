@@ -525,6 +525,20 @@ export const postingApi = {
       >("/api/finance/posting-cases/import", form)
       .then((res) => res.result)
   },
+  /** Fund appropriation/utilization → FIN_FUND_APPROP_V2 / FIN_FUND_USE_V2 case. */
+  createFundCase: (input: {
+    accounting_date: string
+    action: "APPROPRIATION" | "UTILIZATION"
+    fund_code: string
+    amount_minor: number
+    description?: string
+  }) =>
+    api
+      .post<ApiSuccess<{ case_id: string; case_code: string }>>(
+        "/api/finance/posting-cases",
+        { flow: "FUND", fund_request: input }
+      )
+      .then((res) => res.result),
 }
 
 /**

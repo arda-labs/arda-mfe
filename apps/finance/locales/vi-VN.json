@@ -492,5 +492,40 @@
   },
   "field": {
     "journal": "Bút toán"
+  },
+  "funds": {
+    "title": "Quỹ",
+    "description": "Trích lập quỹ từ lợi nhuận (Nợ 4211 / Có quỹ) và sử dụng quỹ (Nợ quỹ / Có 1131).",
+    "empty": "Chưa có bút toán quỹ nào.",
+    "action": {
+      "appropriate": "Trích lập quỹ",
+      "utilize": "Sử dụng quỹ"
+    },
+    "tab": {
+      "APPROPRIATION": "Trích lập",
+      "UTILIZATION": "Sử dụng"
+    },
+    "field": {
+      "fund": "Quỹ",
+      "amount": "Số tiền",
+      "date": "Ngày hạch toán",
+      "description": "Diễn giải"
+    },
+    "fund": {
+      "DEV": "Quỹ đầu tư phát triển",
+      "FIN_RESERVE": "Quỹ dự phòng tài chính",
+      "OP_SUPPLEMENT": "Quỹ dự trữ bổ sung vốn hoạt động",
+      "BONUS_MANAGER": "Quỹ thưởng cán bộ quản lý",
+      "BONUS_STAFF": "Quỹ thưởng cho nhân viên",
+      "WELFARE_FIXED": "Quỹ phúc lợi hình thành TSCĐ",
+      "WELFARE_BOD": "Quỹ phúc lợi ban quản lý điều hành"
+    },
+    "validation": {
+      "required": "Vui lòng chọn quỹ và nhập số tiền."
+    },
+    "toast": {
+      "created": "Đã tạo giao dịch quỹ {code}.",
+      "failed": "Tạo giao dịch quỹ thất bại"
+    }
   }
 }

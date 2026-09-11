@@ -492,5 +492,40 @@
   },
   "field": {
     "journal": "Journal"
+  },
+  "funds": {
+    "title": "Funds",
+    "description": "Appropriate funds from profit (Dr 4211 / Cr fund) and use funds (Dr fund / Cr 1131).",
+    "empty": "No fund entries yet.",
+    "action": {
+      "appropriate": "Appropriate fund",
+      "utilize": "Use fund"
+    },
+    "tab": {
+      "APPROPRIATION": "Appropriation",
+      "UTILIZATION": "Utilization"
+    },
+    "field": {
+      "fund": "Fund",
+      "amount": "Amount",
+      "date": "Accounting date",
+      "description": "Description"
+    },
+    "fund": {
+      "DEV": "Investment & development fund",
+      "FIN_RESERVE": "Financial reserve fund",
+      "OP_SUPPLEMENT": "Operating capital supplement fund",
+      "BONUS_MANAGER": "Management bonus fund",
+      "BONUS_STAFF": "Employee bonus fund",
+      "WELFARE_FIXED": "Welfare fund (fixed assets)",
+      "WELFARE_BOD": "Welfare fund (board of management)"
+    },
+    "validation": {
+      "required": "Choose a fund and enter an amount."
+    },
+    "toast": {
+      "created": "Fund transaction {code} created.",
+      "failed": "Could not create fund transaction"
+    }
   }
 }
