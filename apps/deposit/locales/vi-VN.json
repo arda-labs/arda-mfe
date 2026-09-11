@@ -129,7 +129,8 @@
       "top_up": "Nộp thêm",
       "interest": "Thu lãi",
       "expected": "Dự thu",
-      "withdraw": "Rút tiền"
+      "withdraw": "Rút tiền",
+      "print": "In chứng từ"
     },
     "movement_kind": {
       "TOP_UP": "Nộp thêm",
@@ -171,6 +172,13 @@
       },
       "save_success": "Đã lưu sản phẩm",
       "save_failed": "Không thể lưu sản phẩm"
+    },
+    "print": {
+      "title": "Chứng từ giao dịch liên ngân hàng",
+      "maker": "Người lập",
+      "checker": "Kiểm soát",
+      "footer": "In từ hệ thống Arda",
+      "blocked": "Không mở được cửa sổ in (trình duyệt chặn popup)."
     }
   },
   "rates": {

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
 import { depositApi, type IbmDetail, type IbmMovement } from "../api"
+import { printVoucher } from "../../lib/print-voucher"
 import { IbmMovementDialog } from "./components/IbmMovementDialog"
 
 /** IBM contract detail: info + movements + staging actions. */
@@ -36,6 +38,48 @@ export function InterbankDetailPage() {
   const deposit = detail?.deposit
   const canStage = deposit?.status === "ACTIVE"
 
+  const handlePrint = () => {
+    if (!deposit) return
+    const amount = (value: number) =>
+      formatAmount(fromMinor(value, deposit.currency_code), deposit.currency_code)
+    const ok = printVoucher({
+      title: t("deposit.interbank.print.title"),
+      subtitle: deposit.deposit_code,
+      fields: [
+        { label: t("deposit.interbank.field.counterparty"), value: `${deposit.counterparty_code}${deposit.counterparty_name ? ` — ${deposit.counterparty_name}` : ""}` },
+        { label: t("deposit.interbank.field.product"), value: deposit.product_code ?? "—" },
+        { label: t("deposit.interbank.field.principal"), value: amount(deposit.principal_minor) },
+        { label: t("deposit.interbank.field.accrued"), value: amount(deposit.accrued_minor) },
+        { label: t("deposit.interbank.field.interest_rate"), value: formatRatePercent(deposit.interest_rate) },
+        { label: t("deposit.interbank.field.deposit_date"), value: formatDateShort(deposit.deposit_date) },
+        { label: t("deposit.interbank.field.maturity_date"), value: formatDateShort(deposit.maturity_date) },
+        { label: t("deposit.interbank.field.last_interest"), value: deposit.last_interest_date ? formatDateShort(deposit.last_interest_date) : "—" },
+      ],
+      table: {
+        columns: [
+          t("deposit.interbank.movement.field.kind"),
+          t("deposit.interbank.movement.field.date"),
+          t("deposit.interbank.movement.field.amount"),
+          t("deposit.interbank.movement.field.note"),
+          t("common.field.status"),
+        ],
+        rows: (detail?.movements ?? []).map((row) => [
+          t(`deposit.interbank.movement_kind.${row.kind}`),
+          formatDateShort(row.movement_date),
+          amount(row.amount_minor),
+          row.note || "—",
+          t(`deposit.interbank.movement_status.${row.status}`),
+        ]),
+      },
+      signatures: [
+        t("deposit.interbank.print.maker"),
+        t("deposit.interbank.print.checker"),
+      ],
+      footer: t("deposit.interbank.print.footer"),
+    })
+    if (!ok) notify.error(t("deposit.interbank.print.blocked"))
+  }
+
   if (loadError) {
     return (
       <div className="p-6 text-sm text-muted-foreground">
@@ -62,22 +106,27 @@ export function InterbankDetailPage() {
             {t(`deposit.interbank.status.${deposit.status}`)}
           </Badge>
         </div>
-        {canStage && (
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => setMovementKind("TOP_UP")}>
-              {t("deposit.interbank.action.top_up")}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setMovementKind("INTEREST")}>
-              {t("deposit.interbank.action.interest")}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setMovementKind("EXPECTED")}>
-              {t("deposit.interbank.action.expected")}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setMovementKind("WITHDRAW")}>
-              {t("deposit.interbank.action.withdraw")}
-            </Button>
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={handlePrint}>
+            {t("deposit.interbank.action.print")}
+          </Button>
+          {canStage && (
+            <>
+              <Button size="sm" onClick={() => setMovementKind("TOP_UP")}>
+                {t("deposit.interbank.action.top_up")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setMovementKind("INTEREST")}>
+                {t("deposit.interbank.action.interest")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setMovementKind("EXPECTED")}>
+                {t("deposit.interbank.action.expected")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setMovementKind("WITHDRAW")}>
+                {t("deposit.interbank.action.withdraw")}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">

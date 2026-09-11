@@ -129,7 +129,8 @@
       "top_up": "Top up",
       "interest": "Collect interest",
       "expected": "Expected interest",
-      "withdraw": "Withdraw"
+      "withdraw": "Withdraw",
+      "print": "Print voucher"
     },
     "movement_kind": {
       "TOP_UP": "Top-up",
@@ -171,6 +172,13 @@
       },
       "save_success": "Product saved",
       "save_failed": "Could not save the product"
+    },
+    "print": {
+      "title": "Interbank transaction voucher",
+      "maker": "Prepared by",
+      "checker": "Checked by",
+      "footer": "Printed from Arda",
+      "blocked": "Could not open the print window (popup blocked)."
     }
   },
   "rates": {
