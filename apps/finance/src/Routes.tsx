@@ -41,6 +41,11 @@ const LedgerPage = lazyWithPreload(() =>
     default: m.LedgerPage,
   }))
 )
+const CounterpartiesPage = lazyWithPreload(() =>
+  import("@/features/finance/counterparties/page").then((m) => ({
+    default: m.CounterpartiesPage,
+  }))
+)
 const OpeningBalancesPage = lazyWithPreload(() =>
   import("@/features/finance/opening-balances/page").then((m) => ({
     default: m.OpeningBalancesPage,
@@ -109,6 +114,7 @@ async function preload(pathname = "") {
   if (pathname.startsWith("/finance/statements")) page = StatementsPage
   if (pathname.startsWith("/finance/journal")) page = JournalPage
   if (pathname.startsWith("/finance/ledger")) page = LedgerPage
+  if (pathname.startsWith("/finance/counterparties")) page = CounterpartiesPage
   if (pathname.startsWith("/finance/opening-balances")) page = OpeningBalancesPage
   if (pathname.startsWith("/finance/posting/review")) page = PostingReviewPage
   // Posting init routes must match BEFORE the list prefix (both start with
@@ -137,6 +143,7 @@ function RemoteRoutes() {
   if (pathname.startsWith("/finance/statements")) page = <StatementsPage />
   if (pathname.startsWith("/finance/journal")) page = <JournalPage pathname={pathname} />
   if (pathname.startsWith("/finance/ledger")) page = <LedgerPage />
+  if (pathname.startsWith("/finance/counterparties")) page = <CounterpartiesPage />
   if (pathname.startsWith("/finance/opening-balances")) {
     page = <OpeningBalancesPage />
   }

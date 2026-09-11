@@ -422,5 +422,29 @@
       "credit": "Credit",
       "running": "Running"
     }
+  },
+  "counterparties": {
+    "title": "Counterparties",
+    "count": "{count} counterparties",
+    "create": "New counterparty",
+    "edit": "Edit counterparty",
+    "active": "Active",
+    "inactive": "Inactive",
+    "accounts": "Bank accounts",
+    "accounts_empty": "No accounts yet",
+    "default": "Default",
+    "validation": {
+      "required": "Enter code and name"
+    },
+    "save_success": "Counterparty saved",
+    "save_failed": "Could not save the counterparty",
+    "field": {
+      "party_type": "Party type",
+      "org": "Org unit",
+      "note": "Note",
+      "account_no": "Account no",
+      "bank_code": "Bank",
+      "coa": "COA account"
+    }
   }
 }

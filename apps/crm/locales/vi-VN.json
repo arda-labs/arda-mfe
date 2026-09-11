@@ -294,5 +294,24 @@
     "refresh": "Làm mới",
     "search": "Tìm",
     "open": "Mở"
+  },
+  "reports": {
+    "title": "Báo cáo khách hàng",
+    "description": "Danh sách khách hàng theo loại/trạng thái (xuất CSV từ màn hình).",
+    "field": {
+      "search": "Tìm kiếm",
+      "type": "Loại khách hàng"
+    },
+    "run": "Xem báo cáo",
+    "loading": "Đang tải...",
+    "empty": "Không có dữ liệu",
+    "load_failed": "Không tải được báo cáo",
+    "col": {
+      "customer_code": "Mã KH",
+      "name": "Tên",
+      "customer_type": "Loại",
+      "segment": "Phân khúc",
+      "risk_level": "Mức rủi ro"
+    }
   }
 }

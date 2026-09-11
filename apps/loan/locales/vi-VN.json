@@ -709,5 +709,49 @@
       "interest": "Tiền lãi",
       "total": "Tổng phải trả"
     }
+  },
+  "reports": {
+    "title": "Báo cáo tín dụng",
+    "description": "Sổ khoản vay, sao kê và tài sản bảo đảm (xuất CSV từ màn hình).",
+    "field": {
+      "contract": "Mã hợp đồng",
+      "from": "Từ ngày",
+      "to": "Đến ngày"
+    },
+    "run": "Xem báo cáo",
+    "empty": "Không có dữ liệu",
+    "loading": "Đang tải...",
+    "load_failed": "Không tải được báo cáo",
+    "tab": {
+      "loan-ledger": "Sổ khoản vay",
+      "loan-statement": "Sao kê khoản vay",
+      "collateral-statement": "Tài sản bảo đảm"
+    },
+    "col": {
+      "txn_date": "Ngày GD",
+      "contract_code": "Mã HĐ",
+      "txn_type": "Loại GD",
+      "amount_minor": "Số tiền",
+      "principal_minor": "Gốc",
+      "interest_minor": "Lãi",
+      "status": "Trạng thái",
+      "agreement_code": "Mã thuận từ",
+      "disburse_date": "Ngày giải ngân",
+      "maturity_date": "Ngày đáo hạn",
+      "debt_group_code": "Nhóm nợ",
+      "disburse_amt_minor": "Số giải ngân",
+      "outstanding_amt_minor": "Dư nợ",
+      "coln_principal_amt_minor": "Đã thu gốc",
+      "coln_interest_amt_minor": "Đã thu lãi",
+      "interest_rate": "Lãi suất",
+      "coll_code": "Mã TSBĐ",
+      "coll_name": "Tên TSBĐ",
+      "coll_type_code": "Loại TSBĐ",
+      "owner_cif_code": "Mã KH sở hữu",
+      "owner_name": "Chủ sở hữu",
+      "coll_value_minor": "Giá trị",
+      "coll_use_value_minor": "Giá trị sử dụng",
+      "valuation_date": "Ngày định giá"
+    }
   }
 }

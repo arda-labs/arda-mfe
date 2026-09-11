@@ -709,5 +709,49 @@
       "interest": "Interest",
       "total": "Total due"
     }
+  },
+  "reports": {
+    "title": "Credit reports",
+    "description": "Loan ledger, statement and collateral reports (CSV export on screen).",
+    "field": {
+      "contract": "Contract",
+      "from": "From",
+      "to": "To"
+    },
+    "run": "Run report",
+    "empty": "No data",
+    "loading": "Loading...",
+    "load_failed": "Could not load the report",
+    "tab": {
+      "loan-ledger": "Loan ledger",
+      "loan-statement": "Loan statement",
+      "collateral-statement": "Collaterals"
+    },
+    "col": {
+      "txn_date": "Txn date",
+      "contract_code": "Contract",
+      "txn_type": "Txn type",
+      "amount_minor": "Amount",
+      "principal_minor": "Principal",
+      "interest_minor": "Interest",
+      "status": "Status",
+      "agreement_code": "Agreement",
+      "disburse_date": "Disburse date",
+      "maturity_date": "Maturity date",
+      "debt_group_code": "Debt group",
+      "disburse_amt_minor": "Disbursed",
+      "outstanding_amt_minor": "Outstanding",
+      "coln_principal_amt_minor": "Principal collected",
+      "coln_interest_amt_minor": "Interest collected",
+      "interest_rate": "Interest rate",
+      "coll_code": "Collateral",
+      "coll_name": "Collateral name",
+      "coll_type_code": "Collateral type",
+      "owner_cif_code": "Owner CIF",
+      "owner_name": "Owner",
+      "coll_value_minor": "Value",
+      "coll_use_value_minor": "Use value",
+      "valuation_date": "Valuation date"
+    }
   }
 }

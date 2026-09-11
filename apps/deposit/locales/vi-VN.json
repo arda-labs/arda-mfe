@@ -259,5 +259,39 @@
     "interest": {
       "empty": "Chưa có giao dịch lãi"
     }
+  },
+  "reports": {
+    "title": "Báo cáo tiền gửi",
+    "description": "Sổ tiền gửi, giao dịch tiền gửi và liên ngân hàng (xuất CSV từ màn hình).",
+    "field": {
+      "from": "Từ ngày",
+      "to": "Đến ngày"
+    },
+    "run": "Xem báo cáo",
+    "empty": "Không có dữ liệu",
+    "load_failed": "Không tải được báo cáo",
+    "tab": {
+      "deposit-statement": "Sổ tiền gửi",
+      "deposit-transactions": "Giao dịch tiền gửi",
+      "interbank-statement": "Sổ liên ngân hàng",
+      "interbank-transactions": "Giao dịch liên ngân hàng"
+    },
+    "col": {
+      "savings_code": "Mã sổ",
+      "customer_code": "Khách hàng",
+      "product_code": "Sản phẩm",
+      "open_date": "Ngày mở",
+      "maturity_date": "Ngày đáo hạn",
+      "principal_minor": "Gốc",
+      "accrued_minor": "Lãi lũy kế",
+      "status": "Trạng thái",
+      "txn_date": "Ngày GD",
+      "txn_type": "Loại GD",
+      "amount_minor": "Số tiền",
+      "deposit_code": "Mã HĐ",
+      "counterparty_code": "Đối tác",
+      "movement_date": "Ngày GD",
+      "kind": "Loại GD"
+    }
   }
 }

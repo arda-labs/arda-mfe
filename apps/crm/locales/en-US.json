@@ -294,5 +294,24 @@
     "refresh": "Refresh",
     "search": "Search",
     "open": "Open"
+  },
+  "reports": {
+    "title": "Customer report",
+    "description": "Customers by type/status (CSV export on screen).",
+    "field": {
+      "search": "Search",
+      "type": "Customer type"
+    },
+    "run": "Run report",
+    "loading": "Loading...",
+    "empty": "No data",
+    "load_failed": "Could not load the report",
+    "col": {
+      "customer_code": "Customer",
+      "name": "Name",
+      "customer_type": "Type",
+      "segment": "Segment",
+      "risk_level": "Risk level"
+    }
   }
 }

@@ -422,5 +422,29 @@
       "credit": "Có",
       "running": "Lũy kế"
     }
+  },
+  "counterparties": {
+    "title": "Tài khoản đối tác",
+    "count": "{count} đối tác",
+    "create": "Thêm đối tác",
+    "edit": "Sửa đối tác",
+    "active": "Đang dùng",
+    "inactive": "Ngừng dùng",
+    "accounts": "Tài khoản ngân hàng",
+    "accounts_empty": "Chưa có tài khoản",
+    "default": "Mặc định",
+    "validation": {
+      "required": "Nhập mã và tên đối tác"
+    },
+    "save_success": "Đã lưu đối tác",
+    "save_failed": "Không thể lưu đối tác",
+    "field": {
+      "party_type": "Loại đối tác",
+      "org": "Đơn vị",
+      "note": "Ghi chú",
+      "account_no": "Số tài khoản",
+      "bank_code": "Ngân hàng",
+      "coa": "Tài khoản COA"
+    }
   }
 }

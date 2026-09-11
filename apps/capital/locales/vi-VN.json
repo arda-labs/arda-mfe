@@ -133,5 +133,34 @@
     "save_failed": "Không thể lưu",
     "is_active": "Đang dùng",
     "is_inactive": "Ngừng dùng"
+  },
+  "reports": {
+    "title": "Báo cáo nguồn vốn",
+    "description": "Sổ nguồn vốn và giao dịch nguồn vốn (xuất CSV từ màn hình).",
+    "field": {
+      "from": "Từ ngày",
+      "to": "Đến ngày"
+    },
+    "run": "Xem báo cáo",
+    "empty": "Không có dữ liệu",
+    "loading": "Đang tải...",
+    "load_failed": "Không tải được báo cáo",
+    "tab": {
+      "fund-source-statement": "Sổ nguồn vốn",
+      "fund-source-transactions": "Giao dịch nguồn vốn"
+    },
+    "col": {
+      "contract_code": "Mã hợp đồng",
+      "fund_type_code": "Loại vốn",
+      "counterparty_code": "Đối tác",
+      "contract_date": "Ngày hợp đồng",
+      "maturity_date": "Ngày đáo hạn",
+      "amount_minor": "Số tiền",
+      "interest_rate": "Lãi suất",
+      "status": "Trạng thái",
+      "movement_date": "Ngày GD",
+      "movement_type": "Loại GD",
+      "note": "Ghi chú"
+    }
   }
 }

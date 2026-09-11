@@ -259,5 +259,39 @@
     "interest": {
       "empty": "No interest operations yet"
     }
+  },
+  "reports": {
+    "title": "Deposit reports",
+    "description": "Savings, deposit transactions and interbank reports (CSV export on screen).",
+    "field": {
+      "from": "From",
+      "to": "To"
+    },
+    "run": "Run report",
+    "empty": "No data",
+    "load_failed": "Could not load the report",
+    "tab": {
+      "deposit-statement": "Savings statement",
+      "deposit-transactions": "Deposit transactions",
+      "interbank-statement": "Interbank statement",
+      "interbank-transactions": "Interbank transactions"
+    },
+    "col": {
+      "savings_code": "Savings code",
+      "customer_code": "Customer",
+      "product_code": "Product",
+      "open_date": "Open date",
+      "maturity_date": "Maturity date",
+      "principal_minor": "Principal",
+      "accrued_minor": "Accrued",
+      "status": "Status",
+      "txn_date": "Txn date",
+      "txn_type": "Txn type",
+      "amount_minor": "Amount",
+      "deposit_code": "Contract",
+      "counterparty_code": "Counterparty",
+      "movement_date": "Movement date",
+      "kind": "Kind"
+    }
   }
 }

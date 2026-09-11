@@ -133,5 +133,34 @@
     "save_failed": "Could not save",
     "is_active": "Active",
     "is_inactive": "Inactive"
+  },
+  "reports": {
+    "title": "Fund-source reports",
+    "description": "Fund-source statement and transactions (CSV export on screen).",
+    "field": {
+      "from": "From",
+      "to": "To"
+    },
+    "run": "Run report",
+    "empty": "No data",
+    "loading": "Loading...",
+    "load_failed": "Could not load the report",
+    "tab": {
+      "fund-source-statement": "Fund-source statement",
+      "fund-source-transactions": "Fund-source transactions"
+    },
+    "col": {
+      "contract_code": "Contract",
+      "fund_type_code": "Fund type",
+      "counterparty_code": "Counterparty",
+      "contract_date": "Contract date",
+      "maturity_date": "Maturity date",
+      "amount_minor": "Amount",
+      "interest_rate": "Interest rate",
+      "status": "Status",
+      "movement_date": "Movement date",
+      "movement_type": "Movement type",
+      "note": "Note"
+    }
   }
 }

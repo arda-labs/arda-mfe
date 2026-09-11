@@ -158,6 +158,52 @@ export interface DepositTxnLike {
   created_at?: string
 }
 
+/** Report row shapes (W4c, data owner computes). */
+export interface DepositStatementRow {
+  savings_code: string
+  customer_code: string
+  product_code: string
+  open_date: string
+  maturity_date: string
+  principal_minor: number
+  accrued_minor: number
+  currency_code: string
+  status: string
+}
+
+export interface DepositTxnRow {
+  txn_date: string
+  savings_code: string
+  txn_type: string
+  amount_minor: number
+  currency_code: string
+  status: string
+  journal_entry_id?: string
+}
+
+export interface InterbankStatementRow {
+  deposit_code: string
+  counterparty_code: string
+  counterparty_name?: string
+  product_code?: string
+  deposit_date: string
+  maturity_date: string
+  principal_minor: number
+  accrued_minor: number
+  currency_code: string
+  status: string
+}
+
+export interface InterbankTxnRow {
+  movement_date: string
+  deposit_code: string
+  kind: string
+  amount_minor: number
+  currency_code: string
+  note?: string
+  status: string
+}
+
 /** Workflow submission handle returned by settle/deposit endpoints. */
 export interface DepositSubmission {
   case_id: string
@@ -322,6 +368,32 @@ export const depositApi = {
     ),
   submitBatchInterest: () =>
     postCanonical<{ items: InterestOp[]; total: number }>("/api/deposit/batch-interest", {}),
+
+  depositStatement: (params: { from?: string; to?: string; status?: string } = {}) =>
+    getCanonicalList<DepositStatementRow>(
+      `/api/deposit/reports/deposit-statement${reportQuery(params)}`
+    ),
+  depositTransactions: (params: { from?: string; to?: string; txn_type?: string } = {}) =>
+    getCanonicalList<DepositTxnRow>(
+      `/api/deposit/reports/deposit-transactions${reportQuery(params)}`
+    ),
+  interbankStatement: (params: { from?: string; to?: string; status?: string } = {}) =>
+    getCanonicalList<InterbankStatementRow>(
+      `/api/deposit/reports/interbank-statement${reportQuery(params)}`
+    ),
+  interbankTransactions: (params: { from?: string; to?: string } = {}) =>
+    getCanonicalList<InterbankTxnRow>(
+      `/api/deposit/reports/interbank-transactions${reportQuery(params)}`
+    ),
+}
+
+function reportQuery(params: Record<string, string | undefined>): string {
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value) search.set(key, value)
+  }
+  const qs = search.toString()
+  return qs ? `?${qs}` : ""
 }
 
 export interface ProductUpsertInput {

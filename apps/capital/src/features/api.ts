@@ -75,6 +75,29 @@ export interface ContractDetail {
   amendments: ContractAmendment[]
 }
 
+/** Report rows (W4c, data owner computes). */
+export interface FundSourceStatementRow {
+  contract_code: string
+  fund_type_code: string
+  counterparty_code: string
+  contract_date: string
+  maturity_date?: string
+  amount_minor: number
+  interest_rate: number
+  currency_code: string
+  status: string
+}
+
+export interface FundSourceTxnRow {
+  movement_date: string
+  contract_code: string
+  movement_type: string
+  amount_minor: number
+  currency_code: string
+  note?: string
+  status: string
+}
+
 export const capitalApi = {
   listFundTypes: (includeInactive = false) =>
     getCanonicalList<FundType>(
@@ -138,4 +161,22 @@ export const capitalApi = {
       `/api/capital/contracts/${encodeURIComponent(contractId)}/movements`,
       body
     ),
+
+  fundSourceStatement: (params: { from?: string; to?: string; status?: string } = {}) =>
+    getCanonicalList<FundSourceStatementRow>(
+      `/api/capital/reports/fund-source-statement${reportQuery(params)}`
+    ),
+  fundSourceTransactions: (params: { from?: string; to?: string; movement_type?: string } = {}) =>
+    getCanonicalList<FundSourceTxnRow>(
+      `/api/capital/reports/fund-source-transactions${reportQuery(params)}`
+    ),
+}
+
+function reportQuery(params: Record<string, string | undefined>): string {
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value) search.set(key, value)
+  }
+  const qs = search.toString()
+  return qs ? `?${qs}` : ""
 }

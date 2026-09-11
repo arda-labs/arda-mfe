@@ -33,10 +33,17 @@ const ProductsPage = lazyWithPreload(() =>
   }))
 )
 
+const ReportsPage = lazyWithPreload(() =>
+  import("@/features/reports/page").then((m) => ({
+    default: m.ReportsPage,
+  }))
+)
+
 export default createRemoteRoutes({
   routes: [
     { prefix: "/capital/fund-types", component: FundTypesPage },
     { prefix: "/capital/products", component: ProductsPage },
+    { prefix: "/capital/reports", component: ReportsPage },
     { prefix: "/capital/contracts/", component: ContractDetailPage },
   ],
   defaultComponent: ContractsPage,
