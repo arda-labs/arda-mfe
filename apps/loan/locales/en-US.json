@@ -725,7 +725,10 @@
     "tab": {
       "loan-ledger": "Loan ledger",
       "loan-statement": "Loan statement",
-      "collateral-statement": "Collaterals"
+      "collateral-statement": "Collaterals",
+      "loan-diary": "Loan diary",
+      "loan-appraisal": "Loan appraisal",
+      "loan-reconciliation": "Loan reconciliation"
     },
     "col": {
       "txn_date": "Txn date",
@@ -751,7 +754,13 @@
       "owner_name": "Owner",
       "coll_value_minor": "Value",
       "coll_use_value_minor": "Use value",
-      "valuation_date": "Valuation date"
+      "valuation_date": "Valuation date",
+      "collateral_minor": "Collateral value",
+      "coverage_ratio": "Coverage ratio",
+      "loan_term": "Loan term",
+      "planned_principal_minor": "Planned principal",
+      "planned_interest_minor": "Planned interest",
+      "variance_minor": "Variance"
     }
   },
   "plans": {

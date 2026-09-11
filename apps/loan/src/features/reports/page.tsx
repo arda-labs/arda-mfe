@@ -6,10 +6,23 @@ import { Label } from "@workspace/ui/components/label"
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
 import { loanReportApi } from "../api"
 
-type TabKey = "loan-ledger" | "loan-statement" | "collateral-statement"
+type TabKey =
+  | "loan-ledger"
+  | "loan-statement"
+  | "collateral-statement"
+  | "loan-diary"
+  | "loan-appraisal"
+  | "loan-reconciliation"
 type Row = Record<string, string | number | undefined>
 
-const TABS: TabKey[] = ["loan-ledger", "loan-statement", "collateral-statement"]
+const TABS: TabKey[] = [
+  "loan-ledger",
+  "loan-statement",
+  "collateral-statement",
+  "loan-diary",
+  "loan-appraisal",
+  "loan-reconciliation",
+]
 
 function firstOfMonth(): string {
   const now = new Date()
@@ -48,8 +61,25 @@ export function ReportsPage() {
           contract_code: contractCode || undefined,
         })
         setRows(result.items as unknown as Row[])
-      } else {
+      } else if (tab === "collateral-statement") {
         const result = await loanReportApi.collateralStatement({})
+        setRows(result.items as unknown as Row[])
+      } else if (tab === "loan-diary") {
+        const result = await loanReportApi.loanDiary({
+          from,
+          to,
+          contract_code: contractCode || undefined,
+        })
+        setRows(result.items as unknown as Row[])
+      } else if (tab === "loan-appraisal") {
+        const result = await loanReportApi.loanAppraisal({
+          contract_code: contractCode || undefined,
+        })
+        setRows(result.items as unknown as Row[])
+      } else {
+        const result = await loanReportApi.loanReconciliation({
+          contract_code: contractCode || undefined,
+        })
         setRows(result.items as unknown as Row[])
       }
     } catch {
@@ -71,7 +101,16 @@ export function ReportsPage() {
     if (tab === "loan-statement") {
       return ["contract_code", "agreement_code", "disburse_date", "maturity_date", "debt_group_code", "disburse_amt_minor", "outstanding_amt_minor", "coln_principal_amt_minor", "coln_interest_amt_minor", "interest_rate", "status"]
     }
-    return ["coll_code", "coll_name", "coll_type_code", "owner_cif_code", "owner_name", "coll_value_minor", "coll_use_value_minor", "valuation_date", "status"]
+    if (tab === "collateral-statement") {
+      return ["coll_code", "coll_name", "coll_type_code", "owner_cif_code", "owner_name", "coll_value_minor", "coll_use_value_minor", "valuation_date", "status"]
+    }
+    if (tab === "loan-diary") {
+      return ["txn_date", "contract_code", "txn_type", "amount_minor", "status"]
+    }
+    if (tab === "loan-appraisal") {
+      return ["contract_code", "agreement_code", "disburse_date", "maturity_date", "debt_group_code", "disburse_amt_minor", "outstanding_amt_minor", "collateral_minor", "coverage_ratio", "interest_rate", "loan_term", "status"]
+    }
+    return ["contract_code", "agreement_code", "outstanding_amt_minor", "planned_principal_minor", "planned_interest_minor", "variance_minor"]
   }, [tab])
 
   const exportCsv = useCallback(() => {
@@ -93,6 +132,7 @@ export function ReportsPage() {
       return formatAmount(fromMinor(Number(value), String(row.currency_code ?? "VND")), String(row.currency_code ?? "VND"))
     }
     if (column === "interest_rate") return formatRatePercent(Number(value))
+    if (column === "coverage_ratio") return `${(Number(value) * 100).toFixed(2)}%`
     if (column.endsWith("_date")) return formatDateShort(String(value))
     return String(value)
   }

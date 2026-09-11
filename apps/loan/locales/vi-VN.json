@@ -725,7 +725,10 @@
     "tab": {
       "loan-ledger": "Sổ khoản vay",
       "loan-statement": "Sao kê khoản vay",
-      "collateral-statement": "Tài sản bảo đảm"
+      "collateral-statement": "Tài sản bảo đảm",
+      "loan-diary": "Nhật ký khoản vay",
+      "loan-appraisal": "Thẩm định khoản vay",
+      "loan-reconciliation": "Đối chiếu khoản vay"
     },
     "col": {
       "txn_date": "Ngày GD",
@@ -751,7 +754,13 @@
       "owner_name": "Chủ sở hữu",
       "coll_value_minor": "Giá trị",
       "coll_use_value_minor": "Giá trị sử dụng",
-      "valuation_date": "Ngày định giá"
+      "valuation_date": "Ngày định giá",
+      "collateral_minor": "Giá trị TSBĐ",
+      "coverage_ratio": "Tỷ lệ bảo đảm",
+      "loan_term": "Kỳ hạn",
+      "planned_principal_minor": "Gốc theo KH",
+      "planned_interest_minor": "Lãi theo KH",
+      "variance_minor": "Chênh lệch"
     }
   },
   "plans": {
