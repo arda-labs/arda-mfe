@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Search } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -13,6 +14,7 @@ import {
 } from "@workspace/ui/components/table"
 import { navigateTo } from "@workspace/ui/shell/routing"
 import { customerApi, type Customer, type CustomerListParams } from "../../api"
+import { printDossier } from "../../../lib/print-dossier"
 import { customerTypeLabel } from "../utils/form-utils"
 import { EmptyTable, Header } from "./customer-ui"
 
@@ -51,6 +53,25 @@ export function CustomerTable({
   }, [load])
 
   const items = customers
+
+  const printRow = (item: Customer) => {
+    const ok = printDossier({
+      title: t("crm.customers.print.title"),
+      subtitle: item.customerCode || item.id,
+      fields: [
+        { label: t("crm.customers.columns.customer_code"), value: item.customerCode || item.id },
+        { label: t("crm.customers.columns.customer_name"), value: item.name },
+        { label: t("crm.customers.columns.customer_type"), value: customerTypeLabel(item.customerType, t) },
+        { label: t("crm.customers.columns.segment"), value: item.segment || "-" },
+        { label: t("crm.customers.columns.rank"), value: item.rank || "-" },
+        { label: t("crm.customers.columns.mobile"), value: item.mobile || "-" },
+        { label: t("crm.customers.columns.identity_no"), value: item.identityNo || "-" },
+        { label: t("crm.customers.columns.address"), value: item.address || "-" },
+      ],
+      signatures: [t("crm.customers.print.customer"), t("crm.customers.print.officer")],
+    })
+    if (!ok) notify.error(t("crm.customers.print.blocked"))
+  }
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4">
@@ -145,18 +166,28 @@ export function CustomerTable({
                   </TableCell>
                   {mode === "profiles" ? (
                     <TableCell>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          navigateTo(
-                            `/customers/adjustments?customerId=${encodeURIComponent(item.id)}`
-                          )
-                        }
-                      >
-                        {t("crm.customers.adjustments.action")}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => printRow(item)}
+                        >
+                          {t("crm.customers.print.action")}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigateTo(
+                              `/customers/adjustments?customerId=${encodeURIComponent(item.id)}`
+                            )
+                          }
+                        >
+                          {t("crm.customers.adjustments.action")}
+                        </Button>
+                      </div>
                     </TableCell>
                   ) : null}
                 </TableRow>

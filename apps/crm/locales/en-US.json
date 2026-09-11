@@ -283,7 +283,14 @@
       "identity_no": "ID Number",
       "address": "Address"
     },
-    "empty": "No customer records yet."
+    "empty": "No customer records yet.",
+    "print": {
+      "action": "Print dossier",
+      "title": "Customer dossier",
+      "customer": "Customer",
+      "officer": "Officer",
+      "blocked": "Could not open the print window (popup blocked)."
+    }
   },
   "common": {
     "select": "Select",

@@ -283,7 +283,14 @@
       "identity_no": "CCCD/CMND",
       "address": "Địa chỉ"
     },
-    "empty": "Chưa có dữ liệu khách hàng."
+    "empty": "Chưa có dữ liệu khách hàng.",
+    "print": {
+      "action": "In hồ sơ",
+      "title": "Hồ sơ khách hàng",
+      "customer": "Khách hàng",
+      "officer": "Cán bộ",
+      "blocked": "Không mở được cửa sổ in (trình duyệt chặn popup)."
+    }
   },
   "common": {
     "select": "Chọn",
