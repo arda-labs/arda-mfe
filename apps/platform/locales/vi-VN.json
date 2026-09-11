@@ -619,5 +619,34 @@
       "delete_success": "Xóa tổ chức tín dụng thành công",
       "delete_failed": "Xóa tổ chức tín dụng thất bại"
     }
+  },
+  "jobs": {
+    "title": "Job định kỳ & EOD",
+    "description": "Bước COB, chạy kết thúc ngày và lịch sử chạy job.",
+    "field": {
+      "business_date": "Ngày nghiệp vụ"
+    },
+    "run_eod": "Chạy EOD",
+    "seed": "Seed job",
+    "loading": "Đang tải...",
+    "empty": "Chưa có dữ liệu",
+    "load_failed": "Không tải được job",
+    "run_success": "Đã chạy EOD",
+    "run_failed": "Chạy EOD thất bại",
+    "seed_success": "Đã seed job",
+    "seed_failed": "Seed job thất bại",
+    "result_for": "Kết quả ngày {date}",
+    "definitions": "Bước COB",
+    "history": "Lịch sử chạy",
+    "enabled": "Đang bật",
+    "disabled": "Đang tắt",
+    "col": {
+      "code": "Mã job",
+      "name": "Tên",
+      "sequence": "Thứ tự",
+      "endpoint": "Endpoint",
+      "error": "Lỗi",
+      "finished": "Kết thúc"
+    }
   }
 }

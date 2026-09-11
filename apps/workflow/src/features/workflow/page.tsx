@@ -29,6 +29,11 @@ const ProcessMonitoringPage = lazy(() =>
     default: m.ProcessMonitoringPage,
   }))
 )
+const DashboardPage = lazy(() =>
+  import("./pages/dashboard-page").then((m) => ({
+    default: m.DashboardPage,
+  }))
+)
 
 function RoutePage({ route }: { route: WorkflowRoute }) {
   switch (route) {
@@ -42,6 +47,8 @@ function RoutePage({ route }: { route: WorkflowRoute }) {
       return <ProcessRolesPage />
     case "monitoring":
       return <ProcessMonitoringPage />
+    case "dashboard":
+      return <DashboardPage />
     default:
       return <CaseTypesPage />
   }

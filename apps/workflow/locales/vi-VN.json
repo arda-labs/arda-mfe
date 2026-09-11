@@ -711,5 +711,26 @@
     "prev": "Trước",
     "next": "Sau",
     "close": "Đóng"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển workflow",
+    "description": "Case theo trạng thái/loại và task quá hạn SLA.",
+    "field": {
+      "from": "Từ ngày",
+      "to": "Đến ngày"
+    },
+    "run": "Xem",
+    "export": "Xuất work items",
+    "cases_total": "Tổng case",
+    "open_tasks": "Task đang mở",
+    "overdue_tasks": "Task quá hạn",
+    "case_types_count": "Loại case",
+    "by_status": "Case theo trạng thái",
+    "by_case_type": "Case theo loại",
+    "key": "Khóa",
+    "count": "Số lượng",
+    "empty": "Chưa có dữ liệu",
+    "load_failed": "Không tải được bảng điều khiển",
+    "export_failed": "Không xuất được work items"
   }
 }

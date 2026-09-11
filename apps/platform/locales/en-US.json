@@ -619,5 +619,34 @@
       "delete_success": "Credit institution deleted",
       "delete_failed": "Failed to delete credit institution"
     }
+  },
+  "jobs": {
+    "title": "Scheduled jobs & EOD",
+    "description": "COB steps, end-of-day run and job history.",
+    "field": {
+      "business_date": "Business date"
+    },
+    "run_eod": "Run EOD",
+    "seed": "Seed jobs",
+    "loading": "Loading...",
+    "empty": "No data",
+    "load_failed": "Could not load jobs",
+    "run_success": "EOD executed",
+    "run_failed": "EOD run failed",
+    "seed_success": "Jobs seeded",
+    "seed_failed": "Could not seed jobs",
+    "result_for": "Result for {date}",
+    "definitions": "COB steps",
+    "history": "Run history",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "col": {
+      "code": "Job code",
+      "name": "Name",
+      "sequence": "Sequence",
+      "endpoint": "Endpoint",
+      "error": "Error",
+      "finished": "Finished"
+    }
   }
 }

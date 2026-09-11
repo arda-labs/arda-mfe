@@ -711,5 +711,26 @@
     "prev": "Previous",
     "next": "Next",
     "close": "Close"
+  },
+  "dashboard": {
+    "title": "Workflow dashboard",
+    "description": "Cases by status/type and overdue SLA tasks.",
+    "field": {
+      "from": "From",
+      "to": "To"
+    },
+    "run": "Refresh",
+    "export": "Export work items",
+    "cases_total": "Total cases",
+    "open_tasks": "Open tasks",
+    "overdue_tasks": "Overdue tasks",
+    "case_types_count": "Case types",
+    "by_status": "Cases by status",
+    "by_case_type": "Cases by case type",
+    "key": "Key",
+    "count": "Count",
+    "empty": "No data",
+    "load_failed": "Could not load the dashboard",
+    "export_failed": "Could not export work items"
   }
 }
