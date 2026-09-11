@@ -25,6 +25,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { notify } from "@workspace/ui/feedback/notify"
+import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
 import {
   BadgeCheck,
   BriefcaseBusiness,
@@ -98,6 +99,7 @@ export function ProfilePage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [coverCropFile, setCoverCropFile] = useState<File | null>(null)
 
   const profileDefaultValues: ProfileFormValues = {
     name: currentUser?.name || username,
@@ -175,9 +177,7 @@ export function ProfilePage() {
     }
   }
 
-  const handleCoverFileChange = async (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleCoverFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file || !user) return
     if (!file.type.startsWith("image/")) {
@@ -189,6 +189,14 @@ export function ProfilePage() {
       return
     }
 
+    setCoverCropFile(file)
+    if (coverInputRef.current) coverInputRef.current.value = ""
+  }
+
+  const handleCroppedCoverUpload = async (file: File) => {
+    if (!user) return
+    setCoverCropFile(null)
+
     setUploadingCover(true)
     try {
       const result = await uploadCover(file, user.userId || user.sub)
@@ -199,7 +207,6 @@ export function ProfilePage() {
       notify.error(translateApiError(reason, "Failed to upload cover image"))
     } finally {
       setUploadingCover(false)
-      if (coverInputRef.current) coverInputRef.current.value = ""
     }
   }
 
@@ -686,6 +693,14 @@ export function ProfilePage() {
           </div>
         )}
       </div>
+      <ImageCropDialog
+        file={coverCropFile}
+        aspect={16 / 9}
+        title={t("profile.crop.cover_title")}
+        processing={uploadingCover}
+        onConfirm={(cropped) => void handleCroppedCoverUpload(cropped)}
+        onClose={() => setCoverCropFile(null)}
+      />
     </div>
   )
 }

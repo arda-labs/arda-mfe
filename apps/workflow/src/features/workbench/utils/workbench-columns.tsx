@@ -1,6 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table"
+import { Paperclip } from "lucide-react"
 import type { WorkItem, WorkbenchDirection } from "../api"
 import { WorkItemCard } from "../components/work-item-card"
+import { Button } from "@workspace/ui/components/button"
 import { SlaStatus, StatusBadge, TimeProgress } from "./sla-utils"
 import { completionTime, formatDateTime, previousAssignee } from "./step-labels"
 import { getMediaContentUrl } from "@workspace/media/urls"
@@ -12,6 +14,7 @@ export function workItemColumns(
   direction: WorkbenchDirection,
   claiming: boolean,
   onOpen: (item: WorkItem) => void,
+  onAttachments: (item: WorkItem) => void,
   t: TFn
 ): ColumnDef<WorkItem>[] {
   const isIncoming = direction === "incoming"
@@ -116,6 +119,21 @@ export function workItemColumns(
       }
     )
   }
+  cols.push({
+    id: "attachments",
+    header: t("workflow.workbench.col_attachments"),
+    cell: ({ row }) => (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        title={t("workflow.workbench.attachments.title")}
+        onClick={() => onAttachments(row.original)}
+      >
+        <Paperclip className="size-4" />
+      </Button>
+    ),
+  })
   return cols
 }
 

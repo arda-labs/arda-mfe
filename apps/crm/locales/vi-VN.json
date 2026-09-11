@@ -33,6 +33,7 @@
       "avatar_too_large": "Ảnh đại diện tối đa 5MB",
       "avatar_upload_success": "Đã tải ảnh đại diện lên media-service",
       "avatar_upload_failed": "Tải ảnh đại diện thất bại",
+      "avatar_crop_title": "Cắt ảnh đại diện khách hàng",
       "toast_cancel_success": "Đã hủy hồ sơ nháp",
       "toast_cancel_failed": "Hủy hồ sơ thất bại",
       "submit_invalid_title": "Chưa gửi được",

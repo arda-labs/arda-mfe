@@ -11,6 +11,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
 
 export function AvatarCard() {
   const { t } = useI18n()
@@ -19,6 +20,7 @@ export function AvatarCard() {
   const [preview, setPreview] = useState(user?.picture || "")
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
 
   useEffect(() => {
     setPreview(user?.picture || "")
@@ -34,7 +36,7 @@ export function AvatarCard() {
       .slice(0, 2)
   })()
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file || !user) return
 
@@ -49,6 +51,14 @@ export function AvatarCard() {
       return
     }
 
+    setPendingFile(file)
+    if (inputRef.current) inputRef.current.value = ""
+  }
+
+  const handleCroppedUpload = async (file: File) => {
+    if (!user) return
+    setPendingFile(null)
+
     const localPreview = URL.createObjectURL(file)
     setPreview(localPreview)
     setUploading(true)
@@ -62,7 +72,6 @@ export function AvatarCard() {
     } finally {
       setUploading(false)
       URL.revokeObjectURL(localPreview)
-      if (inputRef.current) inputRef.current.value = ""
     }
   }
 
@@ -121,6 +130,14 @@ export function AvatarCard() {
       <p className="mt-3 text-xs leading-5 text-muted-foreground">
         {t("profile.avatar.hint")}
       </p>
+      <ImageCropDialog
+        file={pendingFile}
+        aspect={1}
+        title={t("profile.crop.avatar_title")}
+        processing={uploading}
+        onConfirm={(cropped) => void handleCroppedUpload(cropped)}
+        onClose={() => setPendingFile(null)}
+      />
     </aside>
   )
 }

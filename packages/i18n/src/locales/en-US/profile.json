@@ -50,5 +50,9 @@
     "saved": "Preferences updated successfully",
     "save_failed": "Failed to update preferences",
     "load_failed": "Could not load current preferences"
+  },
+  "crop": {
+    "avatar_title": "Crop avatar",
+    "cover_title": "Crop cover image"
   }
 }

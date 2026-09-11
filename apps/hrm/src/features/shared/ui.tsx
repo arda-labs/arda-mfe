@@ -1,4 +1,4 @@
-import type { ChangeEvent, ReactNode } from "react"
+import { useState, type ChangeEvent, type ReactNode } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import { useFieldArray } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
@@ -17,6 +17,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { FormField } from "@workspace/ui/components/form-field"
+import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
 import { Input } from "@workspace/ui/components/input"
 import {
   Table,
@@ -234,10 +235,13 @@ export function EmployeeAvatarUploader({
   onUpload: (file: File) => Promise<void>
 }) {
   const { t } = useI18n()
-  async function handleFile(event: ChangeEvent<HTMLInputElement>) {
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+
+  function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
-    await onUpload(file)
+    // Route through the crop dialog; onUpload receives the cropped file.
+    setPendingFile(file)
     event.target.value = ""
   }
 
@@ -280,6 +284,17 @@ export function EmployeeAvatarUploader({
           {t("hrm.registrations.avatar.clear")}
         </Button>
       ) : null}
+      <ImageCropDialog
+        file={pendingFile}
+        aspect={1}
+        title={t("hrm.registrations.avatar.crop_title")}
+        processing={uploading}
+        onConfirm={(cropped) => {
+          setPendingFile(null)
+          void onUpload(cropped)
+        }}
+        onClose={() => setPendingFile(null)}
+      />
     </div>
   )
 }

@@ -259,6 +259,18 @@
     "col_prev_assignee": "Previous assignee",
     "col_status": "Status",
     "col_creator": "Created by",
+    "col_attachments": "Attachments",
+    "attachments": {
+      "title": "Case attachments",
+      "loading": "Loading attachments...",
+      "empty": "No attachments yet",
+      "upload": "Upload file",
+      "uploading": "Uploading...",
+      "view": "View",
+      "download": "Download",
+      "load_error": "Failed to load attachments",
+      "upload_error": "Failed to upload file"
+    },
     "not_claimed": "Not claimed",
     "none": "None",
     "start_label": "Start",

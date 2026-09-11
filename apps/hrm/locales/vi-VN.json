@@ -89,7 +89,8 @@
         "invalid_file": "File ảnh không hợp lệ",
         "too_large": "Ảnh đại diện tối đa 5MB",
         "upload_success": "Đã tải ảnh đại diện lên media-service",
-        "upload_failed": "Tải ảnh đại diện thất bại"
+        "upload_failed": "Tải ảnh đại diện thất bại",
+        "crop_title": "Cắt ảnh đại diện nhân sự"
       },
       "actions": {
         "new_profile": "Hồ sơ mới",

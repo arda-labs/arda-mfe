@@ -37,5 +37,9 @@
   "cover": {
     "upload": "Upload cover",
     "uploading": "Uploading..."
+  },
+  "crop": {
+    "avatar_title": "Crop avatar",
+    "cover_title": "Crop cover image"
   }
 }

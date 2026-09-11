@@ -33,6 +33,7 @@
       "avatar_too_large": "Avatar must be 5MB or smaller",
       "avatar_upload_success": "Avatar uploaded to media-service",
       "avatar_upload_failed": "Failed to upload the avatar",
+      "avatar_crop_title": "Crop customer avatar",
       "toast_cancel_success": "Draft profile cancelled",
       "toast_cancel_failed": "Failed to cancel the profile",
       "submit_invalid_title": "Cannot submit yet",

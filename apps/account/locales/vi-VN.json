@@ -37,5 +37,9 @@
   "cover": {
     "upload": "Tải ảnh bìa",
     "uploading": "Đang tải lên..."
+  },
+  "crop": {
+    "avatar_title": "Cắt ảnh đại diện",
+    "cover_title": "Cắt ảnh bìa"
   }
 }

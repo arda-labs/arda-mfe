@@ -197,5 +197,10 @@
     "delete": "Delete selected",
     "clear_selection": "Clear selection"
   },
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "crop": {
+    "zoom": "Zoom",
+    "cancel": "Cancel",
+    "apply": "Apply"
+  }
 }

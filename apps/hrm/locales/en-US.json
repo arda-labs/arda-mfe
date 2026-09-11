@@ -89,7 +89,8 @@
         "invalid_file": "Invalid image file",
         "too_large": "Avatar must be at most 5MB",
         "upload_success": "Avatar uploaded to media-service",
-        "upload_failed": "Failed to upload avatar"
+        "upload_failed": "Failed to upload avatar",
+        "crop_title": "Crop employee avatar"
       },
       "actions": {
         "new_profile": "New profile",

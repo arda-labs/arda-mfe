@@ -197,5 +197,10 @@
     "delete": "Xóa đã chọn",
     "clear_selection": "Bỏ chọn"
   },
-  "loading": "Đang tải..."
+  "loading": "Đang tải...",
+  "crop": {
+    "zoom": "Thu phóng",
+    "cancel": "Hủy",
+    "apply": "Áp dụng"
+  }
 }

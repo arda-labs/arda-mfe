@@ -60,7 +60,8 @@
     "tw-shimmer": "^0.4.12",
     "vaul": "^1.1.2",
     "zod": "^4.4.3",
-    "zustand": "^5.0.13"
+    "zustand": "^5.0.13",
+    "react-easy-crop": "^6.2.3"
   },
   "devDependencies": {
     "@eslint/js": "^10",
@@ -89,6 +90,7 @@
     "./components/data-table/*": "./src/components/data-table/*.tsx",
     "./components/file-preview/*": "./src/components/file-preview/*.tsx",
     "./components/file-preview": "./src/components/file-preview/index.ts",
+    "./components/image-crop-dialog": "./src/components/image-crop-dialog.tsx",
     "./hooks/*": "./src/hooks/*.ts",
     "./observability/browser-telemetry": "./src/lib/browser-telemetry.ts",
     "./shell/page-title": "./src/shell/page-title.ts",

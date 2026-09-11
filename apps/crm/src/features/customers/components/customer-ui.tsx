@@ -1,4 +1,4 @@
-import type { ChangeEvent, ReactNode } from "react"
+import { useState, type ChangeEvent, type ReactNode } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
@@ -15,6 +15,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
+import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
 import { Input } from "@workspace/ui/components/input"
 import {
   Select,
@@ -105,10 +106,14 @@ export function AvatarUploader({
   onClear: () => void
   onUpload: (file: File) => Promise<void>
 }) {
-  async function handleFile(event: ChangeEvent<HTMLInputElement>) {
+  const { t } = useI18n()
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+
+  function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
-    await onUpload(file)
+    // Route through the crop dialog; onUpload receives the cropped file.
+    setPendingFile(file)
     event.target.value = ""
   }
 
@@ -149,6 +154,17 @@ export function AvatarUploader({
           Xóa ảnh
         </Button>
       ) : null}
+      <ImageCropDialog
+        file={pendingFile}
+        aspect={1}
+        title={t("crm.customers.registrations.avatar_crop_title")}
+        processing={uploading}
+        onConfirm={(cropped) => {
+          setPendingFile(null)
+          void onUpload(cropped)
+        }}
+        onClose={() => setPendingFile(null)}
+      />
     </div>
   )
 }

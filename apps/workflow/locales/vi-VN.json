@@ -259,6 +259,18 @@
     "col_prev_assignee": "Người xử lý trước",
     "col_status": "Trạng thái",
     "col_creator": "Người tạo",
+    "col_attachments": "Đính kèm",
+    "attachments": {
+      "title": "Tài liệu đính kèm",
+      "loading": "Đang tải tài liệu...",
+      "empty": "Chưa có tài liệu đính kèm",
+      "upload": "Tải lên tệp",
+      "uploading": "Đang tải lên...",
+      "view": "Xem",
+      "download": "Tải về",
+      "load_error": "Không tải được tài liệu đính kèm",
+      "upload_error": "Không tải lên được tệp"
+    },
     "not_claimed": "Chưa nhận",
     "none": "Chưa có",
     "start_label": "Bắt đầu",

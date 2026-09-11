@@ -50,5 +50,9 @@
     "saved": "Đã cập nhật tuỳ chọn",
     "save_failed": "Cập nhật tuỳ chọn thất bại",
     "load_failed": "Không tải được tuỳ chọn hiện tại"
+  },
+  "crop": {
+    "avatar_title": "Cắt ảnh đại diện",
+    "cover_title": "Cắt ảnh bìa"
   }
 }
