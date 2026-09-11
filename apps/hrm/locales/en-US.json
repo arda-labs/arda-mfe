@@ -1,295 +1,291 @@
 {
-  "menu": {
-    "set_status": "Set status",
-    "settings": "Account settings",
-    "help_support": "Help & Support"
+  "set_status": "Set status",
+  "settings": "Account settings",
+  "help_support": "Help & Support",
+  "count": "{count, plural, one {# record} other {# records}}",
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
   },
-  "hrm": {
-    "count": "{count, plural, one {# record} other {# records}}",
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "add": "Add",
+    "add_row": "Add row",
+    "deleting": "Deleting...",
+    "delete_warning": "This action cannot be undone."
+  },
+  "registrations": {
+    "title": "Employee registration",
+    "description": "Fill in the employee profile and submit it through the HRM_EMPLOYEE_REGISTRATION BPM process.",
+    "load_failed": "Failed to load organization units or positions",
+    "create_success": "Registration created",
+    "update_success": "Registration saved",
+    "create_failed": "Failed to create registration",
+    "update_failed": "Failed to save registration",
+    "submit_success": "Registration submitted",
+    "submit_failed": "Failed to submit registration",
+    "tab": {
+      "general": "General",
+      "family": "Family",
+      "delegation": "Delegation",
+      "attachments": "Documents"
+    },
+    "field": {
+      "employee_code": "Employee code",
+      "employee_type": "Employee type (*)",
+      "org_unit": "Org unit (*)",
+      "full_name": "Employee name (*)",
+      "date_of_birth": "Date of birth",
+      "gender": "Gender",
+      "mobile": "Mobile number",
+      "email": "Email",
+      "marital_status": "Marital status",
+      "identity_no": "ID number (*)",
+      "identity_issue_place": "Issue place",
+      "identity_issue_date": "Issue date",
+      "identity_expiry_date": "Expiry date",
+      "start_date": "Start date",
+      "official_date": "Official date",
+      "address": "Address (*)",
+      "permanent_address": "Permanent address (*)"
+    },
+    "select": {
+      "org_unit": "Select org unit",
+      "gender": "Select gender",
+      "marital": "Select status",
+      "department": "Select department",
+      "position": "Select position"
+    },
+    "option": {
+      "employee": "Employee",
+      "collaborator": "Collaborator",
+      "intern": "Intern",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "single": "Single",
+      "married": "Married"
+    },
+    "validation": {
+      "employee_type_required": "Employee type is required",
+      "org_unit_required": "Org unit is required",
+      "full_name_required": "Employee name is required",
+      "email_invalid": "Invalid email address",
+      "address_required": "Address is required",
+      "permanent_address_required": "Permanent address is required",
+      "identity_no_required": "ID number is required"
+    },
+    "avatar": {
+      "alt": "Employee avatar",
+      "placeholder": "Avatar",
+      "upload": "Upload",
+      "uploading": "Uploading",
+      "clear": "Remove photo",
+      "save_first": "Save the draft before uploading an avatar",
+      "invalid_file": "Invalid image file",
+      "too_large": "Avatar must be at most 5MB",
+      "upload_success": "Avatar uploaded to media-service",
+      "upload_failed": "Failed to upload avatar",
+      "crop_title": "Crop employee avatar"
+    },
+    "actions": {
+      "new_profile": "New profile",
+      "save_draft": "Save draft",
+      "submit": "Submit"
+    },
+    "meta": {
+      "registration_code": "Registration no.:",
+      "case_bpm": "BPM case:",
+      "workflow_case": "Workflow case:"
+    },
     "status": {
-      "active": "Active",
-      "inactive": "Inactive"
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected"
     },
-    "common": {
-      "yes": "Yes",
-      "no": "No",
-      "add": "Add",
-      "add_row": "Add row",
-      "deleting": "Deleting...",
-      "delete_warning": "This action cannot be undone."
-    },
-    "registrations": {
-      "title": "Employee registration",
-      "description": "Fill in the employee profile and submit it through the HRM_EMPLOYEE_REGISTRATION BPM process.",
-      "load_failed": "Failed to load organization units or positions",
-      "create_success": "Registration created",
-      "update_success": "Registration saved",
-      "create_failed": "Failed to create registration",
-      "update_failed": "Failed to save registration",
-      "submit_success": "Registration submitted",
-      "submit_failed": "Failed to submit registration",
-      "tab": {
-        "general": "General",
-        "family": "Family",
-        "delegation": "Delegation",
-        "attachments": "Documents"
-      },
-      "field": {
-        "employee_code": "Employee code",
-        "employee_type": "Employee type (*)",
-        "org_unit": "Org unit (*)",
-        "full_name": "Employee name (*)",
-        "date_of_birth": "Date of birth",
-        "gender": "Gender",
-        "mobile": "Mobile number",
-        "email": "Email",
-        "marital_status": "Marital status",
-        "identity_no": "ID number (*)",
-        "identity_issue_place": "Issue place",
-        "identity_issue_date": "Issue date",
-        "identity_expiry_date": "Expiry date",
-        "start_date": "Start date",
-        "official_date": "Official date",
-        "address": "Address (*)",
-        "permanent_address": "Permanent address (*)"
-      },
-      "select": {
-        "org_unit": "Select org unit",
-        "gender": "Select gender",
-        "marital": "Select status",
-        "department": "Select department",
-        "position": "Select position"
-      },
-      "option": {
-        "employee": "Employee",
-        "collaborator": "Collaborator",
-        "intern": "Intern",
-        "male": "Male",
-        "female": "Female",
-        "other": "Other",
-        "single": "Single",
-        "married": "Married"
-      },
-      "validation": {
-        "employee_type_required": "Employee type is required",
-        "org_unit_required": "Org unit is required",
-        "full_name_required": "Employee name is required",
-        "email_invalid": "Invalid email address",
-        "address_required": "Address is required",
-        "permanent_address_required": "Permanent address is required",
-        "identity_no_required": "ID number is required"
-      },
-      "avatar": {
-        "alt": "Employee avatar",
-        "placeholder": "Avatar",
-        "upload": "Upload",
-        "uploading": "Uploading",
-        "clear": "Remove photo",
-        "save_first": "Save the draft before uploading an avatar",
-        "invalid_file": "Invalid image file",
-        "too_large": "Avatar must be at most 5MB",
-        "upload_success": "Avatar uploaded to media-service",
-        "upload_failed": "Failed to upload avatar",
-        "crop_title": "Crop employee avatar"
-      },
-      "actions": {
-        "new_profile": "New profile",
-        "save_draft": "Save draft",
-        "submit": "Submit"
-      },
-      "meta": {
-        "registration_code": "Registration no.:",
-        "case_bpm": "BPM case:",
-        "workflow_case": "Workflow case:"
-      },
-      "status": {
-        "draft": "Draft",
-        "submitted": "Submitted",
-        "approved": "Approved",
-        "rejected": "Rejected"
-      },
-      "table": {
-        "assignments": {
-          "title": "Position assignments",
-          "work_unit": "Work unit",
-          "department": "Department",
-          "position": "Position",
-          "effective_date": "Effective date",
-          "expiry_date": "Expiry date",
-          "empty": "No position rows yet."
-        },
-        "educations": {
-          "title": "Education",
-          "level": "Education level",
-          "training_type": "Training type",
-          "school": "School",
-          "major": "Major",
-          "from_year": "From year",
-          "to_year": "To year",
-          "empty": "No education rows yet."
-        },
-        "family": {
-          "title": "Family & dependents",
-          "relationship": "Relationship",
-          "full_name": "Full name",
-          "date_of_birth": "Date of birth",
-          "phone": "Phone",
-          "address": "Address",
-          "dependent": "Dependent",
-          "empty": "No family information yet."
-        },
-        "delegations": {
-          "title": "Delegated employees",
-          "employee_code": "Delegate employee code",
-          "employee_name": "Employee name",
-          "department": "Department",
-          "position": "Position",
-          "decision_no": "Decision no.",
-          "content": "Content",
-          "effective_date": "Effective date",
-          "expiry_date": "Expiry date",
-          "empty": "No delegation information yet."
-        },
-        "attachments": {
-          "title": "Attached documents",
-          "document_type": "Document type",
-          "document_name": "Document name",
-          "file_name": "File/Media ID",
-          "note": "Note",
-          "empty": "No attached documents yet."
-        }
-      }
-    },
-    "employees": {
-      "title": "Employees",
-      "create": "New employee",
-      "create_title": "New employee",
-      "edit_title": "Edit employee",
-      "form_description": "Employee code and full name are required.",
-      "create_success": "Employee created",
-      "update_success": "Employee updated",
-      "save_failed": "Failed to save employee",
-      "delete_success": "Employee deleted",
-      "delete_failed": "Failed to delete employee",
-      "load_failed": "Failed to load employees",
-      "search_placeholder": "Search employee code or name",
-      "field": {
-        "employee_code": "Employee code",
-        "full_name": "Full name",
+    "table": {
+      "assignments": {
+        "title": "Position assignments",
+        "work_unit": "Work unit",
         "department": "Department",
         "position": "Position",
-        "job_title": "Job title",
-        "status": "Status"
+        "effective_date": "Effective date",
+        "expiry_date": "Expiry date",
+        "empty": "No position rows yet."
       },
-      "select": {
-        "department": "Select department",
-        "position": "Select position",
-        "job_title": "Select job title"
+      "educations": {
+        "title": "Education",
+        "level": "Education level",
+        "training_type": "Training type",
+        "school": "School",
+        "major": "Major",
+        "from_year": "From year",
+        "to_year": "To year",
+        "empty": "No education rows yet."
       },
-      "validation": {
-        "code_required": "Employee code is required",
-        "code_too_long": "Employee code is too long",
-        "name_required": "Full name is required",
-        "name_too_long": "Full name is too long"
+      "family": {
+        "title": "Family & dependents",
+        "relationship": "Relationship",
+        "full_name": "Full name",
+        "date_of_birth": "Date of birth",
+        "phone": "Phone",
+        "address": "Address",
+        "dependent": "Dependent",
+        "empty": "No family information yet."
+      },
+      "delegations": {
+        "title": "Delegated employees",
+        "employee_code": "Delegate employee code",
+        "employee_name": "Employee name",
+        "department": "Department",
+        "position": "Position",
+        "decision_no": "Decision no.",
+        "content": "Content",
+        "effective_date": "Effective date",
+        "expiry_date": "Expiry date",
+        "empty": "No delegation information yet."
+      },
+      "attachments": {
+        "title": "Attached documents",
+        "document_type": "Document type",
+        "document_name": "Document name",
+        "file_name": "File/Media ID",
+        "note": "Note",
+        "empty": "No attached documents yet."
       }
+    }
+  },
+  "employees": {
+    "title": "Employees",
+    "create": "New employee",
+    "create_title": "New employee",
+    "edit_title": "Edit employee",
+    "form_description": "Employee code and full name are required.",
+    "create_success": "Employee created",
+    "update_success": "Employee updated",
+    "save_failed": "Failed to save employee",
+    "delete_success": "Employee deleted",
+    "delete_failed": "Failed to delete employee",
+    "load_failed": "Failed to load employees",
+    "search_placeholder": "Search employee code or name",
+    "field": {
+      "employee_code": "Employee code",
+      "full_name": "Full name",
+      "department": "Department",
+      "position": "Position",
+      "job_title": "Job title",
+      "status": "Status"
     },
-    "job_titles": {
-      "title": "Job titles",
-      "create": "New job title",
-      "create_title": "New job title",
-      "edit_title": "Edit job title",
-      "form_description": "Job title code and name are required.",
-      "create_success": "Job title created",
-      "update_success": "Job title updated",
-      "save_failed": "Failed to save job title",
-      "delete_success": "Job title deleted",
-      "delete_failed": "Failed to delete job title",
-      "load_failed": "Failed to load job titles",
-      "search_placeholder": "Search code or name",
-      "field": {
-        "code": "Code",
-        "name": "Name",
-        "description": "Description"
-      },
-      "placeholder": {
-        "name": "Accountant"
-      },
-      "validation": {
-        "code_required": "Code is required",
-        "code_too_long": "Code is too long",
-        "name_required": "Name is required",
-        "name_too_long": "Name is too long",
-        "description_too_long": "Description is too long"
-      }
+    "select": {
+      "department": "Select department",
+      "position": "Select position",
+      "job_title": "Select job title"
     },
-    "positions": {
-      "title": "Positions",
-      "create": "New position",
-      "create_title": "New position",
-      "edit_title": "Edit position",
-      "form_description": "Position code and name are required.",
-      "create_success": "Position created",
-      "update_success": "Position updated",
-      "save_failed": "Failed to save position",
-      "delete_success": "Position deleted",
-      "delete_failed": "Failed to delete position",
-      "load_failed": "Failed to load positions",
-      "search_placeholder": "Search code or name",
-      "field": {
-        "code": "Code",
-        "name": "Name",
-        "status": "Status",
-        "is_manager": "Managerial level",
-        "description": "Description"
-      },
-      "placeholder": {
-        "name": "Director"
-      },
-      "validation": {
-        "code_required": "Code is required",
-        "code_too_long": "Code is too long",
-        "name_required": "Name is required",
-        "name_too_long": "Name is too long",
-        "description_too_long": "Description is too long"
-      }
+    "validation": {
+      "code_required": "Employee code is required",
+      "code_too_long": "Employee code is too long",
+      "name_required": "Full name is required",
+      "name_too_long": "Full name is too long"
+    }
+  },
+  "job_titles": {
+    "title": "Job titles",
+    "create": "New job title",
+    "create_title": "New job title",
+    "edit_title": "Edit job title",
+    "form_description": "Job title code and name are required.",
+    "create_success": "Job title created",
+    "update_success": "Job title updated",
+    "save_failed": "Failed to save job title",
+    "delete_success": "Job title deleted",
+    "delete_failed": "Failed to delete job title",
+    "load_failed": "Failed to load job titles",
+    "search_placeholder": "Search code or name",
+    "field": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Description"
     },
-    "org_units": {
-      "title": "Organization units",
-      "create": "New org unit",
-      "create_title": "New org unit",
-      "edit_title": "Edit org unit",
-      "form_description": "Org unit code is taken from platform.organizations.",
-      "create_success": "Org unit created",
-      "update_success": "Org unit updated",
-      "save_failed": "Failed to save org unit",
-      "delete_success": "Org unit deleted",
-      "delete_failed": "Failed to delete org unit",
-      "load_failed": "Failed to load org units",
-      "search_placeholder": "Search code or name",
-      "field": {
-        "code": "Code",
-        "organization": "Organization",
-        "name": "Name",
-        "org_level": "Org level",
-        "parent": "Parent unit",
-        "department_type": "Type",
-        "status": "Status",
-        "description": "Description"
-      },
-      "select": {
-        "organization": "Select organization",
-        "no_parent": "No parent"
-      },
-      "validation": {
-        "code_required": "Code is required",
-        "code_too_long": "Code is too long",
-        "organization_required": "Organization is required",
-        "name_required": "Name is required",
-        "name_too_long": "Name is too long",
-        "org_level_required": "Org level is required",
-        "department_type_required": "Department type is required",
-        "description_too_long": "Description is too long"
-      }
+    "placeholder": {
+      "name": "Accountant"
+    },
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code is too long",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "description_too_long": "Description is too long"
+    }
+  },
+  "positions": {
+    "title": "Positions",
+    "create": "New position",
+    "create_title": "New position",
+    "edit_title": "Edit position",
+    "form_description": "Position code and name are required.",
+    "create_success": "Position created",
+    "update_success": "Position updated",
+    "save_failed": "Failed to save position",
+    "delete_success": "Position deleted",
+    "delete_failed": "Failed to delete position",
+    "load_failed": "Failed to load positions",
+    "search_placeholder": "Search code or name",
+    "field": {
+      "code": "Code",
+      "name": "Name",
+      "status": "Status",
+      "is_manager": "Managerial level",
+      "description": "Description"
+    },
+    "placeholder": {
+      "name": "Director"
+    },
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code is too long",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "description_too_long": "Description is too long"
+    }
+  },
+  "org_units": {
+    "title": "Organization units",
+    "create": "New org unit",
+    "create_title": "New org unit",
+    "edit_title": "Edit org unit",
+    "form_description": "Org unit code is taken from platform.organizations.",
+    "create_success": "Org unit created",
+    "update_success": "Org unit updated",
+    "save_failed": "Failed to save org unit",
+    "delete_success": "Org unit deleted",
+    "delete_failed": "Failed to delete org unit",
+    "load_failed": "Failed to load org units",
+    "search_placeholder": "Search code or name",
+    "field": {
+      "code": "Code",
+      "organization": "Organization",
+      "name": "Name",
+      "org_level": "Org level",
+      "parent": "Parent unit",
+      "department_type": "Type",
+      "status": "Status",
+      "description": "Description"
+    },
+    "select": {
+      "organization": "Select organization",
+      "no_parent": "No parent"
+    },
+    "validation": {
+      "code_required": "Code is required",
+      "code_too_long": "Code is too long",
+      "organization_required": "Organization is required",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "org_level_required": "Org level is required",
+      "department_type_required": "Department type is required",
+      "description_too_long": "Description is too long"
     }
   }
 }

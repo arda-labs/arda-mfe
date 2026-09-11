@@ -1,295 +1,291 @@
 {
-  "menu": {
-    "set_status": "Đặt trạng thái",
-    "settings": "Cài đặt tài khoản",
-    "help_support": "Trợ giúp & Hỗ trợ"
+  "set_status": "Đặt trạng thái",
+  "settings": "Cài đặt tài khoản",
+  "help_support": "Trợ giúp & Hỗ trợ",
+  "count": "{count, plural, one {# bản ghi} other {# bản ghi}}",
+  "status": {
+    "active": "Hiệu lực",
+    "inactive": "Không hiệu lực"
   },
-  "hrm": {
-    "count": "{count, plural, one {# bản ghi} other {# bản ghi}}",
+  "common": {
+    "yes": "Có",
+    "no": "Không",
+    "add": "Thêm",
+    "add_row": "Thêm dòng",
+    "deleting": "Đang xóa...",
+    "delete_warning": "Thao tác này không thể hoàn tác."
+  },
+  "registrations": {
+    "title": "Đăng ký nhân sự",
+    "description": "Nhập hồ sơ nhân sự và trình duyệt theo quy trình BPM HRM_EMPLOYEE_REGISTRATION.",
+    "load_failed": "Không thể tải danh sách đơn vị hoặc chức vụ",
+    "create_success": "Đã tạo đăng ký nhân sự",
+    "update_success": "Đã lưu đăng ký nhân sự",
+    "create_failed": "Tạo đăng ký nhân sự thất bại",
+    "update_failed": "Lưu đăng ký nhân sự thất bại",
+    "submit_success": "Đã gửi đăng ký nhân sự",
+    "submit_failed": "Gửi đăng ký nhân sự thất bại",
+    "tab": {
+      "general": "Thông tin chung",
+      "family": "Gia đình",
+      "delegation": "Ủy quyền",
+      "attachments": "Hồ sơ tài liệu"
+    },
+    "field": {
+      "employee_code": "Mã nhân viên",
+      "employee_type": "Loại nhân viên (*)",
+      "org_unit": "Mã đơn vị (*)",
+      "full_name": "Tên nhân viên (*)",
+      "date_of_birth": "Ngày sinh",
+      "gender": "Giới tính",
+      "mobile": "Số di động",
+      "email": "Email",
+      "marital_status": "Tình trạng hôn nhân",
+      "identity_no": "Số định danh (*)",
+      "identity_issue_place": "Nơi cấp",
+      "identity_issue_date": "Ngày cấp",
+      "identity_expiry_date": "Ngày hết hiệu lực",
+      "start_date": "Ngày vào làm việc",
+      "official_date": "Ngày chính thức",
+      "address": "Địa chỉ (*)",
+      "permanent_address": "Địa chỉ thường trú (*)"
+    },
+    "select": {
+      "org_unit": "Chọn đơn vị",
+      "gender": "Chọn giới tính",
+      "marital": "Chọn tình trạng",
+      "department": "Chọn phòng ban",
+      "position": "Chọn chức vụ"
+    },
+    "option": {
+      "employee": "Nhân viên",
+      "collaborator": "Cộng tác viên",
+      "intern": "Thực tập sinh",
+      "male": "Nam",
+      "female": "Nữ",
+      "other": "Khác",
+      "single": "Độc thân",
+      "married": "Đã kết hôn"
+    },
+    "validation": {
+      "employee_type_required": "Loại nhân viên là bắt buộc",
+      "org_unit_required": "Mã đơn vị là bắt buộc",
+      "full_name_required": "Tên nhân viên là bắt buộc",
+      "email_invalid": "Email không hợp lệ",
+      "address_required": "Địa chỉ là bắt buộc",
+      "permanent_address_required": "Địa chỉ thường trú là bắt buộc",
+      "identity_no_required": "Số định danh là bắt buộc"
+    },
+    "avatar": {
+      "alt": "Ảnh đại diện nhân sự",
+      "placeholder": "Ảnh đại diện",
+      "upload": "Upload",
+      "uploading": "Đang tải",
+      "clear": "Xóa ảnh",
+      "save_first": "Lưu nháp hồ sơ trước khi upload ảnh đại diện",
+      "invalid_file": "File ảnh không hợp lệ",
+      "too_large": "Ảnh đại diện tối đa 5MB",
+      "upload_success": "Đã tải ảnh đại diện lên media-service",
+      "upload_failed": "Tải ảnh đại diện thất bại",
+      "crop_title": "Cắt ảnh đại diện nhân sự"
+    },
+    "actions": {
+      "new_profile": "Hồ sơ mới",
+      "save_draft": "Lưu nháp",
+      "submit": "Trình duyệt"
+    },
+    "meta": {
+      "registration_code": "Mã hồ sơ:",
+      "case_bpm": "Case BPM:",
+      "workflow_case": "Workflow case:"
+    },
     "status": {
-      "active": "Hiệu lực",
-      "inactive": "Không hiệu lực"
+      "draft": "Nháp",
+      "submitted": "Đã trình",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối"
     },
-    "common": {
-      "yes": "Có",
-      "no": "Không",
-      "add": "Thêm",
-      "add_row": "Thêm dòng",
-      "deleting": "Đang xóa...",
-      "delete_warning": "Thao tác này không thể hoàn tác."
-    },
-    "registrations": {
-      "title": "Đăng ký nhân sự",
-      "description": "Nhập hồ sơ nhân sự và trình duyệt theo quy trình BPM HRM_EMPLOYEE_REGISTRATION.",
-      "load_failed": "Không thể tải danh sách đơn vị hoặc chức vụ",
-      "create_success": "Đã tạo đăng ký nhân sự",
-      "update_success": "Đã lưu đăng ký nhân sự",
-      "create_failed": "Tạo đăng ký nhân sự thất bại",
-      "update_failed": "Lưu đăng ký nhân sự thất bại",
-      "submit_success": "Đã gửi đăng ký nhân sự",
-      "submit_failed": "Gửi đăng ký nhân sự thất bại",
-      "tab": {
-        "general": "Thông tin chung",
-        "family": "Gia đình",
-        "delegation": "Ủy quyền",
-        "attachments": "Hồ sơ tài liệu"
-      },
-      "field": {
-        "employee_code": "Mã nhân viên",
-        "employee_type": "Loại nhân viên (*)",
-        "org_unit": "Mã đơn vị (*)",
-        "full_name": "Tên nhân viên (*)",
-        "date_of_birth": "Ngày sinh",
-        "gender": "Giới tính",
-        "mobile": "Số di động",
-        "email": "Email",
-        "marital_status": "Tình trạng hôn nhân",
-        "identity_no": "Số định danh (*)",
-        "identity_issue_place": "Nơi cấp",
-        "identity_issue_date": "Ngày cấp",
-        "identity_expiry_date": "Ngày hết hiệu lực",
-        "start_date": "Ngày vào làm việc",
-        "official_date": "Ngày chính thức",
-        "address": "Địa chỉ (*)",
-        "permanent_address": "Địa chỉ thường trú (*)"
-      },
-      "select": {
-        "org_unit": "Chọn đơn vị",
-        "gender": "Chọn giới tính",
-        "marital": "Chọn tình trạng",
-        "department": "Chọn phòng ban",
-        "position": "Chọn chức vụ"
-      },
-      "option": {
-        "employee": "Nhân viên",
-        "collaborator": "Cộng tác viên",
-        "intern": "Thực tập sinh",
-        "male": "Nam",
-        "female": "Nữ",
-        "other": "Khác",
-        "single": "Độc thân",
-        "married": "Đã kết hôn"
-      },
-      "validation": {
-        "employee_type_required": "Loại nhân viên là bắt buộc",
-        "org_unit_required": "Mã đơn vị là bắt buộc",
-        "full_name_required": "Tên nhân viên là bắt buộc",
-        "email_invalid": "Email không hợp lệ",
-        "address_required": "Địa chỉ là bắt buộc",
-        "permanent_address_required": "Địa chỉ thường trú là bắt buộc",
-        "identity_no_required": "Số định danh là bắt buộc"
-      },
-      "avatar": {
-        "alt": "Ảnh đại diện nhân sự",
-        "placeholder": "Ảnh đại diện",
-        "upload": "Upload",
-        "uploading": "Đang tải",
-        "clear": "Xóa ảnh",
-        "save_first": "Lưu nháp hồ sơ trước khi upload ảnh đại diện",
-        "invalid_file": "File ảnh không hợp lệ",
-        "too_large": "Ảnh đại diện tối đa 5MB",
-        "upload_success": "Đã tải ảnh đại diện lên media-service",
-        "upload_failed": "Tải ảnh đại diện thất bại",
-        "crop_title": "Cắt ảnh đại diện nhân sự"
-      },
-      "actions": {
-        "new_profile": "Hồ sơ mới",
-        "save_draft": "Lưu nháp",
-        "submit": "Trình duyệt"
-      },
-      "meta": {
-        "registration_code": "Mã hồ sơ:",
-        "case_bpm": "Case BPM:",
-        "workflow_case": "Workflow case:"
-      },
-      "status": {
-        "draft": "Nháp",
-        "submitted": "Đã trình",
-        "approved": "Đã duyệt",
-        "rejected": "Từ chối"
-      },
-      "table": {
-        "assignments": {
-          "title": "Thông tin chức vụ",
-          "work_unit": "Đơn vị làm việc",
-          "department": "Phòng ban",
-          "position": "Chức vụ",
-          "effective_date": "Ngày hiệu lực",
-          "expiry_date": "Ngày hết hiệu lực",
-          "empty": "Chưa có dòng chức vụ."
-        },
-        "educations": {
-          "title": "Thông tin trình độ học vấn",
-          "level": "Cấp đào tạo",
-          "training_type": "Loại hình đào tạo",
-          "school": "Trường đào tạo",
-          "major": "Chuyên ngành",
-          "from_year": "Từ năm",
-          "to_year": "Đến năm",
-          "empty": "Chưa có dòng trình độ học vấn."
-        },
-        "family": {
-          "title": "Thông tin gia đình & người phụ thuộc",
-          "relationship": "Quan hệ",
-          "full_name": "Họ tên",
-          "date_of_birth": "Ngày sinh",
-          "phone": "Số điện thoại",
-          "address": "Địa chỉ",
-          "dependent": "Người phụ thuộc",
-          "empty": "Chưa có thông tin gia đình."
-        },
-        "delegations": {
-          "title": "Thông tin nhân sự nhận ủy quyền",
-          "employee_code": "Mã nhân viên nhận ủy quyền",
-          "employee_name": "Tên nhân viên",
-          "department": "Phòng ban",
-          "position": "Chức vụ",
-          "decision_no": "Quyết định số",
-          "content": "Nội dung",
-          "effective_date": "Ngày hiệu lực",
-          "expiry_date": "Ngày hết hiệu lực",
-          "empty": "Chưa có thông tin ủy quyền."
-        },
-        "attachments": {
-          "title": "Hồ sơ tài liệu đính kèm",
-          "document_type": "Loại tài liệu",
-          "document_name": "Tên tài liệu",
-          "file_name": "Tệp/Media ID",
-          "note": "Ghi chú",
-          "empty": "Chưa có tài liệu đính kèm."
-        }
-      }
-    },
-    "employees": {
-      "title": "Nhân sự",
-      "create": "Thêm nhân sự",
-      "create_title": "Thêm nhân sự",
-      "edit_title": "Sửa nhân sự",
-      "form_description": "Mã nhân sự và họ tên là bắt buộc.",
-      "create_success": "Đã thêm nhân sự",
-      "update_success": "Đã cập nhật nhân sự",
-      "save_failed": "Lưu nhân sự thất bại",
-      "delete_success": "Đã xóa nhân sự",
-      "delete_failed": "Xóa nhân sự thất bại",
-      "load_failed": "Không thể tải danh sách nhân sự",
-      "search_placeholder": "Tìm mã hoặc tên nhân sự",
-      "field": {
-        "employee_code": "Mã nhân sự",
-        "full_name": "Họ tên",
+    "table": {
+      "assignments": {
+        "title": "Thông tin chức vụ",
+        "work_unit": "Đơn vị làm việc",
         "department": "Phòng ban",
         "position": "Chức vụ",
-        "job_title": "Chức danh",
-        "status": "Trạng thái"
+        "effective_date": "Ngày hiệu lực",
+        "expiry_date": "Ngày hết hiệu lực",
+        "empty": "Chưa có dòng chức vụ."
       },
-      "select": {
-        "department": "Chọn phòng ban",
-        "position": "Chọn chức vụ",
-        "job_title": "Chọn chức danh"
+      "educations": {
+        "title": "Thông tin trình độ học vấn",
+        "level": "Cấp đào tạo",
+        "training_type": "Loại hình đào tạo",
+        "school": "Trường đào tạo",
+        "major": "Chuyên ngành",
+        "from_year": "Từ năm",
+        "to_year": "Đến năm",
+        "empty": "Chưa có dòng trình độ học vấn."
       },
-      "validation": {
-        "code_required": "Mã nhân sự là bắt buộc",
-        "code_too_long": "Mã nhân sự quá dài",
-        "name_required": "Họ tên là bắt buộc",
-        "name_too_long": "Họ tên quá dài"
+      "family": {
+        "title": "Thông tin gia đình & người phụ thuộc",
+        "relationship": "Quan hệ",
+        "full_name": "Họ tên",
+        "date_of_birth": "Ngày sinh",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "dependent": "Người phụ thuộc",
+        "empty": "Chưa có thông tin gia đình."
+      },
+      "delegations": {
+        "title": "Thông tin nhân sự nhận ủy quyền",
+        "employee_code": "Mã nhân viên nhận ủy quyền",
+        "employee_name": "Tên nhân viên",
+        "department": "Phòng ban",
+        "position": "Chức vụ",
+        "decision_no": "Quyết định số",
+        "content": "Nội dung",
+        "effective_date": "Ngày hiệu lực",
+        "expiry_date": "Ngày hết hiệu lực",
+        "empty": "Chưa có thông tin ủy quyền."
+      },
+      "attachments": {
+        "title": "Hồ sơ tài liệu đính kèm",
+        "document_type": "Loại tài liệu",
+        "document_name": "Tên tài liệu",
+        "file_name": "Tệp/Media ID",
+        "note": "Ghi chú",
+        "empty": "Chưa có tài liệu đính kèm."
       }
+    }
+  },
+  "employees": {
+    "title": "Nhân sự",
+    "create": "Thêm nhân sự",
+    "create_title": "Thêm nhân sự",
+    "edit_title": "Sửa nhân sự",
+    "form_description": "Mã nhân sự và họ tên là bắt buộc.",
+    "create_success": "Đã thêm nhân sự",
+    "update_success": "Đã cập nhật nhân sự",
+    "save_failed": "Lưu nhân sự thất bại",
+    "delete_success": "Đã xóa nhân sự",
+    "delete_failed": "Xóa nhân sự thất bại",
+    "load_failed": "Không thể tải danh sách nhân sự",
+    "search_placeholder": "Tìm mã hoặc tên nhân sự",
+    "field": {
+      "employee_code": "Mã nhân sự",
+      "full_name": "Họ tên",
+      "department": "Phòng ban",
+      "position": "Chức vụ",
+      "job_title": "Chức danh",
+      "status": "Trạng thái"
     },
-    "job_titles": {
-      "title": "Chức danh",
-      "create": "Thêm chức danh",
-      "create_title": "Thêm chức danh",
-      "edit_title": "Sửa chức danh",
-      "form_description": "Mã và tên chức danh là bắt buộc.",
-      "create_success": "Đã thêm chức danh",
-      "update_success": "Đã cập nhật chức danh",
-      "save_failed": "Lưu chức danh thất bại",
-      "delete_success": "Đã xóa chức danh",
-      "delete_failed": "Xóa chức danh thất bại",
-      "load_failed": "Không thể tải danh sách chức danh",
-      "search_placeholder": "Tìm mã hoặc tên chức danh",
-      "field": {
-        "code": "Mã chức danh",
-        "name": "Tên chức danh",
-        "description": "Mô tả"
-      },
-      "placeholder": {
-        "name": "Kế toán"
-      },
-      "validation": {
-        "code_required": "Mã chức danh là bắt buộc",
-        "code_too_long": "Mã chức danh quá dài",
-        "name_required": "Tên chức danh là bắt buộc",
-        "name_too_long": "Tên chức danh quá dài",
-        "description_too_long": "Mô tả quá dài"
-      }
+    "select": {
+      "department": "Chọn phòng ban",
+      "position": "Chọn chức vụ",
+      "job_title": "Chọn chức danh"
     },
-    "positions": {
-      "title": "Chức vụ",
-      "create": "Thêm chức vụ",
-      "create_title": "Thêm chức vụ",
-      "edit_title": "Sửa chức vụ",
-      "form_description": "Mã và tên chức vụ là bắt buộc.",
-      "create_success": "Đã thêm chức vụ",
-      "update_success": "Đã cập nhật chức vụ",
-      "save_failed": "Lưu chức vụ thất bại",
-      "delete_success": "Đã xóa chức vụ",
-      "delete_failed": "Xóa chức vụ thất bại",
-      "load_failed": "Không thể tải danh sách chức vụ",
-      "search_placeholder": "Tìm mã hoặc tên chức vụ",
-      "field": {
-        "code": "Mã chức vụ",
-        "name": "Tên chức vụ",
-        "status": "Trạng thái",
-        "is_manager": "Cấp quản lý",
-        "description": "Mô tả"
-      },
-      "placeholder": {
-        "name": "Giám đốc"
-      },
-      "validation": {
-        "code_required": "Mã chức vụ là bắt buộc",
-        "code_too_long": "Mã chức vụ quá dài",
-        "name_required": "Tên chức vụ là bắt buộc",
-        "name_too_long": "Tên chức vụ quá dài",
-        "description_too_long": "Mô tả quá dài"
-      }
+    "validation": {
+      "code_required": "Mã nhân sự là bắt buộc",
+      "code_too_long": "Mã nhân sự quá dài",
+      "name_required": "Họ tên là bắt buộc",
+      "name_too_long": "Họ tên quá dài"
+    }
+  },
+  "job_titles": {
+    "title": "Chức danh",
+    "create": "Thêm chức danh",
+    "create_title": "Thêm chức danh",
+    "edit_title": "Sửa chức danh",
+    "form_description": "Mã và tên chức danh là bắt buộc.",
+    "create_success": "Đã thêm chức danh",
+    "update_success": "Đã cập nhật chức danh",
+    "save_failed": "Lưu chức danh thất bại",
+    "delete_success": "Đã xóa chức danh",
+    "delete_failed": "Xóa chức danh thất bại",
+    "load_failed": "Không thể tải danh sách chức danh",
+    "search_placeholder": "Tìm mã hoặc tên chức danh",
+    "field": {
+      "code": "Mã chức danh",
+      "name": "Tên chức danh",
+      "description": "Mô tả"
     },
-    "org_units": {
-      "title": "Cơ cấu tổ chức",
-      "create": "Thêm phòng ban",
-      "create_title": "Thêm phòng ban",
-      "edit_title": "Sửa phòng ban",
-      "form_description": "Mã đơn vị lấy từ platform.organizations.",
-      "create_success": "Đã thêm phòng ban",
-      "update_success": "Đã cập nhật phòng ban",
-      "save_failed": "Lưu phòng ban thất bại",
-      "delete_success": "Đã xóa phòng ban",
-      "delete_failed": "Xóa phòng ban thất bại",
-      "load_failed": "Không thể tải danh sách phòng ban",
-      "search_placeholder": "Tìm mã hoặc tên phòng ban",
-      "field": {
-        "code": "Mã phòng ban",
-        "organization": "Đơn vị",
-        "name": "Tên phòng ban",
-        "org_level": "Cấp tổ chức",
-        "parent": "Cấp cha",
-        "department_type": "Loại",
-        "status": "Trạng thái",
-        "description": "Mô tả"
-      },
-      "select": {
-        "organization": "Chọn đơn vị",
-        "no_parent": "Không có"
-      },
-      "validation": {
-        "code_required": "Mã phòng ban là bắt buộc",
-        "code_too_long": "Mã phòng ban quá dài",
-        "organization_required": "Đơn vị là bắt buộc",
-        "name_required": "Tên phòng ban là bắt buộc",
-        "name_too_long": "Tên phòng ban quá dài",
-        "org_level_required": "Cấp tổ chức là bắt buộc",
-        "department_type_required": "Loại phòng ban là bắt buộc",
-        "description_too_long": "Mô tả quá dài"
-      }
+    "placeholder": {
+      "name": "Kế toán"
+    },
+    "validation": {
+      "code_required": "Mã chức danh là bắt buộc",
+      "code_too_long": "Mã chức danh quá dài",
+      "name_required": "Tên chức danh là bắt buộc",
+      "name_too_long": "Tên chức danh quá dài",
+      "description_too_long": "Mô tả quá dài"
+    }
+  },
+  "positions": {
+    "title": "Chức vụ",
+    "create": "Thêm chức vụ",
+    "create_title": "Thêm chức vụ",
+    "edit_title": "Sửa chức vụ",
+    "form_description": "Mã và tên chức vụ là bắt buộc.",
+    "create_success": "Đã thêm chức vụ",
+    "update_success": "Đã cập nhật chức vụ",
+    "save_failed": "Lưu chức vụ thất bại",
+    "delete_success": "Đã xóa chức vụ",
+    "delete_failed": "Xóa chức vụ thất bại",
+    "load_failed": "Không thể tải danh sách chức vụ",
+    "search_placeholder": "Tìm mã hoặc tên chức vụ",
+    "field": {
+      "code": "Mã chức vụ",
+      "name": "Tên chức vụ",
+      "status": "Trạng thái",
+      "is_manager": "Cấp quản lý",
+      "description": "Mô tả"
+    },
+    "placeholder": {
+      "name": "Giám đốc"
+    },
+    "validation": {
+      "code_required": "Mã chức vụ là bắt buộc",
+      "code_too_long": "Mã chức vụ quá dài",
+      "name_required": "Tên chức vụ là bắt buộc",
+      "name_too_long": "Tên chức vụ quá dài",
+      "description_too_long": "Mô tả quá dài"
+    }
+  },
+  "org_units": {
+    "title": "Cơ cấu tổ chức",
+    "create": "Thêm phòng ban",
+    "create_title": "Thêm phòng ban",
+    "edit_title": "Sửa phòng ban",
+    "form_description": "Mã đơn vị lấy từ platform.organizations.",
+    "create_success": "Đã thêm phòng ban",
+    "update_success": "Đã cập nhật phòng ban",
+    "save_failed": "Lưu phòng ban thất bại",
+    "delete_success": "Đã xóa phòng ban",
+    "delete_failed": "Xóa phòng ban thất bại",
+    "load_failed": "Không thể tải danh sách phòng ban",
+    "search_placeholder": "Tìm mã hoặc tên phòng ban",
+    "field": {
+      "code": "Mã phòng ban",
+      "organization": "Đơn vị",
+      "name": "Tên phòng ban",
+      "org_level": "Cấp tổ chức",
+      "parent": "Cấp cha",
+      "department_type": "Loại",
+      "status": "Trạng thái",
+      "description": "Mô tả"
+    },
+    "select": {
+      "organization": "Chọn đơn vị",
+      "no_parent": "Không có"
+    },
+    "validation": {
+      "code_required": "Mã phòng ban là bắt buộc",
+      "code_too_long": "Mã phòng ban quá dài",
+      "organization_required": "Đơn vị là bắt buộc",
+      "name_required": "Tên phòng ban là bắt buộc",
+      "name_too_long": "Tên phòng ban quá dài",
+      "org_level_required": "Cấp tổ chức là bắt buộc",
+      "department_type_required": "Loại phòng ban là bắt buộc",
+      "description_too_long": "Mô tả quá dài"
     }
   }
 }
