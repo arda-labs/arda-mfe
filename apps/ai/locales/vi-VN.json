@@ -365,6 +365,60 @@
         "save_success": "Đã lưu cấu hình AI!",
         "save_failed": "Lưu cấu hình thất bại"
       }
+    },
+    "profiles": {
+      "title": "Hồ sơ model",
+      "description": "Cấu hình nhiều hồ sơ nhà cung cấp, mỗi hồ sơ có nhiều Model ID. Chọn một Model ID để áp dụng cho tenant.",
+      "empty": "Chưa có hồ sơ nào. Thêm hồ sơ để bắt đầu.",
+      "applied": "Đang áp dụng",
+      "active_model": "Đang dùng",
+      "no_models": "Hồ sơ chưa có Model ID nào.",
+      "btn": {
+        "add": "Thêm hồ sơ",
+        "add_model": "Thêm model",
+        "test": "Kiểm tra",
+        "apply": "Áp dụng"
+      },
+      "field": {
+        "name": "Tên hồ sơ",
+        "base_url": "Base URL",
+        "api_key": "API Key",
+        "models": "Danh sách Model ID",
+        "models_hint": "Mỗi dòng một Model ID (hoặc phân tách bằng dấu phẩy)."
+      },
+      "placeholder": {
+        "name": "Ví dụ: OpenAI Production",
+        "model_id": "gpt-4o-mini",
+        "models": "gpt-4o\ngpt-4o-mini"
+      },
+      "validation": {
+        "required": "Vui lòng nhập tên, Base URL và API Key."
+      },
+      "dialog": {
+        "create_title": "Thêm hồ sơ model",
+        "edit_title": "Sửa hồ sơ model",
+        "description": "Nhà cung cấp OpenAI-compatible với nhiều Model ID."
+      },
+      "test": {
+        "success": "Kết nối thành công! (Độ trễ: {latency}ms)",
+        "failed": "Kết nối thất bại"
+      },
+      "delete": {
+        "title": "Xóa hồ sơ model?",
+        "description": "Hồ sơ \"{name}\" và toàn bộ Model ID sẽ bị xóa. Hành động này không thể hoàn tác."
+      },
+      "toast": {
+        "created": "Đã thêm hồ sơ model.",
+        "updated": "Đã cập nhật hồ sơ model.",
+        "deleted": "Đã xóa hồ sơ model.",
+        "save_failed": "Lưu hồ sơ thất bại",
+        "delete_failed": "Xóa hồ sơ thất bại",
+        "applied": "Đã áp dụng model {model}.",
+        "apply_failed": "Áp dụng model thất bại",
+        "model_add_failed": "Thêm Model ID thất bại",
+        "model_delete_failed": "Xóa Model ID thất bại"
+      },
+      "loading": "Đang tải..."
     }
   },
   "action": {

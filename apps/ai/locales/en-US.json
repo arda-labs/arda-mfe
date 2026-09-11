@@ -365,6 +365,60 @@
         "save_success": "AI settings saved!",
         "save_failed": "Failed to save AI settings"
       }
+    },
+    "profiles": {
+      "title": "Model profiles",
+      "description": "Configure multiple provider profiles, each with many Model IDs. Apply one Model ID to the tenant.",
+      "empty": "No profiles yet. Add one to get started.",
+      "applied": "Applied",
+      "active_model": "In use",
+      "no_models": "This profile has no Model IDs yet.",
+      "btn": {
+        "add": "Add profile",
+        "add_model": "Add model",
+        "test": "Test",
+        "apply": "Apply"
+      },
+      "field": {
+        "name": "Profile name",
+        "base_url": "Base URL",
+        "api_key": "API Key",
+        "models": "Model IDs",
+        "models_hint": "One Model ID per line (or comma separated)."
+      },
+      "placeholder": {
+        "name": "e.g. OpenAI Production",
+        "model_id": "gpt-4o-mini",
+        "models": "gpt-4o\ngpt-4o-mini"
+      },
+      "validation": {
+        "required": "Enter a name, Base URL and API Key."
+      },
+      "dialog": {
+        "create_title": "Add model profile",
+        "edit_title": "Edit model profile",
+        "description": "OpenAI-compatible provider with multiple Model IDs."
+      },
+      "test": {
+        "success": "Connected successfully! (Latency: {latency}ms)",
+        "failed": "Connection failed"
+      },
+      "delete": {
+        "title": "Delete model profile?",
+        "description": "Profile \"{name}\" and all its Model IDs will be deleted. This cannot be undone."
+      },
+      "toast": {
+        "created": "Model profile added.",
+        "updated": "Model profile updated.",
+        "deleted": "Model profile deleted.",
+        "save_failed": "Failed to save profile",
+        "delete_failed": "Failed to delete profile",
+        "applied": "Applied model {model}.",
+        "apply_failed": "Failed to apply model",
+        "model_add_failed": "Failed to add Model ID",
+        "model_delete_failed": "Failed to delete Model ID"
+      },
+      "loading": "Loading..."
     }
   },
   "action": {
