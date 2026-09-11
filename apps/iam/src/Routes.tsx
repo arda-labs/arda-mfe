@@ -39,6 +39,11 @@ const ResourceRoutesPage = lazyWithPreload(() =>
     default: m.ResourceRoutesPage,
   }))
 )
+const OAuthClientsPage = lazyWithPreload(() =>
+  import("@/features/oauth-clients/page").then((m) => ({
+    default: m.OAuthClientsPage,
+  }))
+)
 
 export default createRemoteRoutes({
   routes: [
@@ -49,6 +54,7 @@ export default createRemoteRoutes({
     { prefix: "/admin/settings", component: SystemSettingsPage },
     { prefix: "/admin/tenants", component: TenantsPage },
     { prefix: "/admin/resource-routes", component: ResourceRoutesPage },
+    { prefix: "/admin/oauth-clients", component: OAuthClientsPage },
   ],
   defaultComponent: UsersPage,
   wrapper: QueryProvider,

@@ -239,5 +239,23 @@
       "risk": "Risk",
       "permissions": "Permissions"
     }
+  },
+  "oauth_clients": {
+    "title": "Integration clients (OAuth2)",
+    "description": "Manage OAuth2 clients on Hydra (admin API proxy).",
+    "field": {
+      "client_id": "Client ID",
+      "client_name": "Client name",
+      "redirect_uris": "Redirect URIs (comma separated)",
+      "scope": "Scope",
+      "auth_method": "Auth method"
+    },
+    "empty": "No clients yet",
+    "load_failed": "Could not load clients",
+    "validation": {
+      "required": "Enter the client name and redirect URIs"
+    },
+    "save_success": "Client saved",
+    "save_failed": "Could not save the client"
   }
 }

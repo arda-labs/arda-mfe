@@ -239,5 +239,23 @@
       "risk": "Rủi ro",
       "permissions": "Quyền"
     }
+  },
+  "oauth_clients": {
+    "title": "Client tích hợp (OAuth2)",
+    "description": "Quản lý OAuth2 client trên Hydra (proxy admin API).",
+    "field": {
+      "client_id": "Client ID",
+      "client_name": "Tên client",
+      "redirect_uris": "Redirect URIs (phân cách phẩy)",
+      "scope": "Scope",
+      "auth_method": "Phương thức xác thực"
+    },
+    "empty": "Chưa có client",
+    "load_failed": "Không tải được danh sách client",
+    "validation": {
+      "required": "Nhập tên client và redirect URIs"
+    },
+    "save_success": "Đã lưu client",
+    "save_failed": "Không thể lưu client"
   }
 }
