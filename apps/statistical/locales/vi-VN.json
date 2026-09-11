@@ -229,5 +229,29 @@
       "submitted": "Đã nộp giao dịch nhập liệu.",
       "failed": "Thao tác thất bại"
     }
+  },
+  "cmms": {
+    "title": "CMMS — tuân thủ",
+    "description": "Chạy kịch bản kiểm soát theo kỳ tuân thủ và lưu kết quả PASSED/FAILED. Kịch bản/kỳ cấu hình trong danh mục QCMS.",
+    "empty": "Chưa có lần chạy CMMS nào.",
+    "field": {
+      "scenario": "Kịch bản",
+      "period": "Kỳ tuân thủ",
+      "checked": "Đã kiểm tra",
+      "failed": "Lỗi"
+    },
+    "btn": {
+      "run": "Chạy"
+    },
+    "col": {
+      "run_at": "Thời điểm chạy"
+    },
+    "validation": {
+      "required": "Vui lòng nhập kịch bản và kỳ tuân thủ."
+    },
+    "toast": {
+      "recorded": "Đã lưu kết quả CMMS.",
+      "failed": "Chạy CMMS thất bại"
+    }
   }
 }

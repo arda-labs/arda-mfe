@@ -229,5 +229,29 @@
       "submitted": "Import transaction submitted.",
       "failed": "Operation failed"
     }
+  },
+  "cmms": {
+    "title": "CMMS compliance",
+    "description": "Run a control scenario per compliance period and record the PASSED/FAILED result. Scenarios/periods are configured in the QCMS catalogs.",
+    "empty": "No CMMS runs yet.",
+    "field": {
+      "scenario": "Scenario",
+      "period": "Compliance period",
+      "checked": "Checked",
+      "failed": "Failed"
+    },
+    "btn": {
+      "run": "Run"
+    },
+    "col": {
+      "run_at": "Run at"
+    },
+    "validation": {
+      "required": "Enter a scenario and compliance period."
+    },
+    "toast": {
+      "recorded": "CMMS result saved.",
+      "failed": "CMMS run failed"
+    }
   }
 }

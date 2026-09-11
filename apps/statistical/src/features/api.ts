@@ -105,6 +105,20 @@ export interface ImportTransaction {
   updated_at: string
 }
 
+/** CMMS compliance run result (fe_statistical #21). */
+export interface CmmsResult {
+  id: string
+  tenant_id: string
+  scenario_code: string
+  compliance_period: string
+  status: string
+  checked_count: number
+  failed_count: number
+  details: Record<string, unknown>
+  run_by: string
+  run_at: string
+}
+
 /** QCMS generic catalog row (W5) — kind selects the EPAS catalog screen. */
 export interface CatalogItem {
   id: string
@@ -284,6 +298,21 @@ export const statisticalApi = {
       `/api/statistical/import-transactions/${encodeURIComponent(id)}/submit`,
       {}
     ),
+  listCmmsResults: async (
+    params: { scenario_code?: string; compliance_period?: string; status?: string } = {}
+  ) => {
+    const search = new URLSearchParams()
+    if (params.scenario_code) search.set("scenario_code", params.scenario_code)
+    if (params.compliance_period) search.set("compliance_period", params.compliance_period)
+    if (params.status) search.set("status", params.status)
+    const qs = search.toString()
+    const res = await getCanonicalList<CmmsResult>(
+      `/api/statistical/cmms/results${qs ? `?${qs}` : ""}`
+    )
+    return res.items ?? []
+  },
+  runCmms: (body: Partial<CmmsResult>) =>
+    postCanonical<CmmsResult>("/api/statistical/cmms/run", body),
   submitSubmission: (id: string) =>
     postCanonical<ReportSubmission>(`/api/statistical/submissions/${encodeURIComponent(id)}/submit`, {}),
 }
