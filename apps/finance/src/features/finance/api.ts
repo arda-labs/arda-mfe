@@ -126,6 +126,14 @@ export const financeApi = {
       )
       .then((res) => res.result)
   },
+  riskExceptions: (asOf?: string) => {
+    const p = buildSearchParams({ as_of: asOf })
+    return api
+      .get<ApiSuccess<{ items: RiskException[] }>>(
+        `/api/finance/reports/risk-exceptions?${p.toString()}`
+      )
+      .then((res) => res.result.items)
+  },
 }
 
 export interface SystemDate {
@@ -437,6 +445,15 @@ export interface FinancialSummary {
   total_income_minor: number
   total_expense_minor: number
   profit_minor: number
+}
+
+export interface RiskException {
+  account_code: string
+  currency_code: string
+  coa_version: string
+  close_debit_minor: number
+  close_credit_minor: number
+  reason: string
 }
 
 export const postingApi = {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import {
   financeApi,
   type FinancialSummary,
+  type RiskException,
   type StatementResult,
   type StatementSummary,
 } from "@/features/finance/api"
@@ -25,6 +26,7 @@ export function StatementsPage() {
   const [from, setFrom] = useState("")
   const [result, setResult] = useState<StatementResult | null>(null)
   const [summary, setSummary] = useState<FinancialSummary | null>(null)
+  const [exceptions, setExceptions] = useState<RiskException[]>([])
   const [loadingList, setLoadingList] = useState(true)
   const [loadingRun, setLoadingRun] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -58,6 +60,14 @@ export function StatementsPage() {
       })
       .catch(() => {
         if (!cancelled) setSummary(null)
+      })
+    void financeApi
+      .riskExceptions(asOf || undefined)
+      .then((res) => {
+        if (!cancelled) setExceptions(res)
+      })
+      .catch(() => {
+        if (!cancelled) setExceptions([])
       })
     return () => {
       cancelled = true
@@ -146,6 +156,39 @@ export function StatementsPage() {
           <SummaryTile label="Total income" value={summary.total_income_minor} />
           <SummaryTile label="Total expense" value={summary.total_expense_minor} />
           <SummaryTile label="Profit before tax" value={summary.profit_minor} />
+        </div>
+      )}
+      {exceptions.length > 0 && (
+        <div className="rounded-lg border">
+          <div className="border-b px-3 py-2 text-xs font-semibold">
+            Risk exceptions ({exceptions.length})
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2">Account</th>
+                <th className="px-3 py-2">Currency</th>
+                <th className="px-3 py-2 text-right">Debit</th>
+                <th className="px-3 py-2 text-right">Credit</th>
+                <th className="px-3 py-2">Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              {exceptions.map((row) => (
+                <tr key={`${row.account_code}-${row.currency_code}`} className="border-t">
+                  <td className="px-3 py-2 font-mono text-xs">{row.account_code}</td>
+                  <td className="px-3 py-2 text-xs">{row.currency_code}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {formatAmount(fromMinor(row.close_debit_minor), row.currency_code)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {formatAmount(fromMinor(row.close_credit_minor), row.currency_code)}
+                  </td>
+                  <td className="px-3 py-2 text-xs text-destructive">{row.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
