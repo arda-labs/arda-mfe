@@ -313,5 +313,28 @@
       "segment": "Segment",
       "risk_level": "Risk level"
     }
+  },
+  "projects": {
+    "title": "Projects",
+    "description": "Project catalog and members.",
+    "field": {
+      "code": "Project code",
+      "type": "Project type",
+      "start": "Start date",
+      "end": "End date",
+      "description": "Description",
+      "user": "User",
+      "role": "Role"
+    },
+    "members": "Members",
+    "empty": "No projects yet",
+    "empty_members": "No members yet",
+    "load_failed": "Could not load projects",
+    "validation": {
+      "required": "Enter project code, name and type"
+    },
+    "save_success": "Project saved",
+    "save_failed": "Could not save the project",
+    "member_failed": "Could not update project members"
   }
 }

@@ -21,10 +21,19 @@ const ReportsPage = lazyWithPreload(() =>
     default: m.ReportsPage,
   }))
 )
+const ProjectsPage = lazyWithPreload(() =>
+  import("@/features/projects/page").then((m) => ({
+    default: m.ProjectsPage,
+  }))
+)
 
 async function preload(pathname = "") {
   if (pathname.startsWith("/customers/reports")) {
     await ReportsPage.preload()
+    return
+  }
+  if (pathname.startsWith("/customers/projects")) {
+    await ProjectsPage.preload()
     return
   }
   await CustomersPage.preload()
@@ -38,6 +47,8 @@ function RemoteRoutes() {
       <Suspense fallback={null}>
         {pathname.startsWith("/customers/reports") ? (
           <ReportsPage />
+        ) : pathname.startsWith("/customers/projects") ? (
+          <ProjectsPage />
         ) : (
           <CustomersPage pathname={pathname} />
         )}

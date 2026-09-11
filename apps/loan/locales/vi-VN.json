@@ -753,5 +753,23 @@
       "coll_use_value_minor": "Giá trị sử dụng",
       "valuation_date": "Ngày định giá"
     }
+  },
+  "plans": {
+    "title": "Quản lý kế hoạch",
+    "description": "Danh mục kế hoạch vay theo kỳ và hạn mức.",
+    "field": {
+      "from_date": "Từ ngày",
+      "to_date": "Đến ngày",
+      "target": "Hạn mức",
+      "note": "Ghi chú"
+    },
+    "empty": "Chưa có kế hoạch",
+    "load_failed": "Không tải được kế hoạch",
+    "validation": {
+      "required": "Nhập mã và tên kế hoạch"
+    },
+    "save_success": "Đã lưu kế hoạch",
+    "save_failed": "Không thể lưu kế hoạch",
+    "close": "Đóng"
   }
 }

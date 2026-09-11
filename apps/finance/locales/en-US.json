@@ -446,5 +446,38 @@
       "bank_code": "Bank",
       "coa": "COA account"
     }
+  },
+  "cash": {
+    "title": "Cash book",
+    "description": "Treasury cash transactions (1011) and daily position.",
+    "field": {
+      "direction": "Direction",
+      "date": "Date",
+      "amount": "Amount",
+      "description": "Description"
+    },
+    "direction": {
+      "IN": "Cash in",
+      "OUT": "Cash out"
+    },
+    "tab": {
+      "transactions": "Transactions",
+      "position": "Position"
+    },
+    "col": {
+      "cash_in": "In",
+      "cash_out": "Out",
+      "net": "Net"
+    },
+    "empty": "No transactions yet",
+    "load_failed": "Could not load the cash book",
+    "validation": {
+      "required": "Enter the amount and transaction date"
+    },
+    "save_success": "Cash transaction recorded",
+    "save_failed": "Could not record the cash transaction"
+  },
+  "field": {
+    "journal": "Journal"
   }
 }

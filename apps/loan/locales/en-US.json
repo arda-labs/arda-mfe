@@ -753,5 +753,23 @@
       "coll_use_value_minor": "Use value",
       "valuation_date": "Valuation date"
     }
+  },
+  "plans": {
+    "title": "Plan management",
+    "description": "Loan plan catalog by period and target.",
+    "field": {
+      "from_date": "From date",
+      "to_date": "To date",
+      "target": "Target amount",
+      "note": "Note"
+    },
+    "empty": "No plans yet",
+    "load_failed": "Could not load plans",
+    "validation": {
+      "required": "Enter the plan code and name"
+    },
+    "save_success": "Plan saved",
+    "save_failed": "Could not save the plan",
+    "close": "Close"
   }
 }

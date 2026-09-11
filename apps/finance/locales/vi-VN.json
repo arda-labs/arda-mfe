@@ -446,5 +446,38 @@
       "bank_code": "Ngân hàng",
       "coa": "Tài khoản COA"
     }
+  },
+  "cash": {
+    "title": "Sổ quỹ tiền mặt",
+    "description": "Giao dịch quỹ tiền mặt (1011) và tổng hợp theo ngày.",
+    "field": {
+      "direction": "Loại giao dịch",
+      "date": "Ngày giao dịch",
+      "amount": "Số tiền",
+      "description": "Diễn giải"
+    },
+    "direction": {
+      "IN": "Thu tiền mặt",
+      "OUT": "Chi tiền mặt"
+    },
+    "tab": {
+      "transactions": "Giao dịch",
+      "position": "Tổng hợp"
+    },
+    "col": {
+      "cash_in": "Thu",
+      "cash_out": "Chi",
+      "net": "Chênh lệch"
+    },
+    "empty": "Chưa có giao dịch",
+    "load_failed": "Không tải được sổ quỹ",
+    "validation": {
+      "required": "Nhập số tiền và ngày giao dịch"
+    },
+    "save_success": "Đã ghi giao dịch quỹ",
+    "save_failed": "Không thể ghi giao dịch quỹ"
+  },
+  "field": {
+    "journal": "Bút toán"
   }
 }

@@ -313,5 +313,28 @@
       "segment": "Phân khúc",
       "risk_level": "Mức rủi ro"
     }
+  },
+  "projects": {
+    "title": "Dự án",
+    "description": "Danh mục dự án và thành viên dự án.",
+    "field": {
+      "code": "Mã dự án",
+      "type": "Loại dự án",
+      "start": "Từ ngày",
+      "end": "Đến ngày",
+      "description": "Mô tả",
+      "user": "Người dùng",
+      "role": "Vai trò"
+    },
+    "members": "Thành viên",
+    "empty": "Chưa có dự án",
+    "empty_members": "Chưa có thành viên",
+    "load_failed": "Không tải được dự án",
+    "validation": {
+      "required": "Nhập mã, tên và loại dự án"
+    },
+    "save_success": "Đã lưu dự án",
+    "save_failed": "Không thể lưu dự án",
+    "member_failed": "Không thể cập nhật thành viên"
   }
 }

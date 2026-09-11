@@ -79,6 +79,11 @@ const ReportsPage = lazyWithPreload(() =>
     default: m.ReportsPage,
   }))
 )
+const PlansPage = lazyWithPreload(() =>
+  import("@/features/plans/page").then((m) => ({
+    default: m.PlansPage,
+  }))
+)
 // Iteration 14 wave FE-2: per-kind adjustment screens (EPAS) — index cards +
 // one PostingTabsShell screen per kind at /loans/adjustments/{kind}.
 const AdjustmentsIndexPage = lazyWithPreload(() =>
@@ -112,6 +117,7 @@ async function preload(pathname: string) {
   else if (pathname.startsWith("/loans/dossier")) await LoanDossierPage.preload()
   else if (pathname.startsWith("/loans/general-provision")) await GeneralProvisionPage.preload()
   else if (pathname.startsWith("/loans/reports")) await ReportsPage.preload()
+  else if (pathname.startsWith("/loans/plans")) await PlansPage.preload()
   else if (pathname.startsWith("/loans/disbursements/register")) await BatchRegisterPage.preload()
   else if (pathname.startsWith("/loans/disbursements/complete")) await BatchCompletePage.preload()
   else if (pathname.startsWith("/loans/collections/new")) await BatchCollectionPage.preload()
@@ -133,6 +139,7 @@ function RemoteRoutes() {
   else if (pathname.startsWith("/loans/dossier")) page = <LoanDossierPage />
   else if (pathname.startsWith("/loans/general-provision")) page = <GeneralProvisionPage />
   else if (pathname.startsWith("/loans/reports")) page = <ReportsPage />
+  else if (pathname.startsWith("/loans/plans")) page = <PlansPage />
   else if (pathname.startsWith("/loans/products")) page = <ProductsPage pathname={pathname} />
   else if (pathname.startsWith("/loans/vfu")) page = <VfuPage pathname={pathname} />
   // Same ordering as preload: detail batch routes before the list routes.
