@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useNavigate } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
@@ -9,9 +9,10 @@ import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { formatDateShort } from "@workspace/format"
-import { Plus } from "lucide-react"
+import { Plus, Upload } from "lucide-react"
 import { postingApi, type JournalEntry } from "../api"
 import { postingListDefinition } from "./list-query"
+import { ImportPostingDialog } from "./import-posting-dialog"
 import type { PostingFlow } from "../api"
 
 /** Title key + create-route per flow — the four posting case lists share the
@@ -59,9 +60,11 @@ export function PostingCaseListPage({
 }) {
   const { t } = useI18n()
   const navigate = useNavigate()
+  const [importOpen, setImportOpen] = useState(false)
 
   const meta = FLOW_META[flow]
   const titleKey = meta.titleKey
+  const canImport = flow === "SINGLE_ENTRY" || flow === "DOUBLE_ENTRY"
 
   const columns = useMemo<ColumnDef<JournalEntry>[]>(
     () => [
@@ -159,37 +162,59 @@ export function PostingCaseListPage({
   })
 
   return (
-    <ListPageShell
-      title={t(titleKey)}
-      totalRows={total}
-      meta={
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
-          {t("finance.journal.count", { count: total })}
-        </Badge>
-      }
-      criticalPending={isLoading}
-      criticalError={loadError}
-      onRetry={() => void refetch()}
-      loadErrorTitle={t("finance.journal.load_failed")}
-      fetching={isFetching}
-      table={table}
-      toolbar={
-        <ListTableToolbar
-          table={table}
-          exportFilename={t(titleKey)}
-          sheetName={t(titleKey)}
-          totalRowsCount={total}
-        >
-          <Button
-            variant="outline"
-            className="h-8 px-3 text-xs font-semibold"
-            onClick={() => navigate(meta.createPath)}
+    <>
+      <ListPageShell
+        title={t(titleKey)}
+        totalRows={total}
+        meta={
+          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
+            {t("finance.journal.count", { count: total })}
+          </Badge>
+        }
+        criticalPending={isLoading}
+        criticalError={loadError}
+        onRetry={() => void refetch()}
+        loadErrorTitle={t("finance.journal.load_failed")}
+        fetching={isFetching}
+        table={table}
+        toolbar={
+          <ListTableToolbar
+            table={table}
+            exportFilename={t(titleKey)}
+            sheetName={t(titleKey)}
+            totalRowsCount={total}
           >
-            <Plus className="mr-1 size-3.5" />
-            {t(meta.createKey)}
-          </Button>
-        </ListTableToolbar>
-      }
-    />
+            {canImport && (
+              <Button
+                variant="outline"
+                className="mr-1 h-8 px-3 text-xs font-semibold"
+                onClick={() => setImportOpen(true)}
+              >
+                <Upload className="mr-1 size-3.5" />
+                {t("finance.posting.import.action")}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              className="h-8 px-3 text-xs font-semibold"
+              onClick={() => navigate(meta.createPath)}
+            >
+              <Plus className="mr-1 size-3.5" />
+              {t(meta.createKey)}
+            </Button>
+          </ListTableToolbar>
+        }
+      />
+      {canImport && (
+        <ImportPostingDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          flow={flow}
+          onImported={() => {
+            void refetch()
+          }}
+        />
+      )}
+    </>
   )
 }

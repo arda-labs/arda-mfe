@@ -468,6 +468,27 @@ export const postingApi = {
     api
       .post<ApiSuccess<{ saved: boolean }>>("/api/finance/opening-balances", data)
       .then((res) => res.result),
+  /** XLSX posting-sheet import → creates a manual posting case. */
+  importPostingCases: (input: {
+    file: File
+    flow: PostingFlow
+    accountingDate?: string
+  }) => {
+    const form = new FormData()
+    form.append("file", input.file)
+    form.append("flow", input.flow)
+    if (input.accountingDate) form.append("accounting_date", input.accountingDate)
+    return api
+      .post<
+        ApiSuccess<{
+          case_id: string
+          case_code: string
+          line_count: number
+          accounting_date: string
+        }>
+      >("/api/finance/posting-cases/import", form)
+      .then((res) => res.result)
+  },
 }
 
 /**

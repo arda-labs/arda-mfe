@@ -381,6 +381,19 @@
       "col_amount": "Amount",
       "empty": "No matching transactions",
       "choose": "Pick"
+    },
+    "import": {
+      "action": "Import from Excel",
+      "title": "Import postings from Excel",
+      "description": "Upload an XLSX file with columns: direction (DEBIT/CREDIT), account_code, amount (or amount_minor), currency_code, description, counterparty_code, accounting_date.",
+      "field": {
+        "file": "XLSX file",
+        "accounting_date": "Accounting date (default)"
+      },
+      "btn": "Import postings",
+      "file_required": "Please choose an XLSX file.",
+      "success": "Created transaction {code} with {count} lines.",
+      "failed": "Import failed"
     }
   },
   "operation": {
