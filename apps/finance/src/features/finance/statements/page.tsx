@@ -21,6 +21,7 @@ export function StatementsPage() {
   const [statements, setStatements] = useState<StatementSummary[]>([])
   const [selected, setSelected] = useState("")
   const [asOf, setAsOf] = useState("")
+  const [from, setFrom] = useState("")
   const [result, setResult] = useState<StatementResult | null>(null)
   const [loadingList, setLoadingList] = useState(true)
   const [loadingRun, setLoadingRun] = useState(false)
@@ -51,7 +52,7 @@ export function StatementsPage() {
     setLoadingRun(true)
     let cancelled = false
     void financeApi
-      .runStatement(selected, asOf || undefined)
+      .runStatement(selected, asOf || undefined, undefined, from || undefined)
       .then((res) => {
         if (cancelled) return
         setResult(res)
@@ -65,14 +66,18 @@ export function StatementsPage() {
     return () => {
       cancelled = true
     }
-  }, [selected, asOf])
+  }, [selected, asOf, from])
 
   const exportXlsx = useCallback(async () => {
     if (!selected) return
     setExporting(true)
     try {
+      const query = new URLSearchParams()
+      if (asOf) query.set("as_of", asOf)
+      if (from) query.set("from", from)
+      const suffix = query.toString() ? `?${query.toString()}` : ""
       await downloadFile(
-        `/api/finance/statements/${encodeURIComponent(selected)}/export${asOf ? `?as_of=${encodeURIComponent(asOf)}` : ""}`,
+        `/api/finance/statements/${encodeURIComponent(selected)}/export${suffix}`,
         { fallbackFilename: `${selected.toLowerCase()}.xlsx` }
       )
     } catch {
@@ -80,7 +85,7 @@ export function StatementsPage() {
     } finally {
       setExporting(false)
     }
-  }, [selected, asOf])
+  }, [selected, asOf, from])
 
   if (loadingList) {
     return (
@@ -93,7 +98,13 @@ export function StatementsPage() {
   if (statements.length === 0) {
     return (
       <div className="space-y-4">
-        <Header selected={selected} asOf={asOf} onAsOfChange={setAsOf} />
+        <Header
+          selected={selected}
+          asOf={asOf}
+          onAsOfChange={setAsOf}
+          from={from}
+          onFromChange={setFrom}
+        />
         <p className="text-sm text-muted-foreground">
           No statements defined for this tenant.
         </p>
@@ -103,7 +114,13 @@ export function StatementsPage() {
 
   return (
     <div className="space-y-4">
-      <Header selected={selected} asOf={asOf} onAsOfChange={setAsOf} />
+      <Header
+        selected={selected}
+        asOf={asOf}
+        onAsOfChange={setAsOf}
+        from={from}
+        onFromChange={setFrom}
+      />
       <div className="flex flex-wrap items-center gap-2">
         {statements.map((s) => (
           <Button
@@ -137,7 +154,9 @@ export function StatementsPage() {
               {result.statement_code}
             </Badge>
             <span className="text-xs text-muted-foreground">
-              As of {result.as_of}
+              {result.from_date && result.from_date !== result.as_of
+                ? `${result.from_date} → ${result.as_of}`
+                : `As of ${result.as_of}`}
             </span>
           </div>
           <div className="rounded-lg border">
@@ -180,16 +199,28 @@ function Header({
   selected,
   asOf,
   onAsOfChange,
+  from,
+  onFromChange,
 }: {
   selected: string
   asOf: string
   onAsOfChange: (v: string) => void
+  from: string
+  onFromChange: (v: string) => void
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant="secondary" className="px-2.5 py-1 text-xs">
         Statements
       </Badge>
+      <Input
+        type="date"
+        value={from}
+        onChange={(e) => onFromChange(e.target.value)}
+        className="w-40"
+        placeholder="From (optional)"
+        aria-label={`From date for ${selected || "statement"}`}
+      />
       <Input
         type="date"
         value={asOf}

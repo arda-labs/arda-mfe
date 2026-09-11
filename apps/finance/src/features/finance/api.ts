@@ -105,8 +105,13 @@ export const financeApi = {
         "/api/finance/statements"
       )
       .then((res) => res.result.statements),
-  runStatement: (code: string, asOf?: string, coaVersion?: string) => {
-    const p = buildSearchParams({ as_of: asOf, coa_version: coaVersion })
+  runStatement: (
+    code: string,
+    asOf?: string,
+    coaVersion?: string,
+    from?: string
+  ) => {
+    const p = buildSearchParams({ as_of: asOf, coa_version: coaVersion, from })
     return api
       .get<ApiSuccess<StatementResult>>(
         `/api/finance/statements/${encodeURIComponent(code)}/run?${p.toString()}`
@@ -410,6 +415,7 @@ export interface StatementResult {
   tenant_id: string
   statement_code: string
   as_of: string
+  from_date?: string
   coa_version?: string
   rows: StatementRow[]
 }
