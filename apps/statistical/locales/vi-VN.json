@@ -149,7 +149,13 @@
     },
     "field": {
       "case_type": "Case type",
-      "schema": "Schema (JSON)"
+      "schema": "Schema (JSON)",
+      "fields": "Trường biểu mẫu",
+      "add": "Thêm trường",
+      "empty": "Chưa có trường nào. Thêm trường để xây dựng biểu mẫu.",
+      "key": "Mã trường",
+      "label": "Nhãn",
+      "required": "Bắt buộc"
     }
   },
   "dashboard": {

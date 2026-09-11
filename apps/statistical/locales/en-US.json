@@ -149,7 +149,13 @@
     },
     "field": {
       "case_type": "Case type",
-      "schema": "Schema (JSON)"
+      "schema": "Schema (JSON)",
+      "fields": "Form fields",
+      "add": "Add field",
+      "empty": "No fields yet. Add one to build the form.",
+      "key": "Key",
+      "label": "Label",
+      "required": "Required"
     }
   },
   "dashboard": {

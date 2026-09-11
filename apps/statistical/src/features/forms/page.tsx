@@ -4,18 +4,10 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { apiUrl } from "@workspace/api/url"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import { statisticalApi, type FormTemplate } from "../api"
+import { TemplateDialog } from "./components/template-dialog"
 
-/** QCMS form templates (W5b): catalog + JSON export/import (per-row). */
+/** QCMS form templates (W5b): catalog + field builder + JSON export/import. */
 export function FormsPage() {
   const { t } = useI18n()
   const [items, setItems] = useState<FormTemplate[]>([])
@@ -184,110 +176,5 @@ export function FormsPage() {
         onSaved={() => load()}
       />
     </div>
-  )
-}
-
-function TemplateDialog({
-  open,
-  onOpenChange,
-  template,
-  onSaved,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  template: FormTemplate | null
-  onSaved: () => Promise<void> | void
-}) {
-  const { t } = useI18n()
-  const [code, setCode] = useState("")
-  const [name, setName] = useState("")
-  const [caseType, setCaseType] = useState("")
-  const [schema, setSchema] = useState("{}")
-  const [pending, setPending] = useState(false)
-
-  useEffect(() => {
-    if (!open) return
-    setCode(template?.code ?? "")
-    setName(template?.name ?? "")
-    setCaseType(template?.workflow_case_type ?? "")
-    setSchema(JSON.stringify(template?.schema ?? {}, null, 2))
-  }, [open, template])
-
-  const submit = async () => {
-    if (!code.trim() || !name.trim()) {
-      notify.error(t("statistical.forms.validation.required"))
-      return
-    }
-    let parsed: Record<string, unknown>
-    try {
-      parsed = schema.trim() ? JSON.parse(schema) : {}
-    } catch {
-      notify.error(t("statistical.catalogs.validation.invalid_json"))
-      return
-    }
-    setPending(true)
-    try {
-      await statisticalApi.upsertFormTemplate({
-        code: code.trim(),
-        name: name.trim(),
-        workflow_case_type: caseType || undefined,
-        schema: parsed,
-        is_active: true,
-      })
-      notify.success(t("statistical.forms.save_success"))
-      onOpenChange(false)
-      await onSaved()
-    } catch {
-      notify.error(t("statistical.forms.save_failed"))
-    } finally {
-      setPending(false)
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {template ? t("statistical.forms.edit") : t("statistical.forms.create")}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>{t("common.field.code")}</Label>
-            <Input
-              value={code}
-              disabled={Boolean(template)}
-              className="font-mono"
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t("common.field.name")}</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t("statistical.forms.field.case_type")}</Label>
-            <Input value={caseType} onChange={(e) => setCaseType(e.target.value)} />
-          </div>
-          <div className="col-span-2 space-y-1.5">
-            <Label>{t("statistical.forms.field.schema")}</Label>
-            <textarea
-              className="min-h-[160px] w-full rounded-md border border-input bg-background p-2 font-mono text-xs"
-              value={schema}
-              onChange={(e) => setSchema(e.target.value)}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("common.action.cancel")}
-          </Button>
-          <Button onClick={() => void submit()} disabled={pending}>
-            {t("common.action.save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }
