@@ -45,6 +45,10 @@ export const mdmCatalogs = [
   },
   { key: "scoring-indicators", labelKey: "mdm.catalog.scoring_indicators" },
   { key: "scoring-benchmarks", labelKey: "mdm.catalog.scoring_benchmarks" },
+  {
+    key: "scoring-criteria-mappings",
+    labelKey: "mdm.catalog.scoring_criteria_mappings",
+  },
 ] as const
 
 export type MdmCatalogKey = (typeof mdmCatalogs)[number]["key"]

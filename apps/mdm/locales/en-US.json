@@ -56,7 +56,8 @@
     "scoring_types": "Scoring types",
     "scoring_indicator_groups": "Scoring indicator groups",
     "scoring_indicators": "Scoring indicators",
-    "scoring_benchmarks": "Scoring benchmarks"
+    "scoring_benchmarks": "Scoring benchmarks",
+    "scoring_criteria_mappings": "Scoring criteria mappings"
   },
   "edit": "Edit record",
   "placeholder": {

@@ -56,7 +56,8 @@
     "scoring_types": "Bộ chấm điểm",
     "scoring_indicator_groups": "Nhóm chỉ tiêu chấm điểm",
     "scoring_indicators": "Chỉ tiêu chấm điểm",
-    "scoring_benchmarks": "Thang điểm"
+    "scoring_benchmarks": "Thang điểm",
+    "scoring_criteria_mappings": "Ánh xạ tiêu chí chấm điểm"
   },
   "edit": "Cập nhật bản ghi",
   "placeholder": {
