@@ -5,7 +5,7 @@ import {
   AuthLoadingScreen,
   AuthShellLoadingScreen,
 } from "@workspace/auth/loading-screen"
-import { CallbackPage, ConsentPage, LoginPage } from "@workspace/auth/pages"
+import { CallbackPage, ConsentPage, LoginPage, RecoveryPage } from "@workspace/auth/pages"
 import { redirectToHydraLogin } from "@workspace/auth/oauth"
 import { normalizeAuthUser, useAuthStore } from "@workspace/auth/store"
 import * as authShare from "@workspace/auth"
@@ -134,6 +134,7 @@ export function App() {
   const isAuthRoute = [
     "/login",
     "/auth",
+    "/recovery",
     "/callback",
     "/login-callback",
     "/consent",
@@ -201,7 +202,8 @@ export function App() {
   return (
     <Routes>
       <Route path="/auth" element={<LoginPage />} />
-      <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/recovery" element={<RecoveryPage />} />
       <Route path="/callback" element={<CallbackPage />} />
       <Route path="/login-callback" element={<CallbackPage />} />
       <Route path="/consent" element={<ConsentPage />} />

@@ -487,6 +487,17 @@ export function LoginPage() {
                       Ghi nhớ đăng nhập
                     </span>
                   </label>
+                  <div className="text-right">
+                    <button
+                      className="cursor-pointer text-sm text-primary hover:underline"
+                      onClick={() => {
+                        window.location.href = "/recovery"
+                      }}
+                      type="button"
+                    >
+                      {t("auth.recovery.link")}
+                    </button>
+                  </div>
                 </>
               )}
               <Button
@@ -611,6 +622,234 @@ export function ConsentPage() {
   }
 
   return <AuthLoadingScreen />
+}
+
+// ── Password recovery (Kratos self-service recovery via the BFF proxy) ──
+
+type KratosRecoveryFlow = KratosFlow & { id?: string; state?: string }
+
+function recoveryMethod(flow: KratosFlow | null) {
+  const nodes = Array.isArray(flow?.ui?.nodes) ? flow.ui.nodes : []
+  const methodNode = nodes.find(
+    (node) => (node?.attributes as { name?: unknown } | undefined)?.name === "method"
+  )
+  const options = (methodNode?.attributes as { value?: unknown } | undefined)?.value
+  return typeof options === "string" && options ? options : "code"
+}
+
+function recoveryInputNodes(flow: KratosFlow | null) {
+  const nodes = Array.isArray(flow?.ui?.nodes) ? flow.ui.nodes : []
+  return nodes.filter((node) => {
+    const attrs = node?.attributes as { name?: unknown; type?: unknown } | undefined
+    const name = typeof attrs?.name === "string" ? attrs.name : ""
+    const type = typeof attrs?.type === "string" ? attrs.type : ""
+    return (
+      name !== "" &&
+      !["csrf_token", "method", "submit"].includes(name) &&
+      !["hidden", "submit", "button"].includes(type)
+    )
+  })
+}
+
+async function submitRecoveryFlow(
+  flow: KratosRecoveryFlow,
+  fields: Record<string, string>
+) {
+  const body = new URLSearchParams({
+    csrf_token: getKratosCsrfToken(flow),
+    method: recoveryMethod(flow),
+    ...fields,
+  })
+  const res = await fetch(
+    apiUrl(`/api/kratos/recovery?flow=${encodeURIComponent(flow?.id ?? "")}`),
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+      },
+      body: body.toString(),
+    }
+  )
+  const data = await readJsonResponse(res, "auth.recovery.error.failed")
+  if (data?.error?.message || data?.error?.id) {
+    throw new Error(data.error.message || "auth.recovery.error.failed")
+  }
+  return data as KratosRecoveryFlow
+}
+
+/** Quên/đặt lại mật khẩu — drives the Kratos recovery flow through the BFF. */
+export function RecoveryPage() {
+  const { t } = useI18n()
+  const { branding } = useSystemBranding()
+  const [flow, setFlow] = useState<KratosRecoveryFlow | null>(null)
+  const [values, setValues] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState("")
+  const done = flow?.state === "passed_challenge"
+
+  useEffect(() => {
+    let cancelled = false
+    const start = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const flowId = params.get("flow") || ""
+      const code = params.get("code") || ""
+      try {
+        const res = await fetch(
+          apiUrl(
+            flowId
+              ? `/api/kratos/recovery/flows?id=${encodeURIComponent(flowId)}`
+              : "/api/kratos/recovery/browser"
+          ),
+          { credentials: "include", headers: { Accept: "application/json" } }
+        )
+        let data = await readJsonResponse(res, "auth.recovery.error.failed")
+        if (data?.error?.message || data?.error?.id) {
+          throw new Error(data.error.message || "auth.recovery.error.failed")
+        }
+        if (code) {
+          data = await submitRecoveryFlow(data, { code })
+        }
+        if (!cancelled) setFlow(data)
+      } catch (err) {
+        if (!cancelled)
+          setError(
+            err instanceof Error ? err.message : t("auth.recovery.error.failed")
+          )
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    void start()
+    return () => {
+      cancelled = true
+    }
+  }, [t])
+
+  const submit = async () => {
+    if (!flow) return
+    setPending(true)
+    setError("")
+    try {
+      const next = await submitRecoveryFlow(flow, values)
+      const flowError = getKratosFlowError(next)
+      if (flowError) setError(flowError)
+      setFlow(next)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : t("auth.recovery.error.failed")
+      )
+    } finally {
+      setPending(false)
+    }
+  }
+
+  if (loading) return <AuthLoadingScreen />
+
+  return (
+    <AuthFrame branding={branding}>
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h1 className="text-lg font-semibold text-foreground">
+            {t("auth.recovery.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("auth.recovery.description")}
+          </p>
+        </div>
+
+        {done ? (
+          <div className="space-y-4">
+            <p className="text-sm text-emerald-600">
+              {t("auth.recovery.success")}
+            </p>
+            <Button
+              className="h-10 w-full font-semibold"
+              onClick={() => {
+                window.location.href = "/settings/security"
+              }}
+            >
+              {t("auth.recovery.btn.change_password")}
+            </Button>
+          </div>
+        ) : error && !flow ? (
+          <div className="space-y-4">
+            <p className="text-sm text-destructive">{error}</p>
+            <Button
+              variant="outline"
+              className="h-10 w-full"
+              onClick={() => {
+                window.location.href = "/recovery"
+              }}
+            >
+              {t("auth.recovery.btn.retry")}
+            </Button>
+          </div>
+        ) : (
+          <form
+            className="space-y-3"
+            onSubmit={(event: FormEvent) => {
+              event.preventDefault()
+              void submit()
+            }}
+          >
+            {recoveryInputNodes(flow).map((node, index) => {
+              const attrs = node.attributes as {
+                name?: string
+                type?: string
+              }
+              const name = attrs.name ?? `field_${index}`
+              const type = attrs.type ?? "text"
+              return (
+                <FormField key={name} label={name}>
+                  <Input
+                    autoFocus
+                    className="h-10"
+                    type={type === "email" ? "email" : type}
+                    value={values[name] ?? ""}
+                    onChange={(event) =>
+                      setValues((prev) => ({ ...prev, [name]: event.target.value }))
+                    }
+                  />
+                </FormField>
+              )
+            })}
+
+            {error && <p className="text-sm text-destructive">{error}</p>}
+
+            <Button
+              className="h-10 w-full font-semibold"
+              disabled={pending}
+              type="submit"
+            >
+              {pending ? (
+                <>
+                  <Spinner className="mr-2 size-4 animate-spin" />
+                  {t("auth.recovery.btn.submitting")}
+                </>
+              ) : (
+                t("auth.recovery.btn.submit")
+              )}
+            </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                className="text-sm text-primary hover:underline"
+                onClick={() => {
+                  window.location.href = "/login"
+                }}
+              >
+                {t("auth.recovery.btn.back_to_login")}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </AuthFrame>
+  )
 }
 
 function AuthFrame({
