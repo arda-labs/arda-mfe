@@ -201,5 +201,27 @@
       "computed": "Scored {score} — rank {rank}.",
       "failed": "Scoring failed"
     }
+  },
+  "import": {
+    "title": "Report import",
+    "description": "Stage an import transaction by import type and period, then submit it.",
+    "empty": "No import transactions yet.",
+    "field": {
+      "type": "Import type",
+      "period": "Period",
+      "rows": "Rows"
+    },
+    "btn": {
+      "stage": "Stage",
+      "submit": "Submit"
+    },
+    "validation": {
+      "required": "Enter an import type and period."
+    },
+    "toast": {
+      "staged": "Import transaction staged.",
+      "submitted": "Import transaction submitted.",
+      "failed": "Operation failed"
+    }
   }
 }

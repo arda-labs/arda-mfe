@@ -91,6 +91,20 @@ export interface ScoreResultInput {
   bands: ScoreBand[]
 }
 
+/** QCMS staged import transaction (fe_statistical #20). */
+export interface ImportTransaction {
+  id: string
+  tenant_id: string
+  import_type_code: string
+  period_code: string
+  status: string
+  row_count: number
+  payload: Record<string, unknown>
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
 /** QCMS generic catalog row (W5) — kind selects the EPAS catalog screen. */
 export interface CatalogItem {
   id: string
@@ -251,6 +265,25 @@ export const statisticalApi = {
   },
   createScoreResult: (body: ScoreResultInput) =>
     postCanonical<ScoreResult>("/api/statistical/score-results", body),
+  listImportTransactions: (
+    params: { import_type_code?: string; period_code?: string; status?: string } = {}
+  ) => {
+    const search = new URLSearchParams()
+    if (params.import_type_code) search.set("import_type_code", params.import_type_code)
+    if (params.period_code) search.set("period_code", params.period_code)
+    if (params.status) search.set("status", params.status)
+    const qs = search.toString()
+    return getCanonicalList<ImportTransaction>(
+      `/api/statistical/import-transactions${qs ? `?${qs}` : ""}`
+    ).then((res) => res.items ?? [])
+  },
+  upsertImportTransaction: (body: Partial<ImportTransaction>) =>
+    postCanonical<ImportTransaction>("/api/statistical/import-transactions", body),
+  submitImportTransaction: (id: string) =>
+    postCanonical<ImportTransaction>(
+      `/api/statistical/import-transactions/${encodeURIComponent(id)}/submit`,
+      {}
+    ),
   submitSubmission: (id: string) =>
     postCanonical<ReportSubmission>(`/api/statistical/submissions/${encodeURIComponent(id)}/submit`, {}),
 }

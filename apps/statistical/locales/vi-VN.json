@@ -201,5 +201,27 @@
       "computed": "Đã tính điểm {score} — xếp hạng {rank}.",
       "failed": "Tính điểm thất bại"
     }
+  },
+  "import": {
+    "title": "Nhập liệu báo cáo",
+    "description": "Tạo giao dịch nhập liệu (staging) theo loại nhập và kỳ báo cáo, sau đó nộp.",
+    "empty": "Chưa có giao dịch nhập liệu nào.",
+    "field": {
+      "type": "Loại nhập liệu",
+      "period": "Kỳ báo cáo",
+      "rows": "Số dòng"
+    },
+    "btn": {
+      "stage": "Tạo staging",
+      "submit": "Nộp"
+    },
+    "validation": {
+      "required": "Vui lòng nhập loại nhập liệu và kỳ báo cáo."
+    },
+    "toast": {
+      "staged": "Đã tạo giao dịch nhập liệu.",
+      "submitted": "Đã nộp giao dịch nhập liệu.",
+      "failed": "Thao tác thất bại"
+    }
   }
 }
