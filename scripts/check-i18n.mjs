@@ -117,10 +117,35 @@ async function checkAppsLocales() {
     if (existsSync(appLocalesDir)) {
       const appErr = await checkLocaleDir(appLocalesDir, `apps/${app}`)
       if (appErr) hasError = true
+      const wrapperErr = await checkSelfNamedWrapper(appLocalesDir, app)
+      if (wrapperErr) hasError = true
     }
   }
 
   return hasError
+}
+
+// registerAppLocales(app, bundle) stores the whole file AS the app namespace,
+// so a top-level key named after the app itself hides every sibling key one
+// level down (t("hrm.employees.title") missed one level — cf. hrm raw-keys
+// incident 2026-09-11). App locale files must stay flat at the top level.
+async function checkSelfNamedWrapper(appLocalesDir, app) {
+  const enFile = path.join(appLocalesDir, "en-US.json")
+  if (!existsSync(enFile)) return false
+  try {
+    const content = JSON.parse(await readFile(enFile, "utf-8"))
+    if (content[app] && typeof content[app] === "object" && !Array.isArray(content[app])) {
+      console.error(
+        `❌ [apps/${app}] Locale file wraps keys under a top-level "${app}" object — ` +
+          `registerAppLocales already prefixes the namespace, so these keys are unreachable. ` +
+          `Flatten the file: move "${app}".* children to the top level.`
+      )
+      return true
+    }
+  } catch (err) {
+    // malformed JSON is reported by checkLocaleDir
+  }
+  return false
 }
 
 async function main() {
