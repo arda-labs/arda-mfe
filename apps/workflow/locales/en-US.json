@@ -480,7 +480,12 @@
     "user_tasks_empty": "No tasks.",
     "jobs_view_runtime": "Job runtime",
     "jobs_view_definitions": "Job definitions",
-    "history_source_case": "Case"
+    "history_source_case": "Case",
+    "detail_element": "Element",
+    "element_select_hint": "Select an activity on the diagram to see its incidents, jobs and variables.",
+    "action_clear_selection": "Clear selection",
+    "action_retry_all_incidents": "Retry all incidents",
+    "retry_all_result": "Retried {retried}/{total} incidents"
   },
   "bpmn": {
     "highlight_not_found": "BPMN element \"{id}\" not found for highlighting.",

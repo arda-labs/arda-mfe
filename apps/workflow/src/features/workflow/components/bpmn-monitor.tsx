@@ -71,6 +71,7 @@ type BpmnCanvas = {
     (value: Pick<BpmnViewbox, "x" | "y" | "width" | "height">): BpmnViewbox
   }
   addMarker: (elementId: string, marker: string) => void
+  removeMarker: (elementId: string, marker: string) => void
 }
 
 type BpmnViewbox = {
@@ -298,6 +299,8 @@ export function OperateBpmnViewer({
   highlightId,
   loading,
   elementStats,
+  selectedElementId,
+  onElementClick,
   className,
 }: {
   title: string
@@ -305,11 +308,20 @@ export function OperateBpmnViewer({
   highlightId?: string
   loading?: boolean
   elementStats?: Map<string, ElementInstanceStat>
+  selectedElementId?: string
+  onElementClick?: (elementId: string) => void
   className?: string
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const viewerRef = useRef<InstanceType<typeof BpmnViewer> | null>(null)
+  const selectedMarkerRef = useRef<string | undefined>(undefined)
+  const onElementClickRef = useRef(onElementClick)
   const [error, setError] = useState("")
   const { t } = useI18n()
+
+  useEffect(() => {
+    onElementClickRef.current = onElementClick
+  }, [onElementClick])
 
   useEffect(() => {
     if (!containerRef.current || !xml) return
@@ -330,8 +342,21 @@ export function OperateBpmnViewer({
           if (disposed) return
           const canvas = viewer.get("canvas") as BpmnCanvas
           const overlays = viewer.get("overlays") as BpmnOverlays
+          viewerRef.current = viewer
 
           fitCanvasViewport(canvas)
+
+          const eventBus = viewer.get("eventBus") as {
+            on: (
+              event: string,
+              handler: (event: { element?: { id?: string } }) => void
+            ) => void
+          }
+          eventBus.on("element.click", (event) => {
+            const elementId = event?.element?.id
+            if (!elementId || elementId === "__implicitroot") return
+            onElementClickRef.current?.(elementId)
+          })
 
           // Highlight current element
           if (highlightId) {
@@ -348,6 +373,18 @@ export function OperateBpmnViewer({
           if (elementStats && elementStats.size > 0) {
             for (const [elementId, stat] of elementStats) {
               if (stat.totalCount === 0 && stat.incidentCount === 0) continue
+
+              try {
+                if (stat.incidentCount > 0) {
+                  canvas.addMarker(elementId, "operate-incident")
+                } else if (stat.activeCount > 0) {
+                  canvas.addMarker(elementId, "operate-active")
+                } else if (stat.completedCount > 0) {
+                  canvas.addMarker(elementId, "operate-completed")
+                }
+              } catch {
+                // Element might not be on the current diagram
+              }
 
               const badge = document.createElement("div")
               badge.className = "operate-element-badge"
@@ -386,6 +423,8 @@ export function OperateBpmnViewer({
 
     return () => {
       disposed = true
+      viewerRef.current = null
+      selectedMarkerRef.current = undefined
       window.cancelAnimationFrame(frame)
       try {
         viewer.destroy()
@@ -394,6 +433,23 @@ export function OperateBpmnViewer({
       }
     }
   }, [xml, highlightId, elementStats, t])
+
+  useEffect(() => {
+    const viewer = viewerRef.current
+    if (!viewer) return
+    const canvas = viewer.get("canvas") as BpmnCanvas
+    try {
+      if (selectedMarkerRef.current) {
+        canvas.removeMarker(selectedMarkerRef.current, "operate-selected")
+      }
+      if (selectedElementId) {
+        canvas.addMarker(selectedElementId, "operate-selected")
+      }
+    } catch {
+      // Unknown elements simply keep no selection marker
+    }
+    selectedMarkerRef.current = selectedElementId
+  }, [selectedElementId])
 
   if (loading) return <LoadingBlock />
   if (!xml)
@@ -411,6 +467,20 @@ export function OperateBpmnViewer({
               current: {highlightId}
             </p>
           ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-[#0f62fe]" />
+            {t("workflow.operate.instance_state_active")}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-[#24a148]" />
+            {t("workflow.operate.instance_state_completed")}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-[#da1e28]" />
+            {t("workflow.operate.metric_incident")}
+          </span>
         </div>
       </div>
       <div className="relative min-h-[34rem]">
@@ -433,6 +503,39 @@ export function OperateBpmnViewer({
           stroke: var(--primary) !important;
           stroke-width: 4px !important;
         }
+        .operate-incident:not(.djs-connection) .djs-visual > :nth-child(1) {
+          stroke: #da1e28 !important;
+          stroke-width: 3px !important;
+        }
+        .operate-incident.djs-connection .djs-visual > path {
+          stroke: #da1e28 !important;
+          stroke-width: 3px !important;
+        }
+        .operate-active:not(.djs-connection) .djs-visual > :nth-child(1) {
+          stroke: #0f62fe !important;
+          stroke-width: 2.5px !important;
+        }
+        .operate-active.djs-connection .djs-visual > path {
+          stroke: #0f62fe !important;
+          stroke-width: 2.5px !important;
+        }
+        .operate-completed:not(.djs-connection) .djs-visual > :nth-child(1) {
+          stroke: #24a148 !important;
+        }
+        .operate-completed.djs-connection .djs-visual > path {
+          stroke: #24a148 !important;
+        }
+        .operate-selected:not(.djs-connection) .djs-visual > :nth-child(1) {
+          stroke: #161616 !important;
+          stroke-dasharray: 6 3;
+        }
+        .operate-selected.djs-connection .djs-visual > path {
+          stroke: #161616 !important;
+          stroke-dasharray: 6 3;
+        }
+        .dark .operate-selected:not(.djs-connection) .djs-visual > :nth-child(1) {
+          stroke: #f4f4f4 !important;
+        }
         .operate-element-badge {
           display: flex;
           gap: 2px;
@@ -447,7 +550,7 @@ export function OperateBpmnViewer({
           height: 18px;
           padding: 0 4px;
           border-radius: 999px;
-          background: #0ea5e9;
+          background: #0f62fe;
           color: white;
           font-size: 10px;
           font-weight: 700;
@@ -462,7 +565,7 @@ export function OperateBpmnViewer({
           height: 18px;
           padding: 0 4px;
           border-radius: 999px;
-          background: #ef4444;
+          background: #da1e28;
           color: white;
           font-size: 10px;
           font-weight: 700;
@@ -477,16 +580,16 @@ export function OperateBpmnViewer({
           height: 18px;
           padding: 0 4px;
           border-radius: 999px;
-          background: #6b7280;
+          background: #24a148;
           color: white;
           font-size: 10px;
           font-weight: 600;
           line-height: 1;
           box-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
-        .dark .operate-element-badge .badge-active { background: #38bdf8; }
-        .dark .operate-element-badge .badge-incident { background: #f87171; }
-        .dark .operate-element-badge .badge-completed { background: #9ca3af; }
+        .dark .operate-element-badge .badge-active { background: #4589ff; }
+        .dark .operate-element-badge .badge-incident { background: #fa4d56; }
+        .dark .operate-element-badge .badge-completed { background: #42be65; }
       `}</style>
     </div>
   )

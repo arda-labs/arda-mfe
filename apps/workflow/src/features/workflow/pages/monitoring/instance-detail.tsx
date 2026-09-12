@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ArrowLeft, RefreshCw, XCircle } from "lucide-react"
+import { ArrowLeft, RefreshCw, RotateCcw, XCircle } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -30,7 +30,7 @@ import { InstanceStateBadge } from "./state-badge"
 import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime, formatDuration } from "./format"
 
-type DetailTab = "variables" | "incidents" | "jobs" | "history"
+type DetailTab = "variables" | "incidents" | "jobs" | "history" | "element"
 
 type MergedHistoryEntry =
   | { kind: "runtime"; ts: string; event: OperateHistoryEvent }
@@ -39,11 +39,24 @@ type MergedHistoryEntry =
 export function InstanceDetail({
   instanceKey,
   onBack,
+  selectedElementId,
+  onSelectElement,
 }: {
   instanceKey: string
   onBack: () => void
+  selectedElementId?: string
+  onSelectElement?: (elementId?: string) => void
 }) {
   const { t } = useI18n()
+  const [localElementId, setLocalElementId] = useState<string>()
+  const activeElementId = selectedElementId ?? localElementId
+  const selectElement = useCallback(
+    (elementId?: string) => {
+      if (onSelectElement) onSelectElement(elementId)
+      else setLocalElementId(elementId)
+    },
+    [onSelectElement]
+  )
   const [detail, setDetail] = useState<OperateInstanceDetail | null>(null)
   const [elements, setElements] = useState<OperateElementInstance[]>([])
   const [variables, setVariables] = useState<OperateVariable[]>([])
@@ -194,6 +207,63 @@ export function InstanceDetail({
     ]
     return entries.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0))
   }, [history, caseTimeline])
+
+  const handleElementClick = useCallback(
+    (elementId: string) => {
+      selectElement(elementId)
+      setTab("element")
+    },
+    [selectElement]
+  )
+
+  const selectedElement = useMemo(
+    () => elements.find((element) => element.elementId === activeElementId),
+    [activeElementId, elements]
+  )
+  const elementIncidents = useMemo(
+    () =>
+      incidents.filter((incident) => incident.elementId === activeElementId),
+    [activeElementId, incidents]
+  )
+  const elementJobs = useMemo(
+    () => jobs.filter((job) => job.elementId === activeElementId),
+    [activeElementId, jobs]
+  )
+  const elementVariables = useMemo(
+    () =>
+      selectedElement
+        ? variables.filter(
+            (variable) =>
+              variable.scopeKey === selectedElement.elementInstanceKey
+          )
+        : [],
+    [selectedElement, variables]
+  )
+
+  const handleRetryAllIncidents = useCallback(async () => {
+    if (incidents.length === 0) return
+    setActing(true)
+    let retried = 0
+    try {
+      for (const incident of incidents) {
+        try {
+          await workflowApi.retryIncident(incident.incidentKey)
+          retried++
+        } catch {
+          // Continue retrying the remaining incidents
+        }
+      }
+      notify.success(
+        t("workflow.operate.retry_all_result", {
+          retried,
+          total: incidents.length,
+        })
+      )
+      await load()
+    } finally {
+      setActing(false)
+    }
+  }, [incidents, load, t])
 
   const handleCancel = useCallback(async () => {
     setActing(true)
@@ -360,6 +430,18 @@ export function InstanceDetail({
               {t("workflow.operate.cancel_title")}
             </Button>
           ) : null}
+          {incidents.length > 0 ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-destructive"
+              disabled={acting}
+              onClick={() => void handleRetryAllIncidents()}
+            >
+              <RotateCcw className="mr-1 size-3.5" />
+              {t("workflow.operate.action_retry_all_incidents")}
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -370,6 +452,8 @@ export function InstanceDetail({
             xml={xml}
             highlightId={highlightId}
             elementStats={elementStats}
+            selectedElementId={activeElementId}
+            onElementClick={handleElementClick}
           />
         </div>
 
@@ -377,6 +461,15 @@ export function InstanceDetail({
           <div className="flex border-b text-xs">
             {(
               [
+                ...(activeElementId
+                  ? ([
+                      [
+                        "element",
+                        t("workflow.operate.detail_element"),
+                        elementIncidents.length,
+                      ],
+                    ] as Array<[DetailTab, string, number]>)
+                  : []),
                 ["variables", t("workflow.operate.detail_variables"), variables.length],
                 ["incidents", t("workflow.operate.detail_incidents"), incidents.length],
                 ["jobs", t("workflow.operate.detail_jobs"), jobs.length],
@@ -400,6 +493,147 @@ export function InstanceDetail({
           </div>
 
           <div className="min-h-0 flex-1 overflow-auto p-2">
+            {tab === "element" ? (
+              !activeElementId ? (
+                <p className="p-3 text-xs text-muted-foreground">
+                  {t("workflow.operate.element_select_hint")}
+                </p>
+              ) : (
+                <div className="space-y-3 p-1">
+                  <div className="rounded-md border p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-medium">
+                          {selectedElement?.elementId ?? activeElementId}
+                        </p>
+                        <p className="font-mono text-[10px] text-muted-foreground">
+                          {selectedElement?.bpmnElementType ?? ""}
+                          {selectedElement?.state
+                            ? ` · ${selectedElement.state}`
+                            : ""}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-[11px]"
+                        onClick={() => selectElement(undefined)}
+                      >
+                        {t("workflow.operate.action_clear_selection")}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {elementIncidents.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium">
+                        {t("workflow.operate.detail_incidents")}
+                      </p>
+                      {elementIncidents.map((incident) => (
+                        <div
+                          key={incident.incidentKey}
+                          className="rounded-md border border-destructive/40 p-2 text-xs"
+                        >
+                          <Badge variant="destructive">
+                            {incident.errorType ||
+                              t("workflow.operate.unknown_error")}
+                          </Badge>
+                          <p className="mt-1 break-words text-muted-foreground">
+                            {incident.errorMessage || "—"}
+                          </p>
+                          <div className="mt-2 flex justify-end gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2 text-[11px]"
+                              disabled={acting}
+                              onClick={() =>
+                                void handleRetryIncident(incident.incidentKey)
+                              }
+                            >
+                              {t("workflow.operate.actions_retry")}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-2 text-[11px]"
+                              disabled={acting}
+                              onClick={() =>
+                                void handleResolveIncident(incident.incidentKey)
+                              }
+                            >
+                              {t("workflow.operate.actions_resolve")}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {elementJobs.length > 0 ? (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium">
+                        {t("workflow.operate.detail_jobs")}
+                      </p>
+                      {elementJobs.map((job) => (
+                        <div
+                          key={job.jobKey}
+                          className="flex items-center justify-between gap-2 rounded-md border p-2 text-xs"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate">{job.type}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {job.state} ·{" "}
+                              {t("workflow.operate.detail_job_retries")}:{" "}
+                              {job.retries}
+                            </p>
+                          </div>
+                          {job.state === "FAILED" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2 text-[11px]"
+                              disabled={acting}
+                              onClick={() => void handleUpdateRetries(job.jobKey)}
+                            >
+                              {t("workflow.operate.detail_update_retries")}
+                            </Button>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {elementVariables.length > 0 ? (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium">
+                        {t("workflow.operate.detail_variables")}
+                      </p>
+                      <table className="w-full text-xs">
+                        <tbody>
+                          {elementVariables.map((variable) => (
+                            <tr
+                              key={`${variable.scopeKey}:${variable.name}`}
+                              className="border-t align-top"
+                            >
+                              <td className="px-1 py-1 font-medium">
+                                {variable.name}
+                              </td>
+                              <td className="max-w-[12rem] px-1 py-1">
+                                <code className="block truncate font-mono text-[10px]">
+                                  {variable.value}
+                                </code>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : null}
+                </div>
+              )
+            ) : null}
+
             {tab === "variables" ? (
               variables.length === 0 ? (
                 <p className="p-3 text-xs text-muted-foreground">

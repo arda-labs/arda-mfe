@@ -134,6 +134,16 @@ export function ProcessMonitoringPage() {
       ? hubTabParam
       : "definitions"
   const instanceParam = searchParams.get("instance") ?? undefined
+  const elementParam = searchParams.get("element") ?? undefined
+  const selectElement = useCallback(
+    (elementId?: string) => {
+      const next = new URLSearchParams(searchParams)
+      if (elementId) next.set("element", elementId)
+      else next.delete("element")
+      setSearchParams(next, { replace: true })
+    },
+    [searchParams, setSearchParams]
+  )
   const selectTab = useCallback(
     (tab: HubTab) => {
       const next = new URLSearchParams(searchParams)
@@ -559,7 +569,12 @@ export function ProcessMonitoringPage() {
     return (
       <div className="flex h-full min-h-0 flex-col">
         {tabBar}
-        <InstanceDetail instanceKey={instanceParam} onBack={closeInstance} />
+        <InstanceDetail
+          instanceKey={instanceParam}
+          selectedElementId={elementParam}
+          onSelectElement={selectElement}
+          onBack={closeInstance}
+        />
       </div>
     )
   }

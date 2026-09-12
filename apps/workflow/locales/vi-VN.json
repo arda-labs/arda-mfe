@@ -480,7 +480,12 @@
     "user_tasks_empty": "Không có tác vụ nào.",
     "jobs_view_runtime": "Job runtime",
     "jobs_view_definitions": "Định nghĩa job",
-    "history_source_case": "Hồ sơ"
+    "history_source_case": "Hồ sơ",
+    "detail_element": "Element",
+    "element_select_hint": "Chọn một activity trên sơ đồ để xem sự cố, job và biến của bước đó.",
+    "action_clear_selection": "Bỏ chọn",
+    "action_retry_all_incidents": "Retry tất cả sự cố",
+    "retry_all_result": "Đã retry {retried}/{total} sự cố"
   },
   "bpmn": {
     "highlight_not_found": "Không tìm thấy BPMN element \"{id}\" để highlight.",
