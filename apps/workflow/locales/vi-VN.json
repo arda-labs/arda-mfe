@@ -477,7 +477,10 @@
     "assign_success": "Đã gán tác vụ",
     "assign_failed": "Gán tác vụ thất bại",
     "user_task_state_created": "Đang mở",
-    "user_tasks_empty": "Không có tác vụ nào."
+    "user_tasks_empty": "Không có tác vụ nào.",
+    "jobs_view_runtime": "Job runtime",
+    "jobs_view_definitions": "Định nghĩa job",
+    "history_source_case": "Hồ sơ"
   },
   "bpmn": {
     "highlight_not_found": "Không tìm thấy BPMN element \"{id}\" để highlight.",

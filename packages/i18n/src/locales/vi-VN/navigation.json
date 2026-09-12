@@ -83,7 +83,8 @@
     "sla_policies": "Chính sách SLA",
     "description_templates": "Mẫu mô tả",
     "roles": "Vai trò quy trình",
-    "monitoring": "Giám sát quy trình"
+    "monitoring": "Giám sát quy trình",
+    "dashboard": "Bảng điều khiển quy trình"
   },
   "tenant": {
     "switch": "Chuyển đơn vị / Workspace"

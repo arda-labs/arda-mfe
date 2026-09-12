@@ -377,6 +377,11 @@ export const navItems: NavNode[] = [
         labelKey: "nav.workflow.monitoring",
         icon: LayoutDashboard,
       },
+      {
+        href: "/workflow/dashboard",
+        labelKey: "nav.workflow.dashboard",
+        icon: BarChart3,
+      },
     ],
   },
   {

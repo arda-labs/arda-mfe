@@ -24,12 +24,17 @@ import type {
   OperateInstanceDetail,
   OperateJob,
   OperateVariable,
+  WorkflowTimelineEvent,
 } from "../../api"
 import { InstanceStateBadge } from "./state-badge"
 import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime, formatDuration } from "./format"
 
 type DetailTab = "variables" | "incidents" | "jobs" | "history"
+
+type MergedHistoryEntry =
+  | { kind: "runtime"; ts: string; event: OperateHistoryEvent }
+  | { kind: "case"; ts: string; event: WorkflowTimelineEvent }
 
 export function InstanceDetail({
   instanceKey,
@@ -45,6 +50,7 @@ export function InstanceDetail({
   const [incidents, setIncidents] = useState<OperateIncidentRow[]>([])
   const [jobs, setJobs] = useState<OperateJob[]>([])
   const [history, setHistory] = useState<OperateHistoryEvent[]>([])
+  const [caseTimeline, setCaseTimeline] = useState<WorkflowTimelineEvent[]>([])
   const [historyCursor, setHistoryCursor] = useState<string>()
   const [historyLoading, setHistoryLoading] = useState(false)
   const [xml, setXml] = useState("")
@@ -79,6 +85,16 @@ export function InstanceDetail({
       setJobs(jobData)
       setHistory(historyPage.items)
       setHistoryCursor(historyPage.nextCursor)
+
+      if (detailData.caseId) {
+        try {
+          setCaseTimeline(await workflowApi.getCaseTimeline(detailData.caseId))
+        } catch {
+          setCaseTimeline([])
+        }
+      } else {
+        setCaseTimeline([])
+      }
 
       const definitions = await workflowApi.listProcessDefinitions()
       const definition = definitions
@@ -162,6 +178,22 @@ export function InstanceDetail({
     () => elements.find((element) => element.state === "ACTIVE")?.elementId,
     [elements]
   )
+
+  const mergedHistory = useMemo<MergedHistoryEntry[]>(() => {
+    const entries: MergedHistoryEntry[] = [
+      ...history.map((event) => ({
+        kind: "runtime" as const,
+        ts: event.timestamp,
+        event,
+      })),
+      ...caseTimeline.map((event) => ({
+        kind: "case" as const,
+        ts: event.createdAt,
+        event,
+      })),
+    ]
+    return entries.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0))
+  }, [history, caseTimeline])
 
   const handleCancel = useCallback(async () => {
     setActing(true)
@@ -348,7 +380,7 @@ export function InstanceDetail({
                 ["variables", t("workflow.operate.detail_variables"), variables.length],
                 ["incidents", t("workflow.operate.detail_incidents"), incidents.length],
                 ["jobs", t("workflow.operate.detail_jobs"), jobs.length],
-                ["history", t("workflow.operate.detail_history"), history.length],
+                ["history", t("workflow.operate.detail_history"), mergedHistory.length],
               ] as Array<[DetailTab, string, number]>
             ).map(([key, label, count]) => (
               <button
@@ -523,46 +555,78 @@ export function InstanceDetail({
               )
             ) : null}
             {tab === "history" ? (
-              history.length === 0 ? (
+              mergedHistory.length === 0 ? (
                 <p className="p-3 text-xs text-muted-foreground">
                   {t("workflow.operate.history_empty")}
                 </p>
               ) : (
                 <div className="space-y-1 p-1">
-                  {history.map((event) => (
-                    <div
-                      key={event.position}
-                      className="rounded-md border p-2 text-xs"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <Badge
-                          variant="outline"
-                          className="font-mono text-[10px]"
-                        >
-                          {event.valueType}
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground">
-                          {formatDateTime(event.timestamp)}
-                        </span>
+                  {mergedHistory.map((entry) =>
+                    entry.kind === "runtime" ? (
+                      <div
+                        key={`runtime-${entry.event.position}`}
+                        className="rounded-md border p-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge
+                            variant="outline"
+                            className="font-mono text-[10px]"
+                          >
+                            {entry.event.valueType}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatDateTime(entry.event.timestamp)}
+                          </span>
+                        </div>
+                        <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                          {entry.event.intent}
+                          {entry.event.elementId
+                            ? ` · ${entry.event.elementId}`
+                            : ""}
+                          {entry.event.jobType
+                            ? ` · ${entry.event.jobType}`
+                            : ""}
+                          {entry.event.userTaskKey
+                            ? ` · UT ${entry.event.userTaskKey}`
+                            : ""}
+                        </div>
+                        {entry.event.variableName ? (
+                          <code className="mt-1 block truncate font-mono text-[10px]">
+                            {entry.event.variableName} ={" "}
+                            {entry.event.variableValue}
+                          </code>
+                        ) : null}
+                        {entry.event.errorMessage ? (
+                          <p className="mt-1 text-[10px] text-destructive">
+                            {entry.event.errorMessage}
+                          </p>
+                        ) : null}
                       </div>
-                      <div className="mt-1 font-mono text-[10px] text-muted-foreground">
-                        {event.intent}
-                        {event.elementId ? ` · ${event.elementId}` : ""}
-                        {event.jobType ? ` · ${event.jobType}` : ""}
-                        {event.userTaskKey ? ` · UT ${event.userTaskKey}` : ""}
+                    ) : (
+                      <div
+                        key={`case-${entry.event.id}`}
+                        className="rounded-md border border-primary/30 bg-primary/5 p-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge className="font-mono text-[10px]">
+                            {t("workflow.operate.history_source_case")}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatDateTime(entry.event.createdAt)}
+                          </span>
+                        </div>
+                        <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                          {entry.event.eventType}
+                          {entry.event.actor ? ` · ${entry.event.actor}` : ""}
+                        </div>
+                        {entry.event.note ? (
+                          <p className="mt-1 text-[10px] break-words">
+                            {entry.event.note}
+                          </p>
+                        ) : null}
                       </div>
-                      {event.variableName ? (
-                        <code className="mt-1 block truncate font-mono text-[10px]">
-                          {event.variableName} = {event.variableValue}
-                        </code>
-                      ) : null}
-                      {event.errorMessage ? (
-                        <p className="mt-1 text-[10px] text-destructive">
-                          {event.errorMessage}
-                        </p>
-                      ) : null}
-                    </div>
-                  ))}
+                    )
+                  )}
                   {historyCursor ? (
                     <Button
                       size="sm"

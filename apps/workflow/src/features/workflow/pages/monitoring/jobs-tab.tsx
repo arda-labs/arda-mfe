@@ -4,7 +4,7 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { notify } from "@workspace/ui/feedback/notify"
 import { workflowApi } from "../../api"
-import type { OperateJob, OperateJobQuery } from "../../api"
+import type { JobDefinitionState, OperateJob, OperateJobQuery } from "../../api"
 import { InstanceDetail } from "./instance-detail"
 import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime } from "./format"
@@ -40,8 +40,11 @@ export function JobsTab({
   onOpenInstance?: (key: string) => void
 }) {
   const { t } = useI18n()
+  const [view, setView] = useState<"runtime" | "definitions">("runtime")
   const [selectedKey, setSelectedKey] = useState<string>()
   const [items, setItems] = useState<OperateJob[]>([])
+  const [definitions, setDefinitions] = useState<JobDefinitionState[]>([])
+  const [definitionsLoading, setDefinitionsLoading] = useState(false)
   const [cursor, setCursor] = useState<string>()
   const [source, setSource] = useState("")
   const [loading, setLoading] = useState(false)
@@ -84,6 +87,21 @@ export function JobsTab({
     return () => window.clearInterval(timer)
   }, [applied, autoRefresh, search])
 
+  const loadDefinitions = useCallback(async (bpmnProcessId?: string) => {
+    setDefinitionsLoading(true)
+    try {
+      setDefinitions(await workflowApi.listOperateJobDefinitions(bpmnProcessId))
+    } catch {
+      setDefinitions([])
+    } finally {
+      setDefinitionsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (view === "definitions") void loadDefinitions()
+  }, [view, loadDefinitions])
+
   const openInstance = (key: string) => {
     if (onOpenInstance) onOpenInstance(key)
     else setSelectedKey(key)
@@ -95,6 +113,124 @@ export function JobsTab({
         instanceKey={selectedKey}
         onBack={() => setSelectedKey(undefined)}
       />
+    )
+  }
+
+  const viewToggle = (
+    <div className="flex items-center gap-1">
+      <Button
+        size="sm"
+        variant={view === "runtime" ? "secondary" : "ghost"}
+        className="h-7 px-2 text-xs"
+        onClick={() => setView("runtime")}
+      >
+        {t("workflow.operate.jobs_view_runtime")}
+      </Button>
+      <Button
+        size="sm"
+        variant={view === "definitions" ? "secondary" : "ghost"}
+        className="h-7 px-2 text-xs"
+        onClick={() => setView("definitions")}
+      >
+        {t("workflow.operate.jobs_view_definitions")}
+      </Button>
+    </div>
+  )
+
+  if (view === "definitions") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-4">
+        {viewToggle}
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            {t("workflow.operate.filter_bpmn_process")}
+            <input
+              className="h-8 w-44 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+              value={draft.bpmnProcessId ?? ""}
+              onChange={(event) =>
+                setDraft({ ...draft, bpmnProcessId: event.target.value })
+              }
+            />
+          </label>
+          <Button
+            size="sm"
+            onClick={() => void loadDefinitions(draft.bpmnProcessId?.trim())}
+          >
+            {t("workflow.operate.filter_apply")}
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            className="size-8"
+            title={t("workflow.operate.refresh")}
+            disabled={definitionsLoading}
+            onClick={() => void loadDefinitions(draft.bpmnProcessId?.trim())}
+          >
+            <RefreshCw className="size-3.5" />
+          </Button>
+        </div>
+        <div className="overflow-hidden rounded-lg border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-xs text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 text-left">
+                  {t("workflow.operate.detail_job_type")}
+                </th>
+                <th className="px-3 py-2 text-left">
+                  {t("workflow.operate.col_element")}
+                </th>
+                <th className="px-3 py-2 text-left">
+                  {t("workflow.operate.col_process")}
+                </th>
+                <th className="px-3 py-2 text-left">
+                  {t("workflow.operate.detail_job_retries")}
+                </th>
+                <th className="px-3 py-2 text-left">
+                  {t("workflow.operate.col_status")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {definitions.map((definition) => (
+                <tr
+                  key={definition.jobDefinitionKey}
+                  className="border-t align-top"
+                >
+                  <td className="px-3 py-2 font-mono text-xs font-medium">
+                    {definition.type}
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    <div>{definition.elementName || definition.elementId}</div>
+                    <div className="font-mono text-[10px] text-muted-foreground">
+                      {definition.elementId}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {definition.bpmnProcessId}
+                    {definition.version ? ` · v${definition.version}` : ""}
+                  </td>
+                  <td className="px-3 py-2 text-xs">{definition.retries}</td>
+                  <td className="px-3 py-2 text-xs">
+                    {definition.state === "ACTIVE"
+                      ? t("workflow.operate.job_def_state_active")
+                      : t("workflow.operate.job_def_state_suspended")}
+                  </td>
+                </tr>
+              ))}
+              {!definitionsLoading && definitions.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-3 py-8 text-center text-xs text-muted-foreground"
+                  >
+                    {t("workflow.operate.empty_job_definitions")}
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </div>
     )
   }
 
@@ -116,6 +252,7 @@ export function JobsTab({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-4">
+      {viewToggle}
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_state")}

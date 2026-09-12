@@ -477,7 +477,10 @@
     "assign_success": "Task assigned",
     "assign_failed": "Task assignment failed",
     "user_task_state_created": "Open",
-    "user_tasks_empty": "No tasks."
+    "user_tasks_empty": "No tasks.",
+    "jobs_view_runtime": "Job runtime",
+    "jobs_view_definitions": "Job definitions",
+    "history_source_case": "Case"
   },
   "bpmn": {
     "highlight_not_found": "BPMN element \"{id}\" not found for highlighting.",

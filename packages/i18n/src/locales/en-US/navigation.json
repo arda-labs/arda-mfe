@@ -83,7 +83,8 @@
     "sla_policies": "SLA Policies",
     "description_templates": "Description Templates",
     "roles": "Workflow Roles",
-    "monitoring": "Process Monitoring"
+    "monitoring": "Process Monitoring",
+    "dashboard": "Workflow Dashboard"
   },
   "tenant": {
     "switch": "Switch Workspace / Tenant"

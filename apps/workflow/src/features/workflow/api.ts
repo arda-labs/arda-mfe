@@ -250,9 +250,24 @@ export interface JobDefinitionState {
   type: string
   processDefinitionKey: string
   bpmnProcessId: string
+  elementId?: string
+  elementName?: string
+  version?: number
   worker?: string
   state: "ACTIVE" | "SUSPENDED"
   retries: number
+  createdAt: string
+}
+
+export interface WorkflowTimelineEvent {
+  id: number
+  caseId: string
+  eventType: string
+  fromStatus?: string
+  toStatus?: string
+  actor?: string
+  note: string
+  data?: unknown
   createdAt: string
 }
 
@@ -725,6 +740,11 @@ export const workflowApi = {
     return request<{ status: string; assignee: string }>(
       `/api/workflow/operate/user-tasks/${encodeURIComponent(key)}/assign`,
       { method: "POST", body: assignee ? { assignee } : {} }
+    )
+  },
+  getCaseTimeline(caseId: string) {
+    return request<WorkflowTimelineEvent[]>(
+      `/api/workflow/cases/${encodeURIComponent(caseId)}/timeline`
     )
   },
   listOperateJobDefinitions(bpmnProcessId?: string) {
