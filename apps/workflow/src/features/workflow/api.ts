@@ -289,6 +289,111 @@ export interface ProcessMetric {
   tone: "default" | "success" | "warning" | "error"
 }
 
+// --- Runtime monitoring read model (Zeebe exporter backed) ---
+
+export interface OperateInstance {
+  processInstanceKey: string
+  processDefinitionKey?: string
+  bpmnProcessId: string
+  version: number
+  state: string
+  startTime: string
+  endTime?: string
+  parentProcessInstanceKey?: string
+  caseId?: string
+  businessKey?: string
+  caseType?: string
+  caseStatus?: string
+  openIncidents: number
+}
+
+export interface OperateInstancePage {
+  items: OperateInstance[]
+  nextCursor?: string
+  source: string
+}
+
+export interface OperateInstanceDetail extends OperateInstance {
+  title?: string
+  slaDueAt?: string
+}
+
+export interface OperateIncidentRow {
+  incidentKey: string
+  processInstanceKey: string
+  bpmnProcessId?: string
+  elementId?: string
+  elementInstanceKey?: string
+  jobKey?: string
+  errorType?: string
+  errorMessage?: string
+  state: string
+  createdAt?: string
+  caseId?: string
+  businessKey?: string
+}
+
+export interface OperateIncidentPage {
+  items: OperateIncidentRow[]
+  nextCursor?: string
+  source: string
+}
+
+export interface OperateElementInstance {
+  elementInstanceKey: string
+  elementId: string
+  bpmnElementType: string
+  state: string
+  startTime: string
+  endTime?: string
+  flowScopeKey?: string
+}
+
+export interface OperateVariable {
+  name: string
+  value: string
+  scopeKey: string
+  updatedAt: string
+}
+
+export interface OperateJob {
+  jobKey: string
+  type: string
+  state: string
+  retries: number
+  worker?: string
+  elementId?: string
+  elementInstanceKey?: string
+  processInstanceKey: string
+  bpmnProcessId?: string
+  errorMessage?: string
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface OperateInstanceQuery {
+  state?: string
+  bpmnProcessId?: string
+  processDefinitionKey?: string
+  processInstanceKey?: string
+  parentProcessInstanceKey?: string
+  startFrom?: string
+  startTo?: string
+  pageSize?: number
+  cursor?: string
+}
+
+export interface OperateIncidentQuery {
+  state?: string
+  errorType?: string
+  bpmnProcessId?: string
+  processInstanceKey?: string
+  from?: string
+  to?: string
+  pageSize?: number
+  cursor?: string
+}
+
 export type ProcessDefinitionUploadPayload = {
   processCode?: string
   name: string
@@ -311,6 +416,17 @@ function listParamsToQuery(params?: WorkflowListParams) {
   if (params.q) search.set("q", params.q)
   if (params.sort) search.set("sort", params.sort)
   if (params.order) search.set("order", params.order)
+  const raw = search.toString()
+  return raw ? `?${raw}` : ""
+}
+
+function operateQuery(params?: OperateInstanceQuery | OperateIncidentQuery) {
+  if (!params) return ""
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue
+    search.set(key, String(value))
+  }
   const raw = search.toString()
   return raw ? `?${raw}` : ""
 }
@@ -467,26 +583,35 @@ export const workflowApi = {
       "/api/workflow/operate/process-definitions"
     )
   },
-  listOperateProcessInstances(bpmnProcessId?: string) {
-    const path =
-      "/api/workflow/operate/process-instances" +
-      (bpmnProcessId
-        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
-        : "")
-    return request<ProcessInstanceState[]>(path)
+  searchOperateInstances(params?: OperateInstanceQuery) {
+    return request<OperateInstancePage>(
+      `/api/workflow/operate/process-instances${operateQuery(params)}`
+    )
   },
-  getOperateProcessInstance(key: string) {
-    return request<ProcessInstanceState>(
+  getOperateInstanceDetail(key: string) {
+    return request<OperateInstanceDetail>(
       `/api/workflow/operate/process-instances/${encodeURIComponent(key)}`
     )
   },
-  listOperateIncidents(bpmnProcessId?: string) {
-    const path =
-      "/api/workflow/operate/incidents" +
-      (bpmnProcessId
-        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
-        : "")
-    return request<IncidentState[]>(path)
+  listInstanceElementInstances(key: string) {
+    return request<OperateElementInstance[]>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/element-instances`
+    )
+  },
+  listInstanceVariables(key: string) {
+    return request<OperateVariable[]>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/variables`
+    )
+  },
+  listInstanceJobs(key: string) {
+    return request<OperateJob[]>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/jobs`
+    )
+  },
+  searchOperateIncidents(params?: OperateIncidentQuery) {
+    return request<OperateIncidentPage>(
+      `/api/workflow/operate/incidents${operateQuery(params)}`
+    )
   },
   listOperateJobs(bpmnProcessId?: string) {
     const path =

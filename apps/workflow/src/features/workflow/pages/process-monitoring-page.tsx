@@ -45,6 +45,8 @@ import { workflowApi } from "../api"
 import { BpmnDefinitionViewerDialog } from "../components/bpmn-monitor-lazy"
 import { ProcessInstanceOperate } from "../components/process-instance-operate"
 import { ProcessDefinitionDialog } from "../shared/admin-ui"
+import { InstancesTab } from "./monitoring/instances-tab"
+import { IncidentsTab } from "./monitoring/incidents-tab"
 
 function useXml(id: string | undefined) {
   const [xml, setXml] = useState("")
@@ -76,6 +78,7 @@ function useXml(id: string | undefined) {
 }
 
 type PageMode = "list" | "monitor"
+type HubTab = "definitions" | "instances" | "incidents"
 
 function StatusBadge({ status }: { status: string }) {
   const variant =
@@ -109,6 +112,7 @@ export function ProcessMonitoringPage() {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
   const [mode, setMode] = useState<PageMode>("list")
+  const [hubTab, setHubTab] = useState<HubTab>("definitions")
   const [selectedCaseId, setSelectedCaseId] = useState<string>()
   const [importOpen, setImportOpen] = useState(false)
   const [updatingDefinition, setUpdatingDefinition] =
@@ -153,16 +157,30 @@ export function ProcessMonitoringPage() {
   // ── Load operate data on monitor entry ──
   const loadOperateData = useCallback(async () => {
     try {
-      const [es, inc, j] = await Promise.all([
+      const [es, incPage, j] = await Promise.all([
         workflowApi.listElementInstanceStats(),
-        workflowApi.listOperateIncidents(),
+        workflowApi.searchOperateIncidents({ state: "CREATED", pageSize: 100 }),
         workflowApi.listOperateJobs(),
       ])
       setElementStats(es)
-      setIncidents(inc)
+      setIncidents(
+        incPage.items.map((row) => ({
+          incidentKey: row.incidentKey,
+          processInstanceKey: row.processInstanceKey,
+          processDefinitionKey: "",
+          bpmnProcessId: row.bpmnProcessId ?? "",
+          elementId: row.elementId ?? "",
+          elementInstanceKey: row.elementInstanceKey ?? "",
+          jobKey: row.jobKey,
+          errorType: row.errorType ?? "",
+          errorMessage: row.errorMessage ?? "",
+          state: row.state as IncidentState["state"],
+          createdAt: row.createdAt ?? "",
+        }))
+      )
       setJobs(j)
     } catch {
-      /* operate endpoints may not exist yet */
+      /* runtime monitoring is optional; the case monitor still renders */
     }
   }, [])
 
@@ -198,6 +216,19 @@ export function ProcessMonitoringPage() {
       : undefined
   )
   const viewingXml = viewingDefinition?.xmlContent || viewingXmlQuery.data || ""
+
+  const viewerDialog = viewingDefinition ? (
+    <BpmnDefinitionViewerDialog
+      item={viewingDefinition}
+      cases={cases.filter(
+        (c) => c.bpmnProcessId === viewingDefinition.bpmnProcessId
+      )}
+      xml={viewingXml}
+      loading={viewingXmlQuery.isLoading}
+      open
+      onOpenChange={(open) => !open && setViewingDefinition(null)}
+    />
+  ) : null
 
   const monitorCases = useMemo(
     () =>
@@ -430,26 +461,40 @@ export function ProcessMonitoringPage() {
           incidents={incidents}
           jobs={jobs}
         />
-        {viewingDefinition ? (
-          <BpmnDefinitionViewerDialog
-            item={viewingDefinition}
-            cases={cases.filter(
-              (c) => c.bpmnProcessId === viewingDefinition.bpmnProcessId
-            )}
-            xml={viewingXml}
-            loading={viewingXmlQuery.isLoading}
-            open
-            onOpenChange={(open) => !open && setViewingDefinition(null)}
-          />
-        ) : null}
+        {viewerDialog}
       </div>
     )
   }
 
   // ─── List mode (default) ───
+  const hubTabs: Array<[HubTab, string]> = [
+    ["definitions", t("workflow.operate.tab_definitions")],
+    ["instances", t("workflow.operate.tab_instances")],
+    ["incidents", t("workflow.operate.tab_incidents")],
+  ]
+
   return (
-    <>
-      <ListPageShell
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex items-center gap-1 border-b bg-background px-4 py-1.5">
+        {hubTabs.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={
+              "rounded-md px-3 py-1.5 text-xs font-medium transition-colors " +
+              (hubTab === key
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground")
+            }
+            onClick={() => setHubTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        {hubTab === "definitions" ? (
+          <ListPageShell
         title={t("workflow.process_monitoring.title")}
         totalRows={definitions.length}
         meta={<Badge variant="outline">{t("workflow.process_monitoring.definitions_count", { count: definitions.length })}</Badge>}
@@ -510,6 +555,7 @@ export function ProcessMonitoringPage() {
         }
         dialogs={
           <>
+            {viewerDialog}
             <ProcessDefinitionDialog
               open={importOpen}
               onOpenChange={setImportOpen}
@@ -553,6 +599,12 @@ export function ProcessMonitoringPage() {
           </>
         }
       />
-    </>
+        ) : hubTab === "instances" ? (
+          <InstancesTab />
+        ) : (
+          <IncidentsTab />
+        )}
+      </div>
+    </div>
   )
 }
