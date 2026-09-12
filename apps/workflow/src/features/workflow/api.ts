@@ -593,7 +593,7 @@ export const workflowApi = {
     )
   },
   async listCases() {
-    return requestList<WorkflowCase>("/api/workflow/cases?limit=100")
+    return request<WorkflowCase[]>("/api/workflow/cases?limit=100")
   },
   getProcessInstanceRuntime(processInstanceKey: string | number) {
     return request<ProcessInstanceRuntime>(
@@ -686,8 +686,7 @@ export const workflowApi = {
     return request<ProcessDefinitionOperate[]>(
       "/api/workflow/operate/process-definitions"
     )
-  },
-  searchOperateInstances(params?: OperateInstanceQuery) {
+  },  searchOperateInstances(params?: OperateInstanceQuery) {
     return request<OperateInstancePage>(
       `/api/workflow/operate/process-instances${operateQuery(params)}`
     )
