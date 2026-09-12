@@ -394,6 +394,40 @@ export interface OperateIncidentQuery {
   cursor?: string
 }
 
+export interface OperateJobQuery {
+  state?: string
+  type?: string
+  bpmnProcessId?: string
+  processInstanceKey?: string
+  elementId?: string
+  pageSize?: number
+  cursor?: string
+}
+
+export interface OperateJobPage {
+  items: OperateJob[]
+  nextCursor?: string
+  source: string
+}
+
+export interface OperateHistoryEvent {
+  position: string
+  timestamp: string
+  valueType: string
+  intent: string
+  elementId?: string
+  jobType?: string
+  errorMessage?: string
+  variableName?: string
+  variableValue?: string
+  userTaskKey?: string
+}
+
+export interface OperateHistoryPage {
+  items: OperateHistoryEvent[]
+  nextCursor?: string
+}
+
 export type ProcessDefinitionUploadPayload = {
   processCode?: string
   name: string
@@ -420,7 +454,9 @@ function listParamsToQuery(params?: WorkflowListParams) {
   return raw ? `?${raw}` : ""
 }
 
-function operateQuery(params?: OperateInstanceQuery | OperateIncidentQuery) {
+function operateQuery(
+  params?: OperateInstanceQuery | OperateIncidentQuery | OperateJobQuery
+) {
   if (!params) return ""
   const search = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
@@ -613,13 +649,16 @@ export const workflowApi = {
       `/api/workflow/operate/incidents${operateQuery(params)}`
     )
   },
-  listOperateJobs(bpmnProcessId?: string) {
-    const path =
-      "/api/workflow/operate/jobs" +
-      (bpmnProcessId
-        ? `?bpmnProcessId=${encodeURIComponent(bpmnProcessId)}`
-        : "")
-    return request<JobState[]>(path)
+  listInstanceHistory(key: string, cursor?: string) {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}&limit=50` : "?limit=50"
+    return request<OperateHistoryPage>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/history${query}`
+    )
+  },
+  searchOperateJobs(params?: OperateJobQuery) {
+    return request<OperateJobPage>(
+      `/api/workflow/operate/jobs${operateQuery(params)}`
+    )
   },
   listOperateJobDefinitions(bpmnProcessId?: string) {
     const path =

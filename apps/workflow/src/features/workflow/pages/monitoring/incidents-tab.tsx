@@ -44,7 +44,11 @@ function IncidentStateBadge({ state }: { state: string }) {
   )
 }
 
-export function IncidentsTab() {
+export function IncidentsTab({
+  onOpenInstance,
+}: {
+  onOpenInstance?: (key: string) => void
+}) {
   const { t } = useI18n()
   const [selectedKey, setSelectedKey] = useState<string>()
   const [items, setItems] = useState<OperateIncidentRow[]>([])
@@ -82,6 +86,11 @@ export function IncidentsTab() {
   useEffect(() => {
     void search({ state: "CREATED" }, false)
   }, [search])
+
+  const openInstance = (key: string) => {
+    if (onOpenInstance) onOpenInstance(key)
+    else setSelectedKey(key)
+  }
 
   if (selectedKey) {
     return (
@@ -296,7 +305,7 @@ export function IncidentsTab() {
                   <button
                     type="button"
                     className="hover:underline"
-                    onClick={() => setSelectedKey(incident.processInstanceKey)}
+                    onClick={() => openInstance(incident.processInstanceKey)}
                   >
                     {incident.processInstanceKey}
                   </button>
@@ -313,7 +322,7 @@ export function IncidentsTab() {
                       size="sm"
                       variant="ghost"
                       className="h-7 gap-1 px-2 text-xs"
-                      onClick={() => setSelectedKey(incident.processInstanceKey)}
+                      onClick={() => openInstance(incident.processInstanceKey)}
                     >
                       <Eye className="size-3.5" />
                       {t("workflow.operate.action_view")}

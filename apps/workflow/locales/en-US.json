@@ -446,7 +446,16 @@
     "cancel_confirm_title": "Cancel process instance?",
     "cancel_confirm_description": "This permanently stops the running instance and cannot be undone.",
     "cancel_confirm_action": "Cancel instance",
-    "cancel_confirm_cancel": "Keep running"
+    "cancel_confirm_cancel": "Keep running",
+    "tab_jobs": "Jobs",
+    "col_element": "Element",
+    "filter_job_type": "Job type",
+    "detail_history": "History",
+    "history_empty": "No events yet.",
+    "auto_refresh": "Auto refresh",
+    "auto_refresh_off": "Off",
+    "auto_refresh_seconds": "{seconds} seconds",
+    "source_unavailable": "Runtime monitoring is unavailable (ZEEBE_ES_URL missing)."
   },
   "bpmn": {
     "highlight_not_found": "BPMN element \"{id}\" not found for highlighting.",

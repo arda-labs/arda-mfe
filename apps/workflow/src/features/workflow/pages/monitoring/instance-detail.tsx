@@ -19,15 +19,17 @@ import { workflowApi } from "../../api"
 import type {
   ElementInstanceStat,
   OperateElementInstance,
+  OperateHistoryEvent,
   OperateIncidentRow,
   OperateInstanceDetail,
   OperateJob,
   OperateVariable,
 } from "../../api"
 import { InstanceStateBadge } from "./state-badge"
+import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime, formatDuration } from "./format"
 
-type DetailTab = "variables" | "incidents" | "jobs"
+type DetailTab = "variables" | "incidents" | "jobs" | "history"
 
 export function InstanceDetail({
   instanceKey,
@@ -42,10 +44,14 @@ export function InstanceDetail({
   const [variables, setVariables] = useState<OperateVariable[]>([])
   const [incidents, setIncidents] = useState<OperateIncidentRow[]>([])
   const [jobs, setJobs] = useState<OperateJob[]>([])
+  const [history, setHistory] = useState<OperateHistoryEvent[]>([])
+  const [historyCursor, setHistoryCursor] = useState<string>()
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [xml, setXml] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
   const [tab, setTab] = useState<DetailTab>("variables")
+  const [autoRefresh, setAutoRefresh] = useState(0)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [acting, setActing] = useState(false)
 
@@ -53,7 +59,7 @@ export function InstanceDetail({
     setLoading(true)
     setError(null)
     try {
-      const [detailData, elementData, variableData, incidentPage, jobData] =
+      const [detailData, elementData, variableData, incidentPage, jobData, historyPage] =
         await Promise.all([
           workflowApi.getOperateInstanceDetail(instanceKey),
           workflowApi.listInstanceElementInstances(instanceKey),
@@ -64,12 +70,15 @@ export function InstanceDetail({
             pageSize: 100,
           }),
           workflowApi.listInstanceJobs(instanceKey),
+          workflowApi.listInstanceHistory(instanceKey),
         ])
       setDetail(detailData)
       setElements(elementData)
       setVariables(variableData)
       setIncidents(incidentPage.items)
       setJobs(jobData)
+      setHistory(historyPage.items)
+      setHistoryCursor(historyPage.nextCursor)
 
       const definitions = await workflowApi.listProcessDefinitions()
       const definition = definitions
@@ -93,6 +102,34 @@ export function InstanceDetail({
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    if (autoRefresh <= 0) return
+    const timer = window.setInterval(() => {
+      void load()
+    }, autoRefresh * 1000)
+    return () => window.clearInterval(timer)
+  }, [autoRefresh, load])
+
+  const loadMoreHistory = useCallback(async () => {
+    if (!historyCursor) return
+    setHistoryLoading(true)
+    try {
+      const page = await workflowApi.listInstanceHistory(
+        instanceKey,
+        historyCursor
+      )
+      setHistory((previous) => [...previous, ...page.items])
+      setHistoryCursor(page.nextCursor)
+    } catch (reason) {
+      notify.error(
+        t("workflow.operate.monitoring_load_failed"),
+        reason instanceof Error ? reason.message : undefined
+      )
+    } finally {
+      setHistoryLoading(false)
+    }
+  }, [historyCursor, instanceKey, t])
 
   const elementStats = useMemo(() => {
     const stats = new Map<string, ElementInstanceStat>()
@@ -269,6 +306,7 @@ export function InstanceDetail({
             {t("workflow.operate.detail_running_time")}:{" "}
             {formatDuration(detail.startTime, detail.endTime)}
           </span>
+          <AutoRefreshSelect value={autoRefresh} onChange={setAutoRefresh} />
           <Button
             size="sm"
             variant="outline"
@@ -310,6 +348,7 @@ export function InstanceDetail({
                 ["variables", t("workflow.operate.detail_variables"), variables.length],
                 ["incidents", t("workflow.operate.detail_incidents"), incidents.length],
                 ["jobs", t("workflow.operate.detail_jobs"), jobs.length],
+                ["history", t("workflow.operate.detail_history"), history.length],
               ] as Array<[DetailTab, string, number]>
             ).map(([key, label, count]) => (
               <button
@@ -481,6 +520,61 @@ export function InstanceDetail({
                     ))}
                   </tbody>
                 </table>
+              )
+            ) : null}
+            {tab === "history" ? (
+              history.length === 0 ? (
+                <p className="p-3 text-xs text-muted-foreground">
+                  {t("workflow.operate.history_empty")}
+                </p>
+              ) : (
+                <div className="space-y-1 p-1">
+                  {history.map((event) => (
+                    <div
+                      key={event.position}
+                      className="rounded-md border p-2 text-xs"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge
+                          variant="outline"
+                          className="font-mono text-[10px]"
+                        >
+                          {event.valueType}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatDateTime(event.timestamp)}
+                        </span>
+                      </div>
+                      <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                        {event.intent}
+                        {event.elementId ? ` · ${event.elementId}` : ""}
+                        {event.jobType ? ` · ${event.jobType}` : ""}
+                        {event.userTaskKey ? ` · UT ${event.userTaskKey}` : ""}
+                      </div>
+                      {event.variableName ? (
+                        <code className="mt-1 block truncate font-mono text-[10px]">
+                          {event.variableName} = {event.variableValue}
+                        </code>
+                      ) : null}
+                      {event.errorMessage ? (
+                        <p className="mt-1 text-[10px] text-destructive">
+                          {event.errorMessage}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                  {historyCursor ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      disabled={historyLoading}
+                      onClick={() => void loadMoreHistory()}
+                    >
+                      {t("workflow.operate.load_more")}
+                    </Button>
+                  ) : null}
+                </div>
               )
             ) : null}
           </div>

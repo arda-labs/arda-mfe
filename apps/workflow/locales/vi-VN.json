@@ -446,7 +446,16 @@
     "cancel_confirm_title": "Hủy process instance?",
     "cancel_confirm_description": "Hành động này dừng vĩnh viễn phiên chạy đang hoạt động và không thể hoàn tác.",
     "cancel_confirm_action": "Hủy instance",
-    "cancel_confirm_cancel": "Không hủy"
+    "cancel_confirm_cancel": "Không hủy",
+    "tab_jobs": "Công việc",
+    "col_element": "Element",
+    "filter_job_type": "Loại job",
+    "detail_history": "Lịch sử",
+    "history_empty": "Chưa có sự kiện nào.",
+    "auto_refresh": "Tự động làm mới",
+    "auto_refresh_off": "Tắt",
+    "auto_refresh_seconds": "{seconds} giây",
+    "source_unavailable": "Runtime monitoring chưa khả dụng (thiếu ZEEBE_ES_URL)."
   },
   "bpmn": {
     "highlight_not_found": "Không tìm thấy BPMN element \"{id}\" để highlight.",

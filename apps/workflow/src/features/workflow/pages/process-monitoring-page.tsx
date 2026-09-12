@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import {
   ArrowLeft,
   FileUp,
@@ -47,6 +48,8 @@ import { ProcessInstanceOperate } from "../components/process-instance-operate"
 import { ProcessDefinitionDialog } from "../shared/admin-ui"
 import { InstancesTab } from "./monitoring/instances-tab"
 import { IncidentsTab } from "./monitoring/incidents-tab"
+import { JobsTab } from "./monitoring/jobs-tab"
+import { InstanceDetail } from "./monitoring/instance-detail"
 
 function useXml(id: string | undefined) {
   const [xml, setXml] = useState("")
@@ -78,7 +81,7 @@ function useXml(id: string | undefined) {
 }
 
 type PageMode = "list" | "monitor"
-type HubTab = "definitions" | "instances" | "incidents"
+type HubTab = "definitions" | "instances" | "incidents" | "jobs"
 
 function StatusBadge({ status }: { status: string }) {
   const variant =
@@ -112,7 +115,37 @@ export function ProcessMonitoringPage() {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
   const [mode, setMode] = useState<PageMode>("list")
-  const [hubTab, setHubTab] = useState<HubTab>("definitions")
+  const [searchParams, setSearchParams] = useSearchParams()
+  const hubTabParam = searchParams.get("tab")
+  const hubTab: HubTab =
+    hubTabParam === "instances" ||
+    hubTabParam === "incidents" ||
+    hubTabParam === "jobs"
+      ? hubTabParam
+      : "definitions"
+  const instanceParam = searchParams.get("instance") ?? undefined
+  const selectTab = useCallback(
+    (tab: HubTab) => {
+      const next = new URLSearchParams(searchParams)
+      next.set("tab", tab)
+      next.delete("instance")
+      setSearchParams(next, { replace: true })
+    },
+    [searchParams, setSearchParams]
+  )
+  const openInstance = useCallback(
+    (key: string) => {
+      const next = new URLSearchParams(searchParams)
+      next.set("instance", key)
+      setSearchParams(next)
+    },
+    [searchParams, setSearchParams]
+  )
+  const closeInstance = useCallback(() => {
+    const next = new URLSearchParams(searchParams)
+    next.delete("instance")
+    setSearchParams(next)
+  }, [searchParams, setSearchParams])
   const [selectedCaseId, setSelectedCaseId] = useState<string>()
   const [importOpen, setImportOpen] = useState(false)
   const [updatingDefinition, setUpdatingDefinition] =
@@ -157,10 +190,10 @@ export function ProcessMonitoringPage() {
   // ── Load operate data on monitor entry ──
   const loadOperateData = useCallback(async () => {
     try {
-      const [es, incPage, j] = await Promise.all([
+      const [es, incPage, jobsPage] = await Promise.all([
         workflowApi.listElementInstanceStats(),
         workflowApi.searchOperateIncidents({ state: "CREATED", pageSize: 100 }),
-        workflowApi.listOperateJobs(),
+        workflowApi.searchOperateJobs({ pageSize: 100 }),
       ])
       setElementStats(es)
       setIncidents(
@@ -178,7 +211,23 @@ export function ProcessMonitoringPage() {
           createdAt: row.createdAt ?? "",
         }))
       )
-      setJobs(j)
+      setJobs(
+        jobsPage.items.map((row) => ({
+          jobKey: row.jobKey,
+          type: row.type,
+          processInstanceKey: row.processInstanceKey,
+          processDefinitionKey: "",
+          bpmnProcessId: row.bpmnProcessId ?? "",
+          elementId: row.elementId ?? "",
+          elementInstanceKey: row.elementInstanceKey ?? "",
+          state: row.state as JobState["state"],
+          retries: row.retries,
+          maxRetries: 3,
+          createdAt: row.createdAt,
+          worker: row.worker,
+          errorMessage: row.errorMessage,
+        }))
+      )
     } catch {
       /* runtime monitoring is optional; the case monitor still renders */
     }
@@ -471,27 +520,41 @@ export function ProcessMonitoringPage() {
     ["definitions", t("workflow.operate.tab_definitions")],
     ["instances", t("workflow.operate.tab_instances")],
     ["incidents", t("workflow.operate.tab_incidents")],
+    ["jobs", t("workflow.operate.tab_jobs")],
   ]
+
+  const tabBar = (
+    <div className="flex items-center gap-1 border-b bg-background px-4 py-1.5">
+      {hubTabs.map(([key, label]) => (
+        <button
+          key={key}
+          type="button"
+          className={
+            "rounded-md px-3 py-1.5 text-xs font-medium transition-colors " +
+            (hubTab === key
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground")
+          }
+          onClick={() => selectTab(key)}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+
+  if (instanceParam) {
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        {tabBar}
+        <InstanceDetail instanceKey={instanceParam} onBack={closeInstance} />
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1 border-b bg-background px-4 py-1.5">
-        {hubTabs.map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            className={
-              "rounded-md px-3 py-1.5 text-xs font-medium transition-colors " +
-              (hubTab === key
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground")
-            }
-            onClick={() => setHubTab(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {tabBar}
       <div className="flex min-h-0 flex-1 flex-col">
         {hubTab === "definitions" ? (
           <ListPageShell
@@ -600,9 +663,11 @@ export function ProcessMonitoringPage() {
         }
       />
         ) : hubTab === "instances" ? (
-          <InstancesTab />
+          <InstancesTab onOpenInstance={openInstance} />
+        ) : hubTab === "incidents" ? (
+          <IncidentsTab onOpenInstance={openInstance} />
         ) : (
-          <IncidentsTab />
+          <JobsTab onOpenInstance={openInstance} />
         )}
       </div>
     </div>
