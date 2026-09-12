@@ -83,6 +83,8 @@ export function normalizeAuthUser(
       ? resolvePicture(avatarFileId)
       : source.picture || ""
   const displayName = composeDisplayName(source)
+  const orgIds = Array.isArray(source.orgIds) ? source.orgIds : []
+  const requestedActiveOrgId = source.activeOrgId || ""
 
   return {
     userId: source.userId || "",
@@ -115,8 +117,11 @@ export function normalizeAuthUser(
       ? source.tenantMemberships
       : [],
     tenantSelectionRequired: Boolean(source.tenantSelectionRequired),
-    orgIds: source.orgIds || [],
-    activeOrgId: source.activeOrgId || "",
+    orgIds,
+    activeOrgId:
+      requestedActiveOrgId && orgIds.includes(requestedActiveOrgId)
+        ? requestedActiveOrgId
+        : "",
     roles: Array.isArray(source.roles) ? source.roles : [],
     permissions: Array.isArray(source.permissions) ? source.permissions : [],
     globalRoles: Array.isArray(source.globalRoles) ? source.globalRoles : [],
@@ -149,6 +154,20 @@ export function hasAnyPermission(
   return codes.some((code) => hasPermission(user, code))
 }
 
+// Client-side org choice is a preference, never an authority: the BFF re-checks
+// every request against the session. Only carry it across an auth refresh when
+// it is still the same user and the org is still granted to them.
+function resolveActiveOrgId(
+  previous: AuthUser | null,
+  next: AuthUser
+): string {
+  if (next.activeOrgId) return next.activeOrgId
+  const candidate = previous?.activeOrgId || ""
+  if (!candidate) return ""
+  if (!previous?.sub || previous.sub !== next.sub) return ""
+  return (next.orgIds ?? []).includes(candidate) ? candidate : ""
+}
+
 interface AuthState {
   user: AuthUser | null
   isAuthenticated: boolean
@@ -171,7 +190,11 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      login: (user) => set({ user, isAuthenticated: true }),
+      login: (user) =>
+        set((state) => ({
+          user: { ...user, activeOrgId: resolveActiveOrgId(state.user, user) },
+          isAuthenticated: true,
+        })),
       updateUser: (patch) =>
         set((state) => {
           if (!state.user) return state
@@ -199,9 +222,10 @@ export const useAuthStore = create<AuthState>()(
         })
       },
       setActiveOrgId: (orgId) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, activeOrgId: orgId } : null,
-        })),
+        set((state) => {
+          if (!state.user?.orgIds?.includes(orgId)) return state
+          return { user: { ...state.user, activeOrgId: orgId } }
+        }),
       clearSession: () => set({ user: null, isAuthenticated: false }),
       logout: async () => {
         if (typeof window !== "undefined") {

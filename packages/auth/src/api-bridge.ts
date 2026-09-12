@@ -10,4 +10,8 @@ configureApiAuthHandlers({
     if (typeof window !== "undefined") window.location.href = "/login"
   },
   onRecentAuthRequired: ensureRecentAuth,
+  onOrganizationForbidden: () => {
+    const { user, updateUser } = useAuthStore.getState()
+    if (user?.activeOrgId) updateUser({ activeOrgId: "" })
+  },
 })

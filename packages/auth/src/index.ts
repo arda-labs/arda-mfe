@@ -9,4 +9,6 @@ export {
   normalizeAuthUser,
   useAuthStore,
 } from "./store"
+export { useOrganizationOptions } from "./use-organizations"
+export type { OrganizationOption } from "./use-organizations"
 export type { AuthUser } from "./store"

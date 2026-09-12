@@ -91,6 +91,7 @@ export interface CreateApiClientOptions {
   getActiveOrgId?: () => string | undefined
   onUnauthorized?: () => void | Promise<void>
   onRecentAuthRequired?: () => boolean | void | Promise<boolean | void>
+  onOrganizationForbidden?: () => void | Promise<void>
 }
 
 export interface ApiRequestOptions {
@@ -185,6 +186,9 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
 
     if (!res.ok) {
       const payload = await parseApiClientError(res)
+      if (res.status === 403 && payload.code === "organization_forbidden") {
+        await options.onOrganizationForbidden?.()
+      }
       if (res.status === 403 && payload.code === "recent_auth_required") {
         if (!didStepUp) {
           const verified = await options.onRecentAuthRequired?.()

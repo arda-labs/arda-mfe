@@ -28,6 +28,7 @@ import {
 import { useDynamicNavItems } from "./config/use-dynamic-nav"
 import { SidebarNode } from "./components/SidebarNav"
 import { AppHeader } from "./components/AppHeader"
+import { SidebarOrgSwitcher } from "./components/SidebarOrgSwitcher"
 import { CommandPalette } from "./components/CommandPalette"
 
 const aiEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
@@ -74,12 +75,12 @@ export function ShellLayout() {
   const [authHydrated, setAuthHydrated] = useState(() =>
     useAuthStore.persist.hasHydrated()
   )
-  const { user, isAuthenticated, logout, switchTenant, setActiveOrgId } =
-    useAuthStore()
+  const { user, isAuthenticated, logout, switchTenant } = useAuthStore()
   const { t } = useI18n()
   const { branding } = useSystemBranding()
   const { items: navSource } = useDynamicNavItems()
   const visibleNavItems = filterNavItems(navSource, user)
+  const orgIds = user?.orgIds ?? []
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
 
   useEffect(() => {
@@ -199,6 +200,16 @@ export function ShellLayout() {
             </div>
           )}
         </div>
+        {orgIds.length > 1 ? (
+          <div
+            className={cn(
+              "border-b border-[color:var(--layout-sidebar-border)] p-2",
+              !sidebarOpen && "flex justify-center"
+            )}
+          >
+            <SidebarOrgSwitcher compact={!sidebarOpen} />
+          </div>
+        ) : null}
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
           {visibleNavItems.map((item) => (
             <SidebarNode
@@ -244,7 +255,6 @@ export function ShellLayout() {
           displayUserName={displayUserName}
           logout={logout}
           switchTenant={switchTenant}
-          setActiveOrgId={setActiveOrgId}
           navigate={navigate}
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           aiPanelOpen={aiEnabled && aiView !== "closed"}

@@ -6,6 +6,7 @@ import { getApiBaseURL } from "./url"
 export type ApiAuthHandlers = {
   onUnauthorized?: () => void | Promise<void>
   onRecentAuthRequired?: () => boolean | void | Promise<boolean | void>
+  onOrganizationForbidden?: () => void | Promise<void>
 }
 
 let authHandlers: ApiAuthHandlers = {}
@@ -27,6 +28,7 @@ export const api = createApiClient({
   getLocale: getCurrentLocale,
   getActiveOrgId: () => getActiveOrgId?.(),
   onUnauthorized: () => authHandlers.onUnauthorized?.(),
+  onOrganizationForbidden: () => authHandlers.onOrganizationForbidden?.(),
   onRecentAuthRequired: async () => {
     if (!authHandlers.onRecentAuthRequired) return false
     return authHandlers.onRecentAuthRequired()

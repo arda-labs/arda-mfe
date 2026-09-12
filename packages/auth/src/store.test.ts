@@ -1,5 +1,10 @@
-import { describe, expect, test } from "bun:test"
-import { hasAnyPermission, hasPermission, normalizeAuthUser } from "./store"
+import { afterEach, describe, expect, test } from "bun:test"
+import {
+  hasAnyPermission,
+  hasPermission,
+  normalizeAuthUser,
+  useAuthStore,
+} from "./store"
 
 describe("normalizeAuthUser", () => {
   test("composes display name and applies defaults", () => {
@@ -47,6 +52,91 @@ describe("normalizeAuthUser", () => {
 
     const unresolved = normalizeAuthUser({ sub: "s-3", picture: "/pic.png" })
     expect(unresolved.picture).toBe("/pic.png")
+  })
+})
+
+describe("active organization selection", () => {
+  afterEach(() => {
+    useAuthStore.setState({ user: null, isAuthenticated: false })
+  })
+
+  test("normalizeAuthUser drops an org outside the user grant", () => {
+    const dropped = normalizeAuthUser({
+      sub: "s-1",
+      orgIds: ["org-1"],
+      activeOrgId: "org-2",
+    })
+    expect(dropped.activeOrgId).toBe("")
+
+    const kept = normalizeAuthUser({
+      sub: "s-1",
+      orgIds: ["org-1"],
+      activeOrgId: "org-1",
+    })
+    expect(kept.activeOrgId).toBe("org-1")
+  })
+
+  test("login keeps a valid selection when refreshing the same user", () => {
+    useAuthStore.setState({
+      user: normalizeAuthUser({
+        sub: "user-1",
+        orgIds: ["org-1", "org-2"],
+        activeOrgId: "org-2",
+      }),
+      isAuthenticated: true,
+    })
+
+    useAuthStore
+      .getState()
+      .login(
+        normalizeAuthUser({ subject: "user-1", orgIds: ["org-1", "org-2"] })
+      )
+    expect(useAuthStore.getState().user?.activeOrgId).toBe("org-2")
+  })
+
+  test("login does not carry a selection across users", () => {
+    useAuthStore.setState({
+      user: normalizeAuthUser({
+        sub: "user-1",
+        orgIds: ["shared-org"],
+        activeOrgId: "shared-org",
+      }),
+      isAuthenticated: true,
+    })
+
+    useAuthStore
+      .getState()
+      .login(normalizeAuthUser({ subject: "user-2", orgIds: ["shared-org"] }))
+    expect(useAuthStore.getState().user?.activeOrgId).toBe("")
+  })
+
+  test("login drops a selection revoked from the refreshed grant", () => {
+    useAuthStore.setState({
+      user: normalizeAuthUser({
+        sub: "user-1",
+        orgIds: ["org-1", "org-2"],
+        activeOrgId: "org-2",
+      }),
+      isAuthenticated: true,
+    })
+
+    useAuthStore
+      .getState()
+      .login(normalizeAuthUser({ subject: "user-1", orgIds: ["org-1"] }))
+    expect(useAuthStore.getState().user?.activeOrgId).toBe("")
+  })
+
+  test("setActiveOrgId ignores orgs outside the user grant", () => {
+    useAuthStore.setState({
+      user: normalizeAuthUser({ sub: "user-1", orgIds: ["org-1"] }),
+      isAuthenticated: true,
+    })
+
+    useAuthStore.getState().setActiveOrgId("org-2")
+    expect(useAuthStore.getState().user?.activeOrgId).toBe("")
+
+    useAuthStore.getState().setActiveOrgId("org-1")
+    expect(useAuthStore.getState().user?.activeOrgId).toBe("org-1")
   })
 })
 
