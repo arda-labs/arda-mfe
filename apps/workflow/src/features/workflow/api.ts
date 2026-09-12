@@ -706,6 +706,25 @@ export const workflowApi = {
       `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/variables`
     )
   },
+  setInstanceVariables(
+    key: string,
+    variables: Record<string, unknown>,
+    options?: { elementInstanceKey?: string; local?: boolean }
+  ) {
+    return request<{ status: string; elementInstanceKey: string }>(
+      `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/variables`,
+      {
+        method: "POST",
+        body: {
+          variables,
+          elementInstanceKey: options?.elementInstanceKey
+            ? Number(options.elementInstanceKey)
+            : undefined,
+          local: options?.local,
+        },
+      }
+    )
+  },
   listInstanceJobs(key: string) {
     return request<OperateJob[]>(
       `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/jobs`

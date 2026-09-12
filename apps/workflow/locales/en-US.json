@@ -485,7 +485,15 @@
     "element_select_hint": "Select an activity on the diagram to see its incidents, jobs and variables.",
     "action_clear_selection": "Clear selection",
     "action_retry_all_incidents": "Retry all incidents",
-    "retry_all_result": "Retried {retried}/{total} incidents"
+    "retry_all_result": "Retried {retried}/{total} incidents",
+    "action_edit_variable": "Edit variable",
+    "edit_variable_title": "Edit variable {name}",
+    "edit_variable_description": "The value must be valid JSON, e.g. \"ABC\", 123, true, {\"k\": 1}.",
+    "edit_variable_save": "Save variable",
+    "edit_variable_cancel": "Cancel",
+    "edit_variable_invalid_json": "Value is not valid JSON",
+    "edit_variable_success": "Variable updated",
+    "edit_variable_failed": "Variable update failed"
   },
   "bpmn": {
     "highlight_not_found": "BPMN element \"{id}\" not found for highlighting.",

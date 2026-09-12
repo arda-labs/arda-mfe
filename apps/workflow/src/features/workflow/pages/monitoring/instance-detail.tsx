@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ArrowLeft, RefreshCw, RotateCcw, XCircle } from "lucide-react"
+import { ArrowLeft, Pencil, RefreshCw, RotateCcw, XCircle } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { Textarea } from "@workspace/ui/components/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { notify } from "@workspace/ui/feedback/notify"
 import {
   AlertDialog,
@@ -73,6 +82,12 @@ export function InstanceDetail({
   const [autoRefresh, setAutoRefresh] = useState(0)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [acting, setActing] = useState(false)
+  const [editingVariable, setEditingVariable] = useState<{
+    name: string
+    value: string
+    scopeKey: string
+  } | null>(null)
+  const [savingVariable, setSavingVariable] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -338,6 +353,40 @@ export function InstanceDetail({
     },
     [load, t]
   )
+
+  const handleSaveVariable = useCallback(async () => {
+    if (!editingVariable) return
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(editingVariable.value)
+    } catch {
+      notify.error(t("workflow.operate.edit_variable_invalid_json"))
+      return
+    }
+    setSavingVariable(true)
+    try {
+      await workflowApi.setInstanceVariables(
+        instanceKey,
+        { [editingVariable.name]: parsed },
+        {
+          elementInstanceKey:
+            detail && editingVariable.scopeKey !== detail.processInstanceKey
+              ? editingVariable.scopeKey
+              : undefined,
+        }
+      )
+      notify.success(t("workflow.operate.edit_variable_success"))
+      setEditingVariable(null)
+      await load()
+    } catch (reason) {
+      notify.error(
+        t("workflow.operate.edit_variable_failed"),
+        reason instanceof Error ? reason.message : undefined
+      )
+    } finally {
+      setSavingVariable(false)
+    }
+  }, [detail, editingVariable, instanceKey, load, t])
 
   if (loading && !detail) {
     return (
@@ -624,6 +673,25 @@ export function InstanceDetail({
                                   {variable.value}
                                 </code>
                               </td>
+                              <td className="px-1 py-1 text-right">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="size-6"
+                                  title={t(
+                                    "workflow.operate.action_edit_variable"
+                                  )}
+                                  onClick={() =>
+                                    setEditingVariable({
+                                      name: variable.name,
+                                      value: variable.value,
+                                      scopeKey: variable.scopeKey,
+                                    })
+                                  }
+                                >
+                                  <Pencil className="size-3" />
+                                </Button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -652,6 +720,7 @@ export function InstanceDetail({
                       <th className="px-2 py-1 text-left">
                         {t("workflow.operate.detail_value")}
                       </th>
+                      <th className="px-2 py-1" />
                     </tr>
                   </thead>
                   <tbody>
@@ -670,6 +739,23 @@ export function InstanceDetail({
                           <code className="block truncate font-mono text-[10px]">
                             {variable.value}
                           </code>
+                        </td>
+                        <td className="px-2 py-1 text-right">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-6"
+                            title={t("workflow.operate.action_edit_variable")}
+                            onClick={() =>
+                              setEditingVariable({
+                                name: variable.name,
+                                value: variable.value,
+                                scopeKey: variable.scopeKey,
+                              })
+                            }
+                          >
+                            <Pencil className="size-3" />
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -878,6 +964,52 @@ export function InstanceDetail({
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={editingVariable !== null}
+        onOpenChange={(open) => !open && setEditingVariable(null)}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {t("workflow.operate.edit_variable_title", {
+                name: editingVariable?.name ?? "",
+              })}
+            </DialogTitle>
+            <DialogDescription>
+              {t("workflow.operate.edit_variable_description")}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            className="h-40 font-mono text-xs"
+            value={editingVariable?.value ?? ""}
+            onChange={(event) =>
+              setEditingVariable((previous) =>
+                previous
+                  ? { ...previous, value: event.target.value }
+                  : previous
+              )
+            }
+          />
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={savingVariable}
+              onClick={() => setEditingVariable(null)}
+            >
+              {t("workflow.operate.edit_variable_cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={savingVariable}
+              onClick={() => void handleSaveVariable()}
+            >
+              {t("workflow.operate.edit_variable_save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>

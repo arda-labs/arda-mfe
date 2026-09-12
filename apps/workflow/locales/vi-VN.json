@@ -485,7 +485,15 @@
     "element_select_hint": "Chọn một activity trên sơ đồ để xem sự cố, job và biến của bước đó.",
     "action_clear_selection": "Bỏ chọn",
     "action_retry_all_incidents": "Retry tất cả sự cố",
-    "retry_all_result": "Đã retry {retried}/{total} sự cố"
+    "retry_all_result": "Đã retry {retried}/{total} sự cố",
+    "action_edit_variable": "Sửa biến",
+    "edit_variable_title": "Sửa biến {name}",
+    "edit_variable_description": "Giá trị phải là JSON hợp lệ, ví dụ: \"ABC\", 123, true, {\"k\": 1}.",
+    "edit_variable_save": "Lưu biến",
+    "edit_variable_cancel": "Hủy",
+    "edit_variable_invalid_json": "Giá trị không phải JSON hợp lệ",
+    "edit_variable_success": "Đã cập nhật biến",
+    "edit_variable_failed": "Cập nhật biến thất bại"
   },
   "bpmn": {
     "highlight_not_found": "Không tìm thấy BPMN element \"{id}\" để highlight.",
