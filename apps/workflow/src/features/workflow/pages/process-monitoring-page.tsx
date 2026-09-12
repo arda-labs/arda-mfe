@@ -49,6 +49,8 @@ import { ProcessDefinitionDialog } from "../shared/admin-ui"
 import { InstancesTab } from "./monitoring/instances-tab"
 import { IncidentsTab } from "./monitoring/incidents-tab"
 import { JobsTab } from "./monitoring/jobs-tab"
+import { SummaryTab } from "./monitoring/summary-tab"
+import { UserTasksTab } from "./monitoring/user-tasks-tab"
 import { InstanceDetail } from "./monitoring/instance-detail"
 
 function useXml(id: string | undefined) {
@@ -81,7 +83,13 @@ function useXml(id: string | undefined) {
 }
 
 type PageMode = "list" | "monitor"
-type HubTab = "definitions" | "instances" | "incidents" | "jobs"
+type HubTab =
+  | "definitions"
+  | "summary"
+  | "instances"
+  | "incidents"
+  | "userTasks"
+  | "jobs"
 
 function StatusBadge({ status }: { status: string }) {
   const variant =
@@ -118,8 +126,10 @@ export function ProcessMonitoringPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const hubTabParam = searchParams.get("tab")
   const hubTab: HubTab =
+    hubTabParam === "summary" ||
     hubTabParam === "instances" ||
     hubTabParam === "incidents" ||
+    hubTabParam === "userTasks" ||
     hubTabParam === "jobs"
       ? hubTabParam
       : "definitions"
@@ -518,8 +528,10 @@ export function ProcessMonitoringPage() {
   // ─── List mode (default) ───
   const hubTabs: Array<[HubTab, string]> = [
     ["definitions", t("workflow.operate.tab_definitions")],
+    ["summary", t("workflow.operate.tab_summary")],
     ["instances", t("workflow.operate.tab_instances")],
     ["incidents", t("workflow.operate.tab_incidents")],
+    ["userTasks", t("workflow.operate.tab_user_tasks")],
     ["jobs", t("workflow.operate.tab_jobs")],
   ]
 
@@ -666,8 +678,12 @@ export function ProcessMonitoringPage() {
           <InstancesTab onOpenInstance={openInstance} />
         ) : hubTab === "incidents" ? (
           <IncidentsTab onOpenInstance={openInstance} />
-        ) : (
+        ) : hubTab === "userTasks" ? (
+          <UserTasksTab onOpenInstance={openInstance} />
+        ) : hubTab === "jobs" ? (
           <JobsTab onOpenInstance={openInstance} />
+        ) : (
+          <SummaryTab />
         )}
       </div>
     </div>
