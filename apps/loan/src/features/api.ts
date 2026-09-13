@@ -843,9 +843,6 @@ export interface GeneralProvision {
   status?: string
   workflow_case_id?: string
   workflow_case_code?: string
-  /** BE repository row (Go, chưa json tag) marshal PascalCase — đọc kèm
-   *  để attach staged files không bị no-op. */
-  WorkflowCaseID?: string
   journal_entry_id?: string
   created_by?: string
   created_at?: string
@@ -880,9 +877,6 @@ export interface SpecificProvision {
   status?: string
   workflow_case_id?: string
   workflow_case_code?: string
-  /** BE repository row (Go, chưa json tag) marshal PascalCase — đọc kèm
-   *  để attach staged files không bị no-op. */
-  WorkflowCaseID?: string
   journal_entry_id?: string
   created_by?: string
   created_at?: string

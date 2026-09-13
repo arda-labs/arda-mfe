@@ -83,7 +83,7 @@ export function GeneralProvisionPage() {
       try {
         await attachStagedCaseFiles(
           staged.ids,
-          created.workflow_case_id ?? created.WorkflowCaseID ?? ""
+          created.workflow_case_id ?? ""
         )
       } catch {
         notify.error(t("common.case_tabs.attachments.attach_error"))
