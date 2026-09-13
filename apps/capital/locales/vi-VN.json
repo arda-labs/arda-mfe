@@ -32,7 +32,12 @@
   },
   "detail": {
     "loading": "Đang tải...",
-    "load_failed": "Không tải được hợp đồng."
+    "load_failed": "Không tải được hợp đồng.",
+    "tab": {
+      "info": "Thông tin",
+      "movements": "Lịch sử giao dịch",
+      "amendments": "Điều chỉnh"
+    }
   },
   "field": {
     "journal": "Bút toán"

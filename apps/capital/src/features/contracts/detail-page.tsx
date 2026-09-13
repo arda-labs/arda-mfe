@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
+import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
@@ -44,6 +45,19 @@ export function ContractDetailPage() {
   const movementRows = useMemo(() => detail?.movements ?? [], [detail])
   const amendmentRows = useMemo(() => detail?.amendments ?? [], [detail])
 
+  // EPAS CFM contract detail: business tabs first, then the system tabs. A
+  // contract linked to a workflow case owns its case attachments; otherwise
+  // files attach to the contract entity and there is no activity log.
+  const systemTabs = useCaseTabs({
+    caseId: contract?.workflow_case_id,
+    attachmentEntity:
+      contract && !contract.workflow_case_id
+        ? { type: "cfc_contract", id: contract.id, module: "capital" }
+        : undefined,
+    canUpload: false,
+    showActivityLog: Boolean(contract?.workflow_case_id),
+  })
+
   if (loadError) {
     return (
       <div className="p-6 text-sm text-muted-foreground">
@@ -58,52 +72,27 @@ export function ContractDetailPage() {
     return <div className="p-6 text-sm text-muted-foreground">{t("capital.detail.loading")}</div>
   }
 
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link to="/capital" className="text-xs font-medium text-primary hover:underline">
-            ← {t("capital.contracts.title")}
-          </Link>
-          <h1 className="font-mono text-lg font-semibold">{contract.contract_code}</h1>
-          <Badge variant={contract.status === "ACTIVE" ? "default" : "outline"}>
-            {t(`capital.status.${contract.status}`)}
-          </Badge>
-        </div>
-        {canStage && (
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => setMovementType("RECEIPT")}>
-              {t("capital.action.receipt")}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setMovementType("DISBURSEMENT")}>
-              {t("capital.action.disbursement")}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setMovementType("PAYMENT")}>
-              {t("capital.action.payment")}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setMovementType("SETTLEMENT")}>
-              {t("capital.action.settlement")}
-            </Button>
-            <Button size="sm" variant="secondary" onClick={() => setAmendmentOpen(true)}>
-              {t("capital.action.amend")}
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">
-        <Info label={t("capital.contracts.field.fund_type")} value={`${contract.fund_type_code}${detail?.fund_type ? ` — ${detail.fund_type.name}` : ""}`} />
-        <Info label={t("capital.contracts.field.product")} value={detail?.product?.name ?? contract.product_code ?? "—"} />
-        <Info label={t("capital.contracts.field.counterparty")} value={contract.counterparty_code} />
-        <Info label={t("capital.contracts.field.amount")} value={formatAmount(fromMinor(contract.amount_minor, contract.currency_code), contract.currency_code)} />
-        <Info label={t("capital.contracts.field.interest_rate")} value={formatRatePercent(contract.interest_rate)} />
-        <Info label={t("capital.contracts.field.contract_date")} value={formatDateShort(contract.contract_date)} />
-        <Info label={t("capital.contracts.field.maturity_date")} value={contract.maturity_date ? formatDateShort(contract.maturity_date) : "—"} />
-        <Info label={t("capital.contracts.field.org")} value={contract.org_code || "—"} />
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold">{t("capital.movements.title")}</h2>
+  const tabs = [
+    {
+      id: "info",
+      label: t("capital.detail.tab.info"),
+      content: (
+        <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">
+          <Info label={t("capital.contracts.field.fund_type")} value={`${contract.fund_type_code}${detail?.fund_type ? ` — ${detail.fund_type.name}` : ""}`} />
+          <Info label={t("capital.contracts.field.product")} value={detail?.product?.name ?? contract.product_code ?? "—"} />
+          <Info label={t("capital.contracts.field.counterparty")} value={contract.counterparty_code} />
+          <Info label={t("capital.contracts.field.amount")} value={formatAmount(fromMinor(contract.amount_minor, contract.currency_code), contract.currency_code)} />
+          <Info label={t("capital.contracts.field.interest_rate")} value={formatRatePercent(contract.interest_rate)} />
+          <Info label={t("capital.contracts.field.contract_date")} value={formatDateShort(contract.contract_date)} />
+          <Info label={t("capital.contracts.field.maturity_date")} value={contract.maturity_date ? formatDateShort(contract.maturity_date) : "—"} />
+          <Info label={t("capital.contracts.field.org")} value={contract.org_code || "—"} />
+        </section>
+      ),
+    },
+    {
+      id: "movements",
+      label: t("capital.detail.tab.movements"),
+      content: (
         <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
@@ -145,10 +134,12 @@ export function ContractDetailPage() {
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold">{t("capital.amendments.title")}</h2>
+      ),
+    },
+    {
+      id: "amendments",
+      label: t("capital.detail.tab.amendments"),
+      content: (
         <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
@@ -184,7 +175,45 @@ export function ContractDetailPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      ),
+    },
+    ...systemTabs,
+  ]
+
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link to="/capital" className="text-xs font-medium text-primary hover:underline">
+            ← {t("capital.contracts.title")}
+          </Link>
+          <h1 className="font-mono text-lg font-semibold">{contract.contract_code}</h1>
+          <Badge variant={contract.status === "ACTIVE" ? "default" : "outline"}>
+            {t(`capital.status.${contract.status}`)}
+          </Badge>
+        </div>
+        {canStage && (
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => setMovementType("RECEIPT")}>
+              {t("capital.action.receipt")}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setMovementType("DISBURSEMENT")}>
+              {t("capital.action.disbursement")}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setMovementType("PAYMENT")}>
+              {t("capital.action.payment")}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setMovementType("SETTLEMENT")}>
+              {t("capital.action.settlement")}
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => setAmendmentOpen(true)}>
+              {t("capital.action.amend")}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <CaseTabs tabs={tabs} />
 
       <MovementDialog
         open={movementType !== null}

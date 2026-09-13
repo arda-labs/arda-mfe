@@ -29,7 +29,8 @@
       "required": "Enter code, counterparty, amount and maturity date"
     },
     "detail": {
-      "load_failed": "Could not load the contract."
+      "load_failed": "Could not load the contract.",
+      "tab_info": "Information"
     },
     "action": {
       "top_up": "Top up",
@@ -159,6 +160,7 @@
       "txn_date": "Transaction date"
     },
     "tab": {
+      "info": "Information",
       "transactions": "Transactions",
       "accruals": "Accruals",
       "interest": "Interest ops"

@@ -168,11 +168,17 @@ export function PostingFlowPage({
  * shadcn/Radix `TabsContent` (with its preventScroll fix) is imported from
  * `@workspace/ui/components/tabs`, never copied. Footer actions stay with the
  * screen, outside the scroll container.
+ *
+ * `systemTabs` is the EPAS `lib-bpm-tabs` hook: business tabs first, then the
+ * BPM system tabs (Hồ sơ đính kèm → Lưu vết tác vụ). Screens compose them via
+ * `@workspace/case-tabs` `useCaseTabs`; the shell stays presentational (no
+ * API/media dependency) because the two item shapes are structurally equal.
  */
 export function PostingTabsShell({
   labels,
   meta,
   tabs,
+  systemTabs = [],
   defaultValue,
   footer,
 }: {
@@ -181,22 +187,29 @@ export function PostingTabsShell({
   meta?: ReactNode
   /** Repeatable tab instances — ids must be unique per screen. */
   tabs: PostingTabItem[]
+  /**
+   * BPM system tabs appended after the business tabs (EPAS order). Supply
+   * from `useCaseTabs` (`@workspace/case-tabs`) — same `{id,label,content}`
+   * shape, so no cross-package dependency is required.
+   */
+  systemTabs?: PostingTabItem[]
   /** Initially active tab id; defaults to the first tab. */
   defaultValue?: string
   /** Fixed action row below the scroll container (submit/cancel). */
   footer?: ReactNode
 }) {
+  const allTabs = [...tabs, ...systemTabs]
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => event.preventDefault()}>
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
-          <Tabs defaultValue={defaultValue ?? tabs[0]?.id} className="flex flex-col">
+          <Tabs defaultValue={defaultValue ?? allTabs[0]?.id} className="flex flex-col">
             <div className="space-y-4 p-4 pb-3">
               <PageTitleBlock title={labels.title} description={labels.description} meta={meta} />
             </div>
             <div className="sticky top-0 z-10 border-b bg-background px-4 py-2">
               <TabsList className="flex h-auto justify-start flex-wrap">
-                {tabs.map((tab) => (
+                {allTabs.map((tab) => (
                   <TabsTrigger key={tab.id} value={tab.id}>
                     {tab.label}
                   </TabsTrigger>
@@ -204,7 +217,7 @@ export function PostingTabsShell({
               </TabsList>
             </div>
             <div className="space-y-4 p-4">
-              {tabs.map((tab) => (
+              {allTabs.map((tab) => (
                 <TabsContent key={tab.id} value={tab.id} className="mt-0">
                   {tab.content}
                 </TabsContent>

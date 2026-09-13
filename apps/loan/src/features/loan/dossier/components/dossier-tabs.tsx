@@ -1,4 +1,5 @@
 import { useI18n } from "@workspace/i18n"
+import { useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Tabs,
@@ -61,6 +62,11 @@ export function DossierTabs({
 }) {
   const { t } = useI18n()
   const contract = dossier.contract
+  // EPAS credit-contract detail: "Hồ sơ đính kèm" theo hợp đồng (media entity).
+  const systemTabs = useCaseTabs({
+    attachmentEntity: { type: "loan_contract", id: contract.id, module: "loan" },
+    showActivityLog: false,
+  })
   return (
     <Tabs defaultValue="overview" className="min-h-0">
       <TabsList>
@@ -76,6 +82,11 @@ export function DossierTabs({
         <TabsTrigger value="collateral">
           {t("loan.dossier.tab.collateral")}
         </TabsTrigger>
+        {systemTabs.map((tab) => (
+          <TabsTrigger key={tab.id} value={tab.id}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4 pt-3">
@@ -355,6 +366,12 @@ export function DossierTabs({
           )}
         </div>
       </TabsContent>
+
+      {systemTabs.map((tab) => (
+        <TabsContent key={tab.id} value={tab.id} className="space-y-4 pt-3">
+          {tab.content}
+        </TabsContent>
+      ))}
     </Tabs>
   )
 }

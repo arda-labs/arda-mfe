@@ -16,6 +16,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
+    "@workspace/case-tabs": "workspace:*",
     "@workspace/format": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/list-page": "workspace:*",

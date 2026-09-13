@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -34,6 +35,7 @@ export function MovementDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "capital" })
   const [movementType, setMovementType] = useState(defaultType)
   const [amount, setAmount] = useState("")
   const [movementDate, setMovementDate] = useState(todayISO())
@@ -56,12 +58,17 @@ export function MovementDialog({
     }
     setPending(true)
     try {
-      await capitalApi.recordMovement(contractId, {
+      const created = await capitalApi.recordMovement(contractId, {
         movement_type: movementType,
         amount_minor: amountMinor,
         movement_date: movementDate,
         note: note || undefined,
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("capital.movements.submit_success"))
       onOpenChange(false)
       await onSaved()
@@ -115,6 +122,7 @@ export function MovementDialog({
             <Input value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

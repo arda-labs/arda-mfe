@@ -3,6 +3,7 @@ import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { uploadFile } from "@workspace/media"
+import { useCaseTabs } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -53,6 +54,16 @@ export function RegistrationsPage() {
   const avatarFileId = useWatch({
     control: form.control,
     name: "avatar_file_id",
+  })
+  // EPAS lib-bpm-tabs: the two system tabs (Hồ sơ đính kèm + Lưu vết tác vụ)
+  // follow the 4 business tabs once the workflow case exists. The metadata
+  // "attachments" business tab above is kept untouched.
+  const workflowCaseId = savedRegistration?.workflow_case_id ?? null
+  const canEditRegistration =
+    !savedRegistration || savedRegistration.status === "draft"
+  const systemTabs = useCaseTabs({
+    caseId: workflowCaseId ?? undefined,
+    canUpload: canEditRegistration,
   })
 
   const load = useCallback(async () => {
@@ -203,7 +214,7 @@ export function RegistrationsPage() {
           </div>
           <Tabs defaultValue="general" className="flex flex-col">
             <div className="sticky top-0 z-10 border-b bg-background px-4 py-2">
-              <RegistrationTabsList />
+              <RegistrationTabsList systemTabs={systemTabs} />
             </div>
             <div className="space-y-4 p-4">
               <TabsContent value="general" className="mt-0 space-y-4">
@@ -233,6 +244,11 @@ export function RegistrationsPage() {
               <TabsContent value="attachments" className="mt-0">
                 <AttachmentsTable form={form} />
               </TabsContent>
+              {systemTabs.map((tab) => (
+                <TabsContent key={tab.id} value={tab.id} className="mt-0">
+                  {tab.content}
+                </TabsContent>
+              ))}
             </div>
           </Tabs>
         </div>

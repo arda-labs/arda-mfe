@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useI18n, translateApiError } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -31,6 +32,7 @@ export function DepositAdditionalDialog({
   onSubmitted: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [amount, setAmount] = useState("")
   const [txnDate, setTxnDate] = useState(todayISO())
   const [pending, setPending] = useState(false)
@@ -47,6 +49,11 @@ export function DepositAdditionalDialog({
         amount_minor: amountMinor,
         txn_date: txnDate || undefined,
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, submission.case_id)
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(
         t("deposit.savings.deposit_success"),
         submission.case_code
@@ -92,6 +99,7 @@ export function DepositAdditionalDialog({
             />
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

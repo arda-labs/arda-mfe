@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -26,6 +27,7 @@ export function PlaceInterbankDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [depositCode, setDepositCode] = useState("")
   const [counterpartyCode, setCounterpartyCode] = useState("")
   const [counterpartyName, setCounterpartyName] = useState("")
@@ -63,7 +65,7 @@ export function PlaceInterbankDialog({
     }
     setPending(true)
     try {
-      await depositApi.createInterbank({
+      const created = await depositApi.createInterbank({
         deposit_code: depositCode.trim(),
         counterparty_code: counterpartyCode.trim(),
         counterparty_name: counterpartyName.trim() || undefined,
@@ -74,6 +76,11 @@ export function PlaceInterbankDialog({
         interest_rate: Number(interestRate) || 0,
         currency_code: currencyCode.toUpperCase(),
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("deposit.interbank.create_success"))
       onOpenChange(false)
       await onSaved()
@@ -166,6 +173,7 @@ export function PlaceInterbankDialog({
             />
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

@@ -9,24 +9,16 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Label } from "@workspace/ui/components/label"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import {
   workflowTaskApi,
   type ReviewWorkItem,
 } from "../../api"
-import { ReviewLines, type ReviewLine } from "./components/review-lines"
-
-interface PostingRequestVars {
-  accountingDate?: string
-  currencyCode?: string
-  description?: string
-  lines?: ReviewLine[]
-}
-
-interface CancellationVars {
-  referenceEntryNo?: string
-  reason?: string
-  accountingDate?: string
-}
+import {
+  ReviewInfo,
+  type CancellationVars,
+  type PostingRequestVars,
+} from "./components/review-info"
 
 type Decision = "APPROVE" | "REQUEST_CHANGES" | "REJECT"
 
@@ -97,6 +89,27 @@ export function PostingReviewPage() {
   const lines = postingRequest?.lines ?? []
   const currency = postingRequest?.currencyCode || "VND"
   const isMakerStep = item?.stepCode === MAKER_STEP
+
+  // EPAS lib-bpm-tabs: tab nghiệp vụ "Thông tin bút toán" trước, system tabs
+  // (Hồ sơ đính kèm, Lưu vết tác vụ) append sau. Chỉ maker được thêm hồ sơ.
+  const tabs = useCaseTabs({
+    tabs: [
+      {
+        id: "posting-info",
+        label: t("finance.posting_review.tab_info"),
+        content: (
+          <ReviewInfo
+            postingRequest={postingRequest}
+            cancellation={cancellation}
+            lines={lines}
+            currency={currency}
+          />
+        ),
+      },
+    ],
+    caseId: item?.caseId || undefined,
+    canUpload: isMakerStep,
+  })
 
   async function decide(decision: Decision) {
     if (!item?.jobKey || !item.processInstanceKey) return
@@ -187,39 +200,7 @@ export function PostingReviewPage() {
         }
       />
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
-        <div className="grid gap-x-8 gap-y-2 rounded-md border p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <InfoField
-            label={t("finance.posting_review.info.accounting_date")}
-            value={
-              postingRequest?.accountingDate ||
-              cancellation?.accountingDate ||
-              "—"
-            }
-          />
-          <InfoField
-            label={t("finance.posting_review.info.currency")}
-            value={currency}
-          />
-          {cancellation ? (
-            <>
-              <InfoField
-                label={t("finance.posting_review.info.reference")}
-                value={cancellation.referenceEntryNo || "—"}
-              />
-              <InfoField
-                label={t("finance.posting_review.info.reason")}
-                value={cancellation.reason || "—"}
-              />
-            </>
-          ) : (
-            <InfoField
-              label={t("finance.posting_review.info.description")}
-              value={postingRequest?.description || "—"}
-            />
-          )}
-        </div>
-
-        <ReviewLines lines={lines} currency={currency} />
+        <CaseTabs tabs={tabs} />
 
         {!isMakerStep ? (
           <div className="max-w-xl space-y-1.5">
@@ -296,14 +277,5 @@ export function PostingReviewPage() {
         </div>
       </div>
     </Page>
-  )
-}
-
-function InfoField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-right font-medium">{value}</span>
-    </div>
   )
 }

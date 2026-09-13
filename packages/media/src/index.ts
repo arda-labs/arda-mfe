@@ -67,6 +67,16 @@ export async function listEntityFiles(
   return res.result.files ?? []
 }
 
+/**
+ * Delete a media file by public id. Used by staged (temp) uploads to cancel a
+ * not-yet-attached file instead of waiting for the temp TTL sweep.
+ */
+export async function deleteFile(publicId: string) {
+  await api.delete<ApiSuccess<{ status: string }>>(
+    `/api/media/${encodeURIComponent(publicId)}`
+  )
+}
+
 export async function uploadFile(
   file: File,
   module: string,

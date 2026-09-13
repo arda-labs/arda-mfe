@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -44,6 +45,7 @@ export function CreateContractDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "capital" })
   const [form, setForm] = useState<Form>(() => ({
     ...emptyForm,
     contract_date: todayISO(),
@@ -67,7 +69,7 @@ export function CreateContractDialog({
     }
     setSavePending(true)
     try {
-      await capitalApi.createContract({
+      const created = await capitalApi.createContract({
         contract_code: form.contract_code,
         fund_type_code: form.fund_type_code,
         counterparty_code: form.counterparty_code,
@@ -75,6 +77,11 @@ export function CreateContractDialog({
         amount_minor: amountMinor,
         currency_code: form.currency_code,
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("capital.contracts.create_success"))
       onOpenChange(false)
       setForm({ ...emptyForm, contract_date: todayISO() })
@@ -153,6 +160,7 @@ export function CreateContractDialog({
             </div>
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

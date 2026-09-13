@@ -61,7 +61,14 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
  * khi còn DRAFT), hợp đồng, các cột chính theo kind (adjustmentFields),
  * trạng thái, ngày tạo; nút Trình duyệt cho row DRAFT.
  */
-export function AdjustmentListTab({ kind }: { kind: LoanAdjustmentKind }) {
+export function AdjustmentListTab({
+  kind,
+  onCaseCreated,
+}: {
+  kind: LoanAdjustmentKind
+  /** Gọi sau khi Trình duyệt thành công, kèm case uuid mới tạo (nếu có). */
+  onCaseCreated?: (caseId: string) => void
+}) {
   const { t } = useI18n()
   const [items, setItems] = useState<LoanAdjustment[] | null>(null)
   const [loadedKey, setLoadedKey] = useState("")
@@ -106,6 +113,10 @@ export function AdjustmentListTab({ kind }: { kind: LoanAdjustmentKind }) {
       setSubmittingId(adjustment.id)
       try {
         const updated = await loanApi.submitAdjustment(kind, adjustment.id)
+        if (updated.workflow_case_id) {
+          // Case vừa sinh — page attach staged files vào case uuid này.
+          onCaseCreated?.(updated.workflow_case_id)
+        }
         notify.success(
           t("loan.submitted_with_case", {
             case: caseDisplayLabel(updated.workflow_case_id, updated.id) ?? updated.id,
@@ -118,7 +129,7 @@ export function AdjustmentListTab({ kind }: { kind: LoanAdjustmentKind }) {
         setSubmittingId(null)
       }
     },
-    [kind, reload, t]
+    [kind, onCaseCreated, reload, t]
   )
 
   const summaryFields = useMemo(() => adjustmentFields(kind), [kind])

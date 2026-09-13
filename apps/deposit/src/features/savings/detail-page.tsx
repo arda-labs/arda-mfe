@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
+import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { formatAmount, formatDateShort, fromMinor } from "@workspace/format"
@@ -40,6 +41,29 @@ export function SavingsDetailPage() {
   }, [load])
 
   const savings = detail?.savings
+  // EPAS lib-bpm-tabs: business tabs first, then the system tabs. Files opened
+  // with the savings book live on `dpm_savings` (open is a direct posting, no
+  // case); settle/additional/interest staged files attach to the case — merge
+  // both owners so the dossier shows every document.
+  const systemTabs = useCaseTabs({
+    caseId: savings?.workflow_case_id,
+    attachmentEntities: savings
+      ? [
+          { type: "dpm_savings", id: savings.id, module: "deposit" },
+          ...(savings.workflow_case_id
+            ? [
+                {
+                  type: "business_case",
+                  id: savings.workflow_case_id,
+                  module: "workflow",
+                },
+              ]
+            : []),
+        ]
+      : [],
+    canUpload: false,
+    showActivityLog: Boolean(savings?.workflow_case_id),
+  })
 
   if (loadError) {
     return (
@@ -54,6 +78,103 @@ export function SavingsDetailPage() {
   if (!savings) {
     return <div className="p-6 text-sm text-muted-foreground">{t("deposit.loading")}</div>
   }
+
+  const tabs = [
+    {
+      id: "info",
+      label: t("deposit.savings.tab.info"),
+      content: (
+        <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">
+          <Info label={t("deposit.savings.field.customer")} value={savings.customer_code} />
+          <Info label={t("deposit.products.title")} value={savings.product_code} />
+          <Info
+            label={t("deposit.savings.field.principal")}
+            value={formatAmount(fromMinor(savings.principal_minor, savings.currency_code), savings.currency_code)}
+          />
+          <Info
+            label={t("deposit.savings.field.accrued")}
+            value={formatAmount(fromMinor(savings.accrued_minor, savings.currency_code), savings.currency_code)}
+          />
+          <Info label={t("deposit.savings.field.open_date")} value={formatDateShort(savings.open_date)} />
+          <Info
+            label={t("deposit.savings.field.maturity_date")}
+            value={formatDateShort(savings.maturity_date)}
+          />
+          <Info label={t("deposit.savings.field.org")} value={savings.org_code || "—"} />
+        </section>
+      ),
+    },
+    {
+      id: "transactions",
+      label: t("deposit.savings.tab.transactions"),
+      content: (
+        <div className="overflow-hidden rounded-lg border border-border">
+          <Table
+            headers={[
+              t("deposit.savings.txn.type"),
+              t("deposit.savings.txn.date"),
+              t("deposit.savings.txn.amount"),
+              t("common.field.status"),
+            ]}
+            empty={t("deposit.savings.txn.empty")}
+            rows={(detail?.transactions ?? []).map((row: DepositTxnLike) => [
+              row.txn_type,
+              formatDateShort(row.txn_date),
+              formatAmount(fromMinor(row.amount_minor, row.currency_code), row.currency_code),
+              row.status,
+            ])}
+          />
+        </div>
+      ),
+    },
+    {
+      id: "accruals",
+      label: t("deposit.savings.tab.accruals"),
+      content: (
+        <div className="overflow-hidden rounded-lg border border-border">
+          <Table
+            headers={[
+              t("deposit.rates.field.effective_from"),
+              t("deposit.savings.accrual.period_to"),
+              t("deposit.savings.accrual.days"),
+              t("deposit.savings.accrual.amount"),
+            ]}
+            empty={t("deposit.savings.accrual.empty")}
+            rows={(detail?.accruals ?? []).map((row: Accrual) => [
+              formatDateShort(row.period_from),
+              formatDateShort(row.period_to),
+              String(row.days),
+              formatAmount(fromMinor(row.amount_minor, savings.currency_code), savings.currency_code),
+            ])}
+          />
+        </div>
+      ),
+    },
+    {
+      id: "interest",
+      label: t("deposit.savings.tab.interest"),
+      content: (
+        <div className="overflow-hidden rounded-lg border border-border">
+          <Table
+            headers={[
+              t("deposit.interest.field.op_type"),
+              t("deposit.interest.field.amount"),
+              t("common.field.created"),
+              t("common.field.status"),
+            ]}
+            empty={t("deposit.savings.interest.empty")}
+            rows={(detail?.interest_ops ?? []).map((row: InterestOp) => [
+              t(`deposit.interest.op_type.${row.op_type}`),
+              formatAmount(fromMinor(row.amount_minor, savings.currency_code), savings.currency_code),
+              formatDateShort(row.created_at),
+              row.status,
+            ])}
+          />
+        </div>
+      ),
+    },
+    ...systemTabs,
+  ]
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
@@ -79,78 +200,7 @@ export function SavingsDetailPage() {
         )}
       </div>
 
-      <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">
-        <Info label={t("deposit.savings.field.customer")} value={savings.customer_code} />
-        <Info label={t("deposit.products.title")} value={savings.product_code} />
-        <Info
-          label={t("deposit.savings.field.principal")}
-          value={formatAmount(fromMinor(savings.principal_minor, savings.currency_code), savings.currency_code)}
-        />
-        <Info
-          label={t("deposit.savings.field.accrued")}
-          value={formatAmount(fromMinor(savings.accrued_minor, savings.currency_code), savings.currency_code)}
-        />
-        <Info label={t("deposit.savings.field.open_date")} value={formatDateShort(savings.open_date)} />
-        <Info
-          label={t("deposit.savings.field.maturity_date")}
-          value={formatDateShort(savings.maturity_date)}
-        />
-        <Info label={t("deposit.savings.field.org")} value={savings.org_code || "—"} />
-      </section>
-
-      <Section title={t("deposit.savings.tab.transactions")}>
-        <Table
-          headers={[
-            t("deposit.savings.txn.type"),
-            t("deposit.savings.txn.date"),
-            t("deposit.savings.txn.amount"),
-            t("common.field.status"),
-          ]}
-          empty={t("deposit.savings.txn.empty")}
-          rows={(detail?.transactions ?? []).map((row: DepositTxnLike) => [
-            row.txn_type,
-            formatDateShort(row.txn_date),
-            formatAmount(fromMinor(row.amount_minor, row.currency_code), row.currency_code),
-            row.status,
-          ])}
-        />
-      </Section>
-
-      <Section title={t("deposit.savings.tab.accruals")}>
-        <Table
-          headers={[
-            t("deposit.rates.field.effective_from"),
-            t("deposit.savings.accrual.period_to"),
-            t("deposit.savings.accrual.days"),
-            t("deposit.savings.accrual.amount"),
-          ]}
-          empty={t("deposit.savings.accrual.empty")}
-          rows={(detail?.accruals ?? []).map((row: Accrual) => [
-            formatDateShort(row.period_from),
-            formatDateShort(row.period_to),
-            String(row.days),
-            formatAmount(fromMinor(row.amount_minor, savings.currency_code), savings.currency_code),
-          ])}
-        />
-      </Section>
-
-      <Section title={t("deposit.savings.tab.interest")}>
-        <Table
-          headers={[
-            t("deposit.interest.field.op_type"),
-            t("deposit.interest.field.amount"),
-            t("common.field.created"),
-            t("common.field.status"),
-          ]}
-          empty={t("deposit.savings.interest.empty")}
-          rows={(detail?.interest_ops ?? []).map((row: InterestOp) => [
-            t(`deposit.interest.op_type.${row.op_type}`),
-            formatAmount(fromMinor(row.amount_minor, savings.currency_code), savings.currency_code),
-            formatDateShort(row.created_at),
-            row.status,
-          ])}
-        />
-      </Section>
+      <CaseTabs tabs={tabs} />
 
       <InterestDialog
         open={opType !== null}
@@ -171,15 +221,6 @@ function Info({ label, value }: { label: string; value: string }) {
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="truncate font-medium">{value}</div>
     </div>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <h2 className="text-sm font-semibold">{title}</h2>
-      <div className="overflow-hidden rounded-lg border border-border">{children}</div>
-    </section>
   )
 }
 

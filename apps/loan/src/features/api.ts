@@ -511,11 +511,19 @@ export interface LoanBatchTrader {
   address?: string
 }
 
-/** Response chung của create batch: case (workflow) + batch ledger id. */
+/**
+ * Response chung của create batch: case (workflow) + batch ledger id.
+ * BE trả nguyên hàng batch (`domain.DisbursementBatch` / `CollectionBatch`)
+ * nên case thực tế nằm ở `workflow_case_id`/`workflow_case_code`, batch ledger
+ * ở `id`; các alias `case_id`/`case_code`/`batch_id` giữ để tương thích.
+ */
 export interface LoanBatchCreated {
   case_id: string
   case_code: string
   batch_id: string
+  id?: string
+  workflow_case_id?: string
+  workflow_case_code?: string
 }
 
 export interface DisbursementBatchRegisterInput {
@@ -835,6 +843,9 @@ export interface GeneralProvision {
   status?: string
   workflow_case_id?: string
   workflow_case_code?: string
+  /** BE repository row (Go, chưa json tag) marshal PascalCase — đọc kèm
+   *  để attach staged files không bị no-op. */
+  WorkflowCaseID?: string
   journal_entry_id?: string
   created_by?: string
   created_at?: string
@@ -867,7 +878,11 @@ export interface SpecificProvision {
   base_minor: number
   amount_minor: number
   status?: string
+  workflow_case_id?: string
   workflow_case_code?: string
+  /** BE repository row (Go, chưa json tag) marshal PascalCase — đọc kèm
+   *  để attach staged files không bị no-op. */
+  WorkflowCaseID?: string
   journal_entry_id?: string
   created_by?: string
   created_at?: string

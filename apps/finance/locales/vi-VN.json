@@ -98,6 +98,7 @@
     "comment_required": "Vui lòng nhập ý kiến xử lý",
     "submit_success": "Đã xử lý giao dịch",
     "submit_failed": "Không thể xử lý giao dịch",
+    "tab_info": "Thông tin bút toán",
     "info": {
       "accounting_date": "Ngày hạch toán",
       "currency": "Loại tiền",
@@ -260,7 +261,8 @@
     },
     "notify": {
       "created": "Đã tạo bút toán {case_code}, chờ duyệt",
-      "create_failed": "Không thể tạo bút toán"
+      "create_failed": "Không thể tạo bút toán",
+      "attach_failed": "Không đính kèm được tệp vào hồ sơ — vui lòng thêm lại trong màn duyệt"
     },
     "cancellation": {
       "title": "Hủy giao dịch",

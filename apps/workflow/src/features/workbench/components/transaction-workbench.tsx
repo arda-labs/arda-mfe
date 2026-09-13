@@ -17,7 +17,6 @@ import type {
 import { workbenchApi } from "../api"
 import { WorkItemTree } from "./workbench-tree"
 import { DecisionDialog, type ReviewDecision } from "./decision-dialog"
-import { CaseAttachmentsDialog } from "./case-attachments-dialog"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
 import { workItemColumns, searchColumns } from "../utils/workbench-columns"
 import { transactionListTableLayout } from "../utils/workbench-table-layout"
@@ -206,7 +205,6 @@ function TransactionWorkbenchInner({
   const [claimPending, setClaimPending] = useState(false)
   const [decisionItem, setDecisionItem] = useState<WorkItem | null>(null)
   const [decisionSubmitting, setDecisionSubmitting] = useState(false)
-  const [attachmentsItem, setAttachmentsItem] = useState<WorkItem | null>(null)
 
   const items = useMemo(
     () => filterWorkItemsByNode(allItems, activeNode),
@@ -340,7 +338,7 @@ function TransactionWorkbenchInner({
   const claiming = direction === "incoming" && claimPending
 
   const columns = useMemo(
-    () => workItemColumns(direction, claiming, openItem, setAttachmentsItem, t),
+    () => workItemColumns(direction, claiming, openItem, t),
     [direction, claiming, openItem, t]
   )
 
@@ -428,10 +426,6 @@ function TransactionWorkbenchInner({
         onConfirm={(decision, comment) =>
           void confirmDecision(decision, comment)
         }
-      />
-      <CaseAttachmentsDialog
-        item={attachmentsItem}
-        onClose={() => setAttachmentsItem(null)}
       />
     </Page>
   )

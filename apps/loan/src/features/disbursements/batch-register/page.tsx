@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Save } from "lucide-react"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -61,6 +62,8 @@ export function BatchRegisterPage() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
+  // EPAS lib-bpm-tabs: staged files gắn vào case của batch sau khi create trả về.
+  const staged = useStagedAttachments({ module: "loan" })
   const tabsLabels = useBatchTabsLabels(
     "loan.disbursements.batch.register_title",
     "loan.disbursements.batch.register_description"
@@ -190,6 +193,11 @@ export function BatchRegisterPage() {
           amount_minor: rowAmountMinor(row),
         })),
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.case_id || created.workflow_case_id || "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(
         t("loan.disbursements.batch.created", { case: created.case_code || created.case_id })
       )
@@ -310,6 +318,7 @@ export function BatchRegisterPage() {
           ),
         },
       ]}
+      systemTabs={[staged.tab]}
       footer={
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm text-muted-foreground">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -26,6 +27,7 @@ export function RateDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [requestType, setRequestType] = useState<"REGISTER" | "ADJUST" | "EDIT">("REGISTER")
   const [productCode, setProductCode] = useState("")
   const [termMonths, setTermMonths] = useState("0")
@@ -53,7 +55,7 @@ export function RateDialog({
     }
     setPending(true)
     try {
-      await depositApi.submitRate({
+      const created = await depositApi.submitRate({
         request_type: requestType,
         payload: {
           product_code: productCode.trim() || undefined,
@@ -64,6 +66,11 @@ export function RateDialog({
           effective_from: effectiveFrom,
         },
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("deposit.rates.submit_success"))
       onOpenChange(false)
       await onSaved()
@@ -149,6 +156,7 @@ export function RateDialog({
             />
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

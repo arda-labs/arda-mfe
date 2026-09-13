@@ -29,7 +29,8 @@
       "required": "Nhập mã, đối tác, số tiền và ngày đáo hạn"
     },
     "detail": {
-      "load_failed": "Không tải được hợp đồng."
+      "load_failed": "Không tải được hợp đồng.",
+      "tab_info": "Thông tin"
     },
     "action": {
       "top_up": "Nộp thêm",
@@ -159,6 +160,7 @@
       "txn_date": "Ngày giao dịch"
     },
     "tab": {
+      "info": "Thông tin",
       "transactions": "Giao dịch",
       "accruals": "Dự chi lãi",
       "interest": "Trả lãi/nhập gốc"

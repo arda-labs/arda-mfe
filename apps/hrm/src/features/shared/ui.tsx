@@ -29,6 +29,7 @@ import {
 } from "@workspace/ui/components/table"
 import { TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
+import type { CaseTabItem } from "@workspace/case-tabs/types"
 import { Edit2, Plus, Trash2, Upload } from "lucide-react"
 import type { EmployeeRegistration, OrgUnit, Position } from "../api"
 import { fieldClass, type RegistrationValues } from "./schemas"
@@ -36,8 +37,10 @@ import { useWatch } from "react-hook-form"
 
 export function RegistrationTabsList({
   compact = false,
+  systemTabs = [],
 }: {
   compact?: boolean
+  systemTabs?: CaseTabItem[]
 }) {
   const { t } = useI18n()
   return (
@@ -61,6 +64,11 @@ export function RegistrationTabsList({
       <TabsTrigger value="attachments">
         {t("hrm.registrations.tab.attachments")}
       </TabsTrigger>
+      {systemTabs.map((tab) => (
+        <TabsTrigger key={tab.id} value={tab.id}>
+          {tab.label}
+        </TabsTrigger>
+      ))}
     </TabsList>
   )
 }

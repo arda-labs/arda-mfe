@@ -4,6 +4,7 @@ import { Save } from "lucide-react"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -50,6 +51,7 @@ export function OffBalanceFormPage() {
   const tabsShellLabels = usePostingTabsLabels("finance.posting.off_balance.init_title")
   const objectLabels = useObjectInfoLabels()
   const objectTypes = useObjectTypeOptions()
+  const staged = useStagedAttachments({ module: "finance" })
 
   const [offBalanceKind, setOffBalanceKind] = useState<"IMPORT" | "EXPORT">("IMPORT")
   const [amount, setAmount] = useState("")
@@ -121,6 +123,11 @@ export function OffBalanceFormPage() {
           })),
         },
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.case_id)
+      } catch (error) {
+        notify.error(translateApiError(error, "finance.posting.notify.attach_failed"))
+      }
       notify.success(t("finance.posting.off_balance.notify.created", { case_code: created.case_code }))
       navigate("/finance/posting/off-balance")
     } catch (error) {
@@ -291,6 +298,7 @@ export function OffBalanceFormPage() {
             </div>
           ),
         },
+        staged.tab,
       ]}
       footer={
         <div className="flex items-center justify-end gap-2">

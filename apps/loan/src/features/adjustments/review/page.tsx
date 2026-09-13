@@ -5,6 +5,7 @@ import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Page } from "@workspace/ui/components/page"
 import { PageHeader } from "@workspace/ui/components/page-header"
+import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Label } from "@workspace/ui/components/label"
@@ -99,6 +100,12 @@ export function AdjustmentReviewPage() {
 
   const isMakerStep = item?.stepCode === MAKER_STEP
 
+  // EPAS lib-bpm-tabs: hệ thống tab gắn sau tab nghiệp vụ "Thông tin điều chỉnh".
+  const systemTabs = useCaseTabs({
+    caseId: item?.caseId ?? undefined,
+    canUpload: isMakerStep,
+  })
+
   async function decide(decision: Decision) {
     if (!item?.jobKey || !item.processInstanceKey) return
     const trimmed = comment.trim()
@@ -166,6 +173,15 @@ export function AdjustmentReviewPage() {
     )
   }
 
+  const tabs = [
+    {
+      id: "adjustment-info",
+      label: t("loan.adjustment_screen.tab_info"),
+      content: <AdjustmentDetail kind={kind} adjustment={adjustment} />,
+    },
+    ...systemTabs,
+  ]
+
   return (
     <Page variant="fixed">
       <PageHeader
@@ -185,7 +201,7 @@ export function AdjustmentReviewPage() {
         }
       />
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
-        <AdjustmentDetail kind={kind} adjustment={adjustment} />
+        <CaseTabs tabs={tabs} />
 
         {!isMakerStep ? (
           <div className="max-w-xl space-y-1.5">

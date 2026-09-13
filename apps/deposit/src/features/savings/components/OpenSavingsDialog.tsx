@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { useStagedAttachments } from "@workspace/case-tabs"
+import { attachEntityFiles } from "@workspace/media"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -44,6 +46,7 @@ export function OpenSavingsDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [form, setForm] = useState<Form>(() => ({
     ...emptyForm,
     open_date: todayISO(),
@@ -67,7 +70,7 @@ export function OpenSavingsDialog({
     }
     setSavePending(true)
     try {
-      await depositApi.openSavings({
+      const opened = await depositApi.openSavings({
         savings_code: form.savings_code,
         customer_code: form.customer_code,
         product_code: form.product_code,
@@ -75,6 +78,16 @@ export function OpenSavingsDialog({
         principal_minor: amountMinor,
         currency_code: form.currency_code,
       })
+      try {
+        // Direct posting — no workflow case: staged files attach to the
+        // savings entity instead (dpm_savings), same owner used by the
+        // detail screen's attachment tab.
+        if (staged.ids.length > 0 && opened.id) {
+          await attachEntityFiles(staged.ids, "dpm_savings", opened.id)
+        }
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("deposit.savings.open_success"))
       onOpenChange(false)
       setForm({ ...emptyForm, open_date: todayISO() })
@@ -155,6 +168,7 @@ export function OpenSavingsDialog({
             </div>
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

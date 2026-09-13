@@ -4,6 +4,7 @@ import { MoreHorizontal, Save } from "lucide-react"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -50,6 +51,7 @@ export function CancellationFormPage() {
   const objectLabels = useObjectInfoLabels()
   const objectTypes = useObjectTypeOptions()
   const dialogLabels = useChooseTransactionLabels()
+  const staged = useStagedAttachments({ module: "finance" })
 
   const [accountingDate, setAccountingDate] = useState(() => todayISO())
   const [reason, setReason] = useState("")
@@ -125,6 +127,11 @@ export function CancellationFormPage() {
           },
         },
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.case_id)
+      } catch (error) {
+        notify.error(translateApiError(error, "finance.posting.notify.attach_failed"))
+      }
       notify.success(t("finance.posting.cancellation.notify.created", { case_code: created.case_code }))
       navigate("/finance/posting/cancellation")
     } catch (error) {
@@ -270,6 +277,7 @@ export function CancellationFormPage() {
           label: t("finance.posting.cancellation.tab_original"),
           content: <OriginalEntryLines detail={detail} isLoading={detailPending} />,
         },
+        staged.tab,
       ]}
       footer={
         <div className="flex items-center justify-end gap-2">

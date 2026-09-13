@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { formatAmount, fromMinor } from "@workspace/format"
@@ -12,6 +14,7 @@ import { depositApi, type Savings } from "../api"
  */
 export function BatchInterestPage() {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [items, setItems] = useState<Savings[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -39,6 +42,12 @@ export function BatchInterestPage() {
     setSubmitting(true)
     try {
       const result = await depositApi.submitBatchInterest()
+      // One workflow case covers the whole batch — attach staged files to it.
+      try {
+        await attachStagedCaseFiles(staged.ids, result.items[0]?.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       setLastResult(result.total)
     } catch {
       setLastResult(null)
@@ -72,6 +81,8 @@ export function BatchInterestPage() {
           {t("deposit.batch_interest.submitted", { count: lastResult })}
         </div>
       )}
+
+      {staged.tab.content}
 
       <div className="overflow-hidden rounded-lg border border-border">
         <table className="w-full text-sm">

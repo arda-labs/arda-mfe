@@ -202,5 +202,50 @@
     "zoom": "Zoom",
     "cancel": "Cancel",
     "apply": "Apply"
+  },
+  "case_tabs": {
+    "attachments": {
+      "title": "Attached documents",
+      "list_title": "Document list",
+      "empty": "No documents attached yet",
+      "loading": "Loading documents...",
+      "load_error": "Failed to load documents",
+      "upload": "Add document",
+      "uploading": "Uploading...",
+      "upload_error": "Document upload failed",
+      "view": "View",
+      "download": "Download",
+      "col_name": "Document name",
+      "col_size": "Size",
+      "col_uploaded_at": "Uploaded at",
+      "col_actions": "Actions",
+      "remove": "Remove",
+      "remove_error": "Failed to remove file",
+      "staged_hint": "Files are attached to the case when you submit.",
+      "attach_error": "Files could not be attached to the case — add them again in the processing screen."
+    },
+    "activity": {
+      "title": "Task trace",
+      "comments_title": "Comments",
+      "traces_title": "Task traces",
+      "loading": "Loading traces...",
+      "load_error": "Failed to load task traces",
+      "empty": "No traces yet",
+      "comments_empty": "No comments yet",
+      "col_task": "Task",
+      "col_status": "Status",
+      "col_time": "Time",
+      "col_actor": "Handled by",
+      "col_content": "Content",
+      "events": {
+        "CASE_CREATED": "Case created",
+        "CASE_SUBMITTED": "Case submitted",
+        "CASE_CLAIMED": "Case claimed",
+        "CHECKER_APPROVED": "Approved",
+        "CHECKER_REQUEST_CHANGES": "Changes requested",
+        "CHECKER_REJECTED": "Rejected",
+        "JOB_FAILED": "System job failed"
+      }
+    }
   }
 }

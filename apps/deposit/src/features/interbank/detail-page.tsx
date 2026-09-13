@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
+import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -37,6 +38,18 @@ export function InterbankDetailPage() {
 
   const deposit = detail?.deposit
   const canStage = deposit?.status === "ACTIVE"
+  // EPAS lib-bpm-tabs: business tabs first, then the system tabs. A contract
+  // linked to a workflow case owns its case attachments; otherwise files attach
+  // to the interbank deposit entity and there is no activity log.
+  const systemTabs = useCaseTabs({
+    caseId: deposit?.workflow_case_id,
+    attachmentEntity:
+      deposit && !deposit.workflow_case_id
+        ? { type: "ibm_deposit", id: deposit.id, module: "deposit" }
+        : undefined,
+    canUpload: false,
+    showActivityLog: Boolean(deposit?.workflow_case_id),
+  })
 
   const handlePrint = () => {
     if (!deposit) return
@@ -94,54 +107,27 @@ export function InterbankDetailPage() {
     return <div className="p-6 text-sm text-muted-foreground">{t("deposit.loading")}</div>
   }
 
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link to="/deposit/interbank" className="text-xs font-medium text-primary hover:underline">
-            ← {t("deposit.interbank.title")}
-          </Link>
-          <h1 className="font-mono text-lg font-semibold">{deposit.deposit_code}</h1>
-          <Badge variant={deposit.status === "ACTIVE" ? "default" : "outline"}>
-            {t(`deposit.interbank.status.${deposit.status}`)}
-          </Badge>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={handlePrint}>
-            {t("deposit.interbank.action.print")}
-          </Button>
-          {canStage && (
-            <>
-              <Button size="sm" onClick={() => setMovementKind("TOP_UP")}>
-                {t("deposit.interbank.action.top_up")}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setMovementKind("INTEREST")}>
-                {t("deposit.interbank.action.interest")}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setMovementKind("EXPECTED")}>
-                {t("deposit.interbank.action.expected")}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setMovementKind("WITHDRAW")}>
-                {t("deposit.interbank.action.withdraw")}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">
-        <Info label={t("deposit.interbank.field.counterparty")} value={`${deposit.counterparty_code}${deposit.counterparty_name ? ` — ${deposit.counterparty_name}` : ""}`} />
-        <Info label={t("deposit.interbank.field.product")} value={deposit.product_code ?? "—"} />
-        <Info label={t("deposit.interbank.field.principal")} value={formatAmount(fromMinor(deposit.principal_minor, deposit.currency_code), deposit.currency_code)} />
-        <Info label={t("deposit.interbank.field.accrued")} value={formatAmount(fromMinor(deposit.accrued_minor, deposit.currency_code), deposit.currency_code)} />
-        <Info label={t("deposit.interbank.field.interest_rate")} value={formatRatePercent(deposit.interest_rate)} />
-        <Info label={t("deposit.interbank.field.deposit_date")} value={formatDateShort(deposit.deposit_date)} />
-        <Info label={t("deposit.interbank.field.maturity_date")} value={formatDateShort(deposit.maturity_date)} />
-        <Info label={t("deposit.interbank.field.last_interest")} value={deposit.last_interest_date ? formatDateShort(deposit.last_interest_date) : "—"} />
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold">{t("deposit.interbank.movement.title")}</h2>
+  const tabs = [
+    {
+      id: "info",
+      label: t("deposit.interbank.detail.tab_info"),
+      content: (
+        <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">
+          <Info label={t("deposit.interbank.field.counterparty")} value={`${deposit.counterparty_code}${deposit.counterparty_name ? ` — ${deposit.counterparty_name}` : ""}`} />
+          <Info label={t("deposit.interbank.field.product")} value={deposit.product_code ?? "—"} />
+          <Info label={t("deposit.interbank.field.principal")} value={formatAmount(fromMinor(deposit.principal_minor, deposit.currency_code), deposit.currency_code)} />
+          <Info label={t("deposit.interbank.field.accrued")} value={formatAmount(fromMinor(deposit.accrued_minor, deposit.currency_code), deposit.currency_code)} />
+          <Info label={t("deposit.interbank.field.interest_rate")} value={formatRatePercent(deposit.interest_rate)} />
+          <Info label={t("deposit.interbank.field.deposit_date")} value={formatDateShort(deposit.deposit_date)} />
+          <Info label={t("deposit.interbank.field.maturity_date")} value={formatDateShort(deposit.maturity_date)} />
+          <Info label={t("deposit.interbank.field.last_interest")} value={deposit.last_interest_date ? formatDateShort(deposit.last_interest_date) : "—"} />
+        </section>
+      ),
+    },
+    {
+      id: "movements",
+      label: t("deposit.interbank.movement.title"),
+      content: (
         <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
@@ -187,7 +173,47 @@ export function InterbankDetailPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      ),
+    },
+    ...systemTabs,
+  ]
+
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link to="/deposit/interbank" className="text-xs font-medium text-primary hover:underline">
+            ← {t("deposit.interbank.title")}
+          </Link>
+          <h1 className="font-mono text-lg font-semibold">{deposit.deposit_code}</h1>
+          <Badge variant={deposit.status === "ACTIVE" ? "default" : "outline"}>
+            {t(`deposit.interbank.status.${deposit.status}`)}
+          </Badge>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={handlePrint}>
+            {t("deposit.interbank.action.print")}
+          </Button>
+          {canStage && (
+            <>
+              <Button size="sm" onClick={() => setMovementKind("TOP_UP")}>
+                {t("deposit.interbank.action.top_up")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setMovementKind("INTEREST")}>
+                {t("deposit.interbank.action.interest")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setMovementKind("EXPECTED")}>
+                {t("deposit.interbank.action.expected")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setMovementKind("WITHDRAW")}>
+                {t("deposit.interbank.action.withdraw")}
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <CaseTabs tabs={tabs} />
 
       <IbmMovementDialog
         open={movementKind !== null}

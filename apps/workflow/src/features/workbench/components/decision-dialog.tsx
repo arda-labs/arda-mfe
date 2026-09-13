@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Check, MessageSquareWarning, X } from "lucide-react"
+import { useCaseTabs } from "@workspace/case-tabs"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -11,6 +12,12 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import type { WorkItem } from "../api"
 
@@ -38,6 +45,14 @@ export function DecisionDialog({
   const [comment, setComment] = useState("")
   const [error, setError] = useState("")
 
+  // Checker context: the maker's attachments ("Hồ sơ đính kèm") and the case
+  // timeline ("Lưu vết tác vụ") — view-only, the dialog never mutates the case
+  // dossier (EPAS approve mode). Labels come from the shared common bundle.
+  const caseTabs = useCaseTabs({
+    caseId: item?.caseId,
+    canUpload: false,
+  })
+
   useEffect(() => {
     setComment("")
     setError("")
@@ -60,11 +75,9 @@ export function DecisionDialog({
         if (!open && !submitting) onClose()
       }}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>
-            {t("workflow.workbench.decision_title")}
-          </DialogTitle>
+          <DialogTitle>{t("workflow.workbench.decision_title")}</DialogTitle>
           <DialogDescription>
             {item ? `${item.caseCode} — ${item.title}` : ""}
           </DialogDescription>
@@ -78,15 +91,34 @@ export function DecisionDialog({
             rows={3}
             value={comment}
             disabled={submitting}
-            placeholder={t(
-              "workflow.workbench.decision_comment_placeholder"
-            )}
+            placeholder={t("workflow.workbench.decision_comment_placeholder")}
             onChange={(event) => setComment(event.target.value)}
           />
-          {error ? (
-            <p className="text-sm text-destructive">{error}</p>
-          ) : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </div>
+        {item?.caseId && caseTabs.length > 0 ? (
+          <Tabs
+            defaultValue={caseTabs[0]?.id}
+            className="flex flex-col gap-2 pt-2"
+          >
+            <TabsList className="h-auto w-fit">
+              {caseTabs.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id}>
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {caseTabs.map((tab) => (
+              <TabsContent
+                key={tab.id}
+                value={tab.id}
+                className="mt-0 max-h-80 overflow-y-auto"
+              >
+                {tab.content}
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : null}
         <DialogFooter className="gap-2 sm:justify-end">
           <Button
             type="button"

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -34,6 +35,7 @@ export function InterestDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [opType, setOpType] = useState<"PAY" | "CAPITALIZE">(defaultOp)
   const [amount, setAmount] = useState("")
   const [pending, setPending] = useState(false)
@@ -52,10 +54,15 @@ export function InterestDialog({
     }
     setPending(true)
     try {
-      await depositApi.submitSavingsInterest(savingsCode, {
+      const op = await depositApi.submitSavingsInterest(savingsCode, {
         op_type: opType,
         amount_minor: amountMinor,
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, op.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("deposit.interest.submit_success"))
       onOpenChange(false)
       await onSaved()
@@ -100,6 +107,7 @@ export function InterestDialog({
             />
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

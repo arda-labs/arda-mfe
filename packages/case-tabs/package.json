@@ -1,0 +1,32 @@
+{
+  "name": "@workspace/case-tabs",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/api": "workspace:*",
+    "@workspace/i18n": "workspace:*",
+    "@workspace/media": "workspace:*",
+    "@workspace/ui": "workspace:*",
+    "lucide-react": "^1.22.0",
+    "react": "^19.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "~6"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./case-tabs": "./src/case-tabs.tsx",
+    "./case-attachments-panel": "./src/case-attachments-panel.tsx",
+    "./case-activity-log-panel": "./src/case-activity-log-panel.tsx",
+    "./use-case-tabs": "./src/use-case-tabs.tsx",
+    "./use-staged-attachments": "./src/use-staged-attachments.tsx",
+    "./types": "./src/types.ts"
+  }
+}

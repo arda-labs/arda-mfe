@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { Calculator, RefreshCw, Send } from "lucide-react"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Page } from "@workspace/ui/components/page"
 import { PageHeader } from "@workspace/ui/components/page-header"
@@ -26,6 +27,9 @@ import { generalProvisionApi, type GeneralProvision } from "../api"
  */
 export function GeneralProvisionPage() {
   const { t } = useI18n()
+  // EPAS lib-bpm-tabs: page không có tabs → hiển thị panel "Hồ sơ đính kèm"
+  // như một section; file staged attach vào case khi submit trả workflow_case_id.
+  const staged = useStagedAttachments({ module: "loan" })
   const [orgCode, setOrgCode] = useState("")
   const [provisionDate, setProvisionDate] = useState(todayISO())
   const [preview, setPreview] = useState<GeneralProvision | null>(null)
@@ -72,10 +76,18 @@ export function GeneralProvisionPage() {
   async function submit() {
     setSubmitting(true)
     try {
-      await generalProvisionApi.submit({
+      const created = await generalProvisionApi.submit({
         org_code: orgCode.trim(),
         provision_date: provisionDate,
       })
+      try {
+        await attachStagedCaseFiles(
+          staged.ids,
+          created.workflow_case_id ?? created.WorkflowCaseID ?? ""
+        )
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("loan.general_provision.submit_success"))
       setPreview(null)
       await load()
@@ -185,6 +197,8 @@ export function GeneralProvisionPage() {
             />
           </div>
         ) : null}
+
+        {staged.tab.content}
 
         {loading ? (
           <div className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground">

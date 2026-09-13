@@ -98,6 +98,7 @@
     "comment_required": "Please enter a processing comment",
     "submit_success": "Transaction processed",
     "submit_failed": "Failed to process the transaction",
+    "tab_info": "Posting information",
     "info": {
       "accounting_date": "Accounting date",
       "currency": "Currency",
@@ -260,7 +261,8 @@
     },
     "notify": {
       "created": "Posting case {case_code} created, pending approval",
-      "create_failed": "Could not create the posting case"
+      "create_failed": "Could not create the posting case",
+      "attach_failed": "Files could not be attached to the case — add them again in the review screen"
     },
     "cancellation": {
       "title": "Transaction cancellation",

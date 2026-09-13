@@ -4,7 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { navigateTo } from "@workspace/ui/shell/routing"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
+import { useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
+import type { CaseTabItem } from "@workspace/case-tabs/types"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { PageTitle } from "@workspace/ui/components/page-title"
@@ -63,7 +65,13 @@ function goBack() {
   }
 }
 
-function AdjustmentTabsList({ compact = false }: { compact?: boolean }) {
+function AdjustmentTabsList({
+  compact = false,
+  systemTabs = [],
+}: {
+  compact?: boolean
+  systemTabs?: CaseTabItem[]
+}) {
   const { t } = useI18n()
   return (
     <TabsList
@@ -77,6 +85,11 @@ function AdjustmentTabsList({ compact = false }: { compact?: boolean }) {
       <TabsTrigger value="general">
         {t("crm.customers.adjustments.tab_general")}
       </TabsTrigger>
+      {systemTabs.map((tab) => (
+        <TabsTrigger key={tab.id} value={tab.id}>
+          {tab.label}
+        </TabsTrigger>
+      ))}
     </TabsList>
   )
 }
@@ -163,6 +176,20 @@ export function CustomerAdjustmentPage({
 
   const readOnly = viewOnly || amendment?.status === "PENDING"
   const canEdit = amendment?.status === "DRAFT"
+  // EPAS lib-bpm-tabs: system tabs follow "Thông tin điều chỉnh". When the case
+  // has not been started yet (new adjustment), fall back to attaching files to
+  // the customer entity; the activity log only makes sense with a case.
+  const amendmentCaseId =
+    taskContext.caseId ?? amendment?.workflowCaseId ?? null
+  const systemTabs = useCaseTabs({
+    caseId: amendmentCaseId ?? undefined,
+    attachmentEntity:
+      amendmentCaseId || !customerId
+        ? undefined
+        : { type: "crm_customer", id: customerId, module: "crm" },
+    canUpload: canEdit && !viewOnly,
+    showActivityLog: Boolean(amendmentCaseId),
+  })
   const canSubmit = canEdit && Boolean(amendment?.id)
   const canCancelDraft = canEdit && Boolean(amendment?.id)
   const canAutoStart =
@@ -385,7 +412,7 @@ export function CustomerAdjustmentPage({
               />
             </div>
             <div className="sticky top-0 z-10 border-b bg-background px-4 py-2">
-              <AdjustmentTabsList />
+              <AdjustmentTabsList systemTabs={systemTabs} />
             </div>
             <div className="space-y-4 p-4">
               {isCustomerLoading ? (
@@ -494,6 +521,11 @@ export function CustomerAdjustmentPage({
                   </fieldset>
                 </TabsContent>
               ) : null}
+              {systemTabs.map((tab) => (
+                <TabsContent key={tab.id} value={tab.id} className="mt-0">
+                  {tab.content}
+                </TabsContent>
+              ))}
             </div>
           </Tabs>
         </div>

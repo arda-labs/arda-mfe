@@ -18,6 +18,7 @@
     "@workspace/posting-flow": "workspace:*",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
+    "@workspace/case-tabs": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/format": "workspace:*",
     "@workspace/notifications": "workspace:*",

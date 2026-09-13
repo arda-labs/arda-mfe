@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -30,6 +31,7 @@ const DEFAULT_PAGE_SIZE = 10
 /** Savings — citizen deposit accounts (DPM): list + open + settle. */
 export function SavingsPage(_props: { pathname: string }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [items, setItems] = useState<Savings[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -63,6 +65,11 @@ export function SavingsPage(_props: { pathname: string }) {
       setSettling(true)
       try {
         const submission = await depositApi.settleSavings(item.savings_code)
+        try {
+          await attachStagedCaseFiles(staged.ids, submission.case_id)
+        } catch {
+          notify.error(t("common.case_tabs.attachments.attach_error"))
+        }
         notify.success(
           t("deposit.savings.settle_submitted"),
           submission.case_code
@@ -78,7 +85,7 @@ export function SavingsPage(_props: { pathname: string }) {
         setSettling(false)
       }
     },
-    [load, t]
+    [load, t, staged.ids]
   )
 
   const columns = useMemo<ColumnDef<Savings>[]>(
@@ -305,6 +312,7 @@ export function SavingsPage(_props: { pathname: string }) {
                   })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
+              {staged.tab.content}
               <AlertDialogFooter>
                 <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
                 <AlertDialogAction

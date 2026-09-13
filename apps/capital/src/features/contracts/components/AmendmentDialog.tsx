@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -30,6 +31,7 @@ export function AmendmentDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "capital" })
   const [amount, setAmount] = useState("")
   const [interestRate, setInterestRate] = useState("")
   const [contractDate, setContractDate] = useState("")
@@ -58,7 +60,12 @@ export function AmendmentDialog({
     }
     setPending(true)
     try {
-      await capitalApi.submitAmendment(contractId, { payload, reason: reason || undefined })
+      const created = await capitalApi.submitAmendment(contractId, { payload, reason: reason || undefined })
+      try {
+        await attachStagedCaseFiles(staged.ids, created.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("capital.amendments.submit_success"))
       onOpenChange(false)
       await onSaved()
@@ -114,6 +121,7 @@ export function AmendmentDialog({
             <Input value={reason} onChange={(e) => setReason(e.target.value)} />
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

@@ -355,7 +355,11 @@ export const depositApi = {
       rate: number
       effective_from: string
     }
-  }) => postCanonical<{ id: string; status: string }>("/api/deposit/rates", body),
+  }) =>
+    postCanonical<{ id: string; status: string; workflow_case_id?: string }>(
+      "/api/deposit/rates",
+      body
+    ),
   getSavings: (code: string) =>
     getCanonical<SavingsDetail>(`/api/deposit/savings/${encodeURIComponent(code)}`),
   submitSavingsInterest: (

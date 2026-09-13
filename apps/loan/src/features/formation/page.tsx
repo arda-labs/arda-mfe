@@ -6,6 +6,7 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { navigateTo } from "@workspace/ui/shell/routing"
 import { Badge } from "@workspace/ui/components/badge"
 import { PostingTabsShell } from "@workspace/posting-flow/posting-flow-shell"
+import { useCaseTabs } from "@workspace/case-tabs"
 import { todayISO } from "@workspace/format"
 import type {
   LoanDossier,
@@ -115,6 +116,10 @@ export function FormationPage() {
   const editableStage: LoanFormationStepCode | null =
     !viewOnly && resolved && stage ? stage : null
   const isMakerStage = editableStage === "UT_MakerInput"
+  const systemTabs = useCaseTabs({
+    caseId: context.caseId ?? undefined,
+    canUpload: !viewOnly,
+  })
 
   // ── Forms (plain state — app loan không dùng react-hook-form) ──
   const officerAuto =
@@ -368,6 +373,7 @@ export function FormationPage() {
         </>
       }
       tabs={tabs}
+      systemTabs={systemTabs}
       defaultValue={stage ? stepEditableTab(stage) : "proposal"}
       footer={
         <FormationFooterActions

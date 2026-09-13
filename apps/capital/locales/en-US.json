@@ -32,7 +32,12 @@
   },
   "detail": {
     "loading": "Loading...",
-    "load_failed": "Could not load the contract."
+    "load_failed": "Could not load the contract.",
+    "tab": {
+      "info": "Information",
+      "movements": "Transaction history",
+      "amendments": "Amendments"
+    }
   },
   "field": {
     "journal": "Journal"

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -34,6 +35,7 @@ export function IbmMovementDialog({
   onSaved: () => Promise<void> | void
 }) {
   const { t } = useI18n()
+  const staged = useStagedAttachments({ module: "deposit" })
   const [kind, setKind] = useState(defaultKind)
   const [amount, setAmount] = useState("")
   const [movementDate, setMovementDate] = useState(todayISO())
@@ -60,7 +62,7 @@ export function IbmMovementDialog({
     }
     setPending(true)
     try {
-      await depositApi.submitIbmMovement(depositId, {
+      const movement = await depositApi.submitIbmMovement(depositId, {
         kind: kind as (typeof KINDS)[number],
         amount_minor: amountMinor,
         movement_date: movementDate,
@@ -68,6 +70,11 @@ export function IbmMovementDialog({
         period_to: periodTo || undefined,
         note: note || undefined,
       })
+      try {
+        await attachStagedCaseFiles(staged.ids, movement.workflow_case_id ?? "")
+      } catch {
+        notify.error(t("common.case_tabs.attachments.attach_error"))
+      }
       notify.success(t("deposit.interbank.movement.submit_success"))
       onOpenChange(false)
       await onSaved()
@@ -135,6 +142,7 @@ export function IbmMovementDialog({
             <Input value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
         </div>
+        {staged.tab.content}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.action.cancel")}

@@ -202,5 +202,50 @@
     "zoom": "Thu phóng",
     "cancel": "Hủy",
     "apply": "Áp dụng"
+  },
+  "case_tabs": {
+    "attachments": {
+      "title": "Hồ sơ đính kèm",
+      "list_title": "Danh sách tài liệu",
+      "empty": "Chưa có tài liệu đính kèm",
+      "loading": "Đang tải tài liệu...",
+      "load_error": "Không tải được danh sách tài liệu",
+      "upload": "Thêm tài liệu",
+      "uploading": "Đang tải lên...",
+      "upload_error": "Tải tài liệu thất bại",
+      "view": "Xem",
+      "download": "Tải về",
+      "col_name": "Tên tài liệu",
+      "col_size": "Dung lượng",
+      "col_uploaded_at": "Thời điểm tải lên",
+      "col_actions": "Thao tác",
+      "remove": "Xóa",
+      "remove_error": "Không xóa được tệp",
+      "staged_hint": "Tệp sẽ được đính kèm vào hồ sơ khi gửi.",
+      "attach_error": "Không đính kèm được tệp vào hồ sơ — vui lòng thêm lại trong màn xử lý."
+    },
+    "activity": {
+      "title": "Lưu vết tác vụ",
+      "comments_title": "Danh sách ý kiến",
+      "traces_title": "Danh sách lưu vết",
+      "loading": "Đang tải lưu vết...",
+      "load_error": "Không tải được lưu vết tác vụ",
+      "empty": "Chưa có lưu vết",
+      "comments_empty": "Chưa có ý kiến",
+      "col_task": "Tác vụ",
+      "col_status": "Trạng thái",
+      "col_time": "Thời điểm",
+      "col_actor": "Người thực hiện",
+      "col_content": "Nội dung",
+      "events": {
+        "CASE_CREATED": "Khởi tạo hồ sơ",
+        "CASE_SUBMITTED": "Gửi duyệt hồ sơ",
+        "CASE_CLAIMED": "Tiếp nhận xử lý",
+        "CHECKER_APPROVED": "Phê duyệt",
+        "CHECKER_REQUEST_CHANGES": "Yêu cầu bổ sung",
+        "CHECKER_REJECTED": "Từ chối",
+        "JOB_FAILED": "Tác vụ hệ thống lỗi"
+      }
+    }
   }
 }

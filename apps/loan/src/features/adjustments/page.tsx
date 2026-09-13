@@ -1,4 +1,6 @@
 import { useI18n } from "@workspace/i18n"
+import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
+import { notify } from "@workspace/ui/feedback/notify"
 import { PostingTabsShell } from "@workspace/posting-flow/posting-flow-shell"
 import { ADJUSTMENT_KIND_SPECS } from "./kind-spec"
 import { AdjustmentInfoTab } from "./components/info-tab"
@@ -9,12 +11,17 @@ const KIND_PREFIX = "/loans/adjustments/"
 /**
  * Màn điều chỉnh per-kind (route /loans/adjustments/{kind}) — mirror batch
  * screens trên PostingTabsShell: tab 1 thông tin điều chỉnh (form theo kind),
- * tab 2 danh sách điều chỉnh của kind này (server list + Trình duyệt DRAFT).
+ * tab 2 danh sách điều chỉnh của kind này (server list + Trình duyệt DRAFT),
+ * tab hệ thống "Hồ sơ đính kèm" (staged trước, attach khi case sinh ra).
  * Remote routes là prefix-matching (không có Route element) nên kind đọc từ
  * path segment cuối.
  */
 export function AdjustmentKindPage({ pathname }: { pathname: string }) {
   const { t } = useI18n()
+  // EPAS lib-bpm-tabs: gom file trước ở tab "Hồ sơ đính kèm"; case chỉ sinh
+  // khi Trình duyệt DRAFT ở tab danh sách (submitAdjustment → workflow_case_id)
+  // nên attach xảy ra ở callback onCaseCreated.
+  const staged = useStagedAttachments({ module: "loan" })
   const kind = pathname.startsWith(KIND_PREFIX)
     ? pathname.slice(KIND_PREFIX.length).split("/")[0]
     : ""
@@ -34,6 +41,15 @@ export function AdjustmentKindPage({ pathname }: { pathname: string }) {
 
   const kindLabel = t(spec.labelKey)
 
+  // Trình duyệt trả workflow_case_id — case đã tạo, file staged attach vào đó.
+  const attachToCase = async (caseId: string) => {
+    try {
+      await attachStagedCaseFiles(staged.ids, caseId)
+    } catch {
+      notify.error(t("common.case_tabs.attachments.attach_error"))
+    }
+  }
+
   return (
     <PostingTabsShell
       labels={{
@@ -52,9 +68,12 @@ export function AdjustmentKindPage({ pathname }: { pathname: string }) {
         {
           id: "adjustment-list",
           label: t("loan.adjustment_screen.tab_list", { kind: kindLabel }),
-          content: <AdjustmentListTab kind={spec.kind} />,
+          content: (
+            <AdjustmentListTab kind={spec.kind} onCaseCreated={attachToCase} />
+          ),
         },
       ]}
+      systemTabs={[staged.tab]}
     />
   )
 }

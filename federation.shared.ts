@@ -92,4 +92,6 @@ export const sharedWorkspaceExemptions = {
   // loading-screen share degraded to async load -> React #130 white screen).
   // Revisit ONLY with a hard-repro harness proving the boot order stays sync.
   "@workspace/posting-flow": "presentational-only; sharing broke shell boot order (React #130)",
+  "@workspace/case-tabs":
+    "presentational-only; no cross-tree state (media + case timeline fetched per screen)",
 } as const

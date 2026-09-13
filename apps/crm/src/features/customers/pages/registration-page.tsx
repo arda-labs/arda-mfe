@@ -5,6 +5,7 @@ import { navigateTo } from "@workspace/ui/shell/routing"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { uploadFile } from "@workspace/media"
+import { useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { FormField } from "@workspace/ui/components/form-field"
 import {
@@ -111,6 +112,15 @@ export function CustomerRegistrationPage({
     savedCustomer?.status === "NEEDS_CHANGES"
   const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
   const isReadonly = viewOnly || isActive || (isSubmitted && !canEditTask)
+  // EPAS lib-bpm-tabs: the two system tabs (Hồ sơ đính kèm + Lưu vết tác vụ)
+  // come after the business tabs. The case id comes from the task context
+  // (work item / deep-link params), falling back to the case created when the
+  // registration was submitted.
+  const taskCaseId = taskContext.caseId ?? savedCustomer?.workflowCaseId ?? null
+  const systemTabs = useCaseTabs({
+    caseId: taskCaseId ?? undefined,
+    canUpload: !isReadonly,
+  })
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
@@ -558,6 +568,7 @@ export function CustomerRegistrationPage({
               <CustomerRegistrationTabsList
                 isPersonal={isPersonal}
                 canAddRelationship={canAddRelationship}
+                systemTabs={systemTabs}
               />
             </div>
             <div className="space-y-4 p-4">
@@ -684,6 +695,11 @@ export function CustomerRegistrationPage({
                   )}
                 </TabsContent>
               ) : null}
+              {systemTabs.map((tab) => (
+                <TabsContent key={tab.id} value={tab.id} className="mt-0">
+                  {tab.content}
+                </TabsContent>
+              ))}
             </div>
           </Tabs>
         </div>
