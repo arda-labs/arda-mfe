@@ -1,6 +1,7 @@
 import { useSystemBranding } from "@workspace/theme/branding"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { AuthFrame } from "./auth-frame"
 
 type AuthLoadingScreenProps = {
   fullscreen?: boolean
@@ -13,7 +14,7 @@ export function AuthLoadingScreen({
 }: AuthLoadingScreenProps) {
   const { branding } = useSystemBranding()
   const content = (
-    <div className="flex flex-col items-center gap-6 text-center">
+    <div className="flex flex-col items-center gap-6 py-6 text-center">
       <BrandMark
         name={branding.appName}
         logoUrl={branding.loginLogoUrl || branding.dashboardLogoUrl}
@@ -34,16 +35,7 @@ export function AuthLoadingScreen({
     )
   }
 
-  const bgColor = "bg-background"
-  return (
-    <main
-      className={`flex min-h-dvh items-center justify-center ${bgColor} px-4`}
-    >
-      <div className="w-full max-w-sm rounded-xl border bg-card px-6 py-10 shadow-sm sm:px-8">
-        {content}
-      </div>
-    </main>
-  )
+  return <AuthFrame branding={branding}>{content}</AuthFrame>
 }
 
 function SkeletonBlock({ className }: { className: string }) {

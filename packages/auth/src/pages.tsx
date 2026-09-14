@@ -1,12 +1,8 @@
-import {
-  useSystemBranding,
-  type BrandingSettings,
-} from "@workspace/theme/branding"
+import { useSystemBranding } from "@workspace/theme/branding"
 import { api, type ApiSuccess } from "@workspace/api"
 import { apiUrl } from "@workspace/api/url"
 import { getMediaContentUrl } from "@workspace/media/urls"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -44,9 +40,9 @@ import {
   useRef,
   useState,
   type FormEvent,
-  type ReactNode,
 } from "react"
 import { useTheme } from "@workspace/theme"
+import { AuthFrame } from "./auth-frame"
 import { AuthLoadingScreen } from "./loading-screen"
 import {
   acceptHydraConsent,
@@ -100,9 +96,9 @@ export function LoginPage() {
 
   useEffect(() => {
     if (searchError) {
-      toast.error(`Lỗi xác thực: ${searchError}`)
+      toast.error(t("auth.login.error.callback", { error: searchError }))
     }
-  }, [searchError])
+  }, [searchError, t])
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -245,10 +241,11 @@ export function LoginPage() {
       <AuthFrame branding={branding}>
         <div className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold">Save your backup codes</h1>
+            <h1 className="text-2xl font-semibold">
+              {t("auth.login.backup.title")}
+            </h1>
             <p className="text-sm leading-6 text-muted-foreground">
-              Store these somewhere safe. Each code can be used once if you lose
-              your authenticator.
+              {t("auth.login.backup.description")}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 font-mono text-sm">
@@ -268,17 +265,17 @@ export function LoginPage() {
               onClick={() =>
                 navigator.clipboard
                   ?.writeText(backupCodes.join("\n"))
-                  .then(() => toast.success("Backup codes copied"))
-                  .catch(() => toast.error("Could not copy backup codes"))
+                  .then(() => toast.success(t("auth.login.backup.copied")))
+                  .catch(() => toast.error(t("auth.login.backup.copy_failed")))
               }
             >
-              <Copy className="mr-2 size-4" /> Copy codes
+              <Copy className="mr-2 size-4" /> {t("auth.login.backup.copy")}
             </Button>
             <Button
               type="button"
               onClick={() => (window.location.href = pendingRedirectURL || "/")}
             >
-              Continue
+              {t("auth.login.backup.continue")}
             </Button>
           </div>
         </div>
@@ -347,15 +344,15 @@ export function LoginPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold text-balance text-foreground">
               {mfaRequired || mfaEnrollmentRequired
-                ? "Xác thực bảo mật"
+                ? t("auth.login.mfa.title")
                 : t("auth.login.title")}
             </h1>
             <p className="text-sm text-pretty text-muted-foreground">
               {showRetryButton
-                ? "Session establishment failed."
+                ? t("auth.login.retry.title")
                 : mfaRequired || mfaEnrollmentRequired
-                  ? "Nhập mã xác thực để tiếp tục phiên đăng nhập an toàn."
-                  : "Enter your credentials to access your secure workspace."}
+                  ? t("auth.login.mfa.description")
+                  : t("auth.login.subtitle")}
             </p>
           </div>
 
@@ -369,9 +366,7 @@ export function LoginPage() {
           {showRetryButton ? (
             <div className="space-y-4 py-2">
               <div className="text-sm leading-relaxed text-muted-foreground">
-                We were unable to secure a connection with the authorization
-                server. This may be due to an expired session or network
-                configuration issues.
+                {t("auth.login.retry.description")}
               </div>
               <Button
                 onClick={() => {
@@ -380,7 +375,7 @@ export function LoginPage() {
                 }}
                 className="h-10 w-full font-semibold"
               >
-                Retry Secure Sign In
+                {t("auth.login.retry.action")}
               </Button>
             </div>
           ) : (
@@ -388,9 +383,7 @@ export function LoginPage() {
               {mfaEnrollmentRequired ? (
                 <div className="space-y-4">
                   <div className="rounded-md border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
-                    Administrator privileges require Multi-Factor
-                    Authentication. Scan the QR code with your authenticator
-                    app, then enter the 6-digit code.
+                    {t("auth.login.mfa.enroll_description")}
                   </div>
                   {mfaOTPAuthURL && (
                     <div className="flex justify-center">
@@ -406,7 +399,7 @@ export function LoginPage() {
                       </div>
                     </div>
                   )}
-                  <FormField label="Manual setup key">
+                  <FormField label={t("auth.login.mfa.manual_key")}>
                     <Input
                       readOnly
                       className="bg-muted/20 font-mono text-xs"
@@ -424,7 +417,7 @@ export function LoginPage() {
                   {otpMethod === "totp" ? (
                     <OtpCodeInput value={mfaCode} onChange={setMfaCode} />
                   ) : (
-                    <FormField label="Recovery code">
+                    <FormField label={t("auth.login.mfa.recovery_label")}>
                       <Input
                         autoComplete="one-time-code"
                         value={mfaCode}
@@ -443,7 +436,7 @@ export function LoginPage() {
                       <Input
                         autoComplete="username"
                         autoFocus
-                        placeholder="Tên đăng nhập"
+                        placeholder={t("auth.login.field.username")}
                         onChange={(e) => setUsername(e.target.value)}
                         type="text"
                         value={username}
@@ -455,14 +448,16 @@ export function LoginPage() {
                       <Input
                         autoComplete="current-password"
                         className="h-10 pr-10 pl-9"
-                        placeholder="Mật khẩu"
+                        placeholder={t("auth.login.field.password")}
                         onChange={(e) => setPassword(e.target.value)}
                         type={showPassword ? "text" : "password"}
                         value={password}
                       />
                       <button
                         aria-label={
-                          showPassword ? "Hide password" : "Show password"
+                          showPassword
+                            ? t("auth.login.field.hide_password")
+                            : t("auth.login.field.show_password")
                         }
                         className="absolute top-1/2 right-2.5 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         onClick={() => setShowPassword((value) => !value)}
@@ -484,7 +479,7 @@ export function LoginPage() {
                       }
                     />
                     <span className="text-muted-foreground">
-                      Ghi nhớ đăng nhập
+                      {t("auth.login.remember")}
                     </span>
                   </label>
                   <div className="text-right">
@@ -512,7 +507,8 @@ export function LoginPage() {
                   </>
                 ) : mfaRequired || mfaEnrollmentRequired ? (
                   <>
-                    <ShieldCheck className="mr-2 size-4" /> Verify
+                    <ShieldCheck className="mr-2 size-4" />{" "}
+                    {t("auth.login.mfa.verify")}
                   </>
                 ) : (
                   <>
@@ -852,40 +848,6 @@ export function RecoveryPage() {
   )
 }
 
-function AuthFrame({
-  branding,
-  children,
-}: {
-  branding: BrandingSettings
-  children: ReactNode
-}) {
-  const logoUrl = branding.loginLogoUrl || branding.dashboardLogoUrl
-  return (
-    <main className="flex min-h-dvh items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
-        <div className="rounded-xl border bg-card px-6 py-8 shadow-sm sm:px-8 sm:py-10">
-          <div className="mb-8 flex items-center gap-3">
-            <BrandMark name={branding.appName} logoUrl={logoUrl} size="md" />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {branding.appName}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {branding.organizationName || "Secure workspace"}
-              </p>
-            </div>
-          </div>
-          {children}
-        </div>
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()}{" "}
-          {branding.organizationName || branding.appName}. All rights reserved.
-        </p>
-      </div>
-    </main>
-  )
-}
-
 function OtpMethodSelector({
   value,
   onChange,
@@ -893,9 +855,10 @@ function OtpMethodSelector({
   value: "totp" | "recovery"
   onChange: (value: "totp" | "recovery") => void
 }) {
+  const { t } = useI18n()
   const options: Array<{ value: "totp" | "recovery"; label: string }> = [
-    { value: "totp", label: "Authenticator app" },
-    { value: "recovery", label: "Recovery code" },
+    { value: "totp", label: t("auth.login.mfa.method_totp") },
+    { value: "recovery", label: t("auth.login.mfa.method_recovery") },
   ]
   return (
     <div className="grid grid-cols-2 gap-2 rounded-md border bg-muted/30 p-1">
@@ -925,8 +888,9 @@ function OtpCodeInput({
   value: string
   onChange: (value: string) => void
 }) {
+  const { t } = useI18n()
   return (
-    <FormField label="Verification code">
+    <FormField label={t("auth.login.mfa.code_label")}>
       <div className="flex justify-center">
         <InputOTP
           maxLength={6}

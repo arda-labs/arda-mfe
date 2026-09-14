@@ -131,6 +131,18 @@ export function SystemBrandingProvider({ children }: { children: ReactNode }) {
     }
   }, [reloadVersion])
 
+  useEffect(() => {
+    if (typeof document === "undefined") return
+    const title = branding.appName.trim() || defaultBranding.appName
+    document.title = title
+  }, [branding.appName])
+
+  useEffect(() => {
+    if (typeof document === "undefined" || !branding.faviconUrl) return
+    const link = ensureFaviconLink()
+    if (link) link.href = branding.faviconUrl
+  }, [branding.faviconUrl])
+
   const value = useMemo(
     () => ({ branding, loading, error, reload }),
     [branding, error, loading, reload]
@@ -215,6 +227,17 @@ function cacheAndReturn(value: unknown) {
 
 function readString(value: unknown, fallback: string) {
   return typeof value === "string" ? value : fallback
+}
+
+function ensureFaviconLink() {
+  if (typeof document === "undefined") return null
+  let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
+  if (!link) {
+    link = document.createElement("link")
+    link.rel = "icon"
+    document.head.appendChild(link)
+  }
+  return link
 }
 
 function readSafeUrl(value: unknown) {
