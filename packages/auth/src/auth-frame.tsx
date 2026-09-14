@@ -11,6 +11,11 @@ type AuthFrameProps = {
   children: ReactNode
 }
 
+// Public developer portal (arda-labs/arda-docs-site) — contains the About,
+// Terms of Service and Privacy Policy pages linked from the auth footer.
+const ARDA_DOCS_URL = "https://docs.arda.io.vn"
+const ARDA_GITHUB_URL = "https://github.com/arda-labs"
+
 /**
  * Shared shell for every anonymous auth screen (login, recovery, loading).
  * Renders the branding settings from /admin/settings: a brand panel on the
@@ -150,43 +155,70 @@ function AuthFooter({ branding }: { branding: BrandingSettings }) {
   const supportEmail = branding.supportEmail.trim()
   const supportPhone = branding.supportPhone.trim()
   const helpUrl = getSafeLinkUrl(branding.helpUrl)
+  const docsLinks = [
+    { href: `${ARDA_DOCS_URL}/`, label: t("auth.login.footer.docs") },
+    { href: `${ARDA_DOCS_URL}/about`, label: t("auth.login.footer.about") },
+    {
+      href: `${ARDA_DOCS_URL}/terms-of-service`,
+      label: t("auth.login.footer.terms"),
+    },
+    {
+      href: `${ARDA_DOCS_URL}/privacy-policy`,
+      label: t("auth.login.footer.privacy"),
+    },
+    { href: ARDA_GITHUB_URL, label: t("auth.login.footer.github") },
+  ]
   return (
-    <div className="mt-6 flex flex-col items-center gap-1.5 text-center text-xs text-muted-foreground">
-      <p>
-        &copy; {new Date().getFullYear()}{" "}
-        {branding.organizationName || branding.appName}.{" "}
-        {t("auth.login.footer.rights")}
+    <div className="mt-6 flex flex-col items-center gap-2 text-center text-xs text-muted-foreground">
+      <nav
+        aria-label={t("auth.login.footer.legal_nav")}
+        className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+      >
+        {docsLinks.map((link) => (
+          <a
+            key={link.href}
+            className="transition-colors hover:text-foreground hover:underline"
+            href={link.href}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {link.label}
+          </a>
+        ))}
+      </nav>
+      <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+        <span>
+          &copy; {new Date().getFullYear()}{" "}
+          {branding.organizationName || branding.appName}.{" "}
+          {t("auth.login.footer.rights")}
+        </span>
+        {supportEmail ? (
+          <a
+            className="transition-colors hover:text-foreground hover:underline"
+            href={`mailto:${supportEmail}`}
+          >
+            {supportEmail}
+          </a>
+        ) : null}
+        {supportPhone ? (
+          <a
+            className="transition-colors hover:text-foreground hover:underline"
+            href={`tel:${supportPhone.replace(/[^\d+]/g, "")}`}
+          >
+            {supportPhone}
+          </a>
+        ) : null}
+        {helpUrl ? (
+          <a
+            className="transition-colors hover:text-foreground hover:underline"
+            href={helpUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {t("auth.login.footer.help")}
+          </a>
+        ) : null}
       </p>
-      {(supportEmail || supportPhone || helpUrl) && (
-        <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-          {supportEmail ? (
-            <a
-              className="transition-colors hover:text-foreground hover:underline"
-              href={`mailto:${supportEmail}`}
-            >
-              {supportEmail}
-            </a>
-          ) : null}
-          {supportPhone ? (
-            <a
-              className="transition-colors hover:text-foreground hover:underline"
-              href={`tel:${supportPhone.replace(/[^\d+]/g, "")}`}
-            >
-              {supportPhone}
-            </a>
-          ) : null}
-          {helpUrl ? (
-            <a
-              className="transition-colors hover:text-foreground hover:underline"
-              href={helpUrl}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {t("auth.login.footer.help")}
-            </a>
-          ) : null}
-        </p>
-      )}
     </div>
   )
 }
