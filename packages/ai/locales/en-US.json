@@ -7,12 +7,21 @@
     "error": "Connection failed",
     "done": "Done",
     "ready": "Ready",
-    "thinking": "Olorin is analyzing your request...",
+    "thinking": "Thinking…",
     "searching": "Searching for relevant APIs...",
     "executing": "Querying and processing data...",
     "responding": "Preparing response...",
     "tool_calling": "Calling tool {tool}...",
     "elapsed": "{seconds}s"
+  },
+  "activity": {
+    "working": "Working…",
+    "search": "Searching available APIs…",
+    "execute": "Querying and processing data…",
+    "read": "Reading results…",
+    "reasoning": "Thinking…",
+    "done": "Worked",
+    "done_in": "Worked for {seconds}s"
   },
   "composer": {
     "label": "Ask Olorin",
@@ -80,11 +89,16 @@
     "search": {
       "title": "API Discovery",
       "pending": "Searching APIs for:",
-      "methods": "methods"
+      "methods": "methods",
+      "empty": "(No matching API)"
     },
     "execute": {
       "title": "Data Processing",
-      "pending": "Executing sandboxed script in secure runtime..."
+      "error_title": "Data processing failed",
+      "pending": "Executing sandboxed script in secure runtime...",
+      "script": "JS script",
+      "steps": "Executed steps",
+      "steps_suffix": "steps"
     },
     "customer": {
       "code": "Customer code",

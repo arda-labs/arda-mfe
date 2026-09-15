@@ -5,8 +5,9 @@ import { cn } from "@workspace/ui/lib/utils"
 import {
   ThreadListPrimitive,
   ThreadListItemPrimitive,
+  useAuiState,
 } from "@assistant-ui/react"
-import { Minimize2, Plus, Trash2 } from "lucide-react"
+import { LoaderCircle, Minimize2, Plus, Trash2 } from "lucide-react"
 import { useOlorinContext } from "../lib/context"
 import { OlorinPanel } from "./olorin-panel"
 
@@ -35,6 +36,7 @@ function OlorinWorkspaceSurface({
 }) {
   const { t, formatDate } = useI18n()
   const { threadId, conversations } = useOlorinContext()
+  const isRunning = useAuiState((state) => state.thread.isRunning)
   const handleMinimize = onMinimize ?? onExit
 
   useEffect(() => {
@@ -99,7 +101,13 @@ function OlorinWorkspaceSurface({
                     {t("ai.threads.current_new") || "Cuộc trò chuyện mới"}
                   </span>
                   <span className="block text-[11px] text-muted-foreground mt-0.5">
-                    0 {t("ai.threads.messages_suffix")}
+                    {isRunning ? (
+                      <span className="shimmer text-primary motion-reduce:animate-none">
+                        {t("ai.activity.working")}
+                      </span>
+                    ) : (
+                      <>0 {t("ai.threads.messages_suffix")}</>
+                    )}
                   </span>
                 </span>
               </div>
@@ -129,14 +137,22 @@ function OlorinWorkspaceSurface({
                         <ThreadListItemPrimitive.Title />
                       </span>
                       <span className="block text-[11px] text-muted-foreground mt-0.5">
-                        {custom?.messageCount ?? 0} {t("ai.threads.messages_suffix")}
-                        {custom?.lastMessageAt &&
-                          ` · ${formatDate(custom.lastMessageAt, {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            day: "2-digit",
-                            month: "2-digit",
-                          })}`}
+                        {isRunning && threadListItem.id === threadId ? (
+                          <span className="shimmer text-primary motion-reduce:animate-none">
+                            {t("ai.activity.working")}
+                          </span>
+                        ) : (
+                          <>
+                            {custom?.messageCount ?? 0} {t("ai.threads.messages_suffix")}
+                            {custom?.lastMessageAt &&
+                              ` · ${formatDate(custom.lastMessageAt, {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                day: "2-digit",
+                                month: "2-digit",
+                              })}`}
+                          </>
+                        )}
                       </span>
                     </button>
                   </ThreadListItemPrimitive.Trigger>
@@ -160,8 +176,18 @@ function OlorinWorkspaceSurface({
         <div className="flex h-[52px] shrink-0 items-center justify-between border-b px-4 bg-background">
           <div className="flex items-center gap-2 min-w-0">
             <p className="truncate text-sm font-semibold">{t("ai.name")}</p>
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              · {t("ai.tagline")}
+            <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+              {isRunning ? (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <LoaderCircle className="size-3 shrink-0 animate-spin text-primary" />
+                  <span className="shimmer motion-reduce:animate-none">
+                    {t("ai.activity.working")}
+                  </span>
+                </>
+              ) : (
+                <>· {t("ai.tagline")}</>
+              )}
             </span>
           </div>
           {handleMinimize && (

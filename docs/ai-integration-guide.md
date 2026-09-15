@@ -95,13 +95,20 @@ specifying which customer — the backend resolves `activeCustomerId` from conte
 
 | Key | Type | Description |
 |:---|:---|:---|
-| `currentScreen` | `string` | Dot-namespaced screen identifier (e.g. `"crm.customer.detail"`) |
+| `currentScreen` | `string` | Route pathname (e.g. `/customers/adjustments`) |
 | `activeCustomerId` | `string` | CRM customer UUID |
 | `activeEmployeeId` | `string` | HRM employee UUID |
 | `activeInvoiceId` | `string` | Finance invoice UUID |
 | `activeCaseId` | `string` | Workflow case UUID |
+| `activeWorkItemId` | `string` | Workflow work-item UUID |
 | `userDisplayName` | `string` | Used by Olorin panel for avatar initials |
 | `userLocale` | `string` | `"vi"` or `"en"` — affects AI response language hint |
+
+The shell registers these from the deep link (`?customerId=…`, `?caseId=…`,
+`?workItemId=…`) so task screens get record context without importing
+`@workspace/ai`. Registering richer per-screen context (`registerOlorinContext`)
+is available to shell code today; remotes can join once `@workspace/ai` leaves
+the shell-only exemption in `federation.shared.ts`.
 
 ---
 
@@ -312,6 +319,21 @@ export {
 
 The exact export set grows with each renderer/settings addition; treat
 `packages/ai/src/index.ts` as the source of truth when this snippet drifts.
+
+### Chat surface behavior (2026-09-15)
+
+- Assistant turns render a ChatGPT-style **activity disclosure**
+  (`components/activity.tsx`): while the agent works, a shimmering status row
+  names the running operation (`search` / `execute` / `readResult`) with an
+  elapsed hint; when the turn settles it auto-collapses to
+  `Đã xử lý trong Xs` and can be reopened for the details (reasoning, tool
+  cards, executed sandbox steps).
+- Streaming answers end with a blinking caret via
+  `MarkdownMessage streaming` and the `ai-streaming-caret` utility in
+  `packages/ui`; pending tool calls render as compact rows with a spinner
+  instead of bordered skeletons.
+- The assistant response is plain prose (no card wrapper); tool results,
+  approvals and data tables keep their own cards inside the activity rail.
 
 Domain MFEs import from `@workspace/ai` (resolved via Bun workspace symlinks).
 They do **not** directly import from `@assistant-ui/react` or the AG-UI

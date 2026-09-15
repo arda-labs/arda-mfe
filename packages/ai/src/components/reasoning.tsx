@@ -164,13 +164,16 @@ function ReasoningFade({
 function ReasoningTrigger({
   active,
   duration,
+  label,
   className,
   ...props
 }: React.ComponentProps<typeof CollapsibleTrigger> & {
   active?: boolean;
   duration?: number;
+  label?: string;
 }) {
   const durationText = duration ? ` (${duration}s)` : "";
+  const labelText = label ?? "Reasoning";
 
   return (
     <CollapsibleTrigger
@@ -192,7 +195,8 @@ function ReasoningTrigger({
           active && "shimmer motion-reduce:animate-none",
         )}
       >
-        Reasoning{durationText}
+        {labelText}
+        {durationText}
       </span>
       <ChevronDownIcon
         data-slot="reasoning-trigger-chevron"

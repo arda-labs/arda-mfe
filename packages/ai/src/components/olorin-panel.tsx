@@ -29,6 +29,7 @@ import {
   ChevronDown,
   Copy,
   History,
+  LoaderCircle,
   Mic,
   Pencil,
   Plus,
@@ -60,7 +61,8 @@ import {
   ExecuteMetaToolUI,
   GenericToolView,
 } from "./tools/generic-tool-view"
-import { RunStatusBar, RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
+import { RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
+import { ActivityGroup } from "./activity"
 import { useOlorinContext } from "../lib/context"
 
 export type OlorinPanelProps = {
@@ -232,10 +234,8 @@ export function OlorinPanel({
           </SelectionToolbarPrimitive.Quote>
         </SelectionToolbarPrimitive.Root>
 
-        <RunStatusBar />
-
         <ComposerPrimitive.Root className="border-t bg-background p-3">
-          <div className="rounded-2xl border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
+          <div className="rounded-[1.75rem] border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
             <ComposerPrimitive.Quote className="mx-2 mt-1.5 mb-0.5">
               <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/60 px-2.5 py-1.5">
                 <Quote className="size-3 shrink-0 text-muted-foreground" />
@@ -258,12 +258,9 @@ export function OlorinPanel({
               rows={1}
               autoFocus
               placeholder={t("ai.composer.placeholder")}
-              className="max-h-40 min-h-10 w-full resize-none border-0 bg-transparent px-2.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground"
+              className="max-h-40 min-h-10 w-full resize-none border-0 bg-transparent px-3.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground"
             />
-            <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-0.5">
-              <span className="text-[11px] text-muted-foreground">
-                {t("ai.composer.hint")}
-              </span>
+            <div className="flex items-center justify-end gap-1.5 px-2 pt-1 pb-0.5">
               <div className="flex items-center gap-1.5">
                 <AuiIf condition={(s) => s.composer.dictation == null}>
                   <ComposerPrimitive.Dictate asChild>
@@ -335,16 +332,22 @@ export function OlorinPanel({
 function OlorinEmptyState() {
   const { t } = useI18n()
   return (
-    <div className="flex min-h-[280px] flex-1 flex-col items-center justify-center p-6 text-center">
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3 shadow-xs ring-1 ring-primary/20">
-        <Sparkles className="size-6" />
+    <div className="flex min-h-[300px] flex-1 flex-col items-center justify-center p-6 text-center">
+      <div className="relative mb-4">
+        <div
+          className="absolute inset-0 -z-10 rounded-full bg-primary/20 blur-2xl motion-safe:animate-pulse"
+          aria-hidden="true"
+        />
+        <div className="flex size-14 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/15 via-primary/10 to-brand-accent/10 text-primary shadow-xs ring-1 ring-primary/20 motion-safe:animate-in motion-safe:zoom-in-90 motion-safe:duration-300">
+          <Sparkles className="size-7" />
+        </div>
       </div>
-      <p className="text-sm font-semibold tracking-tight">{t("ai.empty.title")}</p>
-      <p className="mt-1 max-w-xs text-xs text-muted-foreground leading-relaxed">
+      <p className="text-base font-semibold tracking-tight">{t("ai.empty.title")}</p>
+      <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground">
         {t("ai.empty.hint")}
       </p>
-      <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-sm">
-        {pageSuggestionKeys().map((key) => (
+      <div className="mt-6 flex max-w-sm flex-wrap justify-center gap-2">
+        {pageSuggestionKeys().map((key, index) => (
           <ThreadPrimitive.Suggestion
             key={key}
             prompt={t(`ai.suggestions.${key}`)}
@@ -355,7 +358,8 @@ function OlorinEmptyState() {
             <Button
               variant="outline"
               size="sm"
-              className="h-7.5 rounded-full px-3 text-xs font-normal hover:bg-accent/80 transition-colors shadow-2xs"
+              className="h-8 rounded-full px-3.5 text-xs font-normal shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1"
+              style={{ animationDelay: `${index * 60}ms` }}
             >
               {t(`ai.suggestions.${key}`)}
             </Button>
@@ -455,8 +459,8 @@ function getInitials(name?: string): string | undefined {
 function AssistantMessage() {
   const { t } = useI18n()
   return (
-    <MessagePrimitive.Root className="group/message flex w-full justify-start py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
-      <div className="flex max-w-[90%] items-start gap-2.5">
+    <MessagePrimitive.Root className="group/message flex w-full justify-start py-2 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
+      <div className="flex w-full items-start gap-2.5">
         <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground text-xs font-bold shadow-2xs ring-1 ring-primary/20">
           <Sparkles className="size-3.5" />
         </div>
@@ -468,11 +472,11 @@ function AssistantMessage() {
               selections must stay inside it for the toolbar to appear. */}
           <div
             data-aui-quote-selectable=""
-            className="rounded-2xl rounded-tl-xs border bg-card/90 px-4 py-3 text-sm leading-relaxed shadow-2xs text-foreground empty:hidden"
+            className="py-0.5 text-sm leading-relaxed text-foreground empty:hidden"
           >
             {/* GroupedParts + groupPartByType — the official chain-of-thought
                 pattern: consecutive reasoning/tool-call parts fold into one
-                collapsible thinking section (ChatGPT-style). */}
+                ChatGPT-style activity disclosure. */}
             <MessagePrimitive.GroupedParts
               groupBy={groupPartByType({
                 // Group adjacent text parts into a single block so a streamed
@@ -486,14 +490,21 @@ function AssistantMessage() {
               {({ part, children }) => {
                 switch (part.type) {
                   case "group-chainOfThought":
-                    return <div className="mb-2">{children}</div>
+                    return (
+                      <ActivityGroup running={part.status?.type === "running"}>
+                        {children}
+                      </ActivityGroup>
+                    )
                   case "group-text":
                     return <div className="space-y-1">{children}</div>
                   case "group-reasoning": {
-                    const running = part.status.type === "running"
+                    const running = part.status?.type === "running"
                     return (
-                      <ReasoningRoot streaming={running}>
-                        <ReasoningTrigger active={running} />
+                      <ReasoningRoot streaming={running} variant="ghost">
+                        <ReasoningTrigger
+                          active={running}
+                          label={t("ai.message.reasoning")}
+                        />
                         <ReasoningContent aria-busy={running}>
                           <ReasoningText>{children}</ReasoningText>
                         </ReasoningContent>
@@ -501,9 +512,14 @@ function AssistantMessage() {
                     )
                   }
                   case "group-tool":
-                    return <div className="space-y-2">{children}</div>
+                    return <div className="space-y-1">{children}</div>
                   case "text":
-                    return <MarkdownMessage content={part.text ?? ""} />
+                    return (
+                      <MarkdownMessage
+                        content={part.text ?? ""}
+                        streaming={part.status?.type === "running"}
+                      />
+                    )
                   case "reasoning":
                     return (
                       <MarkdownMessage
@@ -512,9 +528,17 @@ function AssistantMessage() {
                       />
                     )
                   case "indicator":
-                    // Streaming with no renderable parts yet — the ThinkingBubble
-                    // skeleton outside the card covers this.
-                    return null
+                    // Streaming with no renderable parts yet: a compact inline
+                    // status row (the external ThinkingBubble covers the window
+                    // before the assistant message exists).
+                    return (
+                      <div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
+                        <LoaderCircle className="size-3.5 shrink-0 animate-spin text-primary" />
+                        <span className="shimmer font-medium motion-reduce:animate-none">
+                          {t("ai.activity.working")}
+                        </span>
+                      </div>
+                    )
                   case "tool-call": {
                     // Meta tools (search/execute) register via the mounted
                     // makeAssistantToolUI components below; part.toolUI resolves

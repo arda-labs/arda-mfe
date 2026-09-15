@@ -5,7 +5,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible"
-import { ChevronDown, Search, Terminal, AlertCircle, Layers } from "lucide-react"
+import {
+  ChevronDown,
+  Search,
+  AlertCircle,
+  Layers,
+  CircleCheck,
+  LoaderCircle,
+} from "lucide-react"
 import { makeAssistantToolUI, useToolCallElapsed } from "@assistant-ui/react"
 import { DataTableView, isArrayResult } from "./data-table-view"
 import { ApprovalCard } from "./approval-card"
@@ -15,9 +22,9 @@ import { extractApprovalProposal } from "../../lib/messages"
 // library's part timing (startedAt set by the SSE adapter).
 function ToolElapsedBadge() {
   const elapsedMs = useToolCallElapsed()
-  if (elapsedMs === undefined || elapsedMs < 2000) return null
+  if (elapsedMs === undefined || elapsedMs < 1500) return null
   return (
-    <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">
+    <span className="ml-auto shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
       {Math.floor(elapsedMs / 1000)}s
     </span>
   )
@@ -66,10 +73,13 @@ export function SearchMetaToolCard({
 
   if (isPending) {
     return (
-      <div className="my-1.5 flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground motion-safe:animate-pulse">
-        <Search className="size-3.5 text-primary" />
-        <span>
-          {t("ai.tool.search.pending") || "Đang tìm kiếm API:"} <strong className="text-foreground">{query}</strong>
+      <div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
+        <LoaderCircle className="size-3 shrink-0 animate-spin text-primary" />
+        <span className="min-w-0 truncate">
+          {t("ai.tool.search.pending")}{" "}
+          {query && (
+            <strong className="font-medium text-foreground">{query}</strong>
+          )}
         </span>
         <ToolElapsedBadge />
       </div>
@@ -82,24 +92,26 @@ export function SearchMetaToolCard({
   const count = typeof result.count === "number" ? result.count : signatures.split("\n\n").filter(Boolean).length
 
   return (
-    <Collapsible className="my-1.5 w-full motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150">
-      <CollapsibleTrigger className="group flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors w-full">
-        <Search className="size-3.5 text-primary" />
+    <Collapsible className="w-full motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150">
+      <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground">
+        <Search className="size-3.5 shrink-0 text-primary" />
         <span className="text-foreground">
           {t("ai.tool.search.title") || "Khám phá API"}
         </span>
         {count > 0 ? (
-          <Badge variant="secondary" className="ml-1 text-[10px] h-4.5 px-1.5 font-normal">
+          <Badge variant="secondary" className="ml-0.5 h-4.5 px-1.5 text-[10px] font-normal">
             {count} {t("ai.tool.search.methods") || "phương thức"}
           </Badge>
         ) : (
-          <span className="text-muted-foreground text-[11px]">(Không có API phù hợp)</span>
+          <span className="text-[11px] text-muted-foreground">
+            {t("ai.tool.search.empty") || "(Không có API phù hợp)"}
+          </span>
         )}
-        <ChevronDown className="ml-auto size-3.5 transition-transform group-data-[state=open]:rotate-180" />
+        <ChevronDown className="ml-auto size-3.5 shrink-0 opacity-60 transition-transform group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
       {signatures && (
-        <CollapsibleContent>
-          <pre className="mt-1.5 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/60 p-3 text-[11px] leading-relaxed text-muted-foreground font-mono">
+        <CollapsibleContent className="overflow-hidden data-open:animate-collapsible-down data-closed:animate-collapsible-up">
+          <pre className="mt-1.5 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
             {signatures}
           </pre>
         </CollapsibleContent>
@@ -134,26 +146,24 @@ export function ExecuteMetaToolCard({
 
   if (isPending) {
     return (
-      <div className="my-1.5 space-y-1.5">
-        {code ? (
-          <div className="rounded-lg border bg-muted/50 p-2.5">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
-              Kịch bản JS
-            </span>
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-[11px] leading-5 text-muted-foreground font-mono">
-              {code}
-              <span
-                className="ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 bg-primary/70 motion-safe:animate-pulse"
-                aria-hidden="true"
-              />
-            </pre>
-          </div>
-        ) : null}
-        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground motion-safe:animate-pulse">
-          <Terminal className="size-3.5 text-amber-500" />
-          <span>{t("ai.tool.execute.pending") || "Đang thực thi kịch bản xử lý trong sandbox an toàn..."}</span>
+      <div className="space-y-1.5 py-0.5">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <LoaderCircle className="size-3 shrink-0 animate-spin text-amber-500" />
+          <span>
+            {t("ai.tool.execute.pending") ||
+              "Đang thực thi kịch bản xử lý trong sandbox an toàn..."}
+          </span>
           <ToolElapsedBadge />
         </div>
+        {code ? (
+          <pre className="max-h-28 overflow-hidden whitespace-pre-wrap rounded-lg bg-muted/40 p-2.5 font-mono text-[11px] leading-5 text-muted-foreground">
+            {code}
+            <span
+              className="ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 bg-primary/70 motion-safe:animate-pulse"
+              aria-hidden="true"
+            />
+          </pre>
+        ) : null}
       </div>
     )
   }
@@ -171,47 +181,67 @@ export function ExecuteMetaToolCard({
   const methodsCalled = Array.isArray(result.methodsCalled) ? (result.methodsCalled as string[]) : []
 
   return (
-    <div className="my-2 space-y-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150">
+    <div className="space-y-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150">
       <Collapsible className="w-full">
-        <CollapsibleTrigger className="group flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors w-full">
+        <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground">
           {isError ? (
-            <AlertCircle className="size-3.5 text-destructive" />
+            <AlertCircle className="size-3.5 shrink-0 text-destructive" />
           ) : (
-            <Terminal className="size-3.5 text-emerald-500" />
+            <CircleCheck className="size-3.5 shrink-0 text-emerald-500" />
           )}
 
           <span className="font-medium text-foreground">
-            {isError ? "Lỗi sandbox" : (t("ai.tool.execute.title") || "Xử lý dữ liệu")}
+            {isError
+              ? t("ai.tool.execute.error_title") || "Lỗi xử lý dữ liệu"
+              : t("ai.tool.execute.title") || "Xử lý dữ liệu"}
           </span>
 
           {methodsCalled.length > 0 && (
-            <div className="flex items-center gap-1 ml-1">
-              <Layers className="size-3 text-muted-foreground" />
-              <span className="text-[11px] text-muted-foreground">
-                {methodsCalled.length} bước
-              </span>
-            </div>
-          )}
-
-          {durationMs !== undefined && (
-            <span className="text-[10px] text-muted-foreground ml-auto pr-1">
-              {durationMs}ms
+            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <Layers className="size-3" />
+              {methodsCalled.length} {t("ai.tool.execute.steps_suffix") || "bước"}
             </span>
           )}
 
-          <ChevronDown className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
+          <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            {durationMs !== undefined && (
+              <span className="text-[10px] tabular-nums text-muted-foreground/70">
+                {durationMs}ms
+              </span>
+            )}
+            <ChevronDown className="size-3.5 opacity-60 transition-transform group-data-[state=open]:rotate-180" />
+          </span>
         </CollapsibleTrigger>
 
-        <CollapsibleContent>
+        <CollapsibleContent className="overflow-hidden data-open:animate-collapsible-down data-closed:animate-collapsible-up">
           <div className="mt-1.5 space-y-1.5">
             {code && (
               <div className="rounded-lg bg-muted/50 p-2.5">
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
-                  Kịch bản JS
+                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("ai.tool.execute.script") || "Kịch bản JS"}
                 </span>
-                <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-[11px] leading-5 text-muted-foreground font-mono">
+                <pre className="max-h-40 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-muted-foreground">
                   {code}
                 </pre>
+              </div>
+            )}
+
+            {methodsCalled.length > 0 && (
+              <div className="rounded-lg bg-muted/50 p-2.5">
+                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("ai.tool.execute.steps") || "Các bước đã chạy"}
+                </span>
+                <ol className="space-y-1">
+                  {methodsCalled.map((method, index) => (
+                    <li
+                      key={`${method}-${index}`}
+                      className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
+                    >
+                      <CircleCheck className="size-3 shrink-0 text-emerald-500" />
+                      <code className="font-mono">{method}</code>
+                    </li>
+                  ))}
+                </ol>
               </div>
             )}
 

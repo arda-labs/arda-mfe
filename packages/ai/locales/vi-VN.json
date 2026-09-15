@@ -7,12 +7,21 @@
     "error": "Không thể kết nối",
     "done": "Hoàn tất",
     "ready": "Sẵn sàng",
-    "thinking": "Olorin đang phân tích yêu cầu...",
+    "thinking": "Đang suy nghĩ…",
     "searching": "Đang tìm kiếm API phù hợp...",
     "executing": "Đang truy vấn và xử lý dữ liệu...",
     "responding": "Đang soạn câu trả lời...",
     "tool_calling": "Đang gọi công cụ {tool}...",
     "elapsed": "{seconds}s"
+  },
+  "activity": {
+    "working": "Đang xử lý…",
+    "search": "Đang tìm API phù hợp…",
+    "execute": "Đang truy vấn và xử lý dữ liệu…",
+    "read": "Đang đọc kết quả…",
+    "reasoning": "Đang suy nghĩ…",
+    "done": "Đã xử lý",
+    "done_in": "Đã xử lý trong {seconds}s"
   },
   "composer": {
     "label": "Nội dung hỏi Olorin",
@@ -80,11 +89,16 @@
     "search": {
       "title": "Khám phá API",
       "pending": "Đang tìm kiếm API:",
-      "methods": "phương thức"
+      "methods": "phương thức",
+      "empty": "(Không có API phù hợp)"
     },
     "execute": {
       "title": "Xử lý dữ liệu",
-      "pending": "Đang thực thi kịch bản xử lý trong sandbox an toàn..."
+      "error_title": "Lỗi xử lý dữ liệu",
+      "pending": "Đang thực thi kịch bản xử lý trong sandbox an toàn...",
+      "script": "Kịch bản JS",
+      "steps": "Các bước đã chạy",
+      "steps_suffix": "bước"
     },
     "customer": {
       "code": "Mã khách hàng",

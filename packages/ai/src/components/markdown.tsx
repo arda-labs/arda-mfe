@@ -128,12 +128,20 @@ const markdownComponents: Components = {
 export function MarkdownMessage({
   content,
   className,
+  streaming = false,
 }: {
   content: string
   className?: string
+  streaming?: boolean
 }) {
   return (
-    <div className={cn("text-sm leading-relaxed", className)}>
+    <div
+      className={cn(
+        "text-sm leading-relaxed",
+        streaming && "ai-streaming-caret",
+        className
+      )}
+    >
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
         {content}
       </ReactMarkdown>

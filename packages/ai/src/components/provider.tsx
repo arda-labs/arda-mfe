@@ -10,6 +10,7 @@ import {
   AssistantRuntimeProvider,
   WebSpeechDictationAdapter,
   type ExternalStoreThreadData,
+  type LanguageModelConfig,
   type ThreadMessage,
 } from "@assistant-ui/react"
 import { useAgUiRuntime } from "@assistant-ui/react-ag-ui"
@@ -26,6 +27,7 @@ registerAppLocales("ai", {
 })
 
 import { OlorinContext } from "../lib/context"
+import { collectOlorinContext } from "../lib/registry"
 import {
   deleteConversation,
   fetchConversationMessages,
@@ -192,6 +194,21 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
   )
 
   const runtime = useAgUiRuntime(runtimeOptions)
+
+  // Send the registered UI context (current screen + active record ids) with
+  // every run. The AG-UI adapter spreads model-context `config` into
+  // RunAgentInput.forwardedProps at send time; ai-service reads only
+  // forwardedProps.ardaContext, treats it as untrusted data, and caps it at
+  // 2 KiB. Contributors register via registerOlorinContext.
+  useEffect(() => {
+    return runtime.registerModelContextProvider({
+      getModelContext: () => ({
+        config: {
+          ardaContext: collectOlorinContext(),
+        } as unknown as LanguageModelConfig,
+      }),
+    })
+  }, [runtime])
 
   const newThread = useCallback(() => {
     // The effect above keeps the agent's threadId in sync with state.
