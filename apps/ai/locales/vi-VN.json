@@ -499,7 +499,8 @@
   "message": {
     "copy": "Sao chép",
     "regenerate": "Tạo lại",
-    "you": "Người dùng"
+    "you": "Người dùng",
+    "reasoning": "Suy nghĩ của Olorin"
   },
   "name": "Olorin",
   "tagline": "Trợ lý AI của Arda",
@@ -513,11 +514,20 @@
     "quote": "Trích dẫn"
   },
   "status": {
-    "thinking": "Olorin đang phân tích yêu cầu…",
+    "thinking": "Đang suy nghĩ…",
     "searching": "Đang tìm kiếm tri thức phù hợp…",
     "executing": "Đang truy vấn và xử lý dữ liệu…",
     "responding": "Đang soạn câu trả lời…",
     "elapsed": "Đã {seconds}s"
+  },
+  "activity": {
+    "working": "Đang xử lý…",
+    "search": "Đang tìm API phù hợp…",
+    "execute": "Đang truy vấn và xử lý dữ liệu…",
+    "read": "Đang đọc kết quả…",
+    "reasoning": "Đang suy nghĩ…",
+    "done": "Đã xử lý",
+    "done_in": "Đã xử lý trong {seconds}s"
   },
   "table": {
     "result_title": "Dữ liệu ({count} bản ghi)",
@@ -557,7 +567,11 @@
     },
     "execute": {
       "title": "Thực thi mã",
-      "pending": "Đang thực thi…"
+      "pending": "Đang thực thi…",
+      "error_title": "Lỗi xử lý dữ liệu",
+      "script": "Kịch bản JS",
+      "steps": "Các bước đã chạy",
+      "steps_suffix": "bước"
     },
     "executed": "Công cụ {name} đã chạy",
     "financeAccount": {
@@ -576,7 +590,8 @@
     "search": {
       "title": "Tìm kiếm API",
       "methods": "Phương thức",
-      "pending": "Đang tìm kiếm…"
+      "pending": "Đang tìm kiếm…",
+      "empty": "(Không có API phù hợp)"
     }
   }
 }

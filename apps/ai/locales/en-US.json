@@ -499,7 +499,8 @@
   "message": {
     "copy": "Copy",
     "regenerate": "Regenerate",
-    "you": "You"
+    "you": "You",
+    "reasoning": "Olorin's thinking"
   },
   "name": "Olorin",
   "tagline": "Arda AI assistant",
@@ -513,11 +514,20 @@
     "quote": "Quote"
   },
   "status": {
-    "thinking": "Olorin is analysing your request…",
+    "thinking": "Thinking…",
     "searching": "Searching the knowledge base…",
     "executing": "Querying and processing data…",
     "responding": "Composing the answer…",
     "elapsed": "{seconds}s"
+  },
+  "activity": {
+    "working": "Working…",
+    "search": "Searching available APIs…",
+    "execute": "Querying and processing data…",
+    "read": "Reading results…",
+    "reasoning": "Thinking…",
+    "done": "Worked",
+    "done_in": "Worked for {seconds}s"
   },
   "table": {
     "result_title": "Data ({count} records)",
@@ -557,7 +567,11 @@
     },
     "execute": {
       "title": "Run code",
-      "pending": "Running…"
+      "pending": "Running…",
+      "error_title": "Data processing failed",
+      "script": "JS script",
+      "steps": "Executed steps",
+      "steps_suffix": "steps"
     },
     "executed": "Tool {name} finished",
     "financeAccount": {
@@ -576,7 +590,8 @@
     "search": {
       "title": "Search API",
       "methods": "Methods",
-      "pending": "Searching…"
+      "pending": "Searching…",
+      "empty": "(No matching API)"
     }
   }
 }

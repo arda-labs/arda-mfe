@@ -66,16 +66,12 @@ export function AnalyticsPage() {
               value={formatNumber(data.totalRuns)}
               subtext={`${data.successRate.toFixed(1)}% ${t("ai.analytics.kpi.success_rate")}`}
               icon={Activity}
-              trend="+14.2%"
-              trendPositive
             />
             <StatKpiCard
               title={t("ai.analytics.kpi.total_tokens")}
               value={formatNumber(data.totalTokens)}
               subtext={`${formatNumber(data.promptTokens)} in / ${formatNumber(data.completionTokens)} out`}
               icon={Cpu}
-              trend="+8.5%"
-              trendPositive
             />
             <StatKpiCard
               title={t("ai.analytics.kpi.latency_p95")}

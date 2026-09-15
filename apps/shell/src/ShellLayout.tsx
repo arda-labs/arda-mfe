@@ -90,12 +90,20 @@ export function ShellLayout() {
 
   useEffect(() => {
     const displayName = user ? formatUserLabel(user.name, user.nickname) : undefined
+    // Record-level context is derived from the deep link: CRM task screens
+    // carry ?customerId=… and workflow links carry ?caseId=…, so the model
+    // knows which record the user is looking at without the remote MFEs
+    // importing @workspace/ai (currently a shell-only shared exemption).
+    const params = new URLSearchParams(location.search)
     return registerOlorinContext("shell.active", () => ({
       userDisplayName: displayName,
       currentScreen: pathname,
       userLocale: "vi",
+      activeCustomerId: params.get("customerId") ?? undefined,
+      activeCaseId: params.get("caseId") ?? undefined,
+      activeWorkItemId: params.get("workItemId") ?? undefined,
     }))
-  }, [user, pathname])
+  }, [user, pathname, location.search])
 
   useEffect(() => {
     function handlePageTitle(event: Event) {
