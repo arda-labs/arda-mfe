@@ -201,22 +201,26 @@
     }
   },
   "tools": {
-    "title": "Tools & MCP Registry",
-    "description": "Catalog of internal business APIs and external MCP servers for AI Agent",
+    "title": "AI Tools Catalog",
+    "description": "Catalog of business APIs the AI Assistant can call, with per-tool enable/disable governance",
     "load_failed": "Failed to load tools catalog",
+    "update_failed": "Failed to update the tool state",
+    "update_success": "Updated {tool}",
     "no_tools_found": "No tools found matching filter",
+    "no_tools_page": "No tools on this page — go back to the previous page",
     "no_permissions_required": "No special permissions required",
+    "no_permission": "You can't call this tool",
+    "summary": "{total} tools • {enabled} enabled",
     "placeholder": {
       "search": "Search by name, SDK path or keywords..."
     },
     "btn": {
       "refresh": "Refresh",
       "inspect": "Inspect",
-      "close": "Close"
-    },
-    "tab": {
-      "internal": "Internal APIs (Arda SDK)",
-      "mcp": "External MCP Servers"
+      "close": "Close",
+      "restore": "Restore default",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
     },
     "domain": {
       "all": "All"
@@ -230,44 +234,54 @@
       "medium": "Medium Risk",
       "high": "High Risk"
     },
+    "filter": {
+      "all_kinds": "All kinds",
+      "all_risks": "All risk levels",
+      "status_all": "Any status",
+      "status_enabled": "Enabled",
+      "status_disabled": "Disabled"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "override": {
+      "contract": "Contract default",
+      "active": "Override",
+      "contract_disabled": "Contract disabled",
+      "enabled": "Enabled (override)",
+      "disabled": "Disabled (override)",
+      "none": "No override"
+    },
+    "column": {
+      "tool": "Tool",
+      "domain": "Domain",
+      "kind": "Kind",
+      "risk": "Risk",
+      "permissions": "Permissions",
+      "enabled": "State",
+      "actions": "Actions"
+    },
+    "detail": {
+      "contract_state": "Contract default",
+      "override_state": "Runtime override",
+      "source": "Source",
+      "updated": "Last updated"
+    },
+    "pagination": {
+      "summary": "Page {page}/{total} • {count} tools",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "confirm_disable": {
+      "title": "Disable this tool?",
+      "description": "{tool} requires approval or is high risk. While disabled, the AI Assistant cannot see or call it until it is enabled again."
+    },
     "field": {
       "description": "Description",
       "signature": "TypeScript Signature",
       "jsdoc": "Technical JSDoc",
       "permissions": "Required Permissions"
-    },
-    "mcp": {
-      "title": "MCP Server Connections",
-      "description": "Connect Model Context Protocol servers to expand AI Agent capabilities",
-      "btn": {
-        "add": "Add MCP Server",
-        "connect": "Connect"
-      },
-      "field": {
-        "name": "Server Name",
-        "endpoint": "Connection Endpoint",
-        "protocol": "Protocol",
-        "tools_count": "Available Tools",
-        "description": "Description"
-      },
-      "status": {
-        "connected": "Connected",
-        "disconnected": "Disconnected",
-        "error": "Error"
-      },
-      "dialog": {
-        "title": "Add New MCP Server Connection",
-        "description": "Enter the SSE or HTTP endpoint URL of the Model Context Protocol server."
-      },
-      "placeholder": {
-        "name": "e.g. Elasticsearch MCP",
-        "description": "Describe what the MCP server does..."
-      },
-      "defaults": {
-        "postgres_description": "Lets the Agent run controlled SQL queries and inspect database schemas.",
-        "s3_description": "File storage integration, presigned URL creation, and document metadata reading.",
-        "zeebe_description": "Start and monitor Camunda Zeebe business processes via the Agent."
-      }
     }
   },
   "analytics": {

@@ -201,22 +201,26 @@
     }
   },
   "tools": {
-    "title": "Danh mục Công cụ & MCP Registry",
-    "description": "Danh mục các hàm kinh doanh (Business APIs) và máy chủ MCP kết nối cho Trợ lý AI",
+    "title": "Danh mục Công cụ AI",
+    "description": "Danh mục các hàm kinh doanh (Business APIs) mà Trợ lý AI có thể gọi, kèm trạng thái bật/tắt từng công cụ",
     "load_failed": "Không thể tải danh sách công cụ",
+    "update_failed": "Không thể cập nhật trạng thái công cụ",
+    "update_success": "Đã cập nhật {tool}",
     "no_tools_found": "Không tìm thấy công cụ nào phù hợp",
+    "no_tools_page": "Trang này không còn công cụ nào — hãy quay lại trang trước",
     "no_permissions_required": "Không yêu cầu quyền đặc biệt",
+    "no_permission": "Bạn không có quyền gọi công cụ này",
+    "summary": "{total} công cụ • {enabled} đang bật",
     "placeholder": {
       "search": "Tìm theo tên, SDK path hoặc mô tả..."
     },
     "btn": {
       "refresh": "Làm mới",
       "inspect": "Xem chi tiết",
-      "close": "Đóng"
-    },
-    "tab": {
-      "internal": "Công cụ hệ thống (Arda SDK)",
-      "mcp": "Máy chủ MCP ngoài"
+      "close": "Đóng",
+      "restore": "Khôi phục mặc định",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận"
     },
     "domain": {
       "all": "Tất cả"
@@ -230,44 +234,54 @@
       "medium": "Rủi ro TB",
       "high": "Rủi ro cao"
     },
+    "filter": {
+      "all_kinds": "Mọi loại",
+      "all_risks": "Mọi mức rủi ro",
+      "status_all": "Mọi trạng thái",
+      "status_enabled": "Đang bật",
+      "status_disabled": "Đang tắt"
+    },
+    "status": {
+      "enabled": "Đang bật",
+      "disabled": "Đang tắt"
+    },
+    "override": {
+      "contract": "Theo hợp đồng",
+      "active": "Ghi đè",
+      "contract_disabled": "Hợp đồng tắt",
+      "enabled": "Đang bật (ghi đè)",
+      "disabled": "Đang tắt (ghi đè)",
+      "none": "Không có ghi đè"
+    },
+    "column": {
+      "tool": "Công cụ",
+      "domain": "Nhóm",
+      "kind": "Cơ chế",
+      "risk": "Rủi ro",
+      "permissions": "Quyền",
+      "enabled": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "detail": {
+      "contract_state": "Theo hợp đồng",
+      "override_state": "Ghi đè runtime",
+      "source": "Nguồn",
+      "updated": "Cập nhật gần nhất"
+    },
+    "pagination": {
+      "summary": "Trang {page}/{total} • {count} công cụ",
+      "prev": "Trước",
+      "next": "Sau"
+    },
+    "confirm_disable": {
+      "title": "Tắt công cụ này?",
+      "description": "{tool} là công cụ cần phê duyệt hoặc rủi ro cao. Khi tắt, Trợ lý AI sẽ không còn thấy và không thể gọi công cụ này cho đến khi được bật lại."
+    },
     "field": {
       "description": "Mô tả chức năng",
       "signature": "TypeScript Signature",
       "jsdoc": "Đặc tả kỹ thuật (JSDoc)",
       "permissions": "Quyền hạn bắt buộc"
-    },
-    "mcp": {
-      "title": "Danh sách máy chủ MCP",
-      "description": "Kết nối các máy chủ Model Context Protocol để mở rộng khả năng cho AI Agent",
-      "btn": {
-        "add": "Thêm máy chủ MCP",
-        "connect": "Kết nối"
-      },
-      "field": {
-        "name": "Tên máy chủ",
-        "endpoint": "Endpoint kết nối",
-        "protocol": "Giao thức",
-        "tools_count": "Số công cụ",
-        "description": "Mô tả"
-      },
-      "status": {
-        "connected": "Đã kết nối",
-        "disconnected": "Mất kết nối",
-        "error": "Lỗi"
-      },
-      "dialog": {
-        "title": "Thêm kết nối MCP Server mới",
-        "description": "Nhập địa chỉ endpoint SSE hoặc HTTP của máy chủ Model Context Protocol."
-      },
-      "placeholder": {
-        "name": "VD: Elasticsearch MCP",
-        "description": "Mô tả chức năng máy chủ MCP..."
-      },
-      "defaults": {
-        "postgres_description": "Cho phép Agent thực thi câu lệnh SQL có kiểm soát và tra cứu schema CSDL.",
-        "s3_description": "Tích hợp lưu trữ tệp, tạo presigned URL và đọc siêu dữ liệu tài liệu.",
-        "zeebe_description": "Khởi động và theo dõi các tiến trình nghiệp vụ Camunda Zeebe qua Agent."
-      }
     }
   },
   "analytics": {

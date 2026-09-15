@@ -29,8 +29,16 @@ export function ToolDetailDialog({
 
   const cleanDescription = tool.jsdoc
     .replace(/\/\*\*|\*\/|\*/g, "")
-    .replace(/@param.*|@returns.*|@requires.*|@domain.*/g, "")
+    .replace(/@param.*|@returns.*|@requires.*|@domain.*|@note.*/g, "")
+    .replace(/\s+/g, " ")
     .trim()
+
+  const overrideLabel =
+    tool.overrideEnabled === null
+      ? t("ai.tools.override.none")
+      : tool.overrideEnabled
+        ? t("ai.tools.override.enabled")
+        : t("ai.tools.override.disabled")
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -41,6 +49,11 @@ export function ToolDetailDialog({
               {tool.sdkPath}
             </DialogTitle>
             <div className="flex items-center gap-1.5">
+              <Badge variant={tool.enabled ? "success" : "outline"}>
+                {tool.enabled
+                  ? t("ai.tools.status.enabled")
+                  : t("ai.tools.status.disabled")}
+              </Badge>
               <Badge variant={tool.kind === "confirm" ? "warning" : "secondary"}>
                 {tool.kind === "confirm" ? (
                   <ShieldAlert className="mr-1 h-3 w-3" />
@@ -68,12 +81,50 @@ export function ToolDetailDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2 text-sm">
+          <div className="grid grid-cols-1 gap-3 rounded-lg border bg-muted/30 p-3 text-xs sm:grid-cols-3">
+            <div>
+              <span className="font-medium text-muted-foreground">
+                {t("ai.tools.detail.contract_state")}
+              </span>
+              <p className="mt-0.5">
+                {tool.contractEnabled
+                  ? t("ai.tools.status.enabled")
+                  : t("ai.tools.status.disabled")}
+              </p>
+            </div>
+            <div>
+              <span className="font-medium text-muted-foreground">
+                {t("ai.tools.detail.override_state")}
+              </span>
+              <p className="mt-0.5">{overrideLabel}</p>
+            </div>
+            <div>
+              <span className="font-medium text-muted-foreground">
+                {t("ai.tools.detail.source")}
+              </span>
+              <p className="mt-0.5 font-mono">{tool.source}</p>
+            </div>
+            {tool.updatedBy && (
+              <div className="sm:col-span-3">
+                <span className="font-medium text-muted-foreground">
+                  {t("ai.tools.detail.updated")}
+                </span>
+                <p className="mt-0.5 font-mono text-[11px]">
+                  {tool.updatedBy}
+                  {tool.updatedAt ? ` • ${tool.updatedAt}` : ""}
+                </p>
+              </div>
+            )}
+          </div>
+
           {cleanDescription && (
             <div>
               <span className="text-xs font-medium text-muted-foreground">
                 {t("ai.tools.field.description")}
               </span>
-              <p className="mt-1 text-xs text-foreground/90">{cleanDescription}</p>
+              <p className="mt-1 text-xs text-foreground/90">
+                {cleanDescription}
+              </p>
             </div>
           )}
 
