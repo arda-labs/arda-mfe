@@ -1,5 +1,5 @@
 import { z } from "zod"
-import type { LookupCategory, LookupValue } from "../api"
+import { type LookupCategory, type LookupValue } from "./types"
 
 export const scopeTypeValues = [
   "global",

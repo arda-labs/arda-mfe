@@ -3,7 +3,7 @@ import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { notify } from "@workspace/ui/feedback/notify"
-import { workflowApi } from "../../api"
+import { monitoringApi } from "../../api"
 import type { JobDefinitionState, OperateJob, OperateJobQuery } from "../../api"
 import { InstanceDetail } from "./instance-detail"
 import { AutoRefreshSelect } from "./auto-refresh"
@@ -59,7 +59,7 @@ export function JobsTab({
       setLoading(true)
       setError(null)
       try {
-        const page = await workflowApi.searchOperateJobs({
+        const page = await monitoringApi.searchOperateJobs({
           ...query,
           pageSize: 25,
         })
@@ -90,7 +90,7 @@ export function JobsTab({
   const loadDefinitions = useCallback(async (bpmnProcessId?: string) => {
     setDefinitionsLoading(true)
     try {
-      setDefinitions(await workflowApi.listOperateJobDefinitions(bpmnProcessId))
+      setDefinitions(await monitoringApi.listOperateJobDefinitions(bpmnProcessId))
     } catch {
       setDefinitions([])
     } finally {
@@ -237,7 +237,7 @@ export function JobsTab({
   const handleUpdateRetries = async (jobKey: string) => {
     setActingKey(jobKey)
     try {
-      await workflowApi.updateJobRetries(jobKey, 3)
+      await monitoringApi.updateJobRetries(jobKey, 3)
       notify.success(t("workflow.operate.retry_job_success"))
       await search(applied, false)
     } catch (reason) {

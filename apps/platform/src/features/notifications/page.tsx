@@ -5,15 +5,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import {
-  deleteNotificationTemplate,
-  listNotificationSenders,
-  listNotificationTemplates,
-  upsertNotificationSender,
-  upsertNotificationTemplate,
-  type NotificationSender,
-  type NotificationTemplate,
-} from "../api"
+import { deleteNotificationTemplate, listNotificationSenders, listNotificationTemplates, upsertNotificationSender, upsertNotificationTemplate } from "./api"
+import { type NotificationSender, type NotificationTemplate } from "./types"
 import { DlqTab } from "./components/dlq-tab"
 import { EventsTab } from "./components/events-tab"
 

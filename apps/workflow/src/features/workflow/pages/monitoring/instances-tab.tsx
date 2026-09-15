@@ -3,7 +3,7 @@ import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { workflowApi } from "../../api"
+import { monitoringApi } from "../../api"
 import type { OperateInstance, OperateInstanceQuery } from "../../api"
 import { InstanceDetail } from "./instance-detail"
 import { InstanceStateBadge } from "./state-badge"
@@ -49,7 +49,7 @@ export function InstancesTab({
       setLoading(true)
       setError(null)
       try {
-        const page = await workflowApi.searchOperateInstances({
+        const page = await monitoringApi.searchOperateInstances({
           ...query,
           pageSize: 25,
         })

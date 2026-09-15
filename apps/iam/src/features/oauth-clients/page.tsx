@@ -1,20 +1,11 @@
 import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { getCanonicalList, postCanonical, putCanonical, deleteCanonical } from "@workspace/api"
+import { oauthClientsApi, type OAuthClient } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-
-interface OAuthClient {
-  client_id: string
-  client_name?: string
-  redirect_uris?: string[]
-  grant_types?: string[]
-  scope?: string
-  token_endpoint_auth_method?: string
-}
 
 const EMPTY = {
   client_id: "",
@@ -38,7 +29,7 @@ export function OAuthClientsPage() {
     setLoading(true)
     setLoadFailed(false)
     try {
-      const result = await getCanonicalList<OAuthClient>("/api/admin/oauth-clients")
+      const result = await oauthClientsApi.list()
       setClients(result.items)
     } catch {
       setClients([])
@@ -91,11 +82,7 @@ export function OAuthClientsPage() {
     }
     if (!editing && form.client_id.trim()) payload.client_id = form.client_id.trim()
     try {
-      if (editing) {
-        await putCanonical(`/api/admin/oauth-clients/${encodeURIComponent(editing)}`, payload)
-      } else {
-        await postCanonical("/api/admin/oauth-clients", payload)
-      }
+      await oauthClientsApi.save(editing, payload)
       notify.success(t("admin.oauth_clients.save_success"))
       reset()
       await load()
@@ -106,7 +93,7 @@ export function OAuthClientsPage() {
 
   const remove = async (clientId: string) => {
     try {
-      await deleteCanonical(`/api/admin/oauth-clients/${encodeURIComponent(clientId)}`)
+      await oauthClientsApi.remove(clientId)
       await load()
     } catch {
       notify.error(t("admin.oauth_clients.save_failed"))

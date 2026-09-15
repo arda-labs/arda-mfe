@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { CreditInstitution } from "../../api"
-import { platformApi } from "../../api"
+import { type CreditInstitution } from "../types"
+import { creditInstitutionsApi } from "../api"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -197,10 +197,10 @@ export function CreditInstitutionFormDialog({
       }
 
       if (editingItem) {
-        await platformApi.updateCreditInstitution(editingItem.id, payload)
+        await creditInstitutionsApi.updateCreditInstitution(editingItem.id, payload)
         notify.success(t("platform.credit_institutions.toast.update_success"))
       } else {
-        await platformApi.createCreditInstitution(payload)
+        await creditInstitutionsApi.createCreditInstitution(payload)
         notify.success(t("platform.credit_institutions.toast.create_success"))
       }
 

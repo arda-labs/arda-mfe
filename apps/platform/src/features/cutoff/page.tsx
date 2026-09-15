@@ -12,7 +12,8 @@ import {
   Clock,
   SlidersHorizontal,
 } from "lucide-react"
-import { platformApi, type SystemDate } from "../api"
+import { calendarApi } from "../calendar/api"
+import { type SystemDate } from "../calendar/types"
 
 interface CutoffDisplay {
   id: string
@@ -58,7 +59,7 @@ export function CutoffPage() {
   const loadStatus = useCallback(async () => {
     setLoading(true)
     try {
-      const result = await platformApi.getCalendarStatus("HEAD_OFFICE")
+      const result = await calendarApi.getCalendarStatus("HEAD_OFFICE")
       setStatus(result)
     } catch (err) {
       notify.error(
@@ -85,7 +86,7 @@ export function CutoffPage() {
         const today = todayISO()
         timeParam = new Date(`${today}T${simTime}:00+07:00`).toISOString()
       }
-      const res = await platformApi.evaluateDate(simChannel, simType, timeParam)
+      const res = await calendarApi.evaluateDate(simChannel, simType, timeParam)
       setSimResult(res.accountingDate)
     } catch (err) {
       notify.error("Kiem tra hach toan that bai", translateApiError(err))

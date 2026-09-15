@@ -16,13 +16,16 @@
     "check:fallbacks": "bun ./scripts/check-no-fail-open-fallbacks.mjs",
     "check:federation": "bun ./scripts/check-federation-compat.mjs",
     "check:pages": "bun ./scripts/check-page-size.mjs",
+    "check:features": "bun ./scripts/check-feature-structure.mjs",
     "check:bundles": "bun ./scripts/check-bundle-budgets.mjs",
+    "create:feature": "bun ./scripts/create-feature.mjs",
     "test:federation": "bun test tests/federation",
+    "test:features": "bun test apps",
     "test:browser": "playwright test",
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
     "format": "bun run --workspaces --parallel format",
-    "typecheck": "bun run check:i18n && bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run check:pages && bun run --filter './apps/*' --filter './packages/*' typecheck"
+    "typecheck": "bun run check:i18n && bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run check:pages && bun run check:features && bun run --filter './apps/*' --filter './packages/*' typecheck"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

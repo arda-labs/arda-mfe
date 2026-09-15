@@ -21,7 +21,7 @@ import {
 import { parseMoneyInput, toMinor } from "@workspace/format"
 import { ChooseAccountDialog } from "@workspace/posting-flow/choose-account-dialog"
 import type { AccountOption } from "@workspace/posting-flow/types"
-import { financeApi, postingApi } from "../../api"
+import { accountsApi, postingApi } from "../../api"
 
 interface FormState {
   accountingDate: string
@@ -258,7 +258,7 @@ export function UpsertOpeningBalanceDialog({
           setPickerOpen(false)
         }}
         fetchAccounts={(params) =>
-          financeApi
+          accountsApi
             .listCoaAccounts()
             .then((res) => {
               const q = params.q?.trim().toLowerCase()

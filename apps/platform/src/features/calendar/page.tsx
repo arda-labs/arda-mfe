@@ -5,7 +5,8 @@ import { z } from "zod"
 import { APP_TIMEZONE, todayISO } from "@workspace/format"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { platformApi, type HolidayCalendar, type SystemDate } from "../api"
+import { calendarApi } from "./api"
+import { type HolidayCalendar, type SystemDate } from "./types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -60,8 +61,8 @@ export function CalendarPage() {
     if (initial) setLoading(true)
     try {
       const [statusResult, holidaysResult] = await Promise.all([
-        platformApi.getCalendarStatus("HEAD_OFFICE"),
-        platformApi.listHolidays(),
+        calendarApi.getCalendarStatus("HEAD_OFFICE"),
+        calendarApi.listHolidays(),
       ])
       setStatus(statusResult)
       setHolidays(holidaysResult)
@@ -92,7 +93,7 @@ export function CalendarPage() {
   const handleRunEOD = async () => {
     setEodPending(true)
     try {
-      const result = await platformApi.triggerEOD("HEAD_OFFICE")
+      const result = await calendarApi.triggerEOD("HEAD_OFFICE")
       notify.success(result.message || "Xu ly cuoi ngay (EOD) thanh cong")
       await loadCalendar()
     } catch (err) {
@@ -179,7 +180,7 @@ export function CalendarPage() {
     const newDate = event.startStr
     const extProps = event.extendedProps
     try {
-      await platformApi.addHoliday({
+      await calendarApi.addHoliday({
         date: newDate,
         description: extProps.description,
         isRecurring: extProps.isRecurring,
@@ -197,7 +198,7 @@ export function CalendarPage() {
   const submitHoliday = handleSubmit(async (values) => {
     setAddHolidayPending(true)
     try {
-      await platformApi.addHoliday({
+      await calendarApi.addHoliday({
         date: values.holidayDate,
         description: values.description.trim(),
         isRecurring: values.isRecurring,

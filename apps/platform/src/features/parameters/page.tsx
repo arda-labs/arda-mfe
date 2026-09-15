@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { Organization, Parameter } from "../api"
-import { platformApi } from "../api"
+import { type Organization } from "../organizations/types"
+import { type Parameter } from "./types"
+import { organizationsApi } from "../organizations/api"
+import { parametersApi } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -58,8 +60,8 @@ export function ParametersPage() {
     setLoadError(null)
     try {
       const [paramsResult, orgsResult] = await Promise.all([
-        platformApi.listParameters(),
-        platformApi.listOrganizations({ view: "options" }),
+        parametersApi.listParameters(),
+        organizationsApi.listOrganizations({ view: "options" }),
       ])
       setParams(paramsResult)
       setOrgs(orgsResult.items)
@@ -93,7 +95,7 @@ export function ParametersPage() {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await platformApi.deleteParameter(deleteTarget.id)
+      await parametersApi.deleteParameter(deleteTarget.id)
       notify.success(t("platform.parameters.toast.delete_success"))
       setDeleteTarget(null)
       await loadParameters()

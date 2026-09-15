@@ -8,8 +8,8 @@ import {
 } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import type { LookupCategory, LookupValue } from "../api"
-import { platformApi } from "../api"
+import { type LookupCategory, type LookupValue } from "./types"
+import { lookupsApi } from "./api"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -74,7 +74,7 @@ export function LookupsPage() {
   const loadCategories = useCallback(async () => {
     setLoadingCats(true)
     try {
-      const result = await platformApi.listLookupCategories()
+      const result = await lookupsApi.listLookupCategories()
       setCategories(result)
     } catch {
       // handled in effect
@@ -86,7 +86,7 @@ export function LookupsPage() {
   const loadValues = useCallback(async (categoryCode: string) => {
     setLoadingValues(true)
     try {
-      const result = await platformApi.listLookupValues(categoryCode)
+      const result = await lookupsApi.listLookupValues(categoryCode)
       setValues(result)
     } catch {
       // handled in effect
@@ -130,7 +130,7 @@ export function LookupsPage() {
     if (!deleteCatTarget) return
     setCatDeletePending(true)
     try {
-      await platformApi.deleteLookupCategory(deleteCatTarget.id)
+      await lookupsApi.deleteLookupCategory(deleteCatTarget.id)
       notify.success(t("platform.lookups.toast.category_delete_success"))
       if (selectedCat?.id === deleteCatTarget.id) {
         setSelectedCat(null)
@@ -162,7 +162,7 @@ export function LookupsPage() {
     if (!deleteValTarget || !selectedCat) return
     setValDeletePending(true)
     try {
-      await platformApi.deleteLookupValue(deleteValTarget.id)
+      await lookupsApi.deleteLookupValue(deleteValTarget.id)
       notify.success(t("platform.lookups.toast.value_delete_success"))
       setDeleteValTarget(null)
       await loadValues(selectedCat.code)

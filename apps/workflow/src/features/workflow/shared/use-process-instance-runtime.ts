@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { workflowApi, type ProcessInstanceRuntime } from "../api"
+import { casesApi, type ProcessInstanceRuntime } from "../api"
 
 export function useProcessInstanceRuntime(
   processInstanceKey?: string | number
@@ -18,7 +18,7 @@ export function useProcessInstanceRuntime(
     abortRef.current = controller
     setFetching(true)
     try {
-      const runtime = await workflowApi.getProcessInstanceRuntime(key)
+      const runtime = await casesApi.getProcessInstanceRuntime(key)
       if (!controller.signal.aborted) {
         setData(runtime)
         setError(null)

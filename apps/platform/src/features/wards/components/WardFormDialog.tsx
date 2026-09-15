@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { GeoAdminUnit } from "../../api"
-import { platformApi } from "../../api"
+import { type GeoAdminUnit } from "../../shared/types"
+import { geoApi } from "../../shared/api"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -137,7 +137,7 @@ export function WardFormDialog({
   const submitWard = handleSubmit(async (values) => {
     const isEditing = Boolean(editingItem)
     try {
-      await platformApi.upsertGeoAdminUnit({
+      await geoApi.upsertGeoAdminUnit({
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         full_name: values.full_name?.trim() || undefined,

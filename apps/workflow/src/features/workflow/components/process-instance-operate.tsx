@@ -40,7 +40,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { workflowApi } from "../api"
+import { casesApi, monitoringApi } from "../api"
 import type {
   ElementInstanceStat,
   IncidentState,
@@ -277,7 +277,7 @@ export function ProcessInstanceOperate({
   async function handleRetryJob(jobKey: string) {
     setRetryJobPending(jobKey)
     try {
-      await workflowApi.retryWorkflowJob(jobKey)
+      await casesApi.retryWorkflowJob(jobKey)
       notify.success(t("workflow.operate.retry_success"))
       await runtimeQuery.refetch()
     } catch (error) {
@@ -294,7 +294,7 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("retryService")
     try {
-      const result = await workflowApi.retryProcessServiceJobs(
+      const result = await casesApi.retryProcessServiceJobs(
         String(selected.processInstanceKey)
       )
       if (result.status === "noop") {
@@ -317,7 +317,7 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("pause")
     try {
-      await workflowApi.pauseProcessInstance(
+      await monitoringApi.pauseProcessInstance(
         String(selected.processInstanceKey)
       )
       notify.success(t("workflow.operate.pause_instance_success"))
@@ -335,7 +335,7 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("resume")
     try {
-      await workflowApi.resumeProcessInstance(
+      await monitoringApi.resumeProcessInstance(
         String(selected.processInstanceKey)
       )
       notify.success(t("workflow.operate.resume_instance_success"))
@@ -353,7 +353,7 @@ export function ProcessInstanceOperate({
     if (!selected?.processInstanceKey) return
     setActionPending("cancel")
     try {
-      await workflowApi.cancelProcessInstance(
+      await monitoringApi.cancelProcessInstance(
         String(selected.processInstanceKey)
       )
       notify.success(t("workflow.operate.cancel_instance_success"))
@@ -369,7 +369,7 @@ export function ProcessInstanceOperate({
 
   async function handleRetryIncident(incidentKey: string) {
     try {
-      await workflowApi.retryIncident(incidentKey)
+      await monitoringApi.retryIncident(incidentKey)
       notify.success(t("workflow.operate.retry_incident_success"))
     } catch (err) {
       notify.error(
@@ -381,7 +381,7 @@ export function ProcessInstanceOperate({
 
   async function handleResolveIncident(incidentKey: string) {
     try {
-      await workflowApi.resolveIncident(incidentKey)
+      await monitoringApi.resolveIncident(incidentKey)
       notify.success(t("workflow.operate.resolve_incident_success"))
     } catch (err) {
       notify.error(
@@ -393,7 +393,7 @@ export function ProcessInstanceOperate({
 
   async function handleRetryJobOperate(jobKey: string) {
     try {
-      await workflowApi.updateJobRetries(jobKey, 3)
+      await monitoringApi.updateJobRetries(jobKey, 3)
       notify.success(t("workflow.operate.retry_job_success"))
     } catch (err) {
       notify.error(

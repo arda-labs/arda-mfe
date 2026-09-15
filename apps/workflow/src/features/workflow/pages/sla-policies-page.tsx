@@ -22,7 +22,7 @@ import {
   StatusLabel,
 } from "@workspace/ui/components/status"
 import type { SlaPolicy } from "../api"
-import { workflowApi } from "../api"
+import { caseConfigApi, casesApi } from "../api"
 import { SlaPolicyDialog, caseTypeOptionsFromCaseTypes } from "../shared/admin-ui"
 
 const DEFAULT_PAGE_SIZE = 10
@@ -35,11 +35,11 @@ export function SlaPoliciesPage() {
 
   const slaQuery = useQuery({
     queryKey: ["workflow", "sla-policies", "all"],
-    queryFn: () => workflowApi.listSlaPolicies(),
+    queryFn: () => caseConfigApi.listSlaPolicies(),
   })
   const caseTypeQuery = useQuery({
     queryKey: ["workflow", "case-types", "all"],
-    queryFn: () => workflowApi.listCaseTypes(),
+    queryFn: () => casesApi.listCaseTypes(),
   })
 
   const items = useMemo(() => slaQuery.data ?? [], [slaQuery.data])

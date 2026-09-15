@@ -3,8 +3,12 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { Area, GeoAdminUnit, LookupValue } from "../api"
-import { platformApi } from "../api"
+import { type Area } from "./types"
+import { type LookupValue } from "../lookups/types"
+import { type GeoAdminUnit } from "../shared/types"
+import { areasApi } from "./api"
+import { lookupsApi } from "../lookups/api"
+import { geoApi } from "../shared/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -49,8 +53,8 @@ export function AreasPage() {
   useEffect(() => {
     let cancelled = false
     Promise.all([
-      platformApi.listLookupValues("AREA_TYPE"),
-      platformApi.listGeoAdminUnits(undefined, 1),
+      lookupsApi.listLookupValues("AREA_TYPE"),
+      geoApi.listGeoAdminUnits(undefined, 1),
     ])
       .then(([areaTypesResult, provinces]) => {
         if (cancelled) return
@@ -247,7 +251,7 @@ export function AreasPage() {
     ...areasListDefinition,
     columns,
     queryFn: async (listQuery, { signal }) =>
-      platformApi.listAreasPaged(
+      areasApi.listAreasPaged(
         {
           page: listQuery.page,
           perPage: listQuery.perPage,
@@ -271,7 +275,7 @@ export function AreasPage() {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await platformApi.deleteArea(deleteTarget.id)
+      await areasApi.deleteArea(deleteTarget.id)
       notify.success(t("platform.areas.toast.delete_success"))
       setDeleteTarget(null)
       await refetch()

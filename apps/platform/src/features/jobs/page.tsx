@@ -5,15 +5,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import {
-  listJobRuns,
-  listJobs,
-  runCob,
-  seedCob,
-  type CobRunResult,
-  type JobDefinition,
-  type JobRun,
-} from "../api"
+import { listJobRuns, listJobs, runCob, seedCob } from "./api"
+import { type CobRunResult, type JobDefinition, type JobRun } from "./types"
 
 function today(): string {
   const now = new Date()

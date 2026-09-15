@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
-import { listNotificationEvents, type NotificationEvent } from "../../api"
+import { listNotificationEvents } from "../api"
+import { type NotificationEvent } from "../types"
 
 /** Notification event registry — event codes accepted by the platform. */
 export function EventsTab() {

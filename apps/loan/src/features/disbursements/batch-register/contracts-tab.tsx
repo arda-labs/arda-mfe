@@ -6,12 +6,12 @@ import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { Plus } from "lucide-react"
 import { formatAmount, formatDateShort, fromMinor } from "@workspace/format"
 import type { LoanAgreement, LoanContract } from "../../api"
-import { ChooseContractDialog } from "../../loan-batches/components/choose-contract-dialog"
+import { ChooseContractDialog } from "../../loan-batches"
 import {
   BatchGridHead,
   BatchGridRemoveRowButton,
   PlanGroupedTable,
-} from "../../loan-batches/components/plan-grouped-table"
+} from "../../loan-batches"
 import { headroomMinor, inputToMinor } from "../../loan-batches/row-math"
 import type { RegisterRow } from "./page"
 

@@ -1,5 +1,4 @@
-import { api, type ApiSuccess } from "@workspace/api"
-import { buildSearchParams, type SearchParams } from "@workspace/api/query"
+import { cancelCustomerDraft, listCustomerDrafts } from "../api/drafts"
 
 export type CustomerStatus = "DRAFT" | "NEEDS_CHANGES"
 
@@ -15,20 +14,9 @@ export interface Customer {
 
 export const customerDraftApi = {
   list(status: CustomerStatus) {
-    return getItems<Customer>("/api/crm/customers", { status })
+    return listCustomerDrafts<Customer>(status)
   },
   cancel(id: string) {
-    return api
-      .post<ApiSuccess<Customer>>(
-        `/api/crm/customers/${encodeURIComponent(id)}/cancel`
-      )
-      .then((res) => res.result)
+    return cancelCustomerDraft<Customer>(id)
   },
-}
-
-async function getItems<T>(path: string, params: SearchParams = {}) {
-  const search = buildSearchParams(params)
-  const suffix = search.size ? `?${search.toString()}` : ""
-  const data = await api.get<ApiSuccess<{ items: T[] }>>(`${path}${suffix}`)
-  return data.result.items
 }

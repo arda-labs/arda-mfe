@@ -7,7 +7,7 @@ import { Pencil } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import type { WorkflowRoleCatalog } from "../../api"
-import { workflowApi } from "../../api"
+import { processRolesApi } from "../../api"
 import { RoleCatalogDialog } from "../../shared/admin-ui"
 import {
   byString,
@@ -121,7 +121,7 @@ export function useCatalogTab(): ProcessRolesTab & { roleCodeOptions: CatalogSel
 
   const { query, items, table, total } = useTabList<WorkflowRoleCatalog>({
     queryKey: ["workflow", "role-catalog", "all"],
-    queryFn: () => workflowApi.listRoleCatalog(),
+    queryFn: () => processRolesApi.listRoleCatalog(),
     columns,
     textFilterId: "cat_role_code",
     textFields: (item) => [item.roleCode, item.roleName],

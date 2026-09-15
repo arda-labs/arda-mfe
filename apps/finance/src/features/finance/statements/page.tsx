@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import {
-  financeApi,
-  type FinancialSummary,
-  type RiskException,
-  type StatementResult,
-  type StatementSummary,
-} from "@/features/finance/api"
+import { statementsApi, type FinancialSummary, type RiskException, type StatementResult, type StatementSummary } from "@/features/finance/api"
 import { downloadFile } from "@workspace/api"
 import { formatAmount, fromMinor } from "@workspace/format"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -33,7 +27,7 @@ export function StatementsPage() {
 
   useEffect(() => {
     let cancelled = false
-    void financeApi
+    void statementsApi
       .listStatements()
       .then((items) => {
         if (cancelled) return
@@ -53,7 +47,7 @@ export function StatementsPage() {
 
   useEffect(() => {
     let cancelled = false
-    void financeApi
+    void statementsApi
       .financialSummary(asOf || undefined, from || undefined)
       .then((res) => {
         if (!cancelled) setSummary(res)
@@ -61,7 +55,7 @@ export function StatementsPage() {
       .catch(() => {
         if (!cancelled) setSummary(null)
       })
-    void financeApi
+    void statementsApi
       .riskExceptions(asOf || undefined)
       .then((res) => {
         if (!cancelled) setExceptions(res)
@@ -78,7 +72,7 @@ export function StatementsPage() {
     if (!selected) return
     setLoadingRun(true)
     let cancelled = false
-    void financeApi
+    void statementsApi
       .runStatement(selected, asOf || undefined, undefined, from || undefined)
       .then((res) => {
         if (cancelled) return

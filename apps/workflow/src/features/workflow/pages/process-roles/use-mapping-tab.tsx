@@ -8,7 +8,7 @@ import { Pencil } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import type { ProcessRole } from "../../api"
-import { workflowApi } from "../../api"
+import { processRolesApi } from "../../api"
 import { ProcessRoleDialog } from "../../shared/admin-ui"
 import {
   byString,
@@ -136,7 +136,7 @@ export function useMappingTab(
 
   const { query, items, table, total } = useTabList<ProcessRole>({
     queryKey: ["workflow", "process-roles", "all"],
-    queryFn: () => workflowApi.listProcessRoles(),
+    queryFn: () => processRolesApi.listProcessRoles(),
     columns,
     textFilterId: "map_case_type",
     textFields: (item) => [item.caseType, item.stepCode, item.businessRole],

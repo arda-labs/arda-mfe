@@ -221,7 +221,7 @@ function getStoredLocale(): Locale {
     }
   }
   if (typeof navigator !== "undefined") {
-    const match = navigator.languages.find((lang) => isSupportedLocale(lang))
+    const match = navigator.languages?.find((lang) => isSupportedLocale(lang))
     if (isSupportedLocale(match)) {
       return match
     }

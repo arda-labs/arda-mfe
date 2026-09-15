@@ -3,12 +3,8 @@ import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { formatDateShort } from "@workspace/format"
-import {
-  discardNotificationDLQ,
-  listNotificationDLQ,
-  retryNotificationDLQ,
-  type NotificationDLQEntry,
-} from "../../api"
+import { discardNotificationDLQ, listNotificationDLQ, retryNotificationDLQ } from "../api"
+import { type NotificationDLQEntry } from "../types"
 
 /** Dead-letter queue — inspect, replay or discard failed outbox events. */
 export function DlqTab() {

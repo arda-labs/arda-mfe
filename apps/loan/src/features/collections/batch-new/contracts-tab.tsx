@@ -6,13 +6,13 @@ import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { Plus } from "lucide-react"
 import { formatAmount, fromMinor } from "@workspace/format"
 import type { LoanAgreement, LoanContract } from "../../api"
-import { ChooseContractDialog } from "../../loan-batches/components/choose-contract-dialog"
-import { PostingRulesPreview } from "../../loan-batches/components/posting-rules-preview"
+import { ChooseContractDialog } from "../../loan-batches"
+import { PostingRulesPreview } from "../../loan-batches"
 import {
   BatchGridHead,
   BatchGridRemoveRowButton,
   PlanGroupedTable,
-} from "../../loan-batches/components/plan-grouped-table"
+} from "../../loan-batches"
 import { inputToMinor } from "../../loan-batches/row-math"
 
 /** One editable collection row of the grouped grid (state owned by page.tsx). */

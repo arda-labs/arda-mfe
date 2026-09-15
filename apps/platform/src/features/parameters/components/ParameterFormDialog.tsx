@@ -3,8 +3,9 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { Organization, Parameter } from "../../api"
-import { platformApi } from "../../api"
+import { type Organization } from "../../organizations/types"
+import { type Parameter } from "../types"
+import { parametersApi } from "../api"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -108,7 +109,7 @@ export function ParameterFormDialog({
       if (editingParam) {
         payload.id = editingParam.id
       }
-      await platformApi.upsertParameter(payload)
+      await parametersApi.upsertParameter(payload)
       notify.success(t("platform.parameters.toast.save_success"))
       handleDialogClose(false)
       await onSuccess()

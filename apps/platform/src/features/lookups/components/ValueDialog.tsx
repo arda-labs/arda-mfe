@@ -3,8 +3,8 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { LookupCategory, LookupValue } from "../../api"
-import { platformApi } from "../../api"
+import { type LookupCategory, type LookupValue } from "../types"
+import { lookupsApi } from "../api"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -71,7 +71,7 @@ export function ValueDialog({
       if (editingVal) {
         payload.id = editingVal.id
       }
-      await platformApi.upsertLookupValue(selectedCat.code, payload)
+      await lookupsApi.upsertLookupValue(selectedCat.code, payload)
       notify.success(t("platform.lookups.toast.value_save_success"))
       handleClose(false)
       await onSuccess()

@@ -5,8 +5,8 @@ import { Input } from "@workspace/ui/components/input"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { formatAmount, fromMinor } from "@workspace/format"
 import type { LoanDisbursementBatchRow } from "../../api"
-import { PostingRulesPreview } from "../../loan-batches/components/posting-rules-preview"
-import { BatchGridHead, PlanGroupedTable } from "../../loan-batches/components/plan-grouped-table"
+import { PostingRulesPreview } from "../../loan-batches"
+import { BatchGridHead, PlanGroupedTable } from "../../loan-batches"
 import { inputToMinor } from "../../loan-batches/row-math"
 
 export interface CompleteRow extends LoanDisbursementBatchRow {

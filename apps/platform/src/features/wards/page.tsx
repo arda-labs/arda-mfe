@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
-import type { GeoAdminUnit } from "../api"
-import { platformApi } from "../api"
+import { type GeoAdminUnit } from "../shared/types"
+import { geoApi } from "../shared/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -30,7 +30,7 @@ export function WardsPage() {
   // static, client tier per the catalog skill; the ~10k wards table is server tier.
   useEffect(() => {
     let cancelled = false
-    platformApi
+    geoApi
       .listGeoAdminUnits(undefined, 1)
       .then((result) => {
         if (!cancelled) setProvinces(result)
@@ -243,7 +243,7 @@ export function WardsPage() {
     ...wardsListDefinition,
     columns,
     queryFn: async (listQuery, { signal }) =>
-      platformApi.listGeoAdminUnitsPaged(
+      geoApi.listGeoAdminUnitsPaged(
         {
           page: listQuery.page,
           perPage: listQuery.perPage,

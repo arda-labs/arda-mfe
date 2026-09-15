@@ -4,19 +4,9 @@ import {
   defaultBranding,
   isSafeBrandImageUrl,
 } from "@workspace/theme/branding"
-import { api, type ApiSuccess } from "@workspace/api"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-
-type Parameter = {
-  id: string
-  key: string
-  value: string
-  value_type: "string" | "number" | "boolean" | "json" | "date"
-  scope_type: "global" | "tenant" | "org" | "branch" | "department"
-  description?: string
-  is_secret: boolean
-}
+import { listParameters, upsertParameter, type Parameter } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
@@ -197,10 +187,7 @@ export function SystemSettingsPage() {
   const loadParameters = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await api.get<ApiSuccess<Parameter[]>>(
-        "/api/platform/parameters"
-      )
-      const data = response.result
+      const data = await listParameters()
       setParameters(data)
       setSettings(readSettingsFromList(data))
     } catch {
@@ -239,7 +226,7 @@ export function SystemSettingsPage() {
 
     setSaving(true)
     try {
-      await api.post<ApiSuccess<Parameter>>("/api/platform/parameters", {
+      await upsertParameter({
         id: parametersByKey[SYSTEM_SETTINGS_KEY]?.id,
         key: SYSTEM_SETTINGS_KEY,
         value: JSON.stringify(settings),

@@ -4,7 +4,7 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { notify } from "@workspace/ui/feedback/notify"
-import { workflowApi } from "../../api"
+import { monitoringApi } from "../../api"
 import type { OperateIncidentQuery, OperateIncidentRow } from "../../api"
 import { InstanceDetail } from "./instance-detail"
 import { formatDateTime, toIsoRange } from "./format"
@@ -67,7 +67,7 @@ export function IncidentsTab({
       setLoading(true)
       setError(null)
       try {
-        const page = await workflowApi.searchOperateIncidents({
+        const page = await monitoringApi.searchOperateIncidents({
           ...query,
           pageSize: 25,
         })
@@ -117,7 +117,7 @@ export function IncidentsTab({
   const handleRetry = async (incidentKey: string) => {
     setActingKey(incidentKey)
     try {
-      await workflowApi.retryIncident(incidentKey)
+      await monitoringApi.retryIncident(incidentKey)
       notify.success(t("workflow.operate.retry_incident_success"))
       await search(applied, false)
     } catch (reason) {
@@ -133,7 +133,7 @@ export function IncidentsTab({
   const handleResolve = async (incidentKey: string) => {
     setActingKey(incidentKey)
     try {
-      await workflowApi.resolveIncident(incidentKey)
+      await monitoringApi.resolveIncident(incidentKey)
       notify.success(t("workflow.operate.resolve_incident_success"))
       await search(applied, false)
     } catch (reason) {

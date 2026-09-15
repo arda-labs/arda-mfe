@@ -1,5 +1,5 @@
 import { z } from "zod"
-import type { Parameter } from "../api"
+import { type Parameter } from "./types"
 
 export const valueTypeValues = ["string", "number", "boolean", "json", "date"] as const
 export const scopeTypeValues = [

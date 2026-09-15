@@ -8,7 +8,7 @@ import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { useAuthStore } from "@workspace/auth"
 import type { WorkflowDelegation } from "../../api"
-import { workflowApi } from "../../api"
+import { processRolesApi } from "../../api"
 import { DelegationDialog } from "../../shared/admin-ui"
 import {
   byString,
@@ -140,7 +140,7 @@ export function useDelegationTab(
 
   const { query, table, total } = useTabList<WorkflowDelegation>({
     queryKey: ["workflow", "delegations", "all", tenantId],
-    queryFn: () => workflowApi.listDelegations(tenantId),
+    queryFn: () => processRolesApi.listDelegations(tenantId),
     enabled: Boolean(tenantId),
     columns,
     textFilterId: "dlg_role",

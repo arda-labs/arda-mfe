@@ -5,7 +5,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { deleteWorkingHour, listWorkingHours, upsertWorkingHour, type WorkingHour } from "../api"
+import { deleteWorkingHour, listWorkingHours, upsertWorkingHour } from "./api"
+import { type WorkingHour } from "./types"
 
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 

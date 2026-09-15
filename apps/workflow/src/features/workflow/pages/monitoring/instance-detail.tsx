@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { OperateBpmnViewer } from "../../components/bpmn-monitor-lazy"
-import { workflowApi } from "../../api"
+import { casesApi, definitionsApi, monitoringApi } from "../../api"
 import type {
   ElementInstanceStat,
   OperateElementInstance,
@@ -95,16 +95,16 @@ export function InstanceDetail({
     try {
       const [detailData, elementData, variableData, incidentPage, jobData, historyPage] =
         await Promise.all([
-          workflowApi.getOperateInstanceDetail(instanceKey),
-          workflowApi.listInstanceElementInstances(instanceKey),
-          workflowApi.listInstanceVariables(instanceKey),
-          workflowApi.searchOperateIncidents({
+          monitoringApi.getOperateInstanceDetail(instanceKey),
+          monitoringApi.listInstanceElementInstances(instanceKey),
+          monitoringApi.listInstanceVariables(instanceKey),
+          monitoringApi.searchOperateIncidents({
             processInstanceKey: instanceKey,
             state: "CREATED",
             pageSize: 100,
           }),
-          workflowApi.listInstanceJobs(instanceKey),
-          workflowApi.listInstanceHistory(instanceKey),
+          monitoringApi.listInstanceJobs(instanceKey),
+          monitoringApi.listInstanceHistory(instanceKey),
         ])
       setDetail(detailData)
       setElements(elementData)
@@ -116,7 +116,7 @@ export function InstanceDetail({
 
       if (detailData.caseId) {
         try {
-          setCaseTimeline(await workflowApi.getCaseTimeline(detailData.caseId))
+          setCaseTimeline(await casesApi.getCaseTimeline(detailData.caseId))
         } catch {
           setCaseTimeline([])
         }
@@ -124,14 +124,14 @@ export function InstanceDetail({
         setCaseTimeline([])
       }
 
-      const definitions = await workflowApi.listProcessDefinitions()
+      const definitions = await definitionsApi.listProcessDefinitions()
       const definition = definitions
         .filter((item) => item.bpmnProcessId === detailData.bpmnProcessId)
         .sort((a, b) => b.version - a.version)[0]
       if (definition) {
         setXml(
           definition.xmlContent ||
-            (await workflowApi.getProcessDefinitionXml(definition.id))
+            (await definitionsApi.getProcessDefinitionXml(definition.id))
         )
       } else {
         setXml("")
@@ -159,7 +159,7 @@ export function InstanceDetail({
     if (!historyCursor) return
     setHistoryLoading(true)
     try {
-      const page = await workflowApi.listInstanceHistory(
+      const page = await monitoringApi.listInstanceHistory(
         instanceKey,
         historyCursor
       )
@@ -262,7 +262,7 @@ export function InstanceDetail({
     try {
       for (const incident of incidents) {
         try {
-          await workflowApi.retryIncident(incident.incidentKey)
+          await monitoringApi.retryIncident(incident.incidentKey)
           retried++
         } catch {
           // Continue retrying the remaining incidents
@@ -283,7 +283,7 @@ export function InstanceDetail({
   const handleCancel = useCallback(async () => {
     setActing(true)
     try {
-      await workflowApi.cancelProcessInstance(instanceKey)
+      await monitoringApi.cancelProcessInstance(instanceKey)
       notify.success(t("workflow.operate.cancel_success"))
       setCancelOpen(false)
       await load()
@@ -301,7 +301,7 @@ export function InstanceDetail({
     async (incidentKey: string) => {
       setActing(true)
       try {
-        await workflowApi.retryIncident(incidentKey)
+        await monitoringApi.retryIncident(incidentKey)
         notify.success(t("workflow.operate.retry_incident_success"))
         await load()
       } catch (reason) {
@@ -320,7 +320,7 @@ export function InstanceDetail({
     async (incidentKey: string) => {
       setActing(true)
       try {
-        await workflowApi.resolveIncident(incidentKey)
+        await monitoringApi.resolveIncident(incidentKey)
         notify.success(t("workflow.operate.resolve_incident_success"))
         await load()
       } catch (reason) {
@@ -339,7 +339,7 @@ export function InstanceDetail({
     async (jobKey: string) => {
       setActing(true)
       try {
-        await workflowApi.updateJobRetries(jobKey, 3)
+        await monitoringApi.updateJobRetries(jobKey, 3)
         notify.success(t("workflow.operate.retry_job_success"))
         await load()
       } catch (reason) {
@@ -365,7 +365,7 @@ export function InstanceDetail({
     }
     setSavingVariable(true)
     try {
-      await workflowApi.setInstanceVariables(
+      await monitoringApi.setInstanceVariables(
         instanceKey,
         { [editingVariable.name]: parsed },
         {

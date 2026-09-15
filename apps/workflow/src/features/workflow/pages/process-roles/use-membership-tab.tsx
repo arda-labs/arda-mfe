@@ -8,7 +8,7 @@ import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { useAuthStore } from "@workspace/auth"
 import type { WorkflowRoleMembership } from "../../api"
-import { workflowApi } from "../../api"
+import { processRolesApi } from "../../api"
 import { RoleMembershipDialog } from "../../shared/admin-ui"
 import {
   byString,
@@ -159,7 +159,7 @@ export function useMembershipTab(
 
   const { query, table, total } = useTabList<WorkflowRoleMembership>({
     queryKey: ["workflow", "role-memberships", "all", tenantId],
-    queryFn: () => workflowApi.listRoleMemberships(tenantId),
+    queryFn: () => processRolesApi.listRoleMemberships(tenantId),
     enabled: Boolean(tenantId),
     columns,
     textFilterId: "mem_role",

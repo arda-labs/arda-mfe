@@ -23,7 +23,7 @@ import {
   useObjectInfoLabels,
   useObjectTypeOptions,
 } from "../../loan-batches/labels"
-import { ChooseSourceBatchDialog } from "../../loan-batches/components/choose-source-batch-dialog"
+import { ChooseSourceBatchDialog } from "../../loan-batches"
 import { CompleteRowsTab, completeAmountMinor, type CompleteRow } from "./rows-tab"
 
 const TAB_INFO = "complete-info"

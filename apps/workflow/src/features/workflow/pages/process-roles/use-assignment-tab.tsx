@@ -7,7 +7,7 @@ import { Pencil } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import type { WorkflowAssignmentRule } from "../../api"
-import { workflowApi } from "../../api"
+import { processRolesApi } from "../../api"
 import { AssignmentRuleDialog } from "../../shared/admin-ui"
 import {
   byNumber,
@@ -161,7 +161,7 @@ export function useAssignmentTab(
 
   const { query, table, total } = useTabList<WorkflowAssignmentRule>({
     queryKey: ["workflow", "assignment-rules", "all"],
-    queryFn: () => workflowApi.listAssignmentRules(),
+    queryFn: () => processRolesApi.listAssignmentRules(),
     columns,
     textFilterId: "asg_case_type",
     textFields: (item) => [item.caseType, item.stepCode, item.roleCode],

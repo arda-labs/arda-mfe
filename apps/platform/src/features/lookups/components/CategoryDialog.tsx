@@ -3,8 +3,8 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { LookupCategory } from "../../api"
-import { platformApi } from "../../api"
+import { type LookupCategory } from "../types"
+import { lookupsApi } from "../api"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -79,7 +79,7 @@ export function CategoryDialog({
       if (editingCat) {
         payload.id = editingCat.id
       }
-      await platformApi.upsertLookupCategory(payload)
+      await lookupsApi.upsertLookupCategory(payload)
       notify.success(t("platform.lookups.toast.category_save_success"))
       handleClose(false)
       await onSuccess()

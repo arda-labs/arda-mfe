@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import type { Organization } from "../api"
-import { platformApi } from "../api"
+import { type Organization } from "./types"
+import { organizationsApi } from "./api"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -131,7 +131,7 @@ export function OrganizationsPage() {
     queryKey: [...ORGANIZATIONS_QUERY_KEY, "tree"],
     query: { view: "tree" },
     queryFn: (query, { signal }) =>
-      platformApi.listOrganizations(query, { signal }),
+      organizationsApi.listOrganizations(query, { signal }),
     enabled: viewMode === "tree",
     staleTime: 5 * 60_000,
   })
@@ -139,7 +139,7 @@ export function OrganizationsPage() {
     queryKey: [...ORGANIZATIONS_QUERY_KEY, "options"],
     query: { view: "options" },
     queryFn: (query, { signal }) =>
-      platformApi.listOrganizations(query, { signal }),
+      organizationsApi.listOrganizations(query, { signal }),
     enabled: dialogOpen,
     staleTime: 5 * 60_000,
   })
@@ -179,10 +179,10 @@ export function OrganizationsPage() {
       }
 
       if (editingOrg) {
-        await platformApi.updateOrganization(editingOrg.id, payload)
+        await organizationsApi.updateOrganization(editingOrg.id, payload)
         notify.success("Cap nhat to chuc thanh cong")
       } else {
-        await platformApi.createOrganization(payload)
+        await organizationsApi.createOrganization(payload)
         notify.success("Them to chuc thanh cong")
       }
       setDialogOpen(false)
@@ -199,7 +199,7 @@ export function OrganizationsPage() {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await platformApi.deleteOrganization(deleteTarget.id)
+      await organizationsApi.deleteOrganization(deleteTarget.id)
       notify.success("Xoa to chuc thanh cong")
       setDeleteTarget(null)
       await queryClient.invalidateQueries({ queryKey: ORGANIZATIONS_QUERY_KEY })
@@ -334,7 +334,7 @@ export function OrganizationsPage() {
     ...organizationsListDefinition,
     columns,
     queryFn: (query, { signal }) =>
-      platformApi.listOrganizations(query, { signal }),
+      organizationsApi.listOrganizations(query, { signal }),
     enabled: viewMode === "list",
   })
   const { table } = listQuery

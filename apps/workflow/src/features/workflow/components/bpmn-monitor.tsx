@@ -47,7 +47,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { workflowApi } from "../api"
+import { definitionsApi } from "../api"
 import type {
   ElementInstanceStat,
   WorkflowCase,
@@ -864,7 +864,7 @@ function BpmnModelerWorkspace({
           type: "application/xml",
         }
       )
-      await workflowApi.updateProcessDefinition(item.id, {
+      await definitionsApi.updateProcessDefinition(item.id, {
         name: item.name,
         status: item.status,
         file,

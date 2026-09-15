@@ -4,7 +4,7 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { notify } from "@workspace/ui/feedback/notify"
-import { workflowApi } from "../../api"
+import { monitoringApi } from "../../api"
 import type { OperateUserTaskQuery, OperateUserTaskRow } from "../../api"
 import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime } from "./format"
@@ -63,7 +63,7 @@ export function UserTasksTab({
       setLoading(true)
       setError(null)
       try {
-        const page = await workflowApi.searchOperateUserTasks({
+        const page = await monitoringApi.searchOperateUserTasks({
           ...query,
           pageSize: 25,
         })
@@ -94,7 +94,7 @@ export function UserTasksTab({
   const handleAssignToMe = async (taskKey: string) => {
     setActingKey(taskKey)
     try {
-      await workflowApi.assignUserTask(taskKey)
+      await monitoringApi.assignUserTask(taskKey)
       notify.success(t("workflow.operate.assign_success"))
       await search(applied, false)
     } catch (reason) {

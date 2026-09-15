@@ -198,3 +198,65 @@ export const mfaApi = {
       )
       .then((res) => res.result),
 }
+
+// ── Profile (self-service) ──────────────────────────
+
+/** GET /api/iam/me — the camelCase profile projection the account screens read. */
+export interface MyProfile {
+  displayName?: string
+  nickname?: string
+  firstName?: string
+  lastName?: string
+  phoneNumber?: string
+  birthdate?: string
+  gender?: string
+  address?: string
+  country?: string
+  position?: string
+  department?: string
+  employeeId?: string
+  approvalLevel?: string
+  dailyLimit?: string
+  bio?: string
+  timezone?: string
+  locale?: string
+}
+
+/** PUT /api/iam/me/profile body — the union of fields the account screens edit. */
+export interface MyProfileUpdate {
+  name?: string
+  nickname?: string
+  first_name?: string
+  last_name?: string
+  phone_number?: string
+  birthdate?: string
+  gender?: string
+  address?: string
+  country?: string
+  headline?: string
+  department?: string
+  employee_id?: string
+  approval_level?: string
+  daily_limit?: string
+  bio?: string
+  timezone?: string
+  locale?: string
+}
+
+export function getMyProfile() {
+  return api
+    .get<ApiSuccess<MyProfile>>("/api/iam/me")
+    .then((res) => res.result)
+}
+
+export function updateMyProfile(payload: MyProfileUpdate) {
+  return api
+    .put<ApiSuccess<MyProfile>>("/api/iam/me/profile", payload)
+    .then((res) => res.result)
+}
+
+export function changeMyEmail(email: string) {
+  return api
+    .put<ApiSuccess<{ email: string }>>("/api/identity/me/email", { email })
+    .then((res) => res.result)
+}

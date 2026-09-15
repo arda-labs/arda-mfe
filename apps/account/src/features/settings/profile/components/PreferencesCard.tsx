@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
-import { api, type ApiSuccess } from "@workspace/api"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import { getMyProfile, updateMyProfile, type MyProfile } from "../../api"
 import { Button } from "@workspace/ui/components/button"
 import {
   Command,
@@ -30,25 +30,6 @@ import { cn } from "@workspace/ui/lib/utils"
 type ProfilePreferences = {
   timezone: string
   locale: string
-}
-
-type ProfileMe = {
-  displayName?: string
-  nickname?: string
-  firstName?: string
-  lastName?: string
-  phoneNumber?: string
-  birthdate?: string
-  gender?: string
-  address?: string
-  country?: string
-  department?: string
-  employeeId?: string
-  approvalLevel?: string
-  dailyLimit?: string
-  bio?: string
-  timezone?: string
-  locale?: string
 }
 
 const DEFAULT_PREFERENCES: ProfilePreferences = {
@@ -90,7 +71,7 @@ const TIMEZONE_OPTIONS: string[] = (() => {
 // timezone/locale are editable here.
 export function PreferencesCard() {
   const { t } = useI18n()
-  const [profileMe, setProfileMe] = useState<ProfileMe | null>(null)
+  const [profileMe, setProfileMe] = useState<MyProfile | null>(null)
   const [prefs, setPrefs] = useState<ProfilePreferences>(DEFAULT_PREFERENCES)
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   const [savingPrefs, setSavingPrefs] = useState(false)
@@ -99,14 +80,13 @@ export function PreferencesCard() {
 
   useEffect(() => {
     let cancelled = false
-    api
-      .get<ApiSuccess<ProfileMe>>("/api/iam/me")
-      .then((response) => {
+    getMyProfile()
+      .then((profile) => {
         if (cancelled) return
-        setProfileMe(response.result)
+        setProfileMe(profile)
         setPrefs({
-          timezone: response.result.timezone || DEFAULT_PREFERENCES.timezone,
-          locale: response.result.locale || DEFAULT_PREFERENCES.locale,
+          timezone: profile.timezone || DEFAULT_PREFERENCES.timezone,
+          locale: profile.locale || DEFAULT_PREFERENCES.locale,
         })
         setPrefsLoaded(true)
       })
@@ -126,7 +106,7 @@ export function PreferencesCard() {
     setError(null)
     setMessage(null)
     try {
-      await api.put("/api/iam/me/profile", {
+      await updateMyProfile({
         name: profileMe?.displayName ?? "",
         nickname: profileMe?.nickname ?? "",
         first_name: profileMe?.firstName ?? "",

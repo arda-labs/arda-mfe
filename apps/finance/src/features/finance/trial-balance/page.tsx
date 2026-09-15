@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { financeApi, type TrialBalanceEntry } from "@/features/finance/api"
+import { trialBalanceApi, type TrialBalanceEntry } from "@/features/finance/api"
 import { formatAmount, fromMinor } from "@workspace/format"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -16,7 +16,7 @@ export function TrialBalancePage() {
   useEffect(() => {
     let cancelled = false
 
-    void financeApi
+    void trialBalanceApi
       .trialBalance()
       .then((result) => {
         if (cancelled) return

@@ -22,7 +22,7 @@ import {
   StatusLabel,
 } from "@workspace/ui/components/status"
 import type { SlaPolicy, WorkflowCaseType } from "../api"
-import { workflowApi } from "../api"
+import { caseConfigApi, casesApi } from "../api"
 import {
   ProcessConfigDialog,
   roleOptionsFromCaseTypes,
@@ -40,11 +40,11 @@ export function ProcessConfigsPage() {
 
   const caseTypeQuery = useQuery({
     queryKey: ["workflow", "case-types", "all"],
-    queryFn: () => workflowApi.listCaseTypes(),
+    queryFn: () => casesApi.listCaseTypes(),
   })
   const slaQuery = useQuery({
     queryKey: ["workflow", "sla-policies", "all"],
-    queryFn: () => workflowApi.listSlaPolicies(),
+    queryFn: () => caseConfigApi.listSlaPolicies(),
   })
 
   const items = caseTypeQuery.data ?? []

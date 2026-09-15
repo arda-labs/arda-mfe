@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { api, type ApiSuccess } from "@workspace/api"
 import { useAuthStore } from "@workspace/auth/store"
 import { useI18n } from "@workspace/i18n"
+import { changeMyEmail } from "../../api"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -38,11 +38,7 @@ export function EmailDialog({
     setError(null)
     setUpdating(true)
     try {
-      const response = await api.put<ApiSuccess<{ email: string }>>(
-        "/api/identity/me/email",
-        { email }
-      )
-      const updated = response.result
+      const updated = await changeMyEmail(email)
       updateUser({ email: updated.email })
       onOpenChange(false)
       setNewEmail("")

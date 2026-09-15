@@ -23,7 +23,7 @@ import {
   StatusLabel,
 } from "@workspace/ui/components/status"
 import type { WorkflowCaseType } from "../api"
-import { workflowApi } from "../api"
+import { casesApi } from "../api"
 import {
   CaseTypeDialog,
   defaultBusinessAreaOptions,
@@ -45,7 +45,7 @@ export function CaseTypesPage() {
 
   const { data: items = [], isPending, isFetching, error, refetch } = useQuery({
     queryKey: ["workflow", "case-types", "all"],
-    queryFn: () => workflowApi.listCaseTypes(),
+    queryFn: () => casesApi.listCaseTypes(),
   })
 
   const columns = useMemo<ColumnDef<WorkflowCaseType>[]>(

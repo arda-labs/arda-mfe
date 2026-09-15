@@ -14,8 +14,8 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { uploadFile } from "@workspace/media"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { FileTemplate } from "../api"
-import { platformApi } from "../api"
+import { type FileTemplate } from "./types"
+import { templatesApi } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -171,7 +171,7 @@ export function TemplatesPage() {
     else setRefreshing(true)
     setLoadError(null)
     try {
-      const result = await platformApi.listFileTemplates()
+      const result = await templatesApi.listFileTemplates()
       setTemplates(result)
     } catch (reason) {
       setLoadError(reason)
@@ -252,10 +252,10 @@ export function TemplatesPage() {
       }
 
       if (editingTemplate) {
-        await platformApi.updateFileTemplate(editingTemplate.id, payload)
+        await templatesApi.updateFileTemplate(editingTemplate.id, payload)
         notify.success(t("platform.templates.toast.update_success"))
       } else {
-        await platformApi.createFileTemplate(payload)
+        await templatesApi.createFileTemplate(payload)
         notify.success(t("platform.templates.toast.create_success"))
       }
       setDialogOpen(false)
@@ -275,7 +275,7 @@ export function TemplatesPage() {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await platformApi.deleteFileTemplate(deleteTarget.id)
+      await templatesApi.deleteFileTemplate(deleteTarget.id)
       notify.success(t("platform.templates.toast.delete_success"))
       setDeleteTarget(null)
       await loadTemplates()

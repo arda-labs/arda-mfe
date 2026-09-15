@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
-import { getCanonicalList } from "@workspace/api"
+import { listPolicyRoutes, type PolicyRoute } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
-
-interface PolicyRoute {
-  id: string
-  path: string
-  methods?: string[]
-  auth: boolean
-  risk?: string
-  permissions?: string[]
-}
 
 /** Route-policy browser (resource-management, W6a) — read-only. */
 export function ResourceRoutesPage() {
@@ -21,7 +12,7 @@ export function ResourceRoutesPage() {
   const [q, setQ] = useState("")
 
   useEffect(() => {
-    void getCanonicalList<PolicyRoute>("/api/admin/policy-routes")
+    void listPolicyRoutes()
       .then((result) => {
         setRoutes(result.items)
         setLoadError(false)

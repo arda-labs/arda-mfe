@@ -5,8 +5,8 @@ import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { GeoAdminUnit } from "../api"
-import { platformApi } from "../api"
+import { type GeoAdminUnit } from "../shared/types"
+import { geoApi } from "../shared/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -124,7 +124,7 @@ export function ProvincesPage() {
     else setRefreshing(true)
     setLoadError(null)
     try {
-      const result = await platformApi.listGeoAdminUnits(undefined, 1)
+      const result = await geoApi.listGeoAdminUnits(undefined, 1)
       setItems(result)
     } catch (reason) {
       setLoadError(reason)
@@ -174,7 +174,7 @@ export function ProvincesPage() {
     setSaving(true)
     try {
       const isEditing = Boolean(editingItem)
-      await platformApi.upsertGeoAdminUnit({
+      await geoApi.upsertGeoAdminUnit({
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         full_name: values.full_name?.trim() || undefined,

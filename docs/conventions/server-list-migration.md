@@ -3,7 +3,8 @@
 Conventions the checklist enforces live in [`AGENTS.md`](../../AGENTS.md) §3
 and [`docs/refactor-program.md`](../refactor-program.md). Reference
 implementation of the full tree: platform organizations
-(`apps/platform/src/features/platform/organizations/`).
+(`apps/platform/src/features/organizations/`). Feature slice layout and rules:
+[`feature-structure.md`](./feature-structure.md).
 
 ## Preconditions (already satisfied monorepo-wide)
 

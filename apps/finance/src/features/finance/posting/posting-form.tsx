@@ -24,7 +24,7 @@ import {
 import { PostingPreviewPanel } from "@workspace/posting-flow/posting-preview-panel"
 import type { EntryLineRow } from "@workspace/posting-flow/types"
 import { formatAmount, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
-import { financeApi, postingApi, postingCaseApi, type PostingFlow } from "../api"
+import { accountsApi, postingApi, postingCaseApi, type PostingFlow } from "../api"
 import { usePostingFlowLabels } from "./labels"
 
 const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
@@ -269,7 +269,7 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
                     canDeleteRows={!single}
                     minRows={2}
                     fetchAccounts={(params) =>
-                      financeApi
+                      accountsApi
                         .listAccountsPaged({ q: params.q, page: params.page, perPage: params.perPage })
                         .then((res) => ({
                           items: res.items.map((account) => ({

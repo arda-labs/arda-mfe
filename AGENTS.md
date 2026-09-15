@@ -81,7 +81,10 @@ Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
 ```text
 apps/<remote>/src/
 ├── features/<domain>/
-│   ├── api.ts                     <-- API client riêng của domain
+│   ├── api.ts                     <-- API client riêng của domain (≤ 300 dòng)
+│   ├── types.ts                   <-- Wire DTO + view model (≤ 250 dòng)
+│   ├── list-query.ts              <-- defineServerList contract (server list)
+│   ├── hooks.ts                   <-- useQuery/useMutation + invalidation (khi cần)
 │   ├── <feature-name>/
 │   │   ├── schema.ts              <-- Zod validation schemas & form default values
 │   │   ├── page.tsx               <-- Main page (Target ≤ 300-400 lines)
@@ -93,8 +96,12 @@ apps/<remote>/src/
 └── main.tsx                       <-- Standalone dev harness
 ```
 
+Chuẩn đầy đủ + quy tắc R1-R8: [`docs/conventions/feature-structure.md`](docs/conventions/feature-structure.md).
+Tạo feature mới: `bun run create:feature <app> <domain>`.
+
 ### 3.1. Quy tắc phân rã file:
 * **Không viết file nguyên khối (Monolithic Mega-file):** Mục tiêu `page.tsx` ≤ 400 dòng. Gate `check:pages` chỉ áp dụng cho file mới; một số page cũ lớn hơn (760–850 dòng) nằm trong `LEGACY_BASELINE` của `scripts/check-page-size.mjs` với mốc giải tỏa Q4-2026/Q1-2027 — khi chạm vào các file này, tách nhỏ trước khi mở rộng thêm.
+* **`api.ts` ≤ 300 dòng, `types.ts` ≤ 250 dòng** — vượt thì tách `api/<resource>.ts` + `index.ts` barrel. Chỉ api module được gọi transport (`api`, `getCanonical*`…); component/page không tự gọi HTTP. Gate: `bun run check:features` (nằm trong `bun run typecheck`).
 * **Tách Zod Schema ra `schema.ts`:** Không khai báo Zod schema, interface form values và default values trực tiếp trong file UI.
 * **Tách Form / View Dialogs vào `components/`:** Mỗi dialog xử lý một nghiệp vụ riêng (Create, Edit, Roles, Audit, Sessions).
 
@@ -120,8 +127,19 @@ bun run check:packages
 # Kiểm tra TypeScript toàn bộ monorepo (25 workspaces: 14 apps + 11 packages)
 # Bao gồm các invariant: check:packages, check:credentials, check:fallbacks,
 # check:federation (chính sách shared deps + registry route ownership), check:pages
-# (giới hạn độ dài page.tsx với LEGACY_BASELINE cho debt cũ)
+# (giới hạn độ dài page.tsx với LEGACY_BASELINE cho debt cũ), check:features
+# (api.ts/types.ts size, transport boundary, cross-feature imports)
 bun run typecheck
+
+# Chạy test federation + test feature (adapter/mapper) chạy bằng bun test
+bun run test:federation
+bun run test:features
+
+# Chỉ chạy gate cấu trúc feature (nhanh, dùng khi đang tách file)
+bun run check:features
+
+# Sinh feature slice mới đúng chuẩn (api/types/list-query/page + locale title)
+bun run create:feature <app> <domain>
 
 # Test invariant federation không cần browser: retry lazy, thứ tự prefix, ownership,
 # contract version, locale loader, cache theo tenant, dedupe theo session, release retention
@@ -168,6 +186,7 @@ Khi làm việc sâu vào một mảng, đọc convention tương ứng trước
 | Chủ đề | Tài liệu |
 | :--- | :--- |
 | i18n, locale, format ngày/số | [`docs/conventions/i18n-and-localization.md`](docs/conventions/i18n-and-localization.md) |
+| Cấu trúc feature slice, api.ts/types.ts, transport boundary | [`docs/conventions/feature-structure.md`](docs/conventions/feature-structure.md) |
 | Toast, notification bell, inbox | [`docs/conventions/notifications-and-toasts.md`](docs/conventions/notifications-and-toasts.md) |
 | List server-side (search/filter/paging) | [`docs/conventions/server-list-migration.md`](docs/conventions/server-list-migration.md) |
 | Xuất dữ liệu (Excel/CSV) | [`docs/conventions/data-export.md`](docs/conventions/data-export.md) |

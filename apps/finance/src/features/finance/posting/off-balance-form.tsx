@@ -22,7 +22,7 @@ import {
 } from "@workspace/posting-flow/entry-lines"
 import type { EntryLineRow, ObjectInfoValue } from "@workspace/posting-flow/types"
 import { formatAmount, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
-import { financeApi, postingCaseApi } from "../api"
+import { accountsApi, postingCaseApi } from "../api"
 import {
   useObjectInfoLabels,
   useObjectTypeOptions,
@@ -269,7 +269,7 @@ export function OffBalanceFormPage() {
                 hideTotals
                 accountQuery={{ nature: "B" }}
                 fetchAccounts={(params) =>
-                  financeApi
+                  accountsApi
                     .listCoaAccounts({ nature: params.extra?.nature as string | undefined })
                     .then((res) => {
                       // COA endpoint is an unpaged lookup; filter postable

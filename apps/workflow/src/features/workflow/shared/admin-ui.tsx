@@ -70,7 +70,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { cn } from "@workspace/ui/lib/utils"
 import { useI18n } from "@workspace/i18n"
 import { useEffect, useState } from "react"
-import { workflowApi } from "../api"
+import { caseConfigApi, casesApi, definitionsApi, processRolesApi } from "../api"
 import { PrincipalPicker } from "../components/principal-picker"
 import { notify } from "@workspace/ui/feedback/notify"
 import { useProcessInstanceRuntime } from "../shared/use-process-instance-runtime"
@@ -1009,9 +1009,9 @@ export function ProcessDefinitionDialog({
         file,
       }
       if (item) {
-        await workflowApi.updateProcessDefinition(item.id, payload)
+        await definitionsApi.updateProcessDefinition(item.id, payload)
       } else {
-        await workflowApi.importProcessDefinition(payload)
+        await definitionsApi.importProcessDefinition(payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -1135,9 +1135,9 @@ export function CaseTypeDialog({
         bpmnVersion: Number(form.bpmnVersion) || 1,
       }
       if (item?.caseType) {
-        await workflowApi.updateCaseType(item.caseType, payload)
+        await casesApi.updateCaseType(item.caseType, payload)
       } else {
-        await workflowApi.createCaseType(payload)
+        await casesApi.createCaseType(payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -1263,7 +1263,7 @@ export function ProcessConfigDialog({
     if (!item) return
     setSaving(true)
     try {
-      await workflowApi.updateProcessConfig(item.caseType, {
+      await caseConfigApi.updateProcessConfig(item.caseType, {
         ...form,
         bpmnVersion: Number(form.bpmnVersion) || 1,
       })
@@ -1405,9 +1405,9 @@ export function SlaPolicyDialog({
         })),
       }
       if (item?.id) {
-        await workflowApi.updateSlaPolicy(item.id, payload)
+        await caseConfigApi.updateSlaPolicy(item.id, payload)
       } else {
-        await workflowApi.createSlaPolicy(payload)
+        await caseConfigApi.createSlaPolicy(payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -1737,9 +1737,9 @@ export function DescriptionTemplateDialog({
     try {
       const payload = { ...form, preview }
       if (item?.id) {
-        await workflowApi.updateDescriptionTemplate(item.id, payload)
+        await caseConfigApi.updateDescriptionTemplate(item.id, payload)
       } else {
-        await workflowApi.createDescriptionTemplate(payload)
+        await caseConfigApi.createDescriptionTemplate(payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -1872,9 +1872,9 @@ export function ProcessRoleDialog({
     setSaving(true)
     try {
       if (item?.id) {
-        await workflowApi.updateProcessRole(item.id, form)
+        await processRolesApi.updateProcessRole(item.id, form)
       } else {
-        await workflowApi.createProcessRole(form)
+        await processRolesApi.createProcessRole(form)
       }
       onOpenChange(false)
       onSaved?.()
@@ -1972,9 +1972,9 @@ export function RoleCatalogDialog({
     setSaving(true)
     try {
       if (item?.roleCode) {
-        await workflowApi.updateRoleCatalog(item.roleCode, form)
+        await processRolesApi.updateRoleCatalog(item.roleCode, form)
       } else {
-        await workflowApi.createRoleCatalog(form)
+        await processRolesApi.createRoleCatalog(form)
       }
       onOpenChange(false)
       onSaved?.()
@@ -2103,9 +2103,9 @@ export function RoleMembershipDialog({
         effectiveTo: fromDateInputValue(form.effectiveTo),
       }
       if (item?.id) {
-        await workflowApi.updateRoleMembership(payload.tenantId, item.id, payload)
+        await processRolesApi.updateRoleMembership(payload.tenantId, item.id, payload)
       } else {
-        await workflowApi.createRoleMembership(payload.tenantId, payload)
+        await processRolesApi.createRoleMembership(payload.tenantId, payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -2252,9 +2252,9 @@ export function AssignmentRuleDialog({
         priority: Number(form.priority) || 100,
       }
       if (item?.id) {
-        await workflowApi.updateAssignmentRule(item.id, payload)
+        await processRolesApi.updateAssignmentRule(item.id, payload)
       } else {
-        await workflowApi.createAssignmentRule(payload)
+        await processRolesApi.createAssignmentRule(payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -2383,9 +2383,9 @@ export function DelegationDialog({
         effectiveTo: fromDateInputValue(form.effectiveTo),
       }
       if (item?.id) {
-        await workflowApi.updateDelegation(tenantId, item.id, payload)
+        await processRolesApi.updateDelegation(tenantId, item.id, payload)
       } else {
-        await workflowApi.createDelegation(tenantId, payload)
+        await processRolesApi.createDelegation(tenantId, payload)
       }
       onOpenChange(false)
       onSaved?.()
@@ -2817,7 +2817,7 @@ function StatusBadge({ status }: { status: string }) {
 
 async function downloadDefinition(item: WorkflowProcessDefinition) {
   const xml =
-    item.xmlContent || (await workflowApi.getProcessDefinitionXml(item.id))
+    item.xmlContent || (await definitionsApi.getProcessDefinitionXml(item.id))
   downloadText(
     xml,
     item.resourceName || `${item.bpmnProcessId}.bpmn`,

@@ -42,7 +42,7 @@ import type {
   WorkflowCaseType,
   WorkflowProcessDefinition,
 } from "../api"
-import { workflowApi } from "../api"
+import { casesApi, definitionsApi, monitoringApi } from "../api"
 import { BpmnDefinitionViewerDialog } from "../components/bpmn-monitor-lazy"
 import { ProcessInstanceOperate } from "../components/process-instance-operate"
 import { ProcessDefinitionDialog } from "../shared/admin-ui"
@@ -67,7 +67,7 @@ function useXml(id: string | undefined) {
     abortRef.current = controller
     setLoading(true)
     try {
-      const result = await workflowApi.getProcessDefinitionXml(id)
+      const result = await definitionsApi.getProcessDefinitionXml(id)
       if (!controller.signal.aborted) setXml(result)
     } catch {
       if (!controller.signal.aborted) setXml("")
@@ -99,7 +99,7 @@ function StatusBadge({ status }: { status: string }) {
 
 async function downloadDefinition(item: WorkflowProcessDefinition) {
   const xml =
-    item.xmlContent || (await workflowApi.getProcessDefinitionXml(item.id))
+    item.xmlContent || (await definitionsApi.getProcessDefinitionXml(item.id))
   const blob = new Blob([xml], { type: "application/xml;charset=utf-8" })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement("a")
@@ -189,9 +189,9 @@ export function ProcessMonitoringPage() {
     setLoading(true)
     try {
       const [c, ct, d] = await Promise.all([
-        workflowApi.listCases(),
-        workflowApi.listCaseTypes(),
-        workflowApi.listProcessDefinitions(),
+        casesApi.listCases(),
+        casesApi.listCaseTypes(),
+        definitionsApi.listProcessDefinitions(),
       ])
       setCases(c)
       setCaseTypes(ct)
@@ -211,9 +211,9 @@ export function ProcessMonitoringPage() {
   const loadOperateData = useCallback(async () => {
     try {
       const [es, incPage, jobsPage] = await Promise.all([
-        workflowApi.listElementInstanceStats(),
-        workflowApi.searchOperateIncidents({ state: "CREATED", pageSize: 100 }),
-        workflowApi.searchOperateJobs({ pageSize: 100 }),
+        monitoringApi.listElementInstanceStats(),
+        monitoringApi.searchOperateIncidents({ state: "CREATED", pageSize: 100 }),
+        monitoringApi.searchOperateJobs({ pageSize: 100 }),
       ])
       setElementStats(es)
       setIncidents(
@@ -322,7 +322,7 @@ export function ProcessMonitoringPage() {
   async function handleDeploy(id: string) {
     setDeployPending(id)
     try {
-      await workflowApi.deployProcessDefinition(id)
+      await definitionsApi.deployProcessDefinition(id)
       notify.success(t("workflow.process_monitoring.deploy_success"))
     } catch (err) {
       notify.error(
@@ -337,7 +337,7 @@ export function ProcessMonitoringPage() {
   function confirmDelete() {
     if (!deleteTarget) return
     setSaving(deleteTarget.id)
-    workflowApi
+    definitionsApi
       .deleteProcessDefinition(deleteTarget.id)
       .then(() =>
         setDefinitions((prev) => prev.filter((d) => d.id !== deleteTarget.id))

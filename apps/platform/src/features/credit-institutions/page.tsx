@@ -2,8 +2,8 @@ import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { CreditInstitution } from "../api"
-import { platformApi } from "../api"
+import { type CreditInstitution } from "./types"
+import { creditInstitutionsApi } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -223,7 +223,7 @@ export function CreditInstitutionsPage() {
     ...creditInstitutionsListDefinition,
     columns,
     queryFn: async (listQuery, { signal }) =>
-      platformApi.listCreditInstitutionsPaged(
+      creditInstitutionsApi.listCreditInstitutionsPaged(
         {
           page: listQuery.page,
           perPage: listQuery.perPage,
@@ -243,7 +243,7 @@ export function CreditInstitutionsPage() {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await platformApi.deleteCreditInstitution(deleteTarget.id)
+      await creditInstitutionsApi.deleteCreditInstitution(deleteTarget.id)
       notify.success(t("platform.credit_institutions.toast.delete_success"))
       setDeleteTarget(null)
       await refetch()

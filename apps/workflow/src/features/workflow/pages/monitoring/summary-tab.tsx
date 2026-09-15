@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { workflowApi } from "../../api"
+import { monitoringApi } from "../../api"
 import type { OperateSummary, OperateSummaryCount } from "../../api"
 
 function MetricCard({
@@ -69,7 +69,7 @@ export function SummaryTab() {
     setLoading(true)
     setError(null)
     try {
-      setSummary(await workflowApi.getOperateSummary())
+      setSummary(await monitoringApi.getOperateSummary())
     } catch (reason) {
       setError(reason)
     } finally {

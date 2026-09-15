@@ -26,7 +26,7 @@ import {
   listIamUsers,
   type IamPrincipalGroup,
   type IamPrincipalUser,
-} from "../iam-reference-api"
+} from "../api/iam-reference"
 
 const PAGE_SIZE = 10
 

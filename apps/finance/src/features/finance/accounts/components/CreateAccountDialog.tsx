@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { financeApi } from "@/features/finance/api"
+import { accountsApi } from "@/features/finance/api"
 import { notify } from "@workspace/ui/feedback/notify"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
@@ -91,7 +91,7 @@ export function CreateAccountDialog({
   const handleCreate = handleSubmit(async (values) => {
     setSaving(true)
     try {
-      await financeApi.createAccount(values)
+      await accountsApi.createAccount(values)
       notify.success(t("finance.accounts.create_success"))
       handleOpenChange(false)
       await onCreated()

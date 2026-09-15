@@ -23,7 +23,7 @@ import {
   StatusLabel,
 } from "@workspace/ui/components/status"
 import type { DescriptionTemplate } from "../api"
-import { workflowApi } from "../api"
+import { caseConfigApi, casesApi } from "../api"
 import {
   DescriptionTemplateDialog,
   businessSubsystemOptions,
@@ -47,11 +47,11 @@ export function DescriptionTemplatesPage() {
 
   const templateQuery = useQuery({
     queryKey: ["workflow", "description-templates", "all"],
-    queryFn: () => workflowApi.listDescriptionTemplates(),
+    queryFn: () => caseConfigApi.listDescriptionTemplates(),
   })
   const caseTypeQuery = useQuery({
     queryKey: ["workflow", "case-types", "all"],
-    queryFn: () => workflowApi.listCaseTypes(),
+    queryFn: () => casesApi.listCaseTypes(),
   })
 
   const items = templateQuery.data ?? []

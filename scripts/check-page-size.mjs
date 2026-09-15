@@ -21,7 +21,6 @@ const LEGACY_BASELINE = new Map([
   ["apps/platform/src/features/calendar/page.tsx", "Q1-2027"],
   ["apps/platform/src/features/area-types/page.tsx", "Q1-2027"],
   ["apps/iam/src/features/audit/page.tsx", "Q1-2027"],
-  ["apps/platform/src/features/ai-settings/page.tsx", "Q1-2027"],
 ])
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)))

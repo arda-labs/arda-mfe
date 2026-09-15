@@ -5,8 +5,8 @@ import { z } from "zod"
 import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { LookupValue } from "../api"
-import { platformApi } from "../api"
+import { type LookupValue } from "../lookups/types"
+import { lookupsApi } from "../lookups/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -58,9 +58,9 @@ const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
  * shows the category absent. The main table list never mutates on load.
  */
 async function ensureAreaTypeCategory() {
-  const categories = await platformApi.listLookupCategories()
+  const categories = await lookupsApi.listLookupCategories()
   if (categories.some((item) => item.code === AREA_TYPE_CATEGORY_CODE)) return
-  await platformApi.upsertLookupCategory({
+  await lookupsApi.upsertLookupCategory({
     code: AREA_TYPE_CATEGORY_CODE,
     name: "Loại khu vực",
     scope_type: "global",
@@ -132,7 +132,7 @@ export function AreaTypesPage() {
     setLoadError(null)
     try {
       await ensureAreaTypeCategory()
-      const result = await platformApi.listLookupValues(AREA_TYPE_CATEGORY_CODE)
+      const result = await lookupsApi.listLookupValues(AREA_TYPE_CATEGORY_CODE)
       setItems(result)
     } catch (reason) {
       setLoadError(reason)
@@ -289,7 +289,7 @@ export function AreaTypesPage() {
         payload.category_id = editingItem.category_id
       }
       await ensureAreaTypeCategory()
-      await platformApi.upsertLookupValue(AREA_TYPE_CATEGORY_CODE, payload)
+      await lookupsApi.upsertLookupValue(AREA_TYPE_CATEGORY_CODE, payload)
       notify.success(t("platform.area_types.toast.save_success"))
       setDialogOpen(false)
       reset(areaTypeDefaultValues)
@@ -308,7 +308,7 @@ export function AreaTypesPage() {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await platformApi.deleteLookupValue(deleteTarget.id)
+      await lookupsApi.deleteLookupValue(deleteTarget.id)
       notify.success(t("platform.area_types.toast.delete_success"))
       setDeleteTarget(null)
       await loadAreaTypes()

@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { financeApi, type Account } from "@/features/finance/api"
+import { accountsApi, type Account } from "@/features/finance/api"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -183,7 +183,7 @@ export function AccountsPage() {
     ...accountsListDefinition,
     columns,
     queryFn: async (query) =>
-      financeApi.listAccountsPaged({
+      accountsApi.listAccountsPaged({
         page: query.page,
         perPage: query.perPage,
         q: query.q === undefined ? undefined : String(query.q),

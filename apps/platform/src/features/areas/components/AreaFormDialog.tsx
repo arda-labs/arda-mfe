@@ -4,8 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { Area, GeoAdminUnit, LookupValue } from "../../api"
-import { platformApi } from "../../api"
+import { type Area } from "../types"
+import { type LookupValue } from "../../lookups/types"
+import { type GeoAdminUnit } from "../../shared/types"
+import { areasApi } from "../api"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -112,7 +114,7 @@ export function AreaFormDialog({
   useEffect(() => {
     if (!open) return
     let cancelled = false
-    platformApi
+    areasApi
       .listAreas()
       .then((result) => {
         if (!cancelled) setParentOptions(result)
@@ -158,10 +160,10 @@ export function AreaFormDialog({
       }
 
       if (editingItem) {
-        await platformApi.updateArea(editingItem.id, payload)
+        await areasApi.updateArea(editingItem.id, payload)
         notify.success(t("platform.areas.toast.update_success"))
       } else {
-        await platformApi.createArea(payload)
+        await areasApi.createArea(payload)
         notify.success(t("platform.areas.toast.create_success"))
       }
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { api } from "@workspace/api"
-import type { ApiSuccess } from "@workspace/api"
-import type { ListResponse } from "@workspace/api/list"
+import { listOrganizationOptions, usersApi } from "../api"
+import type { PlatformOrganizationOption } from "../api"
+import type { User } from "../types"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -13,14 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { usersApi } from "../api"
-import type { User } from "../types"
-
-interface Organization {
-  id: string
-  code: string
-  name: string
-}
 
 /** Data-scope (org) assignment for one user (W6a). */
 export function UserScopeDialog({
@@ -33,7 +25,9 @@ export function UserScopeDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const { t } = useI18n()
-  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [organizations, setOrganizations] = useState<
+    PlatformOrganizationOption[]
+  >([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [pending, setPending] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -46,14 +40,12 @@ export function UserScopeDialog({
     setLoadFailed(false)
     void (async () => {
       try {
-        const [orgsResponse, assigned] = await Promise.all([
-          api.get<ApiSuccess<ListResponse<Organization>>>(
-            "/api/platform/organizations?all=true"
-          ),
+        const [orgs, assigned] = await Promise.all([
+          listOrganizationOptions(),
           usersApi.listOrganizations(user.id),
         ])
         if (cancelled) return
-        setOrganizations(orgsResponse.result.items)
+        setOrganizations(orgs)
         setSelected(new Set(assigned))
       } catch {
         if (!cancelled) setLoadFailed(true)

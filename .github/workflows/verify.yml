@@ -20,6 +20,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
       - run: bun run test:federation
+      - run: bun run test:features
       - run: git diff --check
 
   federation-runtime:

@@ -1,8 +1,10 @@
 import {
+  api,
   deleteCanonical,
   getCanonical,
   postCanonical,
   putCanonical,
+  type ApiSuccess,
 } from "@workspace/api"
 import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import type {
@@ -221,4 +223,20 @@ export const usersApi = {
       `/api/admin/users/${userId}/organizations`,
       { organization_ids: organizationIds }
     ).then((res) => res.organization_ids),
+}
+
+export interface PlatformOrganizationOption {
+  id: string
+  code: string
+  name: string
+  is_active?: boolean
+}
+
+/** Platform org options for the data-scope picker (read-only reference). */
+export function listOrganizationOptions() {
+  return api
+    .get<ApiSuccess<ListResponse<PlatformOrganizationOption>>>(
+      "/api/platform/organizations?all=true"
+    )
+    .then((res) => res.result.items)
 }

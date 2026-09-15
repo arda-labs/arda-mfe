@@ -16,7 +16,7 @@ import {
   StatusLabel,
 } from "@workspace/ui/components/status"
 import { useI18n } from "@workspace/i18n"
-import { workflowApi, type WorkflowCaseType } from "../../api"
+import { casesApi, type WorkflowCaseType } from "../../api"
 
 /** Select option shape shared by the workflow admin dialogs. */
 export type CatalogSelectOption = {
@@ -118,7 +118,7 @@ export function statusFilterOptions(
 export function useCaseTypesLookup() {
   return useQuery({
     queryKey: ["workflow", "case-types", "all"],
-    queryFn: () => workflowApi.listCaseTypes(),
+    queryFn: () => casesApi.listCaseTypes(),
   })
 }
 
