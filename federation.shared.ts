@@ -61,9 +61,9 @@ export const remotePorts = {
   statistical: 8112,
 } as const
 
-// Vendor lớn để shell pre-bundle 1 lần ở boot, không ở first navigation
-// (giảm độ trễ lần đầu load một remote/page).
+// Vite dev dependency optimization only; production uses lazy chunks + budgets.
 export const shellOptimizeInclude = ["react-toastify"]
+export const federationBuild = { manifest: true } as const
 
 /**
  * Workspace packages deliberately NOT registered as Module Federation
@@ -81,7 +81,7 @@ export const shellOptimizeInclude = ["react-toastify"]
 export const sharedWorkspaceExemptions = {
   "@workspace/ui": "presentational-only; no cross-tree state",
   "@workspace/list-page": "per-remote list isolation",
-  "@workspace/query": "per-remote cache isolation",
+  "@workspace/query": "per-remote cache isolation; retained across navigation, cleared on auth scope changes",
   "@workspace/media": "stateless protocol helpers",
   // When a second remote needs the panel: move "@workspace/ai" out of this map
   // into remoteSharedDeps AND declare it in every app's package.json.

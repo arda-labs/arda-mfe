@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react"
 import { ChevronRight } from "lucide-react"
 import type { MessageKey } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
-import { preloadRemoteForPath } from "../remote-routes"
+import { preloadNavigation } from "../navigation-preload"
 import type { NavNode } from "../config/nav-config"
 import { getNavLabel, getNavNodeId, isNodeActive } from "../config/nav-config"
 
@@ -106,10 +106,8 @@ export function SidebarNode({
   return (
     <button
       type="button"
-      onFocus={() => void preloadRemoteForPath(item.href!)}
-      onClick={() => navigate(item.href!)}
-      onPointerDown={() => void preloadRemoteForPath(item.href!)}
-      onPointerEnter={() => void preloadRemoteForPath(item.href!)}
+      data-preload-href={item.href}
+      onClick={() => { void preloadNavigation(item.href!); navigate(item.href!) }}
       className={itemClassName}
       title={!sidebarOpen ? label : undefined}
       aria-current={isActive ? "page" : undefined}

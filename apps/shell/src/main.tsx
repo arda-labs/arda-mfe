@@ -10,8 +10,10 @@ import { ThemeProvider } from "@workspace/theme"
 import { installGlobalBrowserErrorHandlers } from "@workspace/ui/observability/browser-telemetry"
 import "@workspace/ui/globals.css"
 import { App } from "./App.tsx"
+import { installBrowserTelemetry } from "./browser-telemetry"
 
 installGlobalBrowserErrorHandlers()
+installBrowserTelemetry()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

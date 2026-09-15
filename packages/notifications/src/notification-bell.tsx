@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
+import { navigateTo } from "@workspace/ui/shell/routing"
 import { notificationsApi } from "./api"
 import {
   getBrowserNotificationPermission,
@@ -184,7 +185,9 @@ function NotificationRow({
     }
     if (notification.href) {
       close()
-      window.location.assign(notification.href)
+      const url = new URL(notification.href, location.origin)
+      if (url.origin === location.origin) navigateTo(`${url.pathname}${url.search}${url.hash}`)
+      else window.location.assign(url.href)
     }
   }
 
@@ -192,6 +195,7 @@ function NotificationRow({
     <button
       type="button"
       onClick={handleClick}
+      data-preload-href={notification.href}
       className={cn(
         "flex w-full gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted",
         unread && "bg-primary/5"

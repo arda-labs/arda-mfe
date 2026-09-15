@@ -68,6 +68,12 @@
       "body": "Page not found"
     },
     "page_load_title": "Could not load this page",
+    "remote_load": {
+      "title": "This module could not be loaded",
+      "body": "Please try again. If the application was just updated, reload the page to get the latest version.",
+      "retry": "Try again",
+      "reload": "Reload page"
+    },
     "trace_id": "Trace ID",
     "docs_link": "Learn more about this error"
   },

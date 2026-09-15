@@ -1,5 +1,4 @@
 import type { Column, Table } from "@tanstack/react-table"
-import ExcelJS from "exceljs"
 
 export type ExportScope = "all" | "selected" | "current_page"
 export type ExportFormat = "xlsx" | "csv"
@@ -299,7 +298,8 @@ function getNestedValue(obj: Record<string, unknown>, pathStr: string): unknown 
  * Includes audit watermark headers, auto-freeze panes, explicit cell formatting,
  * and column auto-sizing.
  */
-export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): void {
+export async function exportTableToXlsx<TData>(options: TableExportOptions<TData>): Promise<void> {
+  const { default: ExcelJS } = await import("exceljs")
   const {
     table,
     columnIds,
@@ -424,13 +424,12 @@ export function exportTableToXlsx<TData>(options: TableExportOptions<TData>): vo
   })
 
   // Write binary array & trigger download
-  void workbook.xlsx.writeBuffer().then((buffer) => {
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    })
-    const finalFilename = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
-    triggerDownload(blob, finalFilename)
+  const buffer = await workbook.xlsx.writeBuffer()
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   })
+  const finalFilename = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`
+  triggerDownload(blob, finalFilename)
 }
 
 export const exportTableToExcelXml = exportTableToXlsx

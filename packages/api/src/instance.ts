@@ -11,11 +11,14 @@ export type ApiAuthHandlers = {
 
 let authHandlers: ApiAuthHandlers = {}
 let getActiveOrgId: (() => string | undefined) | undefined
+let getSessionScope: (() => string) | undefined
 
 export function configureApiContext(context: {
   getActiveOrgId?: () => string | undefined
+  getSessionScope?: () => string
 }) {
   getActiveOrgId = context.getActiveOrgId
+  getSessionScope = context.getSessionScope
 }
 
 /** Inject authentication behavior without making API depend on auth. */
@@ -27,6 +30,7 @@ export const api = createApiClient({
   baseURL: getApiBaseURL(),
   getLocale: getCurrentLocale,
   getActiveOrgId: () => getActiveOrgId?.(),
+  getSessionScope: () => getSessionScope?.() ?? "",
   onUnauthorized: () => authHandlers.onUnauthorized?.(),
   onOrganizationForbidden: () => authHandlers.onOrganizationForbidden?.(),
   onRecentAuthRequired: async () => {

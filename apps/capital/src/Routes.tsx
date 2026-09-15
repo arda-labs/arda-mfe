@@ -1,12 +1,9 @@
-import { registerAppLocales } from "@workspace/i18n"
+import { createAppLocaleLoader } from "@workspace/i18n"
 import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
-import enCapital from "../locales/en-US.json"
-import viCapital from "../locales/vi-VN.json"
-
-registerAppLocales("capital", {
-  "vi-VN": viCapital,
-  "en-US": enCapital,
+const locales = createAppLocaleLoader("capital", {
+  "vi-VN": () => import("../locales/vi-VN.json"),
+  "en-US": () => import("../locales/en-US.json"),
 })
 
 const ContractsPage = lazyWithPreload(() =>
@@ -40,6 +37,8 @@ const ReportsPage = lazyWithPreload(() =>
 )
 
 export default createRemoteRoutes({
+  locales,
+  defaultPrefixes: ["/capital"],
   routes: [
     { prefix: "/capital/fund-types", component: FundTypesPage },
     { prefix: "/capital/products", component: ProductsPage },

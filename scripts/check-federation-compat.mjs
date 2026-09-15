@@ -1,5 +1,6 @@
 import { readdir, readFile } from "node:fs/promises"
 import { join } from "node:path"
+import ts from "typescript"
 
 const root = process.cwd()
 const appsDir = join(root, "apps")
@@ -17,9 +18,7 @@ const shared = await source("federation.shared.ts")
 const shellRemotes = [...shellVite.matchAll(/\b(\w+):\s*remote\("([^"]+)"/g)].map(
   ([, , name]) => name
 )
-const routeRemotes = [...shellRoutes.matchAll(/\bcomponent:\s*(\w+)Routes/g)].map(
-  ([, name]) => name.replace(/Routes$/, "").toLowerCase()
-)
+const routeRemotes = [...shellRoutes.matchAll(/import\("([^"/]+)\/Routes"\)/g)].map(([, name]) => name)
 const declaredRemotes = [...shellTypes.matchAll(/declare module "([^"]+)\/Routes"/g)].map(
   ([, name]) => name
 )
@@ -29,6 +28,30 @@ const configuredPorts = portBlock
   : []
 
 const violations = []
+const routeRegistrySource = await source("federation.routes.ts")
+const routeRegistry = ts.createSourceFile("federation.routes.ts", routeRegistrySource, ts.ScriptTarget.Latest, true)
+const ownership = new Map()
+for (const statement of routeRegistry.statements) {
+  if (!ts.isVariableStatement(statement)) continue
+  for (const declaration of statement.declarationList.declarations) {
+    if (declaration.name.getText(routeRegistry) !== "remoteRoutePrefixes") continue
+    const object = ts.isAsExpression(declaration.initializer) ? declaration.initializer.expression : declaration.initializer
+    for (const property of object.properties) {
+      for (const element of property.initializer.elements) {
+        const prefix = element.text
+        if (ownership.has(prefix)) violations.push(`Duplicate route ownership: ${prefix}`)
+        ownership.set(prefix, property.name.getText(routeRegistry))
+      }
+    }
+  }
+}
+const ownerFor = (pathname) => [...ownership].find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.[1]
+if (!(await source("apps/shell/src/App.tsx")).includes("remoteRouteEntries.map")) violations.push("Shell render must consume remoteRouteEntries")
+for (const [prefix, owner] of ownership) {
+  for (const [other, otherOwner] of ownership) {
+    if (owner !== otherOwner && prefix.startsWith(`${other}/`)) violations.push(`Overlapping route owners: ${prefix}, ${other}`)
+  }
+}
 const missing = (label, values) => {
   for (const app of appNames) if (!values.includes(app)) violations.push(`${label}: missing ${app}`)
 }
@@ -45,9 +68,38 @@ extra("route remotes", routeRemotes)
 extra("remote type declarations", declaredRemotes)
 extra("remote ports", configuredPorts)
 
+// Account keeps a custom router (layout + navigate props), so its prefixes are
+// declared by hand; every other remote must be fully driven by the registry.
+const customRemoteRouters = new Set(["account"])
+
 for (const app of appNames) {
   const config = await source(`apps/${app}/vite.config.ts`)
   const manifest = JSON.parse(await source(`apps/${app}/package.json`))
+  const routes = await source(`apps/${app}/src/Routes.tsx`)
+  const explicitPrefixes = [...routes.matchAll(/prefix:\s*"([^"]+)"/g)].map(([, prefix]) => prefix)
+  const declaredFallbacks = [...routes.matchAll(/defaultPrefixes:\s*\[([^\]]*)\]/g)].flatMap(([, list]) =>
+    [...list.matchAll(/"([^"]+)"/g)].map(([, prefix]) => prefix)
+  )
+  for (const prefix of explicitPrefixes) {
+    if (ownerFor(prefix) !== app) violations.push(`apps/${app}/src/Routes.tsx: shell does not own ${prefix} as ${app}`)
+  }
+  for (const fallback of declaredFallbacks) {
+    if (ownerFor(fallback) !== app) violations.push(`apps/${app}/src/Routes.tsx: fallback ${fallback} is not owned by ${app}`)
+  }
+  if (!customRemoteRouters.has(app)) {
+    for (const [prefix, owner] of ownership) {
+      if (owner !== app) continue
+      const reachable =
+        explicitPrefixes.some((candidate) => candidate === prefix || prefix.startsWith(`${candidate}/`)) ||
+        declaredFallbacks.some((candidate) => candidate === prefix || prefix.startsWith(`${candidate}/`))
+      if (!reachable) {
+        violations.push(`apps/${app}/src/Routes.tsx: registry prefix ${prefix} has no route or defaultPrefixes entry`)
+      }
+    }
+  }
+  if (routes.includes("fallback={null}")) violations.push(`apps/${app}/src/Routes.tsx: empty route fallback`)
+  if (!routes.includes("createAppLocaleLoader")) violations.push(`apps/${app}/src/Routes.tsx: app locales must load on demand`)
+  if (!config.includes('shareStrategy: "loaded-first"')) violations.push(`apps/${app}/vite.config.ts: loaded-first strategy required`)
   if (!config.includes("import { remoteSharedDeps, remotePorts }")) {
     violations.push(`apps/${app}/vite.config.ts: must use federation.shared.ts`)
   }

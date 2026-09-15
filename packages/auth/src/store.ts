@@ -52,6 +52,11 @@ export interface TenantMembership {
   isDefault: boolean
 }
 
+/** Cache identity only; never used as an authorization header. */
+export function getAuthScope(user: AuthUser | null | undefined) {
+  return user ? JSON.stringify([user.sub, user.activeTenantId ?? user.tenantId, user.activeOrgId, user.authVersion]) : "anonymous"
+}
+
 export type AuthUserSource = Partial<AuthUser> & {
   subject?: string
 }
@@ -262,4 +267,5 @@ export const useAuthStore = create<AuthState>()(
 // validates membership; the browser never supplies tenant or actor identity.
 configureApiContext({
   getActiveOrgId: () => useAuthStore.getState().user?.activeOrgId,
+  getSessionScope: () => getAuthScope(useAuthStore.getState().user),
 })

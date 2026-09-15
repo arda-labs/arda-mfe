@@ -63,8 +63,9 @@ export type DynamicNavState = {
  * platform outage degrades navigation instead of removing it. Permission
  * filtering happens at the caller (filterNavItems on the session user).
  */
-export function useDynamicNavItems(): DynamicNavState {
-  const [state, setState] = useState<DynamicNavState>({
+export function useDynamicNavItems(scope: string): DynamicNavState {
+  const [state, setState] = useState<DynamicNavState & { scope: string }>({
+    scope,
     items: navItems,
     source: "static-fallback",
   })
@@ -76,7 +77,7 @@ export function useDynamicNavItems(): DynamicNavState {
         if (cancelled || items.length === 0) return
         const mapped = toNavNodes(items)
         if (mapped.length > 0) {
-          setState({ items: mapped, source: "menu-api" })
+          setState({ items: mapped, source: "menu-api", scope })
         }
       })
       .catch(() => {
@@ -85,7 +86,7 @@ export function useDynamicNavItems(): DynamicNavState {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [scope])
 
-  return state
+  return state.scope === scope ? state : { items: navItems, source: "static-fallback" }
 }

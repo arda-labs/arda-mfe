@@ -29,6 +29,8 @@
     "typescript": "~6"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./registry": "./src/lib/registry.ts",
+    "./labels": "./src/labels.ts"
   }
 }

@@ -1,11 +1,15 @@
-import { useState, type ReactNode } from "react"
+import { Suspense, useState, type ReactNode } from "react"
 import type { Table } from "@tanstack/react-table"
 import { FileSpreadsheet, Plus } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table-toolbar"
-import { TableExportDialog } from "./table-export-dialog"
+import { lazyWithPreload } from "@workspace/ui/lib/lazy"
 import type { ExportFormat, ExportScope } from "./table-export"
+
+const TableExportDialog = lazyWithPreload(() =>
+  import("./table-export-dialog").then((module) => ({ default: module.TableExportDialog }))
+)
 
 type ListTableToolbarProps<TData> = {
   table: Table<TData>
@@ -71,13 +75,15 @@ export function ListTableToolbar<TData>({
           variant="outline"
           className="h-8 px-3 text-xs font-semibold border-emerald-600/30 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 hover:border-emerald-600/50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-emerald-950/40 transition-colors shadow-xs"
           onClick={handleExportClick}
+          onPointerEnter={() => void TableExportDialog.preload()}
+          onFocus={() => void TableExportDialog.preload()}
         >
           <FileSpreadsheet className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
           {t("action.export_excel")}
         </Button>
       </DataTableToolbar>
 
-      <TableExportDialog
+      {exportOpen ? <Suspense fallback={<span role="status">{t("common.loading")}</span>}><TableExportDialog
         open={exportOpen}
         onOpenChange={setExportOpen}
         table={table}
@@ -87,7 +93,7 @@ export function ListTableToolbar<TData>({
         totalRowsCount={totalRowsCount}
         createExportJob={createExportJob}
         onServerExport={onServerExport}
-      />
+      /></Suspense> : null}
     </>
   )
 }

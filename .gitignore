@@ -38,3 +38,7 @@ dist-ssr
 
 # Worktrees
 .worktrees
+
+# Browser regression artifacts
+playwright-report/
+test-results/

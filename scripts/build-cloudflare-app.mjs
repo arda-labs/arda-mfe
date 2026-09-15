@@ -1,7 +1,9 @@
-import { cp, mkdir, rm, writeFile } from "node:fs/promises"
+import { cp, mkdir, rm, writeFile, readFile } from "node:fs/promises"
 import { existsSync } from "node:fs"
 import path from "node:path"
 import process from "node:process"
+import { execFileSync } from "node:child_process"
+import { describeRelease, fetchPreviousRelease, fetchReleaseAsset, retainRelease } from "./asset-release.mjs"
 
 const apps = [
   "shell",
@@ -21,6 +23,15 @@ const apps = [
 ]
 
 const targetArg = process.argv[2] ?? "all"
+function resolveBuildId() {
+  if (process.env.VITE_MFE_BUILD_ID) return process.env.VITE_MFE_BUILD_ID
+  try {
+    return `${execFileSync("git", ["rev-parse", "--short", "HEAD"], { encoding: "utf8" }).trim()}-${Date.now()}`
+  } catch {
+    return `local-${Date.now()}`
+  }
+}
+const buildId = resolveBuildId()
 
 async function buildApp(app) {
   const root = path.resolve(import.meta.dirname, "..")
@@ -28,12 +39,15 @@ async function buildApp(app) {
   const target = path.join(root, ".cloudflare", "dist", app)
   const appLocales = path.join(root, "apps", app, "locales")
   const coreLocales = path.join(root, "packages", "i18n", "src", "locales")
+  const relativeRoot = app === "shell" ? "" : `mfes/${app}`
+  const previousRoot = path.join(target, relativeRoot)
+  const staging = path.join(root, ".cloudflare", "retained", app)
 
   console.log(`\n📦 [Cloudflare Build] Building and packaging: ${app}...`)
 
   const build = Bun.spawn(["bun", "run", "--filter", app, "build"], {
     cwd: root,
-    env: process.env,
+    env: { ...process.env, VITE_MFE_BUILD_ID: buildId },
     stdout: "inherit",
     stderr: "inherit",
   })
@@ -43,6 +57,35 @@ async function buildApp(app) {
     process.exit(1)
   }
 
+  const current = await describeRelease(source, buildId)
+  let previous = null
+  let readPreviousAsset
+  // CI/Workers Builds use the deployed manifest; local builds can reuse their last output.
+  // Retention is best-effort: a collector/network hiccup must never break a deploy.
+  const previousOrigin = process.env.MFE_PREVIOUS_ORIGIN ?? ((process.env.CI || process.env.CF_BUILD_ID || process.env.WORKERS_CI) ? "https://arda.io.vn" : "")
+  if (previousOrigin && previousOrigin !== "off") {
+    try {
+      const base = new URL(`${relativeRoot}/`.replace(/^\//, ""), `${previousOrigin.replace(/\/$/, "")}/`)
+      previous = await fetchPreviousRelease(base)
+      readPreviousAsset = (filename) => fetchReleaseAsset(base, filename)
+    } catch (error) {
+      console.warn(`⚠️  ${app}: cannot read the deployed release (${error instanceof Error ? error.message : error}); skipping N-1 retention`)
+      previous = null
+      readPreviousAsset = undefined
+    }
+  } else if (existsSync(path.join(previousRoot, "mfe-release.json"))) {
+    previous = JSON.parse(await readFile(path.join(previousRoot, "mfe-release.json"), "utf8"))
+    readPreviousAsset = (filename) => readFile(path.join(previousRoot, filename))
+  }
+  await rm(staging, { recursive: true, force: true })
+  await mkdir(staging, { recursive: true })
+  if (previous && readPreviousAsset) {
+    try {
+      await retainRelease(previous, readPreviousAsset, staging, current)
+    } catch (error) {
+      console.warn(`⚠️  ${app}: N-1 retention incomplete (${error instanceof Error ? error.message : error})`)
+    }
+  }
   await rm(target, { recursive: true, force: true })
   await mkdir(target, { recursive: true })
 
@@ -61,6 +104,8 @@ async function buildApp(app) {
       path.join(target, "_headers"),
       [
         "/index.html",
+        "  Cache-Control: no-store",
+        "/mfe-release.json",
         "  Cache-Control: no-store",
         "/locales/*",
         "  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
@@ -85,6 +130,8 @@ async function buildApp(app) {
       [
         `/mfes/${app}/index.html`,
         "  Cache-Control: no-store",
+        `/mfes/${app}/mfe-release.json`,
+        "  Cache-Control: no-store",
         `/mfes/${app}/remoteEntry.js`,
         "  Cache-Control: public, max-age=30, s-maxage=30, stale-while-revalidate=60",
         "  Access-Control-Allow-Origin: *",
@@ -102,7 +149,11 @@ async function buildApp(app) {
     )
   }
 
-  console.log(`✅ Prepared ${app} assets at ${path.relative(root, target)}`)
+  const outputRoot = path.join(target, relativeRoot)
+  await cp(staging, outputRoot, { recursive: true })
+  await rm(staging, { recursive: true, force: true })
+  await writeFile(path.join(outputRoot, "mfe-release.json"), JSON.stringify({ ...current, previousBuildId: previous?.buildId }))
+  console.log(`✅ Prepared ${app} assets at ${path.relative(root, target)} (${buildId})`)
 }
 
 if (targetArg === "all") {

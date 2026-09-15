@@ -1,10 +1,7 @@
-import { registerAppLocales } from "@workspace/i18n"
-import enIam from "../locales/en-US.json"
-import viIam from "../locales/vi-VN.json"
-
-registerAppLocales("iam", {
-  "vi-VN": viIam,
-  "en-US": enIam,
+import { createAppLocaleLoader } from "@workspace/i18n"
+const locales = createAppLocaleLoader("iam", {
+  "vi-VN": () => import("../locales/vi-VN.json"),
+  "en-US": () => import("../locales/en-US.json"),
 })
 import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
@@ -46,6 +43,8 @@ const OAuthClientsPage = lazyWithPreload(() =>
 )
 
 export default createRemoteRoutes({
+  locales,
+  defaultPrefixes: ["/admin/users"],
   routes: [
     { prefix: "/admin/groups", component: GroupsPage },
     { prefix: "/admin/roles", component: RolesPage },

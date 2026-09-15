@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useRef, useState, type SetStateAction } from "react"
 import { useLocation, useNavigate, Outlet } from "react-router-dom"
 import { Maximize2, PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
 import { useSystemBranding } from "@workspace/theme/branding"
@@ -12,14 +12,12 @@ import { BrandMark } from "@workspace/ui/components/brand-mark"
 import { Button } from "@workspace/ui/components/button"
 import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
-import { useAuthStore } from "@workspace/auth"
+import { getAuthScope, useAuthStore } from "@workspace/auth/store"
 import { useNotificationStream } from "@workspace/notifications"
-import {
-  OlorinPanel,
-  OlorinProvider,
-  OlorinWorkspace,
-  registerOlorinContext,
-} from "@workspace/ai"
+import "@workspace/ai/labels"
+import { registerOlorinContext } from "@workspace/ai/registry"
+import { lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { RouteLoading } from "@workspace/ui/components/route-loading"
 import { GlobalErrorDialog } from "@workspace/ui/feedback/global-error-dialog"
 import {
   filterNavItems,
@@ -32,6 +30,9 @@ import { SidebarOrgSwitcher } from "./components/SidebarOrgSwitcher"
 import { CommandPalette } from "./components/CommandPalette"
 
 const aiEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
+const OlorinPanel = lazyWithPreload(() => import("@workspace/ai").then((m) => ({ default: m.OlorinPanel })))
+const OlorinProvider = lazyWithPreload(() => import("@workspace/ai").then((m) => ({ default: m.OlorinProvider })))
+const OlorinWorkspace = lazyWithPreload(() => import("@workspace/ai").then((m) => ({ default: m.OlorinWorkspace })))
 
 const AI_PANEL_WIDTH_KEY = "arda-ai-panel-width"
 const AI_PANEL_MIN_WIDTH = 320
@@ -69,16 +70,24 @@ export function ShellLayout() {
   })
   const [pageTitle, setPageTitle] = useState<ShellPageTitleState | null>(null)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
-  const [aiView, setAiView] = useState<AiView>("closed")
+  const [aiState, setAiState] = useState({ view: "closed" as AiView, activated: false })
+  const aiView = aiState.view
+  const setAiView = useCallback((next: SetStateAction<AiView>) => {
+    setAiState((current) => {
+      const view = typeof next === "function" ? next(current.view) : next
+      return { view, activated: current.activated || view !== "closed" }
+    })
+  }, [])
   const [aiPanelWidth, setAiPanelWidth] = useState(loadAiPanelWidth)
   const aiPanelResizing = useRef(false)
   const [authHydrated, setAuthHydrated] = useState(() =>
     useAuthStore.persist.hasHydrated()
   )
   const { user, isAuthenticated, logout, switchTenant } = useAuthStore()
+  const authScope = getAuthScope(user)
   const { t } = useI18n()
   const { branding } = useSystemBranding()
-  const { items: navSource } = useDynamicNavItems()
+  const { items: navSource } = useDynamicNavItems(authScope)
   const visibleNavItems = filterNavItems(navSource, user)
   const orgIds = user?.orgIds ?? []
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
@@ -135,7 +144,7 @@ export function ShellLayout() {
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+  }, [setAiView])
 
   const startAiPanelResize = useCallback((event: React.MouseEvent) => {
     event.preventDefault()
@@ -276,12 +285,13 @@ export function ShellLayout() {
           }
         />
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <Outlet />
+          <Outlet key={authScope} />
           <Toaster />
           <GlobalErrorDialog />
         </main>
       </div>
       <CommandPalette
+        items={navSource}
         open={commandPaletteOpen}
         onOpenChange={setCommandPaletteOpen}
         onToggleAi={
@@ -293,8 +303,8 @@ export function ShellLayout() {
             : undefined
         }
       />
-      {aiEnabled ? (
-        <OlorinProvider>
+      {aiEnabled && aiState.activated ? (
+        <Suspense fallback={<RouteLoading />}><OlorinProvider key={authScope} active={aiView !== "closed"}>
           {aiView === "panel" ? (
             <aside
               aria-label={t("ai.name")}
@@ -341,7 +351,7 @@ export function ShellLayout() {
               onExit={() => setAiView("panel")}
             />
           ) : null}
-        </OlorinProvider>
+        </OlorinProvider></Suspense>
       ) : null}
     </div>
   )

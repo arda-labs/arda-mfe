@@ -1,10 +1,7 @@
-import { registerAppLocales } from "@workspace/i18n"
-import enHrm from "../locales/en-US.json"
-import viHrm from "../locales/vi-VN.json"
-
-registerAppLocales("hrm", {
-  "vi-VN": viHrm,
-  "en-US": enHrm,
+import { createAppLocaleLoader } from "@workspace/i18n"
+const locales = createAppLocaleLoader("hrm", {
+  "vi-VN": () => import("../locales/vi-VN.json"),
+  "en-US": () => import("../locales/en-US.json"),
 })
 import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
@@ -36,6 +33,8 @@ const EmployeesPage = lazyWithPreload(() =>
 )
 
 export default createRemoteRoutes({
+  locales,
+  defaultPrefixes: ["/hrm"],
   routes: [
     { prefix: "/hrm/job-titles", component: JobTitlesPage },
     { prefix: "/hrm/org-units", component: OrgUnitsPage },

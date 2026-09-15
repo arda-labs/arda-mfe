@@ -22,13 +22,14 @@ import {
   CommandShortcut,
 } from "@workspace/ui/components/command"
 import {
-  navItems,
   filterNavItems,
   getNavLabel,
   type NavNode,
 } from "../config/nav-config"
+import { preloadNavigation } from "../navigation-preload"
 
 interface CommandPaletteProps {
+  items: NavNode[]
   open: boolean
   onOpenChange: (open: boolean) => void
   onToggleAi?: () => void
@@ -69,6 +70,7 @@ function flattenNavItems(
 }
 
 export function CommandPalette({
+  items,
   open,
   onOpenChange,
   onToggleAi,
@@ -79,8 +81,8 @@ export function CommandPalette({
   const { user, logout, switchTenant } = useAuthStore()
 
   const visibleNavItems = React.useMemo(
-    () => filterNavItems(navItems, user),
-    [user]
+    () => filterNavItems(items, user),
+    [items, user]
   )
 
   const flatItems = React.useMemo(
@@ -89,6 +91,7 @@ export function CommandPalette({
   )
 
   const handleSelectRoute = (href: string) => {
+    void preloadNavigation(href)
     onOpenChange(false)
     navigate(href)
   }
@@ -126,6 +129,7 @@ export function CommandPalette({
               <CommandItem
                 key={item.id}
                 value={`${item.label} ${item.groupLabel || ""} ${item.href}`}
+                data-preload-href={item.href}
                 onSelect={() => handleSelectRoute(item.href)}
                 className="cursor-pointer"
               >

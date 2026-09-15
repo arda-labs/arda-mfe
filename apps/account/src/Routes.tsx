@@ -1,110 +1,54 @@
-import { registerAppLocales } from "@workspace/i18n"
-import enProfile from "../locales/en-US.json"
-import viProfile from "../locales/vi-VN.json"
-
-registerAppLocales("profile", {
-  "vi-VN": viProfile,
-  "en-US": enProfile,
-})
+import { Suspense } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { createAppLocaleLoader, useI18n } from "@workspace/i18n"
 import { QueryProvider } from "@workspace/query/provider"
-import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload, matchesRoutePrefix, RouteReady } from "@workspace/ui/lib/lazy"
+import { RouteLoading } from "@workspace/ui/components/route-loading"
 
-const AppearancePage = lazyWithPreload(() =>
-  import("@/features/settings/appearance/page").then((m) => ({
-    default: m.AppearancePage,
-  }))
-)
-const DevicesPage = lazyWithPreload(() =>
-  import("@/features/settings/devices/page").then((m) => ({
-    default: m.DevicesPage,
-  }))
-)
-const SettingsLayout = lazyWithPreload(() =>
-  import("@/features/settings/layout").then((m) => ({
-    default: m.SettingsLayout,
-  }))
-)
-const AccountProfilePage = lazyWithPreload(() =>
-  import("@/features/settings/profile/page").then((m) => ({
-    default: m.ProfilePage,
-  }))
-)
-const SecurityPage = lazyWithPreload(() =>
-  import("@/features/settings/security/page").then((m) => ({
-    default: m.SecurityPage,
-  }))
-)
-const SessionsPage = lazyWithPreload(() =>
-  import("@/features/settings/sessions/page").then((m) => ({
-    default: m.SessionsPage,
-  }))
-)
-const PublicProfilePage = lazyWithPreload(() =>
-  import("@/features/profile/page").then((m) => ({
-    default: m.ProfilePage,
-  }))
-)
-
-function resolvePathname(pathname?: string) {
-  if (pathname) return pathname
-  if (typeof window === "undefined") return "/my-account/profile"
-  return window.location.pathname
-}
-
-function resolvePage(pathname: string) {
-  if (pathname.startsWith("/in/")) return PublicProfilePage
-  if (pathname.startsWith("/settings/appearance")) return AppearancePage
-  if (pathname.startsWith("/my-account/security")) return SecurityPage
-  if (pathname.startsWith("/my-account/sessions")) return SessionsPage
-  if (pathname.startsWith("/my-account/devices")) return DevicesPage
-  return AccountProfilePage
-}
-
-async function preload(pathname?: string) {
-  const page = resolvePage(resolvePathname(pathname))
-  if (page === PublicProfilePage || page === AppearancePage) {
-    await page.preload()
-    return
-  }
-  await Promise.all([SettingsLayout.preload(), page.preload()])
-}
-
-function RemoteRoutes() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { pathname } = location
-
-  if (pathname.startsWith("/in/")) return <PublicProfilePage />
-  if (pathname.startsWith("/settings/appearance")) return <AppearancePage />
-
-  let page = <AccountProfilePage />
-  if (pathname.startsWith("/my-account/security")) page = <SecurityPage />
-  if (pathname.startsWith("/my-account/sessions")) page = <SessionsPage />
-  if (pathname.startsWith("/my-account/devices")) page = <DevicesPage />
-
+const locales = createAppLocaleLoader("profile", {
+  "vi-VN": () => import("../locales/vi-VN.json"),
+  "en-US": () => import("../locales/en-US.json"),
+})
+const AppearancePage = lazyWithPreload(() => import("@/features/settings/appearance/page").then((m) => ({ default: m.AppearancePage })))
+const DevicesPage = lazyWithPreload(() => import("@/features/settings/devices/page").then((m) => ({ default: m.DevicesPage })))
+const SettingsLayout = lazyWithPreload(() => import("@/features/settings/layout").then((m) => ({ default: m.SettingsLayout })))
+const AccountProfilePage = lazyWithPreload(() => import("@/features/settings/profile/page").then((m) => ({ default: m.ProfilePage })))
+const SecurityPage = lazyWithPreload(() => import("@/features/settings/security/page").then((m) => ({ default: m.SecurityPage })))
+const SessionsPage = lazyWithPreload(() => import("@/features/settings/sessions/page").then((m) => ({ default: m.SessionsPage })))
+const PublicProfilePage = lazyWithPreload(() => import("@/features/profile/page").then((m) => ({ default: m.ProfilePage })))
+const profileRoute = { prefix: "/my-account/profile", component: AccountProfilePage, layout: true }
+const routes = [
+  { prefix: "/in/", component: PublicProfilePage, layout: false },
+  { prefix: "/settings/appearance", component: AppearancePage, layout: false },
+  { prefix: "/my-account/security", component: SecurityPage, layout: true },
+  { prefix: "/my-account/sessions", component: SessionsPage, layout: true },
+  { prefix: "/my-account/devices", component: DevicesPage, layout: true },
+  profileRoute,
+]
+// Legacy fallback: unmatched sub-paths of the account surface used to render
+// the profile tab, so bare /settings and /my-account must keep resolving.
+const accountFallback = /^\/(?:my-account|settings|in)(?:\/|$)/
+function resolve(pathname: string) {
   return (
-    <SettingsLayout pathname={pathname} navigate={navigate}>
-      {page}
-    </SettingsLayout>
+    routes.find((route) => matchesRoutePrefix(pathname, route.prefix)) ??
+    (accountFallback.test(pathname) ? profileRoute : undefined)
   )
 }
-
-const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
-
-/**
- * Every remote mounts the shared TanStack Query client at its route root so
- * server-list pages can adopt @workspace/list-page without per-page wiring.
- */
-const RemoteRoutesWithProviders = Object.assign(
-  function ProvidedRoutes() {
-    return (
-      <QueryProvider>
-        <RemoteRoutesWithPreload />
-      </QueryProvider>
-    )
-  },
-  { preload: RemoteRoutesWithPreload.preload }
-)
-
-export default RemoteRoutesWithProviders
+async function preload(pathname = "/my-account/profile") {
+  const route = resolve(pathname)
+  await Promise.all([locales.preload(), route?.component.preload(), route?.layout ? SettingsLayout.preload() : undefined])
+}
+function RemoteRoutes() {
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { locale } = useI18n()
+  locales.read(locale)
+  const route = resolve(pathname)
+  if (!route) return <p className="p-6" role="status">404</p>
+  const Page = route.component
+  return <QueryProvider><Suspense fallback={<RouteLoading />}>
+    {route.layout ? <SettingsLayout pathname={pathname} navigate={navigate}><Page /></SettingsLayout> : <Page />}
+    <RouteReady pathname={pathname} />
+  </Suspense></QueryProvider>
+}
+export default attachPreload(RemoteRoutes, preload)

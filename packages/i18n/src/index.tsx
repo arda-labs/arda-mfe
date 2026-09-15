@@ -16,6 +16,7 @@ import {
 
 export { registerResourceBundles, registerAppLocales, loadRemoteAppLocale }
 export type { ResourceBundles }
+export { createAppLocaleLoader, type AppLocaleLoader } from "./app-locales"
 
 export type MessageKey = string & {}
 

@@ -1,4 +1,5 @@
 import type { NotificationItem } from "./types"
+import { navigateTo } from "@workspace/ui/shell/routing"
 
 const PREFERENCE_KEY = "arda.browser-notifications"
 
@@ -67,7 +68,9 @@ export function showBrowserNotification(
     n.onclick = () => {
       window.focus()
       if (options.href) {
-        window.location.assign(options.href)
+        const url = new URL(options.href, location.origin)
+        if (url.origin === location.origin) navigateTo(`${url.pathname}${url.search}${url.hash}`)
+        else window.location.assign(url.href)
       }
       n.close()
     }

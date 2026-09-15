@@ -36,27 +36,35 @@ Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
 * **Tuyệt đối không sửa riêng lẻ `shared` trong từng `apps/<remote>/vite.config.ts`**.
 * Các thư viện bắt buộc là singleton: `react`, `react-dom`, `react-router-dom`, `@workspace/auth`, `@workspace/api`, `@workspace/theme`, `@workspace/notifications`, `@workspace/i18n`, `react-toastify`.
 * **Chính sách share đã được tự động hoá**: `bun run check:federation` fail khi một package `@workspace/*` được ≥2 deployment unit import mà vừa không nằm trong `remoteSharedDeps`, vừa không có lý do trong `sharedWorkspaceExemptions`. Package mới muốn chỉ-dùng-shell hoặc per-remote → khai báo exemption kèm justification tại `federation.shared.ts`.
-* Mỗi remote mount `QueryProvider` (`@workspace/query/provider`) ở gốc `src/Routes.tsx` để server-list dùng `@workspace/list-page` hoạt động mọi nơi mà không cần wiring từng page.
+* Mỗi remote mount `QueryProvider` (`@workspace/query/provider`) ở gốc `src/Routes.tsx` để server-list dùng `@workspace/list-page` hoạt động mọi nơi mà không cần wiring từng page. Client được giữ theo `authScope` (sub + tenant + org + authVersion): sống qua điều hướng, nhưng bị xoá và cancel query khi đổi tenant/org hoặc logout.
 
 ### 2.2. Chuẩn hoá Remote Router với `createRemoteRoutes`
 * Mọi remote đều export một file duy nhất `src/Routes.tsx` (ví dụ `apps/platform/src/Routes.tsx`) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.
 * Sử dụng factory `createRemoteRoutes` từ `@workspace/ui/lib/lazy`:
   ```tsx
-  import "@workspace/i18n/apps/platform"
+  import { createAppLocaleLoader } from "@workspace/i18n"
   import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
+  const locales = createAppLocaleLoader("platform", {
+    "vi-VN": () => import("../locales/vi-VN.json"),
+    "en-US": () => import("../locales/en-US.json"),
+  })
   const OrgsPage = lazyWithPreload(() => import("@/features/platform/organizations/page"))
   const ParametersPage = lazyWithPreload(() => import("@/features/platform/parameters/page"))
 
   export default createRemoteRoutes({
+    locales,
     routes: [
       { prefix: "/admin/organizations", component: OrgsPage },
       { prefix: "/admin/parameters", component: ParametersPage },
     ],
     defaultComponent: OrgsPage,
+    defaultPrefixes: ["/admin/organizations"],
   })
   ```
-* Host Shell luôn bọc các Remote Routes bên trong `<RemoteErrorBoundary>` để cô lập sự cố khi remote gặp lỗi mạng.
+  `createRemoteRoutes` chọn theo prefix dài nhất (`exact: true` cho index dùng chung tiền tố), preload leaf qua `preload(pathname)`, và chỉ rơi về `defaultComponent` khi pathname khớp `defaultPrefixes` — path ngoài namespace render 404 thay vì trang mặc định.
+* **Registry ownership là `federation.routes.ts` ở root** (cạnh `federation.shared.ts`): shell render (`remoteRouteEntries`) và preload (`preloadRemoteForPath`) đều đọc từ đây. Thêm prefix mới ⇒ sửa registry + `defaultPrefixes`/`routes` của remote tương ứng; `check:federation` chặn registry không owner, owner trùng nhau và prefix không có route/fallback.
+* Host Shell luôn bọc các Remote Routes bên trong `<RemoteErrorBoundary>` (`apps/shell/src/components/RemoteRoute.tsx`: retry lazy + skeleton) để cô lập sự cố khi remote gặp lỗi mạng.
 
 ### 2.3. Tenant context từ BFF session
 
@@ -95,7 +103,7 @@ apps/<remote>/src/
 ## 4. Hệ thống Đa ngôn ngữ (i18n)
 
 * **Hook sử dụng:** Luôn dùng `useI18n()` từ `@workspace/i18n`. Không dùng `useTranslation()`.
-* **Cơ chế nạp tĩnh (Bundled):** Mỗi remote import từ điển của mình tại đầu `Routes.tsx`: `import "@workspace/i18n/apps/<app>"`.
+* **Cơ chế nạp theo ngôn ngữ (lazy chunks):** Mỗi remote tạo loader tại đầu `Routes.tsx` bằng `createAppLocaleLoader("<app>", { "vi-VN": () => import("../locales/vi-VN.json"), "en-US": () => import("../locales/en-US.json") })` và truyền `locales` vào `createRemoteRoutes`. Chỉ chunk của ngôn ngữ đang dùng được tải; lỗi chunk retry được qua `retryFailedLazyLoads()`.
 * **Quy ước key navigation:** Các menu cha có các menu con cấp dưới sử dụng quy ước `_self` (ví dụ: `nav.workbench` ➔ `navigation:workbench._self`). Hàm `translate()` đã được bọc an toàn để không bao giờ trả về raw object cho React render.
 
 ---
@@ -111,15 +119,28 @@ bun run check:packages
 
 # Kiểm tra TypeScript toàn bộ monorepo (25 workspaces: 14 apps + 11 packages)
 # Bao gồm các invariant: check:packages, check:credentials, check:fallbacks,
-# check:federation (chính sách shared deps tự động), check:pages (giới hạn
-# độ dài page.tsx với LEGACY_BASELINE cho debt cũ)
+# check:federation (chính sách shared deps + registry route ownership), check:pages
+# (giới hạn độ dài page.tsx với LEGACY_BASELINE cho debt cũ)
 bun run typecheck
+
+# Test invariant federation không cần browser: retry lazy, thứ tự prefix, ownership,
+# contract version, locale loader, cache theo tenant, dedupe theo session, release retention
+bun run test:federation
+
+# Budget bundle + chặn ExcelJS/AI trên static path (cần `bun run build` hoặc build:apps trước)
+bun run check:bundles
+
+# Smoke test browser trên asset đã đóng gói (.cloudflare/dist hoặc apps/*/dist)
+bun run test:browser     # lần đầu: bunx playwright install chromium
 
 # Kiểm tra ESLint
 bun run lint
 
-# Build production toàn bộ 14 apps
+# Build production toàn bộ 14 apps (kèm đóng gói Cloudflare, mfe-release.json và giữ chunk N-1)
 bun run build
+
+# Chỉ build Vite dist của 14 app (nhanh hơn, dùng cho check:bundles / test:browser)
+bun run build:apps
 
 # Build từng app cho Cloudflare Workers
 bun run cf:build <app_name>     # ví dụ: bun run cf:build shell

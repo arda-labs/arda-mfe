@@ -7,6 +7,7 @@ import {
   remoteSharedDeps,
   remotePorts,
   shellOptimizeInclude,
+  federationBuild,
 } from "../../federation.shared"
 
 // All /api/* paths route through the auth-gateway BFF, which handles
@@ -28,6 +29,7 @@ export default defineConfig(({ command }) => {
   })
 
   return {
+    build: federationBuild,
     plugins: [
       react(),
       tailwindcss(),

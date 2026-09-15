@@ -85,7 +85,7 @@ export function registerResourceBundles(resources: ResourceBundles) {
 
 export function registerAppLocales(
   namespace: string,
-  bundles: Record<Locale, Record<string, unknown>>
+  bundles: Partial<Record<Locale, Record<string, unknown>>>
 ) {
   for (const locale of supportedLocales) {
     if (bundles[locale]) {

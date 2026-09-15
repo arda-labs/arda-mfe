@@ -329,7 +329,7 @@ function TableExportDialogContent<TData>({
             }
 
             if (format === "xlsx") {
-              exportTableToXlsx(options)
+              await exportTableToXlsx(options)
             } else {
               exportTableToCsv(options)
             }
@@ -364,7 +364,7 @@ function TableExportDialogContent<TData>({
       }
 
       if (format === "xlsx") {
-        exportTableToXlsx(options)
+        await exportTableToXlsx(options)
       } else {
         exportTableToCsv(options)
       }

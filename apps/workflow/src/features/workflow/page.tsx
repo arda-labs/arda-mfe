@@ -1,76 +1,32 @@
-import { Activity, lazy, Suspense, useState } from "react"
+import { Activity, Suspense, useState } from "react"
+import { attachPreload, lazyWithPreload, RouteReady } from "@workspace/ui/lib/lazy"
+import { RouteLoading } from "@workspace/ui/components/route-loading"
 import { routeFromPath, type WorkflowRoute } from "./routes"
 
-const CaseTypesPage = lazy(() =>
-  import("./pages/case-types-page").then((m) => ({ default: m.CaseTypesPage }))
-)
-const ProcessConfigsPage = lazy(() =>
-  import("./pages/process-configs-page").then((m) => ({
-    default: m.ProcessConfigsPage,
-  }))
-)
-const SlaPoliciesPage = lazy(() =>
-  import("./pages/sla-policies-page").then((m) => ({
-    default: m.SlaPoliciesPage,
-  }))
-)
-const DescriptionTemplatesPage = lazy(() =>
-  import("./pages/description-templates-page").then((m) => ({
-    default: m.DescriptionTemplatesPage,
-  }))
-)
-const ProcessRolesPage = lazy(() =>
-  import("./pages/process-roles-page").then((m) => ({
-    default: m.ProcessRolesPage,
-  }))
-)
-const ProcessMonitoringPage = lazy(() =>
-  import("./pages/process-monitoring-page").then((m) => ({
-    default: m.ProcessMonitoringPage,
-  }))
-)
-const DashboardPage = lazy(() =>
-  import("./pages/dashboard-page").then((m) => ({
-    default: m.DashboardPage,
-  }))
-)
-
-function RoutePage({ route }: { route: WorkflowRoute }) {
-  switch (route) {
-    case "process-configs":
-      return <ProcessConfigsPage />
-    case "sla-policies":
-      return <SlaPoliciesPage />
-    case "description-templates":
-      return <DescriptionTemplatesPage />
-    case "roles":
-      return <ProcessRolesPage />
-    case "monitoring":
-      return <ProcessMonitoringPage />
-    case "dashboard":
-      return <DashboardPage />
-    default:
-      return <CaseTypesPage />
-  }
+const pages = {
+  "case-types": lazyWithPreload(() => import("./pages/case-types-page").then((m) => ({ default: m.CaseTypesPage }))),
+  "process-configs": lazyWithPreload(() => import("./pages/process-configs-page").then((m) => ({ default: m.ProcessConfigsPage }))),
+  "sla-policies": lazyWithPreload(() => import("./pages/sla-policies-page").then((m) => ({ default: m.SlaPoliciesPage }))),
+  "description-templates": lazyWithPreload(() => import("./pages/description-templates-page").then((m) => ({ default: m.DescriptionTemplatesPage }))),
+  roles: lazyWithPreload(() => import("./pages/process-roles-page").then((m) => ({ default: m.ProcessRolesPage }))),
+  monitoring: lazyWithPreload(() => import("./pages/process-monitoring-page").then((m) => ({ default: m.ProcessMonitoringPage }))),
+  dashboard: lazyWithPreload(() => import("./pages/dashboard-page").then((m) => ({ default: m.DashboardPage }))),
 }
 
-export function WorkflowAdminPage({ pathname }: { pathname: string }) {
+function WorkflowAdminView({ pathname }: { pathname: string }) {
   const route = routeFromPath(pathname)
-  const [visited, setVisited] = useState<Set<WorkflowRoute>>(
-    () => new Set([route])
-  )
-
-  if (!visited.has(route)) {
-    setVisited((prev) => new Set(prev).add(route))
-  }
-
+  const [visited, setVisited] = useState<Set<WorkflowRoute>>(() => new Set([route]))
+  if (!visited.has(route)) setVisited((previous) => new Set(previous).add(route))
   return (
-    <Suspense fallback={null}>
-      {([...visited] as WorkflowRoute[]).map((key) => (
-        <Activity key={key} mode={key === route ? "visible" : "hidden"}>
-          <RoutePage route={key} />
-        </Activity>
-      ))}
+    <Suspense fallback={<RouteLoading />}>
+      {[...visited].map((key) => {
+        const Page = pages[key]
+        return <Activity key={key} mode={key === route ? "visible" : "hidden"}><Page /></Activity>
+      })}
+      <RouteReady pathname={pathname} />
     </Suspense>
   )
 }
+export const WorkflowAdminPage = attachPreload(WorkflowAdminView, async (pathname = "/workflow") => {
+  await pages[routeFromPath(pathname)].preload()
+})

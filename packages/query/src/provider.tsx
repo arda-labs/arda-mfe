@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useMemo, type ReactNode } from "react"
 import {
   QueryClient,
   QueryClientProvider,
@@ -6,6 +6,7 @@ import {
   type QueryClientConfig,
 } from "@tanstack/react-query"
 import { ApiClientError } from "@workspace/api/client"
+import { getAuthScope, useAuthStore } from "@workspace/auth/store"
 
 const DEFAULT_QUERY_CONFIG: QueryClientConfig = {
   defaultOptions: {
@@ -48,10 +49,33 @@ type QueryProviderProps = {
   client?: QueryClient
 }
 
+// This module is deliberately bundled per remote. Keep one client across route
+// unmounts, but discard it synchronously when session/tenant/org identity changes.
+let cachedScope: string | undefined
+let cachedClient: QueryClient | undefined
+useAuthStore.subscribe((state) => {
+  if (cachedScope !== undefined && getAuthScope(state.user) !== cachedScope) {
+    void cachedClient?.cancelQueries()
+    cachedClient?.clear()
+    cachedClient = undefined
+    cachedScope = undefined
+  }
+})
+export function getScopedQueryClient(scope: string) {
+  if (!cachedClient || cachedScope !== scope) {
+    void cachedClient?.cancelQueries()
+    cachedClient?.clear()
+    cachedScope = scope
+    cachedClient = createQueryClient()
+  }
+  return cachedClient
+}
+
 export function QueryProvider({ children, client }: QueryProviderProps) {
-  const [queryClient] = useState(() => client ?? createQueryClient())
+  const scope = useAuthStore((state) => getAuthScope(state.user))
+  const queryClient = useMemo(() => client ?? getScopedQueryClient(scope), [client, scope])
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider key={scope} client={queryClient}>{children}</QueryClientProvider>
   )
 }
 

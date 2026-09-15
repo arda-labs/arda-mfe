@@ -1,4 +1,5 @@
 import type { Table } from "@tanstack/react-table"
+import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
@@ -16,6 +17,7 @@ import { Trash2, FileSpreadsheet } from "lucide-react"
  */
 export function UsersBatchActions({ table }: { table: Table<User> }) {
   const { t } = useI18n()
+  const [exporting, setExporting] = useState(false)
   const selectedCount = table.getSelectedRowModel().rows.length
 
   return (
@@ -24,12 +26,15 @@ export function UsersBatchActions({ table }: { table: Table<User> }) {
         size="sm"
         variant="outline"
         className="h-7 px-2.5 text-xs font-semibold border-emerald-600/30 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
-        onClick={() => {
+        disabled={exporting}
+        onClick={async () => {
+          setExporting(true)
+          try {
           const filename = generateExportFilename("users", {
             scope: "selected",
             selectedCount,
           })
-          exportTableToXlsx({
+          await exportTableToXlsx({
             table,
             scope: "selected",
             filename,
@@ -40,6 +45,11 @@ export function UsersBatchActions({ table }: { table: Table<User> }) {
               count: selectedCount,
             })
           )
+          } catch (error) {
+            notify.error(t("common.export.failed"), String(error))
+          } finally {
+            setExporting(false)
+          }
         }}
       >
         <FileSpreadsheet className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />

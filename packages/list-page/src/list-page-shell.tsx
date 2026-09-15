@@ -1,4 +1,6 @@
-import type { ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
+import { useLocation } from "react-router-dom"
+import { markRoutePhase } from "@workspace/ui/lib/route-performance"
 import type { Row, Table as TanstackTable } from "@tanstack/react-table"
 import { PageErrorDialog } from "./page-error-dialog"
 import { PageLoadOverlay } from "./page-load-overlay"
@@ -48,6 +50,10 @@ export function ListPageShell<TData>({
 }: ListPageShellProps<TData>) {
   const showOverlay = useDelayedBusy(criticalPending)
   const showErrorDialog = criticalError != null && !criticalPending
+  const { pathname } = useLocation()
+  useEffect(() => {
+    if (!criticalPending && !criticalError) markRoutePhase("data-ready", pathname)
+  }, [criticalPending, criticalError, pathname])
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-5 overflow-hidden p-4 sm:p-5">

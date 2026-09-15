@@ -1,10 +1,7 @@
-import { registerAppLocales } from "@workspace/i18n"
-import en from "../locales/en-US.json"
-import vi from "../locales/vi-VN.json"
-
-registerAppLocales("ai", {
-  "vi-VN": vi,
-  "en-US": en,
+import { createAppLocaleLoader } from "@workspace/i18n"
+const locales = createAppLocaleLoader("ai", {
+  "vi-VN": () => import("../locales/vi-VN.json"),
+  "en-US": () => import("../locales/en-US.json"),
 })
 
 import { QueryProvider } from "@workspace/query/provider"
@@ -27,6 +24,8 @@ const AnalyticsPage = lazyWithPreload(() =>
 )
 
 export default createRemoteRoutes({
+  locales,
+  defaultPrefixes: [],
   routes: [
     { prefix: "/ai/knowledge", component: KnowledgePage },
     { prefix: "/ai/settings", component: SettingsPage },

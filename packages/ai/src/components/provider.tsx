@@ -17,14 +17,7 @@ import { useAgUiRuntime } from "@assistant-ui/react-ag-ui"
 import { HttpAgent } from "@ag-ui/client"
 import { createCredentialedFetch } from "@workspace/api"
 import { apiUrl } from "@workspace/api/url"
-import { registerAppLocales } from "@workspace/i18n"
-import enAi from "../../locales/en-US.json"
-import viAi from "../../locales/vi-VN.json"
-
-registerAppLocales("ai", {
-  "vi-VN": viAi,
-  "en-US": enAi,
-})
+import "../labels"
 
 import { OlorinContext } from "../lib/context"
 import { collectOlorinContext } from "../lib/registry"
@@ -38,6 +31,7 @@ import {
 export type OlorinProviderProps = {
   children: ReactNode
   runtimeUrl?: string
+  active?: boolean
 }
 
 function toThreadMessage(
@@ -83,7 +77,7 @@ function toThreadMessage(
   }
 }
 
-export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
+export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinProviderProps) {
   const [threadId, setThreadId] = useState<string>(() => crypto.randomUUID())
 
   // The AG-UI runtime drives the whole chat (streaming, tool calls,
@@ -122,7 +116,7 @@ export function OlorinProvider({ children, runtimeUrl }: OlorinProviderProps) {
     loading: conversationsLoading,
     error: conversationsError,
     refresh: refreshConversations,
-  } = useOlorinConversations(true)
+  } = useOlorinConversations(active)
 
   const threadListAdapter = useMemo(
     () => ({

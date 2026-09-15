@@ -1,10 +1,7 @@
-import { registerAppLocales } from "@workspace/i18n"
-import enPlatform from "../locales/en-US.json"
-import viPlatform from "../locales/vi-VN.json"
-
-registerAppLocales("platform", {
-  "vi-VN": viPlatform,
-  "en-US": enPlatform,
+import { createAppLocaleLoader } from "@workspace/i18n"
+const locales = createAppLocaleLoader("platform", {
+  "vi-VN": () => import("../locales/vi-VN.json"),
+  "en-US": () => import("../locales/en-US.json"),
 })
 import { QueryProvider } from "@workspace/query/provider"
 import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
@@ -86,6 +83,8 @@ const WardsPage = lazyWithPreload(() =>
 )
 
 export default createRemoteRoutes({
+  locales,
+  defaultPrefixes: ["/admin/organizations"],
   routes: [
     { prefix: "/admin/parameters", component: ParametersPage },
     { prefix: "/admin/provinces", component: ProvincesPage },

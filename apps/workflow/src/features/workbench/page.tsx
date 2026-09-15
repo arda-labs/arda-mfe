@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { markRoutePhase } from "@workspace/ui/lib/route-performance"
 import { useI18n } from "@workspace/i18n"
 import {
   createTransactionWorkbench,
@@ -10,6 +11,7 @@ import { navigateTo } from "./utils/nav"
 type WorkbenchRoute = "drafts" | "incoming" | "outgoing" | "search"
 
 export function WorkbenchPage({ pathname }: { pathname: string }) {
+  useEffect(() => { markRoutePhase("page-ready", pathname) }, [pathname])
   useEffect(() => {
     if (pathname.startsWith("/workbench/my-tasks")) {
       navigateTo("/workbench/incoming-transactions")

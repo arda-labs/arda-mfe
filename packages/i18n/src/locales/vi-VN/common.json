@@ -68,6 +68,12 @@
       "body": "Không tìm thấy trang"
     },
     "page_load_title": "Không tải được trang",
+    "remote_load": {
+      "title": "Không thể tải phân hệ",
+      "body": "Vui lòng thử lại. Nếu ứng dụng vừa được cập nhật, hãy tải lại trang để nhận phiên bản mới.",
+      "retry": "Thử lại",
+      "reload": "Tải lại trang"
+    },
     "trace_id": "Mã truy vết",
     "docs_link": "Tìm hiểu thêm về lỗi này"
   },

@@ -2,7 +2,6 @@ import { APP_TIMEZONE } from "@workspace/format"
 import { useEffect, useRef, useState } from "react"
 import { LocateFixed, Redo2, Save, Undo2, ZoomIn, ZoomOut } from "lucide-react"
 import BpmnViewer from "bpmn-js/lib/NavigatedViewer"
-import BpmnModeler from "bpmn-js/lib/Modeler"
 import zeebeModdle from "zeebe-bpmn-moddle/resources/zeebe.json"
 import "bpmn-js/dist/assets/bpmn-js.css"
 import "bpmn-js/dist/assets/diagram-js.css"
@@ -668,12 +667,16 @@ function BpmnModelerWorkspace({
     setModelElements([])
     setFileInfo(null)
 
+    let activeModeler: BpmnSaveCapable | null = null
+    void import("bpmn-js/lib/Modeler").then(({ default: BpmnModeler }) => {
+    if (disposed) return
     const modeler = new BpmnModeler({
       container,
       keyboard: { bindTo: document },
       moddleExtensions: { zeebe: zeebeModdle },
     }) as BpmnSaveCapable
     modelerRef.current = modeler
+    activeModeler = modeler
 
     const syncSelection = () => {
       const selection = modeler.get("selection") as BpmnSelection
@@ -720,12 +723,16 @@ function BpmnModelerWorkspace({
         })
     })
 
+    }).catch((error: unknown) => {
+      if (!disposed) setError(error instanceof Error ? error.message : t("workflow.bpmn.xml_parse_failed"))
+    })
+
     return () => {
       disposed = true
       window.cancelAnimationFrame(frame)
       modelerRef.current = null
       try {
-        modeler.destroy()
+        activeModeler?.destroy()
       } catch {
         container.replaceChildren()
       }

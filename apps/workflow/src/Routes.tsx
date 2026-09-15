@@ -1,65 +1,26 @@
-import { registerAppLocales } from "@workspace/i18n"
-import enWorkflow from "../locales/en-US.json"
-import viWorkflow from "../locales/vi-VN.json"
-
-registerAppLocales("workflow", {
-  "vi-VN": viWorkflow,
-  "en-US": enWorkflow,
-})
-import { Suspense } from "react"
-import { useLocation } from "react-router-dom"
+import { createAppLocaleLoader } from "@workspace/i18n"
 import { QueryProvider } from "@workspace/query/provider"
-import { attachPreload, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 
-const WorkflowAdminPage = lazyWithPreload(() =>
-  import("@/features/workflow/page").then((m) => ({
-    default: m.WorkflowAdminPage,
-  }))
-)
-const WorkbenchPage = lazyWithPreload(() =>
-  import("@/features/workbench/page").then((m) => ({
-    default: m.WorkbenchPage,
-  }))
-)
+const locales = createAppLocaleLoader("workflow", {
+  "vi-VN": () => import("../locales/vi-VN.json"),
+  "en-US": () => import("../locales/en-US.json"),
+})
+const WorkflowAdminPage = lazyWithPreload(() => import("@/features/workflow/page").then((m) => ({ default: m.WorkflowAdminPage })))
+const WorkbenchPage = lazyWithPreload(() => import("@/features/workbench/page").then((m) => ({ default: m.WorkbenchPage })))
 
-async function preload(pathname = "") {
-  if (pathname.startsWith("/workbench/")) {
-    await WorkbenchPage.preload()
-    return
-  }
-  await WorkflowAdminPage.preload()
-}
-
-function RemoteRoutes() {
-  const { pathname } = useLocation()
-  const page = pathname.startsWith("/workbench/") ? (
-    <WorkbenchPage pathname={pathname} />
-  ) : (
-    <WorkflowAdminPage pathname={pathname} />
-  )
-
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <Suspense fallback={null}>{page}</Suspense>
-    </div>
-  )
-}
-
-const RemoteRoutesWithPreload = attachPreload(RemoteRoutes, preload)
-
-/**
- * Every remote mounts the shared TanStack Query client at its route root so
- * server-list pages can adopt @workspace/list-page without per-page wiring.
- */
-const RemoteRoutesWithProviders = Object.assign(
-  function ProvidedRoutes() {
-    return (
-      <QueryProvider>
-        <RemoteRoutesWithPreload />
-      </QueryProvider>
-    )
-  },
-  { preload: RemoteRoutesWithPreload.preload }
-)
-
-export default RemoteRoutesWithProviders
+export default createRemoteRoutes({
+  deferReady: true,
+  locales, wrapper: QueryProvider, defaultComponent: WorkflowAdminPage,
+  defaultPrefixes: ["/workflow"],
+  routes: [
+    { prefix: "/workflow/case-types", component: WorkflowAdminPage },
+    { prefix: "/workflow/process-configs", component: WorkflowAdminPage },
+    { prefix: "/workflow/sla-policies", component: WorkflowAdminPage },
+    { prefix: "/workflow/description-templates", component: WorkflowAdminPage },
+    { prefix: "/workflow/roles", component: WorkflowAdminPage },
+    { prefix: "/workflow/monitoring", component: WorkflowAdminPage },
+    { prefix: "/workflow/dashboard", component: WorkflowAdminPage },
+    { prefix: "/workbench", component: WorkbenchPage },
+  ],
+})

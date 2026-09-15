@@ -89,6 +89,7 @@ export interface CreateApiClientOptions {
   baseURL?: string
   getLocale?: () => string
   getActiveOrgId?: () => string | undefined
+  getSessionScope?: () => string
   onUnauthorized?: () => void | Promise<void>
   onRecentAuthRequired?: () => boolean | void | Promise<boolean | void>
   onOrganizationForbidden?: () => void | Promise<void>
@@ -232,7 +233,7 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
 
     const locale = options.getLocale?.() ?? ""
     const activeOrgId = options.getActiveOrgId?.() ?? ""
-    const key = `${baseURL}${path}|${locale}|${activeOrgId}`
+    const key = `${baseURL}${path}|${locale}|${activeOrgId}|${options.getSessionScope?.() ?? ""}`
     const existing = inflightGet.get(key)
     if (existing) return existing as Promise<T>
 
