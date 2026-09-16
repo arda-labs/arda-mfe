@@ -30,6 +30,13 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   CheckCircle2,
@@ -51,16 +58,26 @@ import {
   testProfileModel,
   updateProfile,
   type AIProfile,
+  type AIProviderType,
 } from "../api"
 
 type ProfileForm = {
   name: string
+  providerType: AIProviderType
   baseUrl: string
   apiKey: string
   models: string
 }
 
-const emptyForm: ProfileForm = { name: "", baseUrl: "", apiKey: "", models: "" }
+const providerPresets: Array<{ value: AIProviderType; defaultURL: string }> = [
+  { value: "openai", defaultURL: "https://api.openai.com/v1" },
+  { value: "opencode-go", defaultURL: "https://opencode.ai/zen/go/v1" },
+  { value: "ollama", defaultURL: "http://localhost:11434/v1" },
+  { value: "vllm", defaultURL: "http://vllm.internal:8000/v1" },
+  { value: "openai-compatible", defaultURL: "" },
+]
+
+const emptyForm: ProfileForm = { name: "", providerType: "openai", baseUrl: "https://api.openai.com/v1", apiKey: "", models: "" }
 
 export function ModelConfigTab() {
   const { t } = useI18n()
@@ -303,6 +320,9 @@ function ProfileCard({
               <CardTitle className="truncate text-sm font-semibold">
                 {profile.name}
               </CardTitle>
+              <Badge variant="outline" className="text-[10px]">
+                {t(`ai.settings.profiles.provider.${profile.providerType}`)}
+              </Badge>
               {profile.isActive && (
                 <Badge variant="default" className="gap-1 text-[10px]">
                   <CheckCircle2 className="size-3" />
@@ -442,6 +462,7 @@ function ProfileDialog({
     if (editing) {
       setForm({
         name: editing.name,
+        providerType: editing.providerType || "openai-compatible",
         baseUrl: editing.baseUrl,
         apiKey: editing.apiKey ?? "",
         models: "",
@@ -467,10 +488,10 @@ function ProfileDialog({
     setSaving(true)
     try {
       if (editing) {
-        await updateProfile(editing.id, { name, baseUrl, apiKey })
+        await updateProfile(editing.id, { name, providerType: form.providerType, baseUrl, apiKey })
         notify.success(t("ai.settings.profiles.toast.updated"))
       } else {
-        await createProfile({ name, baseUrl, apiKey, models })
+        await createProfile({ name, providerType: form.providerType, baseUrl, apiKey, models })
         notify.success(t("ai.settings.profiles.toast.created"))
       }
       onOpenChange(false)
@@ -500,6 +521,37 @@ function ProfileDialog({
         </DialogHeader>
 
         <div className="space-y-3 text-xs">
+          <div className="space-y-1.5">
+            <Label className="text-xs">
+              {t("ai.settings.profiles.field.provider")}
+            </Label>
+            <Select
+              value={form.providerType}
+              onValueChange={(value) => {
+                const preset = providerPresets.find((item) => item.value === value)
+                setForm((current) => ({
+                  ...current,
+                  providerType: value as AIProviderType,
+                  baseUrl: preset?.defaultURL ?? current.baseUrl,
+                }))
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {providerPresets.map((preset) => (
+                  <SelectItem key={preset.value} value={preset.value} className="text-xs">
+                    {t(`ai.settings.profiles.provider.${preset.value}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">
+              {t(`ai.settings.profiles.provider_hint.${form.providerType}`)}
+            </p>
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs">
               {t("ai.settings.profiles.field.name")}

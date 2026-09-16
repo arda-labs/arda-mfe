@@ -395,6 +395,7 @@
       },
       "field": {
         "name": "Tên hồ sơ",
+        "provider": "Preset nhà cung cấp",
         "base_url": "Base URL",
         "api_key": "API Key",
         "models": "Danh sách Model ID",
@@ -411,7 +412,21 @@
       "dialog": {
         "create_title": "Thêm hồ sơ model",
         "edit_title": "Sửa hồ sơ model",
-        "description": "Nhà cung cấp OpenAI-compatible với nhiều Model ID."
+        "description": "Chọn preset nhà cung cấp được hỗ trợ. Arda tự quản lý protocol và yêu cầu session riêng của từng provider."
+      },
+      "provider": {
+        "openai": "OpenAI",
+        "openai-compatible": "OpenAI-compatible tùy chỉnh",
+        "opencode-go": "OpenCode Go",
+        "ollama": "Ollama",
+        "vllm": "vLLM"
+      },
+      "provider_hint": {
+        "openai": "OpenAI Chat Completions. Có thể thay URL bằng gateway đã được hệ thống cho phép.",
+        "openai-compatible": "Protocol OpenAI Chat Completions cho provider hoặc gateway tương thích.",
+        "opencode-go": "Chỉ dùng model tương thích OpenAI Chat Completions. Arda tự gửi session OpenCode ổn định theo từng hội thoại.",
+        "ollama": "Endpoint OpenAI-compatible /v1. URL local phải được deployment cho phép.",
+        "vllm": "Endpoint OpenAI-compatible /v1. Dùng URL nội bộ hoặc gateway đã được cho phép."
       },
       "test": {
         "success": "Kết nối thành công! (Độ trễ: {latency}ms)",

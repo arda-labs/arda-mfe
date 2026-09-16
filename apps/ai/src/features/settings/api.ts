@@ -22,6 +22,7 @@ export interface AIProfileModel {
 export interface AIProfile {
   id: string
   name: string
+  providerType: AIProviderType
   baseUrl: string
   apiKey: string
   hasApiKey: boolean
@@ -29,8 +30,11 @@ export interface AIProfile {
   models: AIProfileModel[]
 }
 
+export type AIProviderType = "openai" | "openai-compatible" | "opencode-go" | "ollama" | "vllm"
+
 export interface ProfileUpsertPayload {
   name: string
+  providerType: AIProviderType
   baseUrl: string
   apiKey?: string
   models?: string[]

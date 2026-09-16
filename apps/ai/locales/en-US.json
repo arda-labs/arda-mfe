@@ -395,6 +395,7 @@
       },
       "field": {
         "name": "Profile name",
+        "provider": "Provider preset",
         "base_url": "Base URL",
         "api_key": "API Key",
         "models": "Model IDs",
@@ -411,7 +412,21 @@
       "dialog": {
         "create_title": "Add model profile",
         "edit_title": "Edit model profile",
-        "description": "OpenAI-compatible provider with multiple Model IDs."
+        "description": "Choose a supported provider preset. Arda manages provider-specific protocol and session requirements."
+      },
+      "provider": {
+        "openai": "OpenAI",
+        "openai-compatible": "Custom OpenAI-compatible",
+        "opencode-go": "OpenCode Go",
+        "ollama": "Ollama",
+        "vllm": "vLLM"
+      },
+      "provider_hint": {
+        "openai": "OpenAI Chat Completions. The configured URL may be overridden for an approved gateway.",
+        "openai-compatible": "OpenAI Chat Completions protocol for a compatible provider or gateway.",
+        "opencode-go": "OpenAI-compatible chat models only. Arda sends a managed, stable OpenCode session header per conversation.",
+        "ollama": "OpenAI-compatible /v1 endpoint. Local URLs must be permitted by the deployment.",
+        "vllm": "OpenAI-compatible /v1 endpoint. Use an approved internal or gateway URL."
       },
       "test": {
         "success": "Connected successfully! (Latency: {latency}ms)",
