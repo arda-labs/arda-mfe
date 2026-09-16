@@ -102,6 +102,7 @@ Tạo feature mới: `bun run create:feature <app> <domain>`.
 ### 3.1. Quy tắc phân rã file:
 * **Không viết file nguyên khối (Monolithic Mega-file):** Mục tiêu `page.tsx` ≤ 400 dòng. Gate `check:pages` chỉ áp dụng cho file mới; một số page cũ lớn hơn (760–850 dòng) nằm trong `LEGACY_BASELINE` của `scripts/check-page-size.mjs` với mốc giải tỏa Q4-2026/Q1-2027 — khi chạm vào các file này, tách nhỏ trước khi mở rộng thêm.
 * **`api.ts` ≤ 300 dòng, `types.ts` ≤ 250 dòng** — vượt thì tách `api/<resource>.ts` + `index.ts` barrel. Chỉ api module được gọi transport (`api`, `getCanonical*`…); component/page không tự gọi HTTP. Gate: `bun run check:features` (nằm trong `bun run typecheck`).
+* **Wire type snake_case** — mọi type dùng làm generic của transport (`getCanonical<T>`, `api.get<ApiSuccess<T>>`) phải snake_case; view model camelCase thì map trong adapter. Ngoại lệ: auth boundary (`/api/auth/me`, `UserContext`, BFF session) + protocol (AG-UI, Ory/Kratos). Gate BE tương ứng: `arda-be/scripts/check-json-tags.mjs`.
 * **Tách Zod Schema ra `schema.ts`:** Không khai báo Zod schema, interface form values và default values trực tiếp trong file UI.
 * **Tách Form / View Dialogs vào `components/`:** Mỗi dialog xử lý một nghiệp vụ riêng (Create, Edit, Roles, Audit, Sessions).
 

@@ -47,6 +47,7 @@ features/finance/api/            # was features/finance/api.ts
 | R6 | Query keys come from a factory: server lists via `defineServerList` in `list-query.ts`, everything else via a `keys.ts`/`list-query.ts` export. No new inline key literals. | Deterministic invalidation |
 | R7 | Mutations run through `hooks.ts` (`useMutation` + `invalidateQueries({ queryKey: xxxKeys.all })`) once a feature has more than a trivial refresh. Pages call hooks, not transport. | Cache correctness instead of ad-hoc refetch |
 | R8 | Code shared by two or more apps is a workspace package (`@workspace/api/generated/*` for wire types, a dedicated client package for stateless helpers) registered in `federation.shared.ts` (`remoteSharedDeps` or `sharedWorkspaceExemptions` with a justification). Never deep-import another app. | Federation policy stays green |
+| R9 | **Wire types are `snake_case`.** Any type passed as the generic of a transport call (`getCanonical<T>`, `api.get<ApiSuccess<T>>`, `request<T>`…) must use snake_case fields. View models may use camelCase but must be mapped inside the adapter (e.g. `SessionApiItem` → `Session` in `apps/account/src/features/settings/api.ts`). Documented exceptions: the auth boundary (`/api/auth/me`, `UserContext`, BFF session) and protocol payloads (AG-UI, Ory/Kratos). | One wire convention; no mixed per-object casing |
 
 ### R2 examples
 
@@ -72,6 +73,19 @@ export const loanAdjustmentKinds = [{ key: "waiver", labelKey: "loan.kind.waiver
 
 // right — API kinds only; labels live with the screen
 export const loanAdjustmentKinds = ["waiver", "writeoff"] as const
+```
+
+### R9 examples
+
+```ts
+// wrong — camelCase fields on a wire type (checked by the gate)
+export interface Session { deviceId: string; isTrusted: boolean }
+export const sessionApi = { list: () => getCanonicalList<Session>("/api/iam/me/sessions") }
+
+// right — snake_case wire type + camelCase view model mapped in the adapter
+type SessionApiItem = { device_id?: string; is_trusted?: boolean }
+export interface Session { deviceId: string; isTrusted: boolean }
+export const sessionApi = { list: () => getCanonicalList<SessionApiItem>(...).then(mapSession) }
 ```
 
 ## 3. Contract and codegen seam
@@ -126,6 +140,11 @@ removed in the same PR that shrinks the file:
   (`apps/shell/src/App.tsx`).
 - `CROSS_FEATURE_BASELINE` — empty since W4; cross-feature UI reuse goes through
   the owning feature's `index.ts` (see `apps/loan/src/features/loan-batches/index.ts`).
+- `WIRE_CASE_BASELINE` — wire types (transport generics) that still carry camelCase
+  fields, dated Q2-2027. The BE counterpart is `arda-be/scripts/check-json-tags.mjs`
+  (`LEGACY_BASELINE` + `PROTOCOL_ALLOWLIST`); both gates refresh with `--baseline`
+  after each migration wave. `WIRE_CASE_ALLOWLIST` holds the documented auth-boundary
+  exception (`account:MyProfile`).
 
 Baselines are debt, not exemptions: every new feature must be compliant from day one.
 
