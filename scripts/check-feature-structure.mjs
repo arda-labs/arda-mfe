@@ -114,7 +114,6 @@ const WIRE_CASE_ALLOWLIST = new Map([
 // Historical wire types. Remove an entry in the same PR that renames the fields.
 const WIRE_CASE_BASELINE = new Map([
   ["ai:AIProfile", "Q2-2027"],
-  ["ai:AISettings", "Q2-2027"],
   ["ai:AnalyticsSummary", "Q2-2027"],
   ["ai:ApprovalDetail", "Q2-2027"],
   ["ai:CatalogTool", "Q2-2027"],
