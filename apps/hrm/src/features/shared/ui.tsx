@@ -818,7 +818,7 @@ export function registrationStatusLabel(
   status: string,
   t: (key: string) => string
 ): string {
-  switch (status) {
+  switch (status.toLowerCase()) {
     case "draft":
       return t("hrm.registrations.status.draft")
     case "submitted":
@@ -926,11 +926,10 @@ export function RowActions({
 
 export function StatusBadge({ status }: { status: string }) {
   const { t } = useI18n()
+  const isActive = status.toLowerCase() === "active"
   return (
-    <Badge variant={status === "active" ? "default" : "secondary"}>
-      {status === "active"
-        ? t("hrm.status.active")
-        : t("hrm.status.inactive")}
+    <Badge variant={isActive ? "default" : "secondary"}>
+      {isActive ? t("hrm.status.active") : t("hrm.status.inactive")}
     </Badge>
   )
 }

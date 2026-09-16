@@ -98,19 +98,43 @@ function listQueryParams(params: HrmListParams) {
   }
 }
 
+/**
+ * hrm-service stores statuses UPPERCASE (workflow contract) while the view
+ * model/forms use lowercase. Normalize at the API boundary so every screen and
+ * form comparison keeps working — filters are case-normalized server-side.
+ */
+function normalizeStatus<T extends { status?: string }>(item: T): T {
+  if (typeof item?.status !== "string") return item
+  return { ...item, status: item.status.toLowerCase() } as T
+}
+
+async function normalizeStatusPage<
+  T extends { status?: string },
+  P extends { items: T[] },
+>(page: Promise<P>): Promise<P> {
+  const resolved = await page
+  return { ...resolved, items: resolved.items.map(normalizeStatus) }
+}
+
 export const hrmApi = {
   // Full-table lookups (all=1) for dropdowns/name maps — small catalogs.
   listPositions: async () =>
-    (await getCanonicalList<Position>("/api/hrm/positions?all=1")).items,
+    (await getCanonicalList<Position>("/api/hrm/positions?all=1")).items.map(
+      normalizeStatus
+    ),
   /** URL-synced server list contract for the positions catalog page. */
   listPositionsPaged: (params: HrmListParams = {}) =>
-    getCanonicalList<Position>(
-      withParams("/api/hrm/positions", listQueryParams(params))
+    normalizeStatusPage(
+      getCanonicalList<Position>(
+        withParams("/api/hrm/positions", listQueryParams(params))
+      )
     ),
   createPosition: (payload: Partial<Position>) =>
-    postCanonical<Position>("/api/hrm/positions", payload),
+    postCanonical<Position>("/api/hrm/positions", payload).then(normalizeStatus),
   updatePosition: (id: string, payload: Partial<Position>) =>
-    putCanonical<Position>(`/api/hrm/positions/${id}`, payload),
+    putCanonical<Position>(`/api/hrm/positions/${id}`, payload).then(
+      normalizeStatus
+    ),
   deletePosition: (id: string) =>
     deleteCanonical<{ ok: boolean }>(`/api/hrm/positions/${id}`),
 
@@ -136,16 +160,20 @@ export const hrmApi = {
           all: "1",
         })
       )
-    ).items,
+    ).items.map(normalizeStatus),
   /** URL-synced server list contract for the org-units catalog page. */
   listOrgUnitsPaged: (params: HrmListParams = {}) =>
-    getCanonicalList<OrgUnit>(
-      withParams("/api/hrm/org-units", listQueryParams(params))
+    normalizeStatusPage(
+      getCanonicalList<OrgUnit>(
+        withParams("/api/hrm/org-units", listQueryParams(params))
+      )
     ),
   createOrgUnit: (payload: Partial<OrgUnit>) =>
-    postCanonical<OrgUnit>("/api/hrm/org-units", payload),
+    postCanonical<OrgUnit>("/api/hrm/org-units", payload).then(normalizeStatus),
   updateOrgUnit: (id: string, payload: Partial<OrgUnit>) =>
-    putCanonical<OrgUnit>(`/api/hrm/org-units/${id}`, payload),
+    putCanonical<OrgUnit>(`/api/hrm/org-units/${id}`, payload).then(
+      normalizeStatus
+    ),
   deleteOrgUnit: (id: string) =>
     deleteCanonical<{ ok: boolean }>(`/api/hrm/org-units/${id}`),
 
@@ -155,13 +183,17 @@ export const hrmApi = {
    * read-only page and is superseded by the paged contract.
    */
   listEmployees: (params: HrmListParams = {}) =>
-    getCanonicalList<Employee>(
-      withParams("/api/hrm/employees", listQueryParams(params))
+    normalizeStatusPage(
+      getCanonicalList<Employee>(
+        withParams("/api/hrm/employees", listQueryParams(params))
+      )
     ),
   createEmployee: (payload: Partial<Employee>) =>
-    postCanonical<Employee>("/api/hrm/employees", payload),
+    postCanonical<Employee>("/api/hrm/employees", payload).then(normalizeStatus),
   updateEmployee: (id: string, payload: Partial<Employee>) =>
-    putCanonical<Employee>(`/api/hrm/employees/${id}`, payload),
+    putCanonical<Employee>(`/api/hrm/employees/${id}`, payload).then(
+      normalizeStatus
+    ),
   deleteEmployee: (id: string) =>
     deleteCanonical<{ ok: boolean }>(`/api/hrm/employees/${id}`),
 
@@ -170,41 +202,50 @@ export const hrmApi = {
       await getCanonicalList<EmployeeRegistration>(
         withParams("/api/hrm/registrations", { status, all: "1" })
       )
-    ).items,
+    ).items.map(normalizeStatus),
   createRegistration: (payload: Partial<EmployeeRegistration>) =>
-    postCanonical<EmployeeRegistration>("/api/hrm/registrations", payload),
+    postCanonical<EmployeeRegistration>(
+      "/api/hrm/registrations",
+      payload
+    ).then(normalizeStatus),
   createEmployeeRegistration: (payload: Record<string, unknown>) =>
-    postCanonical<EmployeeRegistration>("/api/hrm/registrations", payload),
+    postCanonical<EmployeeRegistration>(
+      "/api/hrm/registrations",
+      payload
+    ).then(normalizeStatus),
   updateEmployeeRegistration: (
     id: string,
     payload: Record<string, unknown>
   ) =>
-    putCanonical<EmployeeRegistration>(`/api/hrm/registrations/${id}`, payload),
+    putCanonical<EmployeeRegistration>(
+      `/api/hrm/registrations/${id}`,
+      payload
+    ).then(normalizeStatus),
   submitRegistration: (id: string) =>
     postCanonical<EmployeeRegistration>(
       `/api/hrm/registrations/${id}/submit`,
       {}
-    ),
+    ).then(normalizeStatus),
   submitEmployeeRegistration: (id: string) =>
     postCanonical<EmployeeRegistration>(
       `/api/hrm/registrations/${id}/submit`,
       {}
-    ),
+    ).then(normalizeStatus),
   cancelRegistration: (id: string) =>
     postCanonical<EmployeeRegistration>(
       `/api/hrm/registrations/${id}/cancel`,
       {}
-    ),
+    ).then(normalizeStatus),
   approveRegistration: (id: string) =>
     postCanonical<EmployeeRegistration>(
       `/api/hrm/registrations/${id}/approve`,
       {}
-    ),
+    ).then(normalizeStatus),
   rejectRegistration: (id: string, reason?: string) =>
     postCanonical<EmployeeRegistration>(
       `/api/hrm/registrations/${id}/reject`,
       { reason }
-    ),
+    ).then(normalizeStatus),
 
   listPlatformOrganizations: async () =>
     (
