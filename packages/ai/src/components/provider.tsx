@@ -77,8 +77,28 @@ function toThreadMessage(
   }
 }
 
+const ACTIVE_THREAD_STORAGE_KEY = "arda-ai-active-thread"
+
+// Persist the active conversation so a page reload — including the one forced
+// by a session-expiry redirect — reopens the same thread instead of a blank
+// one. Ids are scoped server-side by (tenant, actor), so a stale value from
+// another user resolves to a fresh conversation rather than leaking data.
+function readStoredThreadId(): string | null {
+  if (typeof window === "undefined") {
+    return null
+  }
+  try {
+    const value = window.localStorage.getItem(ACTIVE_THREAD_STORAGE_KEY)
+    return value && value.trim() !== "" ? value : null
+  } catch {
+    return null
+  }
+}
+
 export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinProviderProps) {
-  const [threadId, setThreadId] = useState<string>(() => crypto.randomUUID())
+  const [threadId, setThreadId] = useState<string>(
+    () => readStoredThreadId() ?? crypto.randomUUID()
+  )
 
   // The AG-UI runtime drives the whole chat (streaming, tool calls,
   // reasoning, HITL interrupts) against our Go agent endpoint speaking the
@@ -105,6 +125,11 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
   useEffect(() => {
     threadIdRef.current = threadId
     agent.threadId = threadId
+    try {
+      window.localStorage.setItem(ACTIVE_THREAD_STORAGE_KEY, threadId)
+    } catch {
+      // Storage can be unavailable (private mode); the in-memory id still works.
+    }
   }, [threadId, agent])
 
   // The runtime rebuilds its internal store whenever these option objects

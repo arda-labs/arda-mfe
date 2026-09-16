@@ -2,15 +2,22 @@ import { api, type ApiSuccess } from "@workspace/api"
 import type { NotificationListResponse, UnreadCountResponse } from "./types"
 
 export const notificationsApi = {
+  // Background traffic (bootstrap + 15s unread poll): a 401 here must not
+  // trigger the global logout/redirect — a live chat would be aborted and the
+  // user dropped mid-answer (2026-09-16 incident). User-initiated actions
+  // still surface the expired session.
   list: (limit = 20) =>
     api
       .get<ApiSuccess<NotificationListResponse>>(
-        `/api/notifications?limit=${limit}`
+        `/api/notifications?limit=${limit}`,
+        { skipAuthFailureRedirect: true }
       )
       .then((res) => ({ notifications: res.result.items ?? [] })),
   unreadCount: () =>
     api
-      .get<ApiSuccess<UnreadCountResponse>>("/api/notifications/unread-count")
+      .get<ApiSuccess<UnreadCountResponse>>("/api/notifications/unread-count", {
+        skipAuthFailureRedirect: true,
+      })
       .then((res) => res.result),
   markRead: (id: string) =>
     api

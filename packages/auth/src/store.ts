@@ -235,6 +235,9 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         if (typeof window !== "undefined") {
           await api.post("/api/auth/logout").catch(() => {})
+          // The AI panel persists its active thread id so reloads resume the
+          // conversation; a different user on this browser must not inherit it.
+          window.localStorage.removeItem("arda-ai-active-thread")
         }
         set({ user: null, isAuthenticated: false })
       },
