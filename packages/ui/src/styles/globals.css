@@ -69,6 +69,62 @@
   --shadow-dialog: var(--elevation-dialog);
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-otp-shake: otp-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  --animate-otp-pop: otp-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
+  --animate-fade-up: fade-up 0.25s ease-out both;
+  --animate-caret-blink: caret-blink 1s steps(2, start) infinite;
+
+  @keyframes otp-shake {
+    10%,
+    90% {
+      transform: translateX(-1px);
+    }
+    20%,
+    80% {
+      transform: translateX(2px);
+    }
+    30%,
+    50%,
+    70% {
+      transform: translateX(-4px);
+    }
+    40%,
+    60% {
+      transform: translateX(4px);
+    }
+  }
+
+  @keyframes otp-pop {
+    from {
+      transform: scale(0.55);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      transform: translateY(4px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes caret-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
 
   @keyframes accordion-down {
     from {
