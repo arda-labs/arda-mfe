@@ -5,6 +5,14 @@ import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -44,6 +52,21 @@ type DetailTab = "variables" | "incidents" | "jobs" | "history" | "element"
 type MergedHistoryEntry =
   | { kind: "runtime"; ts: string; event: OperateHistoryEvent }
   | { kind: "case"; ts: string; event: WorkflowTimelineEvent }
+
+const JOB_STATE_KEYS: Record<string, string> = {
+  ACTIVATABLE: "workflow.monitoring.job_state_activatable",
+  ACTIVATED: "workflow.monitoring.job_state_activated",
+  FAILED: "workflow.monitoring.job_state_failed",
+  COMPLETED: "workflow.monitoring.job_state_completed",
+  ERROR_THROWN: "workflow.monitoring.job_state_error_thrown",
+  CANCELED: "workflow.monitoring.job_state_canceled",
+  TIMED_OUT: "workflow.monitoring.job_state_timed_out",
+}
+
+function jobStateLabel(t: (key: string) => string, state: string): string {
+  const key = JOB_STATE_KEYS[state]
+  return key ? t(key) : state
+}
 
 export function InstanceDetail({
   instanceKey,
@@ -632,7 +655,7 @@ export function InstanceDetail({
                           <div className="min-w-0">
                             <p className="truncate">{job.type}</p>
                             <p className="text-[10px] text-muted-foreground">
-                              {job.state} ·{" "}
+                              {jobStateLabel(t, job.state)} ·{" "}
                               {t("workflow.operate.detail_job_retries")}:{" "}
                               {job.retries}
                             </p>
@@ -658,22 +681,21 @@ export function InstanceDetail({
                       <p className="text-xs font-medium">
                         {t("workflow.operate.detail_variables")}
                       </p>
-                      <table className="w-full text-xs">
-                        <tbody>
+                      <Table className="text-xs">
+                        <TableBody>
                           {elementVariables.map((variable) => (
-                            <tr
+                            <TableRow
                               key={`${variable.scopeKey}:${variable.name}`}
-                              className="border-t align-top"
                             >
-                              <td className="px-1 py-1 font-medium">
+                              <TableCell className="px-1 py-1 font-medium">
                                 {variable.name}
-                              </td>
-                              <td className="max-w-[12rem] px-1 py-1">
+                              </TableCell>
+                              <TableCell className="max-w-[12rem] px-1 py-1">
                                 <code className="block truncate font-mono text-[10px]">
                                   {variable.value}
                                 </code>
-                              </td>
-                              <td className="px-1 py-1 text-right">
+                              </TableCell>
+                              <TableCell className="px-1 py-1 text-right">
                                 <Button
                                   size="icon"
                                   variant="ghost"
@@ -691,11 +713,11 @@ export function InstanceDetail({
                                 >
                                   <Pencil className="size-3" />
                                 </Button>
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   ) : null}
                 </div>
@@ -708,39 +730,38 @@ export function InstanceDetail({
                   {t("workflow.operate.detail_empty_variables")}
                 </p>
               ) : (
-                <table className="w-full text-xs">
-                  <thead className="text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1 text-left">
+                <Table className="text-xs">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-2 py-1">
                         {t("workflow.operate.detail_name")}
-                      </th>
-                      <th className="px-2 py-1 text-left">
+                      </TableHead>
+                      <TableHead className="px-2 py-1">
                         {t("workflow.operate.detail_scope")}
-                      </th>
-                      <th className="px-2 py-1 text-left">
+                      </TableHead>
+                      <TableHead className="px-2 py-1">
                         {t("workflow.operate.detail_value")}
-                      </th>
-                      <th className="px-2 py-1" />
-                    </tr>
-                  </thead>
-                  <tbody>
+                      </TableHead>
+                      <TableHead className="px-2 py-1" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {variables.map((variable) => (
-                      <tr
+                      <TableRow
                         key={`${variable.scopeKey}:${variable.name}`}
-                        className="border-t align-top"
                       >
-                        <td className="px-2 py-1 font-medium">
+                        <TableCell className="px-2 py-1 font-medium">
                           {variable.name}
-                        </td>
-                        <td className="px-2 py-1 font-mono text-[10px] text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-2 py-1 font-mono text-[10px] text-muted-foreground">
                           {variable.scopeKey}
-                        </td>
-                        <td className="max-w-[14rem] px-2 py-1">
+                        </TableCell>
+                        <TableCell className="max-w-[14rem] px-2 py-1">
                           <code className="block truncate font-mono text-[10px]">
                             {variable.value}
                           </code>
-                        </td>
-                        <td className="px-2 py-1 text-right">
+                        </TableCell>
+                        <TableCell className="px-2 py-1 text-right">
                           <Button
                             size="icon"
                             variant="ghost"
@@ -756,11 +777,11 @@ export function InstanceDetail({
                           >
                             <Pencil className="size-3" />
                           </Button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )
             ) : null}
 
@@ -828,34 +849,38 @@ export function InstanceDetail({
                   {t("workflow.operate.empty_jobs")}
                 </p>
               ) : (
-                <table className="w-full text-xs">
-                  <thead className="text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1 text-left">
+                <Table className="text-xs">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-2 py-1">
                         {t("workflow.operate.detail_job_type")}
-                      </th>
-                      <th className="px-2 py-1 text-left">
+                      </TableHead>
+                      <TableHead className="px-2 py-1">
                         {t("workflow.operate.col_status")}
-                      </th>
-                      <th className="px-2 py-1 text-left">
+                      </TableHead>
+                      <TableHead className="px-2 py-1">
                         {t("workflow.operate.detail_job_retries")}
-                      </th>
-                      <th className="px-2 py-1" />
-                    </tr>
-                  </thead>
-                  <tbody>
+                      </TableHead>
+                      <TableHead className="px-2 py-1" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {jobs.map((job) => (
-                      <tr key={job.jobKey} className="border-t align-top">
-                        <td className="px-2 py-1">
+                      <TableRow key={job.jobKey}>
+                        <TableCell className="px-2 py-1">
                           <div className="font-medium">{job.type}</div>
                           <div className="text-[10px] text-muted-foreground">
                             {job.elementId || ""}
                             {job.worker ? ` · ${job.worker}` : ""}
                           </div>
-                        </td>
-                        <td className="px-2 py-1">{job.state}</td>
-                        <td className="px-2 py-1">{job.retries}</td>
-                        <td className="px-2 py-1 text-right">
+                        </TableCell>
+                        <TableCell className="px-2 py-1">
+                          {jobStateLabel(t, job.state)}
+                        </TableCell>
+                        <TableCell className="px-2 py-1">
+                          {job.retries}
+                        </TableCell>
+                        <TableCell className="px-2 py-1 text-right">
                           {job.state === "FAILED" ? (
                             <Button
                               size="sm"
@@ -867,11 +892,11 @@ export function InstanceDetail({
                               {t("workflow.operate.detail_update_retries")}
                             </Button>
                           ) : null}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )
             ) : null}
             {tab === "history" ? (

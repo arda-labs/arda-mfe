@@ -3,6 +3,14 @@ import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { monitoringApi } from "../../api"
 import type { OperateInstance, OperateInstanceQuery } from "../../api"
 import { InstanceDetail } from "./instance-detail"
@@ -210,39 +218,32 @@ export function InstancesTab({
       ) : null}
 
       <div className="overflow-hidden rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2 text-left">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead>
                 {t("workflow.operate.col_instance_key")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_process")}
-              </th>
-              <th className="px-3 py-2 text-left">
+              </TableHead>
+              <TableHead>{t("workflow.operate.col_process")}</TableHead>
+              <TableHead>
                 {t("workflow.operate.col_business_key")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_status")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_started")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_ended")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_duration")}
-              </th>
-              <th className="px-3 py-2 text-right">
+              </TableHead>
+              <TableHead>{t("workflow.operate.col_status")}</TableHead>
+              <TableHead>{t("workflow.operate.col_started")}</TableHead>
+              <TableHead>{t("workflow.operate.col_ended")}</TableHead>
+              <TableHead>{t("workflow.operate.col_duration")}</TableHead>
+              <TableHead className="text-right">
                 {t("workflow.operate.col_actions")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.map((item) => (
-              <tr key={item.processInstanceKey} className="border-t hover:bg-muted/30">
-                <td className="px-3 py-2 font-mono text-xs">
+              <TableRow
+                key={item.processInstanceKey}
+                className="hover:bg-muted/30"
+              >
+                <TableCell className="font-mono text-xs">
                   <button
                     type="button"
                     className="hover:underline"
@@ -250,34 +251,34 @@ export function InstancesTab({
                   >
                     {item.processInstanceKey}
                   </button>
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <div className="font-medium">{item.bpmnProcessId}</div>
                   <div className="text-xs text-muted-foreground">
                     v{item.version}
                   </div>
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {item.businessKey || "—"}
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <div className="flex items-center gap-2">
                     <InstanceStateBadge state={item.state} />
                     {item.openIncidents > 0 ? (
                       <Badge variant="destructive">{item.openIncidents}</Badge>
                     ) : null}
                   </div>
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {formatDateTime(item.startTime)}
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {item.endTime ? formatDateTime(item.endTime) : "—"}
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {formatDuration(item.startTime, item.endTime)}
-                </td>
-                <td className="px-3 py-2 text-right">
+                </TableCell>
+                <TableCell className="text-right">
                   <Button
                     size="sm"
                     variant="ghost"
@@ -287,21 +288,21 @@ export function InstancesTab({
                     <Eye className="size-3.5" />
                     {t("workflow.operate.action_view")}
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {!loading && items.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={8}
-                  className="px-3 py-8 text-center text-xs text-muted-foreground"
+                  className="py-8 text-center text-xs text-muted-foreground"
                 >
                   {t("workflow.operate.empty_instances")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : null}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex items-center justify-between">

@@ -2,6 +2,14 @@ import { useCallback, useEffect, useState } from "react"
 import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { notify } from "@workspace/ui/feedback/notify"
 import { monitoringApi } from "../../api"
 import type { JobDefinitionState, OperateJob, OperateJobQuery } from "../../api"
@@ -32,6 +40,21 @@ function draftToQuery(draft: DraftFilters): OperateJobQuery {
     bpmnProcessId: draft.bpmnProcessId?.trim() || undefined,
     processInstanceKey: draft.processInstanceKey?.trim() || undefined,
   }
+}
+
+const JOB_STATE_KEYS: Record<string, string> = {
+  ACTIVATABLE: "workflow.monitoring.job_state_activatable",
+  ACTIVATED: "workflow.monitoring.job_state_activated",
+  FAILED: "workflow.monitoring.job_state_failed",
+  COMPLETED: "workflow.monitoring.job_state_completed",
+  ERROR_THROWN: "workflow.monitoring.job_state_error_thrown",
+  CANCELED: "workflow.monitoring.job_state_canceled",
+  TIMED_OUT: "workflow.monitoring.job_state_timed_out",
+}
+
+function jobStateLabel(t: (key: string) => string, state: string): string {
+  const key = JOB_STATE_KEYS[state]
+  return key ? t(key) : state
 }
 
 export function JobsTab({
@@ -170,65 +193,54 @@ export function JobsTab({
           </Button>
         </div>
         <div className="overflow-hidden rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2 text-left">
-                  {t("workflow.operate.detail_job_type")}
-                </th>
-                <th className="px-3 py-2 text-left">
-                  {t("workflow.operate.col_element")}
-                </th>
-                <th className="px-3 py-2 text-left">
-                  {t("workflow.operate.col_process")}
-                </th>
-                <th className="px-3 py-2 text-left">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead>{t("workflow.operate.detail_job_type")}</TableHead>
+                <TableHead>{t("workflow.operate.col_element")}</TableHead>
+                <TableHead>{t("workflow.operate.col_process")}</TableHead>
+                <TableHead>
                   {t("workflow.operate.detail_job_retries")}
-                </th>
-                <th className="px-3 py-2 text-left">
-                  {t("workflow.operate.col_status")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableHead>
+                <TableHead>{t("workflow.operate.col_status")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {definitions.map((definition) => (
-                <tr
-                  key={definition.jobDefinitionKey}
-                  className="border-t align-top"
-                >
-                  <td className="px-3 py-2 font-mono text-xs font-medium">
+                <TableRow key={definition.jobDefinitionKey}>
+                  <TableCell className="font-mono text-xs font-medium">
                     {definition.type}
-                  </td>
-                  <td className="px-3 py-2 text-xs">
+                  </TableCell>
+                  <TableCell className="text-xs">
                     <div>{definition.elementName || definition.elementId}</div>
                     <div className="font-mono text-[10px] text-muted-foreground">
                       {definition.elementId}
                     </div>
-                  </td>
-                  <td className="px-3 py-2 text-xs">
+                  </TableCell>
+                  <TableCell className="text-xs">
                     {definition.bpmnProcessId}
                     {definition.version ? ` · v${definition.version}` : ""}
-                  </td>
-                  <td className="px-3 py-2 text-xs">{definition.retries}</td>
-                  <td className="px-3 py-2 text-xs">
+                  </TableCell>
+                  <TableCell className="text-xs">{definition.retries}</TableCell>
+                  <TableCell className="text-xs">
                     {definition.state === "ACTIVE"
                       ? t("workflow.operate.job_def_state_active")
                       : t("workflow.operate.job_def_state_suspended")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {!definitionsLoading && definitions.length === 0 ? (
-                <tr>
-                  <td
+                <TableRow>
+                  <TableCell
                     colSpan={5}
-                    className="px-3 py-8 text-center text-xs text-muted-foreground"
+                    className="py-8 text-center text-xs text-muted-foreground"
                   >
                     {t("workflow.operate.empty_job_definitions")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : null}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
     )
@@ -266,7 +278,7 @@ export function JobsTab({
             <option value="">{t("workflow.operate.filter_all_states")}</option>
             {JOB_STATES.map((state) => (
               <option key={state} value={state}>
-                {state}
+                {jobStateLabel(t, state)}
               </option>
             ))}
           </select>
@@ -351,47 +363,41 @@ export function JobsTab({
       ) : null}
 
       <div className="overflow-hidden rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.detail_job_type")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_status")}
-              </th>
-              <th className="px-3 py-2 text-left">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead>{t("workflow.operate.detail_job_type")}</TableHead>
+              <TableHead>{t("workflow.operate.col_status")}</TableHead>
+              <TableHead>
                 {t("workflow.operate.detail_job_retries")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_element")}
-              </th>
-              <th className="px-3 py-2 text-left">
+              </TableHead>
+              <TableHead>{t("workflow.operate.col_element")}</TableHead>
+              <TableHead>
                 {t("workflow.operate.col_instance_key")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_created")}
-              </th>
-              <th className="px-3 py-2 text-right">
+              </TableHead>
+              <TableHead>{t("workflow.operate.col_created")}</TableHead>
+              <TableHead className="text-right">
                 {t("workflow.operate.col_actions")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.map((job) => (
-              <tr key={job.jobKey} className="border-t align-top">
-                <td className="px-3 py-2">
+              <TableRow key={job.jobKey}>
+                <TableCell>
                   <div className="font-mono text-xs font-medium">{job.type}</div>
                   <div className="text-[10px] text-muted-foreground">
                     {job.bpmnProcessId || ""}
                   </div>
-                </td>
-                <td className="px-3 py-2 text-xs">{job.state}</td>
-                <td className="px-3 py-2 text-xs">{job.retries}</td>
-                <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">
+                </TableCell>
+                <TableCell className="text-xs">
+                  {jobStateLabel(t, job.state)}
+                </TableCell>
+                <TableCell className="text-xs">{job.retries}</TableCell>
+                <TableCell className="font-mono text-[10px] text-muted-foreground">
                   {job.elementId || "—"}
-                </td>
-                <td className="px-3 py-2 font-mono text-xs">
+                </TableCell>
+                <TableCell className="font-mono text-xs">
                   <button
                     type="button"
                     className="hover:underline"
@@ -399,11 +405,11 @@ export function JobsTab({
                   >
                     {job.processInstanceKey}
                   </button>
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {formatDateTime(job.createdAt)}
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <div className="flex justify-end gap-1">
                     <Button
                       size="sm"
@@ -426,21 +432,21 @@ export function JobsTab({
                       </Button>
                     ) : null}
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {!loading && items.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={7}
-                  className="px-3 py-8 text-center text-xs text-muted-foreground"
+                  className="py-8 text-center text-xs text-muted-foreground"
                 >
                   {t("workflow.operate.empty_jobs")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : null}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex items-center justify-between">

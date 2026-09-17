@@ -483,6 +483,15 @@
     "edit_variable_success": "Đã cập nhật biến",
     "edit_variable_failed": "Cập nhật biến thất bại"
   },
+  "monitoring": {
+    "job_state_activatable": "Sẵn sàng",
+    "job_state_activated": "Đang chạy",
+    "job_state_failed": "Thất bại",
+    "job_state_completed": "Hoàn thành",
+    "job_state_error_thrown": "Lỗi",
+    "job_state_canceled": "Đã hủy",
+    "job_state_timed_out": "Quá hạn"
+  },
   "bpmn": {
     "highlight_not_found": "Không tìm thấy BPMN element \"{id}\" để highlight.",
     "xml_parse_failed": "Không đọc được BPMN XML.",

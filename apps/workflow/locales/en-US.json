@@ -483,6 +483,15 @@
     "edit_variable_success": "Variable updated",
     "edit_variable_failed": "Variable update failed"
   },
+  "monitoring": {
+    "job_state_activatable": "Activatable",
+    "job_state_activated": "Activated",
+    "job_state_failed": "Failed",
+    "job_state_completed": "Completed",
+    "job_state_error_thrown": "Error thrown",
+    "job_state_canceled": "Canceled",
+    "job_state_timed_out": "Timed out"
+  },
   "bpmn": {
     "highlight_not_found": "BPMN element \"{id}\" not found for highlighting.",
     "xml_parse_failed": "Failed to read the BPMN XML.",

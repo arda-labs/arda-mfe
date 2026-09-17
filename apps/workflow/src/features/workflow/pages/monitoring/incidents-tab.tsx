@@ -3,6 +3,14 @@ import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { notify } from "@workspace/ui/feedback/notify"
 import { monitoringApi } from "../../api"
 import type { OperateIncidentQuery, OperateIncidentRow } from "../../api"
@@ -255,53 +263,45 @@ export function IncidentsTab({
       ) : null}
 
       <div className="overflow-hidden rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_created")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_error_type")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_process")}
-              </th>
-              <th className="px-3 py-2 text-left">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead>{t("workflow.operate.col_created")}</TableHead>
+              <TableHead>{t("workflow.operate.col_error_type")}</TableHead>
+              <TableHead>{t("workflow.operate.col_process")}</TableHead>
+              <TableHead>
                 {t("workflow.operate.col_instance_key")}
-              </th>
-              <th className="px-3 py-2 text-left">
+              </TableHead>
+              <TableHead>
                 {t("workflow.operate.col_business_key")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_status")}
-              </th>
-              <th className="px-3 py-2 text-right">
+              </TableHead>
+              <TableHead>{t("workflow.operate.col_status")}</TableHead>
+              <TableHead className="text-right">
                 {t("workflow.operate.col_actions")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.map((incident) => (
-              <tr key={incident.incidentKey} className="border-t align-top">
-                <td className="px-3 py-2 text-xs">
+              <TableRow key={incident.incidentKey}>
+                <TableCell className="text-xs">
                   {formatDateTime(incident.createdAt)}
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <div className="font-medium">
                     {incident.errorType || t("workflow.operate.unknown_error")}
                   </div>
                   <p className="max-w-[18rem] truncate text-xs text-muted-foreground" title={incident.errorMessage}>
                     {incident.errorMessage || "—"}
                   </p>
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   <div>{incident.bpmnProcessId || "—"}</div>
                   <div className="font-mono text-[10px] text-muted-foreground">
                     {incident.elementId || ""}
                   </div>
-                </td>
-                <td className="px-3 py-2 font-mono text-xs">
+                </TableCell>
+                <TableCell className="font-mono text-xs">
                   <button
                     type="button"
                     className="hover:underline"
@@ -309,14 +309,14 @@ export function IncidentsTab({
                   >
                     {incident.processInstanceKey}
                   </button>
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {incident.businessKey || "—"}
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <IncidentStateBadge state={incident.state} />
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <div className="flex justify-end gap-1">
                     <Button
                       size="sm"
@@ -350,21 +350,21 @@ export function IncidentsTab({
                       </>
                     ) : null}
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {!loading && items.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={7}
-                  className="px-3 py-8 text-center text-xs text-muted-foreground"
+                  className="py-8 text-center text-xs text-muted-foreground"
                 >
                   {t("workflow.operate.empty_incidents")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : null}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex items-center justify-between">

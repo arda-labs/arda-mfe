@@ -5,6 +5,14 @@ import { apiUrl } from "@workspace/api/url"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { getWorkflowAnalytics, workItemsExportUrl, type WorkflowAnalytics } from "../api"
 
 function firstOfMonth(): string {
@@ -107,12 +115,12 @@ export function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Table
+            <SummaryTable
               title={t("workflow.dashboard.by_status")}
               rows={Object.entries(summary.by_status)}
               empty={t("workflow.dashboard.empty")}
             />
-            <Table
+            <SummaryTable
               title={t("workflow.dashboard.by_case_type")}
               rows={Object.entries(summary.by_case_type)}
               empty={t("workflow.dashboard.empty")}
@@ -135,35 +143,42 @@ function Card({ label, value, critical }: { label: string; value: number; critic
   )
 }
 
-function Table({ title, rows, empty }: { title: string; rows: [string, number][]; empty: string }) {
+function SummaryTable({ title, rows, empty }: { title: string; rows: [string, number][]; empty: string }) {
   const { t } = useI18n()
   return (
     <section className="space-y-2">
       <h2 className="text-sm font-semibold">{title}</h2>
       <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("workflow.dashboard.key")}</th>
-              <th className="px-3 py-2 text-right">{t("workflow.dashboard.count")}</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
+              <TableHead>{t("workflow.dashboard.key")}</TableHead>
+              <TableHead className="text-right">
+                {t("workflow.dashboard.count")}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.length === 0 && (
-              <tr>
-                <td colSpan={2} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell
+                  colSpan={2}
+                  className="py-4 text-center text-muted-foreground"
+                >
                   {empty}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {rows.map(([key, count]) => (
-              <tr key={key} className="border-t border-border">
-                <td className="px-3 py-2 font-mono text-xs">{key}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{count}</td>
-              </tr>
+              <TableRow key={key}>
+                <TableCell className="font-mono text-xs">{key}</TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {count}
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </section>
   )

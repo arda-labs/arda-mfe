@@ -3,6 +3,14 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { formatDateShort } from "@workspace/format"
 import { customerReport, type CustomerReportRow } from "../api"
 
@@ -73,8 +81,12 @@ export function ReportsPage() {
               onChange={(e) => setCustomerType(e.target.value)}
             >
               <option value="">{t("common.action.select_all")}</option>
-              <option value="PERSONAL">PERSONAL</option>
-              <option value="BUSINESS">BUSINESS</option>
+              <option value="PERSONAL">
+                {t("crm.customers.options.customer_type_personal")}
+              </option>
+              <option value="BUSINESS">
+                {t("crm.customers.options.customer_type_business")}
+              </option>
             </select>
           </div>
           <div className="space-y-1.5">
@@ -91,55 +103,66 @@ export function ReportsPage() {
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("crm.reports.col.customer_code")}</th>
-              <th className="px-3 py-2">{t("crm.reports.col.name")}</th>
-              <th className="px-3 py-2">{t("crm.reports.col.customer_type")}</th>
-              <th className="px-3 py-2">{t("crm.reports.col.segment")}</th>
-              <th className="px-3 py-2">{t("crm.reports.col.risk_level")}</th>
-              <th className="px-3 py-2">{t("common.field.status")}</th>
-              <th className="px-3 py-2">{t("common.field.created")}</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
+              <TableHead>{t("crm.reports.col.customer_code")}</TableHead>
+              <TableHead>{t("crm.reports.col.name")}</TableHead>
+              <TableHead>{t("crm.reports.col.customer_type")}</TableHead>
+              <TableHead>{t("crm.reports.col.segment")}</TableHead>
+              <TableHead>{t("crm.reports.col.risk_level")}</TableHead>
+              <TableHead>{t("common.field.status")}</TableHead>
+              <TableHead>{t("common.field.created")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading && (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="py-4 text-center text-muted-foreground"
+                >
                   {t("crm.reports.loading")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {!loading && loadError && (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="py-4 text-center text-muted-foreground"
+                >
                   {t("crm.reports.load_failed")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {!loading && !loadError && rows.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="py-4 text-center text-muted-foreground"
+                >
                   {t("crm.reports.empty")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {rows.map((row) => (
-              <tr key={row.customer_code} className="border-t border-border">
-                <td className="px-3 py-2 font-mono text-xs">{row.customer_code}</td>
-                <td className="px-3 py-2 font-medium">{row.name}</td>
-                <td className="px-3 py-2">{row.customer_type}</td>
-                <td className="px-3 py-2">{row.segment || "—"}</td>
-                <td className="px-3 py-2">{row.risk_level || "—"}</td>
-                <td className="px-3 py-2">{row.status}</td>
-                <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
+              <TableRow key={row.customer_code}>
+                <TableCell className="font-mono text-xs">
+                  {row.customer_code}
+                </TableCell>
+                <TableCell className="font-medium">{row.name}</TableCell>
+                <TableCell>{row.customer_type}</TableCell>
+                <TableCell>{row.segment || "—"}</TableCell>
+                <TableCell>{row.risk_level || "—"}</TableCell>
+                <TableCell>{row.status}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
                   {formatDateShort(row.created_at)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

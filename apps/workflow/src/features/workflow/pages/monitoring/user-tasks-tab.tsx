@@ -3,6 +3,14 @@ import { Eye, RefreshCw, UserCheck } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { notify } from "@workspace/ui/feedback/notify"
 import { monitoringApi } from "../../api"
 import type { OperateUserTaskQuery, OperateUserTaskRow } from "../../api"
@@ -224,48 +232,36 @@ export function UserTasksTab({
       ) : null}
 
       <div className="overflow-hidden rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_user_task")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_process")}
-              </th>
-              <th className="px-3 py-2 text-left">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead>{t("workflow.operate.col_user_task")}</TableHead>
+              <TableHead>{t("workflow.operate.col_process")}</TableHead>
+              <TableHead>
                 {t("workflow.operate.col_instance_key")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_assignee")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_candidates")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_due")}
-              </th>
-              <th className="px-3 py-2 text-left">
-                {t("workflow.operate.col_status")}
-              </th>
-              <th className="px-3 py-2 text-right">
+              </TableHead>
+              <TableHead>{t("workflow.operate.col_assignee")}</TableHead>
+              <TableHead>{t("workflow.operate.col_candidates")}</TableHead>
+              <TableHead>{t("workflow.operate.col_due")}</TableHead>
+              <TableHead>{t("workflow.operate.col_status")}</TableHead>
+              <TableHead className="text-right">
                 {t("workflow.operate.col_actions")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.map((task) => (
-              <tr key={task.userTaskKey} className="border-t align-top">
-                <td className="px-3 py-2">
+              <TableRow key={task.userTaskKey}>
+                <TableCell>
                   <div className="font-medium">{task.elementId || "—"}</div>
                   <div className="font-mono text-[10px] text-muted-foreground">
                     {task.userTaskKey}
                   </div>
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {task.bpmnProcessId || "—"}
-                </td>
-                <td className="px-3 py-2 font-mono text-xs">
+                </TableCell>
+                <TableCell className="font-mono text-xs">
                   {onOpenInstance ? (
                     <button
                       type="button"
@@ -277,24 +273,24 @@ export function UserTasksTab({
                   ) : (
                     task.processInstanceKey
                   )}
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {task.assignee || "—"}
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {task.candidateGroups?.join(", ") || "—"}
-                </td>
-                <td className="px-3 py-2 text-xs">
+                </TableCell>
+                <TableCell className="text-xs">
                   {task.dueDate ? formatDateTime(task.dueDate) : "—"}
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <Badge
                     variant={task.state === "CREATED" ? "default" : "secondary"}
                   >
                     {userTaskStateLabel(t, task.state)}
                   </Badge>
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell>
                   <div className="flex justify-end gap-1">
                     {onOpenInstance ? (
                       <Button
@@ -320,21 +316,21 @@ export function UserTasksTab({
                       </Button>
                     ) : null}
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {!loading && items.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={8}
-                  className="px-3 py-8 text-center text-xs text-muted-foreground"
+                  className="py-8 text-center text-xs text-muted-foreground"
                 >
                   {t("workflow.operate.user_tasks_empty")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : null}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex items-center justify-between">
