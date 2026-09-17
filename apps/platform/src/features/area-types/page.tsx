@@ -56,6 +56,12 @@ const AREA_TYPE_CATEGORY_CODE = "AREA_TYPE"
  * Bootstrap the AREA_TYPE lookup category only when it is actually missing:
  * the page load performs GETs only; the upsert runs just once when the fetch
  * shows the category absent. The main table list never mutates on load.
+ *
+ * `name`/`description` below are persisted **domain data** sent to
+ * platform-service (lookup category metadata), not display strings — same
+ * rationale as `VN_BASELINE_FILES` in scripts/audit-i18n.mjs. They are stored
+ * once and rendered for every locale from the same server row, so translating
+ * them at call time would corrupt the shared category for other users.
  */
 async function ensureAreaTypeCategory() {
   const categories = await lookupsApi.listLookupCategories()

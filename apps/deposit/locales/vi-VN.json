@@ -200,7 +200,11 @@
     "deposit_description": "Sổ {code}: nhập số tiền nộp thêm. Phiếu được trình duyệt maker/checker trước khi cộng vào gốc.",
     "deposit_success": "Đã trình duyệt nộp thêm",
     "deposit_failed": "Không thể trình duyệt nộp thêm",
-    "deposit_validation": "Số tiền nộp thêm phải lớn hơn 0"
+    "deposit_validation": "Số tiền nộp thêm phải lớn hơn 0",
+    "status": {
+      "ACTIVE": "Đang hoạt động",
+      "CLOSED": "Đã đóng"
+    }
   },
   "reports": {
     "title": "Báo cáo tiền gửi",

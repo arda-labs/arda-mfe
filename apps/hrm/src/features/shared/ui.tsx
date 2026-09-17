@@ -13,7 +13,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -30,7 +29,7 @@ import {
 import { TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
 import type { CaseTabItem } from "@workspace/case-tabs/types"
-import { Edit2, Plus, Trash2, Upload } from "lucide-react"
+import { Plus, Trash2, Upload } from "lucide-react"
 import type { EmployeeRegistration, OrgUnit, Position } from "../api"
 import { fieldClass, type RegistrationValues } from "./schemas"
 import { useWatch } from "react-hook-form"
@@ -830,108 +829,6 @@ export function registrationStatusLabel(
     default:
       return status
   }
-}
-export function PageTitle({
-  title,
-  count,
-  onCreate,
-}: {
-  title: string
-  count: number
-  onCreate: () => void
-}) {
-  const { t } = useI18n()
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold">{title}</h1>
-        <Badge variant="secondary">{count}</Badge>
-      </div>
-      <Button onClick={onCreate}>
-        <Plus className="mr-1 size-4" /> {t("hrm.common.add")}
-      </Button>
-    </div>
-  )
-}
-
-export function DataTable({
-  children,
-  columns,
-  empty,
-}: {
-  children: ReactNode
-  columns: string[]
-  empty: string
-}) {
-  const { t } = useI18n()
-  const rows = Array.isArray(children) ? children : [children]
-  const hasRows = rows.some(Boolean)
-  return (
-    <div className="overflow-hidden rounded-md border bg-background">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column) => (
-              <TableHead key={column}>{column}</TableHead>
-            ))}
-            <TableHead className="w-24 text-right">
-              {t("common.field.action")}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {hasRows ? (
-            children
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length + 1}
-                className="h-24 text-center text-muted-foreground"
-              >
-                {empty}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  )
-}
-
-export function RowActions({
-  onEdit,
-  onDelete,
-}: {
-  onEdit: () => void
-  onDelete: () => void
-}) {
-  return (
-    <TableCell className="text-right">
-      <div className="flex justify-end gap-1">
-        <Button size="icon" variant="ghost" className="size-8" onClick={onEdit}>
-          <Edit2 className="size-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="size-8 text-destructive"
-          onClick={onDelete}
-        >
-          <Trash2 className="size-4" />
-        </Button>
-      </div>
-    </TableCell>
-  )
-}
-
-export function StatusBadge({ status }: { status: string }) {
-  const { t } = useI18n()
-  const isActive = status.toLowerCase() === "active"
-  return (
-    <Badge variant={isActive ? "default" : "secondary"}>
-      {isActive ? t("hrm.status.active") : t("hrm.status.inactive")}
-    </Badge>
-  )
 }
 
 export function DialogActions({ pending }: { pending: boolean }) {

@@ -1,5 +1,13 @@
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import type { ToolResultPayload } from "../../lib/messages"
 import type { ToolResultViewProps } from "../../lib/registry"
 import { registerToolRenderer } from "../../lib/registry"
@@ -42,22 +50,32 @@ export function InvoiceListCard({ result }: ToolResultViewProps) {
           })}
         </span>
       </div>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b bg-muted/40">
-            <th className="px-3 py-1.5 text-left font-medium">{t("ai.tool.invoiceList.number")}</th>
-            <th className="px-3 py-1.5 text-right font-medium">{t("ai.tool.invoiceList.amount")}</th>
-            <th className="px-3 py-1.5 text-center font-medium">{t("ai.tool.invoiceList.status")}</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table className="text-xs">
+        <TableHeader className="bg-muted/40">
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="h-auto py-1.5 text-left font-medium">
+              {t("ai.tool.invoiceList.number")}
+            </TableHead>
+            <TableHead className="h-auto py-1.5 text-right font-medium">
+              {t("ai.tool.invoiceList.amount")}
+            </TableHead>
+            <TableHead className="h-auto py-1.5 text-center font-medium">
+              {t("ai.tool.invoiceList.status")}
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {list.invoices.slice(0, 5).map((inv) => (
-            <tr key={inv.id || inv.number} className="border-b last:border-0">
-              <td className="px-3 py-1.5 font-mono">{inv.number}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">
-                {typeof inv.amount === "number" ? inv.amount.toLocaleString("vi-VN") : inv.amount}
-              </td>
-              <td className="px-3 py-1.5 text-center">
+            <TableRow key={inv.id || inv.number} className="last:border-0">
+              <TableCell className="px-3 py-1.5 font-mono">
+                {inv.number}
+              </TableCell>
+              <TableCell className="px-3 py-1.5 text-right tabular-nums">
+                {typeof inv.amount === "number"
+                  ? inv.amount.toLocaleString("vi-VN")
+                  : inv.amount}
+              </TableCell>
+              <TableCell className="px-3 py-1.5 text-center">
                 <Badge
                   variant={
                     inv.status === "PAID"
@@ -69,11 +87,11 @@ export function InvoiceListCard({ result }: ToolResultViewProps) {
                 >
                   {inv.status}
                 </Badge>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }

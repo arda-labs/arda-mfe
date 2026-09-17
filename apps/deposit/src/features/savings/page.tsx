@@ -208,7 +208,7 @@ export function SavingsPage(_props: { pathname: string }) {
         ),
         cell: ({ row }) => (
           <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
-            {row.original.status}
+            {t(`deposit.savings.status.${row.original.status}`)}
           </Badge>
         ),
       },

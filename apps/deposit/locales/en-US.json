@@ -200,7 +200,11 @@
     "deposit_description": "Savings {code}: enter the additional amount. The ticket goes through maker/checker approval before the principal is bumped.",
     "deposit_success": "Additional deposit submitted",
     "deposit_failed": "Failed to submit the additional deposit",
-    "deposit_validation": "The additional amount must be greater than 0"
+    "deposit_validation": "The additional amount must be greater than 0",
+    "status": {
+      "ACTIVE": "Active",
+      "CLOSED": "Closed"
+    }
   },
   "reports": {
     "title": "Deposit reports",

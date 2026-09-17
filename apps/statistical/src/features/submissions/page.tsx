@@ -103,7 +103,9 @@ export function SubmissionsPage(_props: { pathname: string }) {
         ),
         cell: ({ row }) => (
           <Badge variant={statusVariant[row.original.status] ?? "outline"}>
-            {row.original.status}
+            {t(
+              `statistical.submissions.status.${row.original.status.toLowerCase()}`
+            )}
           </Badge>
         ),
       },

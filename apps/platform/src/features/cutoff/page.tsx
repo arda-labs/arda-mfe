@@ -31,6 +31,12 @@ interface CutoffDisplay {
   isActive: boolean
 }
 
+/**
+ * Mock rows: the cut-off configuration API is not wired yet, so this screen
+ * renders a hardcoded list. Hardcoded copy here is intentionally out of the
+ * i18n scope until the real API lands (same status as other mock screens);
+ * only the calendar status/evaluate calls below are live.
+ */
 const CUTOFFS: CutoffDisplay[] = [
   {
     id: "1",

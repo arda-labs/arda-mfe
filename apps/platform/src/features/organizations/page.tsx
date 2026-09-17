@@ -180,16 +180,19 @@ export function OrganizationsPage() {
 
       if (editingOrg) {
         await organizationsApi.updateOrganization(editingOrg.id, payload)
-        notify.success("Cap nhat to chuc thanh cong")
+        notify.success(t("platform.organizations.toast.update_success"))
       } else {
         await organizationsApi.createOrganization(payload)
-        notify.success("Them to chuc thanh cong")
+        notify.success(t("platform.organizations.toast.create_success"))
       }
       setDialogOpen(false)
       reset(organizationDefaultValues)
       await queryClient.invalidateQueries({ queryKey: ORGANIZATIONS_QUERY_KEY })
     } catch (err) {
-      notify.error("Sua to chuc that bai", translateApiError(err))
+      notify.error(
+        t("platform.organizations.toast.save_failed"),
+        translateApiError(err)
+      )
     } finally {
       setSaving(false)
     }
@@ -200,11 +203,14 @@ export function OrganizationsPage() {
     setDeleting(true)
     try {
       await organizationsApi.deleteOrganization(deleteTarget.id)
-      notify.success("Xoa to chuc thanh cong")
+      notify.success(t("platform.organizations.toast.delete_success"))
       setDeleteTarget(null)
       await queryClient.invalidateQueries({ queryKey: ORGANIZATIONS_QUERY_KEY })
     } catch (err) {
-      notify.error("Xoa to chuc that bai", translateApiError(err))
+      notify.error(
+        t("platform.organizations.toast.delete_failed"),
+        translateApiError(err)
+      )
     } finally {
       setDeleting(false)
     }
