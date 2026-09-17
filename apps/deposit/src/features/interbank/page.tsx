@@ -171,8 +171,11 @@ export function InterbankPage(_props: { pathname: string }) {
       sortByColumn(rows, sortState, {
         deposit_code: (a, b) => a.deposit_code.localeCompare(b.deposit_code),
         counterparty_code: (a, b) => a.counterparty_code.localeCompare(b.counterparty_code),
+        principal_minor: (a, b) => a.principal_minor - b.principal_minor,
+        interest_rate: (a, b) => a.interest_rate - b.interest_rate,
         deposit_date: (a, b) => a.deposit_date.localeCompare(b.deposit_date),
         maturity_date: (a, b) => a.maturity_date.localeCompare(b.maturity_date),
+        status: (a, b) => a.status.localeCompare(b.status),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })

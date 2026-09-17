@@ -319,6 +319,7 @@ export function LookupsPage() {
         code: (a, b) => a.code.localeCompare(b.code),
         name: (a, b) => a.name.localeCompare(b.name),
         sort_order: (a, b) => a.sort_order - b.sort_order,
+        is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })

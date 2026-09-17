@@ -120,8 +120,14 @@ export function RatesPage() {
     },
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
-        effective_from: (a, b) => a.effective_from.localeCompare(b.effective_from),
+        product_code: (a, b) =>
+          (a.product_code ?? "").localeCompare(b.product_code ?? ""),
+        term_months: (a, b) => a.term_months - b.term_months,
         rate: (a, b) => a.rate - b.rate,
+        method: (a, b) => a.method.localeCompare(b.method),
+        denominator: (a, b) => a.denominator - b.denominator,
+        effective_from: (a, b) => a.effective_from.localeCompare(b.effective_from),
+        is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
       }),
     defaultPageSize: 10,
   })

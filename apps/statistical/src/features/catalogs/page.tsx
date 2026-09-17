@@ -145,6 +145,8 @@ export function CatalogsPage() {
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
         name: (a, b) => a.name.localeCompare(b.name),
+        parent_code: (a, b) => (a.parent_code ?? "").localeCompare(b.parent_code ?? ""),
+        is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
       }),
     defaultPageSize: 10,
   })

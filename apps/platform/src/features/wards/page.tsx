@@ -97,12 +97,12 @@ export function WardsPage() {
       {
         id: "parent_code",
         accessorKey: "parent_code",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.wards.field.parent")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.wards.field.parent")}
+          </span>
         ),
+        enableSorting: false,
         enableColumnFilter: true,
         meta: selectFilterMeta(
           t("platform.wards.field.parent"),
@@ -118,53 +118,53 @@ export function WardsPage() {
       },
       {
         accessorKey: "unit_type",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.wards.field.unit_type")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.wards.field.unit_type")}
+          </span>
         ),
+        enableSorting: false,
       },
       {
         accessorKey: "country_code",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.wards.field.country_code")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.wards.field.country_code")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.country_code}</span>
         ),
       },
       {
         accessorKey: "region_code",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.wards.field.region_code")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.wards.field.region_code")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => row.original.region_code || "-",
       },
       {
         accessorKey: "effective_from",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.wards.field.effective_from")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.wards.field.effective_from")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => row.original.effective_from || "-",
       },
       {
         accessorKey: "effective_to",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.wards.field.effective_to")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.wards.field.effective_to")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => row.original.effective_to || "-",
       },
       {
@@ -181,12 +181,12 @@ export function WardsPage() {
       {
         id: "is_active",
         accessorKey: "is_active",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.wards.field.status")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.wards.field.status")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <Status variant={row.original.is_active ? "success" : "default"}>
             <StatusIndicator />

@@ -81,12 +81,12 @@ export function TenantsPage() {
       {
         id: "status",
         accessorKey: "status",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("common.field.status")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("common.field.status")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <Badge
             variant={row.original.status === "ACTIVE" ? "success" : "secondary"}

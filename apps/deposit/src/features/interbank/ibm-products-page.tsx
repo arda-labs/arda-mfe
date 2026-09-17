@@ -113,6 +113,8 @@ export function IbmProductsPage() {
       sortByColumn(rows, sortState, {
         code: (a, b) => a.code.localeCompare(b.code),
         name: (a, b) => a.name.localeCompare(b.name),
+        term_months: (a, b) => a.term_months - b.term_months,
+        interest_rate: (a, b) => a.interest_rate - b.interest_rate,
       }),
     defaultPageSize: 10,
   })

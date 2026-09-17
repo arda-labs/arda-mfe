@@ -82,42 +82,42 @@ export function CreditInstitutionsPage() {
       },
       {
         accessorKey: "short_name",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.credit_institutions.field.short_name")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.credit_institutions.field.short_name")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => row.original.short_name || "-",
       },
       {
         accessorKey: "license_no",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.credit_institutions.field.license_no")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.credit_institutions.field.license_no")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => row.original.license_no || "-",
       },
       {
         accessorKey: "tax_code",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.credit_institutions.field.tax_code")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.credit_institutions.field.tax_code")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => row.original.tax_code || "-",
       },
       {
         accessorKey: "effective_from",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.credit_institutions.field.effective_from")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("platform.credit_institutions.field.effective_from")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => row.original.effective_from || "-",
       },
       {

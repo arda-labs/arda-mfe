@@ -61,12 +61,12 @@ export function PermissionsPage() {
       {
         id: "code",
         accessorKey: "code",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("common.field.code")}
-          />
+        header: () => (
+          <span className="text-xs font-bold text-foreground">
+            {t("common.field.code")}
+          </span>
         ),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.code}</span>
         ),
