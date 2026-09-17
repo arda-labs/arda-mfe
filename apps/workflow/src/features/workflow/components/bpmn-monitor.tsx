@@ -250,7 +250,7 @@ export function BpmnViewerPanel({
           <h2 className="truncate text-base font-semibold">{title}</h2>
           {highlightId ? (
             <p className="font-mono text-xs text-muted-foreground">
-              current: {highlightId}
+              {t("workflow.bpmn.highlight_current", { id: highlightId })}
             </p>
           ) : null}
         </div>
@@ -387,7 +387,12 @@ export function OperateBpmnViewer({
 
               const badge = document.createElement("div")
               badge.className = "operate-element-badge"
-              badge.title = `${stat.elementName || elementId}: ${stat.activeCount} active, ${stat.incidentCount} incidents, ${stat.completedCount} completed`
+              badge.title = t("workflow.bpmn.element_badge_title", {
+                name: stat.elementName || elementId,
+                active: stat.activeCount,
+                incidents: stat.incidentCount,
+                completed: stat.completedCount,
+              })
 
               if (stat.incidentCount > 0) {
                 badge.innerHTML = `
@@ -463,7 +468,7 @@ export function OperateBpmnViewer({
           <h2 className="truncate text-base font-semibold">{title}</h2>
           {highlightId ? (
             <p className="font-mono text-xs text-muted-foreground">
-              current: {highlightId}
+              {t("workflow.bpmn.highlight_current", { id: highlightId })}
             </p>
           ) : null}
         </div>
@@ -1021,8 +1026,8 @@ function BpmnModelerWorkspace({
             type="button"
             size="icon"
             variant="ghost"
-            title="Zoom in"
-            aria-label="Zoom in"
+            title={t("workflow.bpmn.zoom_in")}
+            aria-label={t("workflow.bpmn.zoom_in")}
             onClick={() => canvasAction((canvas) => canvas.zoom(zoom + 0.1))}
           >
             <ZoomIn className="size-4" />
@@ -1031,8 +1036,8 @@ function BpmnModelerWorkspace({
             type="button"
             size="icon"
             variant="ghost"
-            title="Zoom out"
-            aria-label="Zoom out"
+            title={t("workflow.bpmn.zoom_out")}
+            aria-label={t("workflow.bpmn.zoom_out")}
             onClick={() =>
               canvasAction((canvas) => canvas.zoom(Math.max(0.2, zoom - 0.1)))
             }
@@ -1043,8 +1048,8 @@ function BpmnModelerWorkspace({
             type="button"
             size="icon"
             variant="ghost"
-            title="Fit viewport"
-            aria-label="Fit viewport"
+            title={t("workflow.bpmn.fit_viewport")}
+            aria-label={t("workflow.bpmn.fit_viewport")}
             onClick={() => canvasAction(fitCanvasViewport)}
           >
             <LocateFixed className="size-4" />
@@ -1057,8 +1062,8 @@ function BpmnModelerWorkspace({
             type="button"
             size="icon"
             variant="ghost"
-            title="Undo"
-            aria-label="Undo"
+            title={t("workflow.bpmn.undo")}
+            aria-label={t("workflow.bpmn.undo")}
             onClick={undo}
           >
             <Undo2 className="size-4" />
@@ -1067,8 +1072,8 @@ function BpmnModelerWorkspace({
             type="button"
             size="icon"
             variant="ghost"
-            title="Redo"
-            aria-label="Redo"
+            title={t("workflow.bpmn.redo")}
+            aria-label={t("workflow.bpmn.redo")}
             onClick={redo}
           >
             <Redo2 className="size-4" />
@@ -1078,8 +1083,8 @@ function BpmnModelerWorkspace({
             type="button"
             size="icon"
             variant="ghost"
-            title="Export XML"
-            aria-label="Export XML"
+            title={t("workflow.bpmn.export_xml")}
+            aria-label={t("workflow.bpmn.export_xml")}
             onClick={exportXml}
           >
             <span className="text-[10px] font-semibold">XML</span>
@@ -1088,8 +1093,8 @@ function BpmnModelerWorkspace({
             type="button"
             size="icon"
             variant="ghost"
-            title="Export SVG"
-            aria-label="Export SVG"
+            title={t("workflow.bpmn.export_svg")}
+            aria-label={t("workflow.bpmn.export_svg")}
             onClick={exportSvg}
           >
             <span className="text-[10px] font-semibold">SVG</span>
@@ -1189,25 +1194,31 @@ function BpmnInspector({
           </p>
         </div>
         <div className="grid grid-cols-2 gap-1.5 text-sm">
-          <Field label="Version" value={`v${item.version}`} />
-          <Field label="Status" value={item.status} />
-          <Field label="Elements" value={String(elementCount)} />
-          <Field label="Deploy key" value={String(item.deploymentKey ?? "-")} />
+          <Field label={t("workflow.bpmn.inspector_version")} value={`v${item.version}`} />
+          <Field label={t("workflow.bpmn.inspector_status")} value={item.status} />
+          <Field
+            label={t("workflow.bpmn.inspector_elements")}
+            value={String(elementCount)}
+          />
+          <Field
+            label={t("workflow.bpmn.inspector_deploy_key")}
+            value={String(item.deploymentKey ?? "-")}
+          />
         </div>
         <BpmnFileInfoCard info={fileInfo} />
         <div className="rounded-md border bg-card p-2.5 text-card-foreground">
           <h4 className="mb-2 text-sm font-semibold text-card-foreground">
-            Properties
+            {t("workflow.bpmn.inspector_properties")}
           </h4>
           {selectedElement ? (
             <Accordion type="multiple" defaultValue={["general"]}>
               <AccordionItem value="general">
                 <AccordionTrigger className="py-2 text-sm">
-                  General
+                  {t("workflow.bpmn.inspector_general")}
                 </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
                   <TextInput
-                    label="Element id"
+                    label={t("workflow.bpmn.inspector_element_id")}
                     value={businessObject?.id ?? selectedElement.id}
                     onChange={(id) => onUpdateProperties({ id })}
                   />
@@ -1217,7 +1228,7 @@ function BpmnInspector({
                     onChange={(name) => onUpdateProperties({ name })}
                   />
                   <TextareaInput
-                    label="Documentation"
+                    label={t("workflow.bpmn.inspector_documentation")}
                     value={docs}
                     onChange={onUpdateDocumentation}
                   />
@@ -1229,12 +1240,12 @@ function BpmnInspector({
               </AccordionItem>
               <AccordionItem value="execution">
                 <AccordionTrigger className="py-2 text-sm">
-                  Execution
+                  {t("workflow.bpmn.inspector_execution")}
                 </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
                   {isProcess ? (
                     <SelectInput
-                      label="Executable"
+                      label={t("workflow.bpmn.inspector_executable")}
                       value={String(Boolean(businessObject?.isExecutable))}
                       options={[
                         { value: "true", label: "true" },
@@ -1248,7 +1259,7 @@ function BpmnInspector({
                   {isTask ? (
                     <>
                       <TextInput
-                        label="Job type"
+                        label={t("workflow.bpmn.inspector_job_type")}
                         value={String(
                           taskDefinition?.type ??
                             attrs["zeebe:taskDefinition:type"] ??
@@ -1258,7 +1269,7 @@ function BpmnInspector({
                         onChange={(type) => onUpdateTaskDefinition({ type })}
                       />
                       <TextInput
-                        label="Retries"
+                        label={t("workflow.bpmn.inspector_retries")}
                         value={String(
                           taskDefinition?.retries ??
                             attrs["zeebe:taskDefinition:retries"] ??
@@ -1269,7 +1280,7 @@ function BpmnInspector({
                         }
                       />
                       <TextInput
-                        label="Form key"
+                        label={t("workflow.bpmn.inspector_form_key")}
                         value={String(
                           formDefinition?.formKey ??
                             attrs["formKey"] ??
@@ -1286,12 +1297,12 @@ function BpmnInspector({
               </AccordionItem>
               <AccordionItem value="routing">
                 <AccordionTrigger className="py-2 text-sm">
-                  Routing
+                  {t("workflow.bpmn.inspector_routing")}
                 </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
                   {isSequenceFlow ? (
                     <TextareaInput
-                      label="Condition expression"
+                      label={t("workflow.bpmn.inspector_condition")}
                       value={businessObject?.conditionExpression?.body ?? ""}
                       onChange={onUpdateCondition}
                     />
@@ -1299,7 +1310,7 @@ function BpmnInspector({
                     <EmptyState text={t("workflow.bpmn.routing_empty")} />
                   )}
                   <Field
-                    label="Incoming"
+                    label={t("workflow.bpmn.inspector_incoming")}
                     value={
                       businessObject?.incoming
                         ?.map((flow) => flow.id)
@@ -1307,7 +1318,7 @@ function BpmnInspector({
                     }
                   />
                   <Field
-                    label="Outgoing"
+                    label={t("workflow.bpmn.inspector_outgoing")}
                     value={
                       businessObject?.outgoing
                         ?.map((flow) => flow.id)
@@ -1318,29 +1329,29 @@ function BpmnInspector({
               </AccordionItem>
               <AccordionItem value="extensions">
                 <AccordionTrigger className="py-2 text-sm">
-                  Extensions
+                  {t("workflow.bpmn.inspector_extensions")}
                 </AccordionTrigger>
                 <AccordionContent className="space-y-2.5 pb-3">
                   <ExtensionAttrInput
-                    label="Assignee"
+                    label={t("workflow.bpmn.inspector_assignee")}
                     attrKey="assignee"
                     attrs={attrs}
                     onChange={onUpdateExtensionAttr}
                   />
                   <ExtensionAttrInput
-                    label="Candidate groups"
+                    label={t("workflow.bpmn.inspector_candidate_groups")}
                     attrKey="candidateGroups"
                     attrs={attrs}
                     onChange={onUpdateExtensionAttr}
                   />
                   <ExtensionAttrInput
-                    label="Priority"
+                    label={t("workflow.bpmn.inspector_priority")}
                     attrKey="priority"
                     attrs={attrs}
                     onChange={onUpdateExtensionAttr}
                   />
                   <ExtensionAttrInput
-                    label="Custom metadata"
+                    label={t("workflow.bpmn.inspector_custom_metadata")}
                     attrKey="arda:metadata"
                     attrs={attrs}
                     onChange={onUpdateExtensionAttr}
@@ -1398,14 +1409,25 @@ function BpmnOperationsDock({
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center justify-between border-b px-3 py-2">
           <TabsList className="h-10">
-            <TabsTrigger value="instances">Process instances</TabsTrigger>
-            <TabsTrigger value="incidents">Incidents</TabsTrigger>
-            <TabsTrigger value="called">Called instances</TabsTrigger>
-            <TabsTrigger value="jobs">Job definitions</TabsTrigger>
+            <TabsTrigger value="instances">
+              {t("workflow.bpmn.dock_tab_instances")}
+            </TabsTrigger>
+            <TabsTrigger value="incidents">
+              {t("workflow.bpmn.dock_tab_incidents")}
+            </TabsTrigger>
+            <TabsTrigger value="called">
+              {t("workflow.bpmn.dock_tab_called_instances")}
+            </TabsTrigger>
+            <TabsTrigger value="jobs">
+              {t("workflow.bpmn.dock_tab_job_definitions")}
+            </TabsTrigger>
           </TabsList>
           <span className="text-xs text-foreground/70">
-            {cases.length} instance · {incidents.length} incident ·{" "}
-            {jobDefinitions.length} job
+            {t("workflow.bpmn.dock_summary", {
+              instances: cases.length,
+              incidents: incidents.length,
+              jobs: jobDefinitions.length,
+            })}
           </span>
         </div>
         <TabsContent
@@ -1560,6 +1582,7 @@ function OperationsCasesTable({
   emptyText: string
   onSelectElement: (ref?: string) => void
 }) {
+  const { t } = useI18n()
   if (!items.length)
     return <div className="p-4 text-sm text-foreground/70">{emptyText}</div>
 
@@ -1567,11 +1590,11 @@ function OperationsCasesTable({
     <Table>
       <TableHeader className="bg-muted/40">
         <TableRow>
-          <TableHead>Instance</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Current step</TableHead>
-          <TableHead>Assignee</TableHead>
-          <TableHead>SLA</TableHead>
+          <TableHead>{t("workflow.bpmn.col_instance")}</TableHead>
+          <TableHead>{t("workflow.bpmn.col_status")}</TableHead>
+          <TableHead>{t("workflow.bpmn.col_current_step")}</TableHead>
+          <TableHead>{t("workflow.bpmn.col_assignee")}</TableHead>
+          <TableHead>{t("workflow.bpmn.col_sla")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -1617,6 +1640,7 @@ function OperationsElementsTable({
   emptyText: string
   onSelectElement: (ref?: string) => void
 }) {
+  const { t } = useI18n()
   if (!items.length)
     return <div className="p-4 text-sm text-foreground/70">{emptyText}</div>
 
@@ -1624,10 +1648,10 @@ function OperationsElementsTable({
     <Table>
       <TableHeader className="bg-muted/40">
         <TableRow>
-          <TableHead>Element</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Incoming</TableHead>
-          <TableHead>Outgoing</TableHead>
+          <TableHead>{t("workflow.bpmn.col_element")}</TableHead>
+          <TableHead>{t("workflow.bpmn.col_element_type")}</TableHead>
+          <TableHead>{t("workflow.bpmn.col_incoming")}</TableHead>
+          <TableHead>{t("workflow.bpmn.col_outgoing")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -1682,9 +1706,11 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
     <div className="rounded-md border bg-card p-2.5 text-card-foreground">
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-foreground/70">BPMN file</p>
+          <p className="text-xs font-medium text-foreground/70">
+            {t("workflow.bpmn.file_title")}
+          </p>
           <p className="truncate text-sm font-semibold text-foreground">
-            {info.processName || info.processId || "Unnamed process"}
+            {info.processName || info.processId || t("workflow.bpmn.file_unnamed")}
           </p>
           <p className="font-mono text-[11px] break-all text-foreground/70">
             {info.processId || "-"}
@@ -1695,16 +1721,21 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
         </Badge>
       </div>
       <div className="grid grid-cols-3 gap-1.5 text-sm">
-        <Field label="Tasks" value={String(info.tasks)} />
-        <Field label="Gateways" value={String(info.gateways)} />
-        <Field label="Events" value={String(info.events)} />
-        <Field label="Flows" value={String(info.flows)} />
-        <Field label="Jobs" value={String(info.jobs)} />
-        <Field label="Calls" value={String(info.callActivities)} />
+        <Field label={t("workflow.bpmn.file_tasks")} value={String(info.tasks)} />
+        <Field
+          label={t("workflow.bpmn.file_gateways")}
+          value={String(info.gateways)}
+        />
+        <Field label={t("workflow.bpmn.file_events")} value={String(info.events)} />
+        <Field label={t("workflow.bpmn.file_flows")} value={String(info.flows)} />
+        <Field label={t("workflow.bpmn.file_jobs")} value={String(info.jobs)} />
+        <Field label={t("workflow.bpmn.file_calls")} value={String(info.callActivities)} />
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Badge variant="outline">
-          Executable: {String(Boolean(info.executable))}
+          {t("workflow.bpmn.file_executable", {
+            value: String(Boolean(info.executable)),
+          })}
         </Badge>
         {info.missingJobTypes.length ? (
           <Badge variant="outline">
@@ -1715,7 +1746,9 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
         ) : null}
         {info.legacyConditions.length ? (
           <Badge variant="outline">
-            {info.legacyConditions.length} condition C7
+            {t("workflow.bpmn.file_legacy_conditions", {
+              count: info.legacyConditions.length,
+            })}
           </Badge>
         ) : null}
       </div>
@@ -1723,12 +1756,12 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
         <div className="mt-2 space-y-1 text-xs text-amber-700 dark:text-amber-300">
           {info.missingJobTypes.slice(0, 2).map((id) => (
             <p key={id} className="truncate font-mono">
-              Missing job type: {id}
+              {t("workflow.bpmn.file_missing_job_type", { id })}
             </p>
           ))}
           {info.legacyConditions.slice(0, 2).map((id) => (
             <p key={id} className="truncate font-mono">
-              Legacy condition: {id}
+              {t("workflow.bpmn.file_legacy_condition", { id })}
             </p>
           ))}
         </div>

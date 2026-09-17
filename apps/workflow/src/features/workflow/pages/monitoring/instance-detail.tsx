@@ -46,27 +46,13 @@ import type {
 import { InstanceStateBadge } from "./state-badge"
 import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime, formatDuration } from "./format"
+import { jobStateLabel } from "./job-state"
 
 type DetailTab = "variables" | "incidents" | "jobs" | "history" | "element"
 
 type MergedHistoryEntry =
   | { kind: "runtime"; ts: string; event: OperateHistoryEvent }
   | { kind: "case"; ts: string; event: WorkflowTimelineEvent }
-
-const JOB_STATE_KEYS: Record<string, string> = {
-  ACTIVATABLE: "workflow.monitoring.job_state_activatable",
-  ACTIVATED: "workflow.monitoring.job_state_activated",
-  FAILED: "workflow.monitoring.job_state_failed",
-  COMPLETED: "workflow.monitoring.job_state_completed",
-  ERROR_THROWN: "workflow.monitoring.job_state_error_thrown",
-  CANCELED: "workflow.monitoring.job_state_canceled",
-  TIMED_OUT: "workflow.monitoring.job_state_timed_out",
-}
-
-function jobStateLabel(t: (key: string) => string, state: string): string {
-  const key = JOB_STATE_KEYS[state]
-  return key ? t(key) : state
-}
 
 export function InstanceDetail({
   instanceKey,

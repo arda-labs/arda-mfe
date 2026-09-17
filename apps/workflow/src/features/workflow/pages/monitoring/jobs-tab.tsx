@@ -16,6 +16,7 @@ import type { JobDefinitionState, OperateJob, OperateJobQuery } from "../../api"
 import { InstanceDetail } from "./instance-detail"
 import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime } from "./format"
+import { jobStateLabel } from "./job-state"
 
 const JOB_STATES = [
   "ACTIVATABLE",
@@ -40,21 +41,6 @@ function draftToQuery(draft: DraftFilters): OperateJobQuery {
     bpmnProcessId: draft.bpmnProcessId?.trim() || undefined,
     processInstanceKey: draft.processInstanceKey?.trim() || undefined,
   }
-}
-
-const JOB_STATE_KEYS: Record<string, string> = {
-  ACTIVATABLE: "workflow.monitoring.job_state_activatable",
-  ACTIVATED: "workflow.monitoring.job_state_activated",
-  FAILED: "workflow.monitoring.job_state_failed",
-  COMPLETED: "workflow.monitoring.job_state_completed",
-  ERROR_THROWN: "workflow.monitoring.job_state_error_thrown",
-  CANCELED: "workflow.monitoring.job_state_canceled",
-  TIMED_OUT: "workflow.monitoring.job_state_timed_out",
-}
-
-function jobStateLabel(t: (key: string) => string, state: string): string {
-  const key = JOB_STATE_KEYS[state]
-  return key ? t(key) : state
 }
 
 export function JobsTab({

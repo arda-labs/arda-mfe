@@ -226,9 +226,9 @@ export function PrincipalPicker({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-10" />
-                      <TableHead>Username</TableHead>
+                      <TableHead>{t("workflow.principal.col_username")}</TableHead>
                       <TableHead>{t("workflow.principal.col_name")}</TableHead>
-                      <TableHead>Email</TableHead>
+                      <TableHead>{t("workflow.principal.col_email")}</TableHead>
                       <TableHead>{t("workflow.principal.col_status")}</TableHead>
                     </TableRow>
                   </TableHeader>

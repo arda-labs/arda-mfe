@@ -40,7 +40,7 @@ export function workItemColumns(
     cols.push(
       {
         id: "sla",
-        header: "SLA",
+        header: t("workflow.workbench.col_sla"),
         cell: ({ row }) => (
           <div className="min-w-32">
             <SlaStatus
@@ -91,7 +91,7 @@ export function workItemColumns(
       },
       {
         id: "sla",
-        header: "SLA",
+        header: t("workflow.workbench.col_sla"),
         cell: ({ row }) => (
           <div className="min-w-32">
             <SlaStatus
@@ -167,7 +167,7 @@ export function searchColumns(
     },
     {
       id: "sla",
-      header: "SLA",
+      header: t("workflow.workbench.col_sla"),
       cell: ({ row }) => (
         <div className="min-w-32">
           <SlaStatus
