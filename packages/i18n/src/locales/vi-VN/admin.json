@@ -224,6 +224,7 @@
   "resource_routes": {
     "title": "Tài nguyên & policy",
     "description": "Danh sách route-policy (policy.yaml) — chỉ đọc.",
+    "count": "{count} route",
     "search": "Tìm route...",
     "loading": "Đang tải...",
     "empty": "Không có route phù hợp",

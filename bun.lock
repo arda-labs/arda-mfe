@@ -319,6 +319,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
+        "@tanstack/react-query": "^5.90.0",
         "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",

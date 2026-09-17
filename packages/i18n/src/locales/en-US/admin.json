@@ -224,6 +224,7 @@
   "resource_routes": {
     "title": "Resources & policy",
     "description": "Route-policy entries (policy.yaml) — read-only.",
+    "count": "{count} routes",
     "search": "Search routes...",
     "loading": "Loading...",
     "empty": "No matching routes",

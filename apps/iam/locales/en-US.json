@@ -204,24 +204,5 @@
       "help_url_invalid": "Invalid help center URL",
       "url_not_allowed": "{field} must be an internal path or HTTPS"
     }
-  },
-  "resource_routes": {
-    "title": "Resources & policy",
-    "description": "Route-policy entries (policy.yaml) — read-only.",
-    "search": "Search routes...",
-    "loading": "Loading...",
-    "empty": "No matching routes",
-    "load_failed": "Could not load the policy",
-    "all_methods": "All methods",
-    "auth_required": "Authenticated",
-    "public": "Public",
-    "col": {
-      "id": "ID",
-      "path": "Path",
-      "methods": "Methods",
-      "auth": "Auth",
-      "risk": "Risk",
-      "permissions": "Permissions"
-    }
   }
 }
