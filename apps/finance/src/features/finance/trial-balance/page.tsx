@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { trialBalanceApi, type TrialBalanceEntry } from "@/features/finance/api"
 import { formatAmount, fromMinor } from "@workspace/format"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 
 /** Journal-aggregated trial balance (PostingService schema). */
 export function TrialBalancePage() {
+  const { t } = useI18n()
   const [entries, setEntries] = useState<TrialBalanceEntry[]>([])
   const [asOf, setAsOf] = useState("")
   const [totalDebit, setTotalDebit] = useState(0)
@@ -26,7 +37,7 @@ export function TrialBalancePage() {
         setTotalCredit(result.total_credit_minor)
       })
       .catch(() => {
-        if (!cancelled) notify.error("Could not load trial balance")
+        if (!cancelled) notify.error(t("finance.trial_balance.load_failed"))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -35,7 +46,7 @@ export function TrialBalancePage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [t])
 
   if (loading) {
     return (
@@ -49,71 +60,75 @@ export function TrialBalancePage() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Badge variant="secondary" className="px-2.5 py-1 text-xs">
-          Trial Balance
+          {t("finance.trial_balance.title")}
         </Badge>
-        <span className="text-xs text-muted-foreground">As of {asOf}</span>
+        <span className="text-xs text-muted-foreground">
+          {t("finance.trial_balance.as_of", { date: asOf })}
+        </span>
       </div>
       <div className="rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="border-b bg-muted/50">
-            <tr>
-              <th className="p-3 text-left font-medium">Account</th>
-              <th className="p-3 text-left font-medium">Code</th>
-              <th className="p-3 text-left font-medium">COA</th>
-              <th className="p-3 text-left font-medium">Currency</th>
-              <th className="p-3 text-right font-medium">Debit</th>
-              <th className="p-3 text-right font-medium">Credit</th>
-              <th className="p-3 text-right font-medium">Balance</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
+              <TableHead className="p-3">{t("finance.trial_balance.col.account")}</TableHead>
+              <TableHead className="p-3">{t("finance.trial_balance.col.code")}</TableHead>
+              <TableHead className="p-3">{t("finance.trial_balance.col.coa")}</TableHead>
+              <TableHead className="p-3">{t("finance.trial_balance.col.currency")}</TableHead>
+              <TableHead className="p-3 text-right">{t("finance.trial_balance.col.debit")}</TableHead>
+              <TableHead className="p-3 text-right">{t("finance.trial_balance.col.credit")}</TableHead>
+              <TableHead className="p-3 text-right">{t("finance.trial_balance.col.balance")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {entries.map((entry) => (
-              <tr
+              <TableRow
                 key={`${entry.account_code}-${entry.currency_code}`}
-                className="border-b last:border-0 hover:bg-muted/30"
+                className="hover:bg-muted/30"
               >
-                <td className="p-3 font-medium">{entry.account_name || "—"}</td>
-                <td className="p-3 font-mono text-xs text-muted-foreground">
+                <TableCell className="p-3 font-medium">{entry.account_name || "—"}</TableCell>
+                <TableCell className="p-3 font-mono text-xs text-muted-foreground">
                   {entry.account_code}
-                </td>
-                <td className="p-3 font-mono text-xs text-muted-foreground">
+                </TableCell>
+                <TableCell className="p-3 font-mono text-xs text-muted-foreground">
                   {entry.coa_version}
-                </td>
-                <td className="p-3 text-muted-foreground">
+                </TableCell>
+                <TableCell className="p-3 text-muted-foreground">
                   {entry.currency_code}
-                </td>
-                <td className="p-3 text-right font-mono tabular-nums">
+                </TableCell>
+                <TableCell className="p-3 text-right font-mono tabular-nums">
                   {formatAmount(fromMinor(entry.debit_minor, entry.currency_code), entry.currency_code)}
-                </td>
-                <td className="p-3 text-right font-mono tabular-nums">
+                </TableCell>
+                <TableCell className="p-3 text-right font-mono tabular-nums">
                   {formatAmount(fromMinor(entry.credit_minor, entry.currency_code), entry.currency_code)}
-                </td>
-                <td className="p-3 text-right font-mono tabular-nums">
+                </TableCell>
+                <TableCell className="p-3 text-right font-mono tabular-nums">
                   {formatAmount(fromMinor(entry.balance_minor, entry.currency_code), entry.currency_code)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-          <tfoot className="border-t bg-muted/30 font-medium">
-            <tr>
-              <td colSpan={4} className="p-3 text-right">
-                Total
-              </td>
-              <td className="p-3 text-right font-mono tabular-nums">
+          </TableBody>
+          <TableFooter className="bg-muted/30">
+            <TableRow>
+              <TableCell colSpan={4} className="p-3 text-right">
+                {t("finance.trial_balance.total")}
+              </TableCell>
+              <TableCell className="p-3 text-right font-mono tabular-nums">
                 {formatAmount(fromMinor(totalDebit), "VND")}
-              </td>
-              <td className="p-3 text-right font-mono tabular-nums">
+              </TableCell>
+              <TableCell className="p-3 text-right font-mono tabular-nums">
                 {formatAmount(fromMinor(totalCredit), "VND")}
-              </td>
-              <td />
-            </tr>
-          </tfoot>
-        </table>
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          </TableFooter>
+        </Table>
       </div>
       <p className="text-sm text-muted-foreground">
         {totalDebit === totalCredit
-          ? "✓ Balanced (Total Debit = Total Credit)"
-          : `✗ Unbalanced: difference ${formatAmount(fromMinor(totalDebit - totalCredit), "VND")}`}
+          ? t("finance.trial_balance.balanced")
+          : t("finance.trial_balance.unbalanced", {
+              amount: formatAmount(fromMinor(totalDebit - totalCredit), "VND"),
+            })}
       </p>
     </div>
   )

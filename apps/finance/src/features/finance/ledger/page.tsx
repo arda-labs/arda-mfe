@@ -3,6 +3,14 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { formatAmount, formatDateShort, fromMinor } from "@workspace/format"
 import { getLedger, type LedgerLine, type LedgerResult } from "../api"
 
@@ -87,51 +95,51 @@ export function LedgerPage() {
 
       {result && (
         <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">{t("finance.ledger.col.entry_no")}</th>
-                <th className="px-3 py-2">{t("finance.ledger.col.date")}</th>
-                <th className="px-3 py-2">{t("finance.ledger.col.description")}</th>
-                <th className="px-3 py-2 text-right">{t("finance.ledger.col.debit")}</th>
-                <th className="px-3 py-2 text-right">{t("finance.ledger.col.credit")}</th>
-                <th className="px-3 py-2 text-right">{t("finance.ledger.col.running")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-t border-border bg-muted/30 font-medium">
-                <td colSpan={5} className="px-3 py-2 text-right">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("finance.ledger.col.entry_no")}</TableHead>
+                <TableHead>{t("finance.ledger.col.date")}</TableHead>
+                <TableHead>{t("finance.ledger.col.description")}</TableHead>
+                <TableHead className="text-right">{t("finance.ledger.col.debit")}</TableHead>
+                <TableHead className="text-right">{t("finance.ledger.col.credit")}</TableHead>
+                <TableHead className="text-right">{t("finance.ledger.col.running")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow className="bg-muted/30 font-medium">
+                <TableCell colSpan={5} className="text-right">
                   {t("finance.ledger.opening")}
-                </td>
-                <td className="px-3 py-2 text-right tabular-nums">
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
                   {formatAmount(fromMinor(result.opening_minor), "VND")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
               {rows.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-3 py-4 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={6} className="py-4 text-center text-muted-foreground">
                     {t("finance.ledger.empty")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {rows.map((row) => (
-                <tr key={`${row.entry_id}-${row.entry_no}`} className="border-t border-border">
-                  <td className="px-3 py-2 font-mono text-xs">{row.entry_no}</td>
-                  <td className="whitespace-nowrap px-3 py-2">{formatDateShort(row.entry_date)}</td>
-                  <td className="px-3 py-2">{row.description || row.document_type || "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                <TableRow key={`${row.entry_id}-${row.entry_no}`}>
+                  <TableCell className="font-mono text-xs">{row.entry_no}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDateShort(row.entry_date)}</TableCell>
+                  <TableCell>{row.description || row.document_type || "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {row.debit_minor > 0 ? formatAmount(fromMinor(row.debit_minor), "VND") : "—"}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {row.credit_minor > 0 ? formatAmount(fromMinor(row.credit_minor), "VND") : "—"}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums font-medium">
                     {formatAmount(fromMinor(row.running), "VND")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

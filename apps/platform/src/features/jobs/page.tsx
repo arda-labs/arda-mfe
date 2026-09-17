@@ -5,6 +5,14 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { listJobRuns, listJobs, runCob, seedCob } from "./api"
 import { type CobRunResult, type JobDefinition, type JobRun } from "./types"
 
@@ -125,79 +133,79 @@ export function JobsPage() {
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">{t("platform.jobs.definitions")}</h2>
         <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">{t("platform.jobs.col.code")}</th>
-                <th className="px-3 py-2">{t("platform.jobs.col.name")}</th>
-                <th className="px-3 py-2">{t("platform.jobs.col.sequence")}</th>
-                <th className="px-3 py-2">{t("platform.jobs.col.endpoint")}</th>
-                <th className="px-3 py-2">{t("common.field.status")}</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("platform.jobs.col.code")}</TableHead>
+                <TableHead>{t("platform.jobs.col.name")}</TableHead>
+                <TableHead>{t("platform.jobs.col.sequence")}</TableHead>
+                <TableHead>{t("platform.jobs.col.endpoint")}</TableHead>
+                <TableHead>{t("common.field.status")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-4 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
                     {t("platform.jobs.loading")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {!loading && jobs.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-4 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
                     {t("platform.jobs.empty")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {jobs.map((job) => (
-                <tr key={job.code} className="border-t border-border">
-                  <td className="px-3 py-2 font-mono text-xs font-semibold text-primary">
+                <TableRow key={job.code}>
+                  <TableCell className="font-mono text-xs font-semibold text-primary">
                     {job.code}
-                  </td>
-                  <td className="px-3 py-2">{job.name}</td>
-                  <td className="px-3 py-2 tabular-nums">{job.sequence}</td>
-                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                  </TableCell>
+                  <TableCell>{job.name}</TableCell>
+                  <TableCell className="tabular-nums">{job.sequence}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
                     {job.endpoint}
-                  </td>
-                  <td className="px-3 py-2">
+                  </TableCell>
+                  <TableCell>
                     <Badge variant={job.is_enabled ? "default" : "outline"}>
                       {job.is_enabled ? t("platform.jobs.enabled") : t("platform.jobs.disabled")}
                     </Badge>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </section>
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">{t("platform.jobs.history")}</h2>
         <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">{t("platform.jobs.col.code")}</th>
-                <th className="px-3 py-2">{t("platform.jobs.field.business_date")}</th>
-                <th className="px-3 py-2">{t("common.field.status")}</th>
-                <th className="px-3 py-2">{t("platform.jobs.col.error")}</th>
-                <th className="px-3 py-2">{t("platform.jobs.col.finished")}</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("platform.jobs.col.code")}</TableHead>
+                <TableHead>{t("platform.jobs.field.business_date")}</TableHead>
+                <TableHead>{t("common.field.status")}</TableHead>
+                <TableHead>{t("platform.jobs.col.error")}</TableHead>
+                <TableHead>{t("platform.jobs.col.finished")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {runs.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-4 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
                     {t("platform.jobs.empty")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {runs.map((row, index) => (
-                <tr key={`${row.job_code}-${row.business_date}-${index}`} className="border-t border-border">
-                  <td className="px-3 py-2 font-mono text-xs">{row.job_code}</td>
-                  <td className="px-3 py-2">{row.business_date}</td>
-                  <td className="px-3 py-2">
+                <TableRow key={`${row.job_code}-${row.business_date}-${index}`}>
+                  <TableCell className="font-mono text-xs">{row.job_code}</TableCell>
+                  <TableCell>{row.business_date}</TableCell>
+                  <TableCell>
                     <Badge
                       variant={
                         row.status === "DONE"
@@ -209,17 +217,17 @@ export function JobsPage() {
                     >
                       {row.status}
                     </Badge>
-                  </td>
-                  <td className="max-w-[280px] truncate px-3 py-2 text-xs text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="max-w-[280px] truncate text-xs text-muted-foreground">
                     {row.error || "—"}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
                     {row.finished_at || "—"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </section>
     </div>

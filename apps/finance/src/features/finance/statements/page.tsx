@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useI18n } from "@workspace/i18n"
 import { statementsApi, type FinancialSummary, type RiskException, type StatementResult, type StatementSummary } from "@/features/finance/api"
 import { downloadFile } from "@workspace/api"
 import { formatAmount, fromMinor } from "@workspace/format"
@@ -7,6 +8,14 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 
 /**
  * Fixed-format statements (P3b): pick a statement code + as-of date, render
@@ -14,6 +23,7 @@ import { Input } from "@workspace/ui/components/input"
  * precompute, export XLSX. Layout mirrors the trial-balance page shell.
  */
 export function StatementsPage() {
+  const { t } = useI18n()
   const [statements, setStatements] = useState<StatementSummary[]>([])
   const [selected, setSelected] = useState("")
   const [asOf, setAsOf] = useState("")
@@ -35,7 +45,7 @@ export function StatementsPage() {
         if (items.length > 0) setSelected((prev) => prev || items[0].statement_code)
       })
       .catch(() => {
-        if (!cancelled) notify.error("Could not load statements")
+        if (!cancelled) notify.error(t("finance.statements.load_failed"))
       })
       .finally(() => {
         if (!cancelled) setLoadingList(false)
@@ -43,7 +53,7 @@ export function StatementsPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     let cancelled = false
@@ -66,7 +76,7 @@ export function StatementsPage() {
     return () => {
       cancelled = true
     }
-  }, [asOf, from])
+  }, [asOf, from, t])
 
   const run = useCallback(() => {
     if (!selected) return
@@ -79,7 +89,7 @@ export function StatementsPage() {
         setResult(res)
       })
       .catch(() => {
-        if (!cancelled) notify.error("Could not render statement")
+        if (!cancelled) notify.error(t("finance.statements.render_failed"))
       })
       .finally(() => {
         if (!cancelled) setLoadingRun(false)
@@ -87,7 +97,7 @@ export function StatementsPage() {
     return () => {
       cancelled = true
     }
-  }, [selected, asOf, from])
+  }, [selected, asOf, from, t])
 
   const exportXlsx = useCallback(async () => {
     if (!selected) return
@@ -102,11 +112,11 @@ export function StatementsPage() {
         { fallbackFilename: `${selected.toLowerCase()}.xlsx` }
       )
     } catch {
-      notify.error("Could not export statement")
+      notify.error(t("finance.statements.export_failed"))
     } finally {
       setExporting(false)
     }
-  }, [selected, asOf, from])
+  }, [selected, asOf, from, t])
 
   if (loadingList) {
     return (
@@ -127,7 +137,7 @@ export function StatementsPage() {
           onFromChange={setFrom}
         />
         <p className="text-sm text-muted-foreground">
-          No statements defined for this tenant.
+          {t("finance.statements.empty")}
         </p>
       </div>
     )
@@ -144,45 +154,45 @@ export function StatementsPage() {
       />
       {summary && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <SummaryTile label="Total assets" value={summary.total_assets_minor} />
-          <SummaryTile label="Total liabilities" value={summary.total_liabilities_minor} />
-          <SummaryTile label="Total equity" value={summary.total_equity_minor} />
-          <SummaryTile label="Total income" value={summary.total_income_minor} />
-          <SummaryTile label="Total expense" value={summary.total_expense_minor} />
-          <SummaryTile label="Profit before tax" value={summary.profit_minor} />
+          <SummaryTile label={t("finance.statements.summary.total_assets")} value={summary.total_assets_minor} />
+          <SummaryTile label={t("finance.statements.summary.total_liabilities")} value={summary.total_liabilities_minor} />
+          <SummaryTile label={t("finance.statements.summary.total_equity")} value={summary.total_equity_minor} />
+          <SummaryTile label={t("finance.statements.summary.total_income")} value={summary.total_income_minor} />
+          <SummaryTile label={t("finance.statements.summary.total_expense")} value={summary.total_expense_minor} />
+          <SummaryTile label={t("finance.statements.summary.profit_before_tax")} value={summary.profit_minor} />
         </div>
       )}
       {exceptions.length > 0 && (
         <div className="rounded-lg border">
           <div className="border-b px-3 py-2 text-xs font-semibold">
-            Risk exceptions ({exceptions.length})
+            {t("finance.statements.risk_exceptions", { count: exceptions.length })}
           </div>
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">Account</th>
-                <th className="px-3 py-2">Currency</th>
-                <th className="px-3 py-2 text-right">Debit</th>
-                <th className="px-3 py-2 text-right">Credit</th>
-                <th className="px-3 py-2">Reason</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("finance.statements.col.account")}</TableHead>
+                <TableHead>{t("finance.statements.col.currency")}</TableHead>
+                <TableHead className="text-right">{t("finance.statements.col.debit")}</TableHead>
+                <TableHead className="text-right">{t("finance.statements.col.credit")}</TableHead>
+                <TableHead>{t("finance.statements.col.reason")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {exceptions.map((row) => (
-                <tr key={`${row.account_code}-${row.currency_code}`} className="border-t">
-                  <td className="px-3 py-2 font-mono text-xs">{row.account_code}</td>
-                  <td className="px-3 py-2 text-xs">{row.currency_code}</td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                <TableRow key={`${row.account_code}-${row.currency_code}`}>
+                  <TableCell className="font-mono text-xs">{row.account_code}</TableCell>
+                  <TableCell className="text-xs">{row.currency_code}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
                     {formatAmount(fromMinor(row.close_debit_minor), row.currency_code)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
                     {formatAmount(fromMinor(row.close_credit_minor), row.currency_code)}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-destructive">{row.reason}</td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="text-xs text-destructive">{row.reason}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
@@ -198,7 +208,7 @@ export function StatementsPage() {
         ))}
         <Button size="sm" onClick={run} disabled={loadingRun || !selected}>
           {loadingRun ? <Spinner className="size-4" /> : null}
-          Render
+          {t("finance.statements.render")}
         </Button>
         <Button
           size="sm"
@@ -207,7 +217,7 @@ export function StatementsPage() {
           disabled={exporting || !selected}
         >
           {exporting ? <Spinner className="size-4" /> : null}
-          Export XLSX
+          {t("finance.statements.export_xlsx")}
         </Button>
       </div>
 
@@ -219,39 +229,39 @@ export function StatementsPage() {
             </Badge>
             <span className="text-xs text-muted-foreground">
               {result.from_date && result.from_date !== result.as_of
-                ? `${result.from_date} → ${result.as_of}`
-                : `As of ${result.as_of}`}
+                ? t("finance.statements.range", { from: result.from_date, to: result.as_of })
+                : t("finance.statements.as_of", { date: result.as_of })}
             </span>
           </div>
           <div className="rounded-lg border">
-            <table className="w-full text-sm">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="p-3 text-left font-medium">Label</th>
-                  <th className="p-3 text-right font-medium">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="p-3">{t("finance.statements.col.label")}</TableHead>
+                  <TableHead className="p-3 text-right">{t("finance.statements.col.amount")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {result.rows.map((row) => (
-                  <tr
+                  <TableRow
                     key={row.row_code}
-                    className={`border-b last:border-0 ${row.is_total ? "bg-muted/30 font-medium" : "hover:bg-muted/30"}`}
+                    className={row.is_total ? "bg-muted/30 font-medium" : "hover:bg-muted/30"}
                   >
-                    <td
+                    <TableCell
                       className="p-3"
                       style={{ paddingLeft: `${12 + row.level * 24}px` }}
                     >
                       {row.label}
-                    </td>
-                    <td className="p-3 text-right font-mono tabular-nums">
+                    </TableCell>
+                    <TableCell className="p-3 text-right font-mono tabular-nums">
                       {row.has_amount
                         ? formatAmount(fromMinor(row.amount_minor), "VND")
                         : ""}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
@@ -272,26 +282,31 @@ function Header({
   from: string
   onFromChange: (v: string) => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant="secondary" className="px-2.5 py-1 text-xs">
-        Statements
+        {t("finance.statements.title")}
       </Badge>
       <Input
         type="date"
         value={from}
         onChange={(e) => onFromChange(e.target.value)}
         className="w-40"
-        placeholder="From (optional)"
-        aria-label={`From date for ${selected || "statement"}`}
+        placeholder={t("finance.statements.placeholder.from")}
+        aria-label={t("finance.statements.aria.from", {
+          code: selected || t("finance.statements.title"),
+        })}
       />
       <Input
         type="date"
         value={asOf}
         onChange={(e) => onAsOfChange(e.target.value)}
         className="w-40"
-        placeholder="As of (latest if empty)"
-        aria-label={`As-of date for ${selected || "statement"}`}
+        placeholder={t("finance.statements.placeholder.as_of")}
+        aria-label={t("finance.statements.aria.as_of", {
+          code: selected || t("finance.statements.title"),
+        })}
       />
     </div>
   )

@@ -1,6 +1,14 @@
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { Cpu } from "lucide-react"
 import type { ModelUsage } from "../types"
 
@@ -25,36 +33,34 @@ export function ModelUsageTable({ models }: ModelUsageTableProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b text-muted-foreground">
-                <th className="pb-2 font-medium">{t("ai.analytics.table.model")}</th>
-                <th className="pb-2 font-medium">{t("ai.analytics.table.provider")}</th>
-                <th className="pb-2 text-right font-medium">{t("ai.analytics.table.runs")}</th>
-                <th className="pb-2 text-right font-medium">{t("ai.analytics.table.tokens")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {models.map((m) => (
-                <tr key={m.modelId} className="hover:bg-muted/40">
-                  <td className="py-2.5 font-mono font-medium">{m.modelId}</td>
-                  <td className="py-2.5">
-                    <Badge variant="outline" className="text-[10px] uppercase">
-                      {m.provider}
-                    </Badge>
-                  </td>
-                  <td className="py-2.5 text-right font-mono">
-                    {formatNumber(m.runs)}
-                  </td>
-                  <td className="py-2.5 text-right font-mono">
-                    {formatNumber(m.tokens)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table className="text-left text-xs">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="h-auto pb-2">{t("ai.analytics.table.model")}</TableHead>
+              <TableHead className="h-auto pb-2">{t("ai.analytics.table.provider")}</TableHead>
+              <TableHead className="h-auto pb-2 text-right">{t("ai.analytics.table.runs")}</TableHead>
+              <TableHead className="h-auto pb-2 text-right">{t("ai.analytics.table.tokens")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {models.map((m) => (
+              <TableRow key={m.modelId} className="hover:bg-muted/40">
+                <TableCell className="py-2.5 font-mono font-medium">{m.modelId}</TableCell>
+                <TableCell className="py-2.5">
+                  <Badge variant="outline" className="text-[10px] uppercase">
+                    {m.provider}
+                  </Badge>
+                </TableCell>
+                <TableCell className="py-2.5 text-right font-mono">
+                  {formatNumber(m.runs)}
+                </TableCell>
+                <TableCell className="py-2.5 text-right font-mono">
+                  {formatNumber(m.tokens)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )

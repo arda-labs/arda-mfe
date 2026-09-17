@@ -1,6 +1,14 @@
 import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { ChevronDown, Table as TableIcon } from "lucide-react"
 
 export function isArrayResult(value: unknown): value is Array<Record<string, unknown>> {
@@ -35,30 +43,28 @@ export function DataTableView({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b bg-muted/40 text-[11px] font-medium text-muted-foreground">
-              {columns.map((col) => (
-                <th key={col} className="px-3 py-2 capitalize">
-                  {formatColumnName(col)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
-            {visibleRows.map((row, idx) => (
-              <tr key={idx} className="hover:bg-muted/20 transition-colors">
-                {columns.map((col) => (
-                  <td key={col} className="px-3 py-2 text-foreground font-mono text-[11px]">
-                    {formatCellValue(row[col])}
-                  </td>
-                ))}
-              </tr>
+      <Table className="text-left text-xs">
+        <TableHeader className="bg-muted/40 text-[11px]">
+          <TableRow className="font-medium">
+            {columns.map((col) => (
+              <TableHead key={col} className="h-auto py-2 text-[11px] capitalize">
+                {formatColumnName(col)}
+              </TableHead>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {visibleRows.map((row, idx) => (
+            <TableRow key={idx} className="hover:bg-muted/20 transition-colors">
+              {columns.map((col) => (
+                <TableCell key={col} className="text-foreground font-mono text-[11px]">
+                  {formatCellValue(row[col])}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {hasMore && (
         <div className="border-t bg-muted/20 px-3 py-1.5 text-center">

@@ -7,6 +7,14 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
+import {
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -127,44 +135,42 @@ export function CutoffPage() {
             Gio chot so theo kenh thanh toan
           </h2>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="p-3 text-left font-medium">Kenh</th>
-                  <th className="p-3 text-left font-medium">Loai giao dich</th>
-                  <th className="p-3 text-left font-medium">Gio chot so</th>
-                  <th className="p-3 text-center font-medium">Trang thai</th>
-                </tr>
-              </thead>
-              <tbody>
-                {CUTOFFS.map((cutoff) => (
-                  <tr
-                    key={cutoff.id}
-                    className="border-b last:border-0 hover:bg-muted/30"
-                  >
-                    <td className="p-3 font-semibold text-primary">
-                      {cutoff.channelCode}
-                    </td>
-                    <td className="p-3 text-muted-foreground">
-                      {cutoff.transactionType}
-                    </td>
-                    <td className="p-3 font-mono font-medium text-destructive">
-                      {cutoff.cutoffTime}
-                    </td>
-                    <td className="p-3 text-center">
-                      <Badge
-                        variant="default"
-                        className="bg-green-500 hover:bg-green-600"
-                      >
-                        Hoat dong
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead className="p-3">Kenh</TableHead>
+                <TableHead className="p-3">Loai giao dich</TableHead>
+                <TableHead className="p-3">Gio chot so</TableHead>
+                <TableHead className="p-3 text-center">Trang thai</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {CUTOFFS.map((cutoff) => (
+                <TableRow
+                  key={cutoff.id}
+                  className="hover:bg-muted/30"
+                >
+                  <TableCell className="p-3 font-semibold text-primary">
+                    {cutoff.channelCode}
+                  </TableCell>
+                  <TableCell className="p-3 text-muted-foreground">
+                    {cutoff.transactionType}
+                  </TableCell>
+                  <TableCell className="p-3 font-mono font-medium text-destructive">
+                    {cutoff.cutoffTime}
+                  </TableCell>
+                  <TableCell className="p-3 text-center">
+                    <Badge
+                      variant="default"
+                      className="bg-green-500 hover:bg-green-600"
+                    >
+                      Hoat dong
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           <p className="mt-2 text-xs text-muted-foreground">
             * Giao dich phat sinh sau gio chot so se duoc chuyen tiep hach toan
             va doi soat vao ngay lam viec tiep theo (T+1).

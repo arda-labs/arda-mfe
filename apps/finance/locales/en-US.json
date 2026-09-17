@@ -441,6 +441,60 @@
       "running": "Running"
     }
   },
+  "trial_balance": {
+    "title": "Trial Balance",
+    "as_of": "As of {date}",
+    "col": {
+      "account": "Account",
+      "code": "Code",
+      "coa": "COA",
+      "currency": "Currency",
+      "debit": "Debit",
+      "credit": "Credit",
+      "balance": "Balance"
+    },
+    "total": "Total",
+    "balanced": "✓ Balanced (Total Debit = Total Credit)",
+    "unbalanced": "✗ Unbalanced: difference {amount}",
+    "load_failed": "Could not load trial balance"
+  },
+  "statements": {
+    "title": "Statements",
+    "empty": "No statements defined for this tenant.",
+    "summary": {
+      "total_assets": "Total assets",
+      "total_liabilities": "Total liabilities",
+      "total_equity": "Total equity",
+      "total_income": "Total income",
+      "total_expense": "Total expense",
+      "profit_before_tax": "Profit before tax"
+    },
+    "risk_exceptions": "Risk exceptions ({count})",
+    "col": {
+      "account": "Account",
+      "currency": "Currency",
+      "debit": "Debit",
+      "credit": "Credit",
+      "reason": "Reason",
+      "label": "Label",
+      "amount": "Amount"
+    },
+    "render": "Render",
+    "export_xlsx": "Export XLSX",
+    "range": "{from} → {to}",
+    "as_of": "As of {date}",
+    "placeholder": {
+      "from": "From (optional)",
+      "as_of": "As of (latest if empty)"
+    },
+    "aria": {
+      "from": "From date for {code}",
+      "as_of": "As-of date for {code}"
+    },
+    "load_failed": "Could not load statements",
+    "render_failed": "Could not render statement",
+    "export_failed": "Could not export statement"
+  },
   "counterparties": {
     "title": "Counterparties",
     "count": "{count} counterparties",

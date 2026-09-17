@@ -441,6 +441,60 @@
       "running": "Lũy kế"
     }
   },
+  "trial_balance": {
+    "title": "Cân đối phát sinh",
+    "as_of": "Tính đến {date}",
+    "col": {
+      "account": "Tài khoản",
+      "code": "Mã",
+      "coa": "COA",
+      "currency": "Loại tiền",
+      "debit": "Nợ",
+      "credit": "Có",
+      "balance": "Số dư"
+    },
+    "total": "Tổng",
+    "balanced": "✓ Cân đối (Tổng Nợ = Tổng Có)",
+    "unbalanced": "✗ Lệch: chênh lệch {amount}",
+    "load_failed": "Không thể tải bảng cân đối phát sinh"
+  },
+  "statements": {
+    "title": "Báo cáo tài chính",
+    "empty": "Chưa có báo cáo nào cho đơn vị này.",
+    "summary": {
+      "total_assets": "Tổng tài sản",
+      "total_liabilities": "Tổng nợ phải trả",
+      "total_equity": "Tổng vốn chủ sở hữu",
+      "total_income": "Tổng doanh thu",
+      "total_expense": "Tổng chi phí",
+      "profit_before_tax": "Lợi nhuận trước thuế"
+    },
+    "risk_exceptions": "Ngoại lệ rủi ro ({count})",
+    "col": {
+      "account": "Tài khoản",
+      "currency": "Loại tiền",
+      "debit": "Nợ",
+      "credit": "Có",
+      "reason": "Lý do",
+      "label": "Chỉ tiêu",
+      "amount": "Số tiền"
+    },
+    "render": "Kết xuất",
+    "export_xlsx": "Xuất XLSX",
+    "range": "{from} → {to}",
+    "as_of": "Tính đến {date}",
+    "placeholder": {
+      "from": "Từ ngày (tùy chọn)",
+      "as_of": "Tính đến ngày (mặc định mới nhất)"
+    },
+    "aria": {
+      "from": "Ngày bắt đầu cho {code}",
+      "as_of": "Ngày kết thúc cho {code}"
+    },
+    "load_failed": "Không thể tải danh sách báo cáo",
+    "render_failed": "Không thể kết xuất báo cáo",
+    "export_failed": "Không thể xuất báo cáo"
+  },
   "counterparties": {
     "title": "Tài khoản đối tác",
     "count": "{count} đối tác",
