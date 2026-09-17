@@ -18,8 +18,18 @@ export interface ListToolsParams {
  */
 export type UpdateToolPayload = { enabled: boolean } | { clearOverride: true }
 
+/**
+ * ai-service marshals a Go nil []string as JSON null, so tools without a
+ * permission requirement (e.g. `docs.problemLookup`) arrive with
+ * `requiredPermissions: null` although the catalog contract declares an
+ * array. Normalize at the transport boundary — components read `.length`.
+ */
+export function normalizeCatalogTool(tool: CatalogTool): CatalogTool {
+  return { ...tool, requiredPermissions: tool.requiredPermissions ?? [] }
+}
+
 export const toolsApi = {
-  listTools: (params: ListToolsParams = {}) => {
+  listTools: async (params: ListToolsParams = {}) => {
     const search = new URLSearchParams()
     if (params.domain && params.domain !== "all") {
       search.set("domain", params.domain)
@@ -33,11 +43,16 @@ export const toolsApi = {
     if (params.limit) search.set("limit", String(params.limit))
     if (params.cursor) search.set("cursor", String(params.cursor))
     const qs = search.toString()
-    return api.get<CatalogTool[]>(`/api/ai/tools${qs ? `?${qs}` : ""}`)
+    const tools = await api.get<CatalogTool[]>(
+      `/api/ai/tools${qs ? `?${qs}` : ""}`
+    )
+    return tools.map(normalizeCatalogTool)
   },
-  updateTool: (methodName: string, payload: UpdateToolPayload) =>
-    api.patch<CatalogTool>(
-      `/api/ai/tools/${encodeURIComponent(methodName)}`,
-      payload
+  updateTool: async (methodName: string, payload: UpdateToolPayload) =>
+    normalizeCatalogTool(
+      await api.patch<CatalogTool>(
+        `/api/ai/tools/${encodeURIComponent(methodName)}`,
+        payload
+      )
     ),
 }
