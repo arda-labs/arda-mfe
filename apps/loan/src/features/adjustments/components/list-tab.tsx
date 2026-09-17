@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -7,16 +8,10 @@ import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
+  selectFilterMeta,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
 import { useClientListTable } from "@workspace/list-page/client-list"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { formatDateShort, formatMoney, fromMinor } from "@workspace/format"
@@ -37,6 +32,9 @@ const ADJUSTMENT_STATUSES = [
   "REJECTED",
   "CANCELLED",
 ] as const
+
+const CONTRACT_FILTER_KEY = "adjustment_contract_code"
+const STATUS_FILTER_KEY = "adjustment_status"
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
@@ -60,6 +58,10 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
  * pages in memory). Cột: mã hồ sơ (case_display: case uuid sau submit, id
  * khi còn DRAFT), hợp đồng, các cột chính theo kind (adjustmentFields),
  * trạng thái, ngày tạo; nút Trình duyệt cho row DRAFT.
+ *
+ * Bộ lọc hợp đồng/trạng thái nằm trên cột (`enableColumnFilter` + meta) nên
+ * `useClientListTable` URL-sync chúng; effect fetch đọc lại chính các tham số
+ * đó từ URL để giữ nguyên truy vấn server-side.
  */
 export function AdjustmentListTab({
   kind,
@@ -70,14 +72,14 @@ export function AdjustmentListTab({
   onCaseCreated?: (caseId: string) => void
 }) {
   const { t } = useI18n()
+  const [searchParams] = useSearchParams()
   const [items, setItems] = useState<LoanAdjustment[] | null>(null)
   const [loadedKey, setLoadedKey] = useState("")
-  const [contractFilter, setContractFilter] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
   const [submittingId, setSubmittingId] = useState<string | null>(null)
   const [reloadTick, setReloadTick] = useState(0)
 
-  const contractQuery = contractFilter.trim()
+  const contractQuery = (searchParams.get(CONTRACT_FILTER_KEY) ?? "").trim()
+  const statusFilter = searchParams.get(STATUS_FILTER_KEY) ?? ""
   const paramKey = `${kind}|${contractQuery}|${statusFilter}|${reloadTick}`
   const loading = loadedKey !== paramKey
 
@@ -154,7 +156,7 @@ export function AdjustmentListTab({
         },
       },
       {
-        id: "adjustment_contract_code",
+        id: CONTRACT_FILTER_KEY,
         accessorKey: "contract_code",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.contract_code")} />
@@ -179,9 +181,19 @@ export function AdjustmentListTab({
     }
     base.push(
       {
-        id: "adjustment_status",
+        id: STATUS_FILTER_KEY,
         accessorKey: "status",
-        header: t("loan.field.status"),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("loan.field.status")} />
+        ),
+        enableColumnFilter: true,
+        meta: selectFilterMeta(
+          t("loan.field.status"),
+          ADJUSTMENT_STATUSES.map((status) => ({
+            value: status,
+            label: t(`loan.status.${status.toLowerCase()}`),
+          }))
+        ),
         enableSorting: false,
         cell: ({ row }) => (
           <Badge variant={statusVariant(row.original.status)}>{row.original.status}</Badge>
@@ -225,54 +237,29 @@ export function AdjustmentListTab({
   const table = useClientListTable({
     columns,
     items: items ?? [],
-    filterBy: {
-      adjustment_contract_code: (item, value) =>
-        matchTextColumnFilter(value, item.contract_code),
-    },
     defaultPageSize: LOAN_DEFAULT_PAGE_SIZE,
   })
 
+  // Chỉ hiện skeleton ở lần tải đầu; các lần refetch do đổi filter giữ nguyên
+  // toolbar (input không mất focus) và mờ bảng theo `fetching`.
+  const initialLoading = items === null && loading
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="adjustment-list-contract">{t("loan.field.contract_code")}</Label>
-          <Input
-            id="adjustment-list-contract"
-            className="w-56"
-            value={contractFilter}
-            placeholder={t("loan.placeholder.search")}
-            onChange={(event) => setContractFilter(event.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="adjustment-list-status">{t("loan.field.status")}</Label>
-          <Select
-            value={statusFilter || "ALL"}
-            onValueChange={(next) => setStatusFilter(next === "ALL" ? "" : next)}
-          >
-            <SelectTrigger id="adjustment-list-status" className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">{t("loan.adjustment_screen.status_all")}</SelectItem>
-              {ADJUSTMENT_STATUSES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button variant="outline" size="sm" onClick={reload}>
-          {t("loan.reload")}
-        </Button>
-      </div>
-      {loading ? (
+      {initialLoading ? (
         <DataTableSkeleton columnCount={6} rowCount={4} />
       ) : (
-        <DataTable table={table.table} totalRows={table.total} className="min-h-0">
-          <ListTableToolbar table={table.table} />
+        <DataTable
+          table={table.table}
+          totalRows={table.total}
+          className="min-h-0"
+          fetching={loading}
+        >
+          <ListTableToolbar table={table.table}>
+            <Button variant="outline" size="sm" className="h-8" onClick={reload}>
+              {t("loan.reload")}
+            </Button>
+          </ListTableToolbar>
         </DataTable>
       )}
     </div>

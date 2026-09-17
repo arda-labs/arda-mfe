@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import {
-  ArrowLeft,
-  FileUp,
-  Eye,
-  Download,
-  Rocket,
-  Trash2,
-  RefreshCw,
-  MoreHorizontal,
-} from "lucide-react"
+import { ArrowLeft, FileUp, RefreshCw } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   AlertDialog,
@@ -22,16 +13,9 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
-import { useDataTable } from "@workspace/list-page/use-data-table"
-import type { ColumnDef, Row } from "@tanstack/react-table"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import type { Row } from "@tanstack/react-table"
 import { notify } from "@workspace/ui/feedback/notify"
 import { useI18n } from "@workspace/i18n"
 import type {
@@ -52,6 +36,7 @@ import { JobsTab } from "./monitoring/jobs-tab"
 import { SummaryTab } from "./monitoring/summary-tab"
 import { UserTasksTab } from "./monitoring/user-tasks-tab"
 import { InstanceDetail } from "./monitoring/instance-detail"
+import { useDefinitionsTable } from "./monitoring/definitions-tab"
 
 function useXml(id: string | undefined) {
   const [xml, setXml] = useState("")
@@ -90,24 +75,6 @@ type HubTab =
   | "incidents"
   | "userTasks"
   | "jobs"
-
-function StatusBadge({ status }: { status: string }) {
-  const variant =
-    status === "ACTIVE" || status === "COMPLETED" ? "secondary" : "outline"
-  return <Badge variant={variant}>{status}</Badge>
-}
-
-async function downloadDefinition(item: WorkflowProcessDefinition) {
-  const xml =
-    item.xmlContent || (await definitionsApi.getProcessDefinitionXml(item.id))
-  const blob = new Blob([xml], { type: "application/xml;charset=utf-8" })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement("a")
-  anchor.href = url
-  anchor.download = item.resourceName || `${item.bpmnProcessId}.bpmn`
-  anchor.click()
-  URL.revokeObjectURL(url)
-}
 
 export function ProcessMonitoringPage() {
   const { t } = useI18n()
@@ -178,8 +145,6 @@ export function ProcessMonitoringPage() {
   const [deleteTarget, setDeleteTarget] =
     useState<WorkflowProcessDefinition | null>(null)
   const [deployPending, setDeployPending] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
   const loadedRef = useRef(false)
 
   // ── Load primary data ──
@@ -349,131 +314,15 @@ export function ProcessMonitoringPage() {
       })
   }
 
-  const filteredDefinitions = useMemo(() => {
-    let list = definitions
-    if (statusFilter !== "all")
-      list = list.filter((d) => d.status === statusFilter)
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase()
-      list = list.filter(
-        (d) =>
-          d.name.toLowerCase().includes(q) ||
-          d.bpmnProcessId.toLowerCase().includes(q) ||
-          d.processCode.toLowerCase().includes(q)
-      )
-    }
-    return list
-  }, [definitions, statusFilter, searchQuery])
-
-  const columns = useMemo<ColumnDef<WorkflowProcessDefinition>[]>(
-    () => [
-      {
-        id: "name",
-        header: t("workflow.process_monitoring.col_process_code"),
-        cell: ({ row }) => (
-          <div>
-            <button
-              type="button"
-              className="text-left font-medium hover:underline"
-              onClick={() => startMonitor(row.original)}
-            >
-              {row.original.name}
-            </button>
-            <p className="font-mono text-xs text-muted-foreground">
-              {row.original.processCode}
-            </p>
-          </div>
-        ),
-      },
-      {
-        id: "bpmnProcessId",
-        header: "BPMN process",
-        cell: ({ row }) => (
-          <span className="font-mono text-xs">
-            {row.original.bpmnProcessId}
-          </span>
-        ),
-      },
-      {
-        id: "version",
-        header: "Version",
-        cell: ({ row }) => <span>v{row.original.version}</span>,
-      },
-      {
-        id: "status",
-        header: t("workflow.process_monitoring.col_status"),
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => {
-          const item = row.original
-          const pending = deployPending != null || saving != null
-          return (
-            <div className="flex justify-end gap-1">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-7"
-                title={t("workflow.process_monitoring.edit_bpmn_title")}
-                onClick={() => setUpdatingDefinition(item)}
-              >
-                <FileUp className="size-3.5" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="size-7"
-                  >
-                    <MoreHorizontal className="size-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setViewingDefinition(item)}>
-                    <Eye className="mr-2 size-3.5" />
-                    {t("workflow.process_monitoring.menu_view_bpmn")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => downloadDefinition(item)}>
-                    <Download className="mr-2 size-3.5" />
-                    {t("workflow.process_monitoring.menu_download_xml")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    disabled={pending}
-                    onClick={() => void handleDeploy(item.id)}
-                  >
-                    <Rocket className="mr-2 size-3.5" />
-                    {t("workflow.process_monitoring.menu_deploy")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    disabled={pending}
-                    onClick={() => setDeleteTarget(item)}
-                  >
-                    <Trash2 className="mr-2 size-3.5" />
-                    {t("workflow.process_monitoring.menu_delete")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )
-        },
-      },
-    ],
-    [deployPending, saving, t]
-  )
-
-  const { table } = useDataTable({
-    columns,
-    data: filteredDefinitions,
-    pageCount: 1,
-    showRowIndex: false,
+  const { table, total: definitionsTotal } = useDefinitionsTable({
+    definitions,
+    deployPending,
+    saving,
+    onStartMonitor: startMonitor,
+    onEdit: setUpdatingDefinition,
+    onView: setViewingDefinition,
+    onDelete: setDeleteTarget,
+    onDeploy: handleDeploy,
   })
 
   // ─── Monitor mode ───
@@ -586,59 +435,33 @@ export function ProcessMonitoringPage() {
         {hubTab === "definitions" ? (
           <ListPageShell
         title={t("workflow.process_monitoring.title")}
-        totalRows={definitions.length}
-        meta={<Badge variant="outline">{t("workflow.process_monitoring.definitions_count", { count: definitions.length })}</Badge>}
-        actions={
-          <Button type="button" size="sm" onClick={() => setImportOpen(true)}>
-            <FileUp className="mr-1 size-4" />
-            Import BPMN
-          </Button>
-        }
+        totalRows={definitionsTotal}
+        meta={<Badge variant="outline">{t("workflow.process_monitoring.definitions_count", { count: definitionsTotal })}</Badge>}
         criticalPending={loading && !hasLoaded}
         criticalError={loadError}
         onRetry={loadPrimary}
         fetching={false}
         table={table}
         toolbar={
-          <div className="flex items-center gap-2">
-            <select
-              className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">{t("workflow.process_monitoring.filter_all", { count: definitions.length })}</option>
-              <option value="ACTIVE">
-                {t("workflow.process_monitoring.filter_active", {
-                  count: definitions.filter((d) => d.status === "ACTIVE").length,
-                })}
-              </option>
-              <option value="DRAFT">
-                {t("workflow.process_monitoring.filter_draft", {
-                  count: definitions.filter((d) => d.status === "DRAFT").length,
-                })}
-              </option>
-              <option value="INACTIVE">
-                {t("workflow.process_monitoring.filter_inactive", {
-                  count: definitions.filter((d) => d.status === "INACTIVE").length,
-                })}
-              </option>
-            </select>
-            <input
-              className="h-8 w-40 rounded-md border border-input bg-background px-2 text-xs placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none"
-              placeholder={t("workflow.process_monitoring.search_placeholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <ListTableToolbar
+            table={table}
+            onCreate={() => setImportOpen(true)}
+            createLabel={t("workflow.process_monitoring.import_bpmn")}
+            exportFilename={t("workflow.process_monitoring.title")}
+            sheetName={t("workflow.process_monitoring.title")}
+            totalRowsCount={definitionsTotal}
+          >
             <Button
               type="button"
               size="icon"
               variant="outline"
               className="size-8"
+              title={t("workflow.process_monitoring.monitor_refresh")}
               onClick={() => void loadPrimary()}
             >
               <RefreshCw className="size-3.5" />
             </Button>
-          </div>
+          </ListTableToolbar>
         }
         onRowDoubleClick={(row: Row<WorkflowProcessDefinition>) =>
           setViewingDefinition(row.original)

@@ -1,17 +1,20 @@
 import { APP_TIMEZONE } from "@workspace/format"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import {
-  ChevronDown,
-  Eye,
-  Plus,
-  RefreshCw,
-  Search,
-  Trash2,
-  XCircle,
-} from "lucide-react"
+import { ChevronDown, Eye, Plus, RefreshCw, Trash2 } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import {
+  matchSelectFilter,
+  matchTextColumnFilter,
+  multiSelectFilterMeta,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import {
   AlertDialog,
@@ -25,43 +28,42 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { Input } from "@workspace/ui/components/input"
-import { SelectPopover } from "@workspace/ui/components/select-popover"
 import {
   Status,
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { useDataTable } from "@workspace/list-page/use-data-table"
 import { notify } from "@workspace/ui/feedback/notify"
 import { fetchPlatformDrafts } from "./drafts/sources"
 import { customerDraftApi } from "./drafts/customer-client"
 import type {
   PlatformDraft,
   PlatformDraftDomain,
-  PlatformDraftDomainFilter,
-  PlatformDraftStatusFilter,
   PlatformDraftsResult,
 } from "./drafts/types"
 import { navigateTo } from "./utils/nav"
 
-type DraftFilter = {
-  q: string
-  domain: PlatformDraftDomainFilter
-  status: PlatformDraftStatusFilter
-}
+/** Source domains of the aggregated draft list. */
+const DRAFT_DOMAINS: PlatformDraftDomain[] = [
+  "crm_customer_registration",
+  "finance_incoming",
+  "finance_outgoing",
+  "hrm_employee_registration",
+]
 
-const defaultFilter: DraftFilter = {
-  q: "",
-  domain: "ALL",
-  status: "ALL",
-}
+const DRAFT_STATUSES: PlatformDraft["displayStatus"][] = [
+  "DRAFT",
+  "NEEDS_CHANGES",
+]
+
+const DRAFTS_PAGE_SIZE = 25
 
 const createActions: { domain: PlatformDraftDomain; href: string }[] = [
   {
@@ -84,8 +86,6 @@ const createActions: { domain: PlatformDraftDomain; href: string }[] = [
 
 export function DraftWorkbenchPage() {
   const { t } = useI18n()
-  const [filter, setFilter] = useState<DraftFilter>(defaultFilter)
-  const [submittedQuery, setSubmittedQuery] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<PlatformDraft | null>(null)
   const [result, setResult] = useState<PlatformDraftsResult>({
     items: [],
@@ -120,36 +120,37 @@ export function DraftWorkbenchPage() {
   const sourceErrors = result.errors ?? {}
   const partialLoadFailed = Object.keys(sourceErrors).length > 0
 
-  const items = useMemo(() => {
-    const q = submittedQuery.trim().toLowerCase()
-    return allItems.filter((item) => {
-      if (filter.domain !== "ALL" && item.domain !== filter.domain) return false
-      if (filter.status !== "ALL" && item.displayStatus !== filter.status) {
-        return false
-      }
-      if (!q) return true
-      const haystack = [item.code, item.title, item.subtitle, item.id]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-      return haystack.includes(q)
-    })
-  }, [allItems, filter.domain, filter.status, submittedQuery])
-
   const criticalPending = loading && !hasLoadedRef.current
 
   const columns = useMemo<ColumnDef<PlatformDraft>[]>(
     () => [
       {
+        id: "code",
         accessorKey: "code",
-        header: t("workflow.workbench.drafts.col_code"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("workflow.workbench.drafts.col_code")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("workflow.workbench.drafts.col_code"),
+          t("workflow.workbench.drafts.search_placeholder")
+        ),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.code}</span>
         ),
       },
       {
+        id: "title",
         accessorKey: "title",
-        header: t("workflow.workbench.drafts.col_title"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("workflow.workbench.drafts.col_title")}
+          />
+        ),
         cell: ({ row }) => (
           <div className="min-w-0">
             <p className="truncate font-medium">{row.original.title}</p>
@@ -163,21 +164,56 @@ export function DraftWorkbenchPage() {
       },
       {
         id: "domain",
-        header: t("workflow.workbench.drafts.col_domain"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("workflow.workbench.drafts.col_domain")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: multiSelectFilterMeta(
+          t("workflow.workbench.drafts.filter_domain"),
+          DRAFT_DOMAINS.map((domain) => ({
+            value: domain,
+            label: t(`workflow.workbench.drafts.domain_${domain}`),
+          }))
+        ),
         cell: ({ row }) => (
           <Badge variant="outline">{domainLabel(row.original.domain, t)}</Badge>
         ),
       },
       {
         id: "status",
-        header: t("workflow.workbench.drafts.col_status"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("workflow.workbench.drafts.col_status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: multiSelectFilterMeta(
+          t("workflow.workbench.drafts.filter_status"),
+          DRAFT_STATUSES.map((status) => ({
+            value: status,
+            label:
+              status === "NEEDS_CHANGES"
+                ? t("workflow.workbench.drafts.status_needs_changes")
+                : t("workflow.workbench.drafts.status_draft"),
+          }))
+        ),
         cell: ({ row }) => (
           <DraftStatus status={row.original.displayStatus} t={t} />
         ),
       },
       {
+        id: "updatedAt",
         accessorKey: "updatedAt",
-        header: t("workflow.workbench.drafts.col_updated"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("workflow.workbench.drafts.col_updated")}
+          />
+        ),
         cell: ({ row }) => (
           <span className="text-muted-foreground tabular-nums">
             {formatDateTime(row.original.updatedAt)}
@@ -186,7 +222,13 @@ export function DraftWorkbenchPage() {
       },
       {
         id: "actions",
-        header: t("workflow.workbench.drafts.col_actions"),
+        header: () => (
+          <div className="text-right">
+            {t("workflow.workbench.drafts.col_actions")}
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
         cell: ({ row }) => (
           <div className="flex justify-end gap-1">
             <Button
@@ -219,15 +261,30 @@ export function DraftWorkbenchPage() {
     [cancelling, t]
   )
 
-  const { table } = useDataTable({
+  /**
+   * Client list controller: the aggregated drafts endpoint returns the full
+   * set, so paging/sorting/filtering run in memory behind the shared
+   * DataTable, with filters and sort URL-synced by @workspace/list-page.
+   */
+  const { table, total } = useClientListTable<PlatformDraft>({
     columns,
-    data: items,
-    pageCount: Math.max(1, Math.ceil(items.length / 25)),
-    initialState: { pagination: { pageSize: 25, pageIndex: 0 } },
+    items: allItems,
+    filterBy: {
+      code: (item, value) =>
+        matchTextColumnFilter(value, item.code, item.title, item.subtitle, item.id),
+      domain: (item, value) => matchSelectFilter(item.domain, value),
+      status: (item, value) => matchSelectFilter(item.displayStatus, value),
+    },
+    sort: (items, sorting) =>
+      sortByColumn(items, sorting, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        title: (a, b) => a.title.localeCompare(b.title),
+        domain: (a, b) => a.domain.localeCompare(b.domain),
+        status: (a, b) => a.displayStatus.localeCompare(b.displayStatus),
+        updatedAt: (a, b) => a.updatedAt.localeCompare(b.updatedAt),
+      }),
+    defaultPageSize: DRAFTS_PAGE_SIZE,
   })
-
-  const hasActiveFilter =
-    submittedQuery !== "" || filter.domain !== "ALL" || filter.status !== "ALL"
 
   async function handleCancel() {
     if (!deleteTarget?.id) return
@@ -254,10 +311,10 @@ export function DraftWorkbenchPage() {
     <>
       <ListPageShell
         title={t("workflow.workbench.drafts.title")}
-        totalRows={items.length}
+        totalRows={total}
         meta={
           <Badge variant="secondary">
-            {t("workflow.workbench.drafts.count", { count: items.length })}
+            {t("workflow.workbench.drafts.count", { count: total })}
           </Badge>
         }
         actions={
@@ -316,113 +373,15 @@ export function DraftWorkbenchPage() {
                 </AlertDescription>
               </Alert>
             ) : null}
-            <form
-              className="flex flex-wrap items-center gap-2"
-              onSubmit={(event) => {
-                event.preventDefault()
-                setSubmittedQuery(filter.q.trim())
-              }}
-            >
-              <div className="relative min-w-[12rem] flex-1">
-                <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
-                <Input
-                  className="h-8 pl-9"
-                  value={filter.q}
-                  placeholder={t(
-                    "workflow.workbench.drafts.search_placeholder"
-                  )}
-                  onChange={(event) =>
-                    setFilter((prev) => ({ ...prev, q: event.target.value }))
-                  }
-                />
-              </div>
-              <SelectPopover
-                label={t("workflow.workbench.drafts.filter_domain")}
-                value={filter.domain === "ALL" ? "" : filter.domain}
-                onChange={(value) =>
-                  setFilter((prev) => ({
-                    ...prev,
-                    domain: (value || "ALL") as PlatformDraftDomainFilter,
-                  }))
-                }
-                options={[
-                  {
-                    label: t("workflow.workbench.drafts.filter_domain_all"),
-                    value: "",
-                  },
-                  {
-                    label: t(
-                      "workflow.workbench.drafts.domain_crm_customer_registration"
-                    ),
-                    value: "crm_customer_registration",
-                  },
-                  {
-                    label: t(
-                      "workflow.workbench.drafts.domain_finance_incoming"
-                    ),
-                    value: "finance_incoming",
-                  },
-                  {
-                    label: t(
-                      "workflow.workbench.drafts.domain_finance_outgoing"
-                    ),
-                    value: "finance_outgoing",
-                  },
-                  {
-                    label: t(
-                      "workflow.workbench.drafts.domain_hrm_employee_registration"
-                    ),
-                    value: "hrm_employee_registration",
-                  },
-                ]}
-              />
-              <SelectPopover
-                label={t("workflow.workbench.drafts.filter_status")}
-                value={filter.status === "ALL" ? "" : filter.status}
-                onChange={(value) =>
-                  setFilter((prev) => ({
-                    ...prev,
-                    status: (value || "ALL") as PlatformDraftStatusFilter,
-                  }))
-                }
-                options={[
-                  {
-                    label: t("workflow.workbench.drafts.filter_status_all"),
-                    value: "",
-                  },
-                  {
-                    label: t("workflow.workbench.drafts.filter_status_draft"),
-                    value: "DRAFT",
-                  },
-                  {
-                    label: t(
-                      "workflow.workbench.drafts.filter_status_needs_changes"
-                    ),
-                    value: "NEEDS_CHANGES",
-                  },
-                ]}
-              />
-              <Button type="submit" size="sm" className="h-8">
-                <Search className="size-4" />
-                {t("workflow.workbench.actions_search")}
-              </Button>
-              {hasActiveFilter ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 gap-1 text-muted-foreground"
-                  onClick={() => {
-                    setFilter(defaultFilter)
-                    setSubmittedQuery("")
-                  }}
-                >
-                  <XCircle className="size-3.5" />
-                  {t("workflow.workbench.drafts.clear_filters")}
-                </Button>
-              ) : null}
-            </form>
           </div>
+        }
+        toolbar={
+          <ListTableToolbar
+            table={table}
+            exportFilename={t("workflow.workbench.drafts.title")}
+            sheetName={t("workflow.workbench.drafts.title")}
+            totalRowsCount={total}
+          />
         }
         dialogs={
           <AlertDialog

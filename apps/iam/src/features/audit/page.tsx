@@ -1,178 +1,52 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useSearchParams } from "react-router-dom"
-import type { ColumnDef } from "@tanstack/react-table"
-import type {
-  AuditEvent,
-  AuditStats,
-  ChainVerification,
-} from "./types"
-import { auditApi } from "./api"
+import { useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import type { ListQueryInput } from "@workspace/api/list"
 import { downloadFile } from "@workspace/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import {
   Status,
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { useDataTable } from "@workspace/list-page/use-data-table"
 import { useI18n } from "@workspace/i18n"
-import { listPageCount } from "@workspace/api/list"
+import { auditApi } from "./api"
+import { useAuditColumns } from "./components/audit-columns"
+import { auditListDefinition } from "./list-query"
+import type { AuditEvent, ChainVerification } from "./types"
 
-const DEFAULT_PAGE_SIZE = 10
-
-const RESULT_VARIANTS: Partial<
-  Record<string, "default" | "success" | "error" | "warning" | "info">
-> = {
-  success: "success",
-  failure: "error",
-  denied: "error",
-  blocked: "warning",
+/**
+ * Shared filter/sort dialect for the audit query and export endpoints:
+ * repeated `event_type`, single `result`, `subject` and the timestamp sort.
+ * iam-service reads `sort=timestamp` as ASC and defaults to DESC otherwise
+ * (`order` is not consumed), so DESC requests omit `sort` instead of sending
+ * a sort key the backend would silently run as ASC.
+ */
+function auditListParams(query: ListQueryInput) {
+  return {
+    event_type:
+      query.event_type === undefined
+        ? undefined
+        : String(query.event_type).split(","),
+    result: query.result === undefined ? undefined : String(query.result),
+    subject: query.subject === undefined ? undefined : String(query.subject),
+    sort:
+      query.sort === "timestamp" && query.order !== "desc"
+        ? "timestamp"
+        : undefined,
+  }
 }
-
-const POS = (value: string | null, fallback: number) => {
-  const n = Number.parseInt(value ?? "", 10)
-  return Number.isFinite(n) && n > 0 ? n : fallback
-}
-
-const parseArrayParam = (raw: string | null) =>
-  raw
-    ? raw
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-    : []
 
 export function AuditPage() {
-  const { t, formatDate, formatNumber } = useI18n()
-  const [searchParams] = useSearchParams()
+  const { t, formatNumber } = useI18n()
   const [showVerify, setShowVerify] = useState(false)
-
-  const [events, setEvents] = useState<AuditEvent[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<unknown>(null)
-  const hasLoadedRef = useRef(false)
-
-  const [stats, setStats] = useState<AuditStats | null>(null)
   const [verifyResult, setVerifyResult] = useState<ChainVerification | null>(
     null
   )
   const [verifying, setVerifying] = useState(false)
-
-  const eventTypeOptions = useMemo(
-    () => [
-      {
-        label: t("admin.audit.event_type.login_attempt"),
-        value: "login_attempt",
-      },
-      {
-        label: t("admin.audit.event_type.login_blocked"),
-        value: "login_blocked",
-      },
-      {
-        label: t("admin.audit.event_type.session_created"),
-        value: "session_created",
-      },
-      {
-        label: t("admin.audit.event_type.session_revoked"),
-        value: "session_revoked",
-      },
-      {
-        label: t("admin.audit.event_type.token_issued"),
-        value: "token_issued",
-      },
-      {
-        label: t("admin.audit.event_type.token_refreshed"),
-        value: "token_refreshed",
-      },
-      {
-        label: t("admin.audit.event_type.permission_denied"),
-        value: "permission_denied",
-      },
-      {
-        label: t("admin.audit.event_type.consent_granted"),
-        value: "consent_granted",
-      },
-    ],
-    [t]
-  )
-  const resultOptions = useMemo(
-    () => [
-      { label: t("admin.audit.result_value.success"), value: "success" },
-      { label: t("admin.audit.result_value.failure"), value: "failure" },
-      { label: t("admin.audit.result_value.denied"), value: "denied" },
-      { label: t("admin.audit.result_value.blocked"), value: "blocked" },
-    ],
-    [t]
-  )
-
-  const pageParam = POS(searchParams.get("page"), 1)
-  const pageSizeParam = POS(searchParams.get("perPage"), DEFAULT_PAGE_SIZE)
-  const eventTypesParam = useMemo(
-    () => parseArrayParam(searchParams.get("eventType")),
-    [searchParams]
-  )
-  const resultParam = useMemo(
-    () => parseArrayParam(searchParams.get("result")),
-    [searchParams]
-  )
-  const subjectParam = searchParams.get("subject") || undefined
-  const sortParam = searchParams.get("sort")
-
-  const sort = useMemo(() => {
-    if (!sortParam) return undefined
-    try {
-      const [timestampSort] = JSON.parse(sortParam) as Array<{
-        id: string
-        desc: boolean
-      }>
-      return timestampSort?.id === "timestamp" && !timestampSort.desc
-        ? "timestamp"
-        : undefined
-    } catch {
-      return undefined
-    }
-  }, [sortParam])
-
-  const loadEvents = useCallback(async () => {
-    setLoadError(null)
-    if (hasLoadedRef.current) setRefreshing(true)
-    else setLoading(true)
-    try {
-      const result = await auditApi.query({
-        event_type: eventTypesParam.length > 0 ? eventTypesParam : undefined,
-        result: resultParam.length === 1 ? resultParam[0] : undefined,
-        subject: subjectParam,
-        page: pageParam,
-        perPage: pageSizeParam,
-        sort,
-      })
-      setEvents(result.items)
-      setTotal(result.total)
-    } catch (reason) {
-      setLoadError(reason)
-    } finally {
-      hasLoadedRef.current = true
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [
-    eventTypesParam,
-    pageParam,
-    pageSizeParam,
-    resultParam,
-    sort,
-    subjectParam,
-  ])
-
-  useEffect(() => {
-    void loadEvents()
-  }, [loadEvents])
 
   const range = useMemo(() => {
     const now = new Date()
@@ -180,15 +54,11 @@ export function AuditPage() {
     return { from: weekAgo.toISOString(), to: now.toISOString() }
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-    void auditApi.stats(range.from, range.to).then((nextStats) => {
-      if (!cancelled) setStats(nextStats)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [range.from, range.to])
+  const statsQuery = useQuery({
+    queryKey: ["iam", "audit", "stats", range.from, range.to],
+    queryFn: () => auditApi.stats(range.from, range.to),
+  })
+  const stats = statsQuery.data ?? null
 
   const handleVerify = async () => {
     const next = !showVerify
@@ -205,129 +75,31 @@ export function AuditPage() {
     }
   }
 
-  const columns = useMemo<ColumnDef<AuditEvent>[]>(
-    () => [
-      {
-        id: "timestamp",
-        accessorKey: "timestamp",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("admin.audit.time")}
-          />
-        ),
-        cell: ({ row }) => (
-          <span className="text-xs whitespace-nowrap text-muted-foreground">
-            {row.original.timestamp ? formatDate(row.original.timestamp) : "-"}
-          </span>
-        ),
-      },
-      {
-        id: "subject",
-        accessorKey: "subject",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("admin.audit.subject")}
-          />
-        ),
-        enableColumnFilter: true,
-        meta: {
-          label: t("admin.audit.subject"),
-          variant: "text",
-          placeholder: t("admin.audit.search_subject"),
-        },
-        cell: ({ row }) => (
-          <span className="block max-w-40 truncate">
-            {row.original.subject || "-"}
-          </span>
-        ),
-      },
-      {
-        id: "eventType",
-        accessorKey: "eventType",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("admin.audit.type")}
-          />
-        ),
-        enableColumnFilter: true,
-        meta: {
-          label: t("admin.audit.type"),
-          variant: "multiSelect",
-          options: eventTypeOptions,
-        },
-        cell: ({ row }) => (
-          <span className="font-mono text-xs">
-            {row.original.eventType || "-"}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "action",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("admin.audit.action")}
-          />
-        ),
-        cell: ({ row }) => row.original.action || "-",
-      },
-      {
-        accessorKey: "resource",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("admin.audit.resource")}
-          />
-        ),
-        cell: ({ row }) => row.original.resource || "-",
-      },
-      {
-        id: "result",
-        accessorKey: "result",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("admin.audit.result")}
-          />
-        ),
-        enableColumnFilter: true,
-        meta: {
-          label: t("admin.audit.result"),
-          variant: "multiSelect",
-          options: resultOptions,
-        },
-        cell: ({ row }) => (
-          <Status variant={RESULT_VARIANTS[row.original.result] || "default"}>
-            <StatusIndicator />
-            <StatusLabel>{row.original.result || "-"}</StatusLabel>
-          </Status>
-        ),
-      },
-      {
-        accessorKey: "clientIp",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} label="IP" />
-        ),
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">
-            {row.original.clientIp || "-"}
-          </span>
-        ),
-      },
-    ],
-    [eventTypeOptions, formatDate, resultOptions, t]
-  )
+  const columns = useAuditColumns()
 
-  const totalPages = Math.max(1, listPageCount(total, pageSizeParam))
-
-  const { table } = useDataTable<AuditEvent>({
+  /**
+   * Server-driven list controller: URL page/perPage/sort + `eventType`,
+   * `result`, `subject` filters <-> TanStack Query cache, cancellation and
+   * previous-page placeholder handled by @workspace/list-page. The page owns
+   * the columns, stats header and dialogs only.
+   */
+  const {
+    total,
+    isLoading,
+    isFetching,
+    error: loadError,
+    refetch,
+    table,
+    query,
+  } = useServerDataTable<AuditEvent>({
+    ...auditListDefinition,
     columns,
-    data: events,
-    pageCount: totalPages,
-    initialState: { pagination: { pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE } },
+    queryFn: async (listQuery) =>
+      auditApi.query({
+        ...auditListParams(listQuery),
+        page: listQuery.page,
+        perPage: listQuery.perPage,
+      }),
   })
 
   const statsHeader = stats ? (
@@ -355,7 +127,7 @@ export function AuditPage() {
         formatNumber={formatNumber}
       />
     </div>
-  ) : loading && events.length === 0 ? (
+  ) : statsQuery.isPending ? (
     <div className="grid gap-2 md:grid-cols-4">
       {Array.from({ length: 4 }).map((_, index) => (
         <div key={index} className="h-16 rounded-md border bg-muted/30" />
@@ -399,10 +171,10 @@ export function AuditPage() {
           {t("admin.audit.count", { count: total })}
         </Badge>
       }
-      criticalPending={loading}
+      criticalPending={isLoading}
       criticalError={loadError}
-      onRetry={loadEvents}
-      fetching={refreshing}
+      onRetry={() => void refetch()}
+      fetching={isFetching}
       table={table}
       header={
         statsHeader || verifyBanner ? (
@@ -420,14 +192,15 @@ export function AuditPage() {
           totalRowsCount={total}
           onServerExport={async ({ format, filename }) => {
             const exportUrl = auditApi.getExportUrl({
-              event_type: eventTypesParam.length > 0 ? eventTypesParam : undefined,
-              result: resultParam.length === 1 ? resultParam[0] : undefined,
-              subject: subjectParam,
-              sort,
+              ...auditListParams(query),
               format,
             })
             await downloadFile(exportUrl, {
-              filename: filename ? (filename.endsWith(`.${format}`) ? filename : `${filename}.${format}`) : undefined,
+              filename: filename
+                ? filename.endsWith(`.${format}`)
+                  ? filename
+                  : `${filename}.${format}`
+                : undefined,
               fallbackFilename: `audit_export.${format}`,
             })
           }}
