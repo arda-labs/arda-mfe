@@ -118,7 +118,7 @@ export function JournalPage(_props?: { pathname?: string }) {
       postingApi.listJournalPaged({
         page: query.page,
         perPage: query.perPage,
-        q: query.document_type === undefined ? undefined : String(query.document_type),
+        q: query.q === undefined ? undefined : String(query.q),
         sort: query.sort,
         order: query.order,
       }),

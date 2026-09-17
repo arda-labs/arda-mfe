@@ -402,6 +402,9 @@
     "title": "Cấu hình kế toán",
     "description": "Quản lý ánh xạ quy trình, phân loại tài khoản, mẫu bút toán và tài khoản phục vụ hạch toán.",
     "empty": "Chưa có cấu hình trong nhóm này.",
+    "placeholder": {
+      "search": "Tìm theo mã hoặc tên..."
+    },
     "tab": {
       "process": "Cấu hình quy trình",
       "classification": "Phân loại tài khoản",
@@ -485,6 +488,11 @@
       "net": "Chênh lệch"
     },
     "empty": "Chưa có giao dịch",
+    "count": "{count} giao dịch",
+    "export_csv": "Tải CSV",
+    "placeholder": {
+      "date": "Tìm theo ngày (YYYY-MM-DD)"
+    },
     "load_failed": "Không tải được sổ quỹ",
     "validation": {
       "required": "Nhập số tiền và ngày giao dịch"
@@ -499,6 +507,8 @@
     "title": "Quỹ",
     "description": "Trích lập quỹ từ lợi nhuận (Nợ 4211 / Có quỹ) và sử dụng quỹ (Nợ quỹ / Có 1131).",
     "empty": "Chưa có bút toán quỹ nào.",
+    "count": "{count} bút toán",
+    "load_failed": "Không thể tải danh sách bút toán quỹ",
     "action": {
       "appropriate": "Trích lập quỹ",
       "utilize": "Sử dụng quỹ"

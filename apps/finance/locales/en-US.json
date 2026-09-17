@@ -402,6 +402,9 @@
     "title": "Accounting configuration",
     "description": "Manage process mappings, account classifications, posting definitions and accounts used for bookkeeping.",
     "empty": "No configuration in this group.",
+    "placeholder": {
+      "search": "Search by code or name..."
+    },
     "tab": {
       "process": "Process config",
       "classification": "Classifications",
@@ -485,6 +488,11 @@
       "net": "Net"
     },
     "empty": "No transactions yet",
+    "count": "{count} transactions",
+    "export_csv": "Download CSV",
+    "placeholder": {
+      "date": "Search by date (YYYY-MM-DD)"
+    },
     "load_failed": "Could not load the cash book",
     "validation": {
       "required": "Enter the amount and transaction date"
@@ -499,6 +507,8 @@
     "title": "Funds",
     "description": "Appropriate funds from profit (Dr 4211 / Cr fund) and use funds (Dr fund / Cr 1131).",
     "empty": "No fund entries yet.",
+    "count": "{count} entries",
+    "load_failed": "Could not load the fund entries",
     "action": {
       "appropriate": "Appropriate fund",
       "utilize": "Use fund"
