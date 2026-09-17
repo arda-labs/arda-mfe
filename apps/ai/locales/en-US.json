@@ -8,6 +8,7 @@
     "load_versions_failed": "Failed to load versions",
     "empty": "No knowledge sources yet. Create one to get started.",
     "empty_versions": "No versions for this source yet.",
+    "count": "{count} knowledge sources",
     "create_source_title": "Create knowledge source",
     "create_source_description": "Add a new source that RAG can index documents from.",
     "create_version_description": "Add a new version of content for this source.",
@@ -49,6 +50,7 @@
     },
     "placeholder": {
       "title": "e.g. HR policy handbook",
+      "search": "Search by title...",
       "language": "e.g. vi, en",
       "tags": "Comma-separated tags",
       "version": "e.g. 1.0.0",

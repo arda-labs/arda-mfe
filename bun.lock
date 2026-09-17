@@ -158,6 +158,7 @@
         "@workspace/case-tabs": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/list-page": "workspace:*",
         "@workspace/media": "workspace:*",
         "@workspace/notifications": "workspace:*",
         "@workspace/posting-flow": "workspace:*",

@@ -335,6 +335,16 @@
       "role": "Vai trò"
     },
     "members": "Thành viên",
+    "new": "Dự án mới",
+    "count": "{count} dự án",
+    "placeholder": {
+      "search": "Tìm theo mã hoặc tên dự án..."
+    },
+    "dialog": {
+      "create_title": "Tạo dự án",
+      "edit_title": "Sửa dự án",
+      "description": "Nhập thông tin dự án và lưu lại."
+    },
     "empty": "Chưa có dự án",
     "empty_members": "Chưa có thành viên",
     "load_failed": "Không tải được dự án",

@@ -8,6 +8,7 @@
     "load_versions_failed": "Không thể tải danh sách phiên bản",
     "empty": "Chưa có nguồn tri thức nào. Hãy tạo nguồn đầu tiên.",
     "empty_versions": "Chưa có phiên bản nào cho nguồn này.",
+    "count": "{count} nguồn tri thức",
     "create_source_title": "Tạo nguồn tri thức",
     "create_source_description": "Thêm nguồn mới để RAG có thể lập chỉ mục tài liệu.",
     "create_version_description": "Thêm phiên bản nội dung mới cho nguồn này.",
@@ -49,6 +50,7 @@
     },
     "placeholder": {
       "title": "VD: Sổ tay chính sách nhân sự",
+      "search": "Tìm theo tiêu đề...",
       "language": "VD: vi, en",
       "tags": "Thẻ phân tách bằng dấu phẩy",
       "version": "VD: 1.0.0",

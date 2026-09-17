@@ -335,6 +335,16 @@
       "role": "Role"
     },
     "members": "Members",
+    "new": "New project",
+    "count": "{count} projects",
+    "placeholder": {
+      "search": "Search by project code or name..."
+    },
+    "dialog": {
+      "create_title": "Create project",
+      "edit_title": "Edit project",
+      "description": "Enter the project details and save."
+    },
     "empty": "No projects yet",
     "empty_members": "No members yet",
     "load_failed": "Could not load projects",
