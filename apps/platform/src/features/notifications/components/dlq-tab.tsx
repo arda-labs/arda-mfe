@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
+import { notify } from "@workspace/ui/feedback/notify"
 import { formatDateShort } from "@workspace/format"
 import { discardNotificationDLQ, listNotificationDLQ, retryNotificationDLQ } from "../api"
 import { type NotificationDLQEntry } from "../types"
 
-/** Dead-letter queue — inspect, replay or discard failed outbox events. */
+/**
+ * Dead-letter queue — inspect, replay or discard failed outbox events.
+ * TODO(BE): `GET /api/notifications/dlq` has no page/perPage contract — it
+ * returns at most `limit` rows (default 100). Add server paging here once the
+ * endpoint supports it; do not fake paging client-side.
+ */
 export function DlqTab() {
   const { t } = useI18n()
   const [items, setItems] = useState<NotificationDLQEntry[]>([])
@@ -61,46 +74,54 @@ export function DlqTab() {
 
   return (
     <div className="overflow-hidden rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-          <tr>
-            <th className="px-3 py-2">{t("platform.notifications.event.code")}</th>
-            <th className="px-3 py-2">{t("platform.notifications.dlq.subject")}</th>
-            <th className="px-3 py-2">{t("platform.notifications.dlq.attempts")}</th>
-            <th className="px-3 py-2">{t("platform.notifications.dlq.last_error")}</th>
-            <th className="px-3 py-2">{t("platform.notifications.dlq.dead_at")}</th>
-            <th className="px-3 py-2 text-right">{t("common.field.action")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading && (
-            <tr>
-              <td colSpan={6} className="px-3 py-4 text-center text-muted-foreground">
+      <Table>
+        <TableHeader className="bg-muted/50">
+          <TableRow>
+            <TableHead>{t("platform.notifications.event.code")}</TableHead>
+            <TableHead>{t("platform.notifications.dlq.subject")}</TableHead>
+            <TableHead>{t("platform.notifications.dlq.attempts")}</TableHead>
+            <TableHead>{t("platform.notifications.dlq.last_error")}</TableHead>
+            <TableHead>{t("platform.notifications.dlq.dead_at")}</TableHead>
+            <TableHead className="text-right">
+              {t("common.field.action")}
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="py-4 text-center text-muted-foreground"
+              >
                 {t("common.loading")}
-              </td>
-            </tr>
-          )}
-          {!loading && items.length === 0 && (
-            <tr>
-              <td colSpan={6} className="px-3 py-4 text-center text-muted-foreground">
+              </TableCell>
+            </TableRow>
+          ) : null}
+          {!loading && items.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="py-4 text-center text-muted-foreground"
+              >
                 {t("platform.notifications.dlq.empty")}
-              </td>
-            </tr>
-          )}
+              </TableCell>
+            </TableRow>
+          ) : null}
           {items.map((row) => (
-            <tr key={row.outbox_id} className="border-t border-border">
-              <td className="px-3 py-2 font-mono text-xs font-semibold text-primary">
+            <TableRow key={row.outbox_id}>
+              <TableCell className="font-mono text-xs font-semibold text-primary">
                 {row.event_code || "—"}
-              </td>
-              <td className="px-3 py-2 font-mono text-xs">{row.subject}</td>
-              <td className="px-3 py-2 tabular-nums">{row.attempts}</td>
-              <td className="max-w-[280px] truncate px-3 py-2 text-destructive">
+              </TableCell>
+              <TableCell className="font-mono text-xs">{row.subject}</TableCell>
+              <TableCell className="tabular-nums">{row.attempts}</TableCell>
+              <TableCell className="max-w-[280px] truncate text-destructive">
                 {row.last_error || "—"}
-              </td>
-              <td className="whitespace-nowrap px-3 py-2 text-xs text-muted-foreground">
+              </TableCell>
+              <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                 {formatDateShort(row.dead_lettered_at)}
-              </td>
-              <td className="px-3 py-2 text-right">
+              </TableCell>
+              <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
@@ -121,11 +142,11 @@ export function DlqTab() {
                     {t("platform.notifications.dlq.btn.discard")}
                   </Button>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }

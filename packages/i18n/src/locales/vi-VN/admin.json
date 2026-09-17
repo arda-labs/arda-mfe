@@ -244,12 +244,21 @@
   "oauth_clients": {
     "title": "Client tích hợp (OAuth2)",
     "description": "Quản lý OAuth2 client trên Hydra (proxy admin API).",
+    "count": "{count} client",
+    "create": "Thêm client",
+    "edit": "Cập nhật client",
+    "search": "Tìm theo client ID hoặc tên...",
     "field": {
       "client_id": "Client ID",
       "client_name": "Tên client",
       "redirect_uris": "Redirect URIs (phân cách phẩy)",
       "scope": "Scope",
+      "grant_types": "Grant types",
       "auth_method": "Phương thức xác thực"
+    },
+    "placeholder": {
+      "client_id": "vd: arda-portal",
+      "redirect_uris": "https://app.arda.io.vn/callback"
     },
     "empty": "Chưa có client",
     "load_failed": "Không tải được danh sách client",

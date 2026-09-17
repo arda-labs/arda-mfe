@@ -1,45 +1,219 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Trash2 } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/ui/feedback/notify"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { notify } from "@workspace/ui/feedback/notify"
+import {
+  activeStatusMeta,
+  matchBooleanActiveFilter,
+  matchTextColumnFilter,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { deleteWorkingHour, listWorkingHours, upsertWorkingHour } from "./api"
 import { type WorkingHour } from "./types"
 
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+const DEFAULT_PAGE_SIZE = 10
 
-/** Working hours (ca làm việc) — weekly shift editor (W6a). */
+function dayLabel(dayOfWeek: number) {
+  return `platform.working_hours.day.${DAY_KEYS[dayOfWeek - 1] ?? "mon"}`
+}
+
+/**
+ * Working hours (ca làm việc) — weekly shift editor (W6a).
+ * `GET /api/platform/working-hours` is unpaged (full weekly grid), so this is
+ * a client tier list: the org filter/sort/paging run in memory and stay
+ * URL-synced through useClientListTable.
+ */
 export function WorkingHoursPage() {
   const { t } = useI18n()
-  const [items, setItems] = useState<WorkingHour[]>([])
-  const [loading, setLoading] = useState(true)
   const [orgCode, setOrgCode] = useState("")
   const [dayOfWeek, setDayOfWeek] = useState(1)
   const [startTime, setStartTime] = useState("08:00")
   const [endTime, setEndTime] = useState("17:00")
   const [breakMinutes, setBreakMinutes] = useState("60")
   const [pending, setPending] = useState(false)
-  const [loadError, setLoadError] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<WorkingHour | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [items, setItems] = useState<WorkingHour[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setLoadError(false)
+  const load = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
     try {
-      const result = await listWorkingHours(orgCode)
+      const result = await listWorkingHours()
       setItems(result.items)
-    } catch {
-      setItems([])
-      setLoadError(true)
+    } catch (reason) {
+      setLoadError(reason)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
-  }, [orgCode])
+  }, [])
 
   useEffect(() => {
-    void load()
+    void load(true)
   }, [load])
+
+  const columns = useMemo<ColumnDef<WorkingHour>[]>(
+    () => [
+      {
+        id: "day_of_week",
+        accessorKey: "day_of_week",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.working_hours.field.day")}
+          />
+        ),
+        cell: ({ row }) => t(dayLabel(row.original.day_of_week)),
+      },
+      {
+        id: "org_code",
+        accessorKey: "org_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.working_hours.field.org")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("platform.working_hours.field.org"),
+          t("platform.working_hours.placeholder.org")
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">
+            {row.original.org_code || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "start_time",
+        accessorKey: "start_time",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.working_hours.field.start")}
+          />
+        ),
+        cell: ({ row }) => row.original.start_time,
+      },
+      {
+        id: "end_time",
+        accessorKey: "end_time",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.working_hours.field.end")}
+          />
+        ),
+        cell: ({ row }) => row.original.end_time,
+      },
+      {
+        id: "break_minutes",
+        accessorKey: "break_minutes",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.working_hours.field.break")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">{row.original.break_minutes}</span>
+        ),
+      },
+      {
+        id: "is_active",
+        accessorKey: "is_active",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("common.field.status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: activeStatusMeta(
+          t("common.field.status"),
+          t("platform.working_hours.active"),
+          t("platform.working_hours.inactive")
+        ),
+        cell: ({ row }) => (
+          <Badge variant={row.original.is_active ? "default" : "outline"}>
+            {row.original.is_active
+              ? t("platform.working_hours.active")
+              : t("platform.working_hours.inactive")}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              title={t("common.action.delete")}
+              onClick={() => setDeleteTarget(row.original)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [t]
+  )
+
+  const { table, total } = useClientListTable<WorkingHour>({
+    columns,
+    items,
+    filterBy: {
+      org_code: (item, value) => matchTextColumnFilter(value, item.org_code),
+      is_active: (item, value) => matchBooleanActiveFilter(item, value),
+    },
+    sort: (rows, sorting) =>
+      sortByColumn(rows, sorting, {
+        day_of_week: (a, b) => a.day_of_week - b.day_of_week,
+        org_code: (a, b) => (a.org_code ?? "").localeCompare(b.org_code ?? ""),
+        start_time: (a, b) => a.start_time.localeCompare(b.start_time),
+        end_time: (a, b) => a.end_time.localeCompare(b.end_time),
+        break_minutes: (a, b) => a.break_minutes - b.break_minutes,
+        is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
 
   const save = async () => {
     setPending(true)
@@ -61,130 +235,133 @@ export function WorkingHoursPage() {
     }
   }
 
-  const remove = async (id: string) => {
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await deleteWorkingHour(id)
+      await deleteWorkingHour(deleteTarget.id)
+      notify.success(t("platform.working_hours.delete_success"))
+      setDeleteTarget(null)
       await load()
     } catch {
-      notify.error(t("platform.working_hours.save_failed"))
+      notify.error(t("platform.working_hours.delete_failed"))
+    } finally {
+      setDeleting(false)
     }
   }
 
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div>
-        <h1 className="text-lg font-semibold">{t("platform.working_hours.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("platform.working_hours.description")}</p>
+  const header = (
+    <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
+      <div className="space-y-1.5">
+        <Label>{t("platform.working_hours.field.org")}</Label>
+        <Input
+          value={orgCode}
+          className="font-mono"
+          onChange={(e) => setOrgCode(e.target.value)}
+        />
       </div>
-
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
-        <div className="space-y-1.5">
-          <Label>{t("platform.working_hours.field.org")}</Label>
-          <Input
-            value={orgCode}
-            className="font-mono"
-            onChange={(e) => setOrgCode(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.working_hours.field.day")}</Label>
-          <select
-            className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
-            value={dayOfWeek}
-            onChange={(e) => setDayOfWeek(Number(e.target.value))}
-          >
-            {DAY_KEYS.map((key, index) => (
-              <option key={key} value={index + 1}>
-                {t(`platform.working_hours.day.${key}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.working_hours.field.start")}</Label>
-          <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.working_hours.field.end")}</Label>
-          <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.working_hours.field.break")}</Label>
-          <Input
-            inputMode="numeric"
-            value={breakMinutes}
-            onChange={(e) => setBreakMinutes(e.target.value)}
-          />
-        </div>
-        <Button onClick={() => void save()} disabled={pending}>
-          {t("common.action.save")}
-        </Button>
+      <div className="space-y-1.5">
+        <Label>{t("platform.working_hours.field.day")}</Label>
+        <select
+          className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
+          value={dayOfWeek}
+          onChange={(e) => setDayOfWeek(Number(e.target.value))}
+        >
+          {DAY_KEYS.map((key, index) => (
+            <option key={key} value={index + 1}>
+              {t(`platform.working_hours.day.${key}`)}
+            </option>
+          ))}
+        </select>
       </div>
-
-      {loadError && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
-          {t("platform.working_hours.load_failed")}
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("platform.working_hours.field.day")}</th>
-              <th className="px-3 py-2">{t("platform.working_hours.field.org")}</th>
-              <th className="px-3 py-2">{t("platform.working_hours.field.start")}</th>
-              <th className="px-3 py-2">{t("platform.working_hours.field.end")}</th>
-              <th className="px-3 py-2">{t("platform.working_hours.field.break")}</th>
-              <th className="px-3 py-2">{t("common.field.status")}</th>
-              <th className="px-3 py-2 text-right">{t("common.field.action")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">
-                  {t("platform.working_hours.loading")}
-                </td>
-              </tr>
-            )}
-            {!loading && items.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">
-                  {t("platform.working_hours.empty")}
-                </td>
-              </tr>
-            )}
-            {items.map((row) => (
-              <tr key={row.id} className="border-t border-border">
-                <td className="px-3 py-2">
-                  {t(`platform.working_hours.day.${DAY_KEYS[row.day_of_week - 1] ?? "mon"}`)}
-                </td>
-                <td className="px-3 py-2 font-mono text-xs">{row.org_code || "—"}</td>
-                <td className="px-3 py-2">{row.start_time}</td>
-                <td className="px-3 py-2">{row.end_time}</td>
-                <td className="px-3 py-2 tabular-nums">{row.break_minutes}</td>
-                <td className="px-3 py-2">
-                  <Badge variant={row.is_active ? "default" : "outline"}>
-                    {row.is_active
-                      ? t("platform.working_hours.active")
-                      : t("platform.working_hours.inactive")}
-                  </Badge>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <button
-                    type="button"
-                    className="text-xs font-semibold text-primary hover:underline"
-                    onClick={() => void remove(row.id)}
-                  >
-                    {t("common.action.disable")}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="space-y-1.5">
+        <Label>{t("platform.working_hours.field.start")}</Label>
+        <Input
+          type="time"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+        />
       </div>
+      <div className="space-y-1.5">
+        <Label>{t("platform.working_hours.field.end")}</Label>
+        <Input
+          type="time"
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label>{t("platform.working_hours.field.break")}</Label>
+        <Input
+          inputMode="numeric"
+          value={breakMinutes}
+          onChange={(e) => setBreakMinutes(e.target.value)}
+        />
+      </div>
+      <Button onClick={() => void save()} disabled={pending}>
+        {t("common.action.save")}
+      </Button>
     </div>
+  )
+
+  return (
+    <ListPageShell
+      title={t("platform.working_hours.title")}
+      totalRows={total}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("platform.working_hours.count", { count: total })}
+        </Badge>
+      }
+      header={header}
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={() => void load(true)}
+      loadErrorTitle={t("platform.working_hours.load_failed")}
+      fetching={refreshing}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          exportFilename={t("platform.working_hours.title")}
+          sheetName={t("platform.working_hours.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <AlertDialog
+          open={deleteTarget !== null}
+          onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {t("common.confirm.delete_title")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("common.confirm.delete_description", {
+                  item: deleteTarget
+                    ? `${t(dayLabel(deleteTarget.day_of_week))} ${deleteTarget.start_time}–${deleteTarget.end_time}`
+                    : "",
+                })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleting}
+                onClick={() => void handleDelete()}
+              >
+                {t("common.action.delete")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      }
+    />
   )
 }

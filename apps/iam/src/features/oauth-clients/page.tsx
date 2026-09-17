@@ -1,236 +1,288 @@
-import { useCallback, useEffect, useState } from "react"
-import { useI18n } from "@workspace/i18n"
-import { notify } from "@workspace/ui/feedback/notify"
-import { oauthClientsApi, type OAuthClient } from "./api"
+import { useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Pencil, Trash2 } from "lucide-react"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { notify } from "@workspace/ui/feedback/notify"
+import {
+  matchTextColumnFilter,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { oauthClientsApi, type OAuthClient } from "./api"
+import { OAuthClientDialog } from "./components/OAuthClientDialog"
 
-const EMPTY = {
-  client_id: "",
-  client_name: "",
-  redirect_uris: "",
-  grant_types: "authorization_code,refresh_token",
-  scope: "openid offline_access",
-  token_endpoint_auth_method: "client_secret_basic",
-}
+const DEFAULT_PAGE_SIZE = 10
 
-/** OAuth2 client registry (Hydra admin proxy, X3). */
+/**
+ * OAuth2 client registry (Hydra admin proxy, X3).
+ * `GET /api/admin/oauth-clients` is unpaged (the complete Hydra client set),
+ * so this is a client tier list: filter/sort/paginate in memory behind the
+ * shared DataTable + ListPageShell, URL-synced via useClientListTable.
+ */
 export function OAuthClientsPage() {
   const { t } = useI18n()
-  const [clients, setClients] = useState<OAuthClient[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadFailed, setLoadFailed] = useState(false)
-  const [form, setForm] = useState({ ...EMPTY })
-  const [editing, setEditing] = useState<string | null>(null)
+  /** `undefined` = closed, `null` = create, client = edit. */
+  const [formTarget, setFormTarget] = useState<OAuthClient | null | undefined>(
+    undefined
+  )
+  const [deleteTarget, setDeleteTarget] = useState<OAuthClient | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setLoadFailed(false)
+  const query = useQuery({
+    queryKey: ["iam", "oauth-clients", "list"],
+    queryFn: oauthClientsApi.list,
+  })
+  const items = useMemo(() => query.data?.items ?? [], [query.data])
+
+  const columns = useMemo<ColumnDef<OAuthClient>[]>(
+    () => [
+      {
+        id: "client_id",
+        accessorKey: "client_id",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.oauth_clients.field.client_id")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("admin.oauth_clients.field.client_id"),
+          t("admin.oauth_clients.search")
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs font-semibold text-primary">
+            {row.original.client_id}
+          </span>
+        ),
+      },
+      {
+        id: "client_name",
+        accessorKey: "client_name",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.oauth_clients.field.client_name")}
+          />
+        ),
+        cell: ({ row }) => row.original.client_name || "—",
+      },
+      {
+        id: "grant_types",
+        accessorKey: "grant_types",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.oauth_clients.field.grant_types")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">
+            {(row.original.grant_types ?? []).join(", ") || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "scope",
+        accessorKey: "scope",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.oauth_clients.field.scope")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.scope || "—"}</span>
+        ),
+      },
+      {
+        id: "redirect_uris",
+        accessorKey: "redirect_uris",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("admin.oauth_clients.field.redirect_uris")}
+          />
+        ),
+        cell: ({ row }) => {
+          const uris = (row.original.redirect_uris ?? []).join(", ")
+          return (
+            <span className="block max-w-[280px] truncate font-mono text-xs" title={uris || undefined}>
+              {uris || "—"}
+            </span>
+          )
+        },
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              title={t("common.action.edit")}
+              onClick={() => setFormTarget(row.original)}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              title={t("common.action.delete")}
+              onClick={() => setDeleteTarget(row.original)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [t]
+  )
+
+  const { table, total } = useClientListTable<OAuthClient>({
+    columns,
+    items,
+    filterBy: {
+      client_id: (item, value) =>
+        matchTextColumnFilter(value, item.client_id, item.client_name),
+    },
+    sort: (rows, sorting) =>
+      sortByColumn(rows, sorting, {
+        client_id: (a, b) => a.client_id.localeCompare(b.client_id),
+        client_name: (a, b) =>
+          (a.client_name ?? "").localeCompare(b.client_name ?? ""),
+        grant_types: (a, b) =>
+          (a.grant_types ?? []).join(",").localeCompare((b.grant_types ?? []).join(",")),
+        scope: (a, b) => (a.scope ?? "").localeCompare(b.scope ?? ""),
+        redirect_uris: (a, b) =>
+          (a.redirect_uris ?? [])
+            .join(",")
+            .localeCompare((b.redirect_uris ?? []).join(",")),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      const result = await oauthClientsApi.list()
-      setClients(result.items)
-    } catch {
-      setClients([])
-      setLoadFailed(true)
+      await oauthClientsApi.remove(deleteTarget.client_id)
+      notify.success(t("common.feedback.delete_success"))
+      setDeleteTarget(null)
+      await query.refetch()
+    } catch (err) {
+      notify.error(t("common.feedback.delete_failed"), translateApiError(err))
     } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
-
-  const edit = (client: OAuthClient) => {
-    setEditing(client.client_id)
-    setForm({
-      client_id: client.client_id,
-      client_name: client.client_name ?? "",
-      redirect_uris: (client.redirect_uris ?? []).join(", "),
-      grant_types: (client.grant_types ?? ["authorization_code"]).join(","),
-      scope: client.scope ?? "",
-      token_endpoint_auth_method:
-        client.token_endpoint_auth_method ?? "client_secret_basic",
-    })
-  }
-
-  const reset = () => {
-    setEditing(null)
-    setForm({ ...EMPTY })
-  }
-
-  const save = async () => {
-    if (!form.client_name.trim() || !form.redirect_uris.trim()) {
-      notify.error(t("admin.oauth_clients.validation.required"))
-      return
-    }
-    const payload: Record<string, unknown> = {
-      client_name: form.client_name.trim(),
-      redirect_uris: form.redirect_uris
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      grant_types: form.grant_types
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      response_types: ["code"],
-      scope: form.scope.trim(),
-      token_endpoint_auth_method: form.token_endpoint_auth_method,
-    }
-    if (!editing && form.client_id.trim()) payload.client_id = form.client_id.trim()
-    try {
-      await oauthClientsApi.save(editing, payload)
-      notify.success(t("admin.oauth_clients.save_success"))
-      reset()
-      await load()
-    } catch {
-      notify.error(t("admin.oauth_clients.save_failed"))
-    }
-  }
-
-  const remove = async (clientId: string) => {
-    try {
-      await oauthClientsApi.remove(clientId)
-      await load()
-    } catch {
-      notify.error(t("admin.oauth_clients.save_failed"))
+      setDeleting(false)
     }
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div>
-        <h1 className="text-lg font-semibold">{t("admin.oauth_clients.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("admin.oauth_clients.description")}</p>
-      </div>
+    <ListPageShell
+      title={t("admin.oauth_clients.title")}
+      totalRows={total}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("admin.oauth_clients.count", { count: total })}
+        </Badge>
+      }
+      header={
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          {t("admin.oauth_clients.description")}
+        </p>
+      }
+      criticalPending={query.isPending}
+      criticalError={query.error}
+      onRetry={() => void query.refetch()}
+      loadErrorTitle={t("admin.oauth_clients.load_failed")}
+      fetching={query.isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setFormTarget(null)}
+          createLabel={t("admin.oauth_clients.create")}
+          exportFilename={t("admin.oauth_clients.title")}
+          sheetName={t("admin.oauth_clients.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <>
+          {formTarget !== undefined ? (
+            <OAuthClientDialog
+              key={formTarget?.client_id ?? "create"}
+              open
+              client={formTarget}
+              onOpenChange={(nextOpen) => !nextOpen && setFormTarget(undefined)}
+              onSaved={async () => {
+                await query.refetch()
+                setFormTarget(undefined)
+              }}
+            />
+          ) : null}
 
-      <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4">
-        <div className="space-y-1.5">
-          <Label>{t("admin.oauth_clients.field.client_id")}</Label>
-          <Input
-            value={form.client_id}
-            disabled={Boolean(editing)}
-            className="font-mono"
-            onChange={(e) => setForm({ ...form, client_id: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("admin.oauth_clients.field.client_name")}</Label>
-          <Input
-            value={form.client_name}
-            onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-          />
-        </div>
-        <div className="col-span-2 space-y-1.5">
-          <Label>{t("admin.oauth_clients.field.redirect_uris")}</Label>
-          <Input
-            value={form.redirect_uris}
-            placeholder="https://app.arda.io.vn/callback"
-            onChange={(e) => setForm({ ...form, redirect_uris: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("admin.oauth_clients.field.scope")}</Label>
-          <Input value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("admin.oauth_clients.field.auth_method")}</Label>
-          <select
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={form.token_endpoint_auth_method}
-            onChange={(e) =>
-              setForm({ ...form, token_endpoint_auth_method: e.target.value })
-            }
+          <AlertDialog
+            open={deleteTarget !== null}
+            onOpenChange={(nextOpen) => !nextOpen && setDeleteTarget(null)}
           >
-            <option value="client_secret_basic">client_secret_basic</option>
-            <option value="client_secret_post">client_secret_post</option>
-            <option value="none">none (public)</option>
-          </select>
-        </div>
-        <div className="col-span-2 flex gap-2">
-          <Button onClick={() => void save()}>{t("common.action.save")}</Button>
-          {editing && (
-            <Button variant="outline" onClick={reset}>
-              {t("common.action.cancel")}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {loadFailed && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
-          {t("admin.oauth_clients.load_failed")}
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("admin.oauth_clients.field.client_id")}</th>
-              <th className="px-3 py-2">{t("admin.oauth_clients.field.client_name")}</th>
-              <th className="px-3 py-2">{t("admin.oauth_clients.field.redirect_uris")}</th>
-              <th className="px-3 py-2">{t("admin.oauth_clients.field.scope")}</th>
-              <th className="px-3 py-2">{t("admin.oauth_clients.field.auth_method")}</th>
-              <th className="px-3 py-2 text-right">{t("common.field.action")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={6} className="px-3 py-4 text-center text-muted-foreground">
-                  {t("common.loading")}
-                </td>
-              </tr>
-            )}
-            {!loading && clients.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-3 py-4 text-center text-muted-foreground">
-                  {t("admin.oauth_clients.empty")}
-                </td>
-              </tr>
-            )}
-            {clients.map((client) => (
-              <tr key={client.client_id} className="border-t border-border">
-                <td className="px-3 py-2 font-mono text-xs font-semibold text-primary">
-                  {client.client_id}
-                </td>
-                <td className="px-3 py-2">{client.client_name ?? "—"}</td>
-                <td className="max-w-[280px] truncate px-3 py-2 font-mono text-xs">
-                  {(client.redirect_uris ?? []).join(", ")}
-                </td>
-                <td className="px-3 py-2 text-xs">{client.scope ?? "—"}</td>
-                <td className="px-3 py-2">
-                  <Badge variant="outline">
-                    {client.token_endpoint_auth_method ?? "client_secret_basic"}
-                  </Badge>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-primary hover:underline"
-                      onClick={() => edit(client)}
-                    >
-                      {t("common.action.edit")}
-                    </button>
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-destructive hover:underline"
-                      onClick={() => void remove(client.client_id)}
-                    >
-                      {t("common.action.delete")}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t("common.confirm.delete_title")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("common.confirm.delete_description", {
+                    item: deleteTarget?.client_id ?? "",
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>
+                  {t("common.action.cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleting}
+                  onClick={() => void handleDelete()}
+                >
+                  {t("common.action.delete")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      }
+    />
   )
 }
