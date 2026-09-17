@@ -5,14 +5,26 @@ import { Badge } from "@workspace/ui/components/badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { textSearchMeta } from "@workspace/list-page/column-filters"
-import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import {
+  matchTextColumnFilter,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
+import { useServerList } from "@workspace/list-page/server-list"
 import { formatRatePercent } from "@workspace/format"
 import { capitalApi, type CapitalProduct } from "../../api"
-import { catalogsListDefinition } from "../list-query"
 import { ProductDialog } from "./components/ProductDialog"
 
-/** CFM fund-product catalog (sản phẩm vốn). */
+const DEFAULT_PAGE_SIZE = 10
+
+/**
+ * CFM fund-product catalog (sản phẩm vốn). `GET /api/capital/products` returns
+ * the complete set (no page/per_page), so this is a client tier list: one query
+ * for all rows, then filter/sort/paginate in memory.
+ */
 export function ProductsPage() {
   const { t } = useI18n()
   const [createOpen, setCreateOpen] = useState(false)
@@ -101,17 +113,33 @@ export function ProductsPage() {
   )
 
   const {
-    total,
-    isLoading,
+    items,
+    isPending,
     isFetching,
     error: loadError,
     refetch,
-    table,
-  } = useServerDataTable<CapitalProduct>({
-    ...catalogsListDefinition,
+  } = useServerList<CapitalProduct>({
     queryKey: ["capital", "products", "list"],
+    query: {},
+    queryFn: () => capitalApi.listProducts(true),
+  })
+
+  const { table, total } = useClientListTable<CapitalProduct>({
     columns,
-    queryFn: async () => capitalApi.listProducts(true),
+    items,
+    filterBy: {
+      code: (item, value) => matchTextColumnFilter(value, item.code, item.name),
+    },
+    sort: (rows, sorting) =>
+      sortByColumn(rows, sorting, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        name: (a, b) => a.name.localeCompare(b.name),
+        fund_type_code: (a, b) => a.fund_type_code.localeCompare(b.fund_type_code),
+        term_months: (a, b) => a.term_months - b.term_months,
+        interest_rate: (a, b) => a.interest_rate - b.interest_rate,
+        currency_code: (a, b) => a.currency_code.localeCompare(b.currency_code),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
@@ -123,7 +151,7 @@ export function ProductsPage() {
           {t("capital.count", { count: total })}
         </Badge>
       }
-      criticalPending={isLoading}
+      criticalPending={isPending}
       criticalError={loadError}
       onRetry={() => void refetch()}
       fetching={isFetching}

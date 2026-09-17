@@ -11,16 +11,27 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import {
+  matchSelectFilter,
+  matchTextColumnFilter,
   selectFilterMeta,
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
-import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
+import { useServerList } from "@workspace/list-page/server-list"
 import { formatDateShort, formatRatePercent } from "@workspace/format"
 import { depositApi, type SavingsProduct } from "../api"
-import { productsListDefinition } from "./list-query"
 import { ProductFormDialog } from "./components/ProductFormDialog"
 
-/** Deposit products catalog (DPM) — server tier, upsert via POST/PUT. */
+const DEFAULT_PAGE_SIZE = 10
+
+/**
+ * Deposit products catalog (DPM). `GET /api/deposit/products` returns the
+ * complete set (no page/per_page), so this is a client tier list: one query for
+ * all rows, then filter/sort/paginate in memory. Upsert via POST/PUT.
+ */
 export function ProductsPage(_props: { pathname: string }) {
   const { t } = useI18n()
   const [createOpen, setCreateOpen] = useState(false)
@@ -160,22 +171,37 @@ export function ProductsPage(_props: { pathname: string }) {
   )
 
   const {
-    total,
-    isLoading,
+    items,
+    isPending,
     isFetching,
     error: loadError,
     refetch,
-    table,
-  } = useServerDataTable<SavingsProduct>({
-    ...productsListDefinition,
+  } = useServerList<SavingsProduct>({
+    queryKey: ["deposit", "products", "list"],
+    query: {},
+    queryFn: () => depositApi.listProducts(),
+  })
+
+  const { table, total } = useClientListTable<SavingsProduct>({
     columns,
-    queryFn: async (q) =>
-      depositApi.listProducts({
-        q: q.q === undefined ? undefined : String(q.q),
-        is_active: q.is_active === undefined ? undefined : String(q.is_active),
-        sort: q.sort,
-        order: q.order,
+    items,
+    filterBy: {
+      code: (item, value) => matchTextColumnFilter(value, item.code, item.name),
+      is_active: (item, value) =>
+        matchSelectFilter(String(item.is_active), value),
+    },
+    sort: (rows, sorting) =>
+      sortByColumn(rows, sorting, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        name: (a, b) => a.name.localeCompare(b.name),
+        term_months: (a, b) => a.term_months - b.term_months,
+        interest_rate: (a, b) => a.interest_rate - b.interest_rate,
+        currency_code: (a, b) => a.currency_code.localeCompare(b.currency_code),
+        created_at: (a, b) =>
+          (a.created_at ?? "").localeCompare(b.created_at ?? ""),
+        is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
       }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
@@ -187,7 +213,7 @@ export function ProductsPage(_props: { pathname: string }) {
           {t("deposit.count", { count: total })}
         </Badge>
       }
-      criticalPending={isLoading}
+      criticalPending={isPending}
       criticalError={loadError}
       onRetry={() => void refetch()}
       fetching={isFetching}

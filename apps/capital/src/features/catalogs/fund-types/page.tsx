@@ -6,13 +6,25 @@ import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/s
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { textSearchMeta } from "@workspace/list-page/column-filters"
-import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import {
+  matchTextColumnFilter,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
+import { useServerList } from "@workspace/list-page/server-list"
 import { capitalApi, type FundType } from "../../api"
-import { catalogsListDefinition } from "../list-query"
 import { FundTypeDialog } from "./components/FundTypeDialog"
 
-/** CFM fund-type catalog (loại vốn). */
+const DEFAULT_PAGE_SIZE = 10
+
+/**
+ * CFM fund-type catalog (loại vốn). `GET /api/capital/fund-types` returns the
+ * complete set (no page/per_page), so this is a client tier list: one query for
+ * all rows, then filter/sort/paginate in memory.
+ */
 export function FundTypesPage() {
   const { t } = useI18n()
   const [createOpen, setCreateOpen] = useState(false)
@@ -79,17 +91,30 @@ export function FundTypesPage() {
   )
 
   const {
-    total,
-    isLoading,
+    items,
+    isPending,
     isFetching,
     error: loadError,
     refetch,
-    table,
-  } = useServerDataTable<FundType>({
-    ...catalogsListDefinition,
+  } = useServerList<FundType>({
     queryKey: ["capital", "fund-types", "list"],
+    query: {},
+    queryFn: () => capitalApi.listFundTypes(true),
+  })
+
+  const { table, total } = useClientListTable<FundType>({
     columns,
-    queryFn: async () => capitalApi.listFundTypes(true),
+    items,
+    filterBy: {
+      code: (item, value) => matchTextColumnFilter(value, item.code, item.name),
+    },
+    sort: (rows, sorting) =>
+      sortByColumn(rows, sorting, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        name: (a, b) => a.name.localeCompare(b.name),
+        is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
   return (
@@ -101,7 +126,7 @@ export function FundTypesPage() {
           {t("capital.count", { count: total })}
         </Badge>
       }
-      criticalPending={isLoading}
+      criticalPending={isPending}
       criticalError={loadError}
       onRetry={() => void refetch()}
       fetching={isFetching}
