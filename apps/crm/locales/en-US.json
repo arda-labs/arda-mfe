@@ -272,6 +272,28 @@
       "label": "Unit",
       "placeholder": "Select a unit"
     },
+    "count": "{count} records",
+    "load_failed": "Could not load the customer list",
+    "profile_code_label": "Profile code:",
+    "case_label": "Case:",
+    "case_bpm_label": "BPM case:",
+    "avatar": {
+      "alt": "Customer avatar",
+      "placeholder": "Avatar",
+      "upload": "Upload",
+      "uploading": "Uploading...",
+      "remove": "Remove image"
+    },
+    "actions": {
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject",
+      "complete": "Complete",
+      "save_draft": "Save draft",
+      "cancel_draft": "Cancel draft",
+      "create": "Initialize",
+      "cancel_profile": "Cancel profile"
+    },
     "search_placeholder": "Search by code, name, mobile, or identity number",
     "columns": {
       "customer_code": "Customer Code",

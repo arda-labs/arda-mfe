@@ -1,23 +1,34 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Search } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+import { Badge } from "@workspace/ui/components/badge"
 import { navigateTo } from "@workspace/ui/shell/routing"
-import { customerApi, type Customer, type CustomerListParams } from "../../api"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { customerApi, type Customer } from "../../api"
 import { printDossier } from "../../../lib/print-dossier"
 import { customerTypeLabel } from "../utils/form-utils"
-import { EmptyTable, Header } from "./customer-ui"
+import {
+  customerProfilesListDefinition,
+  customerRiskListDefinition,
+} from "../list-query"
+import { useCustomerColumns, type CustomerListMode } from "./customer-columns"
 
+/**
+ * Customer record list for `/customers/profiles` (mode=profiles) and
+ * `/customers/risk-cases` (mode=risk).
+ *
+ * The list is the whole page, so it uses the shared `ListPageShell` server-list
+ * tier: page/perPage and the toolbar text filter live in the URL, the filter
+ * maps to the BE `q` search (code/name/mobile/identity/id) and pagination is
+ * server-side (`total` from the list envelope).
+ *
+ * `riskOnly` comes from the route, not the URL — the workbench links to two
+ * distinct paths — and each route has its own query key so their caches can
+ * never answer for each other. Sorting is not exposed: the endpoint always
+ * orders by `updated_at DESC` and ignores `sort`/`order`.
+ */
 export function CustomerTable({
   title,
   description,
@@ -25,183 +36,125 @@ export function CustomerTable({
 }: {
   title: string
   description: string
-  mode: "profiles" | "risk"
+  mode: CustomerListMode
 }) {
   const { t } = useI18n()
-  const [query, setQuery] = useState("")
-  const [submittedQuery, setSubmittedQuery] = useState("")
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params: CustomerListParams = {
-        q: submittedQuery || undefined,
-        riskOnly: mode === "risk",
+  const printRow = useCallback(
+    (item: Customer) => {
+      const ok = printDossier({
+        title: t("crm.customers.print.title"),
+        subtitle: item.customerCode || item.id,
+        fields: [
+          {
+            label: t("crm.customers.columns.customer_code"),
+            value: item.customerCode || item.id,
+          },
+          {
+            label: t("crm.customers.columns.customer_name"),
+            value: item.name,
+          },
+          {
+            label: t("crm.customers.columns.customer_type"),
+            value: customerTypeLabel(item.customerType, t),
+          },
+          {
+            label: t("crm.customers.columns.segment"),
+            value: item.segment || "-",
+          },
+          {
+            label: t("crm.customers.columns.rank"),
+            value: item.rank || "-",
+          },
+          {
+            label: t("crm.customers.columns.mobile"),
+            value: item.mobile || "-",
+          },
+          {
+            label: t("crm.customers.columns.identity_no"),
+            value: item.identityNo || "-",
+          },
+          {
+            label: t("crm.customers.columns.address"),
+            value: item.address || "-",
+          },
+        ],
+        signatures: [
+          t("crm.customers.print.customer"),
+          t("crm.customers.print.officer"),
+        ],
+      })
+      if (!ok) notify.error(t("crm.customers.print.blocked"))
+    },
+    [t]
+  )
+
+  const adjustRow = useCallback((item: Customer) => {
+    navigateTo(
+      `/customers/adjustments?customerId=${encodeURIComponent(item.id)}`
+    )
+  }, [])
+
+  const columns = useCustomerColumns({
+    mode,
+    onPrint: printRow,
+    onAdjust: adjustRow,
+  })
+
+  const definition =
+    mode === "risk"
+      ? customerRiskListDefinition
+      : customerProfilesListDefinition
+  const {
+    table,
+    total,
+    isLoading,
+    isFetching,
+    error: listError,
+    refetch,
+  } = useServerDataTable<Customer>({
+    ...definition,
+    columns,
+    queryFn: async (query) =>
+      customerApi.list({
+        page: query.page,
+        perPage: query.perPage,
+        q: query.q === undefined ? undefined : String(query.q),
         status: "ACTIVE",
-      }
-      const data = await customerApi.list(params)
-      setCustomers(data)
-    } finally {
-      setLoading(false)
-    }
-  }, [mode, submittedQuery])
-
-  useEffect(() => {
-    void load()
-  }, [load])
-
-  const items = customers
-
-  const printRow = (item: Customer) => {
-    const ok = printDossier({
-      title: t("crm.customers.print.title"),
-      subtitle: item.customerCode || item.id,
-      fields: [
-        { label: t("crm.customers.columns.customer_code"), value: item.customerCode || item.id },
-        { label: t("crm.customers.columns.customer_name"), value: item.name },
-        { label: t("crm.customers.columns.customer_type"), value: customerTypeLabel(item.customerType, t) },
-        { label: t("crm.customers.columns.segment"), value: item.segment || "-" },
-        { label: t("crm.customers.columns.rank"), value: item.rank || "-" },
-        { label: t("crm.customers.columns.mobile"), value: item.mobile || "-" },
-        { label: t("crm.customers.columns.identity_no"), value: item.identityNo || "-" },
-        { label: t("crm.customers.columns.address"), value: item.address || "-" },
-      ],
-      signatures: [t("crm.customers.print.customer"), t("crm.customers.print.officer")],
-    })
-    if (!ok) notify.error(t("crm.customers.print.blocked"))
-  }
+        riskOnly: mode === "risk" ? true : undefined,
+      }),
+    tableOptions: { rowIndexLabel: t("crm.common.index") },
+  })
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4">
-      <Header title={title} description={description} />
-      <form
-        className="flex flex-col gap-2 sm:flex-row"
-        onSubmit={(event) => {
-          event.preventDefault()
-          setSubmittedQuery(query.trim())
-        }}
-      >
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("crm.customers.search_placeholder")}
-          />
-        </div>
-        <Button type="submit">
-          <Search className="size-4" />
-          {t("crm.actions.search")}
-        </Button>
-      </form>
-      {loading ? (
-        <div className="rounded-md border px-4 py-3 text-sm text-muted-foreground">
-          Đang tải...
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {mode === "profiles" ? (
-                  <TableHead>{t("crm.common.select")}</TableHead>
-                ) : null}
-                <TableHead>{t("crm.common.index")}</TableHead>
-                <TableHead>
-                  {t("crm.customers.columns.customer_code")}
-                </TableHead>
-                <TableHead>
-                  {t("crm.customers.columns.customer_name")}
-                </TableHead>
-                {mode === "profiles" ? (
-                  <TableHead>{t("crm.customers.columns.segment")}</TableHead>
-                ) : null}
-                <TableHead>
-                  {t("crm.customers.columns.customer_type")}
-                </TableHead>
-                {mode === "profiles" ? (
-                  <TableHead>{t("crm.customers.columns.rank")}</TableHead>
-                ) : (
-                  <TableHead>{t("crm.customers.columns.risk_level")}</TableHead>
-                )}
-                <TableHead>{t("crm.customers.columns.mobile")}</TableHead>
-                <TableHead>{t("crm.customers.columns.identity_no")}</TableHead>
-                <TableHead>{t("crm.customers.columns.address")}</TableHead>
-                {mode === "profiles" ? (
-                  <TableHead>{t("crm.common.actions")}</TableHead>
-                ) : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item, index) => (
-                <TableRow key={item.id}>
-                  {mode === "profiles" ? (
-                    <TableCell>
-                      <input aria-label={`Chọn ${item.id}`} type="checkbox" />
-                    </TableCell>
-                  ) : null}
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {item.customerCode || item.id}
-                  </TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  {mode === "profiles" ? (
-                    <TableCell>{item.segment || "-"}</TableCell>
-                  ) : null}
-                  <TableCell>
-                    {customerTypeLabel(item.customerType, t)}
-                  </TableCell>
-                  <TableCell>
-                    {mode === "profiles"
-                      ? item.rank || "-"
-                      : item.riskLevel || "-"}
-                  </TableCell>
-                  <TableCell>{item.mobile || "-"}</TableCell>
-                  <TableCell>{item.identityNo || "-"}</TableCell>
-                  <TableCell className="max-w-72 truncate">
-                    {item.address || "-"}
-                  </TableCell>
-                  {mode === "profiles" ? (
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => printRow(item)}
-                        >
-                          {t("crm.customers.print.action")}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            navigateTo(
-                              `/customers/adjustments?customerId=${encodeURIComponent(item.id)}`
-                            )
-                          }
-                        >
-                          {t("crm.customers.adjustments.action")}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-              {!items.length ? (
-                <EmptyTable
-                  colSpan={mode === "profiles" ? 11 : 8}
-                  text={t("crm.customers.empty")}
-                />
-              ) : null}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </section>
+    <ListPageShell
+      title={title}
+      header={
+        <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
+      }
+      totalRows={total}
+      meta={
+        <Badge
+          variant="secondary"
+          className="px-2.5 py-0.5 text-[10px] font-bold"
+        >
+          {t("crm.customers.count", { count: total })}
+        </Badge>
+      }
+      criticalPending={isLoading}
+      criticalError={listError}
+      onRetry={() => void refetch()}
+      loadErrorTitle={t("crm.customers.load_failed")}
+      fetching={isFetching}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          exportFilename={title}
+          sheetName={title}
+          totalRowsCount={total}
+        />
+      }
+    />
   )
 }

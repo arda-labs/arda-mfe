@@ -272,6 +272,28 @@
       "label": "Đơn vị",
       "placeholder": "Chọn đơn vị"
     },
+    "count": "{count} hồ sơ",
+    "load_failed": "Không tải được danh sách khách hàng",
+    "profile_code_label": "Mã hồ sơ:",
+    "case_label": "Case:",
+    "case_bpm_label": "Case BPM:",
+    "avatar": {
+      "alt": "Ảnh đại diện khách hàng",
+      "placeholder": "Ảnh đại diện",
+      "upload": "Tải ảnh",
+      "uploading": "Đang tải ảnh...",
+      "remove": "Xóa ảnh"
+    },
+    "actions": {
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu chỉnh sửa",
+      "reject": "Từ chối",
+      "complete": "Hoàn thành",
+      "save_draft": "Lưu nháp",
+      "cancel_draft": "Hủy nháp",
+      "create": "Khởi tạo",
+      "cancel_profile": "Hủy hồ sơ"
+    },
     "search_placeholder": "Tìm theo mã, tên, số di động, CCCD/CMND",
     "columns": {
       "customer_code": "Mã khách hàng",

@@ -49,12 +49,14 @@ import { postTaskWorkbenchHref } from "../utils/workbench-return"
 import {
   EmptyState,
   FieldGrid,
-  FooterActions,
-  FooterBackButton,
   Panel,
   RegistrationStatusBar,
   StatusBadge,
 } from "../components/customer-ui"
+import {
+  FooterActions,
+  FooterBackButton,
+} from "../components/customer-footer"
 
 function goBack() {
   const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")

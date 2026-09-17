@@ -62,9 +62,9 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
     setCandidatesLoading(true)
     customerApi
       .list({ status: "ACTIVE" })
-      .then((all) => {
+      .then((res) => {
         if (!cancelled)
-          setCandidates(all.filter((item) => item.id !== customer.id))
+          setCandidates(res.items.filter((item) => item.id !== customer.id))
       })
       .finally(() => {
         if (!cancelled) setCandidatesLoading(false)

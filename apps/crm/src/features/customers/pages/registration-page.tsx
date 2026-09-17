@@ -59,11 +59,13 @@ import {
 import {
   AvatarUploader,
   FieldGrid,
-  FooterActions,
-  FooterBackButton,
   Panel,
   RegistrationStatusBar,
 } from "../components/customer-ui"
+import {
+  FooterActions,
+  FooterBackButton,
+} from "../components/customer-footer"
 
 function goBack() {
   const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")

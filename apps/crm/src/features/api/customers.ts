@@ -20,6 +20,7 @@ import {
 } from "@workspace/api"
 
 export const customerApi = {
+  /** Canonical list envelope (page/per_page/total) — consumed by server lists. */
   list(params: CustomerListParams = {}) {
     const search = buildListSearchParams({
       page: params.page,
@@ -29,9 +30,7 @@ export const customerApi = {
       status: params.status,
       risk_only: params.riskOnly,
     })
-    return getCanonicalList<Customer>(
-      `/api/crm/customers?${search.toString()}`
-    ).then((res) => res.items)
+    return getCanonicalList<Customer>(`/api/crm/customers?${search.toString()}`)
   },
   get(id: string) {
     return getCanonical<Customer>(

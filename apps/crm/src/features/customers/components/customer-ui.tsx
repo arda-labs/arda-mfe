@@ -2,16 +2,7 @@ import { useState, type ChangeEvent, type ReactNode } from "react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
-import {
-  ArrowLeft,
-  Check,
-  FileText,
-  RotateCcw,
-  Save,
-  Send,
-  Upload,
-  X,
-} from "lucide-react"
+import { Upload } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
@@ -122,19 +113,21 @@ export function AvatarUploader({
       <div className="flex aspect-4/5 w-full items-center justify-center overflow-hidden rounded-md border bg-muted/30">
         {fileId ? (
           <img
-            alt="Avatar khách hàng"
+            alt={t("crm.customers.avatar.alt")}
             className="h-full w-full object-cover"
             src={getMediaContentUrl(fileId)}
           />
         ) : (
           <div className="px-4 text-center text-sm text-muted-foreground">
-            Ảnh đại diện
+            {t("crm.customers.avatar.placeholder")}
           </div>
         )}
       </div>
       <label className="inline-flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-muted">
         <Upload className="size-4" />
-        {uploading ? "Đang tải" : "Upload"}
+        {uploading
+          ? t("crm.customers.avatar.uploading")
+          : t("crm.customers.avatar.upload")}
         <input
           accept="image/*"
           className="sr-only"
@@ -151,7 +144,7 @@ export function AvatarUploader({
           variant="ghost"
           onClick={onClear}
         >
-          Xóa ảnh
+          {t("crm.customers.avatar.remove")}
         </Button>
       ) : null}
       <ImageCropDialog
@@ -184,7 +177,7 @@ export function RegistrationSubmittedBanner({
         <p>{t("crm.customers.registrations.submitted_banner")}</p>
         {customer?.workflowCaseId ? (
           <p className="font-mono text-xs text-sky-800">
-            Case BPM: {customer.workflowCaseId}
+            {t("crm.customers.case_bpm_label")} {customer.workflowCaseId}
           </p>
         ) : null}
       </div>
@@ -233,7 +226,7 @@ export function RegistrationStatusBar({
       </span>
       {customer.customerCode ? (
         <span className="text-muted-foreground">
-          Mã hồ sơ:{" "}
+          {t("crm.customers.profile_code_label")}{" "}
           <span className="font-mono font-semibold text-foreground">
             {customer.customerCode}
           </span>
@@ -241,7 +234,8 @@ export function RegistrationStatusBar({
       ) : null}
       {customer.workflowCaseId ? (
         <span className="text-muted-foreground">
-          Case: <span className="font-mono">{customer.workflowCaseId}</span>
+          {t("crm.customers.case_label")}{" "}
+          <span className="font-mono">{customer.workflowCaseId}</span>
         </span>
       ) : null}
     </div>
@@ -253,16 +247,18 @@ export function RegistrationMetaBar({
 }: {
   customer: Customer | null
 }) {
+  const { t } = useI18n()
   if (!customer?.customerCode) return null
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-4 py-3 text-sm">
       <span>
-        Mã hồ sơ:{" "}
+        {t("crm.customers.profile_code_label")}{" "}
         <span className="font-mono font-medium">{customer.customerCode}</span>
       </span>
       {customer.workflowCaseId ? (
         <span className="text-muted-foreground">
-          Case BPM: <span className="font-mono">{customer.workflowCaseId}</span>
+          {t("crm.customers.case_bpm_label")}{" "}
+          <span className="font-mono">{customer.workflowCaseId}</span>
         </span>
       ) : null}
     </div>
@@ -281,24 +277,6 @@ export function Panel({
       <h2 className="text-base font-semibold">{title}</h2>
       {children}
     </section>
-  )
-}
-
-export function Header({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <header className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <FileText className="size-5 text-muted-foreground" />
-        <h1 className="text-2xl font-semibold">{title}</h1>
-      </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </header>
   )
 }
 
@@ -331,208 +309,6 @@ export function EmptyState({ text }: { text: string }) {
   return (
     <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
       {text}
-    </div>
-  )
-}
-
-export function FooterBackButton({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="flex h-13 shrink-0 items-center justify-end border-t bg-background px-4">
-      <Button className="h-8" type="button" variant="outline" onClick={onBack}>
-        <ArrowLeft className="size-4" />
-        Quay lại
-      </Button>
-    </div>
-  )
-}
-
-export function FooterActions({
-  isReadonly,
-  isSubmitting,
-  canCancelDraft,
-  canCompleteTask,
-  canEditTask,
-  awaitingMakerResubmit = false,
-  canEdit = false,
-  canSubmit,
-  onApprove,
-  onRequestChanges,
-  onReject,
-  onCancel,
-  onBack,
-  onSaveDraft,
-  onSaveAndSubmit,
-  onSaveAndRevise,
-  onSaveAndComplete,
-  onCancelDraft,
-  onCompleteTask,
-}: {
-  isReadonly: boolean
-  isSubmitting: boolean
-  canCancelDraft: boolean
-  canCompleteTask: boolean
-  canEditTask: boolean
-  awaitingMakerResubmit?: boolean
-  canEdit?: boolean
-  canSubmit?: boolean
-  onApprove?: () => void
-  onRequestChanges?: () => void
-  onReject?: () => void
-  onCancel?: () => void
-  onBack: () => void
-  onSaveDraft: () => void
-  onSaveAndSubmit?: () => void
-  onSaveAndRevise?: () => void
-  onSaveAndComplete?: () => void
-  onCancelDraft?: () => void
-  onCompleteTask?: (decision: string) => void
-}) {
-  const showMakerActions =
-    (canEditTask || awaitingMakerResubmit || canEdit) && !canCompleteTask
-  const showCheckerActions = canCompleteTask
-
-  return (
-    <div className="flex h-13 shrink-0 items-center border-t bg-background px-4">
-      <div className="flex w-full flex-wrap justify-end gap-2">
-        {showCheckerActions && (onApprove || onCompleteTask) ? (
-          onCompleteTask ? (
-            <>
-              <Button
-                className="h-8"
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onCompleteTask("APPROVE")}
-              >
-                <Check className="size-4" />
-                Phê duyệt
-              </Button>
-              <Button
-                className="h-8"
-                type="button"
-                variant="outline"
-                disabled={isSubmitting}
-                onClick={() => onCompleteTask("REQUEST_CHANGES")}
-              >
-                <RotateCcw className="size-4" />
-                Yêu cầu chỉnh sửa
-              </Button>
-              <Button
-                className="h-8"
-                type="button"
-                variant="destructive"
-                disabled={isSubmitting}
-                onClick={() => onCompleteTask("REJECT")}
-              >
-                <X className="size-4" />
-                Từ chối
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                className="h-8"
-                type="button"
-                disabled={isSubmitting}
-                onClick={onApprove}
-              >
-                <Check className="size-4" />
-                Phê duyệt
-              </Button>
-              <Button
-                className="h-8"
-                type="button"
-                variant="outline"
-                disabled={isSubmitting}
-                onClick={onRequestChanges}
-              >
-                <RotateCcw className="size-4" />
-                Yêu cầu chỉnh sửa
-              </Button>
-              <Button
-                className="h-8"
-                type="button"
-                variant="destructive"
-                disabled={isSubmitting}
-                onClick={onReject}
-              >
-                <X className="size-4" />
-                Từ chối
-              </Button>
-            </>
-          )
-        ) : null}
-
-        {!isReadonly && !showCheckerActions ? (
-          showMakerActions ? (
-            <>
-              <Button
-                className="h-8"
-                type="button"
-                disabled={isSubmitting || (canSubmit != null && !canSubmit)}
-                onClick={onSaveAndRevise ?? onSaveAndComplete}
-              >
-                <Send className="size-4" />
-                Hoàn thành
-              </Button>
-              <Button
-                className="h-8"
-                type="button"
-                variant="secondary"
-                disabled={isSubmitting}
-                onClick={onSaveDraft}
-              >
-                <Save className="size-4" />
-                Lưu nháp
-              </Button>
-              {canCancelDraft && onCancelDraft ? (
-                <Button
-                  className="h-8"
-                  type="button"
-                  variant="outline"
-                  disabled={isSubmitting}
-                  onClick={onCancelDraft}
-                >
-                  <X className="size-4" />
-                  Hủy nháp
-                </Button>
-              ) : null}
-            </>
-          ) : onSaveAndSubmit ? (
-            <Button
-              className="h-8"
-              type="button"
-              disabled={isSubmitting}
-              onClick={onSaveAndSubmit}
-            >
-              <Send className="size-4" />
-              Khởi tạo
-            </Button>
-          ) : null
-        ) : null}
-
-        {canCancelDraft && onCancel ? (
-          <Button
-            className="h-8"
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-            onClick={onCancel}
-          >
-            <X className="size-4" />
-            Hủy hồ sơ
-          </Button>
-        ) : null}
-
-        <Button
-          className="h-8"
-          type="button"
-          variant="outline"
-          onClick={onBack}
-        >
-          <ArrowLeft className="size-4" />
-          Quay lại
-        </Button>
-      </div>
     </div>
   )
 }
