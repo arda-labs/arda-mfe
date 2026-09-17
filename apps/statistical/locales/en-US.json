@@ -98,6 +98,7 @@
     "results": "Ranking results",
     "result": "Result:",
     "empty": "No ranking results yet.",
+    "load_failed": "Could not load ranking results",
     "field": {
       "type": "Scoring type",
       "subject_type": "Subject",
@@ -118,6 +119,10 @@
       "score": "Score",
       "rank": "Rank"
     },
+    "subject_type": {
+      "CUSTOMER": "Customer",
+      "AGREEMENT": "Credit agreement"
+    },
     "validation": {
       "type_required": "Enter a scoring type."
     },
@@ -130,6 +135,7 @@
     "title": "Report import",
     "description": "Stage an import transaction by import type and period, then submit it.",
     "empty": "No import transactions yet.",
+    "load_failed": "Could not load import transactions",
     "field": {
       "type": "Import type",
       "period": "Period",
@@ -138,6 +144,12 @@
     "btn": {
       "stage": "Stage",
       "submit": "Submit"
+    },
+    "status": {
+      "STAGED": "Staged",
+      "SUBMITTED": "Submitted",
+      "POSTED": "Posted",
+      "CANCELLED": "Cancelled"
     },
     "validation": {
       "required": "Enter an import type and period."
@@ -164,6 +176,11 @@
     "col": {
       "run_at": "Run at"
     },
+    "status": {
+      "PASSED": "Passed",
+      "FAILED": "Failed"
+    },
+    "load_failed": "Could not load CMMS results",
     "validation": {
       "required": "Enter a scenario and compliance period."
     },

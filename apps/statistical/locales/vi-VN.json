@@ -98,6 +98,7 @@
     "results": "Kết quả xếp hạng",
     "result": "Kết quả:",
     "empty": "Chưa có kết quả xếp hạng nào.",
+    "load_failed": "Không tải được kết quả xếp hạng",
     "field": {
       "type": "Loại chấm điểm",
       "subject_type": "Đối tượng",
@@ -118,6 +119,10 @@
       "score": "Điểm",
       "rank": "Xếp hạng"
     },
+    "subject_type": {
+      "CUSTOMER": "Khách hàng",
+      "AGREEMENT": "Hợp đồng giải ngân"
+    },
     "validation": {
       "type_required": "Vui lòng nhập loại chấm điểm."
     },
@@ -130,6 +135,7 @@
     "title": "Nhập liệu báo cáo",
     "description": "Tạo giao dịch nhập liệu (staging) theo loại nhập và kỳ báo cáo, sau đó nộp.",
     "empty": "Chưa có giao dịch nhập liệu nào.",
+    "load_failed": "Không tải được danh sách nhập liệu",
     "field": {
       "type": "Loại nhập liệu",
       "period": "Kỳ báo cáo",
@@ -138,6 +144,12 @@
     "btn": {
       "stage": "Tạo staging",
       "submit": "Nộp"
+    },
+    "status": {
+      "STAGED": "Chờ nộp",
+      "SUBMITTED": "Đã trình",
+      "POSTED": "Đã ghi nhận",
+      "CANCELLED": "Đã hủy"
     },
     "validation": {
       "required": "Vui lòng nhập loại nhập liệu và kỳ báo cáo."
@@ -164,6 +176,11 @@
     "col": {
       "run_at": "Thời điểm chạy"
     },
+    "status": {
+      "PASSED": "Đạt",
+      "FAILED": "Không đạt"
+    },
+    "load_failed": "Không tải được kết quả CMMS",
     "validation": {
       "required": "Vui lòng nhập kịch bản và kỳ tuân thủ."
     },

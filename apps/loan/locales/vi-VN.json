@@ -766,6 +766,8 @@
   "plans": {
     "title": "Quản lý kế hoạch",
     "description": "Danh mục kế hoạch vay theo kỳ và hạn mức.",
+    "create": "Thêm kế hoạch",
+    "edit": "Sửa kế hoạch",
     "field": {
       "from_date": "Từ ngày",
       "to_date": "Đến ngày",

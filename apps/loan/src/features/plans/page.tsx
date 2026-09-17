@@ -1,216 +1,280 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { formatAmount, formatDateShort, fromMinor, toMinor } from "@workspace/format"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import {
+  matchSelectFilter,
+  matchTextColumnFilter,
+  selectFilterMeta,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
+import { formatAmount, formatDateShort, fromMinor } from "@workspace/format"
 import { loanPlanApi, type LoanPlan } from "../api"
+import { PlanForm } from "./components/PlanForm"
 
-/** Loan plan management catalog (W7). */
+const DEFAULT_PAGE_SIZE = 10
+const STATUS_FILTER_OPTIONS = ["ACTIVE", "CLOSED", "CANCELLED"]
+
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  DRAFT: "loan.status.draft",
+  PENDING: "loan.status.pending",
+  ACTIVE: "loan.status.active",
+  INACTIVE: "loan.status_inactive",
+  CLOSED: "loan.status.closed",
+  CANCELLED: "loan.status.cancelled",
+}
+
+function statusVariant(status: string) {
+  if (status === "ACTIVE") return "default" as const
+  if (status === "CANCELLED") return "destructive" as const
+  return "outline" as const
+}
+
+function statusLabel(status: string, t: (key: string) => string) {
+  const key = STATUS_LABEL_KEYS[status]
+  return key ? t(key) : status
+}
+
+/**
+ * Loan plan catalog (W7). `GET /api/loan/plans` returns the whole catalog
+ * (`all=true`), so this is a client-tier list: search/sort/paging run in
+ * memory behind the shared DataTable, URL-synced via useClientListTable.
+ * Create/edit lives in the PlanForm dialog; closing a plan stays a row action.
+ */
 export function PlansPage() {
   const { t } = useI18n()
-  const [plans, setPlans] = useState<LoanPlan[]>([])
+  const [items, setItems] = useState<LoanPlan[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadFailed, setLoadFailed] = useState(false)
-  const [editing, setEditing] = useState<LoanPlan | null>(null)
-  const [code, setCode] = useState("")
-  const [name, setName] = useState("")
-  const [fromDate, setFromDate] = useState("")
-  const [toDate, setToDate] = useState("")
-  const [target, setTarget] = useState("")
-  const [note, setNote] = useState("")
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<LoanPlan | null>(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setLoadFailed(false)
+  const load = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
     try {
       const result = await loanPlanApi.list()
-      setPlans(result.items)
-    } catch {
-      setLoadFailed(true)
+      setItems(result.items)
+    } catch (reason) {
+      setLoadError(reason)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [])
 
   useEffect(() => {
-    void load()
+    void load(true)
   }, [load])
 
-  const reset = () => {
-    setEditing(null)
-    setCode("")
-    setName("")
-    setFromDate("")
-    setToDate("")
-    setTarget("")
-    setNote("")
-  }
+  const closePlan = useCallback(
+    async (plan: LoanPlan) => {
+      try {
+        await loanPlanApi.close(plan.id)
+        await load()
+      } catch {
+        notify.error(t("loan.plans.save_failed"))
+      }
+    },
+    [load, t]
+  )
 
-  const edit = (plan: LoanPlan) => {
-    setEditing(plan)
-    setCode(plan.code)
-    setName(plan.name)
-    setFromDate(plan.from_date ?? "")
-    setToDate(plan.to_date ?? "")
-    setTarget(String(fromMinor(plan.target_amount_minor, "VND")))
-    setNote(plan.note ?? "")
-  }
+  const columns = useMemo<ColumnDef<LoanPlan>[]>(
+    () => [
+      {
+        id: "code",
+        accessorKey: "code",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("common.field.code")} />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(t("common.field.code"), t("loan.placeholder.search")),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs font-semibold text-primary">
+            {row.original.code}
+          </span>
+        ),
+      },
+      {
+        id: "name",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("common.field.name")} />
+        ),
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.name}</span>
+        ),
+      },
+      {
+        id: "from_date",
+        accessorKey: "from_date",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.plans.field.from_date")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap">
+            {row.original.from_date ? formatDateShort(row.original.from_date) : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "to_date",
+        accessorKey: "to_date",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.plans.field.to_date")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap">
+            {row.original.to_date ? formatDateShort(row.original.to_date) : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "target_amount_minor",
+        accessorKey: "target_amount_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.plans.field.target")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatAmount(fromMinor(row.original.target_amount_minor, "VND"), "VND")}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label={t("common.field.status")} />
+        ),
+        enableColumnFilter: true,
+        meta: selectFilterMeta(
+          t("common.field.status"),
+          STATUS_FILTER_OPTIONS.map((status) => ({
+            value: status,
+            label: t(STATUS_LABEL_KEYS[status]),
+          }))
+        ),
+        cell: ({ row }) => (
+          <Badge variant={statusVariant(row.original.status)}>
+            {statusLabel(row.original.status, t)}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              className="text-xs font-semibold text-primary hover:underline"
+              onClick={() => {
+                setEditTarget(row.original)
+                setFormOpen(true)
+              }}
+            >
+              {t("common.action.edit")}
+            </button>
+            {row.original.status === "ACTIVE" ? (
+              <button
+                type="button"
+                className="text-xs font-semibold text-destructive hover:underline"
+                onClick={() => void closePlan(row.original)}
+              >
+                {t("loan.plans.close")}
+              </button>
+            ) : null}
+          </div>
+        ),
+      },
+    ],
+    [closePlan, t]
+  )
 
-  const save = async () => {
-    if (!code.trim() || !name.trim()) {
-      notify.error(t("loan.plans.validation.required"))
-      return
-    }
-    try {
-      await loanPlanApi.upsert({
-        code: code.trim(),
-        name: name.trim(),
-        from_date: fromDate || undefined,
-        to_date: toDate || undefined,
-        target_amount_minor: toMinor(Number(target) || 0, "VND"),
-        note,
-        status: "ACTIVE",
-      })
-      notify.success(t("loan.plans.save_success"))
-      reset()
-      await load()
-    } catch {
-      notify.error(t("loan.plans.save_failed"))
-    }
-  }
-
-  const close = async (id: string) => {
-    try {
-      await loanPlanApi.close(id)
-      await load()
-    } catch {
-      notify.error(t("loan.plans.save_failed"))
-    }
-  }
+  const { table, total } = useClientListTable<LoanPlan>({
+    columns,
+    items,
+    filterBy: {
+      code: (item, value) => matchTextColumnFilter(value, item.code, item.name),
+      status: (item, value) => matchSelectFilter(item.status, value),
+    },
+    sort: (rows, sorting) =>
+      sortByColumn(rows, sorting, {
+        code: (a, b) => a.code.localeCompare(b.code),
+        name: (a, b) => a.name.localeCompare(b.name),
+        from_date: (a, b) => (a.from_date ?? "").localeCompare(b.from_date ?? ""),
+        to_date: (a, b) => (a.to_date ?? "").localeCompare(b.to_date ?? ""),
+        target_amount_minor: (a, b) =>
+          a.target_amount_minor - b.target_amount_minor,
+        status: (a, b) => a.status.localeCompare(b.status),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div>
-        <h1 className="text-lg font-semibold">{t("loan.plans.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("loan.plans.description")}</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 rounded-lg border border-border p-4 md:grid-cols-4">
-        <div className="space-y-1.5">
-          <Label>{t("common.field.code")}</Label>
-          <Input
-            value={code}
-            disabled={Boolean(editing)}
-            className="font-mono"
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("common.field.name")}</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("loan.plans.field.from_date")}</Label>
-          <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("loan.plans.field.to_date")}</Label>
-          <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("loan.plans.field.target")}</Label>
-          <Input inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} />
-        </div>
-        <div className="col-span-2 space-y-1.5">
-          <Label>{t("loan.plans.field.note")}</Label>
-          <Input value={note} onChange={(e) => setNote(e.target.value)} />
-        </div>
-        <div className="flex items-end gap-2">
-          <Button onClick={() => void save()}>{t("common.action.save")}</Button>
-          {editing && (
-            <Button variant="outline" onClick={reset}>
-              {t("common.action.cancel")}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {loadFailed && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
-          {t("loan.plans.load_failed")}
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("common.field.code")}</th>
-              <th className="px-3 py-2">{t("common.field.name")}</th>
-              <th className="px-3 py-2">{t("loan.plans.field.from_date")}</th>
-              <th className="px-3 py-2">{t("loan.plans.field.to_date")}</th>
-              <th className="px-3 py-2 text-right">{t("loan.plans.field.target")}</th>
-              <th className="px-3 py-2">{t("common.field.status")}</th>
-              <th className="px-3 py-2 text-right">{t("common.field.action")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">
-                  {t("common.loading")}
-                </td>
-              </tr>
-            )}
-            {!loading && plans.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">
-                  {t("loan.plans.empty")}
-                </td>
-              </tr>
-            )}
-            {plans.map((plan) => (
-              <tr key={plan.id} className="border-t border-border">
-                <td className="px-3 py-2 font-mono text-xs font-semibold text-primary">{plan.code}</td>
-                <td className="px-3 py-2 font-medium">{plan.name}</td>
-                <td className="px-3 py-2">{plan.from_date ? formatDateShort(plan.from_date) : "—"}</td>
-                <td className="px-3 py-2">{plan.to_date ? formatDateShort(plan.to_date) : "—"}</td>
-                <td className="px-3 py-2 text-right tabular-nums">
-                  {formatAmount(fromMinor(plan.target_amount_minor, "VND"), "VND")}
-                </td>
-                <td className="px-3 py-2">
-                  <Badge variant={plan.status === "ACTIVE" ? "default" : "outline"}>
-                    {plan.status}
-                  </Badge>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-primary hover:underline"
-                      onClick={() => edit(plan)}
-                    >
-                      {t("common.action.edit")}
-                    </button>
-                    {plan.status === "ACTIVE" && (
-                      <button
-                        type="button"
-                        className="text-xs font-semibold text-destructive hover:underline"
-                        onClick={() => void close(plan.id)}
-                      >
-                        {t("loan.plans.close")}
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <ListPageShell
+      title={t("loan.plans.title")}
+      header={
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          {t("loan.plans.description")}
+        </p>
+      }
+      totalRows={total}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("loan.count_badge", { count: total })}
+        </Badge>
+      }
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={() => void load(true)}
+      fetching={refreshing}
+      table={table}
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          onCreate={() => {
+            setEditTarget(null)
+            setFormOpen(true)
+          }}
+          createLabel={t("loan.plans.create")}
+          exportFilename={t("loan.plans.title")}
+          sheetName={t("loan.plans.title")}
+          totalRowsCount={total}
+        />
+      }
+      dialogs={
+        <PlanForm
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          plan={editTarget}
+          onSaved={() => load()}
+        />
+      }
+    />
   )
 }

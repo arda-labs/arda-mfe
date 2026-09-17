@@ -766,6 +766,8 @@
   "plans": {
     "title": "Plan management",
     "description": "Loan plan catalog by period and target.",
+    "create": "New plan",
+    "edit": "Edit plan",
     "field": {
       "from_date": "From date",
       "to_date": "To date",

@@ -1,29 +1,63 @@
-import { useCallback, useEffect, useState } from "react"
-import { Calculator, RefreshCw, Send } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { RefreshCw } from "lucide-react"
+import type { ColumnDef } from "@tanstack/react-table"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Page } from "@workspace/ui/components/page"
-import { PageHeader } from "@workspace/ui/components/page-header"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { ListPageShell } from "@workspace/list-page/list-page-shell"
+import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+  matchSelectFilter,
+  matchTextColumnFilter,
+  selectFilterMeta,
+  textSearchMeta,
+} from "@workspace/list-page/column-filters"
+import {
+  sortByColumn,
+  useClientListTable,
+} from "@workspace/list-page/client-list"
 import { formatMoney, fromMinor, todayISO } from "@workspace/format"
 import { generalProvisionApi, type GeneralProvision } from "../api"
+import { ProvisionForm } from "./components/ProvisionForm"
+
+const DEFAULT_PAGE_SIZE = 10
+
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  SUBMITTED: "loan.general_provision.status.SUBMITTED",
+  POSTED: "loan.general_provision.status.POSTED",
+  REJECTED: "loan.general_provision.status.REJECTED",
+  CANCELLED: "loan.general_provision.status.CANCELLED",
+}
+
+function statusVariant(status?: string) {
+  switch (status) {
+    case "POSTED":
+      return "default" as const
+    case "SUBMITTED":
+      return "secondary" as const
+    case "REJECTED":
+      return "destructive" as const
+    default:
+      return "outline" as const
+  }
+}
+
+function statusLabel(status: string, t: (key: string) => string) {
+  const key = STATUS_LABEL_KEYS[status]
+  return key ? t(key) : status
+}
 
 /**
  * Trích lập dự phòng chung (LNM.307.01): maker chọn org + kỳ → xem trước
  * (rate, tổng dư nợ, lũy kế, phải trích, trích/hoàn) → trình duyệt case.
  * Checker duyệt ở workbench; approve sẽ post qua rule card LNM_PROVISION.
+ *
+ * The maker form/preview (and the staged attachment panel) live in the
+ * ListPageShell `header` slot; the period history below is a client-tier list
+ * because `GET /api/loan/general-provisions` returns the full set (`all=true`).
  */
 export function GeneralProvisionPage() {
   const { t } = useI18n()
@@ -34,26 +68,29 @@ export function GeneralProvisionPage() {
   const [provisionDate, setProvisionDate] = useState(todayISO())
   const [preview, setPreview] = useState<GeneralProvision | null>(null)
   const [items, setItems] = useState<GeneralProvision[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
   const [calculating, setCalculating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (initial = false) => {
+    if (initial) setLoading(true)
+    else setRefreshing(true)
+    setLoadError(null)
     try {
       const res = await generalProvisionApi.list()
       setItems(res.items)
     } catch (error) {
-      notify.error(
-        translateApiError(error, t("loan.general_provision.load_failed"))
-      )
+      setLoadError(error)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
-  }, [t])
+  }, [])
 
   useEffect(() => {
-    void load()
+    void load(true)
   }, [load])
 
   async function calculate() {
@@ -100,207 +137,255 @@ export function GeneralProvisionPage() {
     }
   }
 
+  const columns = useMemo<ColumnDef<GeneralProvision>[]>(
+    () => [
+      {
+        id: "provision_date",
+        accessorKey: "provision_date",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.date")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap">
+            {row.original.provision_date}
+          </span>
+        ),
+      },
+      {
+        id: "org_code",
+        accessorKey: "org_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.org")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("loan.general_provision.col.org"),
+          t("loan.placeholder.search")
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">{row.original.org_code}</span>
+        ),
+      },
+      {
+        id: "rate_percent",
+        accessorKey: "rate_percent",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.rate")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">{row.original.rate_percent}</span>
+        ),
+      },
+      {
+        id: "total_outstanding_minor",
+        accessorKey: "total_outstanding_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.outstanding")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatMoney(fromMinor(row.original.total_outstanding_minor))}
+          </span>
+        ),
+      },
+      {
+        id: "accum_provision_minor",
+        accessorKey: "accum_provision_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.accum")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatMoney(fromMinor(row.original.accum_provision_minor))}
+          </span>
+        ),
+      },
+      {
+        id: "required_provision_minor",
+        accessorKey: "required_provision_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.required")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatMoney(fromMinor(row.original.required_provision_minor))}
+          </span>
+        ),
+      },
+      {
+        id: "alloc_minor",
+        accessorKey: "alloc_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.alloc")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatMoney(fromMinor(row.original.alloc_minor))}
+          </span>
+        ),
+      },
+      {
+        id: "reverse_minor",
+        accessorKey: "reverse_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.reverse")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatMoney(fromMinor(row.original.reverse_minor))}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.status")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: selectFilterMeta(
+          t("loan.general_provision.col.status"),
+          Object.keys(STATUS_LABEL_KEYS).map((status) => ({
+            value: status,
+            label: statusLabel(status, t),
+          }))
+        ),
+        cell: ({ row }) => (
+          <Badge variant={statusVariant(row.original.status)}>
+            {row.original.status ? statusLabel(row.original.status, t) : "—"}
+          </Badge>
+        ),
+      },
+      {
+        id: "workflow_case_code",
+        accessorKey: "workflow_case_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("loan.general_provision.col.case")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">
+            {row.original.workflow_case_code || "—"}
+          </span>
+        ),
+      },
+    ],
+    [t]
+  )
+
+  const { table, total } = useClientListTable<GeneralProvision>({
+    columns,
+    items,
+    filterBy: {
+      org_code: (item, value) => matchTextColumnFilter(value, item.org_code),
+      status: (item, value) => matchSelectFilter(item.status ?? "", value),
+    },
+    sort: (rows, sorting) =>
+      sortByColumn(rows, sorting, {
+        provision_date: (a, b) =>
+          a.provision_date.localeCompare(b.provision_date),
+        org_code: (a, b) => a.org_code.localeCompare(b.org_code),
+        rate_percent: (a, b) => a.rate_percent - b.rate_percent,
+        total_outstanding_minor: (a, b) =>
+          a.total_outstanding_minor - b.total_outstanding_minor,
+        accum_provision_minor: (a, b) =>
+          a.accum_provision_minor - b.accum_provision_minor,
+        required_provision_minor: (a, b) =>
+          a.required_provision_minor - b.required_provision_minor,
+        alloc_minor: (a, b) => a.alloc_minor - b.alloc_minor,
+        reverse_minor: (a, b) => a.reverse_minor - b.reverse_minor,
+        status: (a, b) => (a.status ?? "").localeCompare(b.status ?? ""),
+        workflow_case_code: (a, b) =>
+          (a.workflow_case_code ?? "").localeCompare(
+            b.workflow_case_code ?? ""
+          ),
+      }),
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+  })
+
   const busy = calculating || submitting
 
   return (
-    <Page variant="fixed">
-      <PageHeader
-        title={t("loan.general_provision.title")}
-        description={t("loan.general_provision.description")}
-        meta={
-          items.length ? (
-            <Badge variant="secondary" className="shrink-0">
-              {t("loan.general_provision.count_badge", { count: items.length })}
-            </Badge>
-          ) : null
-        }
-        actions={
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={loading}
-            onClick={() => void load()}
-          >
-            <RefreshCw className="size-4" />
-            {t("loan.general_provision.refresh")}
-          </Button>
-        }
-      />
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="w-56 space-y-1.5">
-            <Label htmlFor="gp-org">
-              {t("loan.general_provision.field.org")}
-            </Label>
-            <Input
-              id="gp-org"
-              placeholder={t("loan.general_provision.placeholder.org")}
-              value={orgCode}
-              onChange={(event) => setOrgCode(event.target.value)}
-            />
-          </div>
-          <div className="w-48 space-y-1.5">
-            <Label htmlFor="gp-date">
-              {t("loan.general_provision.field.date")}
-            </Label>
-            <Input
-              id="gp-date"
-              type="date"
-              value={provisionDate}
-              onChange={(event) => setProvisionDate(event.target.value)}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={busy || !provisionDate}
-            onClick={() => void calculate()}
-          >
-            <Calculator className="size-4" />
-            {t("loan.general_provision.calculate")}
-          </Button>
-          <Button
-            type="button"
-            disabled={busy || !provisionDate || !preview}
-            onClick={() => void submit()}
-          >
-            <Send className="size-4" />
-            {t("loan.general_provision.submit")}
-          </Button>
+    <ListPageShell
+      title={t("loan.general_provision.title")}
+      totalRows={total}
+      meta={
+        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
+          {t("loan.general_provision.count_badge", { count: total })}
+        </Badge>
+      }
+      actions={
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={loading || refreshing}
+          onClick={() => void load()}
+        >
+          <RefreshCw className="size-4" />
+          {t("loan.general_provision.refresh")}
+        </Button>
+      }
+      criticalPending={loading}
+      criticalError={loadError}
+      onRetry={() => void load(true)}
+      fetching={refreshing}
+      table={table}
+      header={
+        <div className="flex max-h-[55vh] shrink-0 flex-col gap-3 overflow-y-auto pr-1 [scrollbar-gutter:stable]">
+          <p className="text-sm text-muted-foreground">
+            {t("loan.general_provision.description")}
+          </p>
+          <ProvisionForm
+            orgCode={orgCode}
+            onOrgCodeChange={setOrgCode}
+            provisionDate={provisionDate}
+            onProvisionDateChange={setProvisionDate}
+            preview={preview}
+            busy={busy}
+            onCalculate={() => void calculate()}
+            onSubmit={() => void submit()}
+          />
+          {staged.tab.content}
         </div>
-
-        {preview ? (
-          <div className="grid gap-x-8 gap-y-2 rounded-md border p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <PreviewField
-              label={t("loan.general_provision.field.rate")}
-              value={String(preview.rate_percent)}
-            />
-            <PreviewField
-              label={t("loan.general_provision.field.outstanding")}
-              value={formatMoney(fromMinor(preview.total_outstanding_minor))}
-            />
-            <PreviewField
-              label={t("loan.general_provision.field.accum")}
-              value={formatMoney(fromMinor(preview.accum_provision_minor))}
-            />
-            <PreviewField
-              label={t("loan.general_provision.field.required")}
-              value={formatMoney(fromMinor(preview.required_provision_minor))}
-            />
-            <PreviewField
-              label={t("loan.general_provision.field.alloc")}
-              value={formatMoney(fromMinor(preview.alloc_minor))}
-            />
-            <PreviewField
-              label={t("loan.general_provision.field.reverse")}
-              value={formatMoney(fromMinor(preview.reverse_minor))}
-            />
-          </div>
-        ) : null}
-
-        {staged.tab.content}
-
-        {loading ? (
-          <div className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground">
-            {t("loan.general_provision.loading")}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground">
-            {t("loan.general_provision.empty")}
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("loan.general_provision.col.date")}</TableHead>
-                  <TableHead>{t("loan.general_provision.col.org")}</TableHead>
-                  <TableHead className="text-right">
-                    {t("loan.general_provision.col.rate")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("loan.general_provision.col.outstanding")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("loan.general_provision.col.accum")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("loan.general_provision.col.required")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("loan.general_provision.col.alloc")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("loan.general_provision.col.reverse")}
-                  </TableHead>
-                  <TableHead>{t("loan.general_provision.col.status")}</TableHead>
-                  <TableHead>{t("loan.general_provision.col.case")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {row.provision_date}
-                    </TableCell>
-                    <TableCell className="tabular-nums">{row.org_code}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {row.rate_percent}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatMoney(fromMinor(row.total_outstanding_minor))}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatMoney(fromMinor(row.accum_provision_minor))}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatMoney(fromMinor(row.required_provision_minor))}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatMoney(fromMinor(row.alloc_minor))}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatMoney(fromMinor(row.reverse_minor))}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant(row.status)}>
-                        {row.status
-                          ? t(`loan.general_provision.status.${row.status}`)
-                          : "—"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {row.workflow_case_code || "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
-    </Page>
+      }
+      toolbar={
+        <ListTableToolbar
+          table={table}
+          exportFilename={t("loan.general_provision.title")}
+          sheetName={t("loan.general_provision.title")}
+          totalRowsCount={total}
+        />
+      }
+    />
   )
-}
-
-function PreviewField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-right font-medium tabular-nums">{value}</span>
-    </div>
-  )
-}
-
-function statusVariant(status?: string) {
-  switch (status) {
-    case "POSTED":
-      return "default" as const
-    case "SUBMITTED":
-      return "secondary" as const
-    case "REJECTED":
-      return "destructive" as const
-    default:
-      return "outline" as const
-  }
 }
