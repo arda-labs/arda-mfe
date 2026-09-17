@@ -3,6 +3,14 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
 import { capitalApi } from "../api"
 
@@ -127,49 +135,45 @@ export function ReportsPage() {
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-            <tr>
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
               {columns.map((column) => (
-                <th key={column} className="px-3 py-2">
-                  {t(`capital.reports.col.${column}`)}
-                </th>
+                <TableHead key={column}>{t(`capital.reports.col.${column}`)}</TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading && (
-              <tr>
-                <td colSpan={columns.length} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={columns.length} className="py-4 text-center text-muted-foreground">
                   {t("capital.reports.loading")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {!loading && loadError && (
-              <tr>
-                <td colSpan={columns.length} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={columns.length} className="py-4 text-center text-muted-foreground">
                   {t("capital.reports.load_failed")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {!loading && !loadError && rows.length === 0 && (
-              <tr>
-                <td colSpan={columns.length} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={columns.length} className="py-4 text-center text-muted-foreground">
                   {t("capital.reports.empty")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {rows.map((row, index) => (
-              <tr key={index} className="border-t border-border">
+              <TableRow key={index}>
                 {columns.map((column) => (
-                  <td key={column} className="px-3 py-2">
-                    {cellValue(row, column)}
-                  </td>
+                  <TableCell key={column}>{cellValue(row, column)}</TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

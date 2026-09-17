@@ -4,6 +4,14 @@ import { useI18n } from "@workspace/i18n"
 import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { formatAmount, formatDateShort, fromMinor } from "@workspace/format"
 import {
   depositApi,
@@ -109,7 +117,7 @@ export function SavingsDetailPage() {
       label: t("deposit.savings.tab.transactions"),
       content: (
         <div className="overflow-hidden rounded-lg border border-border">
-          <Table
+          <DetailTable
             headers={[
               t("deposit.savings.txn.type"),
               t("deposit.savings.txn.date"),
@@ -132,7 +140,7 @@ export function SavingsDetailPage() {
       label: t("deposit.savings.tab.accruals"),
       content: (
         <div className="overflow-hidden rounded-lg border border-border">
-          <Table
+          <DetailTable
             headers={[
               t("deposit.rates.field.effective_from"),
               t("deposit.savings.accrual.period_to"),
@@ -155,7 +163,7 @@ export function SavingsDetailPage() {
       label: t("deposit.savings.tab.interest"),
       content: (
         <div className="overflow-hidden rounded-lg border border-border">
-          <Table
+          <DetailTable
             headers={[
               t("deposit.interest.field.op_type"),
               t("deposit.interest.field.amount"),
@@ -224,36 +232,32 @@ function Info({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Table({ headers, rows, empty }: { headers: string[]; rows: string[][]; empty: string }) {
+function DetailTable({ headers, rows, empty }: { headers: string[]; rows: string[][]; empty: string }) {
   return (
-    <table className="w-full text-sm">
-      <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-        <tr>
+    <Table>
+      <TableHeader className="bg-muted/50">
+        <TableRow>
           {headers.map((header) => (
-            <th key={header} className="px-3 py-2">
-              {header}
-            </th>
+            <TableHead key={header}>{header}</TableHead>
           ))}
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {rows.length === 0 && (
-          <tr>
-            <td colSpan={headers.length} className="px-3 py-4 text-center text-muted-foreground">
+          <TableRow>
+            <TableCell colSpan={headers.length} className="py-4 text-center text-muted-foreground">
               {empty}
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
         )}
         {rows.map((row, idx) => (
-          <tr key={idx} className="border-t border-border">
+          <TableRow key={idx}>
             {row.map((cell, cellIdx) => (
-              <td key={cellIdx} className="px-3 py-2">
-                {cell}
-              </td>
+              <TableCell key={cellIdx}>{cell}</TableCell>
             ))}
-          </tr>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   )
 }

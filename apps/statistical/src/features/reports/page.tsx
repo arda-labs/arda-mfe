@@ -4,6 +4,14 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { apiUrl } from "@workspace/api/url"
 import { statisticalApi, type ReportDefinition, type ReportRunResult } from "../api"
 
@@ -125,37 +133,33 @@ export function ReportsPage() {
             </span>
             <span>{t("statistical.reports.row_count", { count: result.row_count })}</span>
           </div>
-          <div className="overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-                <tr>
-                  {result.columns.map((column) => (
-                    <th key={column} className="px-3 py-2">
-                      {column}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {result.rows.length === 0 && (
-                  <tr>
-                    <td colSpan={result.columns.length} className="px-3 py-4 text-center text-muted-foreground">
-                      {t("statistical.reports.empty")}
-                    </td>
-                  </tr>
-                )}
-                {result.rows.map((row, rowIdx) => (
-                  <tr key={rowIdx} className="border-t border-border">
-                    {row.map((cell, cellIdx) => (
-                      <td key={cellIdx} className="px-3 py-2">
-                        {cell === null || cell === undefined ? "—" : String(cell)}
-                      </td>
-                    ))}
-                  </tr>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                {result.columns.map((column) => (
+                  <TableHead key={column}>{column}</TableHead>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {result.rows.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={result.columns.length} className="py-4 text-center text-muted-foreground">
+                    {t("statistical.reports.empty")}
+                  </TableCell>
+                </TableRow>
+              )}
+              {result.rows.map((row, rowIdx) => (
+                <TableRow key={rowIdx}>
+                  {row.map((cell, cellIdx) => (
+                    <TableCell key={cellIdx}>
+                      {cell === null || cell === undefined ? "—" : String(cell)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

@@ -4,6 +4,14 @@ import { useI18n } from "@workspace/i18n"
 import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
 import { capitalApi, type ContractDetail, type ContractAmendment, type CapitalMovement } from "../api"
 import { MovementDialog } from "./components/MovementDialog"
@@ -94,45 +102,45 @@ export function ContractDetailPage() {
       label: t("capital.detail.tab.movements"),
       content: (
         <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">{t("capital.movements.field.type")}</th>
-                <th className="px-3 py-2">{t("capital.movements.field.date")}</th>
-                <th className="px-3 py-2 text-right">{t("capital.movements.field.amount")}</th>
-                <th className="px-3 py-2">{t("capital.movements.field.note")}</th>
-                <th className="px-3 py-2">{t("common.field.status")}</th>
-                <th className="px-3 py-2">{t("capital.field.journal")}</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("capital.movements.field.type")}</TableHead>
+                <TableHead>{t("capital.movements.field.date")}</TableHead>
+                <TableHead className="text-right">{t("capital.movements.field.amount")}</TableHead>
+                <TableHead>{t("capital.movements.field.note")}</TableHead>
+                <TableHead>{t("common.field.status")}</TableHead>
+                <TableHead>{t("capital.field.journal")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {movementRows.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-3 py-4 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={6} className="py-4 text-center text-muted-foreground">
                     {t("capital.movements.empty")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {movementRows.map((row: CapitalMovement) => (
-                <tr key={row.id} className="border-t border-border">
-                  <td className="px-3 py-2">{t(`capital.movement_type.${row.movement_type}`)}</td>
-                  <td className="whitespace-nowrap px-3 py-2">{formatDateShort(row.movement_date)}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                <TableRow key={row.id}>
+                  <TableCell>{t(`capital.movement_type.${row.movement_type}`)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDateShort(row.movement_date)}</TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatAmount(fromMinor(row.amount_minor, row.currency_code), row.currency_code)}
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground">{row.note || "—"}</td>
-                  <td className="px-3 py-2">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{row.note || "—"}</TableCell>
+                  <TableCell>
                     <Badge variant={row.status === "POSTED" ? "default" : row.status === "REJECTED" ? "destructive" : "secondary"}>
                       {t(`capital.movement_status.${row.status}`)}
                     </Badge>
-                  </td>
-                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
                     {row.journal_entry_id ? row.journal_entry_id.slice(0, 8) : "—"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ),
     },
@@ -141,39 +149,39 @@ export function ContractDetailPage() {
       label: t("capital.detail.tab.amendments"),
       content: (
         <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">{t("capital.amendments.field.reason")}</th>
-                <th className="px-3 py-2">{t("capital.amendments.field.payload")}</th>
-                <th className="px-3 py-2">{t("common.field.created")}</th>
-                <th className="px-3 py-2">{t("common.field.status")}</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("capital.amendments.field.reason")}</TableHead>
+                <TableHead>{t("capital.amendments.field.payload")}</TableHead>
+                <TableHead>{t("common.field.created")}</TableHead>
+                <TableHead>{t("common.field.status")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {amendmentRows.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={4} className="py-4 text-center text-muted-foreground">
                     {t("capital.amendments.empty")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {amendmentRows.map((row: ContractAmendment) => (
-                <tr key={row.id} className="border-t border-border">
-                  <td className="px-3 py-2">{row.reason || "—"}</td>
-                  <td className="max-w-[360px] truncate px-3 py-2 font-mono text-xs text-muted-foreground">
+                <TableRow key={row.id}>
+                  <TableCell>{row.reason || "—"}</TableCell>
+                  <TableCell className="max-w-[360px] truncate font-mono text-xs text-muted-foreground">
                     {JSON.stringify(row.payload)}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2">{formatDateShort(row.created_at)}</td>
-                  <td className="px-3 py-2">
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDateShort(row.created_at)}</TableCell>
+                  <TableCell>
                     <Badge variant={row.status === "APPLIED" ? "default" : row.status === "REJECTED" ? "destructive" : "secondary"}>
                       {t(`capital.amendment_status.${row.status}`)}
                     </Badge>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ),
     },

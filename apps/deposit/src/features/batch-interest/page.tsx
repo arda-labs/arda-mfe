@@ -5,6 +5,14 @@ import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tab
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { formatAmount, fromMinor } from "@workspace/format"
 import { depositApi, type Savings } from "../api"
 
@@ -85,26 +93,26 @@ export function BatchInterestPage() {
       {staged.tab.content}
 
       <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("deposit.savings.field.code")}</th>
-              <th className="px-3 py-2">{t("deposit.savings.field.customer")}</th>
-              <th className="px-3 py-2">{t("deposit.products.title")}</th>
-              <th className="px-3 py-2 text-right">{t("deposit.savings.field.accrued")}</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
+              <TableHead>{t("deposit.savings.field.code")}</TableHead>
+              <TableHead>{t("deposit.savings.field.customer")}</TableHead>
+              <TableHead>{t("deposit.products.title")}</TableHead>
+              <TableHead className="text-right">{t("deposit.savings.field.accrued")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading && (
-              <tr>
-                <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={4} className="py-4 text-center text-muted-foreground">
                   {t("deposit.loading")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {!loading && loadError && (
-              <tr>
-                <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={4} className="py-4 text-center text-muted-foreground">
                   {t("deposit.batch_interest.load_failed")}{" "}
                   <button
                     type="button"
@@ -113,45 +121,45 @@ export function BatchInterestPage() {
                   >
                     {t("common.action.retry")}
                   </button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {!loading && !loadError && items.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={4} className="py-4 text-center text-muted-foreground">
                   {t("deposit.batch_interest.empty")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {items.map((item) => (
-              <tr key={item.id} className="border-t border-border">
-                <td className="px-3 py-2">
+              <TableRow key={item.id}>
+                <TableCell>
                   <Link
                     to={`/deposit/savings/${item.savings_code}`}
                     className="font-mono text-xs font-semibold text-primary hover:underline"
                   >
                     {item.savings_code}
                   </Link>
-                </td>
-                <td className="px-3 py-2">{item.customer_code}</td>
-                <td className="px-3 py-2">{item.product_code}</td>
-                <td className="px-3 py-2 text-right tabular-nums">
+                </TableCell>
+                <TableCell>{item.customer_code}</TableCell>
+                <TableCell>{item.product_code}</TableCell>
+                <TableCell className="text-right tabular-nums">
                   {formatAmount(fromMinor(item.accrued_minor, item.currency_code), item.currency_code)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {items.length > 0 && (
-              <tr className="border-t border-border bg-muted/30 font-medium">
-                <td colSpan={3} className="px-3 py-2 text-right">
+              <TableRow className="bg-muted/30 font-medium">
+                <TableCell colSpan={3} className="text-right">
                   {t("deposit.batch_interest.total")}
-                </td>
-                <td className="px-3 py-2 text-right tabular-nums">
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
                   {formatAmount(fromMinor(totalMinor, items[0].currency_code), items[0].currency_code)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

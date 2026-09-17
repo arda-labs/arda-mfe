@@ -1,7 +1,16 @@
 import { useI18n } from "@workspace/i18n"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { formatMoney, fromMinor } from "@workspace/format"
 import type { LoanRepayPlan } from "../../api"
 
 /**
@@ -275,49 +284,45 @@ export function ContractSnapshot({
         />
       </dl>
       <div className="rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <th className="px-3 py-2 font-medium">
-                {t("loan.repay_plan.col.plan_no")}
-              </th>
-              <th className="px-3 py-2 font-medium">
-                {t("loan.repay_plan.col.to_date")}
-              </th>
-              <th className="px-3 py-2 text-right font-medium">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/40 uppercase tracking-wide">
+              <TableHead>{t("loan.repay_plan.col.plan_no")}</TableHead>
+              <TableHead>{t("loan.repay_plan.col.to_date")}</TableHead>
+              <TableHead className="text-right">
                 {t("loan.repay_plan.col.principal")}
-              </th>
-              <th className="px-3 py-2 text-right font-medium">
+              </TableHead>
+              <TableHead className="text-right">
                 {t("loan.repay_plan.col.interest")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {repayPlans.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={4}
-                  className="px-3 py-4 text-center text-sm text-muted-foreground"
+                  className="py-4 text-center text-muted-foreground"
                 >
                   {t("loan.repay_plan.empty")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               repayPlans.map((plan) => (
-                <tr key={plan.id} className="border-b last:border-b-0">
-                  <td className="px-3 py-1.5 tabular-nums">{plan.plan_no}</td>
-                  <td className="px-3 py-1.5">{plan.to_date}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">
-                    {plan.plan_principal_amt_minor}
-                  </td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">
-                    {plan.plan_interest_amt_minor}
-                  </td>
-                </tr>
+                <TableRow key={plan.id}>
+                  <TableCell className="py-1.5 tabular-nums">{plan.plan_no}</TableCell>
+                  <TableCell className="py-1.5">{plan.to_date}</TableCell>
+                  <TableCell className="py-1.5 text-right tabular-nums">
+                    {formatMoney(fromMinor(plan.plan_principal_amt_minor))}
+                  </TableCell>
+                  <TableCell className="py-1.5 text-right tabular-nums">
+                    {formatMoney(fromMinor(plan.plan_interest_amt_minor))}
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

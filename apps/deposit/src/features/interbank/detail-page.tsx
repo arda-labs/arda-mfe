@@ -5,6 +5,14 @@ import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
 import { depositApi, type IbmDetail, type IbmMovement } from "../api"
 import { printVoucher } from "../../lib/print-voucher"
@@ -129,33 +137,33 @@ export function InterbankDetailPage() {
       label: t("deposit.interbank.movement.title"),
       content: (
         <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">{t("deposit.interbank.movement.field.kind")}</th>
-                <th className="px-3 py-2">{t("deposit.interbank.movement.field.date")}</th>
-                <th className="px-3 py-2 text-right">{t("deposit.interbank.movement.field.amount")}</th>
-                <th className="px-3 py-2">{t("deposit.interbank.movement.field.note")}</th>
-                <th className="px-3 py-2">{t("common.field.status")}</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("deposit.interbank.movement.field.kind")}</TableHead>
+                <TableHead>{t("deposit.interbank.movement.field.date")}</TableHead>
+                <TableHead className="text-right">{t("deposit.interbank.movement.field.amount")}</TableHead>
+                <TableHead>{t("deposit.interbank.movement.field.note")}</TableHead>
+                <TableHead>{t("common.field.status")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {(detail?.movements ?? []).length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-4 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
                     {t("deposit.interbank.movement.empty")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {(detail?.movements ?? []).map((row: IbmMovement) => (
-                <tr key={row.id} className="border-t border-border">
-                  <td className="px-3 py-2">{t(`deposit.interbank.movement_kind.${row.kind}`)}</td>
-                  <td className="whitespace-nowrap px-3 py-2">{formatDateShort(row.movement_date)}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                <TableRow key={row.id}>
+                  <TableCell>{t(`deposit.interbank.movement_kind.${row.kind}`)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDateShort(row.movement_date)}</TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatAmount(fromMinor(row.amount_minor, row.currency_code), row.currency_code)}
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground">{row.note || "—"}</td>
-                  <td className="px-3 py-2">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{row.note || "—"}</TableCell>
+                  <TableCell>
                     <Badge
                       variant={
                         row.status === "POSTED"
@@ -167,11 +175,11 @@ export function InterbankDetailPage() {
                     >
                       {t(`deposit.interbank.movement_status.${row.status}`)}
                     </Badge>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ),
     },

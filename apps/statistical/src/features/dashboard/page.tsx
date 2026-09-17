@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { statisticalApi, type DashboardSummary } from "../api"
 
 /** QCMS dashboard (W5c): catalog + submission activity at a glance. */
@@ -45,58 +53,58 @@ export function DashboardPage() {
         <section className="space-y-2">
           <h2 className="text-sm font-semibold">{t("statistical.dashboard.submissions")}</h2>
           <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2">{t("common.field.status")}</th>
-                  <th className="px-3 py-2 text-right">{t("statistical.dashboard.count")}</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>{t("common.field.status")}</TableHead>
+                  <TableHead className="text-right">{t("statistical.dashboard.count")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {statuses.length === 0 && (
-                  <tr>
-                    <td colSpan={2} className="px-3 py-4 text-center text-muted-foreground">
+                  <TableRow>
+                    <TableCell colSpan={2} className="py-4 text-center text-muted-foreground">
                       {t("statistical.dashboard.empty")}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
                 {statuses.map(([status, count]) => (
-                  <tr key={status} className="border-t border-border">
-                    <td className="px-3 py-2">{status}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{count}</td>
-                  </tr>
+                  <TableRow key={status}>
+                    <TableCell>{status}</TableCell>
+                    <TableCell className="text-right tabular-nums">{count}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-sm font-semibold">{t("statistical.dashboard.catalog")}</h2>
           <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2">{t("statistical.dashboard.kind")}</th>
-                  <th className="px-3 py-2 text-right">{t("statistical.dashboard.count")}</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>{t("statistical.dashboard.kind")}</TableHead>
+                  <TableHead className="text-right">{t("statistical.dashboard.count")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {kinds.length === 0 && (
-                  <tr>
-                    <td colSpan={2} className="px-3 py-4 text-center text-muted-foreground">
+                  <TableRow>
+                    <TableCell colSpan={2} className="py-4 text-center text-muted-foreground">
                       {t("statistical.dashboard.empty")}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
                 {kinds.map(([kind, count]) => (
-                  <tr key={kind} className="border-t border-border">
-                    <td className="px-3 py-2">{t(`statistical.catalogs.kind.${kind}`)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{count}</td>
-                  </tr>
+                  <TableRow key={kind}>
+                    <TableCell>{t(`statistical.catalogs.kind.${kind}`)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{count}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </section>
       </div>
