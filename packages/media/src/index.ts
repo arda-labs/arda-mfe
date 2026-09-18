@@ -116,6 +116,26 @@ export async function deleteFile(publicId: string) {
 }
 
 /**
+ * Normalizes a media reference to an API path. Accepts `/api/...` paths,
+ * absolute API URLs (production resolves `apiUrl()` to the API origin) and
+ * bare media public ids. Absolute URLs without an API path are rejected
+ * instead of being wrapped as a public id.
+ */
+export function toMediaApiPath(input: string): string {
+  const trimmed = input.trim()
+  if (!trimmed) throw new Error("media path is required")
+  if (trimmed.startsWith("/api/")) return trimmed
+  if (/^https?:\/\//i.test(trimmed)) {
+    const parsed = new URL(trimmed)
+    if (parsed.pathname.startsWith("/api/")) {
+      return `${parsed.pathname}${parsed.search}`
+    }
+    throw new Error(`unsupported media URL: ${trimmed}`)
+  }
+  return `/api/media/${encodeURIComponent(trimmed)}`
+}
+
+/**
  * Fetch media bytes through the shared API client (session cookie + active
  * `X-Org-Id`). Private media retrieval requires tenant *and* organization
  * scope, and browser navigation (`window.open`/`<iframe>`) cannot attach the
@@ -123,10 +143,7 @@ export async function deleteFile(publicId: string) {
  * credentialed fetch and a blob URL.
  */
 export async function fetchMediaBlob(path: string): Promise<Blob> {
-  const apiPath = path.startsWith("/api/")
-    ? path
-    : `/api/media/${encodeURIComponent(path)}`
-  return api.getBlob(apiPath)
+  return api.getBlob(toMediaApiPath(path))
 }
 
 /**
