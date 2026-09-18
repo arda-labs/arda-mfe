@@ -161,6 +161,13 @@ Mọi `source.src` / nút xem / nút tải phải trỏ về `api.arda.io.vn` (d
 - Quy ước: **lưu path tương đối** (portable giữa các môi trường), resolve lúc
   render bằng `apiUrl()`; chỉ thêm hậu tố `/download` khi cần
   `Content-Disposition: attachment`.
+- File **≥ 2MB**: media-service trả 302 sang presigned URL của
+  `storage_public_endpoint` (`s3.arda.io.vn`). Endpoint này có CORS middleware
+  Traefik (`arda-infra/platform/manifests/garage/garage-s3-cors-middleware.yaml`)
+  để blob fetch theo redirect vẫn qua được kiểm tra credentialed CORS. Nếu
+  `GARAGE_PUBLIC_ENDPOINT` trống, media-service tự stream thay vì redirect.
+  FE giới hạn preview inline 25MB (`MAX_INLINE_PREVIEW_BYTES`) và fallback sang
+  điều hướng tải khi fetch blob lỗi mạng/CORS.
 - Mẫu tham chiếu: `arda-mfe/apps/platform/src/features/templates/urls.ts`
   (xem/tải mẫu biểu) và unit test
   `arda-mfe/apps/platform/tests/template-urls.test.ts`.
