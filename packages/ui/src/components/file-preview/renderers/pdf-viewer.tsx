@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,11 +12,15 @@ import type {
   PDFDocumentLoadingTask,
   PDFDocumentProxy,
   PDFPageProxy,
+  TextLayer,
 } from "pdfjs-dist"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
+import { usePreviewControlsTarget } from "../preview-toolbar"
+
+type PdfLibrary = typeof import("pdfjs-dist")
 
 interface PdfViewerProps {
   src: string
@@ -26,6 +31,7 @@ interface PdfViewerProps {
 const MIN_ZOOM = 0.25
 const MAX_ZOOM = 4
 const ZOOM_STEP = 0.25
+const WHEEL_ZOOM_FACTOR = 1.1
 const PAGE_GAP_PX = 24
 
 function clampZoom(value: number) {
@@ -33,15 +39,17 @@ function clampZoom(value: number) {
 }
 
 /**
- * PDF.js-based viewer with our own toolbar: page navigation, zoom, fit-width
- * and rotate live here, while file-level actions (download, open in new tab,
- * print, fullscreen) belong to the surrounding preview header. PDF.js is
- * imported lazily so it never lands on the boot/page bundles.
+ * PDF.js viewer: controls (page nav, zoom, fit-width, rotate) are portaled into
+ * the single preview header; file actions stay in the same header. PDF.js is
+ * imported lazily so it never lands on the boot/page bundles. Text layer makes
+ * the document selectable/copyable and Ctrl+wheel zooms like the native viewer.
  */
 export function PdfViewer({ src, filename, className }: PdfViewerProps) {
   const { t } = useI18n()
+  const controlsTarget = usePreviewControlsTarget()
   const containerRef = React.useRef<HTMLDivElement>(null)
   const pageRefs = React.useRef(new Map<number, HTMLDivElement>())
+  const [pdfjs, setPdfjs] = React.useState<PdfLibrary | null>(null)
   const [doc, setDoc] = React.useState<PDFDocumentProxy | null>(null)
   const [pageCount, setPageCount] = React.useState(0)
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -61,12 +69,13 @@ export function PdfViewer({ src, filename, className }: PdfViewerProps) {
     setCurrentPage(1)
     void (async () => {
       try {
-        const pdfjs = await import("pdfjs-dist")
+        const module = await import("pdfjs-dist")
         const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url")
-        pdfjs.GlobalWorkerOptions.workerSrc = worker.default
-        loadingTask = pdfjs.getDocument({ url: src })
+        module.GlobalWorkerOptions.workerSrc = worker.default
+        loadingTask = module.getDocument({ url: src })
         const pdf = await loadingTask.promise
         if (cancelled) return
+        setPdfjs(module)
         setDoc(pdf)
         setPageCount(pdf.numPages)
         setLoading(false)
@@ -105,6 +114,24 @@ export function PdfViewer({ src, filename, className }: PdfViewerProps) {
     return () => observer.disconnect()
   }, [fitWidth, fitToWidth])
 
+  // Ctrl+wheel (and trackpad pinch) zooms the document, not the page.
+  React.useEffect(() => {
+    const el = containerRef.current
+    if (!el || !doc) return
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey) return
+      event.preventDefault()
+      setFitWidth(false)
+      setZoom((value) =>
+        clampZoom(
+          value * (event.deltaY < 0 ? WHEEL_ZOOM_FACTOR : 1 / WHEEL_ZOOM_FACTOR)
+        )
+      )
+    }
+    el.addEventListener("wheel", onWheel, { passive: false })
+    return () => el.removeEventListener("wheel", onWheel)
+  }, [doc])
+
   const registerRef = React.useCallback(
     (page: number, node: HTMLDivElement | null) => {
       if (node) pageRefs.current.set(page, node)
@@ -130,6 +157,83 @@ export function PdfViewer({ src, filename, className }: PdfViewerProps) {
     setZoom(clampZoom(next))
   }
 
+  const controls = (
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        disabled={currentPage <= 1}
+        onClick={() => goToPage(currentPage - 1)}
+        title={t("preview.prev_page")}
+      >
+        <ChevronLeft className="size-3.5" />
+      </Button>
+      <span className="min-w-16 text-center font-mono text-[11px] text-muted-foreground">
+        {t("preview.page_of", { current: currentPage, total: pageCount })}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        disabled={currentPage >= pageCount}
+        onClick={() => goToPage(currentPage + 1)}
+        title={t("preview.next_page")}
+      >
+        <ChevronRight className="size-3.5" />
+      </Button>
+
+      <span className="mx-1 h-4 w-px bg-border" />
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        disabled={zoom <= MIN_ZOOM}
+        onClick={() => manualZoom(zoom - ZOOM_STEP)}
+        title={t("preview.zoom_out")}
+      >
+        <ZoomOut className="size-3.5" />
+      </Button>
+      <button
+        type="button"
+        onClick={() => void fitToWidth()}
+        className="cursor-pointer rounded px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground"
+        title={t("preview.reset_zoom")}
+      >
+        {Math.round(zoom * 100)}%
+      </button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        disabled={zoom >= MAX_ZOOM}
+        onClick={() => manualZoom(zoom + ZOOM_STEP)}
+        title={t("preview.zoom_in")}
+      >
+        <ZoomIn className="size-3.5" />
+      </Button>
+      <Button
+        variant={fitWidth ? "secondary" : "ghost"}
+        size="icon"
+        className="size-7"
+        onClick={() => setFitWidth((value) => !value)}
+        title={t("preview.fit_width")}
+      >
+        <MoveHorizontal className="size-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        onClick={() => setRotation((value) => (value + 90) % 360)}
+        title={t("preview.rotate")}
+      >
+        <RotateCw className="size-3.5" />
+      </Button>
+    </>
+  )
+
   if (error) {
     // Some sources (external hosts without CORS) cannot be fetched by PDF.js;
     // fall back to the browser's native viewer instead of a dead end.
@@ -145,7 +249,7 @@ export function PdfViewer({ src, filename, className }: PdfViewerProps) {
     )
   }
 
-  if (loading || !doc) {
+  if (loading || !doc || !pdfjs) {
     return (
       <div
         className={cn(
@@ -162,100 +266,16 @@ export function PdfViewer({ src, filename, className }: PdfViewerProps) {
   }
 
   return (
-    <div
-      className={cn(
-        "flex h-full flex-col overflow-hidden rounded-lg border bg-card",
-        className
-      )}
-    >
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-muted/40 px-3 py-1.5">
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            disabled={currentPage <= 1}
-            onClick={() => goToPage(currentPage - 1)}
-            title={t("preview.prev_page")}
-          >
-            <ChevronLeft className="size-3.5" />
-          </Button>
-          <span className="min-w-20 text-center font-mono text-[11px] text-muted-foreground">
-            {t("preview.page_of", {
-              current: currentPage,
-              total: pageCount,
-            })}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            disabled={currentPage >= pageCount}
-            onClick={() => goToPage(currentPage + 1)}
-            title={t("preview.next_page")}
-          >
-            <ChevronRight className="size-3.5" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            disabled={zoom <= MIN_ZOOM}
-            onClick={() => manualZoom(zoom - ZOOM_STEP)}
-            title={t("preview.zoom_out")}
-          >
-            <ZoomOut className="size-3.5" />
-          </Button>
-          <button
-            type="button"
-            onClick={() => void fitToWidth()}
-            className="cursor-pointer rounded px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground"
-            title={t("preview.reset_zoom")}
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            disabled={zoom >= MAX_ZOOM}
-            onClick={() => manualZoom(zoom + ZOOM_STEP)}
-            title={t("preview.zoom_in")}
-          >
-            <ZoomIn className="size-3.5" />
-          </Button>
-          <Button
-            variant={fitWidth ? "secondary" : "ghost"}
-            size="icon"
-            className="size-7"
-            onClick={() => setFitWidth((value) => !value)}
-            title={t("preview.fit_width")}
-          >
-            <MoveHorizontal className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            onClick={() => setRotation((value) => (value + 90) % 360)}
-            title={t("preview.rotate")}
-          >
-            <RotateCw className="size-3.5" />
-          </Button>
-        </div>
-      </div>
-
+    <div className={cn("h-full", className)} aria-label={filename}>
+      {controlsTarget ? createPortal(controls, controlsTarget) : null}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto bg-muted/30 px-2 py-1"
-        aria-label={filename}
+        className="h-full overflow-auto rounded-lg border bg-muted/30 px-2 py-1"
       >
         {Array.from({ length: pageCount }, (_, index) => (
           <PdfPage
             key={index + 1}
+            pdfjs={pdfjs}
             doc={doc}
             pageNumber={index + 1}
             scale={zoom}
@@ -270,6 +290,7 @@ export function PdfViewer({ src, filename, className }: PdfViewerProps) {
 }
 
 function PdfPage({
+  pdfjs,
   doc,
   pageNumber,
   scale,
@@ -277,6 +298,7 @@ function PdfPage({
   registerRef,
   onVisible,
 }: {
+  pdfjs: PdfLibrary
   doc: PDFDocumentProxy
   pageNumber: number
   scale: number
@@ -286,6 +308,7 @@ function PdfPage({
 }) {
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null)
+  const textLayerRef = React.useRef<HTMLDivElement | null>(null)
   const [visible, setVisible] = React.useState(false)
   const [size, setSize] = React.useState<{
     width: number
@@ -316,12 +339,14 @@ function PdfPage({
   React.useEffect(() => {
     if (!visible) return
     let cancelled = false
-    let task: ReturnType<PDFPageProxy["render"]> | null = null
+    let renderTask: ReturnType<PDFPageProxy["render"]> | null = null
+    let textLayer: TextLayer | null = null
     void (async () => {
       const page = await doc.getPage(pageNumber)
       if (cancelled) return
       const viewport = page.getViewport({ scale, rotation })
       const canvas = canvasRef.current
+      const textContainer = textLayerRef.current
       if (!canvas) return
       const ratio = Math.min(window.devicePixelRatio || 1, 2)
       const width = Math.floor(viewport.width)
@@ -331,22 +356,37 @@ function PdfPage({
       const context = canvas.getContext("2d")
       if (!context) return
       setSize({ width, height })
-      task = page.render({
+      renderTask = page.render({
         canvas,
         viewport,
         transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0],
       })
       try {
-        await task.promise
+        await renderTask.promise
       } catch {
         // Rendering is cancelled when zoom/rotation changes; ignore.
+        return
+      }
+      if (cancelled || !textContainer) return
+      textContainer.replaceChildren()
+      textContainer.style.setProperty("--scale-factor", String(scale))
+      textLayer = new pdfjs.TextLayer({
+        textContentSource: await page.streamTextContent(),
+        container: textContainer,
+        viewport,
+      })
+      try {
+        await textLayer.render()
+      } catch {
+        // Text layer is best-effort; the canvas already rendered.
       }
     })()
     return () => {
       cancelled = true
-      task?.cancel()
+      renderTask?.cancel()
+      textLayer?.cancel()
     }
-  }, [doc, pageNumber, scale, rotation, visible])
+  }, [pdfjs, doc, pageNumber, scale, rotation, visible])
 
   return (
     <div
@@ -354,14 +394,17 @@ function PdfPage({
         wrapperRef.current = node
         registerRef(pageNumber, node)
       }}
-      className="mx-auto my-3 bg-white shadow-sm ring-1 ring-black/5"
-      style={size ? { width: size.width, height: size.height } : undefined}
+      className="relative mx-auto my-3 bg-white shadow-sm ring-1 ring-black/5"
+      style={
+        size ? { width: size.width, height: size.height } : { minHeight: 480 }
+      }
     >
       <canvas
         ref={canvasRef}
         className="block"
         style={size ? { width: size.width, height: size.height } : undefined}
       />
+      <div ref={textLayerRef} className="pdf-text-layer" />
     </div>
   )
 }

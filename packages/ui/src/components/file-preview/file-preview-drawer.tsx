@@ -1,8 +1,10 @@
+import * as React from "react"
 import { Download, ExternalLink, Eye, Printer, X } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { PreviewControlsProvider } from "./preview-toolbar"
 import { printPreviewSource } from "./print-source"
 import {
   Sheet,
@@ -34,6 +36,9 @@ export function FilePreviewDrawer({
   loading = false,
 }: FilePreviewDrawerProps) {
   const { t } = useI18n()
+  const [controlsTarget, setControlsTarget] =
+    React.useState<HTMLDivElement | null>(null)
+
   if (!source) return null
 
   const category = detectFileCategory(source.filename, source.mimeType)
@@ -83,6 +88,11 @@ export function FilePreviewDrawer({
               </div>
             </div>
           </div>
+
+          <div
+            ref={setControlsTarget}
+            className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+          />
 
           <div className="flex shrink-0 items-center gap-1">
             {source.src ? (
@@ -141,7 +151,9 @@ export function FilePreviewDrawer({
               </p>
             </div>
           ) : (
-            <FilePreviewContent source={source} className="h-full" />
+            <PreviewControlsProvider target={controlsTarget}>
+              <FilePreviewContent source={source} className="h-full" />
+            </PreviewControlsProvider>
           )}
         </div>
       </SheetContent>

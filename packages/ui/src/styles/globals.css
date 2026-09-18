@@ -194,7 +194,8 @@
   --elevation-dialog: 0 20px 48px oklch(0.2 0.025 260 / 16%);
   --app-font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --app-font-heading: var(--app-font-sans);
-  --app-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --app-font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-sans: var(--app-font-sans);
   --font-heading: var(--app-font-heading);
   --font-mono: var(--app-font-mono);
@@ -206,7 +207,11 @@
   --sidebar-accent-foreground: oklch(0.27 0.08 268);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
-  --layout-header-background: color-mix(in oklch, var(--background) 92%, var(--card));
+  --layout-header-background: color-mix(
+    in oklch,
+    var(--background) 92%,
+    var(--card)
+  );
   --layout-sidebar-background: var(--sidebar);
   --layout-header-border: color-mix(in oklch, var(--border) 78%, transparent);
   --layout-sidebar-border: color-mix(in oklch, var(--border) 82%, transparent);
@@ -257,7 +262,11 @@
   --sidebar-accent-foreground: oklch(0.92 0.025 268);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
-  --layout-header-background: color-mix(in oklch, var(--background) 88%, var(--card));
+  --layout-header-background: color-mix(
+    in oklch,
+    var(--background) 88%,
+    var(--card)
+  );
   --layout-sidebar-background: var(--sidebar);
   --layout-header-border: color-mix(in oklch, var(--border) 78%, transparent);
   --layout-sidebar-border: color-mix(in oklch, var(--border) 82%, transparent);
@@ -372,4 +381,33 @@
       animation: none;
     }
   }
+}
+
+/* PDF.js text layer: selectable/copyable text over the rendered canvas.
+   PDF.js positions each span absolutely; the container must not intercept
+   pointer events outside the text spans. */
+.pdf-text-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.pdf-text-layer span,
+.pdf-text-layer br {
+  position: absolute;
+  color: transparent;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  pointer-events: auto;
+}
+
+.pdf-text-layer ::selection {
+  background: rgb(59 130 246 / 0.3);
 }
