@@ -193,7 +193,15 @@
     "reset_zoom": "Về 100%",
     "fit_width": "Vừa chiều rộng",
     "rotate": "Xoay 90°",
-    "print": "In tài liệu"
+    "print": "In tài liệu",
+    "search_find": "Tìm trong tài liệu (Ctrl+F)",
+    "search_in_pdf": "Tìm trong tài liệu...",
+    "search_no_matches": "Không có",
+    "search_prev": "Kết quả trước",
+    "search_next": "Kết quả sau",
+    "search_close": "Đóng tìm kiếm",
+    "converting": "Đang chuyển đổi tài liệu...",
+    "converting_hint": "Lần đầu mở có thể mất vài giây; các lần sau sẽ tức thì. Trong lúc chờ bạn có thể tải file gốc."
   },
   "command_palette": {
     "placeholder": "Tìm kiếm trang, chức năng hoặc lệnh...",

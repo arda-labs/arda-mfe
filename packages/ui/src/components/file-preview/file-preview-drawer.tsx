@@ -42,6 +42,10 @@ export function FilePreviewDrawer({
   if (!source) return null
 
   const category = detectFileCategory(source.filename, source.mimeType)
+  // Office files are converted server-side before the first byte arrives; the
+  // pending source has no `src` yet, which distinguishes conversion from a
+  // regular document load.
+  const converting = loading && !source.src
 
   const handleDownload = () => {
     if (source.onDownload) {
@@ -147,8 +151,13 @@ export function FilePreviewDrawer({
             <div className="flex h-full min-h-[350px] flex-col items-center justify-center gap-3">
               <Spinner className="size-8 text-primary" />
               <p className="font-mono text-xs text-muted-foreground">
-                {t("preview.loading")}
+                {converting ? t("preview.converting") : t("preview.loading")}
               </p>
+              {converting ? (
+                <p className="max-w-md text-center text-xs text-muted-foreground">
+                  {t("preview.converting_hint")}
+                </p>
+              ) : null}
             </div>
           ) : (
             <PreviewControlsProvider target={controlsTarget}>

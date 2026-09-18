@@ -193,7 +193,15 @@
     "reset_zoom": "Reset to 100%",
     "fit_width": "Fit width",
     "rotate": "Rotate 90°",
-    "print": "Print"
+    "print": "Print",
+    "search_find": "Find in document (Ctrl+F)",
+    "search_in_pdf": "Find in document...",
+    "search_no_matches": "No matches",
+    "search_prev": "Previous match",
+    "search_next": "Next match",
+    "search_close": "Close search",
+    "converting": "Converting document...",
+    "converting_hint": "The first open can take a few seconds; later opens are instant. You can download the original file while waiting."
   },
   "command_palette": {
     "placeholder": "Type a command, page, or search...",
