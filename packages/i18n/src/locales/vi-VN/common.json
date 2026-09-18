@@ -184,7 +184,16 @@
     "lines": "dòng",
     "chars": "ký tự",
     "rows": "dòng",
-    "columns": "cột"
+    "columns": "cột",
+    "page_of": "Trang {current}/{total}",
+    "prev_page": "Trang trước",
+    "next_page": "Trang sau",
+    "zoom_in": "Phóng to",
+    "zoom_out": "Thu nhỏ",
+    "reset_zoom": "Về 100%",
+    "fit_width": "Vừa chiều rộng",
+    "rotate": "Xoay 90°",
+    "print": "In tài liệu"
   },
   "command_palette": {
     "placeholder": "Tìm kiếm trang, chức năng hoặc lệnh...",

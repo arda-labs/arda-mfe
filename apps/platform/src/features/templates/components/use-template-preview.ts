@@ -37,8 +37,10 @@ const INLINE_PREVIEW_CATEGORIES = new Set([
   "text",
 ])
 
-/** Office documents convert to PDF server-side (Gotenberg) before rendering. */
-const OFFICE_PREVIEW_CATEGORIES = new Set(["word", "excel"])
+/** Word documents convert to PDF server-side (Gotenberg) before rendering.
+ * Excel is download-only in the app: a wide sheet paginated into a PDF reads
+ * worse than the file itself. */
+const OFFICE_PREVIEW_CATEGORIES = new Set(["word"])
 
 /** Above this size the dialog shows the file card + download instead of an
  * inline preview, keeping large documents out of browser memory. */

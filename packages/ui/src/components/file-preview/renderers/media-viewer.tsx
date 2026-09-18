@@ -1,68 +1,51 @@
-import { Download, Music, Video } from "lucide-react"
-import { useI18n } from "@workspace/i18n"
-import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
+import { Music } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 
 interface MediaViewerProps {
   src: string
   filename: string
   isVideo: boolean
-  onDownload?: () => void
   className?: string
 }
 
-export function MediaViewer({ src, filename, isVideo, onDownload, className }: MediaViewerProps) {
-  const { t } = useI18n()
-
+export function MediaViewer({
+  src,
+  filename,
+  isVideo,
+  className,
+}: MediaViewerProps) {
   return (
-    <div className={cn("flex flex-col h-full overflow-hidden border rounded-lg bg-card text-card-foreground", className)}>
-      {/* Media Header */}
-      <div className="flex items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2 shrink-0">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1 font-mono text-[11px]">
-            {isVideo ? <Video className="size-3 text-purple-500" /> : <Music className="size-3 text-amber-500" />}
-            {isVideo ? "VIDEO PLAYBACK" : "AUDIO PLAYBACK"}
-          </Badge>
-          <span className="text-xs text-muted-foreground font-medium truncate max-w-xs">
-            {filename}
-          </span>
-        </div>
-
-        {onDownload && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={onDownload}
-          >
-            <Download className="size-3.5 mr-1" />
-            {t("preview.download")}
-          </Button>
-        )}
-      </div>
-
-      {/* Media Player Container */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-muted/10">
+    <div
+      className={cn(
+        "flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground",
+        className
+      )}
+    >
+      {/* File actions live in the preview header; players keep native controls. */}
+      <div className="flex flex-1 items-center justify-center bg-muted/10 p-6">
         {isVideo ? (
           <video
             controls
             autoPlay={false}
             src={src}
-            className="max-h-[60vh] max-w-full rounded-lg shadow-lg border bg-black"
+            className="max-h-[60vh] max-w-full rounded-lg border bg-black shadow-lg"
           >
             Your browser does not support HTML5 video playback.
           </video>
         ) : (
-          <div className="flex flex-col items-center gap-4 p-8 rounded-xl border bg-card shadow-sm max-w-md w-full">
-            <div className="size-16 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-xl border bg-card p-8 shadow-sm">
+            <div className="flex size-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
               <Music className="size-8" />
             </div>
             <div className="text-center">
-              <p className="font-semibold text-sm truncate max-w-xs">{filename}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Audio stream</p>
+              <p className="max-w-xs truncate text-sm font-semibold">
+                {filename}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Audio stream
+              </p>
             </div>
-            <audio controls src={src} className="w-full mt-2">
+            <audio controls src={src} className="mt-2 w-full">
               Your browser does not support HTML5 audio playback.
             </audio>
           </div>

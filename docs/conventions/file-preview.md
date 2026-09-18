@@ -141,9 +141,19 @@ Không cần tải qua URL, có thể truyền trực tiếp nội dung string (
 | :--------------------------------- | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **JSON, YAML, XML, SQL, Markdown** | `CodeViewer`        | • Đánh số dòng chính xác.<br>• Nút Format/Prettify tự động thụt lề cho JSON.<br>• Tìm kiếm từ khóa `Ctrl+F` kèm bộ đếm kết quả.<br>• Bật/tắt ngắt dòng (Word wrap) & Copy 1-click. |
 | **CSV, TSV**                       | `CsvViewer`         | • Tự động phân tích trường dữ liệu theo chuẩn RFC 4180.<br>• Hiển thị dạng bảng có phân trang ($50$ dòng/trang) và lọc tìm kiếm.                                                   |
-| **PDF**                            | `PdfViewer`         | • Nhúng iframe native với `#toolbar=1`.<br>• Nút in ấn trực tiếp, mở tab mới, tải về.                                                                                              |
+| **PDF**                            | `PdfViewer`         | • `pdfjs-dist` (lazy chunk, không vào boot bundle).<br>• Toolbar tự viết: chuyển trang, zoom, fit-width, xoay; in nằm ở header chung.                                            |
 | **Hình ảnh (PNG, JPG, SVG, WebP)** | `ImageViewer`       | • Điều khiển Zoom ($10\% - 500\%$).<br>• Xoay góc $90^\circ$ theo chiều kim đồng hồ.<br>• Nền bàn cờ trong suốt (Checkered pattern) cho PNG/SVG.                                   |
 | **Video & Audio**                  | `MediaViewer`       | • HTML5 native player với thanh tua và chỉnh âm lượng.                                                                                                                             |
+
+### Phân tách trách nhiệm UI
+
+- **Header của dialog/drawer** giữ toàn bộ hành động cấp tệp: Tải về, Mở tab mới,
+  In (chỉ PDF), Toàn màn hình, Đóng. Không renderer nào tự lặp lại các nút này.
+- **Renderer** chỉ giữ điều khiển nội dung: chuyển trang/zoom/xoay (PDF, ảnh),
+  tìm kiếm/wrap/copy (code), phân trang (CSV).
+- **Word (.doc/.docx)**: convert PDF qua Gotenberg rồi render bằng `PdfViewer`.
+- **Excel (.xls/.xlsx)**: không xem inline — chỉ tải về (bảng rộng bị phân trang
+  PDF đọc tệ hơn chính file gốc).
 
 ---
 

@@ -184,7 +184,16 @@
     "lines": "lines",
     "chars": "chars",
     "rows": "rows",
-    "columns": "columns"
+    "columns": "columns",
+    "page_of": "Page {current}/{total}",
+    "prev_page": "Previous page",
+    "next_page": "Next page",
+    "zoom_in": "Zoom in",
+    "zoom_out": "Zoom out",
+    "reset_zoom": "Reset to 100%",
+    "fit_width": "Fit width",
+    "rotate": "Rotate 90°",
+    "print": "Print"
   },
   "command_palette": {
     "placeholder": "Type a command, page, or search...",

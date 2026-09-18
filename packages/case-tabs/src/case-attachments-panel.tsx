@@ -111,9 +111,10 @@ function AttachmentRows({
       file.original_filename,
       file.content_type
     )
-    // Word/Excel convert to PDF server-side (Gotenberg); failures degrade to
-    // the file card instead of blocking the drawer.
-    if (category === "word" || category === "excel") {
+    // Word documents convert to PDF server-side (Gotenberg); Excel stays
+    // download-only because PDF pagination reads worse than the file itself.
+    // Conversion failures degrade to the file card instead of blocking.
+    if (category === "word") {
       try {
         await openWithBlob(
           () => fetchMediaBlob(getPrivateMediaPreviewUrl(file.public_id)),

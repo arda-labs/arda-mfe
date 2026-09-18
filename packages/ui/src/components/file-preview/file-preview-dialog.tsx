@@ -5,12 +5,14 @@ import {
   Eye,
   Maximize2,
   Minimize2,
+  Printer,
   X,
 } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { printPreviewSource } from "./print-source"
 import {
   Dialog,
   DialogContent,
@@ -107,6 +109,18 @@ export function FilePreviewDialog({
                 title={t("preview.open_new_tab")}
               >
                 <ExternalLink className="size-3.5" />
+              </Button>
+            ) : null}
+
+            {category === "pdf" && source.src ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                onClick={() => printPreviewSource(source.src as string)}
+                title={t("preview.print")}
+              >
+                <Printer className="size-3.5" />
               </Button>
             ) : null}
 

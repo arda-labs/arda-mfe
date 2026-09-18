@@ -4,7 +4,10 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
-import { detectFileCategory, type FilePreviewSource } from "./file-preview-types"
+import {
+  detectFileCategory,
+  type FilePreviewSource,
+} from "./file-preview-types"
 import { CodeViewer } from "./renderers/code-viewer"
 import { CsvViewer } from "./renderers/csv-viewer"
 import { PdfViewer } from "./renderers/pdf-viewer"
@@ -17,12 +20,17 @@ interface FilePreviewContentProps {
   className?: string
 }
 
-export function FilePreviewContent({ source, className }: FilePreviewContentProps) {
+export function FilePreviewContent({
+  source,
+  className,
+}: FilePreviewContentProps) {
   const { t } = useI18n()
-  const { src, content, filename, mimeType, sizeBytes, onDownload } = source
+  const { src, content, filename, mimeType, sizeBytes } = source
   const category = detectFileCategory(filename, mimeType)
 
-  const [loading, setLoading] = React.useState<boolean>(Boolean(src && content === undefined))
+  const [loading, setLoading] = React.useState<boolean>(
+    Boolean(src && content === undefined)
+  )
   const [error, setError] = React.useState<string | null>(null)
   const [fetchedText, setFetchedText] = React.useState<string | null>(() => {
     if (typeof content === "string") return content
@@ -30,7 +38,10 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
   })
 
   const loadTextContent = React.useCallback(async () => {
-    if (!src || (category !== "code" && category !== "csv" && category !== "text")) {
+    if (
+      !src ||
+      (category !== "code" && category !== "csv" && category !== "text")
+    ) {
       setLoading(false)
       return
     }
@@ -48,7 +59,9 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
       const text = await response.text()
       setFetchedText(text)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading file content")
+      setError(
+        err instanceof Error ? err.message : "Error loading file content"
+      )
     } finally {
       setLoading(false)
     }
@@ -66,24 +79,41 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
 
   if (loading) {
     return (
-      <div className={cn("flex flex-col items-center justify-center h-full min-h-[350px] gap-3", className)}>
+      <div
+        className={cn(
+          "flex h-full min-h-[350px] flex-col items-center justify-center gap-3",
+          className
+        )}
+      >
         <Spinner className="size-8 text-primary" />
-        <p className="text-xs text-muted-foreground font-mono">{t("preview.loading")}</p>
+        <p className="font-mono text-xs text-muted-foreground">
+          {t("preview.loading")}
+        </p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className={cn("flex flex-col items-center justify-center h-full min-h-[350px] p-6 gap-3 text-center", className)}>
-        <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+      <div
+        className={cn(
+          "flex h-full min-h-[350px] flex-col items-center justify-center gap-3 p-6 text-center",
+          className
+        )}
+      >
+        <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <AlertCircle className="size-6" />
         </div>
-        <div className="space-y-1 max-w-sm">
-          <h4 className="font-semibold text-sm">{t("preview.load_failed")}</h4>
-          <p className="text-xs text-muted-foreground break-all">{error}</p>
+        <div className="max-w-sm space-y-1">
+          <h4 className="text-sm font-semibold">{t("preview.load_failed")}</h4>
+          <p className="text-xs break-all text-muted-foreground">{error}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={loadTextContent} className="gap-1.5 mt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={loadTextContent}
+          className="mt-2 gap-1.5"
+        >
           <RefreshCw className="size-3.5" />
           {t("action.retry")}
         </Button>
@@ -94,23 +124,31 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
   // 1. Text & Code
   if (category === "code" || category === "text") {
     const textData = fetchedText ?? (typeof content === "string" ? content : "")
-    return <CodeViewer content={textData} filename={filename} className={className} />
+    return (
+      <CodeViewer
+        content={textData}
+        filename={filename}
+        className={className}
+      />
+    )
   }
 
   // 2. CSV Table
   if (category === "csv") {
     const textData = fetchedText ?? (typeof content === "string" ? content : "")
-    return <CsvViewer content={textData} filename={filename} className={className} />
+    return (
+      <CsvViewer content={textData} filename={filename} className={className} />
+    )
   }
 
   // 3. PDF
   if (category === "pdf" && src) {
-    return <PdfViewer src={src} filename={filename} onDownload={onDownload} className={className} />
+    return <PdfViewer src={src} filename={filename} className={className} />
   }
 
   // 4. Image
   if (category === "image" && src) {
-    return <ImageViewer src={src} filename={filename} onDownload={onDownload} className={className} />
+    return <ImageViewer src={src} filename={filename} className={className} />
   }
 
   // 5. Video & Audio
@@ -120,7 +158,6 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
         src={src}
         filename={filename}
         isVideo={category === "video"}
-        onDownload={onDownload}
         className={className}
       />
     )
@@ -132,7 +169,6 @@ export function FilePreviewContent({ source, className }: FilePreviewContentProp
       filename={filename}
       mimeType={mimeType}
       sizeBytes={sizeBytes}
-      onDownload={onDownload}
       className={className}
     />
   )

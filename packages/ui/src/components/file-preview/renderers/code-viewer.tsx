@@ -32,7 +32,10 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
     return content
   })
 
-  const lines = React.useMemo(() => formattedContent.split("\n"), [formattedContent])
+  const lines = React.useMemo(
+    () => formattedContent.split("\n"),
+    [formattedContent]
+  )
 
   const handleCopy = async () => {
     try {
@@ -56,7 +59,12 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
   }
 
   const filteredLines = React.useMemo(() => {
-    if (!searchQuery.trim()) return lines.map((text, idx) => ({ num: idx + 1, text, highlight: false }))
+    if (!searchQuery.trim())
+      return lines.map((text, idx) => ({
+        num: idx + 1,
+        text,
+        highlight: false,
+      }))
     const q = searchQuery.toLowerCase()
     return lines.map((text, idx) => ({
       num: idx + 1,
@@ -71,15 +79,24 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
   }, [filteredLines, searchQuery])
 
   return (
-    <div className={cn("flex flex-col h-full overflow-hidden border rounded-lg bg-card text-card-foreground", className)}>
+    <div
+      className={cn(
+        "flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground",
+        className
+      )}
+    >
       {/* Code Toolbar */}
-      <div className="flex items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2 shrink-0">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2">
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="font-mono text-[11px] uppercase tracking-wider">
+          <Badge
+            variant="outline"
+            className="font-mono text-[11px] tracking-wider uppercase"
+          >
             {language}
           </Badge>
-          <span className="text-xs text-muted-foreground font-mono">
-            {lines.length} {t("preview.lines")} · {content.length} {t("preview.chars")}
+          <span className="font-mono text-xs text-muted-foreground">
+            {lines.length} {t("preview.lines")} · {content.length}{" "}
+            {t("preview.chars")}
           </span>
         </div>
 
@@ -92,11 +109,11 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t("preview.search_in_file")}
-                className="h-7 w-40 text-xs pl-7 pr-2"
+                className="h-7 w-40 pr-2 pl-7 text-xs"
                 autoFocus
               />
               {searchQuery && (
-                <span className="ml-1.5 text-[11px] text-muted-foreground font-mono">
+                <span className="ml-1.5 font-mono text-[11px] text-muted-foreground">
                   {matchCount} {t("preview.hits")}
                 </span>
               )}
@@ -121,7 +138,7 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
               onClick={handleFormat}
               title={t("preview.format_code")}
             >
-              <FileCode2 className="size-3.5 mr-1" />
+              <FileCode2 className="mr-1 size-3.5" />
               {t("preview.format_code")}
             </Button>
           )}
@@ -143,30 +160,36 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
             onClick={handleCopy}
             title={t("action.copy")}
           >
-            {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+            {copied ? (
+              <Check className="size-3.5 text-emerald-500" />
+            ) : (
+              <Copy className="size-3.5" />
+            )}
           </Button>
         </div>
       </div>
 
       {/* Code Content with Line Numbers */}
-      <div className="flex-1 overflow-auto font-mono text-xs p-3 leading-relaxed select-text">
+      <div className="flex-1 overflow-auto p-3 font-mono text-xs leading-relaxed select-text">
         <table className="w-full border-collapse">
           <tbody>
             {filteredLines.map(({ num, text, highlight }) => (
               <tr
                 key={num}
                 className={cn(
-                  "hover:bg-muted/40 transition-colors",
+                  "transition-colors hover:bg-muted/40",
                   highlight && "bg-amber-500/15 dark:bg-amber-500/20"
                 )}
               >
-                <td className="w-10 select-none pr-3 text-right text-muted-foreground/60 border-r border-border/40 align-top text-[11px]">
+                <td className="w-10 border-r border-border/40 pr-3 text-right align-top text-[11px] text-muted-foreground/60 select-none">
                   {num}
                 </td>
                 <td
                   className={cn(
                     "pl-3 align-top",
-                    wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre overflow-x-auto"
+                    wrap
+                      ? "break-all whitespace-pre-wrap"
+                      : "overflow-x-auto whitespace-pre"
                   )}
                 >
                   {text || " "}

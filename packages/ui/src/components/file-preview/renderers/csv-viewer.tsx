@@ -1,5 +1,10 @@
 import * as React from "react"
-import { ChevronLeft, ChevronRight, Search, Table as TableIcon } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Table as TableIcon,
+} from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -69,7 +74,11 @@ function parseCsv(text: string): { headers: string[]; rows: string[][] } {
 
 const PAGE_SIZE = 50
 
-export function CsvViewer({ content, filename: _filename, className }: CsvViewerProps) {
+export function CsvViewer({
+  content,
+  filename: _filename,
+  className,
+}: CsvViewerProps) {
   const { t } = useI18n()
   const { headers, rows } = React.useMemo(() => parseCsv(content), [content])
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -78,7 +87,9 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
   const filteredRows = React.useMemo(() => {
     if (!searchQuery.trim()) return rows
     const q = searchQuery.toLowerCase()
-    return rows.filter((row) => row.some((cell) => cell.toLowerCase().includes(q)))
+    return rows.filter((row) =>
+      row.some((cell) => cell.toLowerCase().includes(q))
+    )
   }, [rows, searchQuery])
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
@@ -88,16 +99,22 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
   }, [filteredRows, page])
 
   return (
-    <div className={cn("flex flex-col h-full overflow-hidden border rounded-lg bg-card text-card-foreground", className)}>
+    <div
+      className={cn(
+        "flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground",
+        className
+      )}
+    >
       {/* CSV Toolbar */}
-      <div className="flex items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2 shrink-0">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="gap-1 font-mono text-[11px]">
             <TableIcon className="size-3 text-emerald-600" />
             TABLE VIEW
           </Badge>
-          <span className="text-xs text-muted-foreground font-mono">
-            {rows.length} {t("preview.rows")} · {headers.length} {t("preview.columns")}
+          <span className="font-mono text-xs text-muted-foreground">
+            {rows.length} {t("preview.rows")} · {headers.length}{" "}
+            {t("preview.columns")}
           </span>
         </div>
 
@@ -112,11 +129,11 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
                 setPage(1)
               }}
               placeholder={t("preview.search_in_file")}
-              className="h-7 w-48 text-xs pl-7 pr-2"
+              className="h-7 w-48 pr-2 pl-7 text-xs"
             />
           </div>
 
-          <div className="flex items-center gap-1 border-l pl-2 border-border/60">
+          <div className="flex items-center gap-1 border-l border-border/60 pl-2">
             <Button
               variant="ghost"
               size="icon"
@@ -127,7 +144,7 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
             >
               <ChevronLeft className="size-3.5" />
             </Button>
-            <span className="text-[11px] text-muted-foreground font-mono px-1">
+            <span className="px-1 font-mono text-[11px] text-muted-foreground">
               {page}/{totalPages}
             </span>
             <Button
@@ -147,11 +164,16 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
       {/* Table Data Grid */}
       <div className="flex-1 overflow-auto select-text">
         <table className="w-full border-collapse text-xs">
-          <thead className="sticky top-0 bg-muted/90 backdrop-blur-sm z-10">
+          <thead className="sticky top-0 z-10 bg-muted/90 backdrop-blur-sm">
             <tr className="border-b border-border/80 text-left font-semibold text-foreground">
-              <th className="w-12 px-3 py-2 text-center text-muted-foreground/60 border-r text-[11px]">#</th>
+              <th className="w-12 border-r px-3 py-2 text-center text-[11px] text-muted-foreground/60">
+                #
+              </th>
               {headers.map((header, idx) => (
-                <th key={idx} className="px-3 py-2 border-r border-border/40 whitespace-nowrap">
+                <th
+                  key={idx}
+                  className="border-r border-border/40 px-3 py-2 whitespace-nowrap"
+                >
                   {header || `Column ${idx + 1}`}
                 </th>
               ))}
@@ -163,14 +185,21 @@ export function CsvViewer({ content, filename: _filename, className }: CsvViewer
               return (
                 <tr
                   key={rowIdx}
-                  className="border-b border-border/30 hover:bg-muted/40 transition-colors"
+                  className="border-b border-border/30 transition-colors hover:bg-muted/40"
                 >
-                  <td className="px-3 py-1.5 text-center text-muted-foreground/60 border-r border-border/40 font-mono text-[11px]">
+                  <td className="border-r border-border/40 px-3 py-1.5 text-center font-mono text-[11px] text-muted-foreground/60">
                     {actualRowIndex}
                   </td>
                   {row.map((cell, cellIdx) => (
-                    <td key={cellIdx} className="px-3 py-1.5 border-r border-border/30 max-w-xs truncate">
-                      {cell || <span className="text-muted-foreground/40 italic">null</span>}
+                    <td
+                      key={cellIdx}
+                      className="max-w-xs truncate border-r border-border/30 px-3 py-1.5"
+                    >
+                      {cell || (
+                        <span className="text-muted-foreground/40 italic">
+                          null
+                        </span>
+                      )}
                     </td>
                   ))}
                 </tr>
