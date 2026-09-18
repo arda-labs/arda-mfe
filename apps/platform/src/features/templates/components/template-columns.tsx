@@ -1,9 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { Download, Edit2, Eye, FileText, Trash2 } from "lucide-react"
 import type { useI18n } from "@workspace/i18n"
+import type { MediaFile } from "@workspace/media"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
+import { formatFileSize } from "@workspace/ui/components/file-preview"
 import {
   Status,
   StatusIndicator,
@@ -13,23 +15,24 @@ import {
   activeStatusMeta,
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
-import type { FileTemplate, TemplateFileRef } from "../types"
+import type { FileTemplate, TemplateFileTarget } from "../types"
 import { templateFileName } from "../urls"
 
 type TranslateFn = ReturnType<typeof useI18n>["t"]
 
 interface TemplateColumnHandlers {
-  onPreview: (file: TemplateFileRef) => void
-  onDownload: (file: TemplateFileRef) => void
+  onPreview: (file: TemplateFileTarget) => void
+  onDownload: (file: TemplateFileTarget) => void
   onEdit: (template: FileTemplate) => void
   onDelete: (template: FileTemplate) => void
+  getFileMeta?: (template: FileTemplate) => MediaFile | undefined
 }
 
 export function buildTemplateColumns(
   t: TranslateFn,
   handlers: TemplateColumnHandlers
 ): ColumnDef<FileTemplate>[] {
-  const { onPreview, onDownload, onEdit, onDelete } = handlers
+  const { onPreview, onDownload, onEdit, onDelete, getFileMeta } = handlers
 
   return [
     {
@@ -79,6 +82,7 @@ export function buildTemplateColumns(
       ),
       cell: ({ row }) => {
         const file = row.original
+        const meta = getFileMeta?.(file)
         return (
           <div className="flex max-w-[260px] items-center gap-2">
             <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -89,13 +93,13 @@ export function buildTemplateColumns(
                 className="truncate text-xs font-medium"
                 title={file.file_url || undefined}
               >
-                {templateFileName(file)}
+                {templateFileName(file, meta)}
               </div>
               <div
                 className="truncate font-mono text-[10px] text-muted-foreground"
                 title={file.file_url || undefined}
               >
-                {file.file_url}
+                {meta ? formatFileSize(meta.size_bytes) : file.file_url}
               </div>
             </div>
           </div>
@@ -148,46 +152,52 @@ export function buildTemplateColumns(
       header: () => (
         <span className="sr-only">{t("platform.templates.field.actions")}</span>
       ),
-      cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-7 text-muted-foreground hover:text-primary"
-            title={t("platform.templates.action.view_file")}
-            onClick={() => onPreview(row.original)}
-          >
-            <Eye className="size-3.5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-7 text-muted-foreground hover:text-primary"
-            title={t("platform.templates.action.download_file")}
-            onClick={() => onDownload(row.original)}
-          >
-            <Download className="size-3.5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-7"
-            title={t("common.action.edit")}
-            onClick={() => onEdit(row.original)}
-          >
-            <Edit2 className="size-3.5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-7 text-destructive"
-            title={t("common.action.delete")}
-            onClick={() => onDelete(row.original)}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const target = {
+          ...row.original,
+          fileMeta: getFileMeta?.(row.original),
+        }
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-muted-foreground hover:text-primary"
+              title={t("platform.templates.action.view_file")}
+              onClick={() => onPreview(target)}
+            >
+              <Eye className="size-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-muted-foreground hover:text-primary"
+              title={t("platform.templates.action.download_file")}
+              onClick={() => onDownload(target)}
+            >
+              <Download className="size-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7"
+              title={t("common.action.edit")}
+              onClick={() => onEdit(row.original)}
+            >
+              <Edit2 className="size-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-destructive"
+              title={t("common.action.delete")}
+              onClick={() => onDelete(row.original)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        )
+      },
     },
   ]
 }

@@ -3,6 +3,7 @@ import {
   resolveTemplateDownloadUrl,
   resolveTemplateFileUrl,
   templateFileName,
+  templatePublicId,
   toTemplateFilePath,
 } from "../src/features/templates/urls"
 
@@ -49,9 +50,9 @@ describe("template file URL resolution", () => {
   })
 
   test("normalizes web-origin URLs back to the API path", () => {
-    expect(
-      resolveTemplateFileUrl("https://arda.io.vn/api/media/mf_de61")
-    ).toBe("/api/media/mf_de61")
+    expect(resolveTemplateFileUrl("https://arda.io.vn/api/media/mf_de61")).toBe(
+      "/api/media/mf_de61"
+    )
   })
 
   test("keeps external absolute URLs", () => {
@@ -79,6 +80,19 @@ describe("template download URL resolution", () => {
 })
 
 describe("template file name", () => {
+  test("prefers the original filename from media metadata", () => {
+    expect(
+      templateFileName(
+        {
+          code: "CONTRACT",
+          name: "Hợp đồng",
+          file_type: "pdf",
+          file_url: "/api/media/mf_de61",
+        },
+        { original_filename: "Hop dong 2026.pdf" }
+      )
+    ).toBe("Hop dong 2026.pdf")
+  })
   test("uses the extension kept in the URL", () => {
     expect(
       templateFileName({
@@ -110,5 +124,19 @@ describe("template file name", () => {
         file_url: "/api/media/mf_de61519fa168fee2da827af429c6818a",
       })
     ).toBe("HOANTEST_01.pdf")
+  })
+})
+
+describe("template public id", () => {
+  test("extracts the media public id from stored references", () => {
+    expect(templatePublicId("/api/media/mf_de61")).toBe("mf_de61")
+    expect(
+      templatePublicId("https://api.arda.io.vn/api/media/mf_de61/download")
+    ).toBe("mf_de61")
+  })
+
+  test("returns empty for external files", () => {
+    expect(templatePublicId("https://cdn.example.com/contract.pdf")).toBe("")
+    expect(templatePublicId("")).toBe("")
   })
 })

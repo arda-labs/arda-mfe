@@ -43,7 +43,7 @@ import {
   TEMPLATE_FILE_ACCEPT,
   type TemplateFormValues,
 } from "../schema"
-import type { FileTemplate, TemplateFileRef } from "../types"
+import type { FileTemplate, TemplateFileTarget } from "../types"
 import { toTemplateFilePath, templateFileName } from "../urls"
 
 interface TemplateFormDialogProps {
@@ -51,8 +51,8 @@ interface TemplateFormDialogProps {
   template: FileTemplate | null
   onOpenChange: (open: boolean) => void
   onSaved: () => void | Promise<void>
-  onPreview: (file: TemplateFileRef) => void
-  onDownload: (file: TemplateFileRef) => void
+  onPreview: (file: TemplateFileTarget) => void
+  onDownload: (file: TemplateFileTarget) => void
 }
 
 export function TemplateFormDialog({
@@ -197,7 +197,7 @@ export function TemplateFormDialog({
     }
   }
 
-  const draftFileRef = (): TemplateFileRef => ({
+  const draftFileRef = (): TemplateFileTarget => ({
     code: getValues("code"),
     name: getValues("name"),
     file_type: fileType,

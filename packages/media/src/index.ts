@@ -1,4 +1,4 @@
-import { api, type ApiSuccess } from "@workspace/api"
+import { api, ApiClientError, type ApiSuccess } from "@workspace/api"
 import {
   getMediaContentUrl,
   getMediaDownloadUrl,
@@ -59,10 +59,46 @@ export async function listEntityFiles(
   entityId: string,
   module?: string
 ) {
-  const search = new URLSearchParams({ entity_type: entityType, entity_id: entityId })
+  const search = new URLSearchParams({
+    entity_type: entityType,
+    entity_id: entityId,
+  })
   if (module) search.set("module", module)
   const res = await api.get<ApiSuccess<{ files: MediaFile[]; count: number }>>(
     `/api/media/files?${search.toString()}`
+  )
+  return res.result.files ?? []
+}
+
+export type MediaErrorReason =
+  "org_required" | "not_found" | "too_large" | "unknown"
+
+/** Classifies media API failures so each feature can localize its own message. */
+export function mediaErrorReason(err: unknown): MediaErrorReason {
+  if (err instanceof ApiClientError) {
+    if (err.code === "tenant.error.scope_required") return "org_required"
+    if (err.status === 404 || err.code === "media.file.not_ready") {
+      return "not_found"
+    }
+    if (err.status === 413 || err.code === "media.file.too_large") {
+      return "too_large"
+    }
+  }
+  return "unknown"
+}
+
+/**
+ * Scoped metadata (name, size, content type, status) for up to 100 public ids
+ * in one call. Catalogs use it to render real file names/sizes and to gate
+ * large previews before fetching bytes.
+ */
+export async function getMediaMetadata(
+  publicIds: string[]
+): Promise<MediaFile[]> {
+  const ids = [...new Set(publicIds.map((id) => id.trim()).filter(Boolean))]
+  if (ids.length === 0) return []
+  const res = await api.get<ApiSuccess<{ files: MediaFile[]; count: number }>>(
+    `/api/media/files/metadata?public_ids=${encodeURIComponent(ids.join(","))}`
   )
   return res.result.files ?? []
 }
@@ -128,13 +164,15 @@ export async function uploadFile(
   formData.append("entity_id", entityId)
   formData.append("visibility", visibility)
 
-  const res = await api.post<ApiSuccess<{
-    public_id: string
-    file_name: string
-    mime_type: string
-    size: number
-    created_at: string
-  }>>("/api/media", formData)
+  const res = await api.post<
+    ApiSuccess<{
+      public_id: string
+      file_name: string
+      mime_type: string
+      size: number
+      created_at: string
+    }>
+  >("/api/media", formData)
   const result = res.result
 
   // Direct uploads stay `temp` on the server (entity fields are ignored at
@@ -147,7 +185,10 @@ export async function uploadFile(
   return {
     public_id: result.public_id,
     file_name: result.file_name,
-    url: visibility === "public" ? getMediaContentUrl(result.public_id) : getPrivateMediaContentUrl(result.public_id),
+    url:
+      visibility === "public"
+        ? getMediaContentUrl(result.public_id)
+        : getPrivateMediaContentUrl(result.public_id),
   }
 }
 
@@ -159,7 +200,10 @@ export async function uploadAvatar(file: File, userId: string) {
   formData.append("entity_id", userId)
   formData.append("visibility", "public")
 
-  const res = await api.post<ApiSuccess<{ public_id: string }>>("/api/media", formData)
+  const res = await api.post<ApiSuccess<{ public_id: string }>>(
+    "/api/media",
+    formData
+  )
   const result = res.result
   const profileResponse = await api.post<ApiSuccess<IAMUserContext>>(
     "/api/iam/me/profile/avatar",
@@ -184,7 +228,10 @@ export async function uploadCover(file: File, userId: string) {
   formData.append("entity_id", userId)
   formData.append("visibility", "public")
 
-  const res = await api.post<ApiSuccess<{ public_id: string }>>("/api/media", formData)
+  const res = await api.post<ApiSuccess<{ public_id: string }>>(
+    "/api/media",
+    formData
+  )
   const result = res.result
   const profileResponse = await api.post<ApiSuccess<IAMUserContext>>(
     "/api/iam/me/profile/cover",

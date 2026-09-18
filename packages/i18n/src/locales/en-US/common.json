@@ -227,6 +227,10 @@
       "col_actions": "Actions",
       "remove": "Remove",
       "remove_error": "Failed to remove file",
+      "open_error": "Could not open the document",
+      "download_error": "Could not download the document",
+      "org_required": "Select a working organization before opening documents",
+      "file_missing": "The document no longer exists or was deleted",
       "staged_hint": "Files are attached to the case when you submit.",
       "attach_error": "Files could not be attached to the case — add them again in the processing screen."
     },

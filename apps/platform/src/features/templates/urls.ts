@@ -64,11 +64,30 @@ export function resolveTemplateDownloadUrl(fileUrl: string): string {
 }
 
 /**
- * Display name for the attached file: the original filename when the stored
- * URL keeps its extension, otherwise `<code>.<file_type>` derived from the
- * catalog row (media-service public ids have no extension).
+ * Public id of the attached media (`mf_...`), or empty when the stored value
+ * is an external URL without one. Used to enrich rows with media metadata.
  */
-export function templateFileName(file: TemplateFileRef): string {
+export function templatePublicId(fileUrl: string): string {
+  const path = toTemplateFilePath(fileUrl)
+  if (!path) return ""
+  const segments = path.split("?")[0].split("/").filter(Boolean)
+  const last = segments[segments.length - 1] ?? ""
+  const candidate =
+    last === "download" ? (segments[segments.length - 2] ?? "") : last
+  return candidate.startsWith("mf_") ? candidate : ""
+}
+
+/**
+ * Display name for the attached file. Prefers the original filename from the
+ * media metadata (media public ids keep no extension in the URL), then the
+ * stored URL basename, finally `<code>.<file_type>`.
+ */
+export function templateFileName(
+  file: TemplateFileRef,
+  meta?: { original_filename?: string }
+): string {
+  const original = meta?.original_filename?.trim()
+  if (original) return original
   const path = toTemplateFilePath(file.file_url)
   if (path) {
     const segment = path.split("?")[0].split("/").filter(Boolean).pop() ?? ""

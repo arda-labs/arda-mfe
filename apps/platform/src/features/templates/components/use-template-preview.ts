@@ -1,13 +1,17 @@
 import { useCallback } from "react"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { ApiClientError } from "@workspace/api"
-import { downloadMediaFile, fetchMediaBlob } from "@workspace/media"
+import {
+  downloadMediaFile,
+  fetchMediaBlob,
+  mediaErrorReason,
+} from "@workspace/media"
 import {
   detectFileCategory,
-  type FilePreviewSource,
+  useBlobPreview,
 } from "@workspace/ui/components/file-preview"
 import { notify } from "@workspace/ui/feedback/notify"
-import type { TemplateFileRef } from "../types"
+import type { TemplateFileTarget } from "../types"
 import {
   resolveTemplateDownloadUrl,
   templateFileName,
@@ -34,17 +38,18 @@ const INLINE_PREVIEW_CATEGORIES = new Set([
  * inline preview, keeping large documents out of browser memory. */
 const MAX_INLINE_PREVIEW_BYTES = 25 * 1024 * 1024
 
-/** Maps media-scope failures to an actionable message. */
+/** Maps media failures to an actionable message. */
 export function describeTemplateFileError(err: unknown, t: TranslateFn) {
-  if (err instanceof ApiClientError) {
-    if (err.code === "tenant.error.scope_required") {
+  switch (mediaErrorReason(err)) {
+    case "org_required":
       return t("platform.templates.preview.org_required")
-    }
-    if (err.status === 404 || err.code === "media.file.not_ready") {
+    case "not_found":
       return t("platform.templates.preview.file_missing")
-    }
+    case "too_large":
+      return t("platform.templates.preview.file_too_large")
+    default:
+      return translateApiError(err)
   }
-  return translateApiError(err)
 }
 
 /**
@@ -55,25 +60,25 @@ export function describeTemplateFileError(err: unknown, t: TranslateFn) {
  */
 export function useTemplateFilePreview() {
   const { t } = useI18n()
+  const { source, loading, show, openWithBlob, close } = useBlobPreview()
 
   const download = useCallback(
-    async (file: TemplateFileRef) => {
+    async (file: TemplateFileTarget) => {
       const path = toTemplateFilePath(file.file_url)
       if (!path) {
         notify.error(t("platform.templates.preview.missing_file"))
         return
       }
+      const filename = templateFileName(file, file.fileMeta)
       try {
         if (path.startsWith("/api/")) {
-          await downloadMediaFile(path, templateFileName(file))
+          await downloadMediaFile(path, filename)
         } else {
           window.open(path, "_blank", "noopener,noreferrer")
           return
         }
         notify.success(
-          t("platform.templates.preview.download_success", {
-            name: templateFileName(file),
-          })
+          t("platform.templates.preview.download_success", { name: filename })
         )
       } catch (err) {
         // Network/CORS failures (ApiClientError = the API answered and
@@ -98,32 +103,51 @@ export function useTemplateFilePreview() {
     [t]
   )
 
-  const buildSource = useCallback(
-    async (file: TemplateFileRef): Promise<FilePreviewSource | null> => {
+  const openPreview = useCallback(
+    async (file: TemplateFileTarget) => {
       const path = toTemplateFilePath(file.file_url)
-      if (!path) return null
-      const filename = templateFileName(file)
+      if (!path) {
+        notify.error(t("platform.templates.preview.missing_file"))
+        return
+      }
+      const filename = templateFileName(file, file.fileMeta)
       const base = {
         filename,
+        mimeType: file.fileMeta?.content_type,
+        sizeBytes: file.fileMeta?.size_bytes,
         title: t("platform.templates.preview.title", { name: file.name }),
         onDownload: () => {
           void download(file)
         },
       }
-      if (!path.startsWith("/api/")) return { ...base, src: path }
-      // Office documents fall back to the file card; fetching the bytes would
-      // only waste memory since no renderer consumes them.
-      if (!INLINE_PREVIEW_CATEGORIES.has(detectFileCategory(filename))) {
-        return base
+      if (!path.startsWith("/api/")) {
+        show({ ...base, src: path })
+        return
       }
-      const blob = await fetchMediaBlob(path)
-      if (blob.size > MAX_INLINE_PREVIEW_BYTES) {
-        return base
+      const category = detectFileCategory(filename, file.fileMeta?.content_type)
+      const tooLarge =
+        (file.fileMeta?.size_bytes ?? 0) > MAX_INLINE_PREVIEW_BYTES
+      if (!INLINE_PREVIEW_CATEGORIES.has(category) || tooLarge) {
+        show(base)
+        return
       }
-      return { ...base, src: URL.createObjectURL(blob) }
+      try {
+        await openWithBlob(() => fetchMediaBlob(path), base)
+      } catch (err) {
+        notify.error(
+          t("platform.templates.preview.view_failed"),
+          describeTemplateFileError(err, t)
+        )
+      }
     },
-    [download, t]
+    [download, openWithBlob, show, t]
   )
 
-  return { buildSource, download }
+  return {
+    openPreview,
+    download,
+    previewSource: source,
+    previewLoading: loading,
+    closePreview: close,
+  }
 }

@@ -227,6 +227,10 @@
       "col_actions": "Thao tác",
       "remove": "Xóa",
       "remove_error": "Không xóa được tệp",
+      "open_error": "Không thể mở tài liệu",
+      "download_error": "Không thể tải tài liệu",
+      "org_required": "Vui lòng chọn tổ chức làm việc trước khi mở tài liệu",
+      "file_missing": "Tài liệu không còn tồn tại hoặc đã bị xóa",
       "staged_hint": "Tệp sẽ được đính kèm vào hồ sơ khi gửi.",
       "attach_error": "Không đính kèm được tệp vào hồ sơ — vui lòng thêm lại trong màn xử lý."
     },

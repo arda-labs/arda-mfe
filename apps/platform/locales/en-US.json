@@ -523,7 +523,8 @@
       "download_success": "Downloaded {name}",
       "download_failed": "Could not download the template file",
       "org_required": "Select a working organization before viewing or downloading files",
-      "file_missing": "The file no longer exists or was deleted — please upload it again"
+      "file_missing": "The file no longer exists or was deleted — please upload it again",
+      "file_too_large": "The file exceeds the allowed size limit"
     },
     "upload": {
       "uploading": "Uploading to media-service... ({progress}%)",

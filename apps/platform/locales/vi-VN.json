@@ -523,7 +523,8 @@
       "download_success": "Đã tải tệp {name}",
       "download_failed": "Không thể tải tệp mẫu biểu",
       "org_required": "Vui lòng chọn tổ chức làm việc trước khi xem hoặc tải tệp",
-      "file_missing": "Tệp không còn tồn tại hoặc đã bị xóa — vui lòng tải lên lại tệp mẫu biểu"
+      "file_missing": "Tệp không còn tồn tại hoặc đã bị xóa — vui lòng tải lên lại tệp mẫu biểu",
+      "file_too_large": "Tệp vượt quá giới hạn cho phép"
     },
     "upload": {
       "uploading": "Đang tải file lên media-service... ({progress}%)",

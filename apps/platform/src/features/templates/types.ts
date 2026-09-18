@@ -2,6 +2,8 @@
  * Wire/view types for the file-templates catalog.
  * Wire source: arda-be/apps/platform-service (template handlers).
  */
+import type { MediaFile } from "@workspace/media"
+
 export interface FileTemplate {
   id: string
   tenant_id: string
@@ -21,3 +23,8 @@ export type TemplateFileRef = Pick<
   FileTemplate,
   "code" | "name" | "file_type" | "file_url"
 >
+
+/** Attachment reference enriched with media-service metadata when available. */
+export type TemplateFileTarget = TemplateFileRef & {
+  fileMeta?: MediaFile
+}

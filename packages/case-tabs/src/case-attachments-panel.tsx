@@ -8,9 +8,14 @@ import {
   Trash2,
   Upload,
 } from "lucide-react"
-import { useI18n } from "@workspace/i18n"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import {
   Table,
   TableBody,
@@ -19,18 +24,43 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { notify } from "@workspace/ui/feedback/notify"
-import { listEntityFiles, uploadFile, type MediaFile } from "@workspace/media"
 import {
+  FilePreviewDrawer,
+  useBlobPreview,
+} from "@workspace/ui/components/file-preview"
+import { notify } from "@workspace/ui/feedback/notify"
+import {
+  downloadMediaFile,
+  fetchMediaBlob,
   getPrivateMediaContentUrl,
   getPrivateMediaDownloadUrl,
-} from "@workspace/media/urls"
+  listEntityFiles,
+  mediaErrorReason,
+  uploadFile,
+  type MediaFile,
+} from "@workspace/media"
 import type { CaseAttachmentEntity } from "./types"
 
 function formatSize(bytes: number) {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${bytes} B`
+}
+
+/** Above this size the drawer shows the file card + download instead of an
+ * inline preview, keeping large documents out of browser memory. */
+const MAX_INLINE_PREVIEW_BYTES = 25 * 1024 * 1024
+
+/** Maps media failures to an actionable message. */
+function describeMediaError(err: unknown, t: (key: string) => string) {
+  switch (mediaErrorReason(err)) {
+    case "org_required":
+      return t("case_tabs.attachments.org_required")
+    case "not_found":
+      return t("case_tabs.attachments.file_missing")
+    default:
+      return translateApiError(err)
+  }
 }
 
 /** Shared document table — entity attachments and staged (pre-case) uploads. */
@@ -42,85 +72,128 @@ function AttachmentRows({
   onRemove?: (publicId: string) => void
 }) {
   const { t, formatDate } = useI18n()
+  const { source, show, openWithBlob, close } = useBlobPreview()
+
+  const handleDownload = async (file: MediaFile) => {
+    try {
+      await downloadMediaFile(
+        getPrivateMediaDownloadUrl(file.public_id),
+        file.original_filename
+      )
+    } catch (error) {
+      notify.error(
+        t("case_tabs.attachments.download_error"),
+        describeMediaError(error, t)
+      )
+    }
+  }
+
+  const handlePreview = async (file: MediaFile) => {
+    const base = {
+      filename: file.original_filename,
+      mimeType: file.content_type,
+      sizeBytes: file.size_bytes,
+      title: file.original_filename,
+      onDownload: () => {
+        void handleDownload(file)
+      },
+    }
+    // Private media needs the credentialed fetch (org scope); large files stay
+    // as a file card so the browser does not hold them in memory.
+    if (file.size_bytes > MAX_INLINE_PREVIEW_BYTES) {
+      show(base)
+      return
+    }
+    try {
+      await openWithBlob(
+        () => fetchMediaBlob(getPrivateMediaContentUrl(file.public_id)),
+        base
+      )
+    } catch (error) {
+      notify.error(
+        t("case_tabs.attachments.open_error"),
+        describeMediaError(error, t)
+      )
+    }
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-10" />
-          <TableHead>{t("case_tabs.attachments.col_name")}</TableHead>
-          <TableHead className="w-28">
-            {t("case_tabs.attachments.col_size")}
-          </TableHead>
-          <TableHead className="w-44">
-            {t("case_tabs.attachments.col_uploaded_at")}
-          </TableHead>
-          <TableHead className="w-32 text-right">
-            {t("case_tabs.attachments.col_actions")}
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {files.map((file) => (
-          <TableRow key={file.public_id}>
-            <TableCell>
-              <FileText className="size-4 text-muted-foreground" />
-            </TableCell>
-            <TableCell className="max-w-0 truncate font-medium">
-              {file.original_filename}
-            </TableCell>
-            <TableCell className="tabular-nums text-muted-foreground">
-              {formatSize(file.size_bytes)}
-            </TableCell>
-            <TableCell className="tabular-nums text-muted-foreground">
-              {formatDate(file.created_at)}
-            </TableCell>
-            <TableCell className="text-right">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                title={t("case_tabs.attachments.view")}
-                onClick={() =>
-                  window.open(
-                    getPrivateMediaContentUrl(file.public_id),
-                    "_blank",
-                    "noopener"
-                  )
-                }
-              >
-                <Eye className="size-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                title={t("case_tabs.attachments.download")}
-                onClick={() =>
-                  window.open(
-                    getPrivateMediaDownloadUrl(file.public_id),
-                    "_blank",
-                    "noopener"
-                  )
-                }
-              >
-                <Download className="size-4" />
-              </Button>
-              {onRemove ? (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10" />
+            <TableHead>{t("case_tabs.attachments.col_name")}</TableHead>
+            <TableHead className="w-28">
+              {t("case_tabs.attachments.col_size")}
+            </TableHead>
+            <TableHead className="w-44">
+              {t("case_tabs.attachments.col_uploaded_at")}
+            </TableHead>
+            <TableHead className="w-32 text-right">
+              {t("case_tabs.attachments.col_actions")}
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {files.map((file) => (
+            <TableRow key={file.public_id}>
+              <TableCell>
+                <FileText className="size-4 text-muted-foreground" />
+              </TableCell>
+              <TableCell className="max-w-0 truncate font-medium">
+                {file.original_filename}
+              </TableCell>
+              <TableCell className="text-muted-foreground tabular-nums">
+                {formatSize(file.size_bytes)}
+              </TableCell>
+              <TableCell className="text-muted-foreground tabular-nums">
+                {formatDate(file.created_at)}
+              </TableCell>
+              <TableCell className="text-right">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  title={t("case_tabs.attachments.remove")}
-                  onClick={() => onRemove(file.public_id)}
+                  title={t("case_tabs.attachments.view")}
+                  onClick={() => void handlePreview(file)}
                 >
-                  <Trash2 className="size-4 text-destructive" />
+                  <Eye className="size-4" />
                 </Button>
-              ) : null}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  title={t("case_tabs.attachments.download")}
+                  onClick={() => void handleDownload(file)}
+                >
+                  <Download className="size-4" />
+                </Button>
+                {onRemove ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    title={t("case_tabs.attachments.remove")}
+                    onClick={() => onRemove(file.public_id)}
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                ) : null}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <FilePreviewDrawer
+        open={source !== null}
+        onOpenChange={(open) => {
+          if (!open) close()
+        }}
+        source={source}
+        width="sm:max-w-3xl w-[92vw]"
+      />
+    </>
   )
 }
 
@@ -167,7 +240,10 @@ export function CaseAttachmentsPanel({
     const list = targetKey
       ? targetKey.split("|").map((pair) => {
           const separator = pair.indexOf(":")
-          return { type: pair.slice(0, separator), id: pair.slice(separator + 1) }
+          return {
+            type: pair.slice(0, separator),
+            id: pair.slice(separator + 1),
+          }
         })
       : []
     if (list.length === 0) return

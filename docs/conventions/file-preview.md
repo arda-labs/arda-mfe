@@ -42,13 +42,23 @@ Sử dụng khi người dùng cần không gian rộng để xem chi tiết t�
 
 ```tsx
 import { useState } from "react"
-import { FilePreviewDialog, type FilePreviewSource } from "@workspace/ui/components/file-preview"
+import {
+  FilePreviewDialog,
+  type FilePreviewSource,
+} from "@workspace/ui/components/file-preview"
 import { getMediaContentUrl } from "@workspace/media/urls"
 
 export function MediaListPage() {
-  const [previewSource, setPreviewSource] = useState<FilePreviewSource | null>(null)
+  const [previewSource, setPreviewSource] = useState<FilePreviewSource | null>(
+    null
+  )
 
-  const handlePreview = (file: { id: string; name: string; size: number; mime: string }) => {
+  const handlePreview = (file: {
+    id: string
+    name: string
+    size: number
+    mime: string
+  }) => {
     setPreviewSource({
       src: getMediaContentUrl(file.id),
       filename: file.name,
@@ -82,10 +92,14 @@ Chuẩn trải nghiệm Stripe/Linear: Vừa xem tài liệu đính kèm (hợp 
 
 ```tsx
 import { useState } from "react"
-import { FilePreviewDrawer, type FilePreviewSource } from "@workspace/ui/components/file-preview"
+import {
+  FilePreviewDrawer,
+  type FilePreviewSource,
+} from "@workspace/ui/components/file-preview"
 
 export function TransactionApprovalPage() {
-  const [activeDocument, setActiveDocument] = useState<FilePreviewSource | null>(null)
+  const [activeDocument, setActiveDocument] =
+    useState<FilePreviewSource | null>(null)
 
   return (
     <div>
@@ -123,13 +137,13 @@ Không cần tải qua URL, có thể truyền trực tiếp nội dung string (
 
 ## 3. Các Tính Năng Cao Cấp Theo Từng Định Dạng
 
-| Định dạng | Thành phần Renderer | Tính năng tương tác cao cấp |
-| :--- | :--- | :--- |
-| **JSON, YAML, XML, SQL, Markdown** | `CodeViewer` | • Đánh số dòng chính xác.<br>• Nút Format/Prettify tự động thụt lề cho JSON.<br>• Tìm kiếm từ khóa `Ctrl+F` kèm bộ đếm kết quả.<br>• Bật/tắt ngắt dòng (Word wrap) & Copy 1-click. |
-| **CSV, TSV** | `CsvViewer` | • Tự động phân tích trường dữ liệu theo chuẩn RFC 4180.<br>• Hiển thị dạng bảng có phân trang ($50$ dòng/trang) và lọc tìm kiếm. |
-| **PDF** | `PdfViewer` | • Nhúng iframe native với `#toolbar=1`.<br>• Nút in ấn trực tiếp, mở tab mới, tải về. |
-| **Hình ảnh (PNG, JPG, SVG, WebP)** | `ImageViewer` | • Điều khiển Zoom ($10\% - 500\%$).<br>• Xoay góc $90^\circ$ theo chiều kim đồng hồ.<br>• Nền bàn cờ trong suốt (Checkered pattern) cho PNG/SVG. |
-| **Video & Audio** | `MediaViewer` | • HTML5 native player với thanh tua và chỉnh âm lượng. |
+| Định dạng                          | Thành phần Renderer | Tính năng tương tác cao cấp                                                                                                                                                        |
+| :--------------------------------- | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **JSON, YAML, XML, SQL, Markdown** | `CodeViewer`        | • Đánh số dòng chính xác.<br>• Nút Format/Prettify tự động thụt lề cho JSON.<br>• Tìm kiếm từ khóa `Ctrl+F` kèm bộ đếm kết quả.<br>• Bật/tắt ngắt dòng (Word wrap) & Copy 1-click. |
+| **CSV, TSV**                       | `CsvViewer`         | • Tự động phân tích trường dữ liệu theo chuẩn RFC 4180.<br>• Hiển thị dạng bảng có phân trang ($50$ dòng/trang) và lọc tìm kiếm.                                                   |
+| **PDF**                            | `PdfViewer`         | • Nhúng iframe native với `#toolbar=1`.<br>• Nút in ấn trực tiếp, mở tab mới, tải về.                                                                                              |
+| **Hình ảnh (PNG, JPG, SVG, WebP)** | `ImageViewer`       | • Điều khiển Zoom ($10\% - 500\%$).<br>• Xoay góc $90^\circ$ theo chiều kim đồng hồ.<br>• Nền bàn cờ trong suốt (Checkered pattern) cho PNG/SVG.                                   |
+| **Video & Audio**                  | `MediaViewer`       | • HTML5 native player với thanh tua và chỉnh âm lượng.                                                                                                                             |
 
 ---
 
@@ -162,12 +176,21 @@ Mọi `source.src` / nút xem / nút tải phải trỏ về `api.arda.io.vn` (d
   render bằng `apiUrl()`; chỉ thêm hậu tố `/download` khi cần
   `Content-Disposition: attachment`.
 - File **≥ 2MB**: media-service trả 302 sang presigned URL của
-  `storage_public_endpoint` (`s3.arda.io.vn`). Endpoint này có CORS middleware
-  Traefik (`arda-infra/platform/manifests/garage/garage-s3-cors-middleware.yaml`)
+  `storage_public_endpoint` (`s3.arda.io.vn`) và **auth-gateway chuyển tiếp 302
+  cho browser** (không tự follow), nên browser tải trực tiếp từ storage.
+  Endpoint này có CORS middleware Traefik
+  (`arda-infra/platform/manifests/garage/garage-s3-cors-middleware.yaml`)
   để blob fetch theo redirect vẫn qua được kiểm tra credentialed CORS. Nếu
-  `GARAGE_PUBLIC_ENDPOINT` trống, media-service tự stream thay vì redirect.
+  `GARAGE_PUBLIC_ENDPOINT` trống, media-service tự stream thay vì redirect
+  (`stream_max_size_mb`, mặc định 2MB).
   FE giới hạn preview inline 25MB (`MAX_INLINE_PREVIEW_BYTES`) và fallback sang
   điều hướng tải khi fetch blob lỗi mạng/CORS.
-- Mẫu tham chiếu: `arda-mfe/apps/platform/src/features/templates/urls.ts`
-  (xem/tải mẫu biểu) và unit test
-  `arda-mfe/apps/platform/tests/template-urls.test.ts`.
+- Dùng hook chung `useBlobPreview()` (`@workspace/ui/components/file-preview`)
+  để quản lý vòng đời object URL thay vì tự viết lại ở từng feature.
+- Metadata thật (tên file, dung lượng, MIME) lấy theo lô bằng
+  `getMediaMetadata(publicIds)` → `GET /api/media/files/metadata?public_ids=...`
+  (tối đa 100 id/request, scope tenant+org). Nhờ đó list hiển thị đúng tên/dung
+  lượng và chặn preview file lớn **trước khi** tải bytes.
+- Mẫu tham chiếu: templates (`apps/platform/src/features/templates/`, unit test
+  `apps/platform/tests/template-urls.test.ts`) và panel hồ sơ đính kèm
+  (`packages/case-tabs/src/case-attachments-panel.tsx`).
