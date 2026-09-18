@@ -187,6 +187,9 @@ Mọi `source.src` / nút xem / nút tải phải trỏ về `api.arda.io.vn` (d
   điều hướng tải khi fetch blob lỗi mạng/CORS.
 - Dùng hook chung `useBlobPreview()` (`@workspace/ui/components/file-preview`)
   để quản lý vòng đời object URL thay vì tự viết lại ở từng feature.
+- `fetchMediaBlob()` nhận **cả** path tương đối (`/api/media/...`) lẫn URL tuyệt
+  đối do `apiUrl()`/`getPrivateMedia*Url()` trả về ở production — `toMediaApiPath()`
+  tự strip origin. Đừng truyền URL ngoài hệ thống (sẽ bị từ chối).
 - **Word/Excel/PPT**: xem qua `GET /api/media/{public_id}/preview` — media-service
   convert sang PDF bằng **Gotenberg** (`GOTENBERG_URL`, pod nội bộ
   `gotenberg.platform.svc.cluster.local:3000`), cache PDF dẫn xuất tại
