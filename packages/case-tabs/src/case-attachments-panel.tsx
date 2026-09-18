@@ -26,6 +26,8 @@ import {
 } from "@workspace/ui/components/table"
 import {
   FilePreviewDrawer,
+  detectFileCategory,
+  toPdfFileName,
   useBlobPreview,
 } from "@workspace/ui/components/file-preview"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -34,6 +36,7 @@ import {
   fetchMediaBlob,
   getPrivateMediaContentUrl,
   getPrivateMediaDownloadUrl,
+  getPrivateMediaPreviewUrl,
   listEntityFiles,
   mediaErrorReason,
   uploadFile,
@@ -72,7 +75,7 @@ function AttachmentRows({
   onRemove?: (publicId: string) => void
 }) {
   const { t, formatDate } = useI18n()
-  const { source, show, openWithBlob, close } = useBlobPreview()
+  const { source, loading, show, openWithBlob, close } = useBlobPreview()
 
   const handleDownload = async (file: MediaFile) => {
     try {
@@ -102,6 +105,28 @@ function AttachmentRows({
     // as a file card so the browser does not hold them in memory.
     if (file.size_bytes > MAX_INLINE_PREVIEW_BYTES) {
       show(base)
+      return
+    }
+    const category = detectFileCategory(
+      file.original_filename,
+      file.content_type
+    )
+    // Word/Excel convert to PDF server-side (Gotenberg); failures degrade to
+    // the file card instead of blocking the drawer.
+    if (category === "word" || category === "excel") {
+      try {
+        await openWithBlob(
+          () => fetchMediaBlob(getPrivateMediaPreviewUrl(file.public_id)),
+          {
+            ...base,
+            filename: toPdfFileName(file.original_filename),
+            mimeType: "application/pdf",
+          },
+          { pending: true }
+        )
+      } catch {
+        show(base)
+      }
       return
     }
     try {
@@ -192,6 +217,7 @@ function AttachmentRows({
         }}
         source={source}
         width="sm:max-w-3xl w-[92vw]"
+        loading={loading}
       />
     </>
   )

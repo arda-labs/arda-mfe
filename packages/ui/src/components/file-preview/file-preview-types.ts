@@ -43,7 +43,10 @@ export interface FilePreviewSource {
 /**
  * Detects the file category based on filename extension and MIME type.
  */
-export function detectFileCategory(filename: string, mimeType?: string): FileCategory {
+export function detectFileCategory(
+  filename: string,
+  mimeType?: string
+): FileCategory {
   const ext = getFileExtension(filename)
   const mime = (mimeType || "").toLowerCase()
 
@@ -52,17 +55,25 @@ export function detectFileCategory(filename: string, mimeType?: string): FileCat
   }
 
   if (
-    ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico", "tiff"].includes(ext) ||
+    ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico", "tiff"].includes(
+      ext
+    ) ||
     mime.startsWith("image/")
   ) {
     return "image"
   }
 
-  if (["mp4", "webm", "ogg", "mov", "mkv"].includes(ext) || mime.startsWith("video/")) {
+  if (
+    ["mp4", "webm", "ogg", "mov", "mkv"].includes(ext) ||
+    mime.startsWith("video/")
+  ) {
     return "video"
   }
 
-  if (["mp3", "wav", "aac", "m4a", "flac"].includes(ext) || mime.startsWith("audio/")) {
+  if (
+    ["mp3", "wav", "aac", "m4a", "flac"].includes(ext) ||
+    mime.startsWith("audio/")
+  ) {
     return "audio"
   }
 
@@ -70,11 +81,19 @@ export function detectFileCategory(filename: string, mimeType?: string): FileCat
     return "csv"
   }
 
-  if (["xlsx", "xls"].includes(ext) || mime.includes("spreadsheet") || mime.includes("excel")) {
+  if (
+    ["xlsx", "xls"].includes(ext) ||
+    mime.includes("spreadsheet") ||
+    mime.includes("excel")
+  ) {
     return "excel"
   }
 
-  if (["docx", "doc"].includes(ext) || mime.includes("wordprocessingml") || mime.includes("msword")) {
+  if (
+    ["docx", "doc"].includes(ext) ||
+    mime.includes("wordprocessingml") ||
+    mime.includes("msword")
+  ) {
     return "word"
   }
 
@@ -84,6 +103,7 @@ export function detectFileCategory(filename: string, mimeType?: string): FileCat
       "yaml",
       "yml",
       "xml",
+      "jrxml",
       "sql",
       "md",
       "markdown",
@@ -111,7 +131,10 @@ export function detectFileCategory(filename: string, mimeType?: string): FileCat
     return "code"
   }
 
-  if (["txt", "conf", "ini", "properties"].includes(ext) || mime.startsWith("text/")) {
+  if (
+    ["txt", "conf", "ini", "properties"].includes(ext) ||
+    mime.startsWith("text/")
+  ) {
     return "text"
   }
 
@@ -130,6 +153,7 @@ export function detectCodeLanguage(filename: string): CodeLanguage {
     case "yml":
       return "yaml"
     case "xml":
+    case "jrxml":
     case "svg":
     case "html":
     case "htm":
@@ -167,6 +191,13 @@ export function formatFileSize(bytes?: number): string {
   if (!bytes || bytes <= 0) return ""
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+}
+
+/** Name for a server-converted PDF preview of the given document. */
+export function toPdfFileName(filename: string): string {
+  const stem = filename.replace(/\.[a-z0-9]{1,10}$/i, "").trim()
+  return `${stem || "document"}.pdf`
 }

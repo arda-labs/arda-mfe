@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test"
 import {
+  detectFileCategory,
+  toPdfFileName,
+} from "@workspace/ui/components/file-preview"
+import {
   resolveTemplateDownloadUrl,
   resolveTemplateFileUrl,
   templateFileName,
@@ -138,5 +142,22 @@ describe("template public id", () => {
   test("returns empty for external files", () => {
     expect(templatePublicId("https://cdn.example.com/contract.pdf")).toBe("")
     expect(templatePublicId("")).toBe("")
+  })
+})
+
+describe("shared preview helpers", () => {
+  test("jrxml renders through the XML code viewer", () => {
+    expect(detectFileCategory("report.jrxml")).toBe("code")
+  })
+
+  test("office documents route to the conversion categories", () => {
+    expect(detectFileCategory("contract.docx")).toBe("word")
+    expect(detectFileCategory("report.xlsx")).toBe("excel")
+  })
+
+  test("converted previews use a .pdf filename", () => {
+    expect(toPdfFileName("Hợp đồng.docx")).toBe("Hợp đồng.pdf")
+    expect(toPdfFileName("no-extension")).toBe("no-extension.pdf")
+    expect(toPdfFileName("")).toBe("document.pdf")
   })
 })

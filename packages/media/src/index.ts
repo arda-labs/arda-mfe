@@ -4,6 +4,7 @@ import {
   getMediaDownloadUrl,
   getPrivateMediaContentUrl,
   getPrivateMediaDownloadUrl,
+  getPrivateMediaPreviewUrl,
 } from "./urls"
 
 type IAMUserContext = {
@@ -20,6 +21,7 @@ export {
   getMediaDownloadUrl,
   getPrivateMediaContentUrl,
   getPrivateMediaDownloadUrl,
+  getPrivateMediaPreviewUrl,
 }
 
 export type MediaFile = {

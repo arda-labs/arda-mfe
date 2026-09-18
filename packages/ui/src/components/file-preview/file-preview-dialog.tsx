@@ -10,6 +10,7 @@ import {
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Dialog,
   DialogContent,
@@ -28,12 +29,15 @@ export interface FilePreviewDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   source: FilePreviewSource | null
+  /** Replaces the body with a spinner while the preview is being prepared. */
+  loading?: boolean
 }
 
 export function FilePreviewDialog({
   open,
   onOpenChange,
   source,
+  loading = false,
 }: FilePreviewDialogProps) {
   const { t } = useI18n()
   const [fullscreen, setFullscreen] = React.useState(false)
@@ -146,7 +150,16 @@ export function FilePreviewDialog({
 
         {/* Content Body */}
         <div className="flex-1 overflow-hidden bg-muted/10 p-3">
-          <FilePreviewContent source={source} className="h-full" />
+          {loading ? (
+            <div className="flex h-full min-h-[350px] flex-col items-center justify-center gap-3">
+              <Spinner className="size-8 text-primary" />
+              <p className="font-mono text-xs text-muted-foreground">
+                {t("preview.loading")}
+              </p>
+            </div>
+          ) : (
+            <FilePreviewContent source={source} className="h-full" />
+          )}
         </div>
       </DialogContent>
     </Dialog>

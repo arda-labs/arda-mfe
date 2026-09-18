@@ -40,7 +40,7 @@ export function TemplatesPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
 
-  const { openPreview, download, previewSource, closePreview } =
+  const { openPreview, download, previewSource, previewLoading, closePreview } =
     useTemplateFilePreview()
 
   /** Media metadata (real name/size) is an enhancement: failures are ignored. */
@@ -158,6 +158,7 @@ export function TemplatesPage() {
           if (!open) closePreview()
         }}
         source={previewSource}
+        loading={previewLoading}
       />
     </>
   )

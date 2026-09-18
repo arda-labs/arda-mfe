@@ -15,3 +15,8 @@ export function getPrivateMediaContentUrl(publicId: string) {
 export function getPrivateMediaDownloadUrl(publicId: string) {
   return apiUrl(`/api/media/${encodeURIComponent(publicId)}/download`)
 }
+
+/** Server-side PDF conversion preview (Word/Excel/PPT via Gotenberg). */
+export function getPrivateMediaPreviewUrl(publicId: string) {
+  return apiUrl(`/api/media/${encodeURIComponent(publicId)}/preview`)
+}

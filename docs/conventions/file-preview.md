@@ -187,6 +187,13 @@ Mọi `source.src` / nút xem / nút tải phải trỏ về `api.arda.io.vn` (d
   điều hướng tải khi fetch blob lỗi mạng/CORS.
 - Dùng hook chung `useBlobPreview()` (`@workspace/ui/components/file-preview`)
   để quản lý vòng đời object URL thay vì tự viết lại ở từng feature.
+- **Word/Excel/PPT**: xem qua `GET /api/media/{public_id}/preview` — media-service
+  convert sang PDF bằng **Gotenberg** (`GOTENBERG_URL`, pod nội bộ
+  `gotenberg.platform.svc.cluster.local:3000`), cache PDF dẫn xuất tại
+  `derived/{tenant_id}/{public_id}/v1.pdf` nên lần xem sau không convert lại.
+  FE gọi `getPrivateMediaPreviewUrl()` với trạng thái `pending` (spinner trong
+  dialog/drawer); convert lỗi hoặc file vượt `preview_max_size_mb` (mặc định
+  25MB) thì rơi về file card + nút tải. `.jrxml` được nhận diện là XML code.
 - Metadata thật (tên file, dung lượng, MIME) lấy theo lô bằng
   `getMediaMetadata(publicIds)` → `GET /api/media/files/metadata?public_ids=...`
   (tối đa 100 id/request, scope tenant+org). Nhờ đó list hiển thị đúng tên/dung

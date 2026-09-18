@@ -4,10 +4,12 @@ import { ApiClientError } from "@workspace/api"
 import {
   downloadMediaFile,
   fetchMediaBlob,
+  getPrivateMediaPreviewUrl,
   mediaErrorReason,
 } from "@workspace/media"
 import {
   detectFileCategory,
+  toPdfFileName,
   useBlobPreview,
 } from "@workspace/ui/components/file-preview"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -15,6 +17,7 @@ import type { TemplateFileTarget } from "../types"
 import {
   resolveTemplateDownloadUrl,
   templateFileName,
+  templatePublicId,
   toTemplateFilePath,
 } from "../urls"
 
@@ -33,6 +36,9 @@ const INLINE_PREVIEW_CATEGORIES = new Set([
   "csv",
   "text",
 ])
+
+/** Office documents convert to PDF server-side (Gotenberg) before rendering. */
+const OFFICE_PREVIEW_CATEGORIES = new Set(["word", "excel"])
 
 /** Above this size the dialog shows the file card + download instead of an
  * inline preview, keeping large documents out of browser memory. */
@@ -125,6 +131,25 @@ export function useTemplateFilePreview() {
         return
       }
       const category = detectFileCategory(filename, file.fileMeta?.content_type)
+      const publicId = templatePublicId(file.file_url)
+      // Word/Excel convert to PDF through Gotenberg first; a failed or slow
+      // conversion degrades to the file card with the download button.
+      if (OFFICE_PREVIEW_CATEGORIES.has(category) && publicId) {
+        try {
+          await openWithBlob(
+            () => fetchMediaBlob(getPrivateMediaPreviewUrl(publicId)),
+            {
+              ...base,
+              filename: toPdfFileName(filename),
+              mimeType: "application/pdf",
+            },
+            { pending: true }
+          )
+        } catch {
+          show(base)
+        }
+        return
+      }
       const tooLarge =
         (file.fileMeta?.size_bytes ?? 0) > MAX_INLINE_PREVIEW_BYTES
       if (!INLINE_PREVIEW_CATEGORIES.has(category) || tooLarge) {

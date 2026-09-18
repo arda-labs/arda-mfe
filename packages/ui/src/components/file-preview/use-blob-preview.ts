@@ -26,8 +26,15 @@ export function useBlobPreview() {
   }, [])
 
   const openWithBlob = React.useCallback(
-    async (load: () => Promise<Blob>, options: BlobPreviewOptions) => {
+    async (
+      load: () => Promise<Blob>,
+      options: BlobPreviewOptions,
+      config?: { pending?: boolean }
+    ) => {
       setLoading(true)
+      // Office previews convert server-side before the first byte arrives;
+      // showing the pending card keeps the dialog open with a spinner.
+      if (config?.pending) setSource({ ...options })
       try {
         const blob = await load()
         setSource({ ...options, src: URL.createObjectURL(blob) })
