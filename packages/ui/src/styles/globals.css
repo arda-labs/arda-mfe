@@ -411,3 +411,12 @@
 .pdf-text-layer ::selection {
   background: rgb(59 130 246 / 0.3);
 }
+
+/* PDF search highlights (CSS Custom Highlight API). */
+::highlight(arda-pdf-search) {
+  background-color: rgb(250 204 21 / 0.45);
+}
+
+::highlight(arda-pdf-search-active) {
+  background-color: rgb(249 115 22 / 0.7);
+}
