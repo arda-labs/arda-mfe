@@ -140,3 +140,22 @@ Không cần tải qua URL, có thể truyền trực tiếp nội dung string (
    - Trả về đúng MIME `Content-Type` tương ứng với định dạng tệp.
 2. **Bảo mật:**
    - Yêu cầu xác thực session qua cookie (`credentials: "include"`) để đảm bảo quyền truy cập tenant/organization.
+
+---
+
+## 5. Bẫy: URL tệp riêng tư phải resolve qua API origin
+
+Mọi `source.src` / nút xem / nút tải phải trỏ về `api.arda.io.vn` (dùng
+`apiUrl()` hoặc `getPrivateMediaContentUrl()`), **không** truyền thẳng giá trị
+`file_url` lưu trong DB:
+
+- Upload từ deployment không phải `arda.io.vn` (preview Worker, dev harness)
+  trả về đường dẫn tương đối `/api/media/<public_id>`. Mở nó trên web origin
+  (`arda.io.vn`) sẽ đi qua shell Worker, cookie BFF (host-only trên
+  `api.arda.io.vn`) không được gửi ⇒ `401 not_authenticated`.
+- Quy ước: **lưu path tương đối** (portable giữa các môi trường), resolve lúc
+  render bằng `apiUrl()`; chỉ thêm hậu tố `/download` khi cần
+  `Content-Disposition: attachment`.
+- Mẫu tham chiếu: `arda-mfe/apps/platform/src/features/templates/urls.ts`
+  (xem/tải mẫu biểu) và unit test
+  `arda-mfe/apps/platform/tests/template-urls.test.ts`.

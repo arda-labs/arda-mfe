@@ -516,6 +516,10 @@
       "view_file": "View template file",
       "download_file": "Download template file"
     },
+    "preview": {
+      "title": "Preview: {name}",
+      "missing_file": "This template has no attached file to preview or download"
+    },
     "upload": {
       "uploading": "Uploading to media-service... ({progress}%)",
       "drag_drop": "Drag and drop a file here or click to browse",

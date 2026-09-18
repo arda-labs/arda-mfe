@@ -11,7 +11,6 @@ import { fileURLToPath } from "node:url"
 const MAX_LINES = 400
 
 const LEGACY_BASELINE = new Map([
-  ["apps/platform/src/features/templates/page.tsx", "Q4-2026"],
   ["apps/iam/src/features/system-settings/page.tsx", "Q4-2026"],
   ["apps/account/src/features/profile/page.tsx", "Q4-2026"],
   ["apps/platform/src/features/organizations/page.tsx", "Q1-2027"],

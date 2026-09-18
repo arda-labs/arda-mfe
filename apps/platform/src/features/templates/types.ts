@@ -15,3 +15,9 @@ export interface FileTemplate {
   created_at?: string
   updated_at?: string
 }
+
+/** Fields needed to resolve, preview and download the attached file. */
+export type TemplateFileRef = Pick<
+  FileTemplate,
+  "code" | "name" | "file_type" | "file_url"
+>

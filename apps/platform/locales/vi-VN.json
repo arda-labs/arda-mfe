@@ -516,6 +516,10 @@
       "view_file": "Xem tệp tin mẫu",
       "download_file": "Tải xuống tệp tin mẫu"
     },
+    "preview": {
+      "title": "Xem tệp: {name}",
+      "missing_file": "Mẫu biểu chưa có tệp đính kèm để xem hoặc tải về"
+    },
     "upload": {
       "uploading": "Đang tải file lên media-service... ({progress}%)",
       "drag_drop": "Kéo thả file vào đây hoặc click để chọn file",
