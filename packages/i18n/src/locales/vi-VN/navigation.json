@@ -87,6 +87,7 @@
     "dashboard": "Bảng điều khiển quy trình"
   },
   "tenant": {
+    "current": "Workspace hiện tại",
     "switch": "Chuyển đơn vị / Workspace"
   },
   "profile": {

@@ -95,13 +95,9 @@ export function TemplateFormDialog({
     setDragActive(false)
     setUploadProgress(null)
     setSelectedFile(
-      template?.file_url
-        ? { name: templateFileName(template), size: 0 }
-        : null
+      template?.file_url ? { name: templateFileName(template), size: 0 } : null
     )
-    reset(
-      template ? toTemplateFormValues(template) : templateDefaultValues
-    )
+    reset(template ? toTemplateFormValues(template) : templateDefaultValues)
   }, [open, template, reset, t])
 
   const close = () => onOpenChange(false)
@@ -450,9 +446,7 @@ export function TemplateFormDialog({
               </div>
               <Textarea
                 id="template_mapping_config"
-                placeholder={t(
-                  "platform.templates.placeholder.mapping_config"
-                )}
+                placeholder={t("platform.templates.placeholder.mapping_config")}
                 className="h-[180px] font-mono text-xs"
                 spellCheck={false}
                 aria-invalid={Boolean(errors.mapping_config)}

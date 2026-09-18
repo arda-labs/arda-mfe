@@ -153,6 +153,11 @@ Mọi `source.src` / nút xem / nút tải phải trỏ về `api.arda.io.vn` (d
   trả về đường dẫn tương đối `/api/media/<public_id>`. Mở nó trên web origin
   (`arda.io.vn`) sẽ đi qua shell Worker, cookie BFF (host-only trên
   `api.arda.io.vn`) không được gửi ⇒ `401 not_authenticated`.
+- File private còn cần **org scope**: media-service từ chối request thiếu
+  `X-Org-Id` bằng `tenant.error.scope_required`. Browser navigation
+  (`window.open`, `<iframe src>`, `<img src>`) **không gắn được header này**, nên
+  xem/tải file private phải fetch qua API client rồi dùng blob URL —
+  `fetchMediaBlob()` + `downloadMediaFile()` trong `@workspace/media`.
 - Quy ước: **lưu path tương đối** (portable giữa các môi trường), resolve lúc
   render bằng `apiUrl()`; chỉ thêm hậu tố `/download` khi cần
   `Content-Disposition: attachment`.

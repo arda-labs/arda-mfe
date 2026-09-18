@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { ApiClientError, createApiClient, createCredentialedFetch } from "./client"
+import {
+  ApiClientError,
+  createApiClient,
+  createCredentialedFetch,
+} from "./client"
 
 const originalFetch = globalThis.fetch
 
@@ -135,7 +139,10 @@ describe("createApiClient GET lifecycle", () => {
     globalThis.fetch = async () =>
       new Response(
         JSON.stringify({
-          error: { code: "validation.invalid_input", message: "Invalid filter" },
+          error: {
+            code: "validation.invalid_input",
+            message: "Invalid filter",
+          },
         }),
         {
           status: 400,
@@ -166,7 +173,13 @@ describe("createApiClient GET lifecycle", () => {
           status: 422,
           code: "validation.invalid_input",
           message: "Invalid payload",
-          errors: [{ field: "email", code: "invalid_format", message: "Email is invalid" }],
+          errors: [
+            {
+              field: "email",
+              code: "invalid_format",
+              message: "Email is invalid",
+            },
+          ],
         }),
         {
           status: 422,
@@ -200,6 +213,32 @@ describe("createApiClient GET lifecycle", () => {
     expect(await client.post("/definition", {})).toBeUndefined()
   })
 
+  test("fetches binary media as a blob with organization scope", async () => {
+    let sentHeaders: Headers | undefined
+    let credentials: RequestCredentials | undefined
+    globalThis.fetch = async (_input, init) => {
+      sentHeaders = new Headers(init?.headers)
+      credentials = init?.credentials
+      return new Response(new Uint8Array([1, 2, 3]), {
+        headers: { "Content-Type": "application/pdf" },
+      })
+    }
+
+    const client = createApiClient({
+      baseURL: "https://api.example.test",
+      getActiveOrgId: () => "org-9",
+    })
+    const blob = await client.getBlob("/api/media/mf_1")
+
+    expect(blob).toBeInstanceOf(Blob)
+    expect(blob.type).toBe("application/pdf")
+    expect(new Uint8Array(await blob.arrayBuffer())).toEqual(
+      new Uint8Array([1, 2, 3])
+    )
+    expect(sentHeaders?.get("X-Org-Id")).toBe("org-9")
+    expect(credentials).toBe("include")
+  })
+
   test("preserves the logical request ID across recent-auth retry", async () => {
     const requestIds: string[] = []
     let calls = 0
@@ -215,7 +254,10 @@ describe("createApiClient GET lifecycle", () => {
             code: "recent_auth_required",
             message: "Recent authentication required",
           }),
-          { status: 403, headers: { "Content-Type": "application/problem+json" } }
+          {
+            status: 403,
+            headers: { "Content-Type": "application/problem+json" },
+          }
         )
       }
       return new Response(JSON.stringify({ ok: true }), {
@@ -227,7 +269,9 @@ describe("createApiClient GET lifecycle", () => {
       baseURL: "https://api.example.test",
       onRecentAuthRequired: async () => true,
     })
-    await expect(client.post("/admin/action", {})).resolves.toEqual({ ok: true })
+    await expect(client.post("/admin/action", {})).resolves.toEqual({
+      ok: true,
+    })
 
     expect(calls).toBe(2)
     expect(requestIds[0]).toBeTruthy()
@@ -258,7 +302,9 @@ describe("createApiClient GET lifecycle", () => {
         return true
       },
     })
-    const error = await client.post("/admin/action", {}).catch((reason) => reason)
+    const error = await client
+      .post("/admin/action", {})
+      .catch((reason) => reason)
 
     expect(error).toBeInstanceOf(ApiClientError)
     expect(calls).toBe(2)

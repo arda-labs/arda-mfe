@@ -41,9 +41,7 @@ export function buildTemplateColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className="font-mono text-xs font-bold">
-          {row.original.code}
-        </span>
+        <span className="font-mono text-xs font-bold">{row.original.code}</span>
       ),
     },
     {

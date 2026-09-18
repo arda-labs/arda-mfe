@@ -62,9 +62,7 @@ export function buildTemplateSchema(t: TranslateFn) {
     })
 }
 
-export type TemplateFormValues = z.infer<
-  ReturnType<typeof buildTemplateSchema>
->
+export type TemplateFormValues = z.infer<ReturnType<typeof buildTemplateSchema>>
 
 export const templateDefaultValues: TemplateFormValues = {
   code: "",

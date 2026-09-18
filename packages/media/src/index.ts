@@ -77,6 +77,43 @@ export async function deleteFile(publicId: string) {
   )
 }
 
+/**
+ * Fetch media bytes through the shared API client (session cookie + active
+ * `X-Org-Id`). Private media retrieval requires tenant *and* organization
+ * scope, and browser navigation (`window.open`/`<iframe>`) cannot attach the
+ * `X-Org-Id` header — previews and downloads must therefore use this
+ * credentialed fetch and a blob URL.
+ */
+export async function fetchMediaBlob(path: string): Promise<Blob> {
+  const apiPath = path.startsWith("/api/")
+    ? path
+    : `/api/media/${encodeURIComponent(path)}`
+  return api.getBlob(apiPath)
+}
+
+/**
+ * Download media through {@link fetchMediaBlob} and trigger a browser save.
+ * `path` must be an API media path (external documents are opened directly).
+ */
+export async function downloadMediaFile(
+  path: string,
+  filename: string
+): Promise<void> {
+  const blob = await fetchMediaBlob(path)
+  const url = URL.createObjectURL(blob)
+  try {
+    const link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    link.rel = "noopener"
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+  }
+}
+
 export async function uploadFile(
   file: File,
   module: string,

@@ -1,5 +1,12 @@
 import * as React from "react"
-import { Download, ExternalLink, Eye, Maximize2, Minimize2, X } from "lucide-react"
+import {
+  Download,
+  ExternalLink,
+  Eye,
+  Maximize2,
+  Minimize2,
+  X,
+} from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -23,7 +30,11 @@ export interface FilePreviewDialogProps {
   source: FilePreviewSource | null
 }
 
-export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDialogProps) {
+export function FilePreviewDialog({
+  open,
+  onOpenChange,
+  source,
+}: FilePreviewDialogProps) {
   const { t } = useI18n()
   const [fullscreen, setFullscreen] = React.useState(false)
 
@@ -48,29 +59,33 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        showCloseButton={false}
         className={cn(
-          "flex flex-col p-0 gap-0 overflow-hidden transition-all duration-200",
+          "flex flex-col gap-0 overflow-hidden p-0 transition-all duration-200",
           fullscreen
-            ? "fixed inset-2 max-w-none w-[calc(100vw-16px)] h-[calc(100vh-16px)] rounded-xl"
-            : "sm:max-w-4xl w-[92vw] h-[82vh] rounded-xl"
+            ? "fixed inset-2 h-[calc(100vh-16px)] w-[calc(100vw-16px)] max-w-none translate-x-0 translate-y-0 rounded-xl"
+            : "h-[82vh] w-[92vw] rounded-xl sm:max-w-4xl"
         )}
       >
         {/* Header */}
-        <DialogHeader className="flex flex-row items-center justify-between border-b px-4 py-2.5 bg-muted/30 shrink-0 space-y-0">
-          <div className="flex items-center gap-2.5 min-w-0 pr-4">
-            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+        <DialogHeader className="flex shrink-0 flex-row items-center justify-between space-y-0 border-b bg-muted/30 px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-2.5 pr-4">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Eye className="size-4" />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-sm font-semibold truncate leading-none">
+              <DialogTitle className="truncate text-sm leading-none font-semibold">
                 {source.title || source.filename}
               </DialogTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-[10px] uppercase font-mono px-1.5 py-0 h-4">
+              <div className="mt-1 flex items-center gap-2">
+                <Badge
+                  variant="secondary"
+                  className="h-4 px-1.5 py-0 font-mono text-[10px] uppercase"
+                >
                   {category}
                 </Badge>
                 {source.sizeBytes ? (
-                  <span className="text-[11px] text-muted-foreground font-mono">
+                  <span className="font-mono text-[11px] text-muted-foreground">
                     {formatFileSize(source.sizeBytes)}
                   </span>
                 ) : null}
@@ -78,7 +93,7 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
             </div>
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex shrink-0 items-center gap-1">
             {source.src ? (
               <Button
                 variant="ghost"
@@ -96,15 +111,21 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
               size="icon"
               className="size-7"
               onClick={() => setFullscreen(!fullscreen)}
-              title={fullscreen ? t("preview.minimize") : t("preview.fullscreen")}
+              title={
+                fullscreen ? t("preview.minimize") : t("preview.fullscreen")
+              }
             >
-              {fullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+              {fullscreen ? (
+                <Minimize2 className="size-3.5" />
+              ) : (
+                <Maximize2 className="size-3.5" />
+              )}
             </Button>
 
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-2.5 text-xs gap-1.5 font-medium ml-1"
+              className="ml-1 h-7 gap-1.5 px-2.5 text-xs font-medium"
               onClick={handleDownload}
             >
               <Download className="size-3.5" />
@@ -114,7 +135,7 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:text-foreground ml-1"
+              className="ml-1 size-7 text-muted-foreground hover:text-foreground"
               onClick={() => onOpenChange(false)}
               title={t("action.close")}
             >
@@ -124,7 +145,7 @@ export function FilePreviewDialog({ open, onOpenChange, source }: FilePreviewDia
         </DialogHeader>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-hidden p-3 bg-muted/10">
+        <div className="flex-1 overflow-hidden bg-muted/10 p-3">
           <FilePreviewContent source={source} className="h-full" />
         </div>
       </DialogContent>

@@ -4,6 +4,7 @@ import {
   type FilePreviewSource,
 } from "@workspace/ui/components/file-preview"
 import { useI18n } from "@workspace/i18n"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import {
@@ -19,7 +20,10 @@ import { templatesApi } from "./api"
 import { TemplateDeleteDialog } from "./components/template-delete-dialog"
 import { TemplateFormDialog } from "./components/template-form-dialog"
 import { buildTemplateColumns } from "./components/template-columns"
-import { useTemplateFilePreview } from "./components/use-template-preview"
+import {
+  describeTemplateFileError,
+  useTemplateFilePreview,
+} from "./components/use-template-preview"
 import type { FileTemplate, TemplateFileRef } from "./types"
 
 const DEFAULT_PAGE_SIZE = 10
@@ -31,14 +35,24 @@ export function TemplatesPage() {
     null
   )
   const [deleteTarget, setDeleteTarget] = useState<FileTemplate | null>(null)
-  const [previewSource, setPreviewSource] =
-    useState<FilePreviewSource | null>(null)
+  const [previewSource, setPreviewSource] = useState<FilePreviewSource | null>(
+    null
+  )
   const [templates, setTemplates] = useState<FileTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
 
   const { buildSource, download } = useTemplateFilePreview()
+
+  // Revoke the object URL whenever the preview source changes or unmounts.
+  useEffect(() => {
+    const blobUrl = previewSource?.src?.startsWith("blob:")
+      ? previewSource.src
+      : null
+    if (!blobUrl) return
+    return () => URL.revokeObjectURL(blobUrl)
+  }, [previewSource])
 
   const loadTemplates = useCallback(async (initial = false) => {
     if (initial) setLoading(true)
@@ -70,12 +84,22 @@ export function TemplatesPage() {
   }, [])
 
   const openPreview = useCallback(
-    (file: TemplateFileRef) => {
-      const source = buildSource(file)
-      if (source) setPreviewSource(source)
-      else download(file)
+    async (file: TemplateFileRef) => {
+      try {
+        const source = await buildSource(file)
+        if (!source) {
+          notify.error(t("platform.templates.preview.missing_file"))
+          return
+        }
+        setPreviewSource(source)
+      } catch (err) {
+        notify.error(
+          t("platform.templates.preview.view_failed"),
+          describeTemplateFileError(err, t)
+        )
+      }
     },
-    [buildSource, download]
+    [buildSource, t]
   )
 
   const columns = useMemo(

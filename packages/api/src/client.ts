@@ -138,7 +138,7 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     body?: unknown,
     didStepUp = false,
     requestOptions: ApiRequestOptions = {},
-    responseType: "json" | "text" = "json",
+    responseType: "json" | "text" | "blob" = "json",
     requestId = createRequestId()
   ): Promise<T> => {
     const headers: Record<string, string> = {
@@ -218,7 +218,9 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     }
 
     if (res.status === 204) return undefined as T
-    return (responseType === "text" ? res.text() : res.json()) as Promise<T>
+    if (responseType === "text") return res.text() as Promise<T>
+    if (responseType === "blob") return res.blob() as Promise<T>
+    return res.json() as Promise<T>
   }
 
   const get = <T = unknown>(
@@ -248,6 +250,13 @@ export function createApiClient(options: CreateApiClientOptions = {}) {
     get,
     getText: (path: string, requestOptions?: ApiRequestOptions) =>
       request<string>("GET", path, undefined, false, requestOptions, "text"),
+    /**
+     * Fetches binary content through the same credentialed client as JSON
+     * calls. Browser navigation (window.open/iframe) cannot attach the active
+     * `X-Org-Id`, so org-scoped private media must be fetched as a blob.
+     */
+    getBlob: (path: string, requestOptions?: ApiRequestOptions) =>
+      request<Blob>("GET", path, undefined, false, requestOptions, "blob"),
     post: <T = unknown>(
       path: string,
       body?: unknown,

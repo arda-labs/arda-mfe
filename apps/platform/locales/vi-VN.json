@@ -518,7 +518,12 @@
     },
     "preview": {
       "title": "Xem tệp: {name}",
-      "missing_file": "Mẫu biểu chưa có tệp đính kèm để xem hoặc tải về"
+      "missing_file": "Mẫu biểu chưa có tệp đính kèm để xem hoặc tải về",
+      "view_failed": "Không thể mở tệp mẫu biểu",
+      "download_success": "Đã tải tệp {name}",
+      "download_failed": "Không thể tải tệp mẫu biểu",
+      "org_required": "Vui lòng chọn tổ chức làm việc trước khi xem hoặc tải tệp",
+      "file_missing": "Tệp không còn tồn tại hoặc đã bị xóa — vui lòng tải lên lại tệp mẫu biểu"
     },
     "upload": {
       "uploading": "Đang tải file lên media-service... ({progress}%)",

@@ -87,6 +87,7 @@
     "dashboard": "Workflow Dashboard"
   },
   "tenant": {
+    "current": "Current workspace",
     "switch": "Switch Workspace / Tenant"
   },
   "profile": {

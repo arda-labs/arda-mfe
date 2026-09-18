@@ -50,6 +50,14 @@ export function AppHeader({
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light")
   const ThemeIcon = theme === "dark" ? Sun : Moon
 
+  const memberships = user?.tenantMemberships ?? []
+  const activeTenantId = user?.activeTenantId || user?.tenantId || ""
+  const activeMembership = memberships.find(
+    (membership) => membership.tenantId === activeTenantId
+  )
+  const tenantLabel =
+    activeMembership?.tenantName || activeMembership?.tenantCode || ""
+
   return (
     <header className="flex h-[52px] items-center justify-between gap-3 border-b border-[color:var(--layout-header-border)] bg-[var(--layout-header-background)] px-4">
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -71,51 +79,58 @@ export function AppHeader({
         />
       </div>
       <div className="flex items-center gap-2">
-        {user?.tenantMemberships && user.tenantMemberships.length > 1 ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="max-w-48 gap-2">
-                <Building2 className="size-3.5" />
-                <span className="truncate">
-                  {user.tenantMemberships.find(
-                    (membership) =>
-                      membership.tenantId ===
-                      (user.activeTenantId || user.tenantId)
-                  )?.tenantName || "Select tenant"}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>Workspace</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {user.tenantMemberships.map((membership) => (
-                <DropdownMenuItem
-                  key={membership.tenantId}
-                  disabled={switchingTenant}
-                  onClick={() => {
-                    if (
-                      membership.tenantId ===
-                      (user.activeTenantId || user.tenantId)
-                    ) {
-                      return
-                    }
-                    setSwitchingTenant(true)
-                    void switchTenant(membership.tenantId).finally(() =>
-                      setSwitchingTenant(false)
-                    )
-                  }}
+        {tenantLabel ? (
+          memberships.length > 1 ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="max-w-48 gap-2"
+                  title={t("navigation.tenant.switch")}
                 >
-                  <span className="min-w-0 flex-1 truncate">
-                    {membership.tenantName}
-                  </span>
-                  {membership.tenantId ===
-                  (user.activeTenantId || user.tenantId) ? (
-                    <Check className="size-4" />
-                  ) : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <Building2 className="size-3.5" />
+                  <span className="truncate">{tenantLabel}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>
+                  {t("navigation.tenant.switch")}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {memberships.map((membership) => (
+                  <DropdownMenuItem
+                    key={membership.tenantId}
+                    disabled={switchingTenant}
+                    onClick={() => {
+                      if (membership.tenantId === activeTenantId) {
+                        return
+                      }
+                      setSwitchingTenant(true)
+                      void switchTenant(membership.tenantId).finally(() =>
+                        setSwitchingTenant(false)
+                      )
+                    }}
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {membership.tenantName}
+                    </span>
+                    {membership.tenantId === activeTenantId ? (
+                      <Check className="size-4" />
+                    ) : null}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div
+              className="hidden h-8 max-w-48 items-center gap-2 rounded-md border border-input bg-transparent px-2.5 text-xs font-medium text-muted-foreground sm:flex"
+              title={t("navigation.tenant.current")}
+            >
+              <Building2 className="size-3.5 shrink-0" />
+              <span className="truncate">{tenantLabel}</span>
+            </div>
+          )
         ) : null}
         {onOpenCommandPalette ? (
           <Button
@@ -127,7 +142,7 @@ export function AppHeader({
           >
             <Search className="size-3.5" />
             <span className="hidden md:inline">Tìm kiếm...</span>
-            <kbd className="pointer-events-none hidden h-4.5 select-none items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+            <kbd className="pointer-events-none hidden h-4.5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 select-none sm:flex">
               <span className="text-xs">⌘</span>K
             </kbd>
           </Button>
@@ -171,8 +186,7 @@ export function AppHeader({
           email={user?.email || ""}
           picture={user?.picture || ""}
           username={
-            user?.username ||
-            (user?.email ? user.email.split("@")[0] : "me")
+            user?.username || (user?.email ? user.email.split("@")[0] : "me")
           }
           onLogout={logout}
           navigate={navigate}

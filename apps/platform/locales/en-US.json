@@ -518,7 +518,12 @@
     },
     "preview": {
       "title": "Preview: {name}",
-      "missing_file": "This template has no attached file to preview or download"
+      "missing_file": "This template has no attached file to preview or download",
+      "view_failed": "Could not open the template file",
+      "download_success": "Downloaded {name}",
+      "download_failed": "Could not download the template file",
+      "org_required": "Select a working organization before viewing or downloading files",
+      "file_missing": "The file no longer exists or was deleted — please upload it again"
     },
     "upload": {
       "uploading": "Uploading to media-service... ({progress}%)",

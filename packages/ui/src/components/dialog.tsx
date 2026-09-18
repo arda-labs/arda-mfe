@@ -29,8 +29,14 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    /**
+     * Hides the built-in corner close when the content renders its own header
+     * actions (e.g. the file preview dialog), avoiding stacked close buttons.
+     */
+    showCloseButton?: boolean
+  }
+>(({ className, children, showCloseButton = true, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -42,10 +48,12 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm text-foreground opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring/70 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-foreground">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
+      {showCloseButton ? (
+        <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm text-foreground opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring/70 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      ) : null}
     </DialogPrimitive.Content>
   </DialogPortal>
 ))
