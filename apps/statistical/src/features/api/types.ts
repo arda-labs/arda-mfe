@@ -35,6 +35,8 @@ export interface ReportSubmission {
   submitted_at?: string
   created_by: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 /** Rendered report result returned by the run endpoint. */

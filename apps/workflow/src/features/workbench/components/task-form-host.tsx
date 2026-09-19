@@ -31,6 +31,7 @@ const moduleLoaders: Record<TaskFormRemote, () => Promise<TaskFormModule>> = {
   deposit: () => import("deposit/taskForms"),
   capital: () => import("capital/taskForms"),
   loan: () => import("loan/taskForms"),
+  statistical: () => import("statistical/taskForms"),
 }
 
 const moduleCache = new Map<TaskFormRemote, Promise<TaskFormModule>>()

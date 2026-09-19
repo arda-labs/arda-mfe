@@ -1,4 +1,31 @@
 {
+  "task_form": {
+    "loading": "Loading the report submission...",
+    "field": {
+      "report_code": "Report code",
+      "period_code": "Period",
+      "status": "Status",
+      "submitted_by": "Submitted by",
+      "submitted_at": "Submitted at",
+      "payload": "Report payload"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "SUBMITTED": "Submitted",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
+  },
   "reports": {
     "title": "Run report",
     "description": "Run a report definition with period parameters and export XLSX.",

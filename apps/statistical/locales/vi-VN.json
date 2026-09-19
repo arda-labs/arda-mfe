@@ -1,4 +1,31 @@
 {
+  "task_form": {
+    "loading": "Đang tải hồ sơ báo cáo...",
+    "field": {
+      "report_code": "Mã báo cáo",
+      "period_code": "Kỳ báo cáo",
+      "status": "Trạng thái",
+      "submitted_by": "Người trình",
+      "submitted_at": "Thời điểm trình",
+      "payload": "Dữ liệu báo cáo"
+    },
+    "status": {
+      "DRAFT": "Nháp",
+      "SUBMITTED": "Đã trình",
+      "APPROVED": "Đã duyệt",
+      "REJECTED": "Từ chối"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
+  },
   "reports": {
     "title": "Chạy báo cáo",
     "description": "Chạy định nghĩa báo cáo với tham số kỳ và xuất Excel.",

@@ -210,6 +210,10 @@ export const statisticalApi = {
   },
   runCmms: (body: Partial<CmmsResult>) =>
     postCanonical<CmmsResult>("/api/statistical/cmms/run", body),
+  getSubmission: (id: string) =>
+    getCanonical<ReportSubmission>(
+      `/api/statistical/submissions/${encodeURIComponent(id)}`
+    ),
   submitSubmission: (id: string) =>
     postCanonical<ReportSubmission>(
       `/api/statistical/submissions/${encodeURIComponent(id)}/submit`,
