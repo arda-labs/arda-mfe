@@ -10,7 +10,9 @@ export type TenantListInput = {
   order?: "asc" | "desc" | string
 }
 
-export function buildTenantListQuery(params?: TenantListInput): URLSearchParams {
+export function buildTenantListQuery(
+  params?: TenantListInput
+): URLSearchParams {
   const order =
     params?.order?.toLowerCase() === "desc"
       ? "desc"
@@ -37,15 +39,20 @@ export const tenantsApi = {
       name: data.name,
       owner_user_id: data.ownerUserId,
     }),
+  // The endpoint returns a bare array; older builds emitted `result: null`
+  // for a tenant without active members — normalize so callers always get [].
   listTenantMembers: (tenantId: string) =>
-    getCanonical<TenantMember[]>(
+    getCanonical<TenantMember[] | null>(
       `/api/admin/tenants/${encodeURIComponent(tenantId)}/members`
-    ),
+    ).then((res) => (Array.isArray(res) ? res : [])),
   addTenantMember: (tenantId: string, userId: string, isDefault = false) =>
-    postCanonical(`/api/admin/tenants/${encodeURIComponent(tenantId)}/members`, {
-      user_id: userId,
-      is_default: isDefault,
-    }),
+    postCanonical(
+      `/api/admin/tenants/${encodeURIComponent(tenantId)}/members`,
+      {
+        user_id: userId,
+        is_default: isDefault,
+      }
+    ),
   removeTenantMember: (tenantId: string, userId: string) =>
     deleteCanonical(
       `/api/admin/tenants/${encodeURIComponent(tenantId)}/members/${encodeURIComponent(userId)}`
