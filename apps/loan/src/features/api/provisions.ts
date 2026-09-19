@@ -1,4 +1,4 @@
-import { getCanonicalList, postCanonical } from "@workspace/api"
+import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
 import { listQuery } from "./list-query"
 
 /** One period preview/row — mirrors loan-service GeneralProvisionPreview. */
@@ -18,6 +18,8 @@ export interface GeneralProvision {
   journal_entry_id?: string
   created_by?: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 /** LNM.306 specific provision row/preview (per-loan, W7). */
@@ -38,10 +40,16 @@ export interface SpecificProvision {
   journal_entry_id?: string
   created_by?: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 /** General provision (LNM.307.01). */
 export const generalProvisionApi = {
+  detail: (id: string) =>
+    getCanonical<GeneralProvision>(
+      `/api/loan/general-provisions/${encodeURIComponent(id)}`
+    ),
   calculate: (body: { org_code?: string; provision_date: string }) =>
     postCanonical<GeneralProvision>(
       "/api/loan/general-provisions/calculate",
@@ -56,6 +64,10 @@ export const generalProvisionApi = {
 }
 
 export const specificProvisionApi = {
+  detail: (id: string) =>
+    getCanonical<SpecificProvision>(
+      `/api/loan/specific-provisions/${encodeURIComponent(id)}`
+    ),
   calculate: (body: { agreement_code: string; provision_date: string }) =>
     postCanonical<SpecificProvision>(
       "/api/loan/specific-provisions/calculate",

@@ -1,4 +1,44 @@
 {
+  "task_form": {
+    "loading": "Loading the credit dossier...",
+    "field": {
+      "contract_code": "Contract code",
+      "agreement_code": "Agreement code",
+      "date": "Date",
+      "amount": "Amount",
+      "principal": "Principal",
+      "interest": "Interest",
+      "fund_source": "Fund source",
+      "flow_type": "Disbursement type",
+      "org": "Org unit",
+      "rate": "Rate",
+      "required": "Required provision",
+      "alloc": "Allocation",
+      "reverse": "Reversal",
+      "debt_group": "Debt group",
+      "outstanding": "Outstanding",
+      "deduction": "Collateral deduction",
+      "rows": "Contracts",
+      "total_principal": "Total principal",
+      "total_interest": "Total interest",
+      "payment_method": "Payment method",
+      "status": "Status"
+    },
+    "flow_type": {
+      "REGISTER": "Register",
+      "COMPLETE": "Complete"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
+  },
   "title": "Credit",
   "description": "Credit contracts, disbursements and adjustment flows (loan-service).",
   "contracts_title": "Credit contracts",

@@ -1,4 +1,4 @@
-import { getCanonicalList, postCanonical } from "@workspace/api"
+import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 
 export interface LoanCollection {
@@ -16,9 +16,15 @@ export interface LoanCollection {
   journal_entry_id?: string
   created_by: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 export const collectionApi = {
+  detail: (id: string) =>
+    getCanonical<LoanCollection>(
+      `/api/loan/collections/${encodeURIComponent(id)}`
+    ),
   list: (
     params: {
       status?: string

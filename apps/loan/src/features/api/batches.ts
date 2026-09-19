@@ -91,6 +91,8 @@ export interface LoanDisbursementBatch {
   workflow_case_code?: string
   created_by?: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
   /** Chỉ có trên detail (GET /{id}). */
   rows?: LoanDisbursementBatchRow[]
 }
@@ -109,6 +111,8 @@ export interface LoanCollectionBatch {
   txn_date: string
   description?: string
   total_amt_minor?: number
+  total_principal_minor?: number
+  total_interest_minor?: number
   currency_code?: string
   status: string
   case_id?: string
@@ -116,6 +120,8 @@ export interface LoanCollectionBatch {
   workflow_case_code?: string
   created_by?: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
   rows?: LoanCollectionBatchRow[]
 }
 

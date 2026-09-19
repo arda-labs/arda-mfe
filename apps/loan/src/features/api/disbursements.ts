@@ -1,4 +1,4 @@
-import { getCanonicalList, postCanonical } from "@workspace/api"
+import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 
 /**
@@ -25,9 +25,15 @@ export interface LoanDisbursement {
   flow_type?: LoanDisbursementFlowType
   /** Chỉ có trên row COMPLETE: id phiếu REGISTER gốc (POSTED, cùng agreement). */
   source_register_id?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 export const disbursementApi = {
+  detail: (id: string) =>
+    getCanonical<LoanDisbursement>(
+      `/api/loan/disbursements/${encodeURIComponent(id)}`
+    ),
   list: (
     params: {
       status?: string

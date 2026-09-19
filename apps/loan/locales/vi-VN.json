@@ -1,4 +1,44 @@
 {
+  "task_form": {
+    "loading": "Đang tải hồ sơ tín dụng...",
+    "field": {
+      "contract_code": "Mã hợp đồng",
+      "agreement_code": "Mã khế ước",
+      "date": "Ngày",
+      "amount": "Số tiền",
+      "principal": "Gốc",
+      "interest": "Lãi",
+      "fund_source": "Nguồn vốn",
+      "flow_type": "Loại giải ngân",
+      "org": "Đơn vị",
+      "rate": "Tỷ lệ",
+      "required": "Dự phòng phải trích",
+      "alloc": "Trích lập",
+      "reverse": "Hoàn nhập",
+      "debt_group": "Nhóm nợ",
+      "outstanding": "Dư nợ",
+      "deduction": "Giảm trừ TSBĐ",
+      "rows": "Số hợp đồng",
+      "total_principal": "Tổng gốc",
+      "total_interest": "Tổng lãi",
+      "payment_method": "Phương thức",
+      "status": "Trạng thái"
+    },
+    "flow_type": {
+      "REGISTER": "Đăng ký",
+      "COMPLETE": "Hoàn tất"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
+  },
   "title": "Tín dụng",
   "description": "Hợp đồng tín dụng, giải ngân và các flow điều chỉnh (loan-service).",
   "contracts_title": "Hợp đồng tín dụng",

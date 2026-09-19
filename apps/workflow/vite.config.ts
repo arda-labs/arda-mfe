@@ -27,6 +27,7 @@ export default defineConfig(({ command }) => ({
       remotes: {
         deposit: federationRemote("deposit", "DEPOSIT_REMOTE_ENTRY", command === "serve"),
         capital: federationRemote("capital", "CAPITAL_REMOTE_ENTRY", command === "serve"),
+        loan: federationRemote("loan", "LOAN_REMOTE_ENTRY", command === "serve"),
       },
       shared: { ...remoteSharedDeps },
     }),

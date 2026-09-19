@@ -22,6 +22,14 @@ export const CASE_TYPE_FORM_REMOTE = {
   CFC_CONTRACT_V1: "capital",
   CFC_AMENDMENT_V1: "capital",
   CFC_MOVEMENT_V1: "capital",
+  LNM_DISB_REGISTER_V2: "loan",
+  LNM_DISB_COMPLETE_V2: "loan",
+  LNM_DISB_BATCH_REGISTER_V2: "loan",
+  LNM_DISB_BATCH_COMPLETE_V2: "loan",
+  LNM_COLLECTION_V2: "loan",
+  LNM_COLLECTION_BATCH_V2: "loan",
+  LNM_GENERAL_PROVISION_V2: "loan",
+  LNM_SPECIFIC_PROVISION_V1: "loan",
 } as const
 
 export type TaskFormRemote =
