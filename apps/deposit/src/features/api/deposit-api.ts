@@ -184,6 +184,10 @@ export const depositApi = {
     ),
   getRateRequest: (id: string) =>
     getCanonical<RateRequest>(`/api/deposit/rates/${encodeURIComponent(id)}`),
+  getInterestOpsByCase: (caseId: string) =>
+    getCanonicalList<InterestOp>(
+      `/api/deposit/interest-ops?case_id=${encodeURIComponent(caseId)}`
+    ).then((res) => res.items),
   getSavings: (code: string) =>
     getCanonical<SavingsDetail>(
       `/api/deposit/savings/${encodeURIComponent(code)}`

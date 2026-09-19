@@ -3,6 +3,7 @@ import type { TaskFormProps, TaskFormRegistry } from "@workspace/workflow-task"
 import { DpmSavingsTaskForm } from "@/features/savings/task-forms/dpm-savings-task-form"
 import { DpmProductRequestTaskForm } from "@/features/products/task-forms/dpm-product-request-task-form"
 import { DpmRateRequestTaskForm } from "@/features/rates/task-forms/dpm-rate-request-task-form"
+import { DpmBatchInterestTaskForm } from "@/features/batch-interest/task-forms/dpm-batch-interest-task-form"
 
 /**
  * Module Federation `./taskForms` entry for the deposit remote.
@@ -46,6 +47,8 @@ export const taskForms: TaskFormRegistry = {
   "dpm_rate_register_v1.checker_review": DpmRateRequestTaskForm,
   "dpm_rate_edit_v1.maker_input": DpmRateRequestTaskForm,
   "dpm_rate_edit_v1.checker_review": DpmRateRequestTaskForm,
+  "dpm_batch_interest_v1.maker_input": DpmBatchInterestTaskForm,
+  "dpm_batch_interest_v1.checker_review": DpmBatchInterestTaskForm,
 }
 
 export default taskForms

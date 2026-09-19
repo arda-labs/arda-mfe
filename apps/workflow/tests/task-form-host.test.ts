@@ -15,12 +15,13 @@ describe("taskFormRemoteFor", () => {
     expect(taskFormRemoteFor("DPM_PRODUCT_EDIT_V1")).toBe("deposit")
     expect(taskFormRemoteFor("DPM_RATE_REGISTER_V1")).toBe("deposit")
     expect(taskFormRemoteFor("DPM_RATE_EDIT_V1")).toBe("deposit")
+    expect(taskFormRemoteFor("DPM_BATCH_INTEREST_V1")).toBe("deposit")
   })
 
   test("case types without a registered form keep the transition path", () => {
     expect(taskFormRemoteFor("FIN_SINGLE_ENTRY_V2")).toBeUndefined()
     expect(taskFormRemoteFor("CUSTOMER_REGISTRATION")).toBeUndefined()
-    expect(taskFormRemoteFor("DPM_BATCH_INTEREST_V1")).toBeUndefined()
+    expect(taskFormRemoteFor("IBM_PLACE_V1")).toBeUndefined()
     expect(taskFormRemoteFor(undefined)).toBeUndefined()
   })
 })

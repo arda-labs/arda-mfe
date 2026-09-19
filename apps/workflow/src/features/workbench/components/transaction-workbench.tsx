@@ -58,7 +58,6 @@ const GENERIC_DECISION_CASE_TYPES = new Set([
   "IBM_INTEREST_V1",
   "IBM_EXPECTED_V1",
   "IBM_WITHDRAW_V1",
-  "DPM_BATCH_INTEREST_V1",
 ])
 
 const directionMeta = {

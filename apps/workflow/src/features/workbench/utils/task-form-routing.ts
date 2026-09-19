@@ -13,6 +13,7 @@ export const CASE_TYPE_FORM_REMOTE = {
   DPM_PRODUCT_EDIT_V1: "deposit",
   DPM_RATE_REGISTER_V1: "deposit",
   DPM_RATE_EDIT_V1: "deposit",
+  DPM_BATCH_INTEREST_V1: "deposit",
 } as const
 
 export type TaskFormRemote =

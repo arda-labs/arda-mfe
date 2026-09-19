@@ -298,6 +298,33 @@
     "comment_required": "Vui lòng nhập ý kiến xử lý",
     "view_only": "Chỉ xem — không thao tác được."
   },
+  "batch_task_form": {
+    "loading": "Đang tải danh sách lãi hàng loạt...",
+    "field": {
+      "count": "Số sổ",
+      "total": "Tổng tiền lãi"
+    },
+    "col": {
+      "savings_code": "Mã sổ",
+      "op_type": "Nghiệp vụ",
+      "amount": "Số tiền"
+    },
+    "op": {
+      "pay": "Trả lãi",
+      "capitalize": "Nhập lãi vào gốc",
+      "batch": "Hàng loạt"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
+  },
   "reports": {
     "title": "Báo cáo tiền gửi",
     "description": "Sổ tiền gửi, giao dịch tiền gửi và liên ngân hàng (xuất CSV từ màn hình).",

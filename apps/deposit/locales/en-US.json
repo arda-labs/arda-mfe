@@ -298,6 +298,33 @@
     "comment_required": "Please enter a processing comment",
     "view_only": "View only — actions are disabled."
   },
+  "batch_task_form": {
+    "loading": "Loading the batch interest list...",
+    "field": {
+      "count": "Accounts",
+      "total": "Total interest"
+    },
+    "col": {
+      "savings_code": "Savings code",
+      "op_type": "Operation",
+      "amount": "Amount"
+    },
+    "op": {
+      "pay": "Pay interest",
+      "capitalize": "Capitalize interest",
+      "batch": "Batch"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
+  },
   "reports": {
     "title": "Deposit reports",
     "description": "Savings, deposit transactions and interbank reports (CSV export on screen).",
