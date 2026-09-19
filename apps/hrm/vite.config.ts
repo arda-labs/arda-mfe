@@ -20,7 +20,11 @@ export default defineConfig(({ command }) => ({
       filename: "remoteEntry.js",
       dts: false,
       shareStrategy: "loaded-first",
-      exposes: { "./Routes": "./src/Routes.tsx" },
+      exposes: {
+        "./Routes": "./src/Routes.tsx",
+        // Form host (P1.6): the workbench resolves task forms by formKey.
+        "./taskForms": "./src/taskForms.tsx",
+      },
       shared: { ...remoteSharedDeps },
     }),
   ],

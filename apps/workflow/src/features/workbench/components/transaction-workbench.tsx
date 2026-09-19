@@ -38,7 +38,6 @@ const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 // Case types served by the form host (CASE_TYPE_FORM_REMOTE in
 // task-form-host.tsx) are NOT listed here — they render their domain form.
 const GENERIC_DECISION_CASE_TYPES = new Set([
-  "HRM_EMPLOYEE_REGISTRATION",
   "FIN_FUND_APPROP_V2",
   "FIN_FUND_USE_V2",
 ])

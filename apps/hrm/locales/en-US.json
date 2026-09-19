@@ -1,4 +1,28 @@
 {
+  "task_form": {
+    "loading": "Loading the employee registration...",
+    "field": {
+      "registration_code": "Registration code",
+      "status": "Status",
+      "payload": "Registration payload"
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
+  },
   "set_status": "Set status",
   "settings": "Account settings",
   "help_support": "Help & Support",

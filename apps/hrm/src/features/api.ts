@@ -1,5 +1,6 @@
 import {
   deleteCanonical,
+  getCanonical,
   getCanonicalList,
   postCanonical,
   putCanonical,
@@ -78,6 +79,8 @@ export interface EmployeeRegistration {
   workflow_case_id?: string
   status: "draft" | "submitted" | "approved" | "rejected"
   created_by?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 function withParams(path: string, params: SearchParams = {}) {
@@ -203,6 +206,10 @@ export const hrmApi = {
         withParams("/api/hrm/registrations", { status, all: "1" })
       )
     ).items.map(normalizeStatus),
+  getEmployeeRegistration: (id: string) =>
+    getCanonical<EmployeeRegistration>(
+      `/api/hrm/employee-registrations/${encodeURIComponent(id)}`
+    ).then(normalizeStatus),
   createRegistration: (payload: Partial<EmployeeRegistration>) =>
     postCanonical<EmployeeRegistration>(
       "/api/hrm/registrations",

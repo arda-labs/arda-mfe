@@ -1,4 +1,28 @@
 {
+  "task_form": {
+    "loading": "Đang tải hồ sơ nhân sự...",
+    "field": {
+      "registration_code": "Mã hồ sơ",
+      "status": "Trạng thái",
+      "payload": "Nội dung hồ sơ"
+    },
+    "status": {
+      "draft": "Nháp",
+      "submitted": "Đã trình",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
+  },
   "set_status": "Đặt trạng thái",
   "settings": "Cài đặt tài khoản",
   "help_support": "Trợ giúp & Hỗ trợ",
