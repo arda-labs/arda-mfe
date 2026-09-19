@@ -76,6 +76,8 @@ export interface InterbankDeposit {
   journal_entry_id?: string
   created_by: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 /** IBM product catalog row (sản phẩm tiền gửi liên ngân hàng). */
