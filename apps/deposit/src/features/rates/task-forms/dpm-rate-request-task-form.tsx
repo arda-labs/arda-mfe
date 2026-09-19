@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react"
-import { Check, MessageSquareWarning, X } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { formatDateShort, formatRatePercent } from "@workspace/format"
-import { Button } from "@workspace/ui/components/button"
-import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
 import {
-  allowedActions,
-  isMakerStep,
-  requiresComment,
-  TASK_ACTIONS,
+  TaskDecisionBar,
+  useTaskDecision,
+  type TaskDecisionLabels,
   type TaskFormProps,
-  type WorkflowTaskAction,
 } from "@workspace/workflow-task"
 import { depositApi, type RateRequest } from "../../api"
 
@@ -29,17 +23,8 @@ export function DpmRateRequestTaskForm({
   onReturn,
 }: TaskFormProps) {
   const { t } = useI18n()
-  const [comment, setComment] = useState("")
-  const [error, setError] = useState("")
 
-  const maker = isMakerStep(task)
   const readOnly = mode === "view"
-  const serverActions = allowedActions(task)
-  const actions: WorkflowTaskAction[] = serverActions.length
-    ? serverActions
-    : maker
-      ? [TASK_ACTIONS.submit]
-      : [TASK_ACTIONS.approve, TASK_ACTIONS.requestChanges, TASK_ACTIONS.reject]
 
   const requestId =
     typeof data?.requestId === "string" && data.requestId.trim()
@@ -65,88 +50,31 @@ export function DpmRateRequestTaskForm({
     }
   }, [requestId])
 
-  function submit(action: WorkflowTaskAction) {
-    const trimmed = comment.trim()
-    if (requiresComment(task, action) && !trimmed) {
-      setError(t("deposit.rate_task_form.comment_required"))
-      return
-    }
-    setError("")
-    const dataVersion =
-      request?.data_version != null ? String(request.data_version) : undefined
-    void onSubmit({
-      action,
-      comment: trimmed,
-      variables: dataVersion ? { dataVersion } : undefined,
-    })
-  }
+  const decision = useTaskDecision({
+    task,
+    commentRequiredLabel: t("deposit.rate_task_form.comment_required"),
+    onSubmit: (action, comment) =>
+      onSubmit({
+        action,
+        comment,
+        variables:
+          request?.data_version != null
+            ? { dataVersion: String(request.data_version) }
+            : undefined,
+      }),
+  })
 
-  function actionButton(action: WorkflowTaskAction) {
-    const disabled = submitting || readOnly
-    switch (action) {
-      case TASK_ACTIONS.submit:
-        return (
-          <Button
-            key={action}
-            type="button"
-            disabled={disabled}
-            onClick={() => submit(action)}
-          >
-            <Check className="size-4" />
-            {t("deposit.rate_task_form.action.confirm")}
-          </Button>
-        )
-      case TASK_ACTIONS.approve:
-        return (
-          <Button
-            key={action}
-            type="button"
-            disabled={disabled}
-            onClick={() => submit(action)}
-          >
-            <Check className="size-4" />
-            {t("deposit.rate_task_form.action.approve")}
-          </Button>
-        )
-      case TASK_ACTIONS.requestChanges:
-        return (
-          <Button
-            key={action}
-            type="button"
-            variant="outline"
-            disabled={disabled}
-            onClick={() => submit(action)}
-          >
-            <MessageSquareWarning className="size-4" />
-            {t("deposit.rate_task_form.action.request_changes")}
-          </Button>
-        )
-      case TASK_ACTIONS.reject:
-        return (
-          <Button
-            key={action}
-            type="button"
-            variant="destructive"
-            disabled={disabled}
-            onClick={() => submit(action)}
-          >
-            <X className="size-4" />
-            {t("deposit.rate_task_form.action.reject")}
-          </Button>
-        )
-      default:
-        return null
-    }
+  const labels: TaskDecisionLabels = {
+    commentLabel: t("deposit.rate_task_form.comment_label"),
+    commentPlaceholder: t("deposit.rate_task_form.comment_placeholder"),
+    close: t("common.action.close"),
+    confirm: t("deposit.rate_task_form.action.confirm"),
+    approve: t("deposit.rate_task_form.action.approve"),
+    requestChanges: t("deposit.rate_task_form.action.request_changes"),
+    reject: t("deposit.rate_task_form.action.reject"),
+    viewOnly: t("deposit.rate_task_form.view_only"),
+    commentRequired: t("deposit.rate_task_form.comment_required"),
   }
-
-  const orderedActions = [
-    ...actions.filter((action) => action === TASK_ACTIONS.requestChanges),
-    ...actions.filter((action) => action === TASK_ACTIONS.reject),
-    ...actions.filter(
-      (action) =>
-        action !== TASK_ACTIONS.requestChanges && action !== TASK_ACTIONS.reject
-    ),
-  ]
 
   const payload = request?.payload
   const rows: Array<{ label: string; value: string }> = request
@@ -202,43 +130,18 @@ export function DpmRateRequestTaskForm({
         </p>
       )}
 
-      {!maker && !readOnly ? (
-        <div className="space-y-1.5">
-          <Label htmlFor="dpm-rate-request-comment">
-            {t("deposit.rate_task_form.comment_label")}
-          </Label>
-          <Textarea
-            id="dpm-rate-request-comment"
-            rows={3}
-            value={comment}
-            disabled={submitting}
-            placeholder={t("deposit.rate_task_form.comment_placeholder")}
-            onChange={(event) => {
-              setComment(event.target.value)
-              setError("")
-            }}
-          />
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        </div>
-      ) : null}
-
-      {readOnly ? (
-        <p className="text-sm text-muted-foreground">
-          {t("deposit.rate_task_form.view_only")}
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={submitting}
-          onClick={onReturn}
-        >
-          {t("common.action.close")}
-        </Button>
-        {readOnly ? null : orderedActions.map(actionButton)}
-      </div>
+      <TaskDecisionBar
+        actions={decision.actions}
+        labels={labels}
+        readOnly={readOnly}
+        submitting={submitting}
+        showComment={!decision.maker}
+        comment={decision.comment}
+        onCommentChange={decision.setComment}
+        commentError={decision.error}
+        onSubmit={decision.submit}
+        onReturn={onReturn}
+      />
     </div>
   )
 }
