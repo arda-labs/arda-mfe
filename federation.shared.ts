@@ -124,5 +124,5 @@ export const sharedWorkspaceExemptions = {
   "@workspace/case-tabs":
     "presentational-only; no cross-tree state (media + case timeline fetched per screen)",
   "@workspace/workflow-task":
-    "stateless transport + action helpers for the task runtime; per-screen fetches, no cross-tree state",
+    "transport + action helpers and a presentational decision bar (labels via props, state via callbacks); no cross-tree state",
 } as const

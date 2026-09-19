@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@workspace/api": "workspace:*",
+    "@workspace/ui": "workspace:*",
+    "lucide-react": "^1.22.0",
     "react": "^19.2.6"
   },
   "devDependencies": {
@@ -21,6 +23,7 @@
     "./types": "./src/types.ts",
     "./transport": "./src/transport.ts",
     "./actions": "./src/actions.ts",
-    "./task-forms": "./src/task-forms.ts"
+    "./task-forms": "./src/task-forms.ts",
+    "./decision-bar": "./src/decision-bar.tsx"
   }
 }

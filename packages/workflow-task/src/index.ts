@@ -5,6 +5,12 @@ export {
   requiresComment,
   TASK_ACTIONS,
 } from "./actions"
+export {
+  TaskDecisionBar,
+  taskDecisionActions,
+  useTaskDecision,
+} from "./decision-bar"
+export type { TaskDecisionLabels } from "./decision-bar"
 export { registryFromModule, resolveTaskForm } from "./task-forms"
 export {
   claimWithRetry,

@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react"
-import { Check, MessageSquareWarning, X } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
-import { Button } from "@workspace/ui/components/button"
 import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
 import {
-  allowedActions,
-  isMakerStep,
-  requiresComment,
-  TASK_ACTIONS,
+  TaskDecisionBar,
+  useTaskDecision,
+  type TaskDecisionLabels,
   type TaskFormProps,
-  type WorkflowTaskAction,
 } from "@workspace/workflow-task"
 import { hrmApi, type EmployeeRegistration } from "../api"
 
@@ -57,19 +52,9 @@ export function EmployeeRegistrationTaskForm({
   onReturn,
 }: TaskFormProps) {
   const { t } = useI18n()
-  const [comment, setComment] = useState("")
-  const [error, setError] = useState("")
   const [detail, setDetail] = useState<EmployeeRegistration | null>(null)
 
-  const maker = isMakerStep(task)
   const readOnly = mode === "view"
-  const serverActions = allowedActions(task)
-  const actions: WorkflowTaskAction[] = serverActions.length
-    ? serverActions
-    : maker
-      ? [TASK_ACTIONS.submit]
-      : [TASK_ACTIONS.approve, TASK_ACTIONS.requestChanges, TASK_ACTIONS.reject]
-
   const registrationId =
     pick(data, ["employeeRegistrationId", "employee_registration_id"]) ??
     task.primaryObjectId ??
@@ -91,6 +76,32 @@ export function EmployeeRegistrationTaskForm({
     }
   }, [registrationId])
 
+  const decision = useTaskDecision({
+    task,
+    commentRequiredLabel: t("hrm.task_form.comment_required"),
+    onSubmit: (action, comment) =>
+      onSubmit({
+        action,
+        comment,
+        variables:
+          detail?.data_version != null
+            ? { dataVersion: String(detail.data_version) }
+            : undefined,
+      }),
+  })
+
+  const labels: TaskDecisionLabels = {
+    commentLabel: t("hrm.task_form.comment_label"),
+    commentPlaceholder: t("hrm.task_form.comment_placeholder"),
+    close: t("common.action.close"),
+    confirm: t("hrm.task_form.action.confirm"),
+    approve: t("hrm.task_form.action.approve"),
+    requestChanges: t("hrm.task_form.action.request_changes"),
+    reject: t("hrm.task_form.action.reject"),
+    viewOnly: t("hrm.task_form.view_only"),
+    commentRequired: t("hrm.task_form.comment_required"),
+  }
+
   const statusLabel = (status?: string) =>
     status ? t(`hrm.task_form.status.${status.toLowerCase()}`) : "—"
 
@@ -109,83 +120,6 @@ export function EmployeeRegistrationTaskForm({
   }
 
   const payload = detail ? payloadPreview(detail.payload) : ""
-
-  function submit(action: WorkflowTaskAction) {
-    const trimmed = comment.trim()
-    if (requiresComment(task, action) && !trimmed) {
-      setError(t("hrm.task_form.comment_required"))
-      return
-    }
-    setError("")
-    void onSubmit({
-      action,
-      comment: trimmed,
-      variables:
-        detail?.data_version != null
-          ? { dataVersion: String(detail.data_version) }
-          : undefined,
-    })
-  }
-
-  function actionButton(action: WorkflowTaskAction) {
-    const disabled = submitting || readOnly
-    switch (action) {
-      case TASK_ACTIONS.submit:
-      case TASK_ACTIONS.approve:
-        return (
-          <Button
-            key={action}
-            type="button"
-            disabled={disabled}
-            onClick={() => submit(action)}
-          >
-            <Check className="size-4" />
-            {t(
-              action === TASK_ACTIONS.submit
-                ? "hrm.task_form.action.confirm"
-                : "hrm.task_form.action.approve"
-            )}
-          </Button>
-        )
-      case TASK_ACTIONS.requestChanges:
-        return (
-          <Button
-            key={action}
-            type="button"
-            variant="outline"
-            disabled={disabled}
-            onClick={() => submit(action)}
-          >
-            <MessageSquareWarning className="size-4" />
-            {t("hrm.task_form.action.request_changes")}
-          </Button>
-        )
-      case TASK_ACTIONS.reject:
-        return (
-          <Button
-            key={action}
-            type="button"
-            variant="destructive"
-            disabled={disabled}
-            onClick={() => submit(action)}
-          >
-            <X className="size-4" />
-            {t("hrm.task_form.action.reject")}
-          </Button>
-        )
-      default:
-        return null
-    }
-  }
-
-  const orderedActions = [
-    ...actions.filter((action) => action === TASK_ACTIONS.requestChanges),
-    ...actions.filter((action) => action === TASK_ACTIONS.reject),
-    ...actions.filter(
-      (action) =>
-        action !== TASK_ACTIONS.requestChanges && action !== TASK_ACTIONS.reject
-    ),
-  ]
 
   return (
     <div className="space-y-4">
@@ -213,43 +147,18 @@ export function EmployeeRegistrationTaskForm({
         </div>
       ) : null}
 
-      {!maker && !readOnly ? (
-        <div className="space-y-1.5">
-          <Label htmlFor="hrm-task-comment">
-            {t("hrm.task_form.comment_label")}
-          </Label>
-          <Textarea
-            id="hrm-task-comment"
-            rows={3}
-            value={comment}
-            disabled={submitting}
-            placeholder={t("hrm.task_form.comment_placeholder")}
-            onChange={(event) => {
-              setComment(event.target.value)
-              setError("")
-            }}
-          />
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        </div>
-      ) : null}
-
-      {readOnly ? (
-        <p className="text-sm text-muted-foreground">
-          {t("hrm.task_form.view_only")}
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={submitting}
-          onClick={onReturn}
-        >
-          {t("common.action.close")}
-        </Button>
-        {readOnly ? null : orderedActions.map(actionButton)}
-      </div>
+      <TaskDecisionBar
+        actions={decision.actions}
+        labels={labels}
+        readOnly={readOnly}
+        submitting={submitting}
+        showComment={!decision.maker}
+        comment={decision.comment}
+        onCommentChange={decision.setComment}
+        commentError={decision.error}
+        onSubmit={decision.submit}
+        onReturn={onReturn}
+      />
     </div>
   )
 }
