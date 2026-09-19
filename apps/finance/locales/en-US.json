@@ -1,4 +1,39 @@
 {
+  "fund_task_form": {
+    "loading": "Loading the fund posting...",
+    "field": {
+      "entry_no": "Entry no",
+      "description": "Description",
+      "accounting_date": "Accounting date",
+      "total": "Total",
+      "status": "Status"
+    },
+    "col": {
+      "account": "Account",
+      "direction": "Dr/Cr",
+      "amount": "Amount"
+    },
+    "direction": {
+      "DEBIT": "Debit",
+      "CREDIT": "Credit"
+    },
+    "status": {
+      "pending": "Pending",
+      "posted": "Posted",
+      "reversed": "Reversed",
+      "void": "Void"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
+  },
   "title": "Finance",
   "accounts": {
     "title": "Chart of accounts",

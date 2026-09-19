@@ -34,12 +34,13 @@ describe("taskFormRemoteFor", () => {
     expect(taskFormRemoteFor("LNM_SPECIFIC_PROVISION_V1")).toBe("loan")
     expect(taskFormRemoteFor("RPT_SUBMIT_V2")).toBe("statistical")
     expect(taskFormRemoteFor("HRM_EMPLOYEE_REGISTRATION")).toBe("hrm")
+    expect(taskFormRemoteFor("FIN_FUND_APPROP_V2")).toBe("finance")
+    expect(taskFormRemoteFor("FIN_FUND_USE_V2")).toBe("finance")
   })
 
   test("case types without a registered form keep the transition path", () => {
     expect(taskFormRemoteFor("FIN_SINGLE_ENTRY_V2")).toBeUndefined()
     expect(taskFormRemoteFor("CUSTOMER_REGISTRATION")).toBeUndefined()
-    expect(taskFormRemoteFor("FIN_FUND_APPROP_V2")).toBeUndefined()
     expect(taskFormRemoteFor(undefined)).toBeUndefined()
   })
 })

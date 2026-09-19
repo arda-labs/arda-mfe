@@ -45,3 +45,12 @@ declare module "hrm/taskForms" {
   export const locales: { preload: (locale?: string) => Promise<void> }
   export default registry
 }
+
+declare module "finance/taskForms" {
+  import type { TaskFormRegistry } from "@workspace/workflow-task"
+
+  const registry: TaskFormRegistry
+  export const taskForms: TaskFormRegistry
+  export const locales: { preload: (locale?: string) => Promise<void> }
+  export default registry
+}

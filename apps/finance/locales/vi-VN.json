@@ -1,4 +1,39 @@
 {
+  "fund_task_form": {
+    "loading": "Đang tải bút toán quỹ...",
+    "field": {
+      "entry_no": "Số bút toán",
+      "description": "Diễn giải",
+      "accounting_date": "Ngày hạch toán",
+      "total": "Tổng tiền",
+      "status": "Trạng thái"
+    },
+    "col": {
+      "account": "Tài khoản",
+      "direction": "Nợ/Có",
+      "amount": "Số tiền"
+    },
+    "direction": {
+      "DEBIT": "Nợ",
+      "CREDIT": "Có"
+    },
+    "status": {
+      "pending": "Chờ duyệt",
+      "posted": "Đã hạch toán",
+      "reversed": "Đã đảo",
+      "void": "Đã hủy"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
+  },
   "title": "Tài chính",
   "accounts": {
     "title": "Tài khoản kế toán",

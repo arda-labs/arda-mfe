@@ -32,6 +32,8 @@ export const CASE_TYPE_FORM_REMOTE = {
   LNM_SPECIFIC_PROVISION_V1: "loan",
   RPT_SUBMIT_V2: "statistical",
   HRM_EMPLOYEE_REGISTRATION: "hrm",
+  FIN_FUND_APPROP_V2: "finance",
+  FIN_FUND_USE_V2: "finance",
 } as const
 
 export type TaskFormRemote =

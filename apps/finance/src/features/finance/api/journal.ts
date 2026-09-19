@@ -46,6 +46,8 @@ export interface JournalEntryDetail {
   lines: JournalEntryLine[]
   trader?: TraderInfo
   metadata?: Record<string, string>
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 /**
@@ -67,6 +69,17 @@ export const journalEntryApi = {
     api
       .get<ApiSuccess<JournalEntryDetail>>(
         `/api/finance/journal-entries/${encodeURIComponent(entryNo)}`
+      )
+      .then((res) => res.result),
+  /**
+   * GET /api/finance/journal-entries/by-case/{caseId} — the latest posting
+   * staged for a workflow case, PENDING included. This is the narrow read the
+   * fund checker form uses (the general journal read hides PENDING entries).
+   */
+  casePosting: (caseId: string) =>
+    api
+      .get<ApiSuccess<JournalEntryDetail>>(
+        `/api/finance/journal-entries/by-case/${encodeURIComponent(caseId)}`
       )
       .then((res) => res.result),
 }

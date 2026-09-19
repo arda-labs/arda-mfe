@@ -30,6 +30,7 @@ export default defineConfig(({ command }) => ({
         loan: federationRemote("loan", "LOAN_REMOTE_ENTRY", command === "serve"),
         statistical: federationRemote("statistical", "STATISTICAL_REMOTE_ENTRY", command === "serve"),
         hrm: federationRemote("hrm", "HRM_REMOTE_ENTRY", command === "serve"),
+        finance: federationRemote("finance", "FINANCE_REMOTE_ENTRY", command === "serve"),
       },
       shared: { ...remoteSharedDeps },
     }),
