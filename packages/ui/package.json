@@ -83,6 +83,8 @@
   "exports": {
     "./globals.css": "./src/styles/globals.css",
     "./feedback/global-error-dialog": "./src/feedback/global-error-dialog.tsx",
+    "./feedback/error-dialog-parts": "./src/feedback/error-dialog-parts.tsx",
+    "./feedback/error-dialog-ask-ai": "./src/feedback/error-dialog-ask-ai.ts",
     "./feedback/notify": "./src/feedback/notify.ts",
     "./feedback/toast": "./src/feedback/toast.ts",
     "./config/*": "./src/config/*.ts",

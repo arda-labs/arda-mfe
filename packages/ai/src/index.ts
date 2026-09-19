@@ -45,6 +45,11 @@ export {
 } from "./components/tools/generic-tool-view"
 export { MarkdownMessage } from "./components/markdown"
 export {
+  composeOlorinMessage,
+  registerOlorinComposeSink,
+  type OlorinComposeRequest,
+} from "./lib/compose"
+export {
   collectOlorinContext,
   registerOlorinContext,
   registerToolRenderer,

@@ -21,6 +21,7 @@ import "../labels"
 
 import { OlorinContext } from "../lib/context"
 import { collectOlorinContext } from "../lib/registry"
+import { registerOlorinComposeSink } from "../lib/compose"
 import {
   deleteConversation,
   fetchConversationMessages,
@@ -226,6 +227,18 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
           ardaContext: collectOlorinContext(),
         } as unknown as LanguageModelConfig,
       }),
+    })
+  }, [runtime])
+
+  // Prefill the composer when another surface (error dialog "Ask AI") requests
+  // it. Registered globally so the request can arrive before the panel mounts.
+  useEffect(() => {
+    return registerOlorinComposeSink(({ text }) => {
+      try {
+        runtime.thread.composer.setText(text)
+      } catch (err) {
+        console.warn("Failed to prefill Olorin composer", err)
+      }
     })
   }, [runtime])
 

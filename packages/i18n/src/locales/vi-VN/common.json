@@ -75,7 +75,14 @@
       "reload": "Tải lại trang"
     },
     "trace_id": "Mã truy vết",
-    "docs_link": "Tìm hiểu thêm về lỗi này"
+    "docs_link": "Tìm hiểu thêm về lỗi này",
+    "detail": "Chi tiết kỹ thuật",
+    "code": "Mã lỗi",
+    "http_status": "Mã HTTP",
+    "screen": "Màn hình",
+    "ask_ai": "Hỏi AI",
+    "ask_ai_message": "Nội dung lỗi",
+    "ask_ai_intro": "Tôi vừa gặp lỗi khi sử dụng hệ thống. Hãy giúp tôi phân tích nguyên nhân và hướng xử lý."
   },
   "field": {
     "action": "Thao tác",

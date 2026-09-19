@@ -75,7 +75,14 @@
       "reload": "Reload page"
     },
     "trace_id": "Trace ID",
-    "docs_link": "Learn more about this error"
+    "docs_link": "Learn more about this error",
+    "detail": "Technical details",
+    "code": "Error code",
+    "http_status": "HTTP status",
+    "screen": "Screen",
+    "ask_ai": "Ask AI",
+    "ask_ai_message": "Error message",
+    "ask_ai_intro": "I just hit an error while using the system. Please help me understand the cause and how to fix it."
   },
   "field": {
     "action": "Actions",
