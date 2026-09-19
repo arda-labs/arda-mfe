@@ -5,9 +5,9 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import {
   remoteSharedDeps,
-  remotePorts,
   shellOptimizeInclude,
   federationBuild,
+  federationRemote,
 } from "../../federation.shared"
 
 // All /api/* paths route through the auth-gateway BFF, which handles
@@ -17,16 +17,8 @@ const BFF_GATEWAY = "http://localhost:8082"
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   const dev = command === "serve"
-  const entry = (name: string) =>
-    dev
-      ? `http://localhost:${remotePorts[name as keyof typeof remotePorts]}/remoteEntry.js`
-      : `/mfes/${name}/remoteEntry.js`
-  const remote = (name: string, envVar: string) => ({
-    type: "module",
-    name,
-    entry: process.env[envVar] ?? entry(name),
-    shareScope: "default",
-  })
+  const remote = (name: Parameters<typeof federationRemote>[0], envVar: string) =>
+    federationRemote(name, envVar, dev)
 
   return {
     build: federationBuild,

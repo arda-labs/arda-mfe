@@ -621,6 +621,7 @@
     "comment_required": "Please enter a processing comment",
     "submit_success": "Adjustment processed",
     "submit_failed": "Failed to process the adjustment",
+    "view_only": "View only — opened from search; actions are disabled.",
     "empty_detail": "No additional detail fields",
     "info": {
       "contract": "Contract",

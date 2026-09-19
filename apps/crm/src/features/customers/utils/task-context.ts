@@ -1,7 +1,14 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
 import { notify } from "@workspace/ui/feedback/notify"
 import { navigateTo } from "@workspace/ui/shell/routing"
+import {
+  claimWithRetry,
+  isViewOnlyTaskContext,
+  stringParam,
+  useWorkItemContext,
+  workflowKey,
+} from "@workspace/workflow-task"
 import {
   customerApi,
   type Customer,
@@ -9,6 +16,10 @@ import {
   type WorkflowWorkItem,
 } from "../../api"
 import type { TFunction } from "../schemas"
+
+// URL/deep-link helpers live in @workspace/workflow-task (shared with loan);
+// re-exported so existing imports keep working.
+export { isViewOnlyTaskContext, stringParam, workflowKey }
 
 export type CustomerTaskContext = {
   customerId: string | null
@@ -85,61 +96,57 @@ export async function resolveWorkflowJobKey(
     )
     return null
   }
+  const processInstanceKey = context.processInstanceKey
   if (context.taskKey) {
     return {
       jobKey: context.taskKey,
-      processInstanceKey: context.processInstanceKey,
+      processInstanceKey,
       elementId,
       role: context.role,
     }
   }
 
-  // Retry claim up to 3 times with delay — Zeebe may still be projecting
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-    }
-    try {
-      const task = await customerApi.claimWorkflowTask({
+  // Six attempts (~4s) keep the non-blocking navigation honest: the submit
+  // screen no longer waits, so this loop absorbs the projector latency.
+  const task = await claimWithRetry({
+    attempts: 6,
+    delayMs: 700,
+    claim: () =>
+      customerApi.claimWorkflowTask({
         role: context.role,
-        processInstanceKey: context.processInstanceKey,
+        processInstanceKey,
         caseId: context.caseId,
         elementId,
-      })
-      const jobKey = workflowKey(task.jobKey)
-      if (!jobKey) {
-        notify.error(
-          t("crm.customers.workflow.task_context_missing_title"),
-          t("crm.customers.workflow.task_context_missing_job_key")
-        )
-        return null
-      }
-      const processInstanceKey =
-        workflowKey(task.processInstanceKey) || context.processInstanceKey
-      syncTaskContextSearch({
-        taskKey: jobKey,
-        elementId: task.elementId || elementId,
-        role: task.candidateRole || context.role,
-      })
-      return {
-        jobKey,
-        processInstanceKey,
-        elementId: task.elementId || elementId,
-        role: roleParam(task.candidateRole || context.role),
-      }
-    } catch (error) {
-      // Only show error on last attempt; earlier retries are expected to fail
-      if (attempt === 2) {
-        notify.error(
-          t("crm.customers.workflow.task_context_missing_title"),
-          error instanceof Error
-            ? error.message
-            : t("crm.customers.workflow.task_context_claim_failed")
-        )
-      }
-    }
+      }),
+    onLastError: (error) =>
+      notify.error(
+        t("crm.customers.workflow.task_context_missing_title"),
+        error instanceof Error
+          ? error.message
+          : t("crm.customers.workflow.task_context_claim_failed")
+      ),
+  })
+  if (!task) return null
+
+  const jobKey = workflowKey(task.jobKey)
+  if (!jobKey) {
+    notify.error(
+      t("crm.customers.workflow.task_context_missing_title"),
+      t("crm.customers.workflow.task_context_missing_job_key")
+    )
+    return null
   }
-  return null
+  syncTaskContextSearch({
+    taskKey: jobKey,
+    elementId: task.elementId || elementId,
+    role: task.candidateRole || context.role,
+  })
+  return {
+    jobKey,
+    processInstanceKey: workflowKey(task.processInstanceKey) || processInstanceKey,
+    elementId: task.elementId || elementId,
+    role: roleParam(task.candidateRole || context.role),
+  }
 }
 
 export function useCustomerTaskContext() {
@@ -149,35 +156,11 @@ export function useCustomerTaskContext() {
     () => taskContextFromSearchParams(searchParams),
     [searchParams]
   )
-  const [workItem, setWorkItem] = useState<WorkflowWorkItem | null>(null)
-  const [isLoading, setIsLoading] = useState(Boolean(workItemId))
-  const [isError, setIsError] = useState(false)
-
-  useEffect(() => {
-    if (!workItemId) {
-      setWorkItem(null)
-      setIsLoading(false)
-      setIsError(false)
-      return
-    }
-    let cancelled = false
-    setIsLoading(true)
-    setIsError(false)
-    customerApi
-      .getWorkflowWorkItem(workItemId)
-      .then((item) => {
-        if (!cancelled) setWorkItem(item)
-      })
-      .catch(() => {
-        if (!cancelled) setIsError(true)
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [workItemId])
+  const {
+    item: workItem,
+    isLoading,
+    isError,
+  } = useWorkItemContext(workItemId, customerApi.getWorkflowWorkItem)
 
   const context = workItem ? taskContextFromWorkItem(workItem) : fallback
   return {
@@ -202,21 +185,6 @@ function taskContextFromWorkItem(item: WorkflowWorkItem): CustomerTaskContext {
 
 export function hasTaskContext(context: CustomerTaskContext) {
   return Boolean(context.caseId || context.taskKey || context.elementId)
-}
-
-export function isViewOnlyTaskContext() {
-  return new URLSearchParams(window.location.search).get("mode") === "view"
-}
-
-export function stringParam(params: URLSearchParams, key: string) {
-  const value = params.get(key)?.trim()
-  return value || null
-}
-
-export function workflowKey(value: string | number | null | undefined) {
-  if (value == null) return null
-  const text = String(value).trim()
-  return text || null
 }
 
 export function roleParam(value: string | null): WorkflowTaskRole {

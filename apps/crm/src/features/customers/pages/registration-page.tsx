@@ -52,10 +52,7 @@ import {
   workflowKey,
 } from "../utils/task-context"
 import { postTaskWorkbenchHref } from "../utils/workbench-return"
-import {
-  waitForTaskReady,
-  waitForWorkflowStepChange,
-} from "../utils/workflow-transition"
+import { waitForWorkflowStepChange } from "../utils/workflow-transition"
 import {
   AvatarUploader,
   FieldGrid,
@@ -138,7 +135,6 @@ export function CustomerRegistrationPage({
       ? t("crm.customers.registrations.edit_description")
       : t("crm.customers.registrations.description")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isWaitingForTask, setIsWaitingForTask] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const submittingRef = useRef(false)
 
@@ -324,32 +320,12 @@ export function CustomerRegistrationPage({
       })
       refreshCustomer(submitted)
 
-      // Wait for Zeebe to create the native user task before redirecting
-      setIsWaitingForTask(true)
-      setIsSubmitting(false)
-      const { ready, timedOut } = await waitForTaskReady({
-        caseId: submitted.workflowCaseId,
-        stepCode: "UT_MakerRevise",
-        getReadiness: customerApi.getTaskReadiness.bind(customerApi),
-        timeoutMs: 30_000,
-      })
-      setIsWaitingForTask(false)
-
-      if (!ready) {
-        notify.warning(
-          t("crm.customers.workflow.processing_title"),
-          timedOut
-            ? t("crm.customers.workflow.processing_timeout_hint")
-            : t("crm.customers.workflow.processing_continue_hint")
-        )
-        navigateTo(postTaskWorkbenchHref())
-        return
-      }
-
+      // Non-blocking UX: navigate straight to the maker edit screen. The
+      // screen claims the engine task on demand (with retries) and shows its
+      // own loading state, instead of blocking this page on the projector.
       navigateTo(await registrationMakerEditHref(submitted))
     } finally {
       setIsSubmitting(false)
-      setIsWaitingForTask(false)
       submittingRef.current = false
     }
   }
@@ -515,26 +491,6 @@ export function CustomerRegistrationPage({
             {taskContextError
               ? t("crm.customers.registrations.task_load_error")
               : t("crm.customers.registrations.loading_profile")}
-          </div>
-        </div>
-        <FooterBackButton onBack={goBack} />
-      </section>
-    )
-  }
-
-  if (isWaitingForTask) {
-    return (
-      <section className="flex h-full min-h-0 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-gutter:stable]">
-          <PageTitle
-            title={t("crm.customers.registrations.preparing_edit_title")}
-            description={t(
-              "crm.customers.registrations.preparing_edit_description"
-            )}
-          />
-          <div className="mt-4 flex flex-col items-center rounded-md border px-4 py-10 text-sm text-muted-foreground">
-            <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-            <p>{t("crm.customers.registrations.waiting_workflow")}</p>
           </div>
         </div>
         <FooterBackButton onBack={goBack} />

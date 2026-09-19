@@ -10,6 +10,10 @@ import type {
 } from "./types"
 import { api, type ApiSuccess } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
+import {
+  claimWorkItem as claimWorkflowItem,
+  completeTask as completeWorkflowTask,
+} from "@workspace/workflow-task"
 
 const caseTypesByDirection: Record<WorkbenchDirection, string[]> = {
   incoming: [
@@ -43,14 +47,15 @@ export const workbenchApi = {
   },
 
   claimWorkItem(input: ClaimWorkItemRequest) {
-    const { workItemId, ...body } = input
-    return request<ClaimWorkItemResponse>(
-      `/api/workflow/work-items/${encodeURIComponent(workItemId)}/claim`,
-      {
-        method: "POST",
-        body: Object.keys(body).length ? body : undefined,
-      }
-    )
+    return claimWorkflowItem(input.workItemId) as Promise<ClaimWorkItemResponse>
+  },
+
+  getCaseVariables(caseId: string) {
+    return request<{
+      case_id: string
+      process_instance_key: string
+      variables: Record<string, unknown>
+    }>(`/api/workflow/cases/${encodeURIComponent(caseId)}/variables`)
   },
 
   async listCasesByDirection(direction: WorkbenchDirection) {
@@ -88,17 +93,7 @@ export const workbenchApi = {
     elementId: string
     variables: Record<string, unknown>
   }) {
-    return request<{ status: string }>(
-      `/api/workflow/tasks/${encodeURIComponent(String(input.jobKey))}/complete`,
-      {
-        method: "POST",
-        body: {
-          processInstanceKey: input.processInstanceKey,
-          elementId: input.elementId,
-          variables: input.variables,
-        },
-      }
-    )
+    return completeWorkflowTask(input)
   },
 }
 

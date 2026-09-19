@@ -14,6 +14,7 @@ import type {
   InterbankTxnRow,
   DepositSubmission,
   ProductRequest,
+  RateRequest,
 } from "./types"
 import type { ApiRequestOptions } from "@workspace/api/client"
 import { buildListSearchParams } from "@workspace/api/list"
@@ -77,6 +78,10 @@ export const depositApi = {
       requestOptions
     )
   },
+  getProductRequest: (id: string) =>
+    getCanonical<ProductRequest>(
+      `/api/deposit/product-requests/${encodeURIComponent(id)}`
+    ),
   listSavings: (
     params: { status?: string; q?: string } = {},
     requestOptions?: ApiRequestOptions
@@ -177,6 +182,8 @@ export const depositApi = {
       "/api/deposit/rates",
       body
     ),
+  getRateRequest: (id: string) =>
+    getCanonical<RateRequest>(`/api/deposit/rates/${encodeURIComponent(id)}`),
   getSavings: (code: string) =>
     getCanonical<SavingsDetail>(
       `/api/deposit/savings/${encodeURIComponent(code)}`

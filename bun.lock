@@ -165,6 +165,7 @@
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
+        "@workspace/workflow-task": "workspace:*",
         "lucide-react": "^1.22.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
@@ -207,6 +208,7 @@
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
+        "@workspace/workflow-task": "workspace:*",
         "lucide-react": "^1.22.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
@@ -248,6 +250,7 @@
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
+        "@workspace/workflow-task": "workspace:*",
         "lucide-react": "^1.22.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
@@ -373,6 +376,7 @@
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
+        "@workspace/workflow-task": "workspace:*",
         "lucide-react": "^1.22.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
@@ -579,6 +583,7 @@
         "@workspace/query": "workspace:*",
         "@workspace/theme": "workspace:*",
         "@workspace/ui": "workspace:*",
+        "@workspace/workflow-task": "workspace:*",
         "bpmn-js": "^18.9.1",
         "date-fns": "^4.4.0",
         "lucide-react": "^1.22.0",
@@ -872,6 +877,18 @@
         "tailwindcss": "^4",
         "typescript": "~6",
         "typescript-eslint": "^8",
+      },
+    },
+    "packages/workflow-task": {
+      "name": "@workspace/workflow-task",
+      "version": "0.0.0",
+      "dependencies": {
+        "@workspace/api": "workspace:*",
+        "react": "^19.2.6",
+      },
+      "devDependencies": {
+        "@types/react": "^19",
+        "typescript": "~6",
       },
     },
   },
@@ -1501,6 +1518,8 @@
     "@workspace/theme": ["@workspace/theme@workspace:packages/theme"],
 
     "@workspace/ui": ["@workspace/ui@workspace:packages/ui"],
+
+    "@workspace/workflow-task": ["@workspace/workflow-task@workspace:packages/workflow-task"],
 
     "account": ["account@workspace:apps/account"],
 

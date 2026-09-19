@@ -83,6 +83,10 @@ export interface WorkItem {
   candidateRole?: string
   candidateGroupId?: string
   candidateOrgUnitId?: string
+  stepKind?: "INPUT" | "REVISE" | "CHECKER" | "REVIEW" | "OPERATE"
+  allowedActions?: string[]
+  requiredCommentOn?: string[]
+  registryVersion?: number
   createdBy?: string
   createdByName?: string
   createdByAvatar?: string

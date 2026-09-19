@@ -220,8 +220,17 @@
     "decision_approve": "Phê duyệt",
     "decision_request_changes": "Yêu cầu bổ sung",
     "decision_reject": "Từ chối",
+    "decision_submit": "Gửi xác nhận",
     "decision_success": "Đã xử lý giao dịch",
     "decision_error": "Không thể xử lý giao dịch",
+    "task_form": {
+      "title": "Xử lý giao dịch",
+      "loading": "Đang tải biểu mẫu xử lý...",
+      "unsupported": "Bước này chưa đăng ký biểu mẫu xử lý — không thể thao tác tại đây.",
+      "load_error": "Không tải được biểu mẫu xử lý.",
+      "retry": "Thử lại",
+      "close": "Đóng"
+    },
     "keyword_placeholder": "Mã / tiêu đề giao dịch",
     "search_keyword_placeholder": "Mã / tiêu đề",
     "actions_refresh": "Làm mới",

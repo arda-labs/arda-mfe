@@ -27,6 +27,7 @@
     "@workspace/query": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "@workspace/workflow-task": "workspace:*",
     "bpmn-js": "^18.9.1",
     "date-fns": "^4.4.0",
     "lucide-react": "^1.22.0",

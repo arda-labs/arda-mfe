@@ -201,10 +201,102 @@
     "deposit_success": "Đã trình duyệt nộp thêm",
     "deposit_failed": "Không thể trình duyệt nộp thêm",
     "deposit_validation": "Số tiền nộp thêm phải lớn hơn 0",
+    "task_form": {
+      "field": {
+        "savings_code": "Mã sổ",
+        "txn_date": "Ngày giao dịch",
+        "step": "Bước xử lý",
+        "principal": "Số dư gốc hiện tại",
+        "accrued": "Lãi tích lũy",
+        "status": "Trạng thái sổ",
+        "op_type": "Loại nghiệp vụ"
+      },
+      "amount": {
+        "additional": "Số tiền nộp thêm",
+        "settle": "Số tiền tất toán",
+        "interest": "Số tiền trả lãi"
+      },
+      "op": {
+        "pay": "Trả lãi",
+        "capitalize": "Nhập lãi vào gốc"
+      },
+      "action": {
+        "confirm": "Xác nhận nộp thêm",
+        "approve": "Phê duyệt",
+        "request_changes": "Yêu cầu bổ sung",
+        "reject": "Từ chối"
+      },
+      "comment_label": "Ý kiến / lý do",
+      "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+      "comment_required": "Vui lòng nhập ý kiến xử lý",
+      "view_only": "Chỉ xem — không thao tác được."
+    },
     "status": {
       "ACTIVE": "Đang hoạt động",
       "CLOSED": "Đã đóng"
     }
+  },
+  "product_task_form": {
+    "loading": "Đang tải hồ sơ sản phẩm...",
+    "field": {
+      "request_type": "Loại yêu cầu",
+      "product_code": "Mã sản phẩm",
+      "name": "Tên sản phẩm",
+      "term_months": "Kỳ hạn (tháng)",
+      "interest_rate": "Lãi suất",
+      "currency": "Loại tiền",
+      "status": "Trạng thái"
+    },
+    "request_type": {
+      "register": "Đăng ký mới",
+      "edit": "Điều chỉnh"
+    },
+    "status": {
+      "submitted": "Chờ duyệt",
+      "applied": "Đã áp dụng",
+      "rejected": "Từ chối"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
+  },
+  "rate_task_form": {
+    "loading": "Đang tải hồ sơ lãi suất...",
+    "field": {
+      "request_type": "Loại yêu cầu",
+      "product_code": "Mã sản phẩm",
+      "term_months": "Kỳ hạn (tháng)",
+      "rate": "Lãi suất",
+      "effective_from": "Hiệu lực từ",
+      "status": "Trạng thái"
+    },
+    "request_type": {
+      "register": "Đăng ký mới",
+      "edit": "Điều chỉnh",
+      "adjust": "Điều chỉnh"
+    },
+    "status": {
+      "submitted": "Chờ duyệt",
+      "applied": "Đã áp dụng",
+      "rejected": "Từ chối"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
   },
   "reports": {
     "title": "Báo cáo tiền gửi",

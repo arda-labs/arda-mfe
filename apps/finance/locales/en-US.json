@@ -98,6 +98,7 @@
     "comment_required": "Please enter a processing comment",
     "submit_success": "Transaction processed",
     "submit_failed": "Failed to process the transaction",
+    "view_only": "View only — opened from search; actions are disabled.",
     "tab_info": "Posting information",
     "info": {
       "accounting_date": "Accounting date",

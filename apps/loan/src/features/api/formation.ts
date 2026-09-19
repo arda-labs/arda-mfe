@@ -1,4 +1,11 @@
-import { getCanonical, postCanonical, putCanonical } from "@workspace/api"
+import { getCanonical, putCanonical } from "@workspace/api"
+import {
+  claimTask as claimWorkflowTask,
+  claimWorkItem as claimWorkflowItem,
+  completeTask as completeWorkflowTask,
+  getTaskReadiness as fetchTaskReadiness,
+  getWorkItem as fetchWorkItem,
+} from "@workspace/workflow-task"
 import type { LoanContract } from "./contracts"
 import type { LoanDossier } from "./dossier"
 
@@ -72,15 +79,8 @@ export interface FormationCaseVariables {
 }
 
 export const formationApi = {
-  getWorkItem: (id: string) =>
-    getCanonical<FormationWorkItem>(
-      `/api/workflow/work-items/${encodeURIComponent(id)}`
-    ),
-  claimWorkItem: (id: string) =>
-    postCanonical<{ workItem: FormationWorkItem }>(
-      `/api/workflow/work-items/${encodeURIComponent(id)}/claim`,
-      {}
-    ),
+  getWorkItem: (id: string) => fetchWorkItem(id),
+  claimWorkItem: (id: string) => claimWorkflowItem(id),
   getCaseVariables: (caseId: string) =>
     getCanonical<FormationCaseVariables>(
       `/api/workflow/cases/${encodeURIComponent(caseId)}/variables`
@@ -91,25 +91,15 @@ export const formationApi = {
     processInstanceKey?: string | number
     caseId?: string | null
     elementId?: string | null
-  }) => postCanonical<FormationClaimedTask>("/api/workflow/tasks/claim", input),
+  }) => claimWorkflowTask(input),
   getTaskReadiness: (caseId: string, stepCode: string) =>
-    getCanonical<{ ready: boolean; status: string }>(
-      `/api/workflow/cases/${encodeURIComponent(caseId)}/task-readiness?stepCode=${encodeURIComponent(stepCode)}`
-    ),
+    fetchTaskReadiness(caseId, stepCode),
   completeTask: (input: {
     jobKey: string
     processInstanceKey: string
     elementId: string
     variables: Record<string, unknown>
-  }) =>
-    postCanonical<{ status: string }>(
-      `/api/workflow/tasks/${encodeURIComponent(input.jobKey)}/complete`,
-      {
-        processInstanceKey: input.processInstanceKey,
-        elementId: input.elementId,
-        variables: input.variables,
-      }
-    ),
+  }) => completeWorkflowTask(input),
   getDossier: (contractId: string) =>
     getCanonical<LoanDossier>(
       `/api/loan/contracts/${encodeURIComponent(contractId)}/dossier`

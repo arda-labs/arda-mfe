@@ -44,7 +44,6 @@ import {
   useCustomerTaskContext,
   workflowKey,
 } from "../utils/task-context"
-import { waitForTaskReady } from "../utils/workflow-transition"
 import { postTaskWorkbenchHref } from "../utils/workbench-return"
 import {
   EmptyState,
@@ -280,26 +279,9 @@ export function CustomerAdjustmentPage({
     ;(async () => {
       try {
         const result = await customerApi.startAdjustment(customerId)
-
-        const { ready, timedOut } = await waitForTaskReady({
-          caseId: result.workflowCaseId,
-          stepCode: "UT_MakerRevise",
-          getReadiness: customerApi.getTaskReadiness.bind(customerApi),
-          timeoutMs: 30_000,
-        })
         setAutoStarting(false)
-
-        if (!ready) {
-          notify.warning(
-            t("crm.customers.workflow.processing_title"),
-            timedOut
-              ? t("crm.customers.workflow.processing_timeout_hint")
-              : t("crm.customers.workflow.processing_continue_hint")
-          )
-          navigateTo(postTaskWorkbenchHref())
-          return
-        }
-
+        // Non-blocking UX: the maker edit screen claims the engine task on
+        // demand (with retries) instead of waiting for the projector here.
         navigateTo(await adjustmentMakerEditHref(result))
       } catch (error) {
         notify.error(

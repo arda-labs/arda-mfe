@@ -21,7 +21,18 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import type { WorkItem } from "../api"
 
-export type ReviewDecision = "APPROVE" | "REQUEST_CHANGES" | "REJECT"
+export type ReviewDecision = "APPROVE" | "REQUEST_CHANGES" | "REJECT" | "SUBMIT"
+
+const DEFAULT_ACTIONS: ReviewDecision[] = ["APPROVE", "REQUEST_CHANGES", "REJECT"]
+
+function isReviewDecision(value: string): value is ReviewDecision {
+  return (
+    value === "APPROVE" ||
+    value === "REQUEST_CHANGES" ||
+    value === "REJECT" ||
+    value === "SUBMIT"
+  )
+}
 
 /**
  * Generic approve / request-changes / reject dialog for case types whose
@@ -29,21 +40,42 @@ export type ReviewDecision = "APPROVE" | "REQUEST_CHANGES" | "REJECT"
  * HRM registration, LNM adjustments/batches, DPM settle, RPT submit).
  * Sends both `decision` (BPMN condition variable) and `reviewDecision`
  * (backend notification/side-effect compatibility).
+ *
+ * The action set comes from the server registry (`allowedActions`): maker
+ * steps only expose SUBMIT, checker steps expose their real branches. When the
+ * server sends no metadata (legacy rows) the dialog keeps the full set as a
+ * transition period.
  */
 export function DecisionDialog({
   item,
   submitting,
   onClose,
   onConfirm,
+  allowedActions,
+  requiredCommentOn,
 }: {
   item: WorkItem | null
   submitting: boolean
   onClose: () => void
   onConfirm: (decision: ReviewDecision, comment: string) => void
+  allowedActions?: string[]
+  requiredCommentOn?: string[]
 }) {
   const { t } = useI18n()
   const [comment, setComment] = useState("")
   const [error, setError] = useState("")
+
+  const actions: ReviewDecision[] =
+    allowedActions && allowedActions.length > 0
+      ? allowedActions.filter(isReviewDecision)
+      : DEFAULT_ACTIONS
+
+  function requiresComment(decision: ReviewDecision) {
+    if (requiredCommentOn && requiredCommentOn.length > 0) {
+      return requiredCommentOn.includes(decision)
+    }
+    return decision !== "APPROVE" && decision !== "SUBMIT"
+  }
 
   // Checker context: the maker's attachments ("Hồ sơ đính kèm") and the case
   // timeline ("Lưu vết tác vụ") — view-only, the dialog never mutates the case
@@ -60,7 +92,7 @@ export function DecisionDialog({
 
   function confirm(decision: ReviewDecision) {
     const trimmed = comment.trim()
-    if (decision !== "APPROVE" && !trimmed) {
+    if (requiresComment(decision) && !trimmed) {
       setError(t("workflow.workbench.decision_comment_required"))
       return
     }
@@ -120,32 +152,48 @@ export function DecisionDialog({
           </Tabs>
         ) : null}
         <DialogFooter className="gap-2 sm:justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={submitting}
-            onClick={() => confirm("REQUEST_CHANGES")}
-          >
-            <MessageSquareWarning className="size-4" />
-            {t("workflow.workbench.decision_request_changes")}
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={submitting}
-            onClick={() => confirm("REJECT")}
-          >
-            <X className="size-4" />
-            {t("workflow.workbench.decision_reject")}
-          </Button>
-          <Button
-            type="button"
-            disabled={submitting}
-            onClick={() => confirm("APPROVE")}
-          >
-            <Check className="size-4" />
-            {t("workflow.workbench.decision_approve")}
-          </Button>
+          {actions.includes("REQUEST_CHANGES") ? (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={submitting}
+              onClick={() => confirm("REQUEST_CHANGES")}
+            >
+              <MessageSquareWarning className="size-4" />
+              {t("workflow.workbench.decision_request_changes")}
+            </Button>
+          ) : null}
+          {actions.includes("REJECT") ? (
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={submitting}
+              onClick={() => confirm("REJECT")}
+            >
+              <X className="size-4" />
+              {t("workflow.workbench.decision_reject")}
+            </Button>
+          ) : null}
+          {actions.includes("SUBMIT") ? (
+            <Button
+              type="button"
+              disabled={submitting}
+              onClick={() => confirm("SUBMIT")}
+            >
+              <Check className="size-4" />
+              {t("workflow.workbench.decision_submit")}
+            </Button>
+          ) : null}
+          {actions.includes("APPROVE") ? (
+            <Button
+              type="button"
+              disabled={submitting}
+              onClick={() => confirm("APPROVE")}
+            >
+              <Check className="size-4" />
+              {t("workflow.workbench.decision_approve")}
+            </Button>
+          ) : null}
         </DialogFooter>
       </DialogContent>
     </Dialog>

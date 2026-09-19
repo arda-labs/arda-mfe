@@ -6,7 +6,6 @@ import type {
   CustomerRelationship,
   CustomerRelationshipPayload,
   CustomerListParams,
-  WorkflowTask,
   WorkflowWorkItem,
   WorkflowCase,
   WorkflowTimelineEvent,
@@ -18,6 +17,11 @@ import {
   postCanonical,
   putCanonical,
 } from "@workspace/api"
+import {
+  claimTask as claimWorkflowTaskTask,
+  completeTask as completeWorkflowTask,
+  getTaskReadiness as fetchTaskReadiness,
+} from "@workspace/workflow-task"
 
 export const customerApi = {
   /** Canonical list envelope (page/per_page/total) — consumed by server lists. */
@@ -84,12 +88,10 @@ export const customerApi = {
     caseId?: string | null
     elementId?: string | null
   }) {
-    return postCanonical<WorkflowTask>("/api/workflow/tasks/claim", input)
+    return claimWorkflowTaskTask(input)
   },
   getTaskReadiness(caseId: string, stepCode: string) {
-    return getCanonical<{ ready: boolean; status: string }>(
-      `/api/workflow/cases/${encodeURIComponent(caseId)}/task-readiness?stepCode=${encodeURIComponent(stepCode)}`
-    )
+    return fetchTaskReadiness(caseId, stepCode)
   },
   getWorkflowCaseTimeline(id: string) {
     return getCanonical<WorkflowTimelineEvent[]>(
@@ -102,14 +104,7 @@ export const customerApi = {
     elementId: string
     variables: Record<string, unknown>
   }) {
-    return postCanonical<{ status: string }>(
-      `/api/workflow/tasks/${encodeURIComponent(input.jobKey)}/complete`,
-      {
-        processInstanceKey: input.processInstanceKey,
-        elementId: input.elementId,
-        variables: input.variables,
-      }
-    )
+    return completeWorkflowTask(input)
   },
   getCurrentAmendment(customerId: string) {
     return getCanonical<CustomerAmendment | null>(

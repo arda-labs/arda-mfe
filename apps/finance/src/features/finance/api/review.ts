@@ -1,4 +1,9 @@
 import { api, type ApiSuccess } from "@workspace/api"
+import {
+  claimWorkItem as claimWorkflowItem,
+  completeTask as completeWorkflowTask,
+  getWorkItem as fetchWorkItem,
+} from "@workspace/workflow-task"
 
 export interface ReviewWorkItem {
   id: string
@@ -9,8 +14,8 @@ export interface ReviewWorkItem {
   status: string
   stepCode: string
   stepName?: string
-  jobKey?: string
-  processInstanceKey?: string
+  jobKey?: string | number
+  processInstanceKey?: string | number
   canClaim?: boolean
   canOpen?: boolean
   assignedTo?: string
@@ -26,19 +31,8 @@ export interface ReviewCaseVariables {
 
 /** Posting review (maker confirm / checker approve before posting). */
 export const workflowTaskApi = {
-  getWorkItem: (id: string) =>
-    api
-      .get<ApiSuccess<ReviewWorkItem>>(
-        `/api/workflow/work-items/${encodeURIComponent(id)}`
-      )
-      .then((res) => res.result),
-  claimWorkItem: (id: string) =>
-    api
-      .post<ApiSuccess<{ workItem: ReviewWorkItem }>>(
-        `/api/workflow/work-items/${encodeURIComponent(id)}/claim`,
-        {}
-      )
-      .then((res) => res.result),
+  getWorkItem: (id: string) => fetchWorkItem(id),
+  claimWorkItem: (id: string) => claimWorkflowItem(id),
   getCaseVariables: (caseId: string) =>
     api
       .get<ApiSuccess<ReviewCaseVariables>>(
@@ -46,19 +40,9 @@ export const workflowTaskApi = {
       )
       .then((res) => res.result),
   completeTask: (input: {
-    jobKey: string
-    processInstanceKey: string
+    jobKey: string | number
+    processInstanceKey: string | number
     elementId: string
     variables: Record<string, unknown>
-  }) =>
-    api
-      .post<ApiSuccess<{ status: string }>>(
-        `/api/workflow/tasks/${encodeURIComponent(input.jobKey)}/complete`,
-        {
-          processInstanceKey: input.processInstanceKey,
-          elementId: input.elementId,
-          variables: input.variables,
-        }
-      )
-      .then((res) => res.result),
+  }) => completeWorkflowTask(input),
 }

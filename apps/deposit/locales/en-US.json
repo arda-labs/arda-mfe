@@ -201,10 +201,102 @@
     "deposit_success": "Additional deposit submitted",
     "deposit_failed": "Failed to submit the additional deposit",
     "deposit_validation": "The additional amount must be greater than 0",
+    "task_form": {
+      "field": {
+        "savings_code": "Savings code",
+        "txn_date": "Transaction date",
+        "step": "Step",
+        "principal": "Current principal",
+        "accrued": "Accrued interest",
+        "status": "Account status",
+        "op_type": "Operation"
+      },
+      "amount": {
+        "additional": "Additional amount",
+        "settle": "Settlement amount",
+        "interest": "Interest amount"
+      },
+      "op": {
+        "pay": "Pay interest",
+        "capitalize": "Capitalize interest"
+      },
+      "action": {
+        "confirm": "Confirm deposit",
+        "approve": "Approve",
+        "request_changes": "Request changes",
+        "reject": "Reject"
+      },
+      "comment_label": "Comment / reason",
+      "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+      "comment_required": "Please enter a processing comment",
+      "view_only": "View only — actions are disabled."
+    },
     "status": {
       "ACTIVE": "Active",
       "CLOSED": "Closed"
     }
+  },
+  "product_task_form": {
+    "loading": "Loading the product request...",
+    "field": {
+      "request_type": "Request type",
+      "product_code": "Product code",
+      "name": "Product name",
+      "term_months": "Term (months)",
+      "interest_rate": "Interest rate",
+      "currency": "Currency",
+      "status": "Status"
+    },
+    "request_type": {
+      "register": "New registration",
+      "edit": "Amendment"
+    },
+    "status": {
+      "submitted": "Pending approval",
+      "applied": "Applied",
+      "rejected": "Rejected"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
+  },
+  "rate_task_form": {
+    "loading": "Loading the rate request...",
+    "field": {
+      "request_type": "Request type",
+      "product_code": "Product code",
+      "term_months": "Term (months)",
+      "rate": "Interest rate",
+      "effective_from": "Effective from",
+      "status": "Status"
+    },
+    "request_type": {
+      "register": "New registration",
+      "edit": "Amendment",
+      "adjust": "Adjustment"
+    },
+    "status": {
+      "submitted": "Pending approval",
+      "applied": "Applied",
+      "rejected": "Rejected"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
   },
   "reports": {
     "title": "Deposit reports",

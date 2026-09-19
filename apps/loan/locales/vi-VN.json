@@ -621,6 +621,7 @@
     "comment_required": "Vui lòng nhập ý kiến xử lý",
     "submit_success": "Đã xử lý hồ sơ điều chỉnh",
     "submit_failed": "Không thể xử lý hồ sơ điều chỉnh",
+    "view_only": "Chỉ xem — mở từ tra cứu, không thao tác được.",
     "empty_detail": "Không có trường thông tin bổ sung",
     "info": {
       "contract": "Hợp đồng",

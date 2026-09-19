@@ -29,6 +29,29 @@ export interface Savings {
   journal_entry_id?: string
   created_by: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
+}
+
+/** Staged rate register/adjust request (DPM.100/101 checker dossier). */
+export interface RateRequest {
+  id: string
+  request_type: "REGISTER" | "EDIT" | "ADJUST"
+  payload: {
+    product_code?: string
+    term_months?: number
+    method?: string
+    denominator?: number
+    rate?: number
+    effective_from?: string
+  }
+  status: "SUBMITTED" | "APPLIED" | "REJECTED"
+  workflow_case_id?: string
+  created_by?: string
+  created_at?: string
+  updated_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 // ── Interbank deposit ──
@@ -214,4 +237,6 @@ export interface ProductRequest {
   workflow_case_code?: string
   created_by?: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }

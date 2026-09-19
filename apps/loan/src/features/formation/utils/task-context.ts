@@ -1,15 +1,25 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { navigateTo } from "@workspace/ui/shell/routing"
 import {
+  claimWithRetry,
+  isViewOnlyTaskContext,
+  stringParam,
+  useWorkItemContext,
+  workflowKey,
+} from "@workspace/workflow-task"
+import {
   formationApi,
-  type FormationClaimedTask,
   type FormationWorkItem,
   type LoanFormationRole,
   type LoanFormationStepCode,
 } from "../../api"
+
+// URL/deep-link helpers live in @workspace/workflow-task (shared with CRM);
+// re-exported so existing imports keep working.
+export { isViewOnlyTaskContext, stringParam, workflowKey }
 
 /**
  * Task context của màn hình formation — mirror chặt của CRM
@@ -67,21 +77,6 @@ export function stepParam(
     : null
 }
 
-export function stringParam(params: URLSearchParams, key: string) {
-  const value = params.get(key)?.trim()
-  return value || null
-}
-
-export function workflowKey(value: string | number | null | undefined) {
-  if (value == null) return null
-  const text = String(value).trim()
-  return text || null
-}
-
-export function isViewOnlyTaskContext() {
-  return new URLSearchParams(window.location.search).get("mode") === "view"
-}
-
 export function hasTaskContext(context: FormationTaskContext) {
   return Boolean(context.caseId || context.taskKey || context.elementId)
 }
@@ -119,35 +114,11 @@ export function useFormationTaskContext() {
     () => taskContextFromSearchParams(searchParams),
     [searchParams]
   )
-  const [workItem, setWorkItem] = useState<FormationWorkItem | null>(null)
-  const [isLoading, setIsLoading] = useState(Boolean(workItemId))
-  const [isError, setIsError] = useState(false)
-
-  useEffect(() => {
-    if (!workItemId) {
-      setWorkItem(null)
-      setIsLoading(false)
-      setIsError(false)
-      return
-    }
-    let cancelled = false
-    setIsLoading(true)
-    setIsError(false)
-    formationApi
-      .getWorkItem(workItemId)
-      .then((item) => {
-        if (!cancelled) setWorkItem(item)
-      })
-      .catch(() => {
-        if (!cancelled) setIsError(true)
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [workItemId])
+  const {
+    item: workItem,
+    isLoading,
+    isError,
+  } = useWorkItemContext(workItemId, formationApi.getWorkItem)
 
   const context = workItem ? taskContextFromWorkItem(workItem) : fallback
   return {
@@ -206,58 +177,55 @@ export async function resolveWorkflowJobKey(
     return null
   }
   const elementId = context.elementId
+  const processInstanceKey = context.processInstanceKey
   if (context.taskKey) {
     return {
       jobKey: context.taskKey,
-      processInstanceKey: context.processInstanceKey,
+      processInstanceKey,
       elementId,
       role: context.role,
     }
   }
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-    }
-    try {
-      const task: FormationClaimedTask = await formationApi.claimTask({
+  // Three attempts (~1s): the formation screen claims after navigation, so the
+  // loop only needs to absorb a short projector delay.
+  const task = await claimWithRetry({
+    attempts: 3,
+    delayMs: 500,
+    claim: () =>
+      formationApi.claimTask({
         role: context.role,
-        processInstanceKey: context.processInstanceKey,
+        processInstanceKey,
         caseId: context.caseId,
         elementId,
-      })
-      const jobKey = workflowKey(task.jobKey)
-      if (!jobKey) {
-        notify.error(
-          t("loan.formation.workflow.task_context_missing_title"),
-          t("loan.formation.workflow.task_context_missing_job_key")
-        )
-        return null
-      }
-      const processInstanceKey =
-        workflowKey(task.processInstanceKey) || context.processInstanceKey
-      syncTaskContextSearch({
-        taskKey: jobKey,
-        elementId: task.elementId || elementId,
-        role: task.candidateRole || context.role,
-      })
-      return {
-        jobKey,
-        processInstanceKey,
-        elementId: task.elementId || elementId,
-        role: roleParam(task.candidateRole || context.role),
-      }
-    } catch (error) {
-      // Chỉ notify ở lần cuối — các lần retry đầu fail là tình huống thường.
-      if (attempt === 2) {
-        notify.error(
-          t("loan.formation.workflow.task_context_missing_title"),
-          error instanceof Error
-            ? error.message
-            : t("loan.formation.workflow.task_context_claim_failed")
-        )
-      }
-    }
+      }),
+    onLastError: (error) =>
+      notify.error(
+        t("loan.formation.workflow.task_context_missing_title"),
+        error instanceof Error
+          ? error.message
+          : t("loan.formation.workflow.task_context_claim_failed")
+      ),
+  })
+  if (!task) return null
+
+  const jobKey = workflowKey(task.jobKey)
+  if (!jobKey) {
+    notify.error(
+      t("loan.formation.workflow.task_context_missing_title"),
+      t("loan.formation.workflow.task_context_missing_job_key")
+    )
+    return null
   }
-  return null
+  syncTaskContextSearch({
+    taskKey: jobKey,
+    elementId: task.elementId || elementId,
+    role: task.candidateRole || context.role,
+  })
+  return {
+    jobKey,
+    processInstanceKey: workflowKey(task.processInstanceKey) || processInstanceKey,
+    elementId: task.elementId || elementId,
+    role: roleParam(task.candidateRole || context.role),
+  }
 }

@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { remoteSharedDeps, remotePorts } from "../../federation.shared"
-import { federationBuild } from "../../federation.shared"
+import { federationBuild, federationRemote } from "../../federation.shared"
 
 const name = "workflow"
 const port = remotePorts[name]
@@ -21,6 +21,12 @@ export default defineConfig(({ command }) => ({
       dts: false,
       shareStrategy: "loaded-first",
       exposes: { "./Routes": "./src/Routes.tsx" },
+      // Form host (P1.6): the workbench renders task forms owned by the domain
+      // remotes (server `formKey` → `./taskForms`). Only remotes that already
+      // registered forms are declared here; add the owner when a form lands.
+      remotes: {
+        deposit: federationRemote("deposit", "DEPOSIT_REMOTE_ENTRY", command === "serve"),
+      },
       shared: { ...remoteSharedDeps },
     }),
   ],

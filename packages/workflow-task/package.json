@@ -1,0 +1,26 @@
+{
+  "name": "@workspace/workflow-task",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/api": "workspace:*",
+    "react": "^19.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "~6"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./transport": "./src/transport.ts",
+    "./actions": "./src/actions.ts",
+    "./task-forms": "./src/task-forms.ts"
+  }
+}

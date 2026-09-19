@@ -98,6 +98,7 @@
     "comment_required": "Vui lòng nhập ý kiến xử lý",
     "submit_success": "Đã xử lý giao dịch",
     "submit_failed": "Không thể xử lý giao dịch",
+    "view_only": "Chỉ xem — mở từ tra cứu, không thao tác được.",
     "tab_info": "Thông tin bút toán",
     "info": {
       "accounting_date": "Ngày hạch toán",

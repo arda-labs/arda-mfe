@@ -66,6 +66,35 @@ export const shellOptimizeInclude = ["react-toastify"]
 export const federationBuild = { manifest: true } as const
 
 /**
+ * Entry URL for one remote: fixed dev port in serve mode, `/mfes/<name>/` in
+ * production. Shell and every host that loads a remote's extra expose (e.g.
+ * the workbench form host loading `deposit/taskForms`) must use this so the
+ * dev/prod switch stays in one place.
+ */
+export function federationRemoteEntry(
+  name: keyof typeof remotePorts,
+  dev: boolean
+): string {
+  return dev
+    ? `http://localhost:${remotePorts[name]}/remoteEntry.js`
+    : `/mfes/${name}/remoteEntry.js`
+}
+
+/** Standard MF remote descriptor (module type + default share scope). */
+export function federationRemote(
+  name: keyof typeof remotePorts,
+  envVar: string,
+  dev: boolean
+) {
+  return {
+    type: "module" as const,
+    name,
+    entry: process.env[envVar] ?? federationRemoteEntry(name, dev),
+    shareScope: "default",
+  }
+}
+
+/**
  * Workspace packages deliberately NOT registered as Module Federation
  * singletons. Every key must carry a non-empty justification — check:federation
  * fails otherwise and also fails when an unshared workspace package is imported
@@ -94,4 +123,6 @@ export const sharedWorkspaceExemptions = {
   "@workspace/posting-flow": "presentational-only; sharing broke shell boot order (React #130)",
   "@workspace/case-tabs":
     "presentational-only; no cross-tree state (media + case timeline fetched per screen)",
+  "@workspace/workflow-task":
+    "stateless transport + action helpers for the task runtime; per-screen fetches, no cross-tree state",
 } as const

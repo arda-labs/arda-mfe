@@ -47,6 +47,9 @@ export function AdjustmentReviewPage() {
   const [commentError, setCommentError] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const claimedRef = useRef(false)
+  const isViewOnly =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("mode") === "view"
 
   const load = useCallback(async () => {
     if (!workItemId) {
@@ -57,7 +60,12 @@ export function AdjustmentReviewPage() {
     setError(false)
     try {
       let workItem = await formationApi.getWorkItem(workItemId)
-      if (workItem.canClaim && workItem.jobKey && !claimedRef.current) {
+      if (
+        !isViewOnly &&
+        workItem.canClaim &&
+        workItem.jobKey &&
+        !claimedRef.current
+      ) {
         claimedRef.current = true
         const claimed = await formationApi.claimWorkItem(workItemId)
         workItem = claimed.workItem ?? workItem
@@ -92,7 +100,7 @@ export function AdjustmentReviewPage() {
     } finally {
       setLoading(false)
     }
-  }, [workItemId, t])
+  }, [workItemId, isViewOnly, t])
 
   useEffect(() => {
     void load()
@@ -103,7 +111,7 @@ export function AdjustmentReviewPage() {
   // EPAS lib-bpm-tabs: hệ thống tab gắn sau tab nghiệp vụ "Thông tin điều chỉnh".
   const systemTabs = useCaseTabs({
     caseId: item?.caseId ?? undefined,
-    canUpload: isMakerStep,
+    canUpload: isMakerStep && !isViewOnly,
   })
 
   async function decide(decision: Decision) {
@@ -212,7 +220,7 @@ export function AdjustmentReviewPage() {
               id="adjustment-review-comment"
               rows={3}
               value={comment}
-              disabled={submitting}
+              disabled={submitting || isViewOnly}
               placeholder={t("loan.adjustment_review.comment_placeholder")}
               onChange={(event) => {
                 setComment(event.target.value)
@@ -228,7 +236,11 @@ export function AdjustmentReviewPage() {
         ) : null}
 
         <div className="flex flex-wrap gap-2">
-          {isMakerStep ? (
+          {isViewOnly ? (
+            <p className="self-center text-sm text-muted-foreground">
+              {t("loan.adjustment_review.view_only")}
+            </p>
+          ) : isMakerStep ? (
             <Button
               type="button"
               disabled={submitting}

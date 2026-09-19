@@ -17,6 +17,9 @@ import type {
 import { workbenchApi } from "../api"
 import { WorkItemTree } from "./workbench-tree"
 import { DecisionDialog, type ReviewDecision } from "./decision-dialog"
+import { TaskFormHost } from "./task-form-host"
+import { taskFormRemoteFor } from "../utils/task-form-routing"
+import type { TaskFormSubmit } from "@workspace/workflow-task"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
 import { workItemColumns, searchColumns } from "../utils/workbench-columns"
 import { transactionListTableLayout } from "../utils/workbench-table-layout"
@@ -32,12 +35,10 @@ const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
 // Case types whose domain remote does not embed the approve/reject action:
 // the workbench completes them directly (CRM registration/adjustment, loan
 // formation, finance postings and loan adjustments keep their own screens).
+// Case types served by the form host (CASE_TYPE_FORM_REMOTE in
+// task-form-host.tsx) are NOT listed here — they render their domain form.
 const GENERIC_DECISION_CASE_TYPES = new Set([
   "HRM_EMPLOYEE_REGISTRATION",
-  "DPM_SETTLE_V2",
-  "DPM_ADDITIONAL_V1",
-  "DPM_PRODUCT_REGISTER_V1",
-  "DPM_PRODUCT_EDIT_V1",
   "RPT_SUBMIT_V2",
   "LNM_DISB_REGISTER_V2",
   "LNM_DISB_COMPLETE_V2",
@@ -57,10 +58,6 @@ const GENERIC_DECISION_CASE_TYPES = new Set([
   "IBM_INTEREST_V1",
   "IBM_EXPECTED_V1",
   "IBM_WITHDRAW_V1",
-  "DPM_RATE_REGISTER_V1",
-  "DPM_RATE_EDIT_V1",
-  "DPM_PAY_INTEREST_V1",
-  "DPM_CAPITALIZE_V1",
   "DPM_BATCH_INTEREST_V1",
 ])
 
@@ -204,6 +201,7 @@ function TransactionWorkbenchInner({
   } = useWorkbenchData(queryFilter, baseFilter)
   const [claimPending, setClaimPending] = useState(false)
   const [decisionItem, setDecisionItem] = useState<WorkItem | null>(null)
+  const [formItem, setFormItem] = useState<WorkItem | null>(null)
   const [decisionSubmitting, setDecisionSubmitting] = useState(false)
 
   const items = useMemo(
@@ -250,6 +248,12 @@ function TransactionWorkbenchInner({
 
   const openClaimedItem = useCallback(
     (item: WorkItem) => {
+      // Form host first: the server `formKey` decides the step UI. Case types
+      // with a dedicated domain screen keep their deep link (workItemHref).
+      if (taskFormRemoteFor(item.caseType)) {
+        setFormItem(item)
+        return
+      }
       if (item.caseType && GENERIC_DECISION_CASE_TYPES.has(item.caseType)) {
         setDecisionItem(item)
         return
@@ -299,13 +303,16 @@ function TransactionWorkbenchInner({
     [direction, openClaimedItem, reload, t]
   )
 
-  const confirmDecision = useCallback(
-    async (decision: ReviewDecision, comment: string) => {
-      const item = decisionItem
-      if (!item) return
+  const completeItem = useCallback(
+    async (
+      item: WorkItem,
+      decision: string,
+      comment: string,
+      extra?: Record<string, unknown>
+    ) => {
       if (!item.jobKey || !item.processInstanceKey) {
         notify.error(t("workflow.workbench.decision_error"))
-        return
+        return false
       }
       setDecisionSubmitting(true)
       try {
@@ -318,21 +325,52 @@ function TransactionWorkbenchInner({
             reviewDecision: decision,
             comment,
             reviewComment: comment,
+            ...extra,
           },
         })
         notify.success(t("workflow.workbench.decision_success"))
-        setDecisionItem(null)
         await reload()
+        return true
       } catch (error) {
         notify.error(
           t("workflow.workbench.decision_error"),
           error instanceof Error ? error.message : undefined
         )
+        return false
       } finally {
         setDecisionSubmitting(false)
       }
     },
-    [decisionItem, reload, t]
+    [reload, t]
+  )
+
+  const confirmDecision = useCallback(
+    async (decision: ReviewDecision, comment: string) => {
+      const item = decisionItem
+      if (!item) return
+      if (await completeItem(item, decision, comment)) {
+        setDecisionItem(null)
+      }
+    },
+    [decisionItem, completeItem]
+  )
+
+  const submitTaskForm = useCallback(
+    async (submission: TaskFormSubmit) => {
+      const item = formItem
+      if (!item) return
+      if (
+        await completeItem(
+          item,
+          submission.action,
+          submission.comment ?? "",
+          submission.variables
+        )
+      ) {
+        setFormItem(null)
+      }
+    },
+    [formItem, completeItem]
   )
 
   const claiming = direction === "incoming" && claimPending
@@ -419,9 +457,17 @@ function TransactionWorkbenchInner({
           )}
         </div>
       </div>
+      <TaskFormHost
+        item={formItem}
+        submitting={decisionSubmitting}
+        onClose={() => setFormItem(null)}
+        onSubmit={(submission) => void submitTaskForm(submission)}
+      />
       <DecisionDialog
         item={decisionItem}
         submitting={decisionSubmitting}
+        allowedActions={decisionItem?.allowedActions}
+        requiredCommentOn={decisionItem?.requiredCommentOn}
         onClose={() => setDecisionItem(null)}
         onConfirm={(decision, comment) =>
           void confirmDecision(decision, comment)
