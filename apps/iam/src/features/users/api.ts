@@ -128,9 +128,9 @@ export const usersApi = {
       items: res.items.map(normalizeUser),
     })),
   getUser: (id: string, tenantId: string) =>
-    getCanonical<UserApiItem>(targetPath(`/api/admin/users/${id}`, tenantId)).then(
-      normalizeUser
-    ),
+    getCanonical<UserApiItem>(
+      targetPath(`/api/admin/users/${id}`, tenantId)
+    ).then(normalizeUser),
   createUser: (data: CreateUserInput) =>
     postCanonical("/api/admin/users", toCreateUserBody(data)),
   updateUser: (id: string, tenantId: string, data: Record<string, unknown>) =>
@@ -173,16 +173,22 @@ export const usersApi = {
       kratosIdentityId: res.kratos_identity_id ?? res.kratosIdentityId ?? "",
     })),
   auditIdentityConsistency: () =>
-    getCanonical<{ ok: boolean; count: number; issues: IdentityConsistencyIssue[] }>(
-      "/api/admin/identity/consistency"
-    ),
+    getCanonical<{
+      ok: boolean
+      count: number
+      issues: IdentityConsistencyIssue[]
+    }>("/api/admin/identity/consistency"),
   listUserSessions: (id: string, tenantId: string) =>
     getCanonical<{ sessions: AdminUserSessionApiItem[] }>(
       targetPath(`/api/admin/users/${id}/sessions`, tenantId)
     ).then((res) => ({
       sessions: (res.sessions ?? []).map(normalizeAdminUserSession),
     })),
-  revokeUserSessions: (id: string, tenantId: string, reason = "admin_revoked") =>
+  revokeUserSessions: (
+    id: string,
+    tenantId: string,
+    reason = "admin_revoked"
+  ) =>
     deleteCanonical<{ status: string; count: number }>(
       targetPath(
         `/api/admin/users/${id}/sessions?reason=${encodeURIComponent(reason)}`,
@@ -223,6 +229,27 @@ export const usersApi = {
       `/api/admin/users/${userId}/organizations`,
       { organization_ids: organizationIds }
     ).then((res) => res.organization_ids),
+}
+
+const USERS_DIRECTORY_PAGE_SIZE = 100
+const USERS_DIRECTORY_MAX_PAGES = 100
+
+/**
+ * Load the complete user directory for client-side pickers. A verified global
+ * administrator reads across tenants; a tenant administrator is scoped to
+ * their actor tenant by the backend.
+ */
+export async function listAllUsers(): Promise<User[]> {
+  const items: User[] = []
+  for (let page = 1; page <= USERS_DIRECTORY_MAX_PAGES; page += 1) {
+    const res = await usersApi.listUsers({
+      page,
+      perPage: USERS_DIRECTORY_PAGE_SIZE,
+    })
+    items.push(...res.items)
+    if (res.items.length === 0 || items.length >= res.total) break
+  }
+  return items
 }
 
 export interface PlatformOrganizationOption {
