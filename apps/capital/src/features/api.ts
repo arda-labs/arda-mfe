@@ -38,6 +38,8 @@ export interface CapitalContract {
   journal_entry_id?: string
   created_by: string
   created_at?: string
+  /** Row version the checker saw — sent back as `dataVersion` on approve. */
+  data_version?: number
 }
 
 export interface CapitalMovement {

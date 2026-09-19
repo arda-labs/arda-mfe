@@ -26,6 +26,7 @@ export default defineConfig(({ command }) => ({
       // registered forms are declared here; add the owner when a form lands.
       remotes: {
         deposit: federationRemote("deposit", "DEPOSIT_REMOTE_ENTRY", command === "serve"),
+        capital: federationRemote("capital", "CAPITAL_REMOTE_ENTRY", command === "serve"),
       },
       shared: { ...remoteSharedDeps },
     }),

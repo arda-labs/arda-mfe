@@ -19,6 +19,9 @@ export const CASE_TYPE_FORM_REMOTE = {
   IBM_INTEREST_V1: "deposit",
   IBM_EXPECTED_V1: "deposit",
   IBM_WITHDRAW_V1: "deposit",
+  CFC_CONTRACT_V1: "capital",
+  CFC_AMENDMENT_V1: "capital",
+  CFC_MOVEMENT_V1: "capital",
 } as const
 
 export type TaskFormRemote =

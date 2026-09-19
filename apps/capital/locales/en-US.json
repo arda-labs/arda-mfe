@@ -42,6 +42,31 @@
   "field": {
     "journal": "Journal"
   },
+  "task_form": {
+    "loading": "Loading the fund contract...",
+    "field": {
+      "contract_code": "Contract code",
+      "counterparty": "Counterparty",
+      "amount": "Amount",
+      "rate": "Interest rate",
+      "status": "Status",
+      "kind": "Movement type",
+      "movement_amount": "Movement amount",
+      "movement_date": "Movement date",
+      "reason": "Reason",
+      "note": "Note"
+    },
+    "action": {
+      "confirm": "Confirm",
+      "approve": "Approve",
+      "request_changes": "Request changes",
+      "reject": "Reject"
+    },
+    "comment_label": "Comment / reason",
+    "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
+    "comment_required": "Please enter a processing comment",
+    "view_only": "View only — actions are disabled."
+  },
   "contracts": {
     "field": {
       "product": "Product",

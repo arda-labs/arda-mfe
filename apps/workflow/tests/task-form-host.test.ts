@@ -21,12 +21,15 @@ describe("taskFormRemoteFor", () => {
     expect(taskFormRemoteFor("IBM_INTEREST_V1")).toBe("deposit")
     expect(taskFormRemoteFor("IBM_EXPECTED_V1")).toBe("deposit")
     expect(taskFormRemoteFor("IBM_WITHDRAW_V1")).toBe("deposit")
+    expect(taskFormRemoteFor("CFC_CONTRACT_V1")).toBe("capital")
+    expect(taskFormRemoteFor("CFC_AMENDMENT_V1")).toBe("capital")
+    expect(taskFormRemoteFor("CFC_MOVEMENT_V1")).toBe("capital")
   })
 
   test("case types without a registered form keep the transition path", () => {
     expect(taskFormRemoteFor("FIN_SINGLE_ENTRY_V2")).toBeUndefined()
     expect(taskFormRemoteFor("CUSTOMER_REGISTRATION")).toBeUndefined()
-    expect(taskFormRemoteFor("CFC_CONTRACT_V1")).toBeUndefined()
+    expect(taskFormRemoteFor("LNM_DISB_REGISTER_V2")).toBeUndefined()
     expect(taskFormRemoteFor(undefined)).toBeUndefined()
   })
 })

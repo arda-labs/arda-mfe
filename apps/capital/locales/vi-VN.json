@@ -42,6 +42,31 @@
   "field": {
     "journal": "Bút toán"
   },
+  "task_form": {
+    "loading": "Đang tải hợp đồng vốn...",
+    "field": {
+      "contract_code": "Mã hợp đồng",
+      "counterparty": "Đối tác",
+      "amount": "Số tiền",
+      "rate": "Lãi suất",
+      "status": "Trạng thái",
+      "kind": "Loại giao dịch",
+      "movement_amount": "Số tiền giao dịch",
+      "movement_date": "Ngày giao dịch",
+      "reason": "Lý do",
+      "note": "Ghi chú"
+    },
+    "action": {
+      "confirm": "Xác nhận",
+      "approve": "Phê duyệt",
+      "request_changes": "Yêu cầu bổ sung",
+      "reject": "Từ chối"
+    },
+    "comment_label": "Ý kiến / lý do",
+    "comment_placeholder": "Nhập ý kiến xử lý (bắt buộc khi yêu cầu bổ sung hoặc từ chối)",
+    "comment_required": "Vui lòng nhập ý kiến xử lý",
+    "view_only": "Chỉ xem — không thao tác được."
+  },
   "contracts": {
     "field": {
       "product": "Sản phẩm",
