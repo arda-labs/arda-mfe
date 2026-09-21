@@ -124,7 +124,10 @@
   "fund_types": {
     "title": "Fund types",
     "create": "New fund type",
-    "edit": "Edit fund type"
+    "edit": "Edit fund type",
+    "deactivate": "Deactivate",
+    "deactivate_success": "Fund type deactivated",
+    "deactivate_failed": "Failed to deactivate fund type"
   },
   "products": {
     "title": "Fund products",

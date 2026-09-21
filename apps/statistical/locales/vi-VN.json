@@ -47,6 +47,9 @@
     "inactive": "Ngừng dùng",
     "save_success": "Đã lưu",
     "save_failed": "Không thể lưu",
+    "deactivate": "Ngừng dùng",
+    "deactivate_success": "Đã ngừng mục danh mục",
+    "deactivate_failed": "Không thể ngừng mục danh mục",
     "validation": {
       "required": "Nhập mã và tên",
       "invalid_json": "Thuộc tính phải là JSON hợp lệ"

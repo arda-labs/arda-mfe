@@ -47,6 +47,9 @@
     "inactive": "Inactive",
     "save_success": "Saved",
     "save_failed": "Could not save",
+    "deactivate": "Deactivate",
+    "deactivate_success": "Catalog item deactivated",
+    "deactivate_failed": "Failed to deactivate catalog item",
     "validation": {
       "required": "Enter code and name",
       "invalid_json": "Attributes must be valid JSON"

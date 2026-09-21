@@ -1,7 +1,18 @@
 import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
+import { translateApiError, useI18n } from "@workspace/i18n"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
+import { notify } from "@workspace/ui/feedback/notify"
 import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
@@ -29,6 +40,8 @@ export function FundTypesPage() {
   const { t } = useI18n()
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<FundType | null>(null)
+  const [deactivateTarget, setDeactivateTarget] = useState<FundType | null>(null)
+  const [deactivating, setDeactivating] = useState(false)
 
   const columns = useMemo<ColumnDef<FundType>[]>(
     () => [
@@ -75,7 +88,7 @@ export function FundTypesPage() {
         enableSorting: false,
         enableHiding: false,
         cell: ({ row }) => (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               className="text-xs font-semibold text-primary hover:underline"
@@ -83,6 +96,15 @@ export function FundTypesPage() {
             >
               {t("common.action.edit")}
             </button>
+            {row.original.is_active ? (
+              <button
+                type="button"
+                className="text-xs font-semibold text-destructive hover:underline"
+                onClick={() => setDeactivateTarget(row.original)}
+              >
+                {t("capital.fund_types.deactivate")}
+              </button>
+            ) : null}
           </div>
         ),
       },
@@ -116,6 +138,24 @@ export function FundTypesPage() {
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })
+
+  const handleDeactivate = async () => {
+    if (!deactivateTarget) return
+    setDeactivating(true)
+    try {
+      await capitalApi.deactivateFundType(deactivateTarget.id)
+      notify.success(t("capital.fund_types.deactivate_success"))
+      setDeactivateTarget(null)
+      await refetch()
+    } catch (err) {
+      notify.error(
+        t("capital.fund_types.deactivate_failed"),
+        translateApiError(err)
+      )
+    } finally {
+      setDeactivating(false)
+    }
+  }
 
   return (
     <ListPageShell
@@ -155,6 +195,33 @@ export function FundTypesPage() {
             fundType={editTarget}
             onSaved={() => void refetch()}
           />
+          <AlertDialog
+            open={deactivateTarget !== null}
+            onOpenChange={(next) => !next && setDeactivateTarget(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t("common.confirm.delete_title")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("common.confirm.delete_description", {
+                    item: deactivateTarget?.name ?? "",
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deactivating}
+                  onClick={() => void handleDeactivate()}
+                >
+                  {t("capital.fund_types.deactivate")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       }
     />

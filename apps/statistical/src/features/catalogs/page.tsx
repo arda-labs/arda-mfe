@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { useI18n } from "@workspace/i18n"
+import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -34,6 +44,10 @@ export function CatalogsPage() {
   const [loadError, setLoadError] = useState<unknown>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<CatalogItem | null>(null)
+  const [deactivateTarget, setDeactivateTarget] = useState<CatalogItem | null>(
+    null
+  )
+  const [deactivating, setDeactivating] = useState(false)
 
   useEffect(() => {
     void statisticalApi
@@ -117,7 +131,7 @@ export function CatalogsPage() {
         enableSorting: false,
         enableHiding: false,
         cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               className="text-xs font-semibold text-primary hover:underline"
@@ -128,6 +142,15 @@ export function CatalogsPage() {
             >
               {t("common.action.edit")}
             </button>
+            {row.original.is_active ? (
+              <button
+                type="button"
+                className="text-xs font-semibold text-destructive hover:underline"
+                onClick={() => setDeactivateTarget(row.original)}
+              >
+                {t("statistical.catalogs.deactivate")}
+              </button>
+            ) : null}
           </div>
         ),
       },
@@ -150,6 +173,24 @@ export function CatalogsPage() {
       }),
     defaultPageSize: 10,
   })
+
+  const handleDeactivate = async () => {
+    if (!deactivateTarget) return
+    setDeactivating(true)
+    try {
+      await statisticalApi.deactivateCatalogItem(kind, deactivateTarget.id)
+      notify.success(t("statistical.catalogs.deactivate_success"))
+      setDeactivateTarget(null)
+      await load()
+    } catch (err) {
+      notify.error(
+        t("statistical.catalogs.deactivate_failed"),
+        translateApiError(err)
+      )
+    } finally {
+      setDeactivating(false)
+    }
+  }
 
   return (
     <ListPageShell
@@ -195,13 +236,42 @@ export function CatalogsPage() {
         </div>
       }
       dialogs={
-        <CatalogDialog
-          open={formOpen}
-          onOpenChange={setFormOpen}
-          kind={kind}
-          item={editTarget}
-          onSaved={() => load()}
-        />
+        <>
+          <CatalogDialog
+            open={formOpen}
+            onOpenChange={setFormOpen}
+            kind={kind}
+            item={editTarget}
+            onSaved={() => load()}
+          />
+          <AlertDialog
+            open={deactivateTarget !== null}
+            onOpenChange={(next) => !next && setDeactivateTarget(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t("common.confirm.delete_title")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("common.confirm.delete_description", {
+                    item: deactivateTarget?.name ?? "",
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deactivating}
+                  onClick={() => void handleDeactivate()}
+                >
+                  {t("statistical.catalogs.deactivate")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       }
     />
   )
