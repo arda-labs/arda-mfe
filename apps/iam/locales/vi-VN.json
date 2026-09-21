@@ -50,6 +50,9 @@
   "permissions": {
     "create_success": "Đã tạo quyền",
     "create_failed": "Không tạo được quyền",
+    "edit": "Sửa quyền",
+    "update_success": "Đã cập nhật quyền",
+    "update_failed": "Không cập nhật được quyền",
     "delete_success": "Đã xóa quyền",
     "delete_failed": "Không xóa được quyền",
     "validation": {
@@ -69,9 +72,18 @@
     "title": "Tenant",
     "count": "{count} tenant",
     "create": "Tạo tenant",
+    "edit": "Sửa tenant",
     "create_success": "Đã tạo tenant",
     "create_failed": "Không tạo được tenant",
+    "update_success": "Đã cập nhật tenant",
+    "update_failed": "Không cập nhật được tenant",
     "search_placeholder": "Tìm tenant",
+    "status": {
+      "PROVISIONING": "Đang khởi tạo",
+      "ACTIVE": "Hoạt động",
+      "SUSPENDED": "Tạm ngưng",
+      "DELETING": "Đang xoá"
+    },
     "field": {
       "code_placeholder": "tenant-code",
       "name_placeholder": "Tên tenant"

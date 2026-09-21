@@ -1,4 +1,4 @@
-import { deleteCanonical, getCanonical, postCanonical } from "@workspace/api"
+import { deleteCanonical, getCanonical, postCanonical, putCanonical } from "@workspace/api"
 import { buildListSearchParams, type ListResponse } from "@workspace/api/list"
 import type { Tenant, TenantMember } from "./types"
 
@@ -39,6 +39,11 @@ export const tenantsApi = {
       name: data.name,
       owner_user_id: data.ownerUserId,
     }),
+  getTenant: (id: string) =>
+    getCanonical<Tenant>(`/api/admin/tenants/${encodeURIComponent(id)}`),
+  /** Edit a tenant (code is immutable). */
+  updateTenant: (id: string, data: { name?: string; status?: string }) =>
+    putCanonical<Tenant>(`/api/admin/tenants/${encodeURIComponent(id)}`, data),
   // The endpoint returns a bare array; older builds emitted `result: null`
   // for a tenant without active members — normalize so callers always get [].
   listTenantMembers: (tenantId: string) =>

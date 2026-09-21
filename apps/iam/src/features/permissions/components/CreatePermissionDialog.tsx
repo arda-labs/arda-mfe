@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -14,6 +14,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { permissionsApi } from "../api"
+import type { Permission } from "../types"
 
 const buildPermissionCreateSchema = (t: (key: string) => string) =>
   z.object({
@@ -61,12 +62,15 @@ type CreatePermissionDialogProps = {
   onOpenChange: (open: boolean) => void
   /** Called after a successful create so the page can refresh its server list. */
   onCreated?: () => void | Promise<void>
+  /** When set the dialog edits this permission (code is immutable). */
+  editing?: Permission | null
 }
 
 export function CreatePermissionDialog({
   open,
   onOpenChange,
   onCreated,
+  editing,
 }: CreatePermissionDialogProps) {
   const { t } = useI18n()
   const [saving, setSaving] = useState(false)
@@ -84,6 +88,21 @@ export function CreatePermissionDialog({
     defaultValues: initialValues,
   })
 
+  useEffect(() => {
+    if (!open) return
+    reset(
+      editing
+        ? {
+            code: editing.code,
+            name: editing.name,
+            module: editing.module,
+            resource: editing.resource,
+            operation: editing.operation,
+          }
+        : initialValues
+    )
+  }, [open, editing, reset])
+
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) reset(initialValues)
     onOpenChange(nextOpen)
@@ -92,12 +111,29 @@ export function CreatePermissionDialog({
   const handleCreate = handleSubmit(async (values) => {
     setSaving(true)
     try {
-      await permissionsApi.createPermission(values)
-      notify.success(t("iam.permissions.create_success"))
+      if (editing) {
+        await permissionsApi.updatePermission(editing.id, {
+          name: values.name,
+          module: values.module,
+          resource: values.resource,
+          operation: values.operation,
+        })
+        notify.success(t("iam.permissions.update_success"))
+      } else {
+        await permissionsApi.createPermission(values)
+        notify.success(t("iam.permissions.create_success"))
+      }
       onOpenChange(false)
       await onCreated?.()
     } catch (err) {
-      notify.error(t("iam.permissions.create_failed"), translateApiError(err))
+      notify.error(
+        t(
+          editing
+            ? "iam.permissions.update_failed"
+            : "iam.permissions.create_failed"
+        ),
+        translateApiError(err)
+      )
     } finally {
       setSaving(false)
     }
@@ -107,7 +143,11 @@ export function CreatePermissionDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("admin.permissions.create")}</DialogTitle>
+          <DialogTitle>
+            {editing
+              ? t("iam.permissions.edit")
+              : t("admin.permissions.create")}
+          </DialogTitle>
         </DialogHeader>
         <form className="space-y-3" onSubmit={handleCreate}>
           <FormField
@@ -116,6 +156,7 @@ export function CreatePermissionDialog({
           >
             <Input
               aria-invalid={Boolean(errors.code)}
+              disabled={Boolean(editing)}
               {...register("code")}
             />
           </FormField>
@@ -160,7 +201,7 @@ export function CreatePermissionDialog({
             type="submit"
             disabled={isSubmitting || saving}
           >
-            {t("common.action.create")}
+            {editing ? t("common.action.save") : t("common.action.create")}
           </Button>
         </form>
       </DialogContent>

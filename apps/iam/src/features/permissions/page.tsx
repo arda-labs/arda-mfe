@@ -25,11 +25,12 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { CreatePermissionDialog } from "./components/CreatePermissionDialog"
-import { Trash2 } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
 
 export function PermissionsPage() {
   const { t } = useI18n()
-  const [createOpen, setCreateOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<Permission | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Permission | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -111,7 +112,19 @@ export function PermissionsPage() {
           <div className="text-right">{t("common.field.action")}</div>
         ),
         cell: ({ row }) => (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => {
+                setEditing(row.original)
+                setDialogOpen(true)
+              }}
+              title={t("common.action.edit")}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -193,7 +206,10 @@ export function PermissionsPage() {
       toolbar={
         <ListTableToolbar
           table={table}
-          onCreate={() => setCreateOpen(true)}
+          onCreate={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
           createLabel={t("admin.permissions.create")}
           exportFilename={t("admin.permissions.title")}
           sheetName={t("admin.permissions.title")}
@@ -215,8 +231,12 @@ export function PermissionsPage() {
       dialogs={
         <>
           <CreatePermissionDialog
-            open={createOpen}
-            onOpenChange={setCreateOpen}
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open)
+              if (!open) setEditing(null)
+            }}
+            editing={editing}
             onCreated={() => void refetch()}
           />
           <AlertDialog

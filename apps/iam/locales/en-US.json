@@ -50,6 +50,9 @@
   "permissions": {
     "create_success": "Permission created",
     "create_failed": "Failed to create permission",
+    "edit": "Edit permission",
+    "update_success": "Permission updated",
+    "update_failed": "Failed to update permission",
     "delete_success": "Permission deleted",
     "delete_failed": "Failed to delete permission",
     "validation": {
@@ -69,9 +72,18 @@
     "title": "Tenants",
     "count": "{count} tenants",
     "create": "Create tenant",
+    "edit": "Edit tenant",
     "create_success": "Tenant created",
     "create_failed": "Failed to create tenant",
+    "update_success": "Tenant updated",
+    "update_failed": "Failed to update tenant",
     "search_placeholder": "Search tenants",
+    "status": {
+      "PROVISIONING": "Provisioning",
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended",
+      "DELETING": "Deleting"
+    },
     "field": {
       "code_placeholder": "tenant-code",
       "name_placeholder": "Tenant name"

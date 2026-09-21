@@ -14,11 +14,12 @@ import { textSearchMeta } from "@workspace/list-page/column-filters"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { CreateTenantDialog } from "./components/create-tenant-dialog"
 import { TenantMembersDialog } from "./components/tenant-members-dialog"
-import { Users } from "lucide-react"
+import { Users, Pencil } from "lucide-react"
 
 export function TenantsPage() {
   const { t, formatDate } = useI18n()
-  const [createOpen, setCreateOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<Tenant | null>(null)
   const [memberTarget, setMemberTarget] = useState<Tenant | null>(null)
 
   const columns = useMemo<ColumnDef<Tenant>[]>(
@@ -113,7 +114,19 @@ export function TenantsPage() {
           <div className="text-right">{t("common.field.action")}</div>
         ),
         cell: ({ row }) => (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              onClick={() => {
+                setEditing(row.original)
+                setDialogOpen(true)
+              }}
+              title={t("common.action.edit")}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -177,7 +190,10 @@ export function TenantsPage() {
       toolbar={
         <ListTableToolbar
           table={table}
-          onCreate={() => setCreateOpen(true)}
+          onCreate={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
           createLabel={t("iam.tenants.create")}
           exportFilename={t("iam.tenants.title")}
           sheetName={t("iam.tenants.title")}
@@ -187,8 +203,12 @@ export function TenantsPage() {
       dialogs={
         <>
           <CreateTenantDialog
-            open={createOpen}
-            onOpenChange={setCreateOpen}
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open)
+              if (!open) setEditing(null)
+            }}
+            editing={editing}
             onCreated={() => void refetch()}
           />
           <TenantMembersDialog

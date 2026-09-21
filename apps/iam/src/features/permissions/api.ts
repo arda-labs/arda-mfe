@@ -1,4 +1,4 @@
-import { deleteCanonical, getCanonical, postCanonical } from "@workspace/api"
+import { deleteCanonical, getCanonical, postCanonical, putCanonical } from "@workspace/api"
 import type { ListResponse } from "@workspace/api/list"
 import { buildAdminListQuery, type AdminListInput } from "../users/api"
 import type { Permission, PermissionApiItem } from "./types"
@@ -32,5 +32,15 @@ export const permissionsApi = {
     resource: string
     operation: string
   }) => postCanonical("/api/admin/permissions", data),
+  /** Edit a permission (code is immutable). */
+  updatePermission: (
+    id: string,
+    data: {
+      name?: string
+      module?: string
+      resource?: string
+      operation?: string
+    }
+  ) => putCanonical(`/api/admin/permissions/${encodeURIComponent(id)}`, data),
   deletePermission: (id: string) => deleteCanonical(`/api/admin/permissions/${id}`),
 }
