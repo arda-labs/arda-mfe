@@ -384,16 +384,26 @@
     },
     "profiles": {
       "title": "Model profiles",
-      "description": "Configure multiple provider profiles, each with many Model IDs. Apply one Model ID to the tenant.",
+      "description": "Manage multiple provider profiles, each with many Model IDs. Pick a profile, pick its default Model ID, then apply it to the tenant.",
       "empty": "No profiles yet. Add one to get started.",
       "applied": "Applied",
       "active_model": "In use",
       "no_models": "This profile has no Model IDs yet.",
+      "select_hint": "Select this profile to choose its default Model ID.",
+      "no_model_selected": "Pick a Model ID to apply.",
+      "summary": {
+        "label": "Active configuration:",
+        "empty": "No configuration applied yet. Pick a profile and a Model ID below."
+      },
+      "step": {
+        "profile": "Select a profile",
+        "model": "Pick the default Model ID, then apply."
+      },
       "btn": {
         "add": "Add profile",
         "add_model": "Add model",
         "test": "Test",
-        "apply": "Apply"
+        "apply_config": "Apply configuration"
       },
       "field": {
         "name": "Profile name",

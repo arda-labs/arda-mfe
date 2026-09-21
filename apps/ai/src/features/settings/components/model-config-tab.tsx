@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import {
@@ -11,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -20,69 +19,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import { Textarea } from "@workspace/ui/components/textarea"
-import {
-  CheckCircle2,
-  Cpu,
-  Eye,
-  EyeOff,
-  Pencil,
-  PlugZap,
-  Plus,
-  Trash2,
-} from "lucide-react"
-import {
-  addProfileModels,
-  applyProfileModel,
-  createProfile,
-  deleteProfile,
-  deleteProfileModel,
-  fetchProfiles,
-  testProfileModel,
-  updateProfile,
-  type AIProfile,
-  type AIProviderType,
-} from "../api"
+import { RadioGroup } from "@workspace/ui/components/radio-group"
+import { cn } from "@workspace/ui/lib/utils"
+import { AlertCircle, CheckCircle2, Cpu, Plus } from "lucide-react"
+import { deleteProfile, fetchProfiles, type AIProfile } from "../api"
+import { ProfileCard } from "./profile-card"
+import { ProfileDialog } from "./profile-dialog"
 
-type ProfileForm = {
-  name: string
-  providerType: AIProviderType
-  baseUrl: string
-  apiKey: string
-  models: string
+interface ProfileSelection {
+  profileId: string
+  modelId: string
 }
 
-const providerPresets: Array<{ value: AIProviderType; defaultURL: string }> = [
-  { value: "openai", defaultURL: "https://api.openai.com/v1" },
-  { value: "opencode-go", defaultURL: "https://opencode.ai/zen/go/v1" },
-  { value: "ollama", defaultURL: "http://localhost:11434/v1" },
-  { value: "vllm", defaultURL: "http://vllm.internal:8000/v1" },
-  { value: "openai-compatible", defaultURL: "" },
-]
+/** Last-used model of a profile (the stale `isActive` flag) or its first. */
+function defaultModelFor(profile: AIProfile): string {
+  return (
+    profile.models.find((model) => model.isActive)?.modelId ??
+    profile.models[0]?.modelId ??
+    ""
+  )
+}
 
-const emptyForm: ProfileForm = { name: "", providerType: "openai", baseUrl: "https://api.openai.com/v1", apiKey: "", models: "" }
+const emptySelection: ProfileSelection = { profileId: "", modelId: "" }
 
 export function ModelConfigTab() {
   const { t } = useI18n()
   const [profiles, setProfiles] = useState<AIProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [selection, setSelection] = useState<ProfileSelection>(emptySelection)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<AIProfile | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AIProfile | null>(null)
@@ -101,6 +65,41 @@ export function ModelConfigTab() {
   useEffect(() => {
     void load()
   }, [load])
+
+  // Keep the staged profile/model valid as profiles are added, edited or
+  // removed; fall back to the tenant's applied configuration first.
+  useEffect(() => {
+    setSelection((prev) => {
+      const current = profiles.find((p) => p.id === prev.profileId)
+      if (current) {
+        if (current.models.some((m) => m.modelId === prev.modelId)) return prev
+        return { profileId: current.id, modelId: defaultModelFor(current) }
+      }
+      const fallback = profiles.find((p) => p.isActive) ?? profiles[0]
+      if (!fallback) return emptySelection
+      return { profileId: fallback.id, modelId: defaultModelFor(fallback) }
+    })
+  }, [profiles])
+
+  const activeProfile = useMemo(
+    () => profiles.find((profile) => profile.isActive) ?? null,
+    [profiles]
+  )
+  const appliedModelId = useMemo(
+    () =>
+      activeProfile?.models.find((model) => model.isActive)?.modelId ?? null,
+    [activeProfile]
+  )
+
+  const selectProfile = (profileId: string) => {
+    const profile = profiles.find((item) => item.id === profileId)
+    if (!profile) return
+    setSelection({ profileId, modelId: defaultModelFor(profile) })
+  }
+
+  const selectModel = (profileId: string, modelId: string) => {
+    setSelection({ profileId, modelId })
+  }
 
   const openCreate = () => {
     setEditing(null)
@@ -152,6 +151,37 @@ export function ModelConfigTab() {
             </Button>
           </div>
         </CardHeader>
+        <CardContent className="pt-0">
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-xs",
+              activeProfile && appliedModelId
+                ? "border-success/30 bg-success/5"
+                : "border-dashed bg-muted/40"
+            )}
+          >
+            {activeProfile && appliedModelId ? (
+              <>
+                <CheckCircle2 className="size-3.5 shrink-0 text-success" />
+                <span className="text-muted-foreground">
+                  {t("ai.settings.profiles.summary.label")}
+                </span>
+                <span className="font-medium">{activeProfile.name}</span>
+                <span className="text-muted-foreground">·</span>
+                <code className="font-mono text-[11px]">
+                  {appliedModelId}
+                </code>
+              </>
+            ) : (
+              <>
+                <AlertCircle className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  {t("ai.settings.profiles.summary.empty")}
+                </span>
+              </>
+            )}
+          </div>
+        </CardContent>
       </Card>
 
       {loading ? (
@@ -166,15 +196,35 @@ export function ModelConfigTab() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {profiles.map((profile) => (
-            <ProfileCard
-              key={profile.id}
-              profile={profile}
-              onChanged={load}
-              onEdit={openEdit}
-              onDelete={setDeleteTarget}
-            />
-          ))}
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+              1
+            </span>
+            {t("ai.settings.profiles.step.profile")}
+          </div>
+          <RadioGroup
+            value={selection.profileId}
+            onValueChange={selectProfile}
+            className="gap-3"
+          >
+            {profiles.map((profile) => (
+              <ProfileCard
+                key={profile.id}
+                profile={profile}
+                isSelected={selection.profileId === profile.id}
+                selectedModelId={
+                  selection.profileId === profile.id ? selection.modelId : ""
+                }
+                appliedModelId={
+                  activeProfile?.id === profile.id ? appliedModelId : null
+                }
+                onSelectModel={selectModel}
+                onChanged={load}
+                onEdit={openEdit}
+                onDelete={setDeleteTarget}
+              />
+            ))}
+          </RadioGroup>
         </div>
       )}
 
@@ -219,449 +269,5 @@ export function ModelConfigTab() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
-}
-
-function ProfileCard({
-  profile,
-  onChanged,
-  onEdit,
-  onDelete,
-}: {
-  profile: AIProfile
-  onChanged: () => Promise<void>
-  onEdit: (profile: AIProfile) => void
-  onDelete: (profile: AIProfile) => void
-}) {
-  const { t } = useI18n()
-  const [newModel, setNewModel] = useState("")
-  const [adding, setAdding] = useState(false)
-  const [busyModel, setBusyModel] = useState("")
-  const [testResult, setTestResult] = useState<Record<string, string>>({})
-
-  const handleAddModel = async () => {
-    const value = newModel.trim()
-    if (!value) return
-    setAdding(true)
-    try {
-      await addProfileModels(profile.id, [value])
-      setNewModel("")
-      await onChanged()
-    } catch (err) {
-      notify.error(
-        t("ai.settings.profiles.toast.model_add_failed"),
-        err instanceof Error ? err.message : String(err)
-      )
-    } finally {
-      setAdding(false)
-    }
-  }
-
-  const handleApply = async (modelId: string) => {
-    setBusyModel(modelId)
-    try {
-      await applyProfileModel(profile.id, modelId)
-      notify.success(
-        t("ai.settings.profiles.toast.applied", { model: modelId })
-      )
-      await onChanged()
-    } catch (err) {
-      notify.error(
-        t("ai.settings.profiles.toast.apply_failed"),
-        err instanceof Error ? err.message : String(err)
-      )
-    } finally {
-      setBusyModel("")
-    }
-  }
-
-  const handleDeleteModel = async (modelId: string) => {
-    setBusyModel(modelId)
-    try {
-      await deleteProfileModel(profile.id, modelId)
-      await onChanged()
-    } catch (err) {
-      notify.error(
-        t("ai.settings.profiles.toast.model_delete_failed"),
-        err instanceof Error ? err.message : String(err)
-      )
-    } finally {
-      setBusyModel("")
-    }
-  }
-
-  const handleTest = async (modelId: string) => {
-    setBusyModel(modelId)
-    setTestResult((prev) => ({ ...prev, [modelId]: "" }))
-    try {
-      const res = await testProfileModel(profile.id, modelId)
-      setTestResult((prev) => ({
-        ...prev,
-        [modelId]: res.success
-          ? t("ai.settings.profiles.test.success", { latency: res.latencyMs ?? 0 })
-          : res.error || t("ai.settings.profiles.test.failed"),
-      }))
-    } catch (err) {
-      setTestResult((prev) => ({
-        ...prev,
-        [modelId]: err instanceof Error ? err.message : String(err),
-      }))
-    } finally {
-      setBusyModel("")
-    }
-  }
-
-  return (
-    <Card className={`shadow-xs ${profile.isActive ? "border-primary/50" : ""}`}>
-      <CardHeader className="pb-3">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0 space-y-1">
-            <div className="flex items-center gap-2">
-              <CardTitle className="truncate text-sm font-semibold">
-                {profile.name}
-              </CardTitle>
-              <Badge variant="outline" className="text-[10px]">
-                {t(`ai.settings.profiles.provider.${profile.providerType}`)}
-              </Badge>
-              {profile.isActive && (
-                <Badge variant="default" className="gap-1 text-[10px]">
-                  <CheckCircle2 className="size-3" />
-                  {t("ai.settings.profiles.applied")}
-                </Badge>
-              )}
-            </div>
-            <CardDescription className="truncate font-mono text-[11px]">
-              {profile.baseUrl}
-            </CardDescription>
-          </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              onClick={() => onEdit(profile)}
-              aria-label={t("common.action.edit")}
-            >
-              <Pencil className="size-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 text-destructive"
-              onClick={() => onDelete(profile)}
-              aria-label={t("common.action.delete")}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2 pt-0 text-xs">
-        {profile.models.length === 0 ? (
-          <p className="text-[11px] text-muted-foreground">
-            {t("ai.settings.profiles.no_models")}
-          </p>
-        ) : (
-          profile.models.map((model) => (
-            <div
-              key={model.id}
-              className="flex flex-wrap items-center gap-2 rounded-md border px-2.5 py-1.5"
-            >
-              <span className="font-mono text-[11px]">{model.modelId}</span>
-              {model.isActive && (
-                <Badge variant="secondary" className="text-[10px]">
-                  {t("ai.settings.profiles.active_model")}
-                </Badge>
-              )}
-              {testResult[model.modelId] && (
-                <span className="text-[10px] text-muted-foreground">
-                  {testResult[model.modelId]}
-                </span>
-              )}
-              <div className="ml-auto flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 gap-1 text-[11px]"
-                  disabled={busyModel === model.modelId}
-                  onClick={() => handleTest(model.modelId)}
-                >
-                  <PlugZap className="size-3" />
-                  {t("ai.settings.profiles.btn.test")}
-                </Button>
-                <Button
-                  size="sm"
-                  className="h-7 text-[11px]"
-                  disabled={model.isActive || busyModel === model.modelId}
-                  onClick={() => handleApply(model.modelId)}
-                >
-                  {t("ai.settings.profiles.btn.apply")}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 text-destructive"
-                  disabled={model.isActive || busyModel === model.modelId}
-                  onClick={() => handleDeleteModel(model.modelId)}
-                  aria-label={t("common.action.delete")}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
-
-        <div className="flex items-center gap-2 pt-1">
-          <Input
-            className="h-8 max-w-xs text-xs font-mono"
-            value={newModel}
-            onChange={(e) => setNewModel(e.target.value)}
-            placeholder={t("ai.settings.profiles.placeholder.model_id")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                void handleAddModel()
-              }
-            }}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1 text-xs"
-            disabled={adding || newModel.trim() === ""}
-            onClick={handleAddModel}
-          >
-            <Plus className="size-3.5" />
-            {t("ai.settings.profiles.btn.add_model")}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function ProfileDialog({
-  open,
-  onOpenChange,
-  editing,
-  onSaved,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  editing: AIProfile | null
-  onSaved: () => Promise<void>
-}) {
-  const { t } = useI18n()
-  const [form, setForm] = useState<ProfileForm>(emptyForm)
-  const [showKey, setShowKey] = useState(false)
-  const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    if (!open) return
-    if (editing) {
-      setForm({
-        name: editing.name,
-        providerType: editing.providerType || "openai-compatible",
-        baseUrl: editing.baseUrl,
-        apiKey: editing.apiKey ?? "",
-        models: "",
-      })
-    } else {
-      setForm(emptyForm)
-    }
-    setShowKey(false)
-  }, [open, editing])
-
-  const submit = async () => {
-    const name = form.name.trim()
-    const baseUrl = form.baseUrl.trim()
-    const apiKey = form.apiKey.trim()
-    if (!name || !baseUrl || (!editing && !apiKey)) {
-      notify.error(t("ai.settings.profiles.validation.required"))
-      return
-    }
-    const models = form.models
-      .split(/[\n,]+/)
-      .map((m) => m.trim())
-      .filter(Boolean)
-    setSaving(true)
-    try {
-      if (editing) {
-        await updateProfile(editing.id, { name, providerType: form.providerType, baseUrl, apiKey })
-        notify.success(t("ai.settings.profiles.toast.updated"))
-      } else {
-        await createProfile({ name, providerType: form.providerType, baseUrl, apiKey, models })
-        notify.success(t("ai.settings.profiles.toast.created"))
-      }
-      onOpenChange(false)
-      await onSaved()
-    } catch (err) {
-      notify.error(
-        t("ai.settings.profiles.toast.save_failed"),
-        err instanceof Error ? err.message : String(err)
-      )
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-sm">
-            {editing
-              ? t("ai.settings.profiles.dialog.edit_title")
-              : t("ai.settings.profiles.dialog.create_title")}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            {t("ai.settings.profiles.dialog.description")}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-3 text-xs">
-          <div className="space-y-1.5">
-            <Label className="text-xs">
-              {t("ai.settings.profiles.field.provider")}
-            </Label>
-            <Select
-              value={form.providerType}
-              onValueChange={(value) => {
-                const preset = providerPresets.find((item) => item.value === value)
-                setForm((current) => ({
-                  ...current,
-                  providerType: value as AIProviderType,
-                  baseUrl: preset?.defaultURL ?? current.baseUrl,
-                }))
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {providerPresets.map((preset) => (
-                  <SelectItem key={preset.value} value={preset.value} className="text-xs">
-                    {t(`ai.settings.profiles.provider.${preset.value}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-muted-foreground">
-              {t(`ai.settings.profiles.provider_hint.${form.providerType}`)}
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs">
-              {t("ai.settings.profiles.field.name")}
-            </Label>
-            <Input
-              className="h-8 text-xs"
-              value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder={t("ai.settings.profiles.placeholder.name")}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs">
-              {t("ai.settings.profiles.field.base_url")}
-            </Label>
-            <Input
-              className="h-8 font-mono text-xs"
-              value={form.baseUrl}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, baseUrl: e.target.value }))
-              }
-              placeholder="https://api.openai.com/v1"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs">
-              {t("ai.settings.profiles.field.api_key")}
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                type={showKey ? "text" : "password"}
-                className="h-8 font-mono text-xs"
-                value={form.apiKey}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, apiKey: e.target.value }))
-                }
-                placeholder={
-                  editing?.hasApiKey
-                    ? t("ai.settings.model.placeholder.api_key_existing")
-                    : "sk-..."
-                }
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0"
-                onClick={() => setShowKey((p) => !p)}
-                aria-label={
-                  showKey
-                    ? t("ai.settings.model.btn.hide_key")
-                    : t("ai.settings.model.btn.show_key")
-                }
-              >
-                {showKey ? (
-                  <EyeOff className="size-3.5" />
-                ) : (
-                  <Eye className="size-3.5" />
-                )}
-              </Button>
-            </div>
-            {editing?.hasApiKey && (
-              <p className="text-[10px] text-muted-foreground">
-                {t("ai.settings.model.api_key_saved")}
-              </p>
-            )}
-          </div>
-
-          {!editing && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">
-                {t("ai.settings.profiles.field.models")}
-              </Label>
-              <Textarea
-                className="min-h-[72px] font-mono text-xs"
-                value={form.models}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, models: e.target.value }))
-                }
-                placeholder={t("ai.settings.profiles.placeholder.models")}
-              />
-              <p className="text-[10px] text-muted-foreground">
-                {t("ai.settings.profiles.field.models_hint")}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs"
-            disabled={saving}
-            onClick={() => onOpenChange(false)}
-          >
-            {t("common.action.cancel")}
-          </Button>
-          <Button
-            size="sm"
-            className="text-xs"
-            disabled={saving}
-            onClick={submit}
-          >
-            {saving ? t("common.action.saving") : t("common.action.save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }

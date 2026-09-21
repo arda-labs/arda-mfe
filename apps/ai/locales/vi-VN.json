@@ -384,16 +384,26 @@
     },
     "profiles": {
       "title": "Hồ sơ model",
-      "description": "Cấu hình nhiều hồ sơ nhà cung cấp, mỗi hồ sơ có nhiều Model ID. Chọn một Model ID để áp dụng cho tenant.",
+      "description": "Quản lý nhiều hồ sơ nhà cung cấp, mỗi hồ sơ có nhiều Model ID. Chọn một hồ sơ, chọn Model ID mặc định rồi áp dụng cho tenant.",
       "empty": "Chưa có hồ sơ nào. Thêm hồ sơ để bắt đầu.",
       "applied": "Đang áp dụng",
       "active_model": "Đang dùng",
       "no_models": "Hồ sơ chưa có Model ID nào.",
+      "select_hint": "Chọn hồ sơ này để đặt Model ID mặc định.",
+      "no_model_selected": "Chọn một Model ID để áp dụng.",
+      "summary": {
+        "label": "Cấu hình đang dùng:",
+        "empty": "Chưa áp dụng cấu hình nào. Chọn hồ sơ và Model ID bên dưới."
+      },
+      "step": {
+        "profile": "Chọn hồ sơ",
+        "model": "Chọn Model ID mặc định, sau đó áp dụng."
+      },
       "btn": {
         "add": "Thêm hồ sơ",
         "add_model": "Thêm model",
         "test": "Kiểm tra",
-        "apply": "Áp dụng"
+        "apply_config": "Áp dụng cấu hình"
       },
       "field": {
         "name": "Tên hồ sơ",
