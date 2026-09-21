@@ -29,6 +29,21 @@ export type CustomerTaskContext = {
   processInstanceKey: string | null
   elementId: string | null
   role: WorkflowTaskRole
+  /** Server task status (READY/CLAIMED/COMPLETED/…); null for URL-only contexts. */
+  workItemStatus: string | null
+}
+
+const ACTIONABLE_WORK_ITEM_STATUSES = new Set(["READY", "CLAIMED"])
+
+/**
+ * A deep-linked work item exposes its real status, so a task that was already
+ * completed/cancelled must render view-only even if the URL still carries a
+ * maker role. URL-only contexts (no work item id) stay actionable: the screen
+ * claims the live engine task on demand.
+ */
+export function isActionableWorkItem(context: CustomerTaskContext) {
+  if (!context.workItemStatus) return true
+  return ACTIONABLE_WORK_ITEM_STATUSES.has(context.workItemStatus)
 }
 
 export function effectiveBpmnElementId(
@@ -180,6 +195,7 @@ function taskContextFromWorkItem(item: WorkflowWorkItem): CustomerTaskContext {
     processInstanceKey: workflowKey(item.processInstanceKey),
     elementId: item.stepCode ?? null,
     role: roleParam(item.candidateRole ?? null),
+    workItemStatus: item.status ?? null,
   }
 }
 
@@ -218,6 +234,7 @@ export function taskContextFromSearchParams(
     processInstanceKey: stringParam(params, "processInstanceKey"),
     elementId: params.get("elementId"),
     role: roleParam(params.get("role")),
+    workItemStatus: null,
   }
 }
 

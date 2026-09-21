@@ -132,6 +132,11 @@ export interface WorkflowWorkItem {
   jobKey?: string | number
   stepCode?: string
   candidateRole?: string
+  caseType?: string
+  /** ROUTING | READY | CLAIMED | COMPLETED | CANCELLED (server task status). */
+  status?: string
+  canClaim?: boolean
+  canOpen?: boolean
 }
 
 export interface WorkflowCase {

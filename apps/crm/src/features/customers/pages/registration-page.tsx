@@ -46,6 +46,7 @@ import {
 } from "../schemas"
 import {
   hasTaskContext,
+  isActionableWorkItem,
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
   useCustomerTaskContext,
@@ -102,15 +103,20 @@ export function CustomerRegistrationPage({
   const canAddRelationship = isPersonal && !!savedCustomer?.id
   const isSubmitted = savedCustomer?.status === "SUBMITTED"
   const isActive = savedCustomer?.status === "ACTIVE"
+  // A deep-linked work item already completed/cancelled stays view-only; only
+  // the case's live task may be edited or decided.
+  const taskActionable = isActionableWorkItem(taskContext)
   const canEditTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
-    taskContext.role === "CUSTOMER_MAKER"
+    taskContext.role === "CUSTOMER_MAKER" &&
+    taskActionable
   const canCancelDraft =
     savedCustomer?.status === "DRAFT" ||
     savedCustomer?.status === "NEEDS_CHANGES"
   const awaitingMakerResubmit = savedCustomer?.status === "NEEDS_CHANGES"
-  const isReadonly = viewOnly || isActive || (isSubmitted && !canEditTask)
+  const isReadonly =
+    viewOnly || isActive || !taskActionable || (isSubmitted && !canEditTask)
   // EPAS lib-bpm-tabs: the two system tabs (Hồ sơ đính kèm + Lưu vết tác vụ)
   // come after the business tabs. The case id comes from the task context
   // (work item / deep-link params), falling back to the case created when the
@@ -123,7 +129,8 @@ export function CustomerRegistrationPage({
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
-    taskContext.role !== "CUSTOMER_MAKER"
+    taskContext.role !== "CUSTOMER_MAKER" &&
+    taskActionable
   const pageTitle = canEditTask
     ? t("crm.customers.registrations.edit_title")
     : canCompleteTask
@@ -195,13 +202,15 @@ export function CustomerRegistrationPage({
     }
   }, [timelineCaseId])
 
-  const latestRequestChangesNote = useMemo(() => {
+  const latestReworkNote = useMemo(() => {
+    const reworkEvents = new Set([
+      "CHECKER_REQUEST_CHANGES",
+      "VALIDATION_FAILED",
+    ])
     for (let i = timelineEvents.length - 1; i >= 0; i -= 1) {
-      if (
-        timelineEvents[i]?.eventType === "CHECKER_REQUEST_CHANGES" &&
-        timelineEvents[i]?.note
-      ) {
-        return timelineEvents[i].note
+      const event = timelineEvents[i]
+      if (event?.eventType && reworkEvents.has(event.eventType) && event.note) {
+        return event.note
       }
     }
     return ""
@@ -543,7 +552,7 @@ export function CustomerRegistrationPage({
                       "crm.customers.registrations.needs_changes_banner_title"
                     )}
                   </p>
-                  {latestRequestChangesNote ? (
+                  {latestReworkNote ? (
                     <p className="mt-1">
                       <span className="font-medium">
                         {t(
@@ -551,7 +560,7 @@ export function CustomerRegistrationPage({
                         )}
                         :{" "}
                       </span>
-                      {latestRequestChangesNote}
+                      {latestReworkNote}
                     </p>
                   ) : (
                     <p className="mt-1">

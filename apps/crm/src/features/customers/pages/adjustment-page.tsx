@@ -39,6 +39,7 @@ import {
 } from "../schemas"
 import {
   hasTaskContext,
+  isActionableWorkItem,
   isViewOnlyTaskContext,
   resolveWorkflowJobKey,
   useCustomerTaskContext,
@@ -175,7 +176,9 @@ export function CustomerAdjustmentPage({
     void loadAmendment()
   }, [loadAmendment])
 
-  const readOnly = viewOnly || amendment?.status === "PENDING"
+  const taskActionable = isActionableWorkItem(taskContext)
+  const readOnly =
+    viewOnly || amendment?.status === "PENDING" || !taskActionable
   const canEdit = amendment?.status === "DRAFT"
   // EPAS lib-bpm-tabs: system tabs follow "Thông tin điều chỉnh". When the case
   // has not been started yet (new adjustment), fall back to attaching files to
@@ -206,11 +209,13 @@ export function CustomerAdjustmentPage({
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
-    taskContext.role !== "CUSTOMER_MAKER"
+    taskContext.role !== "CUSTOMER_MAKER" &&
+    taskActionable
   const canEditTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
-    taskContext.role === "CUSTOMER_MAKER"
+    taskContext.role === "CUSTOMER_MAKER" &&
+    taskActionable
   const pageTitle = canEditTask
     ? t("crm.customers.adjustments.edit_title")
     : canCompleteTask
