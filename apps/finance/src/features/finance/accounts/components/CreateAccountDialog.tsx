@@ -1,11 +1,12 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { accountsApi } from "@/features/finance/api"
+import { accountsApi, type Account } from "@/features/finance/api"
 import { notify } from "@workspace/ui/feedback/notify"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -59,18 +60,21 @@ const accountDefaultValues: AccountFormValues = {
   currency: "VND",
 }
 
-/** Create dialog for the account master (BE is create-only: no update/delete). */
+/** Create/edit dialog for the account master (code is immutable when editing). */
 export function CreateAccountDialog({
   open,
   onOpenChange,
   onCreated,
+  editing,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreated: () => Promise<void>
+  editing?: Account | null
 }) {
   const { t } = useI18n()
   const [saving, setSaving] = useState(false)
+  const [isActive, setIsActive] = useState(true)
   const {
     control,
     formState: { errors, isSubmitting },
@@ -83,21 +87,56 @@ export function CreateAccountDialog({
     defaultValues: accountDefaultValues,
   })
 
+  useEffect(() => {
+    if (!open) return
+    if (editing) {
+      reset({
+        code: editing.code,
+        name: editing.name,
+        type: editing.type as AccountFormValues["type"],
+        normalBalance: editing.normalBalance as AccountFormValues["normalBalance"],
+        currency: editing.currency,
+      })
+      setIsActive(editing.isActive)
+      return
+    }
+    reset(accountDefaultValues)
+    setIsActive(true)
+  }, [open, editing, reset])
+
   const handleOpenChange = (nextOpen: boolean) => {
     onOpenChange(nextOpen)
-    if (!nextOpen) reset(accountDefaultValues)
+    if (!nextOpen) {
+      reset(accountDefaultValues)
+      setIsActive(true)
+    }
   }
 
-  const handleCreate = handleSubmit(async (values) => {
+  const handleSubmitForm = handleSubmit(async (values) => {
     setSaving(true)
     try {
-      await accountsApi.createAccount(values)
-      notify.success(t("finance.accounts.create_success"))
+      if (editing) {
+        await accountsApi.updateAccount(editing.id, {
+          name: values.name,
+          type: values.type,
+          normalBalance: values.normalBalance,
+          currency: values.currency,
+          isActive,
+        })
+        notify.success(t("finance.accounts.update_success"))
+      } else {
+        await accountsApi.createAccount(values)
+        notify.success(t("finance.accounts.create_success"))
+      }
       handleOpenChange(false)
       await onCreated()
     } catch (reason) {
       notify.error(
-        t("finance.accounts.create_failed"),
+        t(
+          editing
+            ? "finance.accounts.update_failed"
+            : "finance.accounts.create_failed"
+        ),
         translateApiError(reason)
       )
     } finally {
@@ -121,15 +160,20 @@ export function CreateAccountDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("finance.accounts.create")}</DialogTitle>
+          <DialogTitle>
+            {editing
+              ? t("finance.accounts.edit")
+              : t("finance.accounts.create")}
+          </DialogTitle>
         </DialogHeader>
-        <form className="space-y-3" onSubmit={handleCreate}>
+        <form className="space-y-3" onSubmit={handleSubmitForm}>
           <FormField
             label={t("common.field.code")}
             error={errors.code?.message}
           >
             <Input
               aria-invalid={Boolean(errors.code)}
+              disabled={Boolean(editing)}
               {...register("code")}
             />
           </FormField>
@@ -189,12 +233,21 @@ export function CreateAccountDialog({
               {...register("currency")}
             />
           </FormField>
+          {editing ? (
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={isActive}
+                onCheckedChange={(checked) => setIsActive(checked === true)}
+              />
+              {t("common.status.active")}
+            </label>
+          ) : null}
           <Button
             className="w-full"
             type="submit"
             disabled={isSubmitting || saving}
           >
-            {t("common.action.create")}
+            {editing ? t("common.action.save") : t("common.action.create")}
           </Button>
         </form>
       </DialogContent>

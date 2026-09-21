@@ -13,6 +13,7 @@ import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { textSearchMeta } from "@workspace/list-page/column-filters"
+import { createActionsColumn } from "@workspace/list-page/table-columns"
 import { useState } from "react"
 import { accountsListDefinition } from "./list-query"
 import { CreateAccountDialog } from "./components/CreateAccountDialog"
@@ -40,7 +41,8 @@ function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {
 
 export function AccountsPage() {
   const { t, formatDate } = useI18n()
-  const [createOpen, setCreateOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<Account | null>(null)
 
   const columns = useMemo<ColumnDef<Account>[]>(
     () => [
@@ -161,6 +163,14 @@ export function AccountsPage() {
           </span>
         ),
       },
+      createActionsColumn<Account>({
+        onEdit: (row) => {
+          setEditing(row)
+          setDialogOpen(true)
+        },
+        editTitle: t("common.action.edit"),
+        headerLabel: t("common.field.action"),
+      }),
     ],
     [formatDate, t]
   )
@@ -169,8 +179,7 @@ export function AccountsPage() {
    * Server-driven list controller: URL page/perPage + `code`→q filter and
    * whitelisted sort <-> TanStack Query cache. The BE adapter returns the
    * standard ListResponse shape over the `{ accounts, total }` envelope.
-   * Update/delete do not exist on the accounts BE — the dialog is
-   * create-only.
+   * Create/edit go through CreateAccountDialog; the account code is immutable.
    */
   const {
     total,
@@ -210,7 +219,10 @@ export function AccountsPage() {
       toolbar={
         <ListTableToolbar
           table={table}
-          onCreate={() => setCreateOpen(true)}
+          onCreate={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
           createLabel={t("finance.accounts.create")}
           exportFilename={t("finance.accounts.title")}
           sheetName={t("finance.accounts.title")}
@@ -219,8 +231,12 @@ export function AccountsPage() {
       }
       dialogs={
         <CreateAccountDialog
-          open={createOpen}
-          onOpenChange={setCreateOpen}
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            setDialogOpen(open)
+            if (!open) setEditing(null)
+          }}
+          editing={editing}
           onCreated={async () => {
             await refetch()
           }}

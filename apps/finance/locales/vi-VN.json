@@ -39,8 +39,11 @@
     "title": "Tài khoản kế toán",
     "count": "{count} tài khoản",
     "create": "Tạo tài khoản",
+    "edit": "Sửa tài khoản",
     "create_success": "Đã tạo tài khoản",
     "create_failed": "Không thể tạo tài khoản",
+    "update_success": "Đã cập nhật tài khoản",
+    "update_failed": "Không thể cập nhật tài khoản",
     "load_failed": "Không thể tải danh sách tài khoản",
     "placeholder": {
       "search": "Tìm theo mã hoặc tên..."

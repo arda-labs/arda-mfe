@@ -39,8 +39,11 @@
     "title": "Chart of accounts",
     "count": "{count} accounts",
     "create": "Create Account",
+    "edit": "Edit account",
     "create_success": "Account created",
     "create_failed": "Could not create account",
+    "update_success": "Account updated",
+    "update_failed": "Could not update account",
     "load_failed": "Failed to load accounts",
     "placeholder": {
       "search": "Search by code or name..."

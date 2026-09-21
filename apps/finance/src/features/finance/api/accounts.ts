@@ -90,6 +90,24 @@ export const accountsApi = {
     api
       .post<ApiSuccess<Account>>("/api/finance/accounts", data)
       .then((res) => res.result),
+  /** Edit an account (code is immutable). */
+  updateAccount: (
+    id: string,
+    data: {
+      name?: string
+      type?: string
+      normalBalance?: string
+      currency?: string
+      isActive?: boolean
+      parentId?: string
+    }
+  ) =>
+    api
+      .put<ApiSuccess<Account>>(
+        `/api/finance/accounts/${encodeURIComponent(id)}`,
+        data
+      )
+      .then((res) => res.result),
   /**
    * COA v2 chart (fin_coa_accounts) — the table the posting resolver
    * validates against. `nature` narrows to D | C | B (off-balance memo);
