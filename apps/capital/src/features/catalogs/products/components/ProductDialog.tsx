@@ -63,6 +63,7 @@ export function ProductDialog({
         term_months: Number(termMonths) || 0,
         interest_rate: Number(interestRate) || 0,
         currency_code: currencyCode.toUpperCase(),
+        is_active: product?.is_active ?? true,
       })
       notify.success(t("capital.catalogs.save_success"))
       onOpenChange(false)

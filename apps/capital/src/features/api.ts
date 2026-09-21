@@ -118,6 +118,8 @@ export const capitalApi = {
     ),
   upsertProduct: (body: Partial<CapitalProduct>) =>
     postCanonical<CapitalProduct>("/api/capital/products", body),
+  deactivateProduct: (id: string) =>
+    deleteCanonical<{ ok: boolean }>(`/api/capital/products/${encodeURIComponent(id)}`),
 
   listContracts: (params: {
     status?: string

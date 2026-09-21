@@ -133,6 +133,9 @@
     "title": "Sản phẩm vốn",
     "create": "Thêm sản phẩm vốn",
     "edit": "Sửa sản phẩm vốn",
+    "deactivate": "Ngừng hoạt động",
+    "deactivate_success": "Đã ngừng sản phẩm vốn",
+    "deactivate_failed": "Không thể ngừng sản phẩm vốn",
     "field": {
       "term_months": "Kỳ hạn (tháng)"
     }

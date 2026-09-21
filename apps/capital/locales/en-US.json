@@ -133,6 +133,9 @@
     "title": "Fund products",
     "create": "New fund product",
     "edit": "Edit fund product",
+    "deactivate": "Deactivate",
+    "deactivate_success": "Fund product deactivated",
+    "deactivate_failed": "Failed to deactivate fund product",
     "field": {
       "term_months": "Term (months)"
     }
