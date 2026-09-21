@@ -707,6 +707,7 @@
       "locale": "Locale",
       "subject": "Subject",
       "body": "Body",
+      "body_html": "HTML body (paste from an email editor)",
       "host": "SMTP host",
       "port": "Port",
       "username": "Username",

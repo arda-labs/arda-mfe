@@ -9,6 +9,8 @@ export interface NotificationTemplate {
   locale: string
   subject: string
   body: string
+  /** Optional HTML body; when set the mail is multipart/alternative. */
+  body_html: string
   is_active: boolean
 }
 

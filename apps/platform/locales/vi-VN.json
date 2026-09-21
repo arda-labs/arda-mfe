@@ -707,6 +707,7 @@
       "locale": "Ngôn ngữ",
       "subject": "Tiêu đề",
       "body": "Nội dung",
+      "body_html": "Nội dung HTML (dán từ email editor)",
       "host": "SMTP host",
       "port": "Cổng",
       "username": "Tài khoản",

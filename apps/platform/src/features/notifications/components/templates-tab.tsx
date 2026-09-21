@@ -54,6 +54,7 @@ export function TemplatesTab() {
   const [locale, setLocale] = useState("vi-VN")
   const [subject, setSubject] = useState("")
   const [body, setBody] = useState("")
+  const [bodyHtml, setBodyHtml] = useState("")
   const [pending, setPending] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<NotificationTemplate | null>(
     null
@@ -212,7 +213,7 @@ export function TemplatesTab() {
   })
 
   const save = async () => {
-    if (!eventCode.trim() || !body.trim()) {
+    if (!eventCode.trim() || (!body.trim() && !bodyHtml.trim())) {
       notify.error(t("platform.notifications.validation.required"))
       return
     }
@@ -224,12 +225,14 @@ export function TemplatesTab() {
         locale,
         subject,
         body,
+        body_html: bodyHtml,
         is_active: true,
       })
       notify.success(t("platform.notifications.save_success"))
       setEventCode("")
       setSubject("")
       setBody("")
+      setBodyHtml("")
       await load()
     } catch {
       notify.error(t("platform.notifications.save_failed"))
@@ -295,6 +298,15 @@ export function TemplatesTab() {
             className="min-h-[90px] font-mono text-xs"
             value={body}
             onChange={(e) => setBody(e.target.value)}
+          />
+        </div>
+        <div className="w-full space-y-1.5">
+          <Label>{t("platform.notifications.field.body_html")}</Label>
+          <Textarea
+            className="min-h-[140px] font-mono text-xs"
+            value={bodyHtml}
+            onChange={(e) => setBodyHtml(e.target.value)}
+            placeholder="<html>…"
           />
         </div>
         <Button onClick={() => void save()} disabled={pending}>
