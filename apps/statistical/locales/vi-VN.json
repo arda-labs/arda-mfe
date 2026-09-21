@@ -271,6 +271,9 @@
     "submit": "Trình duyệt",
     "submit_success": "Đã trình kỳ nộp để duyệt",
     "submit_failed": "Không thể trình duyệt",
+    "detail_title": "Chi tiết kỳ nộp",
+    "detail_description": "Thông tin kỳ nộp báo cáo (chỉ đọc).",
+    "detail_empty": "Không tải được chi tiết kỳ nộp",
     "validation": {
       "required": "Chọn báo cáo và kỳ nộp"
     },

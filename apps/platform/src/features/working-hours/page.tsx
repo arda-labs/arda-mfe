@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Trash2 } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import {
   AlertDialog,
@@ -30,6 +29,7 @@ import {
 } from "@workspace/list-page/client-list"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { createActionsColumn } from "@workspace/list-page/table-columns"
 import { deleteWorkingHour, listWorkingHours, upsertWorkingHour } from "./api"
 import { type WorkingHour } from "./types"
 
@@ -54,6 +54,7 @@ export function WorkingHoursPage() {
   const [endTime, setEndTime] = useState("17:00")
   const [breakMinutes, setBreakMinutes] = useState("60")
   const [pending, setPending] = useState(false)
+  const [editing, setEditing] = useState<WorkingHour | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<WorkingHour | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [items, setItems] = useState<WorkingHour[]>([])
@@ -171,27 +172,20 @@ export function WorkingHoursPage() {
           </Badge>
         ),
       },
-      {
-        id: "actions",
-        header: () => (
-          <div className="text-right">{t("common.field.action")}</div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
-              title={t("common.action.delete")}
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
+      createActionsColumn<WorkingHour>({
+        onEdit: (row) => {
+          setEditing(row)
+          setOrgCode(row.org_code ?? "")
+          setDayOfWeek(row.day_of_week)
+          setStartTime(row.start_time)
+          setEndTime(row.end_time)
+          setBreakMinutes(String(row.break_minutes))
+        },
+        onDelete: (row) => setDeleteTarget(row),
+        editTitle: t("common.action.edit"),
+        deleteTitle: t("common.action.delete"),
+        headerLabel: t("common.field.action"),
+      }),
     ],
     [t]
   )
@@ -219,14 +213,16 @@ export function WorkingHoursPage() {
     setPending(true)
     try {
       await upsertWorkingHour({
+        id: editing?.id,
         org_code: orgCode || undefined,
         day_of_week: dayOfWeek,
         start_time: startTime,
         end_time: endTime,
         break_minutes: Number(breakMinutes) || 0,
-        is_active: true,
+        is_active: editing ? editing.is_active : true,
       })
       notify.success(t("platform.working_hours.save_success"))
+      setEditing(null)
       await load()
     } catch {
       notify.error(t("platform.working_hours.save_failed"))
@@ -301,6 +297,27 @@ export function WorkingHoursPage() {
       <Button onClick={() => void save()} disabled={pending}>
         {t("common.action.save")}
       </Button>
+      {editing ? (
+        <>
+          <span className="pb-2 text-xs text-muted-foreground">
+            {t("platform.working_hours.editing")}
+          </span>
+          <Button
+            variant="outline"
+            disabled={pending}
+            onClick={() => {
+              setEditing(null)
+              setOrgCode("")
+              setDayOfWeek(1)
+              setStartTime("08:00")
+              setEndTime("17:00")
+              setBreakMinutes("60")
+            }}
+          >
+            {t("common.action.cancel")}
+          </Button>
+        </>
+      ) : null}
     </div>
   )
 

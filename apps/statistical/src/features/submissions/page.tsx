@@ -13,10 +13,11 @@ import {
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Eye } from "lucide-react"
 import { statisticalApi, type ReportSubmission } from "../api"
 import { SUBMISSION_STATUSES, submissionsListDefinition } from "./list-query"
 import { CreateSubmissionDialog } from "./components/CreateSubmissionDialog"
+import { SubmissionDetailDialog } from "./components/SubmissionDetailDialog"
 
 const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   DRAFT: "outline",
@@ -30,6 +31,7 @@ export function SubmissionsPage(_props: { pathname: string }) {
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const [createOpen, setCreateOpen] = useState(false)
+  const [detailId, setDetailId] = useState<string | null>(null)
 
   const submit = useCallback(
     async (item: ReportSubmission) => {
@@ -139,18 +141,30 @@ export function SubmissionsPage(_props: { pathname: string }) {
         ),
         enableSorting: false,
         enableHiding: false,
-        cell: ({ row }) =>
-          row.original.status === "DRAFT" ? (
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-1">
             <Button
               variant="ghost"
-              size="sm"
-              className="h-7 gap-1 px-2 text-xs"
-              onClick={() => void submit(row.original)}
+              size="icon"
+              className="size-7 text-muted-foreground"
+              title={t("common.action.view")}
+              onClick={() => setDetailId(row.original.id)}
             >
-              <CheckCircle2 className="size-3.5" />
-              {t("statistical.submissions.submit")}
+              <Eye className="size-3.5" />
             </Button>
-          ) : null,
+            {row.original.status === "DRAFT" ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1 px-2 text-xs"
+                onClick={() => void submit(row.original)}
+              >
+                <CheckCircle2 className="size-3.5" />
+                {t("statistical.submissions.submit")}
+              </Button>
+            ) : null}
+          </div>
+        ),
       },
     ],
     [submit, t]
@@ -203,11 +217,18 @@ export function SubmissionsPage(_props: { pathname: string }) {
         />
       }
       dialogs={
-        <CreateSubmissionDialog
-          open={createOpen}
-          onOpenChange={setCreateOpen}
-          onSaved={() => void refetch()}
-        />
+        <>
+          <CreateSubmissionDialog
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            onSaved={() => void refetch()}
+          />
+          <SubmissionDetailDialog
+            open={detailId !== null}
+            onOpenChange={(open) => !open && setDetailId(null)}
+            submissionId={detailId}
+          />
+        </>
       }
     />
   )

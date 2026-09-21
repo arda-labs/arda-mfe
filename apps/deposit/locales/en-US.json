@@ -93,6 +93,7 @@
     "title": "Deposit interest rates",
     "create": "New rate request",
     "dialog_title": "Register/adjust interest rate",
+    "dialog_edit_title": "Adjust interest rate",
     "dialog_description": "The request goes through approval before applying.",
     "field": {
       "request_type": "Request type",

@@ -14,17 +14,19 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { todayISO } from "@workspace/format"
-import { depositApi } from "../../api"
+import { depositApi, type InterestRate } from "../../api"
 
 /** Stage a rate register/adjust request (DPM.100/101) as a maker/checker case. */
 export function RateDialog({
   open,
   onOpenChange,
   onSaved,
+  editing,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSaved: () => Promise<void> | void
+  editing?: InterestRate | null
 }) {
   const { t } = useI18n()
   const staged = useStagedAttachments({ module: "deposit" })
@@ -39,6 +41,18 @@ export function RateDialog({
 
   useEffect(() => {
     if (!open) return
+    if (editing) {
+      // Adjusting an existing tier starts as an ADJUST request with the current
+      // values prefilled so the maker only changes what is needed.
+      setRequestType("ADJUST")
+      setProductCode(editing.product_code ?? "")
+      setTermMonths(String(editing.term_months))
+      setRate(String(editing.rate))
+      setDenominator(String(editing.denominator))
+      setMethod(editing.method)
+      setEffectiveFrom(editing.effective_from || todayISO())
+      return
+    }
     setRequestType("REGISTER")
     setProductCode("")
     setTermMonths("0")
@@ -46,7 +60,7 @@ export function RateDialog({
     setDenominator("365")
     setMethod("SIMPLE")
     setEffectiveFrom(todayISO())
-  }, [open])
+  }, [open, editing])
 
   const submit = async () => {
     if (!rate || Number(rate) <= 0 || !effectiveFrom) {
@@ -85,7 +99,11 @@ export function RateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("deposit.rates.dialog_title")}</DialogTitle>
+          <DialogTitle>
+            {editing
+              ? t("deposit.rates.dialog_edit_title")
+              : t("deposit.rates.dialog_title")}
+          </DialogTitle>
           <DialogDescription>{t("deposit.rates.dialog_description")}</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">

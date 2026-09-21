@@ -689,6 +689,7 @@
     "load_failed": "Không tải được giờ làm việc",
     "save_success": "Đã lưu ca làm việc",
     "save_failed": "Không thể lưu ca làm việc",
+    "editing": "Đang sửa ca — bấm Lưu để cập nhật",
     "delete_success": "Đã xóa ca làm việc",
     "delete_failed": "Không thể xóa ca làm việc"
   },

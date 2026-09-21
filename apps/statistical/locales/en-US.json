@@ -271,6 +271,9 @@
     "submit": "Submit",
     "submit_success": "Submission sent for approval",
     "submit_failed": "Failed to submit",
+    "detail_title": "Submission detail",
+    "detail_description": "Read-only report submission information.",
+    "detail_empty": "Could not load the submission detail",
     "validation": {
       "required": "Pick a report and a period"
     },

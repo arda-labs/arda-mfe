@@ -93,6 +93,7 @@
     "title": "Lãi suất huy động",
     "create": "Đăng ký lãi suất",
     "dialog_title": "Đăng ký/điều chỉnh lãi suất",
+    "dialog_edit_title": "Điều chỉnh lãi suất",
     "dialog_description": "Yêu cầu sẽ được duyệt trước khi áp dụng.",
     "field": {
       "request_type": "Loại yêu cầu",

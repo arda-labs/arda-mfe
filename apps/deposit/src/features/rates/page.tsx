@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
+import { Pencil } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
@@ -18,7 +20,8 @@ export function RatesPage() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
-  const [createOpen, setCreateOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<InterestRate | null>(null)
 
   const load = useCallback(async (initial = false) => {
     if (initial) setLoading(true)
@@ -108,6 +111,30 @@ export function RatesPage() {
           </Badge>
         ),
       },
+      {
+        id: "actions",
+        header: () => (
+          <div className="text-right">{t("common.field.action")}</div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              title={t("common.action.edit")}
+              onClick={() => {
+                setEditing(row.original)
+                setDialogOpen(true)
+              }}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
     ],
     [t]
   )
@@ -149,7 +176,10 @@ export function RatesPage() {
       toolbar={
         <ListTableToolbar
           table={table}
-          onCreate={() => setCreateOpen(true)}
+          onCreate={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
           createLabel={t("deposit.rates.create")}
           exportFilename={t("deposit.rates.title")}
           sheetName={t("deposit.rates.title")}
@@ -157,7 +187,15 @@ export function RatesPage() {
         />
       }
       dialogs={
-        <RateDialog open={createOpen} onOpenChange={setCreateOpen} onSaved={() => load()} />
+        <RateDialog
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            setDialogOpen(open)
+            if (!open) setEditing(null)
+          }}
+          onSaved={() => load()}
+          editing={editing}
+        />
       }
     />
   )
