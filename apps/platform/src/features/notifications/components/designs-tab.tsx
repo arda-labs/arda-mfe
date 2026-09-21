@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Trash2 } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import {
   AlertDialog,
@@ -13,8 +13,6 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import {
   Table,
   TableBody,
@@ -23,25 +21,19 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { Textarea } from "@workspace/ui/components/textarea"
 import { notify } from "@workspace/ui/feedback/notify"
-import { deleteEmailDesign, listEmailDesigns, upsertEmailDesign } from "../api"
+import { deleteEmailDesign, listEmailDesigns } from "../api"
 import { type EmailDesign } from "../types"
+import { DesignDialog } from "./design-dialog"
 
-/**
- * Reusable email designs — one HTML layout referenced by many event templates
- * through noti_templates.design_code. Paste HTML from an external email editor.
- */
+/** Reusable email designs: list + create/edit dialog + delete. */
 export function DesignsTab() {
   const { t } = useI18n()
-  const [code, setCode] = useState("")
-  const [name, setName] = useState("")
-  const [subject, setSubject] = useState("")
-  const [bodyHtml, setBodyHtml] = useState("")
-  const [pending, setPending] = useState(false)
   const [items, setItems] = useState<EmailDesign[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<unknown>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<EmailDesign | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<EmailDesign | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -61,33 +53,6 @@ export function DesignsTab() {
     void load()
   }, [load])
 
-  const save = async () => {
-    if (!code.trim() || !bodyHtml.trim()) {
-      notify.error(t("platform.notifications.validation.required"))
-      return
-    }
-    setPending(true)
-    try {
-      await upsertEmailDesign({
-        code: code.trim(),
-        name: name.trim(),
-        subject: subject.trim(),
-        body_html: bodyHtml,
-        is_active: true,
-      })
-      notify.success(t("platform.notifications.save_success"))
-      setCode("")
-      setName("")
-      setSubject("")
-      setBodyHtml("")
-      await load()
-    } catch {
-      notify.error(t("platform.notifications.save_failed"))
-    } finally {
-      setPending(false)
-    }
-  }
-
   const handleDelete = async () => {
     if (!deleteTarget) return
     setDeleting(true)
@@ -105,34 +70,18 @@ export function DesignsTab() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.code")}</Label>
-          <Input
-            className="font-mono"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toLowerCase())}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.name")}</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.subject")}</Label>
-          <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
-        </div>
-        <div className="w-full space-y-1.5">
-          <Label>{t("platform.notifications.field.body_html")}</Label>
-          <Textarea
-            className="min-h-[160px] font-mono text-xs"
-            value={bodyHtml}
-            placeholder="<html>…"
-            onChange={(e) => setBodyHtml(e.target.value)}
-          />
-        </div>
-        <Button onClick={() => void save()} disabled={pending}>
-          {t("common.action.save")}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-muted-foreground">
+          {t("platform.notifications.design.hint")}
+        </p>
+        <Button
+          size="sm"
+          onClick={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
+        >
+          {t("common.action.create")}
         </Button>
       </div>
 
@@ -153,7 +102,9 @@ export function DesignsTab() {
               <TableHead>{t("platform.notifications.field.name")}</TableHead>
               <TableHead>{t("platform.notifications.field.subject")}</TableHead>
               <TableHead>{t("common.field.status")}</TableHead>
-              <TableHead />
+              <TableHead className="text-right">
+                {t("common.field.action")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -193,22 +144,43 @@ export function DesignsTab() {
                       : t("platform.working_hours.inactive")}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
-                    title={t("common.action.delete")}
-                    onClick={() => setDeleteTarget(row)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-muted-foreground"
+                      title={t("common.action.edit")}
+                      onClick={() => {
+                        setEditing(row)
+                        setDialogOpen(true)
+                      }}
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+                      title={t("common.action.delete")}
+                      onClick={() => setDeleteTarget(row)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      <DesignDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editing={editing}
+        onSaved={() => load()}
+      />
 
       <AlertDialog
         open={deleteTarget !== null}

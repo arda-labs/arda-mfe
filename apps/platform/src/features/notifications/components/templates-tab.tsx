@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Trash2 } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import {
   AlertDialog,
@@ -18,7 +18,6 @@ import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
 import { notify } from "@workspace/ui/feedback/notify"
 import {
   activeStatusMeta,
@@ -36,39 +35,29 @@ import {
   deleteNotificationTemplate,
   listNotificationTemplates,
   testSendNotification,
-  upsertNotificationTemplate,
 } from "../api"
 import { type NotificationTemplate } from "../types"
+import { TemplateDialog } from "./template-dialog"
 
 const DEFAULT_PAGE_SIZE = 10
-const CHANNELS = ["email", "in_app", "push", "sms"]
 
-/**
- * Template tab — `GET /api/notifications/templates` returns the full set
- * (unpaged), so the list is a client tier DataTable mounted inside the tab
- * (no ListPageShell), URL-synced through useClientListTable.
- */
+/** Templates tab: list + create/edit dialog + delete + test send. */
 export function TemplatesTab() {
   const { t } = useI18n()
-  const [eventCode, setEventCode] = useState("")
-  const [channel, setChannel] = useState("email")
-  const [locale, setLocale] = useState("vi-VN")
-  const [subject, setSubject] = useState("")
-  const [body, setBody] = useState("")
-  const [bodyHtml, setBodyHtml] = useState("")
-  const [designCode, setDesignCode] = useState("")
-  const [testRecipient, setTestRecipient] = useState("")
-  const [testParams, setTestParams] = useState("")
-  const [testing, setTesting] = useState(false)
-  const [pending, setPending] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<NotificationTemplate | null>(
-    null
-  )
-  const [deleting, setDeleting] = useState(false)
   const [items, setItems] = useState<NotificationTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<NotificationTemplate | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<NotificationTemplate | null>(
+    null
+  )
+  const [deleting, setDeleting] = useState(false)
+  const [testEventCode, setTestEventCode] = useState("")
+  const [testRecipient, setTestRecipient] = useState("")
+  const [testParams, setTestParams] = useState("")
+  const [testing, setTesting] = useState(false)
 
   const load = useCallback(async (initial = false) => {
     if (initial) setLoading(true)
@@ -143,10 +132,25 @@ export function TemplatesTab() {
         ),
         cell: ({ row }) => (
           <span
-            className="block max-w-[320px] truncate"
+            className="block max-w-[280px] truncate"
             title={row.original.subject || undefined}
           >
             {row.original.subject || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "design_code",
+        accessorKey: "design_code",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("platform.notifications.field.design_code")}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs">
+            {row.original.design_code || "—"}
           </span>
         ),
       },
@@ -179,7 +183,19 @@ export function TemplatesTab() {
           <div className="text-right">{t("common.field.action")}</div>
         ),
         cell: ({ row }) => (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              title={t("common.action.edit")}
+              onClick={() => {
+                setEditing(row.original)
+                setDialogOpen(true)
+              }}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -212,44 +228,14 @@ export function TemplatesTab() {
         channel: (a, b) => a.channel.localeCompare(b.channel),
         locale: (a, b) => a.locale.localeCompare(b.locale),
         subject: (a, b) => a.subject.localeCompare(b.subject),
+        design_code: (a, b) => a.design_code.localeCompare(b.design_code),
         is_active: (a, b) => Number(a.is_active) - Number(b.is_active),
       }),
     defaultPageSize: DEFAULT_PAGE_SIZE,
   })
 
-  const save = async () => {
-    if (!eventCode.trim() || (!body.trim() && !bodyHtml.trim())) {
-      notify.error(t("platform.notifications.validation.required"))
-      return
-    }
-    setPending(true)
-    try {
-      await upsertNotificationTemplate({
-        event_code: eventCode.trim(),
-        channel,
-        locale,
-        subject,
-        body,
-        body_html: bodyHtml,
-        design_code: designCode.trim(),
-        is_active: true,
-      })
-      notify.success(t("platform.notifications.save_success"))
-      setEventCode("")
-      setSubject("")
-      setBody("")
-      setBodyHtml("")
-      setDesignCode("")
-      await load()
-    } catch {
-      notify.error(t("platform.notifications.save_failed"))
-    } finally {
-      setPending(false)
-    }
-  }
-
   const sendTest = async () => {
-    if (!eventCode.trim() || !testRecipient.trim()) {
+    if (!testEventCode.trim() || !testRecipient.trim()) {
       notify.error(t("platform.notifications.validation.required"))
       return
     }
@@ -265,9 +251,9 @@ export function TemplatesTab() {
     setTesting(true)
     try {
       await testSendNotification({
-        event_code: eventCode.trim(),
+        event_code: testEventCode.trim(),
         recipient: testRecipient.trim(),
-        locale,
+        locale: "vi-VN",
         params,
       })
       notify.success(t("platform.notifications.test.success"))
@@ -298,71 +284,30 @@ export function TemplatesTab() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.event_code")}</Label>
-          <Input
-            value={eventCode}
-            className="font-mono"
-            onChange={(e) => setEventCode(e.target.value.toLowerCase())}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.channel")}</Label>
-          <select
-            className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
-            value={channel}
-            onChange={(e) => setChannel(e.target.value)}
-          >
-            {CHANNELS.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.locale")}</Label>
-          <Input value={locale} onChange={(e) => setLocale(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.design_code")}</Label>
-          <Input
-            className="font-mono"
-            value={designCode}
-            onChange={(e) => setDesignCode(e.target.value.toLowerCase())}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>{t("platform.notifications.field.subject")}</Label>
-          <Input
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-          />
-        </div>
-        <div className="w-full space-y-1.5">
-          <Label>{t("platform.notifications.field.body")}</Label>
-          <Textarea
-            className="min-h-[90px] font-mono text-xs"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-          />
-        </div>
-        <div className="w-full space-y-1.5">
-          <Label>{t("platform.notifications.field.body_html")}</Label>
-          <Textarea
-            className="min-h-[140px] font-mono text-xs"
-            value={bodyHtml}
-            onChange={(e) => setBodyHtml(e.target.value)}
-            placeholder="<html>…"
-          />
-        </div>
-        <Button onClick={() => void save()} disabled={pending}>
-          {t("common.action.save")}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-muted-foreground">
+          {t("platform.notifications.template.hint")}
+        </p>
+        <Button
+          size="sm"
+          onClick={() => {
+            setEditing(null)
+            setDialogOpen(true)
+          }}
+        >
+          {t("common.action.create")}
         </Button>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-border p-4">
+        <div className="space-y-1.5">
+          <Label>{t("platform.notifications.field.event_code")}</Label>
+          <Input
+            className="font-mono"
+            value={testEventCode}
+            onChange={(e) => setTestEventCode(e.target.value)}
+          />
+        </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.test.recipient")}</Label>
           <Input
@@ -371,7 +316,7 @@ export function TemplatesTab() {
             onChange={(e) => setTestRecipient(e.target.value)}
           />
         </div>
-        <div className="min-w-[240px] space-y-1.5">
+        <div className="min-w-[200px] space-y-1.5">
           <Label>{t("platform.notifications.test.params")}</Label>
           <Input
             className="font-mono text-xs"
@@ -392,11 +337,7 @@ export function TemplatesTab() {
       {loadError ? (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
           <span>{t("platform.notifications.load_failed")}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void load(true)}
-          >
+          <Button variant="outline" size="sm" onClick={() => void load(true)}>
             {t("common.action.retry")}
           </Button>
         </div>
@@ -413,6 +354,13 @@ export function TemplatesTab() {
         </DataTable>
         {loading ? <PageLoadOverlay /> : null}
       </div>
+
+      <TemplateDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editing={editing}
+        onSaved={() => load()}
+      />
 
       <AlertDialog
         open={deleteTarget !== null}

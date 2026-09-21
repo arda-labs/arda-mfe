@@ -1,20 +1,39 @@
 import { useCallback } from "react"
 import { useSearchParams } from "react-router-dom"
+import {
+  Activity,
+  Bell,
+  LayoutTemplate,
+  Mail,
+  Server,
+  TriangleAlert,
+} from "lucide-react"
 import { useI18n } from "@workspace/i18n"
+import { PageHeader } from "@workspace/ui/components/page-header"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { DlqTab } from "./components/dlq-tab"
 import { DesignsTab } from "./components/designs-tab"
 import { EventsTab } from "./components/events-tab"
 import { SendersTab } from "./components/senders-tab"
 import { TemplatesTab } from "./components/templates-tab"
 
-const TAB_KEYS = ["templates", "designs", "senders", "events", "dlq"] as const
-type TabKey = (typeof TAB_KEYS)[number]
+const TABS = [
+  { key: "templates", icon: Mail, render: () => <TemplatesTab /> },
+  { key: "designs", icon: LayoutTemplate, render: () => <DesignsTab /> },
+  { key: "senders", icon: Server, render: () => <SendersTab /> },
+  { key: "events", icon: Activity, render: () => <EventsTab /> },
+  { key: "dlq", icon: TriangleAlert, render: () => <DlqTab /> },
+] as const
+
+type TabKey = (typeof TABS)[number]["key"]
 
 function parseTab(value: string | null): TabKey {
-  return TAB_KEYS.includes(value as TabKey) ? (value as TabKey) : "templates"
+  return TABS.some((entry) => entry.key === value)
+    ? (value as TabKey)
+    : "templates"
 }
 
-/** Notification templates + mail sender config (X2). */
+/** Notification templates, email designs, mail sender, events and DLQ (X2). */
 export function NotificationsAdminPage() {
   const { t } = useI18n()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -31,38 +50,41 @@ export function NotificationsAdminPage() {
   )
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div>
-        <h1 className="text-lg font-semibold">
-          {t("platform.notifications.title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("platform.notifications.description")}
-        </p>
-      </div>
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4 sm:p-6">
+      <PageHeader
+        title={t("platform.notifications.title")}
+        description={t("platform.notifications.description")}
+        icon={Bell}
+      />
 
-      <div className="flex gap-2">
-        {TAB_KEYS.map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={
-              value === tab
-                ? "rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
-                : "rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/60"
-            }
-            onClick={() => selectTab(value)}
-          >
-            {t(`platform.notifications.tab.${value}`)}
-          </button>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => selectTab(value as TabKey)}
+        className="flex flex-col gap-3"
+      >
+        <div className="sticky top-0 z-10 -mx-4 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6">
+          <div className="w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="inline-flex h-9 w-fit items-center justify-start gap-1 p-1">
+              {TABS.map(({ key, icon: Icon }) => (
+                <TabsTrigger
+                  key={key}
+                  value={key}
+                  className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm"
+                >
+                  <Icon className="size-3.5 shrink-0" />
+                  <span>{t(`platform.notifications.tab.${key}`)}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+        </div>
+
+        {TABS.map(({ key, render }) => (
+          <TabsContent key={key} value={key} className="m-0">
+            {render()}
+          </TabsContent>
         ))}
-      </div>
-
-      {tab === "templates" && <TemplatesTab />}
-      {tab === "designs" && <DesignsTab />}
-      {tab === "senders" && <SendersTab />}
-      {tab === "events" && <EventsTab />}
-      {tab === "dlq" && <DlqTab />}
+      </Tabs>
     </div>
   )
 }

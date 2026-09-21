@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
+import { Pencil } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -19,15 +21,21 @@ import {
 } from "../api"
 import { type NotificationSender } from "../types"
 
-/** Mail sender (SMTP) configuration tab. */
+const emptyForm = {
+  host: "",
+  port: "587",
+  username: "",
+  password: "",
+  fromAddress: "",
+  fromName: "",
+  isActive: true,
+}
+
+/** Mail sender (SMTP) configuration tab: current config + create/edit form. */
 export function SendersTab() {
   const { t } = useI18n()
-  const [host, setHost] = useState("")
-  const [port, setPort] = useState("587")
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [fromAddress, setFromAddress] = useState("")
-  const [fromName, setFromName] = useState("")
+  const [form, setForm] = useState(emptyForm)
+  const [editing, setEditing] = useState<NotificationSender | null>(null)
   const [pending, setPending] = useState(false)
   const [items, setItems] = useState<NotificationSender[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,8 +57,26 @@ export function SendersTab() {
     void load()
   }, [load])
 
+  const startEdit = (row: NotificationSender) => {
+    setEditing(row)
+    setForm({
+      host: row.host,
+      port: String(row.port),
+      username: row.username ?? "",
+      password: "",
+      fromAddress: row.from_address,
+      fromName: row.from_name ?? "",
+      isActive: row.is_active,
+    })
+  }
+
+  const resetForm = () => {
+    setEditing(null)
+    setForm(emptyForm)
+  }
+
   const save = async () => {
-    if (!host.trim() || !fromAddress.trim()) {
+    if (!form.host.trim() || !form.fromAddress.trim()) {
       notify.error(t("platform.notifications.validation.required"))
       return
     }
@@ -58,17 +84,18 @@ export function SendersTab() {
     try {
       await upsertNotificationSender({
         channel: "email",
-        host: host.trim(),
-        port: Number(port) || 587,
-        username: username.trim() || undefined,
-        password: password || undefined,
-        from_address: fromAddress.trim(),
-        from_name: fromName.trim() || undefined,
+        host: form.host.trim(),
+        port: Number(form.port) || 587,
+        username: form.username.trim() || undefined,
+        // Blank password keeps the stored one (server keeps password_enc).
+        password: form.password || undefined,
+        from_address: form.fromAddress.trim(),
+        from_name: form.fromName.trim() || undefined,
         use_tls: true,
-        is_active: true,
+        is_active: form.isActive,
       })
       notify.success(t("platform.notifications.save_success"))
-      setPassword("")
+      resetForm()
       await load()
     } catch {
       notify.error(t("platform.notifications.save_failed"))
@@ -80,47 +107,87 @@ export function SendersTab() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
+        <div className="w-full">
+          <p className="text-sm font-medium">
+            {editing
+              ? t("platform.notifications.sender.edit_title")
+              : t("platform.notifications.sender.create_title")}
+          </p>
+          {editing ? (
+            <p className="text-xs text-muted-foreground">
+              {t("platform.notifications.sender.keep_password")}
+            </p>
+          ) : null}
+        </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.host")}</Label>
-          <Input value={host} onChange={(e) => setHost(e.target.value)} />
+          <Input
+            value={form.host}
+            onChange={(e) => setForm((f) => ({ ...f, host: e.target.value }))}
+          />
         </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.port")}</Label>
           <Input
             inputMode="numeric"
-            value={port}
-            onChange={(e) => setPort(e.target.value)}
+            value={form.port}
+            onChange={(e) => setForm((f) => ({ ...f, port: e.target.value }))}
           />
         </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.username")}</Label>
           <Input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={form.username}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, username: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.password")}</Label>
           <Input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={form.password}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, password: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.from_address")}</Label>
           <Input
-            value={fromAddress}
-            onChange={(e) => setFromAddress(e.target.value)}
+            value={form.fromAddress}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, fromAddress: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.from_name")}</Label>
-          <Input value={fromName} onChange={(e) => setFromName(e.target.value)} />
+          <Input
+            value={form.fromName}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, fromName: e.target.value }))
+            }
+          />
         </div>
+        <label className="flex items-center gap-2 pb-2 text-sm">
+          <Checkbox
+            checked={form.isActive}
+            onCheckedChange={(checked) =>
+              setForm((f) => ({ ...f, isActive: checked === true }))
+            }
+          />
+          {t("platform.working_hours.active")}
+        </label>
         <Button onClick={() => void save()} disabled={pending}>
           {t("common.action.save")}
         </Button>
+        {editing ? (
+          <Button variant="outline" onClick={resetForm} disabled={pending}>
+            {t("common.action.cancel")}
+          </Button>
+        ) : null}
       </div>
 
       {loadError ? (
@@ -144,13 +211,16 @@ export function SendersTab() {
               </TableHead>
               <TableHead>{t("platform.notifications.field.password")}</TableHead>
               <TableHead>{t("common.field.status")}</TableHead>
+              <TableHead className="text-right">
+                {t("common.field.action")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="py-4 text-center text-muted-foreground"
                 >
                   {t("common.loading")}
@@ -160,7 +230,7 @@ export function SendersTab() {
             {!loading && items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="py-4 text-center text-muted-foreground"
                 >
                   {t("platform.notifications.empty")}
@@ -184,6 +254,17 @@ export function SendersTab() {
                       ? t("platform.working_hours.active")
                       : t("platform.working_hours.inactive")}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 text-muted-foreground"
+                    title={t("common.action.edit")}
+                    onClick={() => startEdit(row)}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

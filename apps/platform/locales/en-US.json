@@ -727,6 +727,24 @@
       "failed": "Test send failed",
       "invalid_params": "Invalid JSON params"
     },
+    "template": {
+      "create_title": "Add notification template",
+      "edit_title": "Edit notification template",
+      "dialog_description": "Content sent for an event code; it can reuse a shared email design via design_code.",
+      "hint": "Each template is bound to one event code; use Edit to view/update."
+    },
+    "design": {
+      "create_title": "Add email design",
+      "edit_title": "Edit email design",
+      "dialog_description": "Paste HTML from an external email editor; many event templates can share this design.",
+      "hint": "Reusable email designs shared across event codes.",
+      "preview": "Preview"
+    },
+    "sender": {
+      "create_title": "Configure mail sender",
+      "edit_title": "Edit mail sender",
+      "keep_password": "Leave the password blank to keep the current one."
+    },
     "placeholder": {
       "search": "Search by event code or subject..."
     },

@@ -727,6 +727,24 @@
       "failed": "Gửi thử thất bại",
       "invalid_params": "Tham số JSON không hợp lệ"
     },
+    "template": {
+      "create_title": "Thêm mẫu thông báo",
+      "edit_title": "Sửa mẫu thông báo",
+      "dialog_description": "Nội dung gửi theo mã sự kiện; có thể dùng mẫu email dùng chung qua design_code.",
+      "hint": "Mỗi mẫu gắn với một mã sự kiện; bấm Sửa để xem/cập nhật."
+    },
+    "design": {
+      "create_title": "Thêm mẫu email",
+      "edit_title": "Sửa mẫu email",
+      "dialog_description": "Dán HTML từ email editor bên ngoài; nhiều mẫu thông báo có thể dùng chung mẫu này.",
+      "hint": "Mẫu email dùng chung cho nhiều mã sự kiện.",
+      "preview": "Xem trước"
+    },
+    "sender": {
+      "create_title": "Cấu hình máy gửi mail",
+      "edit_title": "Sửa máy gửi mail",
+      "keep_password": "Để trống mật khẩu nếu không đổi."
+    },
     "placeholder": {
       "search": "Tìm theo mã sự kiện hoặc tiêu đề..."
     },
