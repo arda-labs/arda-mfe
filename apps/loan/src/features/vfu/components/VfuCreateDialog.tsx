@@ -17,23 +17,37 @@ import { vfuApi } from "../../api"
 
 export type VfuDialogTarget = "party" | "mandate" | "plan" | null
 
-/** Create dialog shared by the three VFU entity tables. */
+export type VfuDialogEditing = {
+  id: string
+  code: string
+  name: string
+  extra: string
+} | null
+
+/** Create/edit dialog shared by the three VFU entity tables. */
 export function VfuCreateDialog({
   target,
   onOpenChange,
   onSaved,
+  editing,
 }: {
   target: VfuDialogTarget
   onOpenChange: (open: boolean) => void
   onSaved: () => Promise<void>
+  editing?: VfuDialogEditing
 }) {
   const { t } = useI18n()
   const [form, setForm] = useState({ code: "", name: "", extra: "" })
   const [savePending, setSavePending] = useState(false)
 
   useEffect(() => {
-    if (target) setForm({ code: "", name: "", extra: "" })
-  }, [target])
+    if (!target) return
+    setForm(
+      editing
+        ? { code: editing.code, name: editing.name, extra: editing.extra }
+        : { code: "", name: "", extra: "" }
+    )
+  }, [target, editing])
 
   const labels: Record<
     Exclude<VfuDialogTarget, null>,
@@ -64,23 +78,29 @@ export function VfuCreateDialog({
     setSavePending(true)
     try {
       if (target === "party") {
-        await vfuApi.createParty({
+        const body = {
           party_code: form.code.trim(),
           party_name: form.name.trim(),
-          party_type: "ORG",
-        })
+          party_type: "ORG" as const,
+        }
+        if (editing) await vfuApi.updateParty(editing.id, body)
+        else await vfuApi.createParty(body)
       } else if (target === "mandate") {
-        await vfuApi.createMandate({
+        const body = {
           mandate_code: form.code.trim(),
           party_code: form.name.trim(),
           rep_name: form.extra.trim() || undefined,
-        })
+        }
+        if (editing) await vfuApi.updateMandate(editing.id, body)
+        else await vfuApi.createMandate(body)
       } else if (target === "plan") {
-        await vfuApi.createPlan({
+        const body = {
           plan_code: form.code.trim(),
           mandate_code: form.name.trim(),
           allocated_amt_minor: toMinor(parseMoneyInput(form.extra) ?? 0),
-        })
+        }
+        if (editing) await vfuApi.updatePlan(editing.id, body)
+        else await vfuApi.createPlan(body)
       }
       notify.success(t("loan.loan_vfu.saved"))
       onOpenChange(false)
@@ -96,7 +116,11 @@ export function VfuCreateDialog({
     <Dialog open={Boolean(target)} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("loan.loan_vfu.create_title")}</DialogTitle>
+          <DialogTitle>
+            {editing
+              ? t("loan.loan_vfu.edit_title")
+              : t("loan.loan_vfu.create_title")}
+          </DialogTitle>
           <DialogDescription>{t("loan.loan_vfu.dialog_description")}</DialogDescription>
         </DialogHeader>
         {target && (
@@ -106,6 +130,7 @@ export function VfuCreateDialog({
               <Input
                 id="vfu-code"
                 value={form.code}
+                disabled={Boolean(editing)}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, code: event.target.value }))
                 }

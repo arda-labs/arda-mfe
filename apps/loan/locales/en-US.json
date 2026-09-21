@@ -446,6 +446,7 @@
     "create_mandate": "New mandate",
     "create_plan": "New plan",
     "create_title": "New VFU record",
+    "edit_title": "Edit VFU record",
     "dialog_description": "Trust records back the fee-allocation and revenue-allocation flows.",
     "saved": "Saved",
     "save_failed": "Failed to save",

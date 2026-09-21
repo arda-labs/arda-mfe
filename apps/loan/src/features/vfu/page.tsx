@@ -11,6 +11,7 @@ import { PageHeader } from "@workspace/ui/components/page-header"
 import { textSearchMeta } from "@workspace/list-page/column-filters"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { createActionsColumn } from "@workspace/list-page/table-columns"
 import type {
   ServerListDefinition,
   ServerListQueryFn,
@@ -23,7 +24,7 @@ import {
   vfuPartyListDefinition,
   vfuPlanListDefinition,
 } from "./list-query"
-import { VfuCreateDialog, type VfuDialogTarget } from "./components/VfuCreateDialog"
+import { VfuCreateDialog, type VfuDialogTarget, type VfuDialogEditing } from "./components/VfuCreateDialog"
 
 /** One server-tier catalog section of the VFU page (own URL namespace). */
 function VfuSection<TItem>({
@@ -80,6 +81,7 @@ export function VfuPage(_props: { pathname: string }) {
   const { t } = useI18n()
   const queryClient = useAppQueryClient()
   const [dialogTarget, setDialogTarget] = useState<VfuDialogTarget>(null)
+  const [editing, setEditing] = useState<VfuDialogEditing>(null)
 
   const refreshAll = () =>
     queryClient.invalidateQueries({ queryKey: ["loan", "vfu"] })
@@ -130,6 +132,19 @@ export function VfuPage(_props: { pathname: string }) {
           </Badge>
         ),
       },
+      createActionsColumn<VfuParty>({
+        onEdit: (row) => {
+          setEditing({
+            id: row.id,
+            code: row.party_code,
+            name: row.party_name,
+            extra: "",
+          })
+          setDialogTarget("party")
+        },
+        editTitle: t("common.action.edit"),
+        headerLabel: t("common.field.action"),
+      }),
     ],
     [t]
   )
@@ -179,6 +194,19 @@ export function VfuPage(_props: { pathname: string }) {
           </Badge>
         ),
       },
+      createActionsColumn<VfuMandate>({
+        onEdit: (row) => {
+          setEditing({
+            id: row.id,
+            code: row.mandate_code,
+            name: row.party_code,
+            extra: row.rep_name ?? "",
+          })
+          setDialogTarget("mandate")
+        },
+        editTitle: t("common.action.edit"),
+        headerLabel: t("common.field.action"),
+      }),
     ],
     [t]
   )
@@ -239,12 +267,32 @@ export function VfuPage(_props: { pathname: string }) {
           <span className="tabular-nums">{formatMoney(fromMinor(row.original.fee_amt_minor))}</span>
         ),
       },
+      createActionsColumn<VfuPlan>({
+        onEdit: (row) => {
+          setEditing({
+            id: row.id,
+            code: row.plan_code,
+            name: row.mandate_code,
+            extra: String(fromMinor(row.allocated_amt_minor)),
+          })
+          setDialogTarget("plan")
+        },
+        editTitle: t("common.action.edit"),
+        headerLabel: t("common.field.action"),
+      }),
     ],
     [t]
   )
 
   const createButton = (target: NonNullable<VfuDialogTarget>, label: string) => (
-    <Button size="sm" variant="outline" onClick={() => setDialogTarget(target)}>
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => {
+        setEditing(null)
+        setDialogTarget(target)
+      }}
+    >
       <Plus className="size-3.5" />
       {label}
     </Button>
@@ -304,7 +352,13 @@ export function VfuPage(_props: { pathname: string }) {
 
       <VfuCreateDialog
         target={dialogTarget}
-        onOpenChange={(open) => !open && setDialogTarget(null)}
+        editing={editing}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDialogTarget(null)
+            setEditing(null)
+          }
+        }}
         onSaved={refreshAll}
       />
     </section>

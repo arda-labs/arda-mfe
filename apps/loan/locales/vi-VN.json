@@ -446,6 +446,7 @@
     "create_mandate": "Thêm HĐ ủy thác",
     "create_plan": "Thêm kế hoạch",
     "create_title": "Thêm bản ghi VFU",
+    "edit_title": "Sửa bản ghi VFU",
     "dialog_description": "Bản ghi ủy thác dùng cho flow trích phí ủy thác và phân bổ doanh thu.",
     "saved": "Đã lưu",
     "save_failed": "Không thể lưu",

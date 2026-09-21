@@ -1,4 +1,4 @@
-import { getCanonicalList, postCanonical } from "@workspace/api"
+import { getCanonicalList, postCanonical, putCanonical } from "@workspace/api"
 import { listQuery } from "./list-query"
 
 export interface VfuParty {
@@ -58,6 +58,11 @@ export const vfuApi = {
     ),
   createParty: (body: Partial<VfuParty>) =>
     postCanonical<VfuParty>("/api/loan/vfu/parties", body),
+  updateParty: (id: string, body: Partial<VfuParty>) =>
+    putCanonical<VfuParty>(
+      `/api/loan/vfu/parties/${encodeURIComponent(id)}`,
+      body
+    ),
   listMandates: (
     params: {
       q?: string
@@ -72,6 +77,11 @@ export const vfuApi = {
     ),
   createMandate: (body: Partial<VfuMandate>) =>
     postCanonical<VfuMandate>("/api/loan/vfu/mandates", body),
+  updateMandate: (id: string, body: Partial<VfuMandate>) =>
+    putCanonical<VfuMandate>(
+      `/api/loan/vfu/mandates/${encodeURIComponent(id)}`,
+      body
+    ),
   listPlans: (
     params: {
       mandate_code?: string
@@ -86,4 +96,6 @@ export const vfuApi = {
     ),
   createPlan: (body: Partial<VfuPlan>) =>
     postCanonical<VfuPlan>("/api/loan/vfu/plans", body),
+  updatePlan: (id: string, body: Partial<VfuPlan>) =>
+    putCanonical<VfuPlan>(`/api/loan/vfu/plans/${encodeURIComponent(id)}`, body),
 }
