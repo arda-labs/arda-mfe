@@ -715,6 +715,14 @@
       "from_address": "Địa chỉ gửi",
       "from_name": "Tên người gửi"
     },
+    "test": {
+      "recipient": "Email nhận thử",
+      "params": "Tham số (JSON)",
+      "send": "Gửi thử",
+      "success": "Đã gửi email thử",
+      "failed": "Gửi thử thất bại",
+      "invalid_params": "Tham số JSON không hợp lệ"
+    },
     "placeholder": {
       "search": "Tìm theo mã sự kiện hoặc tiêu đề..."
     },

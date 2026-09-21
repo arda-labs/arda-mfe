@@ -39,6 +39,15 @@ export function upsertNotificationSender(
   return postCanonical<NotificationSender>("/api/notifications/senders", body)
 }
 
+export function testSendNotification(body: {
+  event_code: string
+  recipient: string
+  locale?: string
+  params?: Record<string, unknown>
+}) {
+  return postCanonical<{ ok: boolean }>("/api/notifications/test-send", body)
+}
+
 export function listNotificationEvents() {
   return getCanonical<{ items: NotificationEvent[] }>(
     "/api/notifications/events"

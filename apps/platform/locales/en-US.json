@@ -715,6 +715,14 @@
       "from_address": "From address",
       "from_name": "From name"
     },
+    "test": {
+      "recipient": "Test recipient email",
+      "params": "Params (JSON)",
+      "send": "Send test",
+      "success": "Test email sent",
+      "failed": "Test send failed",
+      "invalid_params": "Invalid JSON params"
+    },
     "placeholder": {
       "search": "Search by event code or subject..."
     },

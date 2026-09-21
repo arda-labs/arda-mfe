@@ -35,6 +35,7 @@ import { PageLoadOverlay } from "@workspace/list-page/page-load-overlay"
 import {
   deleteNotificationTemplate,
   listNotificationTemplates,
+  testSendNotification,
   upsertNotificationTemplate,
 } from "../api"
 import { type NotificationTemplate } from "../types"
@@ -55,6 +56,9 @@ export function TemplatesTab() {
   const [subject, setSubject] = useState("")
   const [body, setBody] = useState("")
   const [bodyHtml, setBodyHtml] = useState("")
+  const [testRecipient, setTestRecipient] = useState("")
+  const [testParams, setTestParams] = useState("")
+  const [testing, setTesting] = useState(false)
   const [pending, setPending] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<NotificationTemplate | null>(
     null
@@ -241,6 +245,39 @@ export function TemplatesTab() {
     }
   }
 
+  const sendTest = async () => {
+    if (!eventCode.trim() || !testRecipient.trim()) {
+      notify.error(t("platform.notifications.validation.required"))
+      return
+    }
+    let params: Record<string, unknown> = {}
+    if (testParams.trim()) {
+      try {
+        params = JSON.parse(testParams) as Record<string, unknown>
+      } catch {
+        notify.error(t("platform.notifications.test.invalid_params"))
+        return
+      }
+    }
+    setTesting(true)
+    try {
+      await testSendNotification({
+        event_code: eventCode.trim(),
+        recipient: testRecipient.trim(),
+        locale,
+        params,
+      })
+      notify.success(t("platform.notifications.test.success"))
+    } catch (reason) {
+      notify.error(
+        t("platform.notifications.test.failed"),
+        reason instanceof Error ? reason.message : undefined
+      )
+    } finally {
+      setTesting(false)
+    }
+  }
+
   const handleDelete = async () => {
     if (!deleteTarget) return
     setDeleting(true)
@@ -311,6 +348,33 @@ export function TemplatesTab() {
         </div>
         <Button onClick={() => void save()} disabled={pending}>
           {t("common.action.save")}
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-border p-4">
+        <div className="space-y-1.5">
+          <Label>{t("platform.notifications.test.recipient")}</Label>
+          <Input
+            value={testRecipient}
+            placeholder="user@example.com"
+            onChange={(e) => setTestRecipient(e.target.value)}
+          />
+        </div>
+        <div className="min-w-[240px] space-y-1.5">
+          <Label>{t("platform.notifications.test.params")}</Label>
+          <Input
+            className="font-mono text-xs"
+            value={testParams}
+            placeholder='{"caseCode":"X"}'
+            onChange={(e) => setTestParams(e.target.value)}
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => void sendTest()}
+          disabled={testing}
+        >
+          {t("platform.notifications.test.send")}
         </Button>
       </div>
 
