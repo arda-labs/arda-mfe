@@ -697,6 +697,7 @@
     "description": "Mẫu nội dung theo sự kiện/kênh và cấu hình SMTP (mật khẩu mã hoá).",
     "tab": {
       "templates": "Mẫu thông báo",
+      "designs": "Mẫu email",
       "senders": "Máy gửi mail",
       "events": "Sự kiện",
       "dlq": "Hàng đợi lỗi"
@@ -708,6 +709,9 @@
       "subject": "Tiêu đề",
       "body": "Nội dung",
       "body_html": "Nội dung HTML (dán từ email editor)",
+      "code": "Mã mẫu",
+      "name": "Tên mẫu",
+      "design_code": "Mẫu email dùng chung",
       "host": "SMTP host",
       "port": "Cổng",
       "username": "Tài khoản",

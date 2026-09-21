@@ -2,11 +2,12 @@ import { useCallback } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { DlqTab } from "./components/dlq-tab"
+import { DesignsTab } from "./components/designs-tab"
 import { EventsTab } from "./components/events-tab"
 import { SendersTab } from "./components/senders-tab"
 import { TemplatesTab } from "./components/templates-tab"
 
-const TAB_KEYS = ["templates", "senders", "events", "dlq"] as const
+const TAB_KEYS = ["templates", "designs", "senders", "events", "dlq"] as const
 type TabKey = (typeof TAB_KEYS)[number]
 
 function parseTab(value: string | null): TabKey {
@@ -58,6 +59,7 @@ export function NotificationsAdminPage() {
       </div>
 
       {tab === "templates" && <TemplatesTab />}
+      {tab === "designs" && <DesignsTab />}
       {tab === "senders" && <SendersTab />}
       {tab === "events" && <EventsTab />}
       {tab === "dlq" && <DlqTab />}

@@ -11,6 +11,17 @@ export interface NotificationTemplate {
   body: string
   /** Optional HTML body; when set the mail is multipart/alternative. */
   body_html: string
+  /** Optional reusable design code; its body_html is used when body_html is empty. */
+  design_code: string
+  is_active: boolean
+}
+
+export interface EmailDesign {
+  id: string
+  code: string
+  name: string
+  subject: string
+  body_html: string
   is_active: boolean
 }
 

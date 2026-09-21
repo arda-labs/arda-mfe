@@ -56,6 +56,7 @@ export function TemplatesTab() {
   const [subject, setSubject] = useState("")
   const [body, setBody] = useState("")
   const [bodyHtml, setBodyHtml] = useState("")
+  const [designCode, setDesignCode] = useState("")
   const [testRecipient, setTestRecipient] = useState("")
   const [testParams, setTestParams] = useState("")
   const [testing, setTesting] = useState(false)
@@ -230,6 +231,7 @@ export function TemplatesTab() {
         subject,
         body,
         body_html: bodyHtml,
+        design_code: designCode.trim(),
         is_active: true,
       })
       notify.success(t("platform.notifications.save_success"))
@@ -237,6 +239,7 @@ export function TemplatesTab() {
       setSubject("")
       setBody("")
       setBodyHtml("")
+      setDesignCode("")
       await load()
     } catch {
       notify.error(t("platform.notifications.save_failed"))
@@ -321,6 +324,14 @@ export function TemplatesTab() {
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.locale")}</Label>
           <Input value={locale} onChange={(e) => setLocale(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>{t("platform.notifications.field.design_code")}</Label>
+          <Input
+            className="font-mono"
+            value={designCode}
+            onChange={(e) => setDesignCode(e.target.value.toLowerCase())}
+          />
         </div>
         <div className="space-y-1.5">
           <Label>{t("platform.notifications.field.subject")}</Label>

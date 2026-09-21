@@ -697,6 +697,7 @@
     "description": "Template text by event/channel and SMTP config (password encrypted at rest).",
     "tab": {
       "templates": "Templates",
+      "designs": "Email designs",
       "senders": "Mail sender",
       "events": "Events",
       "dlq": "Dead letter"
@@ -708,6 +709,9 @@
       "subject": "Subject",
       "body": "Body",
       "body_html": "HTML body (paste from an email editor)",
+      "code": "Design code",
+      "name": "Design name",
+      "design_code": "Shared email design",
       "host": "SMTP host",
       "port": "Port",
       "username": "Username",

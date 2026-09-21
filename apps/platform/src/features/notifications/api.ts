@@ -1,5 +1,6 @@
 import { deleteCanonical, getCanonical, postCanonical } from "@workspace/api"
 import type {
+  EmailDesign,
   NotificationDLQEntry,
   NotificationEvent,
   NotificationSender,
@@ -46,6 +47,22 @@ export function testSendNotification(body: {
   params?: Record<string, unknown>
 }) {
   return postCanonical<{ ok: boolean }>("/api/notifications/test-send", body)
+}
+
+export function listEmailDesigns() {
+  return getCanonical<{ items: EmailDesign[] }>(
+    "/api/notifications/designs"
+  ).then((res) => res.items)
+}
+
+export function upsertEmailDesign(body: Partial<EmailDesign>) {
+  return postCanonical<EmailDesign>("/api/notifications/designs", body)
+}
+
+export function deleteEmailDesign(id: string) {
+  return deleteCanonical<{ ok: boolean }>(
+    `/api/notifications/designs/${encodeURIComponent(id)}`
+  )
 }
 
 export function listNotificationEvents() {
