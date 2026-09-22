@@ -16,7 +16,8 @@ import {
 import { makeAssistantToolUI, useToolCallElapsed } from "@assistant-ui/react"
 import { DataTableView, isArrayResult } from "./data-table-view"
 import { ApprovalCard } from "./approval-card"
-import { extractApprovalProposal } from "../../lib/messages"
+import { extractApprovalProposal, type ToolResultPayload } from "../../lib/messages"
+import { resolveToolRenderer } from "../../lib/registry"
 
 // Live wall-clock seconds for the running tool call, provided by the
 // library's part timing (startedAt set by the SSE adapter).
@@ -180,6 +181,17 @@ export function ExecuteMetaToolCard({
   const durationMs = typeof result.durationMs === "number" ? result.durationMs : undefined
   const methodsCalled = Array.isArray(result.methodsCalled) ? (result.methodsCalled as string[]) : []
 
+  // A sandbox script that returns a structured object (e.g. the report
+  // presentation: chart + KPI + rows) should render through the same registry
+  // as a direct tool result, instead of being dropped. Arrays keep the generic
+  // table renderer; anything else falls through to the raw view.
+  const rawOutput = result.output
+  const renderableOutput =
+    !isError && typeof rawOutput === "object" && rawOutput !== null && !Array.isArray(rawOutput)
+      ? (rawOutput as ToolResultPayload)
+      : undefined
+  const outputEntry = renderableOutput ? resolveToolRenderer(renderableOutput) : undefined
+
   return (
     <div className="space-y-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150">
       <Collapsible className="w-full">
@@ -254,7 +266,9 @@ export function ExecuteMetaToolCard({
         </CollapsibleContent>
       </Collapsible>
 
-      {!isError && isArrayResult(result.output) ? (
+      {!isError && outputEntry && renderableOutput ? (
+        <outputEntry.component result={renderableOutput} />
+      ) : !isError && isArrayResult(result.output) ? (
         <DataTableView data={result.output} />
       ) : null}
     </div>

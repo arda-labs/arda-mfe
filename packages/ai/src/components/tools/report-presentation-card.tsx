@@ -47,6 +47,7 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
   const rows = Array.isArray(result.rows)
     ? result.rows.filter((row): row is unknown[] => Array.isArray(row))
     : []
+  const totalRows = typeof result.row_count === "number" ? result.row_count : rows.length
   const kpis = Array.isArray(result.kpis) ? result.kpis : []
   const chart = isChartPayload(result.chart) ? result.chart : undefined
   const title = textValue(result.report_name, textValue(result.report_code, t("ai.tool.report.title")))
@@ -87,7 +88,7 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
         <div className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
           {period && <span>{t("ai.tool.report.period", { period })}</span>}
           {org && <span>· {org}</span>}
-          <span>· {t("ai.tool.report.row_count", { count: rows.length })}</span>
+          <span>· {t("ai.tool.report.row_count", { count: totalRows })}</span>
         </div>
       </div>
 
