@@ -593,6 +593,14 @@
       "open": "Open document",
       "effective": "Effective {from} – {to}"
     },
+    "report": {
+      "title": "Report",
+      "kpi_title": "Key indicators",
+      "table_title": "Detailed figures",
+      "chart_empty": "Not enough data to draw a chart",
+      "period": "Period {period}",
+      "row_count": "{count} rows"
+    },
     "customer": {
       "code": "Customer code",
       "rank": "Rank",

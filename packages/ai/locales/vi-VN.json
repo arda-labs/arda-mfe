@@ -136,6 +136,14 @@
       "fallback": "Tri thức Arda",
       "no_evidence": "Không tìm thấy tài liệu phù hợp đã được phê duyệt."
     },
+    "report": {
+      "title": "Báo cáo",
+      "kpi_title": "Chỉ số chính",
+      "table_title": "Số liệu chi tiết",
+      "chart_empty": "Không đủ dữ liệu để vẽ biểu đồ",
+      "period": "Kỳ {period}",
+      "row_count": "{count} dòng"
+    },
     "executed": "Thực thi công cụ: {name}"
   },
   "table": {

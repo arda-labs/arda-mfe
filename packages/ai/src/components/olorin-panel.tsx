@@ -55,6 +55,9 @@ import { registerFinanceAccountRenderer } from "./tools/finance-account-card"
 import { registerInvoiceListRenderer } from "./tools/invoice-list-card"
 import { registerKnowledgeCitationRenderer } from "./tools/citation-list"
 import { registerKnowledgeSearchFeedbackRenderer } from "./tools/knowledge-search-feedback"
+import { registerChartRenderer } from "./tools/chart-card"
+import { registerKpiRenderer } from "./tools/kpi-grid-card"
+import { registerReportPresentationRenderer } from "./tools/report-presentation-card"
 import { MarkdownMessage } from "./markdown"
 import {
   SearchMetaToolUI,
@@ -71,6 +74,9 @@ export type OlorinPanelProps = {
 }
 
 if (!areDefaultRenderersRegistered()) {
+  registerReportPresentationRenderer()
+  registerKpiRenderer()
+  registerChartRenderer()
   registerCustomerSummaryRenderer()
   registerEmployeeRenderer()
   registerFinanceAccountRenderer()

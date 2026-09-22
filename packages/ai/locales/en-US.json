@@ -136,6 +136,14 @@
       "fallback": "Arda knowledge",
       "no_evidence": "No approved evidence matched this question."
     },
+    "report": {
+      "title": "Report",
+      "kpi_title": "Key indicators",
+      "table_title": "Detailed figures",
+      "chart_empty": "Not enough data to draw a chart",
+      "period": "Period {period}",
+      "row_count": "{count} rows"
+    },
     "executed": "Executed tool: {name}"
   },
   "table": {

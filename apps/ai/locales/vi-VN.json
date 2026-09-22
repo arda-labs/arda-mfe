@@ -593,6 +593,14 @@
       "open": "Mở tài liệu",
       "effective": "Hiệu lực {from} – {to}"
     },
+    "report": {
+      "title": "Báo cáo",
+      "kpi_title": "Chỉ số chính",
+      "table_title": "Số liệu chi tiết",
+      "chart_empty": "Không đủ dữ liệu để vẽ biểu đồ",
+      "period": "Kỳ {period}",
+      "row_count": "{count} dòng"
+    },
     "customer": {
       "code": "Mã KH",
       "rank": "Hạng",
