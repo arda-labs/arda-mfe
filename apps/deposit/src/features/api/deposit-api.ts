@@ -16,6 +16,14 @@ import type {
   ProductRequest,
   RateRequest,
 } from "./types"
+import type {
+  InterbankBorrow,
+  IbmBorrowDetail,
+  IbmBorrowMovement,
+  IbmBorrowMovementKind,
+  IbmLenderType,
+  IbmFundingPurpose,
+} from "./borrow-types"
 import type { ApiRequestOptions } from "@workspace/api/client"
 import { buildListSearchParams } from "@workspace/api/list"
 import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
@@ -162,6 +170,54 @@ export const depositApi = {
     ),
   upsertIbmProduct: (body: Partial<IbmProduct>) =>
     postCanonical<IbmProduct>("/api/deposit/ibm-products", body),
+
+  // ── Interbank borrowing (mirror of the placement side) ──
+
+  listBorrows: (params: { status?: string } = {}, requestOptions?: ApiRequestOptions) => {
+    const search = new URLSearchParams()
+    if (params.status) search.set("status", params.status)
+    const qs = search.toString()
+    return getCanonicalList<InterbankBorrow>(
+      `/api/deposit/borrows${qs ? `?${qs}` : ""}`,
+      requestOptions
+    )
+  },
+  createBorrow: (body: {
+    borrow_code: string
+    counterparty_code: string
+    counterparty_name?: string
+    product_code?: string
+    lender_type: IbmLenderType
+    funding_purpose: IbmFundingPurpose
+    term_months: number
+    drawdown_date: string
+    maturity_date: string
+    principal_minor: number
+    interest_rate: number
+    currency_code?: string
+  }) => postCanonical<InterbankBorrow>("/api/deposit/borrows", body),
+  getBorrow: (id: string) =>
+    getCanonical<IbmBorrowDetail>(`/api/deposit/borrows/${encodeURIComponent(id)}`),
+  decideBorrow: (id: string, body: { decision: "APPROVE" | "REJECT"; data_version?: string }) =>
+    postCanonical<InterbankBorrow>(
+      `/api/deposit/borrows/${encodeURIComponent(id)}/decision`,
+      body
+    ),
+  submitBorrowMovement: (
+    borrowId: string,
+    body: {
+      kind: IbmBorrowMovementKind
+      amount_minor: number
+      movement_date: string
+      period_from?: string
+      period_to?: string
+      note?: string
+    }
+  ) =>
+    postCanonical<IbmBorrowMovement>(
+      `/api/deposit/borrows/${encodeURIComponent(borrowId)}/movements`,
+      body
+    ),
 
   listInterestRates: (productCode?: string) =>
     getCanonicalList<InterestRate>(

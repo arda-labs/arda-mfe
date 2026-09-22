@@ -432,5 +432,51 @@
     "request_success": "Đã trình duyệt sản phẩm (chờ duyệt)",
     "request_failed": "Không thể trình duyệt sản phẩm",
     "submit_request": "Trình duyệt"
+  },
+  "borrow": {
+    "title": "Tiền vay TCTD khác",
+    "description": "Các khoản đi vay tại Ngân hàng Hợp tác xã, NHNN, TCTD khác và Quỹ bảo toàn hệ thống. Hợp đồng cần được duyệt trước khi kích hoạt.",
+    "create": "Đề nghị vay",
+    "create_title": "Đề nghị vay vốn TCTD khác",
+    "create_description": "Khoản vay sẽ ở trạng thái chờ duyệt cho tới khi người kiểm tra phê duyệt.",
+    "create_success": "Đã trình duyệt đề nghị vay",
+    "create_failed": "Không thể trình duyệt đề nghị vay",
+    "validation": {
+      "required": "Nhập mã, đối tác, số tiền và ngày đáo hạn"
+    },
+    "field": {
+      "borrow_code": "Mã HĐ vay",
+      "counterparty": "Đối tác",
+      "counterparty_name": "Tên TCTD đối tác",
+      "lender_type": "Loại tổ chức cho vay",
+      "funding_purpose": "Mục đích vay",
+      "term_months": "Kỳ hạn (tháng)",
+      "drawdown_date": "Ngày giải ngân",
+      "maturity_date": "Đáo hạn",
+      "principal": "Số tiền vay",
+      "outstanding": "Dư nợ vay",
+      "interest_rate": "Lãi suất",
+      "currency": "Loại tiền"
+    },
+    "lender": {
+      "NHHTX": "Ngân hàng Hợp tác xã",
+      "NHNN": "Ngân hàng Nhà nước",
+      "OTHER_TCTD": "TCTD khác",
+      "SAFETY_FUND": "Quỹ bảo toàn hệ thống"
+    },
+    "purpose": {
+      "CREDIT_EXPANSION": "Mở rộng tín dụng",
+      "DEPOSIT_PAYMENT": "Chi trả tiền gửi",
+      "DIFFICULTY": "Giải quyết khó khăn",
+      "SPECIAL": "Vay đặc biệt",
+      "OTHER": "Khác"
+    },
+    "status": {
+      "PENDING_APPROVAL": "Chờ duyệt",
+      "ACTIVE": "Đang hiệu lực",
+      "REJECTED": "Từ chối",
+      "SETTLED": "Đã tất toán",
+      "CLOSED": "Đã đóng"
+    }
   }
 }

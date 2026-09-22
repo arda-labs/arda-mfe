@@ -1,28 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
+import { matchSelectFilter, matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
 import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
-import { formatDateShort, formatAmount, formatRatePercent, fromMinor } from "@workspace/format"
-import { depositApi, type InterbankDeposit } from "../api"
-import { PlaceInterbankDialog } from "./components/PlaceInterbankDialog"
+import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
+import { depositApi, type InterbankBorrow } from "../api"
+import { RaiseBorrowDialog } from "./components/RaiseBorrowDialog"
 
 const DEFAULT_PAGE_SIZE = 10
 
 /**
- * Interbank deposits (IBM): contracts with partner credit institutions.
- * Client tier — contract volume is expected to stay well under the 500-row
- * threshold (BE caps the unpaged list at 200 rows).
+ * Interbank borrowing (tiền vay TCTD khác) — the mirror of the placement page.
+ * Client tier: the BE list is capped at 200 rows, so no server paging yet.
+ *
+ * A row lands PENDING_APPROVAL and only becomes ACTIVE once a checker approves
+ * it, so the status column carries the maker/checker state, not just life-cycle.
  */
-export function InterbankPage(_props: { pathname: string }) {
+export function InterbankBorrowPage(_props: { pathname: string }) {
   const { t } = useI18n()
-  const [items, setItems] = useState<InterbankDeposit[]>([])
+  const [items, setItems] = useState<InterbankBorrow[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
@@ -33,7 +33,7 @@ export function InterbankPage(_props: { pathname: string }) {
     else setRefreshing(true)
     setLoadError(null)
     try {
-      const result = await depositApi.listInterbank()
+      const result = await depositApi.listBorrows()
       setItems(result.items)
     } catch (reason) {
       setLoadError(reason)
@@ -47,29 +47,24 @@ export function InterbankPage(_props: { pathname: string }) {
     void load(true)
   }, [load])
 
-  const columns = useMemo<ColumnDef<InterbankDeposit>[]>(
+  const columns = useMemo<ColumnDef<InterbankBorrow>[]>(
     () => [
       {
-        id: "deposit_code",
-        accessorKey: "deposit_code",
+        id: "borrow_code",
+        accessorKey: "borrow_code",
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t("deposit.interbank.field.deposit_code")}
+            label={t("deposit.borrow.field.borrow_code")}
           />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
-          t("deposit.interbank.field.deposit_code"),
+          t("deposit.borrow.field.borrow_code"),
           t("deposit.placeholder.search")
         ),
         cell: ({ row }) => (
-          <Link
-            to={`/deposit/interbank/${row.original.id}`}
-            className="font-mono text-xs font-semibold text-primary hover:underline"
-          >
-            {row.original.deposit_code}
-          </Link>
+          <span className="font-mono text-xs font-semibold">{row.original.borrow_code}</span>
         ),
       },
       {
@@ -78,27 +73,50 @@ export function InterbankPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t("deposit.interbank.field.counterparty")}
+            label={t("deposit.borrow.field.counterparty")}
           />
         ),
         enableColumnFilter: true,
         meta: textSearchMeta(
-          t("deposit.interbank.field.counterparty"),
+          t("deposit.borrow.field.counterparty"),
           t("deposit.placeholder.search")
         ),
       },
       {
-        id: "principal_minor",
-        accessorKey: "principal_minor",
+        id: "lender_type",
+        accessorKey: "lender_type",
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t("deposit.interbank.field.principal")}
+            label={t("deposit.borrow.field.lender_type")}
+          />
+        ),
+        enableColumnFilter: true,
+        meta: textSearchMeta(
+          t("deposit.borrow.field.lender_type"),
+          t("deposit.placeholder.search")
+        ),
+        cell: ({ row }) => (
+          <span className="text-xs">
+            {t(`deposit.borrow.lender.${row.original.lender_type}`)}
+          </span>
+        ),
+      },
+      {
+        id: "outstanding_minor",
+        accessorKey: "outstanding_minor",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.borrow.field.outstanding")}
           />
         ),
         cell: ({ row }) => (
           <span className="tabular-nums font-medium">
-            {formatAmount(fromMinor(row.original.principal_minor, row.original.currency_code), row.original.currency_code)}
+            {formatAmount(
+              fromMinor(row.original.outstanding_minor, row.original.currency_code),
+              row.original.currency_code
+            )}
           </span>
         ),
       },
@@ -108,7 +126,7 @@ export function InterbankPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t("deposit.interbank.field.interest_rate")}
+            label={t("deposit.borrow.field.interest_rate")}
           />
         ),
         cell: ({ row }) => (
@@ -116,16 +134,16 @@ export function InterbankPage(_props: { pathname: string }) {
         ),
       },
       {
-        id: "deposit_date",
-        accessorKey: "deposit_date",
+        id: "drawdown_date",
+        accessorKey: "drawdown_date",
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t("deposit.interbank.field.deposit_date")}
+            label={t("deposit.borrow.field.drawdown_date")}
           />
         ),
         cell: ({ row }) => (
-          <span className="whitespace-nowrap">{formatDateShort(row.original.deposit_date)}</span>
+          <span className="whitespace-nowrap">{formatDateShort(row.original.drawdown_date)}</span>
         ),
       },
       {
@@ -134,7 +152,7 @@ export function InterbankPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t("deposit.interbank.field.maturity_date")}
+            label={t("deposit.borrow.field.maturity_date")}
           />
         ),
         cell: ({ row }) => (
@@ -145,14 +163,19 @@ export function InterbankPage(_props: { pathname: string }) {
         id: "status",
         accessorKey: "status",
         header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("common.field.status")}
-          />
+          <DataTableColumnHeader column={column} label={t("common.field.status")} />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
-            {t(`deposit.interbank.status.${row.original.status}`)}
+          <Badge
+            variant={
+              row.original.status === "ACTIVE"
+                ? "default"
+                : row.original.status === "PENDING_APPROVAL"
+                  ? "secondary"
+                  : "outline"
+            }
+          >
+            {t(`deposit.borrow.status.${row.original.status}`)}
           </Badge>
         ),
       },
@@ -164,16 +187,18 @@ export function InterbankPage(_props: { pathname: string }) {
     columns,
     items,
     filterBy: {
-      deposit_code: (item, value) => matchTextColumnFilter(value, item.deposit_code),
+      borrow_code: (item, value) => matchTextColumnFilter(value, item.borrow_code),
       counterparty_code: (item, value) => matchTextColumnFilter(value, item.counterparty_code),
+      lender_type: (item, value) => matchSelectFilter(item.lender_type, value),
     },
     sort: (rows, sortState) =>
       sortByColumn(rows, sortState, {
-        deposit_code: (a, b) => a.deposit_code.localeCompare(b.deposit_code),
+        borrow_code: (a, b) => a.borrow_code.localeCompare(b.borrow_code),
         counterparty_code: (a, b) => a.counterparty_code.localeCompare(b.counterparty_code),
-        principal_minor: (a, b) => a.principal_minor - b.principal_minor,
+        lender_type: (a, b) => a.lender_type.localeCompare(b.lender_type),
+        outstanding_minor: (a, b) => a.outstanding_minor - b.outstanding_minor,
         interest_rate: (a, b) => a.interest_rate - b.interest_rate,
-        deposit_date: (a, b) => a.deposit_date.localeCompare(b.deposit_date),
+        drawdown_date: (a, b) => a.drawdown_date.localeCompare(b.drawdown_date),
         maturity_date: (a, b) => a.maturity_date.localeCompare(b.maturity_date),
         status: (a, b) => a.status.localeCompare(b.status),
       }),
@@ -182,7 +207,8 @@ export function InterbankPage(_props: { pathname: string }) {
 
   return (
     <ListPageShell
-      title={t("deposit.interbank.title")}
+      title={t("deposit.borrow.title")}
+      header={<p className="max-w-3xl text-sm text-muted-foreground">{t("deposit.borrow.description")}</p>}
       totalRows={total}
       meta={
         <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
@@ -195,27 +221,17 @@ export function InterbankPage(_props: { pathname: string }) {
       fetching={refreshing}
       table={table}
       toolbar={
-        <div className="flex items-center gap-2">
-          <ListTableToolbar
-            table={table}
-            onCreate={() => setCreateOpen(true)}
-            createLabel={t("deposit.interbank.create")}
-            exportFilename={t("deposit.interbank.title")}
-            sheetName={t("deposit.interbank.title")}
-            totalRowsCount={total}
-          />
-          <Button asChild variant="outline" size="sm">
-            <Link to="/deposit/interbank/products">
-              {t("deposit.interbank.product.title")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/deposit/borrows">{t("deposit.borrow.title")}</Link>
-          </Button>
-        </div>
+        <ListTableToolbar
+          table={table}
+          onCreate={() => setCreateOpen(true)}
+          createLabel={t("deposit.borrow.create")}
+          exportFilename={t("deposit.borrow.title")}
+          sheetName={t("deposit.borrow.title")}
+          totalRowsCount={total}
+        />
       }
       dialogs={
-        <PlaceInterbankDialog
+        <RaiseBorrowDialog
           open={createOpen}
           onOpenChange={setCreateOpen}
           onSaved={() => load()}

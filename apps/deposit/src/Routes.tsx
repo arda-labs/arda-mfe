@@ -11,6 +11,7 @@ const ProductsPage = lazyWithPreload(() => import("@/features/products/page").th
 const InterbankPage = lazyWithPreload(() => import("@/features/interbank/page").then((m) => ({ default: m.InterbankPage })))
 const InterbankDetailPage = lazyWithPreload(() => import("@/features/interbank/detail-page").then((m) => ({ default: m.InterbankDetailPage })))
 const IbmProductsPage = lazyWithPreload(() => import("@/features/interbank/ibm-products-page").then((m) => ({ default: m.IbmProductsPage })))
+const InterbankBorrowPage = lazyWithPreload(() => import("@/features/interbank/borrow-page").then((m) => ({ default: m.InterbankBorrowPage })))
 const RatesPage = lazyWithPreload(() => import("@/features/rates/page").then((m) => ({ default: m.RatesPage })))
 const SavingsDetailPage = lazyWithPreload(() => import("@/features/savings/detail-page").then((m) => ({ default: m.SavingsDetailPage })))
 const BatchInterestPage = lazyWithPreload(() => import("@/features/batch-interest/page").then((m) => ({ default: m.BatchInterestPage })))
@@ -26,6 +27,7 @@ export default createRemoteRoutes({
     { prefix: "/deposit/batch-interest", component: BatchInterestPage },
     { prefix: "/deposit/savings/", component: SavingsDetailPage },
     { prefix: "/deposit/interbank/products", component: IbmProductsPage },
+    { prefix: "/deposit/borrows", component: InterbankBorrowPage },
     { prefix: "/deposit/interbank/", component: InterbankDetailPage },
     { prefix: "/deposit/interbank", exact: true, component: InterbankPage },
   ],

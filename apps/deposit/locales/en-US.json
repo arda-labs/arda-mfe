@@ -432,5 +432,51 @@
     "request_success": "Product request submitted for approval",
     "request_failed": "Failed to submit the product request",
     "submit_request": "Submit for approval"
+  },
+  "borrow": {
+    "title": "Interbank borrowing",
+    "description": "Borrowings from the cooperative bank, the central bank, other credit institutions and the system safety fund. A contract needs approval before it becomes active.",
+    "create": "Raise borrowing",
+    "create_title": "Raise an interbank borrowing",
+    "create_description": "The borrowing stays pending until a checker approves it.",
+    "create_success": "Borrowing submitted for approval",
+    "create_failed": "Could not submit the borrowing",
+    "validation": {
+      "required": "Enter code, counterparty, amount and maturity date"
+    },
+    "field": {
+      "borrow_code": "Borrow code",
+      "counterparty": "Counterparty",
+      "counterparty_name": "Counterparty name",
+      "lender_type": "Lender type",
+      "funding_purpose": "Funding purpose",
+      "term_months": "Term (months)",
+      "drawdown_date": "Drawdown date",
+      "maturity_date": "Maturity date",
+      "principal": "Borrowed amount",
+      "outstanding": "Outstanding",
+      "interest_rate": "Interest rate",
+      "currency": "Currency"
+    },
+    "lender": {
+      "NHHTX": "Cooperative bank",
+      "NHNN": "Central bank",
+      "OTHER_TCTD": "Other institution",
+      "SAFETY_FUND": "Safety fund"
+    },
+    "purpose": {
+      "CREDIT_EXPANSION": "Credit expansion",
+      "DEPOSIT_PAYMENT": "Deposit payment",
+      "DIFFICULTY": "Difficulty",
+      "SPECIAL": "Special",
+      "OTHER": "Other"
+    },
+    "status": {
+      "PENDING_APPROVAL": "Pending approval",
+      "ACTIVE": "Active",
+      "REJECTED": "Rejected",
+      "SETTLED": "Settled",
+      "CLOSED": "Closed"
+    }
   }
 }
