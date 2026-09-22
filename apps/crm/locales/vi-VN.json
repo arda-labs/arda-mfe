@@ -376,5 +376,54 @@
     "save_success": "Đã lưu dự án",
     "save_failed": "Không thể lưu dự án",
     "member_failed": "Không thể cập nhật thành viên"
+  },
+  "members": {
+    "title": "Thành viên & vốn góp cổ phần",
+    "description": "Sổ thành viên QTDND: vốn góp đã duyệt và luồng yêu cầu góp/rút vốn (maker-checker).",
+    "load_failed": "Không tải được sổ thành viên",
+    "count": "{{count}} thành viên",
+    "placeholder": {
+      "search": "Tìm theo mã thành viên, mã khách hàng"
+    },
+    "field": {
+      "code": "Mã thành viên",
+      "customer": "Mã khách hàng",
+      "type": "Loại thành viên",
+      "openDate": "Ngày tham gia",
+      "capital": "Tổng vốn góp"
+    },
+    "type": {
+      "individual": "Cá nhân",
+      "household": "Hộ gia đình",
+      "legal": "Pháp nhân"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "left": "Đã ra khỏi quỹ"
+    },
+    "request": {
+      "register": "Góp vốn xác lập",
+      "additional": "Góp vốn bổ sung",
+      "withdraw": "Rút vốn",
+      "title": "Yêu cầu vốn góp gần đây",
+      "status": {
+        "draft": "Nháp",
+        "submitted": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối"
+      }
+    },
+    "capital": {
+      "title": "Yêu cầu vốn góp",
+      "subtitle": "Thành viên {{code}} · vốn góp hiện tại {{capital}} VND",
+      "requestType": "Loại yêu cầu",
+      "amount": "Số tiền (VND)",
+      "amount_required": "Nhập số tiền lớn hơn 0",
+      "effectiveDate": "Ngày hiệu lực",
+      "reason": "Lý do",
+      "submit": "Gửi duyệt",
+      "submitted": "Đã gửi yêu cầu vốn góp",
+      "submit_failed": "Không gửi được yêu cầu vốn góp"
+    }
   }
 }

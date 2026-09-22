@@ -1,4 +1,5 @@
 export * from "./customers"
+export * from "./members"
 export * from "./platform-reference"
 export * from "./projects"
 export * from "./reports"

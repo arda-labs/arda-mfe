@@ -376,5 +376,54 @@
     "save_success": "Project saved",
     "save_failed": "Could not save the project",
     "member_failed": "Could not update project members"
+  },
+  "members": {
+    "title": "Members & share capital",
+    "description": "QTDND member book: approved capital and the maker-checker capital request pipeline.",
+    "load_failed": "Could not load the member book",
+    "count": "{{count}} members",
+    "placeholder": {
+      "search": "Search by member or customer code"
+    },
+    "field": {
+      "code": "Member code",
+      "customer": "Customer code",
+      "type": "Member type",
+      "openDate": "Joined",
+      "capital": "Total capital"
+    },
+    "type": {
+      "individual": "Individual",
+      "household": "Household",
+      "legal": "Legal entity"
+    },
+    "status": {
+      "active": "Active",
+      "left": "Left the fund"
+    },
+    "request": {
+      "register": "Establishment contribution",
+      "additional": "Additional contribution",
+      "withdraw": "Withdrawal",
+      "title": "Recent capital requests",
+      "status": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
+    },
+    "capital": {
+      "title": "Capital request",
+      "subtitle": "Member {{code}} · current capital {{capital}} VND",
+      "requestType": "Request type",
+      "amount": "Amount (VND)",
+      "amount_required": "Enter an amount greater than 0",
+      "effectiveDate": "Effective date",
+      "reason": "Reason",
+      "submit": "Submit for approval",
+      "submitted": "Capital request submitted",
+      "submit_failed": "Could not submit the capital request"
+    }
   }
 }

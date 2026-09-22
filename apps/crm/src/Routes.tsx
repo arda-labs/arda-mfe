@@ -9,6 +9,7 @@ const locales = createAppLocaleLoader("crm", {
 const CustomersPage = lazyWithPreload(() => import("@/features/customers/page").then((m) => ({ default: m.CustomersPage })))
 const ReportsPage = lazyWithPreload(() => import("@/features/reports/page").then((m) => ({ default: m.ReportsPage })))
 const ProjectsPage = lazyWithPreload(() => import("@/features/projects/page").then((m) => ({ default: m.ProjectsPage })))
+const MembersPage = lazyWithPreload(() => import("@/features/members/page").then((m) => ({ default: m.MembersPage })))
 
 export default createRemoteRoutes({
   locales, wrapper: QueryProvider, defaultComponent: CustomersPage,
@@ -16,5 +17,6 @@ export default createRemoteRoutes({
   routes: [
     { prefix: "/customers/reports", component: ReportsPage },
     { prefix: "/customers/projects", component: ProjectsPage },
+    { prefix: "/customers/members", component: MembersPage },
   ],
 })
