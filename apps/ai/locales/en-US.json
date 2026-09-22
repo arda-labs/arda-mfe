@@ -599,7 +599,11 @@
       "table_title": "Detailed figures",
       "chart_empty": "Not enough data to draw a chart",
       "period": "Period {period}",
-      "row_count": "{count} rows"
+      "row_count": "{count} rows",
+      "download_xlsx": "Download Excel",
+      "download_pdf": "Download PDF",
+      "downloading": "Downloading…",
+      "download_error": "Could not download the document. Please try again."
     },
     "customer": {
       "code": "Customer code",

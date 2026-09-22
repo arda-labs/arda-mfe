@@ -142,7 +142,11 @@
       "table_title": "Số liệu chi tiết",
       "chart_empty": "Không đủ dữ liệu để vẽ biểu đồ",
       "period": "Kỳ {period}",
-      "row_count": "{count} dòng"
+      "row_count": "{count} dòng",
+      "download_xlsx": "Tải Excel",
+      "download_pdf": "Tải PDF",
+      "downloading": "Đang tải…",
+      "download_error": "Không tải được tài liệu. Vui lòng thử lại."
     },
     "executed": "Thực thi công cụ: {name}"
   },

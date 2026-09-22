@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { downloadFile } from "@workspace/api"
 import { Button } from "@workspace/ui/components/button"
 import {
   Table,
@@ -9,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { BarChart3, ChevronDown } from "lucide-react"
+import { BarChart3, ChevronDown, FileSpreadsheet, FileText, LoaderCircle } from "lucide-react"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import { registerToolRenderer } from "../../lib/registry"
 import { ChartView, isChartPayload } from "./chart-card"
@@ -39,6 +40,8 @@ function formatCell(value: unknown): string {
 export function ReportPresentationCard({ result }: { result: ToolResultPayload }) {
   const { t } = useI18n()
   const [expanded, setExpanded] = useState(false)
+  const [downloading, setDownloading] = useState<string | null>(null)
+  const [downloadError, setDownloadError] = useState(false)
 
   const columns = toStringArray(result.columns)
   const rows = Array.isArray(result.rows)
@@ -49,7 +52,29 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
   const title = textValue(result.report_name, textValue(result.report_code, t("ai.tool.report.title")))
   const period = textValue(result.period_code)
   const org = textValue(result.org_code)
+  const reportCode = textValue(result.report_code)
+  const canDownload = reportCode !== "" && period !== ""
   const visibleRows = expanded ? rows : rows.slice(0, 8)
+
+  // Documents are served by the existing statistical report endpoint through
+  // auth-gateway (policy statistical-read), so a download is authorized and
+  // audited like any other report view — no artifact store needed.
+  const handleDownload = async (format: "xlsx" | "pdf") => {
+    if (!canDownload) return
+    setDownloading(format)
+    setDownloadError(false)
+    try {
+      const params = new URLSearchParams({ period_code: period, format })
+      if (org) params.set("org_code", org)
+      await downloadFile(
+        `/api/statistical/reports/${encodeURIComponent(reportCode)}/document?${params.toString()}`
+      )
+    } catch {
+      setDownloadError(true)
+    } finally {
+      setDownloading(null)
+    }
+  }
   const hasMore = rows.length > 8
 
   return (
@@ -118,6 +143,44 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
           </div>
         )}
       </div>
+
+      {canDownload && (
+        <div className="flex flex-wrap items-center gap-2 border-t bg-muted/20 px-3 py-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={downloading !== null}
+            onClick={() => void handleDownload("xlsx")}
+            className="h-7 gap-1.5 px-2 text-[11px]"
+          >
+            {downloading === "xlsx" ? (
+              <LoaderCircle className="size-3.5 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="size-3.5" />
+            )}
+            {t("ai.tool.report.download_xlsx")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={downloading !== null}
+            onClick={() => void handleDownload("pdf")}
+            className="h-7 gap-1.5 px-2 text-[11px]"
+          >
+            {downloading === "pdf" ? (
+              <LoaderCircle className="size-3.5 animate-spin" />
+            ) : (
+              <FileText className="size-3.5" />
+            )}
+            {t("ai.tool.report.download_pdf")}
+          </Button>
+          {downloadError && (
+            <span className="text-[11px] text-destructive">{t("ai.tool.report.download_error")}</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
