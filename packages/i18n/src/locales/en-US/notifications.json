@@ -24,5 +24,13 @@
         "body": "{caseCode} is now active."
       }
     }
+  },
+  "statistical": {
+    "indicator": {
+      "breached": {
+        "title": "Indicator breached its threshold",
+        "body": "{ruleName}: {indicatorCode} for {periodCode} = {value} (threshold {operator} {threshold})"
+      }
+    }
   }
 }

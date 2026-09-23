@@ -24,5 +24,13 @@
         "body": "{caseCode} đã kích hoạt."
       }
     }
+  },
+  "statistical": {
+    "indicator": {
+      "breached": {
+        "title": "Chỉ tiêu vượt ngưỡng cảnh báo",
+        "body": "{ruleName}: {indicatorCode} kỳ {periodCode} = {value} (ngưỡng {operator} {threshold})"
+      }
+    }
   }
 }
