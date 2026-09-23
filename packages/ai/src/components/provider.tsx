@@ -11,6 +11,7 @@ import {
   WebSpeechDictationAdapter,
   type ExternalStoreThreadData,
   type LanguageModelConfig,
+  type ThreadAssistantMessagePart,
   type ThreadMessage,
 } from "@assistant-ui/react"
 import { useAgUiRuntime } from "@assistant-ui/react-ag-ui"
@@ -42,12 +43,28 @@ function toThreadMessage(
   const createdAt = item.createdAt ? new Date(item.createdAt) : new Date()
 
   if (item.role === "assistant") {
+    const artifacts = Array.isArray(item.artifacts) ? item.artifacts : []
+    const content: ThreadAssistantMessagePart[] = [
+      { type: "text" as const, text: item.content },
+    ]
+    // Replay persisted artifacts as renderChart tool parts so the chart/KPI
+    // card is rebuilt from history exactly as it was streamed live.
+    artifacts.forEach((artifact, index) => {
+      content.push({
+        type: "tool-call",
+        toolCallId: `${id}-artifact-${index}`,
+        toolName: "renderChart",
+        args: {},
+        argsText: "{}",
+        result: artifact,
+      })
+    })
     return {
       id,
       role: "assistant" as const,
       createdAt,
       status: { type: "complete" as const, reason: "stop" as const },
-      content: [{ type: "text" as const, text: item.content }],
+      content,
       metadata: {
         unstable_state: null,
         unstable_annotations: [],

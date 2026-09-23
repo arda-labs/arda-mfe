@@ -14,6 +14,9 @@ export type OlorinConversationMessage = {
   role: string
   content: string
   createdAt: string
+  // Renderable tool outputs (report presentation / chart) replayed so a chart
+  // or table survives reopening the thread.
+  artifacts?: unknown[]
 }
 
 export function useOlorinConversations(enabled: boolean) {
