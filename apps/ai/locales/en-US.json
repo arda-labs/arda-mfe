@@ -352,7 +352,22 @@
     },
     "tabs": {
       "model": "Model",
-      "quotas": "Quotas"
+      "quotas": "Quotas",
+      "agent": "Agent"
+    },
+    "agent": {
+      "title": "Act mode",
+      "description": "Let the assistant perform some data-changing actions without an approval.",
+      "enable_label": "Enable act mode",
+      "enable_hint": "Off by default. When on, low/medium-risk actions run immediately if the user holds the permission.",
+      "max_risk_label": "Maximum risk to auto-run",
+      "max_risk_hint": "High-risk actions always require approval, regardless of this setting.",
+      "risk_low": "Low only",
+      "risk_medium": "Low and medium",
+      "toast": {
+        "save_success": "Act mode settings saved",
+        "save_failed": "Could not save act mode settings"
+      }
     },
     "model": {
       "title": "Active model",

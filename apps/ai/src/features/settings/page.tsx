@@ -2,10 +2,11 @@ import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { Cpu, Gauge, SlidersHorizontal } from "lucide-react"
+import { Cpu, Gauge, ShieldAlert, SlidersHorizontal } from "lucide-react"
 
 import { ModelConfigTab } from "./components/model-config-tab"
 import { QuotasTab } from "./components/quotas-tab"
+import { AgentTab } from "./components/agent-tab"
 
 export function SettingsPage() {
   const { t } = useI18n()
@@ -30,6 +31,10 @@ export function SettingsPage() {
               <Gauge className="size-3.5 shrink-0" />
               <span>{t("ai.settings.tabs.quotas")}</span>
             </TabsTrigger>
+            <TabsTrigger value="agent" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+              <ShieldAlert className="size-3.5 shrink-0" />
+              <span>{t("ai.settings.tabs.agent")}</span>
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -38,6 +43,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="quotas" className="m-0">
           <QuotasTab />
+        </TabsContent>
+        <TabsContent value="agent" className="m-0">
+          <AgentTab />
         </TabsContent>
       </Tabs>
     </div>

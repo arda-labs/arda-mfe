@@ -352,7 +352,22 @@
     },
     "tabs": {
       "model": "Model",
-      "quotas": "Hạn mức"
+      "quotas": "Hạn mức",
+      "agent": "Trợ lý"
+    },
+    "agent": {
+      "title": "Chế độ Thực hiện (Act)",
+      "description": "Cho phép trợ lý tự thực hiện một số thao tác thay đổi dữ liệu mà không cần phê duyệt.",
+      "enable_label": "Bật chế độ Thực hiện",
+      "enable_hint": "Mặc định tắt. Khi bật, thao tác rủi ro thấp/vừa sẽ chạy ngay nếu người dùng có quyền.",
+      "max_risk_label": "Mức rủi ro tối đa được tự động",
+      "max_risk_hint": "Rủi ro cao luôn cần phê duyệt, bất kể cấu hình này.",
+      "risk_low": "Chỉ rủi ro thấp",
+      "risk_medium": "Thấp và vừa",
+      "toast": {
+        "save_success": "Đã lưu cấu hình chế độ Thực hiện",
+        "save_failed": "Không thể lưu cấu hình chế độ Thực hiện"
+      }
     },
     "model": {
       "title": "Model đang sử dụng",

@@ -132,3 +132,19 @@ export async function saveQuotas(
 ): Promise<QuotasDTO> {
   return putCanonical<QuotasDTO>("/api/ai/settings/quotas", payload)
 }
+
+// Ask/Act configuration (wire types are snake_case, matching the service).
+export interface AgentSettingsDTO {
+  act_mode_enabled: boolean
+  act_mode_max_risk: "low" | "medium"
+}
+
+export async function fetchAgentSettings(): Promise<AgentSettingsDTO> {
+  return getCanonical<AgentSettingsDTO>("/api/ai/settings/agent")
+}
+
+export async function saveAgentSettings(
+  payload: AgentSettingsDTO
+): Promise<AgentSettingsDTO> {
+  return putCanonical<AgentSettingsDTO>("/api/ai/settings/agent", payload)
+}
