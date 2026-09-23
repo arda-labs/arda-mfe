@@ -573,7 +573,15 @@
   "table": {
     "result_title": "Dữ liệu ({count} bản ghi)",
     "show_more": "Xem thêm",
-    "show_less": "Thu gọn"
+    "show_less": "Thu gọn",
+    "search": "Tìm trong bảng…",
+    "page_size": "Số dòng",
+    "prev": "Trang trước",
+    "next": "Trang sau",
+    "range": "{from}–{to} / {total}",
+    "empty": "Không có dòng nào khớp",
+    "sort": "Sắp xếp",
+    "truncated": "Hiển thị {shown}/{total} dòng"
   },
   "threads": {
     "title": "Cuộc trò chuyện",

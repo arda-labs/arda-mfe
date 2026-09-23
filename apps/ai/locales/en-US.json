@@ -573,7 +573,15 @@
   "table": {
     "result_title": "Data ({count} records)",
     "show_more": "Show more",
-    "show_less": "Show less"
+    "show_less": "Show less",
+    "search": "Search in table…",
+    "page_size": "Rows",
+    "prev": "Previous page",
+    "next": "Next page",
+    "range": "{from}–{to} / {total}",
+    "empty": "No matching rows",
+    "sort": "Sort",
+    "truncated": "Showing {shown}/{total} rows"
   },
   "threads": {
     "title": "Conversations",

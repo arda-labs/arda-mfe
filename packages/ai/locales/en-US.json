@@ -153,7 +153,15 @@
   "table": {
     "result_title": "Data ({count} records)",
     "show_more": "Show {count} more records",
-    "show_less": "Collapse"
+    "show_less": "Collapse",
+    "search": "Search in table…",
+    "page_size": "Rows",
+    "prev": "Previous page",
+    "next": "Next page",
+    "range": "{from}–{to} / {total}",
+    "empty": "No matching rows",
+    "sort": "Sort",
+    "truncated": "Showing {shown}/{total} rows"
   },
   "approval": {
     "badge": "Approval Required",

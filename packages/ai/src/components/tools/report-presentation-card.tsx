@@ -2,19 +2,12 @@ import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { downloadFile } from "@workspace/api"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
-import { BarChart3, ChevronDown, FileSpreadsheet, FileText, LoaderCircle } from "lucide-react"
+import { BarChart3, FileSpreadsheet, FileText, LoaderCircle } from "lucide-react"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import { registerToolRenderer } from "../../lib/registry"
 import { ChartView, isChartPayload } from "./chart-card"
 import { KpiGrid } from "./kpi-grid-card"
+import { ReportDataTable } from "./report-data-table"
 
 // ReportPresentationCard renders the `arda.statistical.getReportPresentation`
 // payload (and, as a fallback, a plain `runReport` result): KPI cards, a chart
@@ -28,18 +21,8 @@ function toStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.map((item) => (item == null ? "" : String(item))) : []
 }
 
-function formatCell(value: unknown): string {
-  if (value === null || value === undefined) return "—"
-  if (typeof value === "number") {
-    return value.toLocaleString("vi-VN", { maximumFractionDigits: 2 })
-  }
-  if (typeof value === "object") return JSON.stringify(value)
-  return String(value)
-}
-
 export function ReportPresentationCard({ result }: { result: ToolResultPayload }) {
   const { t } = useI18n()
-  const [expanded, setExpanded] = useState(false)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [downloadError, setDownloadError] = useState(false)
 
@@ -55,7 +38,6 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
   const org = textValue(result.org_code)
   const reportCode = textValue(result.report_code)
   const canDownload = reportCode !== "" && period !== ""
-  const visibleRows = expanded ? rows : rows.slice(0, 8)
 
   // Documents are served by the existing statistical report endpoint through
   // auth-gateway (policy statistical-read), so a download is authorized and
@@ -76,7 +58,6 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
       setDownloading(null)
     }
   }
-  const hasMore = rows.length > 8
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-2xs">
@@ -95,54 +76,12 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
       <div className="space-y-3 p-3">
         {kpis.length > 0 && <KpiGrid kpis={kpis} title={t("ai.tool.report.kpi_title")} />}
         {chart && <ChartView chart={chart} />}
-
-        {columns.length > 0 && rows.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-foreground">{t("ai.tool.report.table_title")}</p>
-            <div className="overflow-x-auto rounded-lg border">
-              <Table className="text-left text-xs">
-                <TableHeader className="bg-muted/40 text-[11px]">
-                  <TableRow>
-                    {columns.map((col, index) => (
-                      <TableHead key={`${col}-${index}`} className="h-auto whitespace-nowrap py-2 text-[11px]">
-                        {col}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visibleRows.map((row, rowIndex) => (
-                    <TableRow key={rowIndex} className="transition-colors hover:bg-muted/20">
-                      {columns.map((_, colIndex) => (
-                        <TableCell key={colIndex} className="whitespace-nowrap py-1.5 text-[11px] tabular-nums">
-                          {formatCell(row[colIndex])}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            {hasMore && (
-              <div className="text-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setExpanded((value) => !value)}
-                  className="h-6 gap-1 px-2 text-[11px] font-medium text-muted-foreground hover:text-foreground"
-                >
-                  <span>
-                    {expanded
-                      ? t("ai.table.show_less")
-                      : t("ai.table.show_more", { count: rows.length - 8 })}
-                  </span>
-                  <ChevronDown className={`size-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+        <ReportDataTable
+          columns={columns}
+          rows={rows}
+          truncated={totalRows > rows.length}
+          totalRows={totalRows}
+        />
       </div>
 
       {canDownload && (
