@@ -611,7 +611,11 @@
       "download_xlsx": "Download Excel",
       "download_pdf": "Download PDF",
       "downloading": "Downloading…",
-      "download_error": "Could not download the document. Please try again."
+      "download_error": "Could not download the document. Please try again.",
+      "chart_bar": "Bar chart",
+      "chart_line": "Line chart",
+      "chart_pie": "Pie chart",
+      "chart_download": "Download chart image"
     },
     "customer": {
       "code": "Customer code",

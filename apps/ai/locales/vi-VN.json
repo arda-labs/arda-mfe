@@ -611,7 +611,11 @@
       "download_xlsx": "Tải Excel",
       "download_pdf": "Tải PDF",
       "downloading": "Đang tải…",
-      "download_error": "Không tải được tài liệu. Vui lòng thử lại."
+      "download_error": "Không tải được tài liệu. Vui lòng thử lại.",
+      "chart_bar": "Biểu đồ cột",
+      "chart_line": "Biểu đồ đường",
+      "chart_pie": "Biểu đồ tròn",
+      "chart_download": "Tải ảnh biểu đồ"
     },
     "customer": {
       "code": "Mã KH",

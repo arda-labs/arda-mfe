@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import type { EChartsOption, EChartsType } from "echarts"
 import { useI18n } from "@workspace/i18n"
+import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
+import { BarChart3, Download, LineChart, PieChart } from "lucide-react"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import { registerToolRenderer } from "../../lib/registry"
 
@@ -27,6 +29,15 @@ export function isChartResult(result: ToolResultPayload): boolean {
   return isChartPayload(result)
 }
 
+type ChartKind = "bar" | "line" | "pie"
+
+// A curated banking palette so the chart matches the Arda theme instead of the
+// ECharts default colours.
+const PALETTE = [
+  "#2563eb", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444",
+  "#8b5cf6", "#14b8a6", "#f97316", "#64748b", "#a855f7",
+]
+
 function toStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.map((item) => (item == null ? "" : String(item))) : []
 }
@@ -43,7 +54,7 @@ function toSeries(value: unknown): { name: string; values: number[] }[] {
     }))
 }
 
-// formatAmount renders large VNĐ figures the way EPAS-style reports do.
+// formatAmount renders large VNĐ figures the way banking reports do.
 function formatAmount(value: number): string {
   const abs = Math.abs(value)
   if (abs >= 1e9) return `${(value / 1e9).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} tỷ`
@@ -64,14 +75,41 @@ function formatValue(value: number, format: string): string {
   }
 }
 
-function buildOption(chart: ChartPayload): EChartsOption {
+function formatSubtitle(format: string): string {
+  switch (format) {
+    case "amount":
+      return "Đơn vị: VNĐ"
+    case "percent":
+      return "Đơn vị: %"
+    case "int":
+      return "Đơn vị: số lượng"
+    default:
+      return ""
+  }
+}
+
+function buildOption(chart: ChartPayload, kind: ChartKind, showTitle: boolean): EChartsOption {
   const format = typeof chart.value_format === "string" ? chart.value_format : ""
   const categories = toStringArray(chart.categories)
   const series = toSeries(chart.series)
-  const type = typeof chart.type === "string" ? chart.type : "bar"
+  const title = textValue(chart.title)
+  const subtitle = formatSubtitle(format)
 
-  if (type === "pie") {
+  const heading =
+    (showTitle && title) || subtitle
+      ? {
+          text: showTitle ? title : "",
+          subtext: subtitle,
+          left: "center",
+          textStyle: { fontSize: 13, fontWeight: 600 },
+          subtextStyle: { fontSize: 10, color: "#64748b" },
+        }
+      : undefined
+
+  if (kind === "pie") {
     return {
+      color: PALETTE,
+      title: heading,
       tooltip: {
         trigger: "item",
         formatter: (params: unknown) => {
@@ -84,77 +122,93 @@ function buildOption(chart: ChartPayload): EChartsOption {
         {
           type: "pie",
           radius: ["42%", "68%"],
-          center: ["50%", "44%"],
+          center: ["50%", "46%"],
           avoidLabelOverlap: true,
           itemStyle: { borderColor: "#fff", borderWidth: 1 },
-          label: { fontSize: 10 },
-          data: categories.map((name, index) => ({
-            name,
-            value: series[0]?.values[index] ?? 0,
-          })),
+          label: { fontSize: 10, formatter: (params: unknown) => String((params as { name?: unknown }).name ?? "") },
+          data: categories.map((name, index) => ({ name, value: series[0]?.values[index] ?? 0 })),
         },
       ],
     } as EChartsOption
   }
 
+  // Long category labels read better as a horizontal bar (names on the left),
+  // matching the layout EPAS uses for ranked lists.
+  const horizontal = categories.length > 6
+  const categoryAxis = {
+    type: "category" as const,
+    data: categories,
+    axisTick: { show: false },
+    axisLabel: { fontSize: 10, interval: 0, rotate: horizontal ? 0 : categories.length > 6 ? 30 : 0 },
+  }
+  const valueAxis = {
+    type: "value" as const,
+    axisLabel: { fontSize: 10, formatter: (value: number) => formatValue(value, format) },
+    splitLine: { lineStyle: { opacity: 0.3 } },
+  }
+
   return {
+    color: PALETTE,
+    title: heading,
     tooltip: {
       trigger: "axis",
       valueFormatter: (value) => formatValue(Number(value) || 0, format),
     },
-    grid: { left: 8, right: 12, top: 24, bottom: 8, containLabel: true },
-    xAxis: {
-      type: "category",
-      data: categories,
-      axisTick: { show: false },
-      axisLabel: { fontSize: 10, interval: 0, rotate: categories.length > 6 ? 30 : 0 },
-    },
-    yAxis: {
-      type: "value",
-      axisLabel: { fontSize: 10, formatter: (value: number) => formatValue(value, format) },
-      splitLine: { lineStyle: { opacity: 0.3 } },
-    },
+    grid: { left: 8, right: 16, top: subtitle || title ? 52 : 24, bottom: 8, containLabel: true },
+    xAxis: horizontal ? valueAxis : categoryAxis,
+    yAxis: horizontal ? { ...categoryAxis, inverse: true } : valueAxis,
     series: series.map((item) => ({
       name: item.name,
-      type: type === "line" ? "line" : "bar",
+      type: kind === "line" ? "line" : "bar",
       data: item.values,
-      smooth: type === "line",
-      barMaxWidth: 36,
-      itemStyle: { borderRadius: type === "bar" ? [3, 3, 0, 0] : 0 },
+      smooth: kind === "line",
+      barMaxWidth: horizontal ? 18 : 36,
+      itemStyle: { borderRadius: horizontal ? [0, 3, 3, 0] : [3, 3, 0, 0] },
     })),
   } as EChartsOption
+}
+
+function asKind(value: unknown): ChartKind | undefined {
+  return value === "bar" || value === "line" || value === "pie" ? value : undefined
 }
 
 export function ChartView({
   chart,
   className,
   hideTitle = false,
+  allowSwitch = true,
 }: {
   chart: ChartPayload
   className?: string
   hideTitle?: boolean
+  allowSwitch?: boolean
 }) {
   const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const instanceRef = useRef<EChartsType | undefined>(undefined)
   const [failed, setFailed] = useState(false)
+  const serverKind = asKind(chart.type) ?? "bar"
+  const [kind, setKind] = useState<ChartKind>(serverKind)
   const type = typeof chart.type === "string" ? chart.type : "none"
-  const title = textValue(chart.title)
   const reason = textValue(chart.reason)
+  const categories = toStringArray(chart.categories)
+  const seriesCount = toSeries(chart.series).length
+  const canSwitch = allowSwitch && seriesCount === 1 && kind !== undefined
 
   useEffect(() => {
     if (type === "none") return
     const el = containerRef.current
     if (!el) return
     let disposed = false
-    let instance: EChartsType | undefined
     let observer: ResizeObserver | undefined
     void (async () => {
       try {
         const echarts = await import("echarts")
         if (disposed || !containerRef.current) return
-        instance = echarts.init(containerRef.current, undefined, { renderer: "canvas" })
-        instance.setOption(buildOption(chart), true)
-        observer = new ResizeObserver(() => instance?.resize())
+        const instance = echarts.init(containerRef.current, undefined, { renderer: "canvas" })
+        instanceRef.current = instance
+        instance.setOption(buildOption(chart, kind, !hideTitle), true)
+        observer = new ResizeObserver(() => instance.resize())
         observer.observe(containerRef.current)
       } catch {
         if (!disposed) setFailed(true)
@@ -163,9 +217,22 @@ export function ChartView({
     return () => {
       disposed = true
       observer?.disconnect()
-      instance?.dispose()
+      instanceRef.current?.dispose()
+      instanceRef.current = undefined
     }
-  }, [chart, type])
+  }, [chart, type, kind, hideTitle])
+
+  const handleDownloadPng = () => {
+    const instance = instanceRef.current
+    if (!instance) return
+    const url = instance.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: "#ffffff" })
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `${textValue(chart.title, "chart")}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   if (type === "none") {
     return (
@@ -175,10 +242,51 @@ export function ChartView({
     )
   }
 
+  const chartHeight = categories.length > 6 ? Math.min(520, Math.max(240, categories.length * 30)) : 256
+
   return (
-    <div className={cn("space-y-1", className)}>
-      {!hideTitle && title && <p className="text-xs font-medium text-foreground">{title}</p>}
-      <div ref={containerRef} className="h-64 w-full" />
+    <div className={cn("space-y-1.5", className)}>
+      {(canSwitch || type !== "none") && (
+        <div className="flex items-center justify-end gap-1">
+          {canSwitch && (
+            <div className="mr-auto flex items-center gap-0.5 rounded-md border bg-muted/20 p-0.5">
+              {(
+                [
+                  { key: "bar" as const, icon: BarChart3, label: t("ai.tool.report.chart_bar") },
+                  { key: "line" as const, icon: LineChart, label: t("ai.tool.report.chart_line") },
+                  { key: "pie" as const, icon: PieChart, label: t("ai.tool.report.chart_pie") },
+                ]
+              ).map(({ key, icon: Icon, label }) => (
+                <Button
+                  key={key}
+                  type="button"
+                  variant={kind === key ? "secondary" : "ghost"}
+                  size="icon"
+                  className="size-6"
+                  onClick={() => setKind(key)}
+                  aria-label={label}
+                  title={label}
+                >
+                  <Icon className="size-3.5" />
+                </Button>
+              ))}
+            </div>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-6 gap-1 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+            onClick={handleDownloadPng}
+            title={t("ai.tool.report.chart_download")}
+          >
+            <Download className="size-3" />
+            PNG
+          </Button>
+        </div>
+      )}
+      {!hideTitle && !chart.title && null}
+      <div ref={containerRef} className="w-full" style={{ height: chartHeight }} />
       {failed && <p className="text-[11px] text-muted-foreground">{t("ai.tool.report.chart_empty")}</p>}
     </div>
   )
