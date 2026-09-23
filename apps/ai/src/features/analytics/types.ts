@@ -45,4 +45,20 @@ export interface AnalyticsSummary {
   ragQuality: RAGQualityStats
   runsByDay: DayTrend[]
   modelsByUsage: ModelUsage[]
+  decision: {
+    evaluations: number
+    routed: number
+    low_confidence: number
+    tokens: number
+    avg_latency_ms: number
+    average_confidence: number
+  }
+  agentic: {
+    tool_calls: number
+    successful_calls: number
+    failed_calls: number
+    pending_approvals: number
+    approved_actions: number
+    rejected_actions: number
+  }
 }

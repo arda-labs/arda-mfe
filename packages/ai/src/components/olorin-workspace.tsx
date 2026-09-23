@@ -1,22 +1,26 @@
 import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import { notify } from "@workspace/ui/feedback/notify"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   ThreadListPrimitive,
   ThreadListItemPrimitive,
   useAuiState,
 } from "@assistant-ui/react"
-import { LoaderCircle, Minimize2, Plus, RotateCcw, Trash2 } from "lucide-react"
+import { LoaderCircle, Minimize2, Plus, Trash2 } from "lucide-react"
 import { useOlorinContext } from "../lib/context"
 import {
   deleteConversation,
+  emptyConversationTrash,
   fetchDeletedConversations,
+  permanentlyDeleteConversation,
   restoreConversation,
   type OlorinConversation,
 } from "../lib/conversations"
 import { OlorinPanel } from "./olorin-panel"
 import { DeleteConversationDialog } from "./conversation-delete-dialog"
+import { ConversationTrashDialog } from "./conversation-trash-dialog"
 
 export type OlorinWorkspaceProps = {
   onMinimize?: () => void
@@ -46,11 +50,15 @@ function OlorinWorkspaceSurface({
   const isRunning = useAuiState((state) => state.thread.isRunning)
   const handleMinimize = onMinimize ?? onExit
 
-  const [pendingDelete, setPendingDelete] = useState<{ threadId: string; title: string } | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<{
+    threadId: string
+    title: string
+  } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
   const [trashLoading, setTrashLoading] = useState(false)
   const [trash, setTrash] = useState<OlorinConversation[]>([])
+  const [trashBusyId, setTrashBusyId] = useState<string | null>(null)
 
   const loadTrash = useCallback(async () => {
     setTrashLoading(true)
@@ -86,15 +94,47 @@ function OlorinWorkspaceSurface({
 
   const restore = useCallback(
     async (id: string) => {
+      setTrashBusyId(id)
       try {
         await restoreConversation(id)
         await Promise.all([loadTrash(), conversations.refresh()])
-      } catch {
-        // ignore
+      } catch (error) {
+        notify.error(t("ai.threads.trash_action_failed"), error)
+      } finally {
+        setTrashBusyId(null)
       }
     },
-    [loadTrash, conversations]
+    [loadTrash, conversations, t]
   )
+
+  const permanentlyDelete = useCallback(
+    async (id: string) => {
+      setTrashBusyId(id)
+      try {
+        await permanentlyDeleteConversation(id)
+        await loadTrash()
+        await conversations.refresh()
+      } catch (error) {
+        notify.error(t("ai.threads.trash_action_failed"), error)
+      } finally {
+        setTrashBusyId(null)
+      }
+    },
+    [loadTrash, conversations, t]
+  )
+
+  const emptyTrash = useCallback(async () => {
+    setTrashBusyId("all")
+    try {
+      await emptyConversationTrash()
+      await loadTrash()
+      await conversations.refresh()
+    } catch (error) {
+      notify.error(t("ai.threads.trash_action_failed"), error)
+    } finally {
+      setTrashBusyId(null)
+    }
+  }, [loadTrash, conversations, t])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -119,7 +159,7 @@ function OlorinWorkspaceSurface({
           <ThreadListPrimitive.New asChild>
             <Button
               variant="outline"
-              className="w-full justify-start gap-2 text-xs h-9 shadow-2xs"
+              className="h-9 w-full justify-start gap-2 text-xs shadow-2xs"
             >
               <Plus className="size-4" />
               <span>{t("ai.threads.new")}</span>
@@ -128,7 +168,7 @@ function OlorinWorkspaceSurface({
         </div>
 
         <ThreadListPrimitive.Root className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-3">
-          <p className="px-2 pb-1 pt-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <p className="px-2 pt-2 pb-1 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
             {t("ai.threads.title")}
           </p>
 
@@ -149,15 +189,15 @@ function OlorinWorkspaceSurface({
             return (
               <div
                 className={cn(
-                  "group flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 transition-colors text-xs",
-                  "bg-accent text-accent-foreground font-medium"
+                  "group flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition-colors",
+                  "bg-accent font-medium text-accent-foreground"
                 )}
               >
                 <span className="min-w-0 flex-1">
                   <span className="block w-full truncate font-medium">
                     {t("ai.threads.current_new") || "Cuộc trò chuyện mới"}
                   </span>
-                  <span className="block text-[11px] text-muted-foreground mt-0.5">
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">
                     {isRunning ? (
                       <span className="shimmer text-primary motion-reduce:animate-none">
                         {t("ai.activity.working")}
@@ -174,33 +214,30 @@ function OlorinWorkspaceSurface({
           <ThreadListPrimitive.Items>
             {({ threadListItem }) => {
               const custom = threadListItem.custom as
-                | { messageCount?: number; lastMessageAt?: string }
-                | undefined
+                { messageCount?: number; lastMessageAt?: string } | undefined
               return (
                 <ThreadListItemPrimitive.Root
                   className={cn(
-                    "group flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 transition-colors text-xs",
+                    "group flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition-colors",
                     threadListItem.id === threadId
-                      ? "bg-accent text-accent-foreground font-medium"
-                      : "hover:bg-muted/70 text-foreground"
+                      ? "bg-accent font-medium text-accent-foreground"
+                      : "text-foreground hover:bg-muted/70"
                   )}
                 >
                   <ThreadListItemPrimitive.Trigger asChild>
-                    <button
-                      type="button"
-                      className="min-w-0 flex-1 text-left"
-                    >
+                    <button type="button" className="min-w-0 flex-1 text-left">
                       <span className="block w-full truncate font-medium">
                         <ThreadListItemPrimitive.Title />
                       </span>
-                      <span className="block text-[11px] text-muted-foreground mt-0.5">
+                      <span className="mt-0.5 block text-[11px] text-muted-foreground">
                         {isRunning && threadListItem.id === threadId ? (
                           <span className="shimmer text-primary motion-reduce:animate-none">
                             {t("ai.activity.working")}
                           </span>
                         ) : (
                           <>
-                            {custom?.messageCount ?? 0} {t("ai.threads.messages_suffix")}
+                            {custom?.messageCount ?? 0}{" "}
+                            {t("ai.threads.messages_suffix")}
                             {custom?.lastMessageAt &&
                               ` · ${formatDate(custom.lastMessageAt, {
                                 hour: "2-digit",
@@ -216,8 +253,13 @@ function OlorinWorkspaceSurface({
                   <button
                     type="button"
                     aria-label={t("ai.threads.delete")}
-                    className="rounded p-1 opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                    onClick={() => setPendingDelete({ threadId: threadListItem.id, title: "" })}
+                    className="rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() =>
+                      setPendingDelete({
+                        threadId: threadListItem.id,
+                        title: "",
+                      })
+                    }
                   >
                     <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
                   </button>
@@ -230,44 +272,18 @@ function OlorinWorkspaceSurface({
         <div className="border-t p-3">
           <button
             type="button"
-            onClick={() => setTrashOpen((value) => !value)}
-            className="flex w-full items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+            onClick={() => setTrashOpen(true)}
+            className="flex w-full items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase hover:text-foreground"
           >
             <Trash2 className="size-3" />
             {t("ai.threads.trash")}
           </button>
-          {trashOpen && (
-            <div className="mt-1.5 space-y-1">
-              {trashLoading && <p className="px-1 text-xs text-muted-foreground">…</p>}
-              {!trashLoading && trash.length === 0 && (
-                <p className="px-1 text-xs text-muted-foreground">{t("ai.threads.trash_empty")}</p>
-              )}
-              {trash.map((item) => (
-                <div
-                  key={item.threadId}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted/60"
-                >
-                  <span className="min-w-0 flex-1 truncate">{item.title || item.threadId}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 gap-1 px-2 text-[11px]"
-                    onClick={() => void restore(item.threadId)}
-                  >
-                    <RotateCcw className="size-3" />
-                    {t("ai.threads.restore")}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </aside>
 
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex h-[52px] shrink-0 items-center justify-between border-b px-4 bg-background">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex h-[52px] shrink-0 items-center justify-between border-b bg-background px-4">
+          <div className="flex min-w-0 items-center gap-2">
             <p className="truncate text-sm font-semibold">{t("ai.name")}</p>
             <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
               {isRunning ? (
@@ -283,18 +299,30 @@ function OlorinWorkspaceSurface({
               )}
             </span>
           </div>
-          {handleMinimize && (
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
-              aria-label={t("ai.panel.minimize")}
-              title={t("ai.panel.minimize")}
-              onClick={handleMinimize}
-              className="size-8 text-muted-foreground hover:text-foreground"
+              aria-label={t("ai.threads.trash")}
+              title={t("ai.threads.trash")}
+              onClick={() => setTrashOpen(true)}
+              className="size-8 text-muted-foreground hover:text-foreground md:hidden"
             >
-              <Minimize2 className="size-4" />
+              <Trash2 className="size-4" />
             </Button>
-          )}
+            {handleMinimize && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t("ai.panel.minimize")}
+                title={t("ai.panel.minimize")}
+                onClick={handleMinimize}
+                className="size-8 text-muted-foreground hover:text-foreground"
+              >
+                <Minimize2 className="size-4" />
+              </Button>
+            )}
+          </div>
         </div>
         <OlorinPanel className="min-h-0 flex-1" showHeader={false} />
       </main>
@@ -307,6 +335,16 @@ function OlorinWorkspaceSurface({
           if (!open) setPendingDelete(null)
         }}
         onConfirm={() => void confirmDelete()}
+      />
+      <ConversationTrashDialog
+        open={trashOpen}
+        loading={trashLoading}
+        conversations={trash}
+        busyId={trashBusyId}
+        onOpenChange={setTrashOpen}
+        onRestore={(id) => void restore(id)}
+        onDelete={(id) => void permanentlyDelete(id)}
+        onEmpty={() => void emptyTrash()}
       />
     </>
   )

@@ -299,6 +299,30 @@
       "total_tokens": "Tiêu thụ Token",
       "latency_p95": "Độ trễ P95"
     },
+    "roles": {
+      "reasoning": "Suy luận · model hội thoại",
+      "reasoning_hint": "Phân tích, truy xuất tri thức và tạo câu trả lời",
+      "decision": "Quyết định · Jev",
+      "decision_hint": "Định tuyến yêu cầu bằng model chuyên biệt",
+      "actions": "Hành động · công cụ và phê duyệt",
+      "actions_hint": "Theo dõi thực thi công cụ và kiểm soát rủi ro"
+    },
+    "decision": {
+      "evaluations": "Lượt đánh giá định tuyến",
+      "routed": "Đã chọn kỹ năng",
+      "low_confidence": "confidence thấp",
+      "tokens": "Token Jev",
+      "average_confidence": "Confidence trung bình",
+      "avg_latency": "Độ trễ trung bình Jev"
+    },
+    "actions": {
+      "tool_calls": "Lượt gọi công cụ",
+      "succeeded": "thành công",
+      "failed": "lỗi",
+      "pending": "Chờ phê duyệt",
+      "approved": "Đã phê duyệt",
+      "rejected": "Đã từ chối"
+    },
     "trend": {
       "title": "Xu hướng hoạt động (7 ngày qua)",
       "subtitle": "Số lượt chạy & Tiêu thụ Token",
@@ -369,7 +393,7 @@
       "skills": { "general": "Thông thường", "report": "Báo cáo", "loan_portfolio": "Dư nợ theo nhóm nợ", "knowledge": "Tra cứu kiến thức" }
     },
     "title": "Cài đặt AI",
-    "description": "Cấu hình model AI đang dùng và hạn mức sử dụng của tenant.",
+    "description": "Quản lý luồng Quyết định → Suy luận → Hành động, hạn mức sử dụng và thời gian lưu hội thoại.",
     "quotas": {
       "toast": {
         "save_success": "Đã lưu hạn mức ngân sách và giới hạn tốc độ (Rate Limits)!",
@@ -389,10 +413,34 @@
       }
     },
     "tabs": {
-      "model": "Hội thoại",
-      "decision": "Quyết định",
+      "runtime": "Agent & mô hình",
       "quotas": "Hạn mức",
-      "agent": "Trợ lý"
+      "data": "Dữ liệu"
+    },
+    "runtime": {
+      "decision": "Quyết định",
+      "decision_hint": "Jev phân loại yêu cầu và chọn hướng xử lý",
+      "reasoning": "Suy luận",
+      "reasoning_hint": "Model hội thoại phân tích và tạo câu trả lời",
+      "actions": "Hành động",
+      "actions_hint": "Công cụ chạy theo quyền và chính sách phê duyệt",
+      "decision_section": "1 · Định tuyến yêu cầu",
+      "reasoning_section": "2 · Phân tích và trả lời",
+      "actions_section": "3 · Thực thi có kiểm soát"
+    },
+    "retention": {
+      "title": "Thời hạn lưu thùng rác",
+      "description": "Chọn thời gian hội thoại đã xóa được giữ lại trước khi hệ thống tự xóa vĩnh viễn.",
+      "default_title": "Mặc định 30 ngày",
+      "default_hint": "Hội thoại trong thùng rác có thể được khôi phục cho đến ngày tự xóa.",
+      "period": "Tự động xóa sau",
+      "months": "{count} tháng",
+      "maximum": "Có thể cấu hình từ 1 đến 12 tháng.",
+      "save": "Lưu thời hạn",
+      "retry": "Tải lại",
+      "saved": "Đã lưu thời hạn lưu thùng rác",
+      "load_failed": "Không thể tải thời hạn lưu",
+      "save_failed": "Không thể lưu thời hạn lưu"
     },
     "agent": {
       "title": "Chế độ Thực hiện (Act)",
@@ -662,6 +710,18 @@
     "restore": "Khôi phục",
     "trash": "Thùng rác",
     "trash_empty": "Thùng rác trống",
+    "trash_loading": "Đang tải hội thoại đã xóa…",
+    "trash_action_failed": "Không thể cập nhật thùng rác. Vui lòng thử lại.",
+    "trash_retention_hint": "Hội thoại sẽ tự xóa theo thời hạn lưu đã cấu hình. Bạn có thể khôi phục hoặc xóa ngay.",
+    "trash_expires": "Tự động xóa vào {date}",
+    "trash_deleted": "Đã xóa ngày {date}",
+    "trash_expiry_fallback": "Sẽ tự động xóa theo thời hạn lưu của tổ chức",
+    "empty_trash": "Xóa toàn bộ",
+    "delete_permanently": "Xóa vĩnh viễn",
+    "delete_permanently_confirm_title": "Xóa vĩnh viễn hội thoại này?",
+    "delete_permanently_confirm_description": "“{title}” sẽ bị xóa cùng toàn bộ tin nhắn và không thể khôi phục.",
+    "empty_trash_confirm_title": "Xóa toàn bộ thùng rác?",
+    "empty_trash_confirm_description": "Tất cả hội thoại trong thùng rác của bạn sẽ bị xóa vĩnh viễn và không thể khôi phục.",
     "deleted": "Đã chuyển vào thùng rác",
     "restored": "Đã khôi phục",
     "undo": "Hoàn tác"
@@ -677,6 +737,8 @@
     },
     "report": {
       "title": "Báo cáo",
+      "category": "Danh mục",
+      "series": "Chuỗi",
       "kpi_title": "Chỉ số chính",
       "table_title": "Số liệu chi tiết",
       "chart_empty": "Không đủ dữ liệu để vẽ biểu đồ",

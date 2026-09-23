@@ -23,7 +23,8 @@ export interface AIProfile {
   models: AIProfileModel[]
 }
 
-export type AIProviderType = "openai" | "openai-compatible" | "opencode-go" | "ollama" | "vllm"
+export type AIProviderType =
+  "openai" | "openai-compatible" | "opencode-go" | "ollama" | "vllm"
 
 export interface ProfileUpsertPayload {
   name: string
@@ -121,15 +122,16 @@ export interface QuotasDTO {
   periodStart?: string
 }
 
-export type UpdateQuotasDTO = Pick<QuotasDTO, "webhookUrl" | "monthlyTokenLimit">
+export type UpdateQuotasDTO = Pick<
+  QuotasDTO,
+  "webhookUrl" | "monthlyTokenLimit"
+>
 
 export async function fetchQuotas(): Promise<QuotasDTO> {
   return getCanonical<QuotasDTO>("/api/ai/settings/quotas")
 }
 
-export async function saveQuotas(
-  payload: UpdateQuotasDTO
-): Promise<QuotasDTO> {
+export async function saveQuotas(payload: UpdateQuotasDTO): Promise<QuotasDTO> {
   return putCanonical<QuotasDTO>("/api/ai/settings/quotas", payload)
 }
 
@@ -147,4 +149,26 @@ export async function saveAgentSettings(
   payload: AgentSettingsDTO
 ): Promise<AgentSettingsDTO> {
   return putCanonical<AgentSettingsDTO>("/api/ai/settings/agent", payload)
+}
+
+export interface ConversationRetentionDTO {
+  trash_retention_months: number
+  maximum_months: number
+}
+
+export async function fetchConversationRetention(): Promise<ConversationRetentionDTO> {
+  return getCanonical<ConversationRetentionDTO>(
+    "/api/ai/settings/conversations"
+  )
+}
+
+export async function saveConversationRetention(
+  months: number
+): Promise<ConversationRetentionDTO> {
+  return putCanonical<ConversationRetentionDTO>(
+    "/api/ai/settings/conversations",
+    {
+      trash_retention_months: months,
+    }
+  )
 }

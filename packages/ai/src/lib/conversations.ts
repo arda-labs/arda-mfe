@@ -7,6 +7,8 @@ export type OlorinConversation = {
   messageCount: number
   lastMessageAt?: string
   status: string
+  deletedAt?: string
+  expiresAt?: string
 }
 
 export type OlorinConversationMessage = {
@@ -57,7 +59,9 @@ export function useOlorinConversations(enabled: boolean) {
     setLoading(true)
     setError("")
     try {
-      const response = await api.get<ApiSuccess<OlorinConversation[]>>("/api/ai/conversations?limit=20")
+      const response = await api.get<ApiSuccess<OlorinConversation[]>>(
+        "/api/ai/conversations?limit=20"
+      )
       setConversations(response.result ?? [])
     } catch (caught) {
       setError(caught instanceof ApiClientError ? caught.code : "error")
@@ -90,15 +94,28 @@ export async function fetchConversationMessages(
 }
 
 export async function deleteConversation(threadId: string): Promise<void> {
-  await api.delete(
-    `/api/ai/conversations/${encodeURIComponent(threadId)}`
-  )
+  await api.delete(`/api/ai/conversations/${encodeURIComponent(threadId)}`)
 }
 
 // Deletes are soft (the conversation moves to the trash), so the UI can offer
 // undo and a trash list with restore.
 export async function restoreConversation(threadId: string): Promise<void> {
-  await api.post(`/api/ai/conversations/${encodeURIComponent(threadId)}/restore`, {})
+  await api.post(
+    `/api/ai/conversations/${encodeURIComponent(threadId)}/restore`,
+    {}
+  )
+}
+
+export async function permanentlyDeleteConversation(
+  threadId: string
+): Promise<void> {
+  await api.delete(
+    `/api/ai/conversations/${encodeURIComponent(threadId)}/permanent`
+  )
+}
+
+export async function emptyConversationTrash(): Promise<void> {
+  await api.post("/api/ai/conversations/trash/purge", {})
 }
 
 export async function fetchDeletedConversations(

@@ -299,6 +299,30 @@
       "total_tokens": "Token Consumption",
       "latency_p95": "P95 Latency"
     },
+    "roles": {
+      "reasoning": "Reasoning · conversation model",
+      "reasoning_hint": "Analysis, retrieval, and response generation",
+      "decision": "Decision · Jev",
+      "decision_hint": "Request routing with a specialized model",
+      "actions": "Actions · tools and approvals",
+      "actions_hint": "Tool execution and risk controls"
+    },
+    "decision": {
+      "evaluations": "Routing evaluations",
+      "routed": "Skill selected",
+      "low_confidence": "low confidence",
+      "tokens": "Jev tokens",
+      "average_confidence": "Average confidence",
+      "avg_latency": "Average Jev latency"
+    },
+    "actions": {
+      "tool_calls": "Tool calls",
+      "succeeded": "succeeded",
+      "failed": "failed",
+      "pending": "Pending approvals",
+      "approved": "Approved actions",
+      "rejected": "Rejected actions"
+    },
     "trend": {
       "title": "Activity Trend (Last 7 Days)",
       "subtitle": "Runs & Token Volume",
@@ -369,7 +393,7 @@
       "skills": { "general": "General", "report": "Reporting", "loan_portfolio": "Loan portfolio", "knowledge": "Knowledge lookup" }
     },
     "title": "AI Settings",
-    "description": "Configure this tenant's active AI model and usage quota.",
+    "description": "Manage the Decision → Reasoning → Actions flow, usage limits, and conversation retention.",
     "quotas": {
       "toast": {
         "save_success": "Budget caps and rate limits saved!",
@@ -389,10 +413,34 @@
       }
     },
     "tabs": {
-      "model": "Conversation",
-      "decision": "Decision",
+      "runtime": "Agents & models",
       "quotas": "Quotas",
-      "agent": "Agent"
+      "data": "Data"
+    },
+    "runtime": {
+      "decision": "Decision",
+      "decision_hint": "Jev classifies requests and selects a route",
+      "reasoning": "Reasoning",
+      "reasoning_hint": "The conversation model analyzes and answers",
+      "actions": "Actions",
+      "actions_hint": "Tools follow permissions and approval policies",
+      "decision_section": "1 · Route the request",
+      "reasoning_section": "2 · Analyze and answer",
+      "actions_section": "3 · Execute with controls"
+    },
+    "retention": {
+      "title": "Trash retention",
+      "description": "Choose how long deleted conversations stay in the trash before permanent removal.",
+      "default_title": "Default: 30 days",
+      "default_hint": "Conversations can be restored from trash until their scheduled deletion date.",
+      "period": "Automatically delete after",
+      "months": "{count} months",
+      "maximum": "Choose from 1 to 12 months.",
+      "save": "Save retention",
+      "retry": "Retry",
+      "saved": "Trash retention saved",
+      "load_failed": "Could not load trash retention",
+      "save_failed": "Could not save trash retention"
     },
     "agent": {
       "title": "Act mode",
@@ -662,6 +710,18 @@
     "restore": "Restore",
     "trash": "Trash",
     "trash_empty": "Trash is empty",
+    "trash_loading": "Loading deleted conversations…",
+    "trash_action_failed": "Could not update the trash. Please try again.",
+    "trash_retention_hint": "Conversations are deleted after the configured retention period. Restore them or delete them now.",
+    "trash_expires": "Auto-deletes on {date}",
+    "trash_deleted": "Deleted on {date}",
+    "trash_expiry_fallback": "Auto-deleted according to your organization's retention period",
+    "empty_trash": "Empty trash",
+    "delete_permanently": "Delete permanently",
+    "delete_permanently_confirm_title": "Permanently delete this conversation?",
+    "delete_permanently_confirm_description": "“{title}” and all its messages will be deleted and cannot be restored.",
+    "empty_trash_confirm_title": "Empty the trash?",
+    "empty_trash_confirm_description": "Every conversation in your trash will be permanently deleted and cannot be restored.",
     "deleted": "Moved to trash",
     "restored": "Restored",
     "undo": "Undo"
@@ -677,6 +737,8 @@
     },
     "report": {
       "title": "Report",
+      "category": "Category",
+      "series": "Series",
       "kpi_title": "Key indicators",
       "table_title": "Detailed figures",
       "chart_empty": "Not enough data to draw a chart",
