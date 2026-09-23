@@ -222,7 +222,9 @@
     "ask": "Ask AI",
     "expand": "Expand to full page",
     "minimize": "Collapse to panel",
-    "shortcut_hint": "Ctrl+J"
+    "shortcut_hint": "Ctrl+J",
+    "chat_width_full": "Full width",
+    "chat_width_compact": "Content width"
   },
   "settings": {
     "title": "Configure AI Provider (BYOK)",

@@ -35,6 +35,7 @@ import {
   History,
   LoaderCircle,
   Mic,
+  MoveHorizontal,
   Pencil,
   Plus,
   Quote,
@@ -45,12 +46,15 @@ import {
   ShieldCheck,
   Sparkles,
   Square,
+  ThumbsDown,
+  ThumbsUp,
   Trash2,
   X,
 } from "lucide-react"
 import {
   deleteConversation as apiDeleteConversation,
   restoreConversation,
+  sendAnswerFeedback,
 } from "../lib/conversations"
 import {
   areDefaultRenderersRegistered,
@@ -126,6 +130,28 @@ export function OlorinPanel({
   const { t, formatDate } = useI18n()
   const { newThread, switchToThread, threadId, conversations } = useOlorinContext()
   const isEmpty = useAuiState((state) => state.thread.messages.length === 0)
+
+  // Chat width: content-width (default, matches the message column) or full
+  // width. Persisted so the choice survives a reload.
+  const [wideChat, setWideChat] = useState(() => {
+    if (typeof window === "undefined") return false
+    try {
+      return window.localStorage.getItem("arda-ai-wide-chat") === "1"
+    } catch {
+      return false
+    }
+  })
+  const toggleWideChat = useCallback(() => {
+    setWideChat((value) => {
+      const next = !value
+      try {
+        window.localStorage.setItem("arda-ai-wide-chat", next ? "1" : "0")
+      } catch {
+        // storage may be unavailable; the in-memory value still works
+      }
+      return next
+    })
+  }, [])
 
   const [pendingDelete, setPendingDelete] = useState<{ threadId: string; title: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -246,6 +272,18 @@ export function OlorinPanel({
           </DropdownMenu>
 
           <div className="flex items-center gap-1.5">
+            <HeaderActivity />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={toggleWideChat}
+              className="size-7 text-muted-foreground hover:text-foreground"
+              aria-label={wideChat ? t("ai.panel.chat_width_compact") : t("ai.panel.chat_width_full")}
+              title={wideChat ? t("ai.panel.chat_width_compact") : t("ai.panel.chat_width_full")}
+            >
+              <MoveHorizontal className="size-3.5" />
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -263,10 +301,15 @@ export function OlorinPanel({
       <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <ThreadPrimitive.Viewport className="relative flex flex-1 flex-col overflow-y-auto scroll-smooth">
           <ThreadPrimitive.Empty>
-            <OlorinWelcome />
+            <OlorinWelcome wide={wideChat} />
           </ThreadPrimitive.Empty>
 
-          <div className="mx-auto w-full max-w-3xl space-y-3 px-4 py-4">
+          <div
+            className={cn(
+              "mx-auto w-full space-y-3 px-4 py-4 transition-[max-width] duration-300",
+              wideChat ? "max-w-none" : "max-w-3xl"
+            )}
+          >
             <ThreadPrimitive.Messages>
               {({ message }) => {
                 if (message.role === "user") {
@@ -302,8 +345,15 @@ export function OlorinPanel({
         </SelectionToolbarPrimitive.Root>
 
         {!isEmpty && (
-          <div className="border-t bg-background p-3">
-            <OlorinComposer />
+          <div className="bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-3 pt-4">
+            <div
+              className={cn(
+                "mx-auto w-full transition-[max-width] duration-300",
+                wideChat ? "max-w-none" : "max-w-3xl"
+              )}
+            >
+              <OlorinComposer />
+            </div>
           </div>
         )}
       </ThreadPrimitive.Root>
@@ -485,10 +535,43 @@ function OlorinComposer() {
   )
 }
 
-function OlorinWelcome() {
+// Live "what is it doing" hint for the header, driven by the running tool of
+// the last assistant message. Kept tiny so it reads as ambient status.
+const HEADER_ACTIVITY_KEYS: Record<string, string> = {
+  search: "ai.activity.search",
+  execute: "ai.activity.execute",
+  readResult: "ai.activity.read",
+}
+
+function HeaderActivity() {
+  const { t } = useI18n()
+  const running = useAuiState((state) => state.thread.isRunning)
+  const toolName = useAuiState((state) => {
+    if (!state.thread.isRunning) return undefined
+    const messages = state.thread.messages
+    const last = messages[messages.length - 1]
+    if (!last || last.role !== "assistant") return undefined
+    const pending = last.content.find(
+      (part) => part.type === "tool-call" && (part as { result?: unknown }).result === undefined
+    )
+    const name = (pending as { toolName?: unknown } | undefined)?.toolName
+    return typeof name === "string" ? name : undefined
+  })
+
+  if (!running) return null
+  const label = t(HEADER_ACTIVITY_KEYS[toolName ?? ""] ?? "ai.activity.working")
+  return (
+    <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200">
+      <LoaderCircle className="size-3 shrink-0 animate-spin text-primary" />
+      <span className="shimmer max-w-[140px] truncate motion-reduce:animate-none">{label}</span>
+    </span>
+  )
+}
+
+function OlorinWelcome({ wide = false }: { wide?: boolean }) {
   const { t } = useI18n()
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-300">
       <div className="relative mb-4">
         <div
           className="absolute inset-0 -z-10 rounded-full bg-primary/20 blur-2xl motion-safe:animate-pulse"
@@ -503,7 +586,12 @@ function OlorinWelcome() {
         {t("ai.empty.hint")}
       </p>
 
-      <div className="mt-6 w-full max-w-2xl text-left">
+      <div
+        className={cn(
+          "mt-6 w-full text-left transition-[max-width] duration-300",
+          wide ? "max-w-none" : "max-w-2xl"
+        )}
+      >
         <OlorinComposer />
       </div>
 
@@ -617,6 +705,13 @@ function isArtifactPart(part: PartState): boolean {
 
 function AssistantMessage() {
   const { t } = useI18n()
+  const { threadId } = useOlorinContext()
+  const [rating, setRating] = useState<"up" | "down" | null>(null)
+
+  const rate = (helpful: boolean) => {
+    setRating(helpful ? "up" : "down")
+    void sendAnswerFeedback({ threadId, helpful }).catch(() => setRating(null))
+  }
 
   const baseGroupBy = useMemo(
     () =>
@@ -752,6 +847,34 @@ function AssistantMessage() {
                   <RefreshCw className="size-3" />
                 </Button>
               </ActionBarPrimitive.Reload>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "size-6 rounded",
+                  rating === "up" ? "text-emerald-600" : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label={t("ai.feedback.helpful") || "Hữu ích"}
+                title={t("ai.feedback.helpful") || "Hữu ích"}
+                onClick={() => rate(true)}
+              >
+                <ThumbsUp className="size-3" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "size-6 rounded",
+                  rating === "down" ? "text-destructive" : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label={t("ai.feedback.not_helpful") || "Không hữu ích"}
+                title={t("ai.feedback.not_helpful") || "Không hữu ích"}
+                onClick={() => rate(false)}
+              >
+                <ThumbsDown className="size-3" />
+              </Button>
             </ActionBarPrimitive.Root>
             <MessageTimingStats />
           </div>

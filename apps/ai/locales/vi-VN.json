@@ -561,7 +561,9 @@
   "name": "Olorin",
   "tagline": "Trợ lý AI của Arda",
   "panel": {
-    "minimize": "Thu nhỏ"
+    "minimize": "Thu nhỏ",
+    "chat_width_full": "Rộng hết chiều ngang",
+    "chat_width_compact": "Thu về khổ nội dung"
   },
   "scroll": {
     "bottom": "Tin nhắn mới nhất"

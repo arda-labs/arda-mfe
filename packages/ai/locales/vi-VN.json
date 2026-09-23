@@ -222,7 +222,9 @@
     "ask": "Hỏi AI",
     "expand": "Mở toàn màn hình",
     "minimize": "Thu nhỏ về thanh bên",
-    "shortcut_hint": "Ctrl+J"
+    "shortcut_hint": "Ctrl+J",
+    "chat_width_full": "Rộng hết chiều ngang",
+    "chat_width_compact": "Thu về khổ nội dung"
   },
   "settings": {
     "title": "Cấu hình AI Provider (BYOK)",

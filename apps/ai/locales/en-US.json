@@ -561,7 +561,9 @@
   "name": "Olorin",
   "tagline": "Arda AI assistant",
   "panel": {
-    "minimize": "Minimize"
+    "minimize": "Minimize",
+    "chat_width_full": "Full width",
+    "chat_width_compact": "Content width"
   },
   "scroll": {
     "bottom": "Jump to latest"

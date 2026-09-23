@@ -110,3 +110,16 @@ export async function fetchDeletedConversations(
   )
   return response.result ?? []
 }
+
+// Thumbs up/down on an assistant answer, stored for later model evaluation.
+export async function sendAnswerFeedback(payload: {
+  threadId: string
+  helpful: boolean
+  comment?: string
+}): Promise<void> {
+  await api.post("/api/ai/answers/feedback", {
+    thread_id: payload.threadId,
+    helpful: payload.helpful,
+    ...(payload.comment ? { comment: payload.comment } : {}),
+  })
+}
