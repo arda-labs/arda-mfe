@@ -64,6 +64,7 @@ import {
   ExecuteMetaToolUI,
   GenericToolView,
 } from "./tools/generic-tool-view"
+import { RenderChartToolUI } from "./tools/render-chart-tool-ui"
 import { RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
 import { ActivityGroup } from "./activity"
 import { useOlorinContext } from "../lib/context"
@@ -331,6 +332,7 @@ export function OlorinPanel({
           them by name inside GroupedParts. */}
       <SearchMetaToolUI />
       <ExecuteMetaToolUI />
+      <RenderChartToolUI />
     </div>
   )
 }
@@ -491,6 +493,10 @@ function AssistantMessage() {
                 text: ["group-text"],
                 reasoning: ["group-chainOfThought", "group-reasoning"],
                 "tool-call": ["group-chainOfThought", "group-tool"],
+                // Tools whose UI opts into `display: "standalone"` (the chart
+                // renderer) stay outside the collapsible activity group so the
+                // chart is visible after the turn settles.
+                "standalone-tool-call": [],
               })}
             >
               {({ part, children }) => {
