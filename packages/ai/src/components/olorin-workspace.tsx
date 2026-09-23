@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
@@ -7,9 +7,16 @@ import {
   ThreadListItemPrimitive,
   useAuiState,
 } from "@assistant-ui/react"
-import { LoaderCircle, Minimize2, Plus, Trash2 } from "lucide-react"
+import { LoaderCircle, Minimize2, Plus, RotateCcw, Trash2 } from "lucide-react"
 import { useOlorinContext } from "../lib/context"
+import {
+  deleteConversation,
+  fetchDeletedConversations,
+  restoreConversation,
+  type OlorinConversation,
+} from "../lib/conversations"
 import { OlorinPanel } from "./olorin-panel"
+import { DeleteConversationDialog } from "./conversation-delete-dialog"
 
 export type OlorinWorkspaceProps = {
   onMinimize?: () => void
@@ -35,9 +42,59 @@ function OlorinWorkspaceSurface({
   onExit?: () => void
 }) {
   const { t, formatDate } = useI18n()
-  const { threadId, conversations } = useOlorinContext()
+  const { threadId, newThread, conversations } = useOlorinContext()
   const isRunning = useAuiState((state) => state.thread.isRunning)
   const handleMinimize = onMinimize ?? onExit
+
+  const [pendingDelete, setPendingDelete] = useState<{ threadId: string; title: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [trashOpen, setTrashOpen] = useState(false)
+  const [trashLoading, setTrashLoading] = useState(false)
+  const [trash, setTrash] = useState<OlorinConversation[]>([])
+
+  const loadTrash = useCallback(async () => {
+    setTrashLoading(true)
+    try {
+      setTrash(await fetchDeletedConversations())
+    } catch {
+      setTrash([])
+    } finally {
+      setTrashLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (trashOpen) void loadTrash()
+  }, [trashOpen, loadTrash])
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
+    const target = pendingDelete
+    try {
+      await deleteConversation(target.threadId)
+      if (target.threadId === threadId) newThread()
+      await conversations.refresh()
+      setPendingDelete(null)
+      if (trashOpen) await loadTrash()
+    } catch {
+      // keep the dialog open for retry
+    } finally {
+      setDeleting(false)
+    }
+  }, [pendingDelete, threadId, newThread, conversations, trashOpen, loadTrash])
+
+  const restore = useCallback(
+    async (id: string) => {
+      try {
+        await restoreConversation(id)
+        await Promise.all([loadTrash(), conversations.refresh()])
+      } catch {
+        // ignore
+      }
+    },
+    [loadTrash, conversations]
+  )
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -156,20 +213,56 @@ function OlorinWorkspaceSurface({
                       </span>
                     </button>
                   </ThreadListItemPrimitive.Trigger>
-                  <ThreadListItemPrimitive.Delete asChild>
-                    <button
-                      type="button"
-                      aria-label={t("ai.threads.delete")}
-                      className="rounded p-1 opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                    >
-                      <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  </ThreadListItemPrimitive.Delete>
+                  <button
+                    type="button"
+                    aria-label={t("ai.threads.delete")}
+                    className="rounded p-1 opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                    onClick={() => setPendingDelete({ threadId: threadListItem.id, title: "" })}
+                  >
+                    <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
+                  </button>
                 </ThreadListItemPrimitive.Root>
               )
             }}
           </ThreadListPrimitive.Items>
         </ThreadListPrimitive.Root>
+
+        <div className="border-t p-3">
+          <button
+            type="button"
+            onClick={() => setTrashOpen((value) => !value)}
+            className="flex w-full items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+          >
+            <Trash2 className="size-3" />
+            {t("ai.threads.trash")}
+          </button>
+          {trashOpen && (
+            <div className="mt-1.5 space-y-1">
+              {trashLoading && <p className="px-1 text-xs text-muted-foreground">…</p>}
+              {!trashLoading && trash.length === 0 && (
+                <p className="px-1 text-xs text-muted-foreground">{t("ai.threads.trash_empty")}</p>
+              )}
+              {trash.map((item) => (
+                <div
+                  key={item.threadId}
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted/60"
+                >
+                  <span className="min-w-0 flex-1 truncate">{item.title || item.threadId}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 gap-1 px-2 text-[11px]"
+                    onClick={() => void restore(item.threadId)}
+                  >
+                    <RotateCcw className="size-3" />
+                    {t("ai.threads.restore")}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </aside>
 
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -205,6 +298,16 @@ function OlorinWorkspaceSurface({
         </div>
         <OlorinPanel className="min-h-0 flex-1" showHeader={false} />
       </main>
+
+      <DeleteConversationDialog
+        open={pendingDelete !== null}
+        title={pendingDelete?.title}
+        busy={deleting}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null)
+        }}
+        onConfirm={() => void confirmDelete()}
+      />
     </>
   )
 }

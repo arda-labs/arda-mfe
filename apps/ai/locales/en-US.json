@@ -590,7 +590,16 @@
     "history": "History",
     "empty": "No conversations yet",
     "delete": "Delete conversation",
-    "messages_suffix": "messages"
+    "messages_suffix": "messages",
+    "delete_confirm_title": "Delete conversation?",
+    "delete_confirm_body": "“{title}” will move to the trash and can be restored later.",
+    "cancel": "Cancel",
+    "restore": "Restore",
+    "trash": "Trash",
+    "trash_empty": "Trash is empty",
+    "deleted": "Moved to trash",
+    "restored": "Restored",
+    "undo": "Undo"
   },
   "tool": {
     "citations": {

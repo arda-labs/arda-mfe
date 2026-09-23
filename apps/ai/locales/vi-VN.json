@@ -590,7 +590,16 @@
     "history": "Lịch sử",
     "empty": "Chưa có cuộc trò chuyện nào",
     "delete": "Xoá cuộc trò chuyện",
-    "messages_suffix": "tin nhắn"
+    "messages_suffix": "tin nhắn",
+    "delete_confirm_title": "Xoá cuộc trò chuyện?",
+    "delete_confirm_body": "“{title}” sẽ được chuyển vào thùng rác và có thể khôi phục sau.",
+    "cancel": "Huỷ",
+    "restore": "Khôi phục",
+    "trash": "Thùng rác",
+    "trash_empty": "Thùng rác trống",
+    "deleted": "Đã chuyển vào thùng rác",
+    "restored": "Đã khôi phục",
+    "undo": "Hoàn tác"
   },
   "tool": {
     "citations": {

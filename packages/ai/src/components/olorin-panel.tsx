@@ -11,7 +11,7 @@ import {
   type GroupByContext,
   type PartState,
 } from "@assistant-ui/react"
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   ReasoningRoot,
   ReasoningTrigger,
@@ -39,6 +39,7 @@ import {
   Plus,
   Quote,
   RefreshCw,
+  RotateCcw,
   Send,
   Sparkles,
   Square,
@@ -47,6 +48,7 @@ import {
 } from "lucide-react"
 import {
   deleteConversation as apiDeleteConversation,
+  restoreConversation,
 } from "../lib/conversations"
 import {
   areDefaultRenderersRegistered,
@@ -70,6 +72,7 @@ import {
 } from "./tools/generic-tool-view"
 import { RenderChartToolUI } from "./tools/render-chart-tool-ui"
 import { isArrayResult } from "./tools/data-table-view"
+import { DeleteConversationDialog } from "./conversation-delete-dialog"
 import { RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
 import { ActivityGroup } from "./activity"
 import { useOlorinContext } from "../lib/context"
@@ -111,6 +114,47 @@ export function OlorinPanel({
   const { t, formatDate } = useI18n()
   const { newThread, switchToThread, threadId, conversations } = useOlorinContext()
   const isEmpty = useAuiState((state) => state.thread.messages.length === 0)
+
+  const [pendingDelete, setPendingDelete] = useState<{ threadId: string; title: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [lastDeleted, setLastDeleted] = useState<{ threadId: string; title: string } | null>(null)
+
+  // The undo affordance fades on its own; the trash view remains the durable
+  // way to restore.
+  useEffect(() => {
+    if (!lastDeleted) return
+    const timer = window.setTimeout(() => setLastDeleted(null), 8000)
+    return () => window.clearTimeout(timer)
+  }, [lastDeleted])
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
+    const target = pendingDelete
+    try {
+      await apiDeleteConversation(target.threadId)
+      if (target.threadId === threadId) newThread()
+      await conversations.refresh()
+      setLastDeleted(target)
+      setPendingDelete(null)
+    } catch {
+      // Keep the dialog open so the user can retry.
+    } finally {
+      setDeleting(false)
+    }
+  }, [pendingDelete, threadId, newThread, conversations])
+
+  const undoDelete = useCallback(async () => {
+    if (!lastDeleted) return
+    const target = lastDeleted
+    setLastDeleted(null)
+    try {
+      await restoreConversation(target.threadId)
+      await conversations.refresh()
+    } catch {
+      // The trash view still offers restore.
+    }
+  }, [lastDeleted, conversations])
 
   return (
     <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col bg-background text-foreground", className)}>
@@ -176,14 +220,10 @@ export function OlorinPanel({
                     className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                     onClick={(event) => {
                       event.stopPropagation()
-                      void apiDeleteConversation(conversation.threadId)
-                        .then(() => {
-                          // Deleting the thread currently open must reset the
-                          // view — otherwise the panel keeps a dead thread.
-                          if (conversation.threadId === threadId) newThread()
-                          return conversations.refresh()
-                        })
-                        .catch(() => undefined)
+                      setPendingDelete({
+                        threadId: conversation.threadId,
+                        title: conversation.title,
+                      })
                     }}
                   >
                     <Trash2 className="size-3.5" />
@@ -261,6 +301,32 @@ export function OlorinPanel({
       <SearchMetaToolUI />
       <ExecuteMetaToolUI />
       <RenderChartToolUI />
+
+      <DeleteConversationDialog
+        open={pendingDelete !== null}
+        title={pendingDelete?.title}
+        busy={deleting}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null)
+        }}
+        onConfirm={() => void confirmDelete()}
+      />
+
+      {lastDeleted && (
+        <div className="fixed bottom-4 left-1/2 z-[80] flex -translate-x-1/2 items-center gap-3 rounded-full border bg-popover px-3 py-1.5 text-xs shadow-lg">
+          <span className="text-muted-foreground">{t("ai.threads.deleted")}</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-6 gap-1 px-2 text-[11px]"
+            onClick={() => void undoDelete()}
+          >
+            <RotateCcw className="size-3" />
+            {t("ai.threads.undo")}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

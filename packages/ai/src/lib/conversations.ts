@@ -94,3 +94,19 @@ export async function deleteConversation(threadId: string): Promise<void> {
     `/api/ai/conversations/${encodeURIComponent(threadId)}`
   )
 }
+
+// Deletes are soft (the conversation moves to the trash), so the UI can offer
+// undo and a trash list with restore.
+export async function restoreConversation(threadId: string): Promise<void> {
+  await api.post(`/api/ai/conversations/${encodeURIComponent(threadId)}/restore`, {})
+}
+
+export async function fetchDeletedConversations(
+  signal?: AbortSignal
+): Promise<OlorinConversation[]> {
+  const response = await api.get<ApiSuccess<OlorinConversation[]>>(
+    "/api/ai/conversations?status=deleted&limit=50",
+    { signal }
+  )
+  return response.result ?? []
+}
