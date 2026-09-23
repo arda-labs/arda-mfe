@@ -81,7 +81,9 @@
   },
   "suggestions": {
     "customer": "Tra cứu thông tin khách hàng",
-    "knowledge": "Tìm trong tri thức nội bộ"
+    "knowledge": "Tìm trong tri thức nội bộ",
+    "report": "Phân tích dư nợ theo nhóm nợ",
+    "alerts": "Cảnh báo chỉ tiêu rủi ro"
   },
   "tool": {
     "unparsed": "Kết quả công cụ không đọc được.",

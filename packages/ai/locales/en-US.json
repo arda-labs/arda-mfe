@@ -81,7 +81,9 @@
   },
   "suggestions": {
     "customer": "Look up a customer",
-    "knowledge": "Search internal knowledge"
+    "knowledge": "Search internal knowledge",
+    "report": "Analyze loans by debt group",
+    "alerts": "Risk indicator alerts"
   },
   "tool": {
     "unparsed": "Tool result could not be read.",

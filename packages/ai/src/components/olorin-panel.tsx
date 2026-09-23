@@ -6,6 +6,7 @@ import {
   ActionBarPrimitive,
   SelectionToolbarPrimitive,
   useMessageTiming,
+  useAuiState,
   groupPartByType,
   type GroupByContext,
   type PartState,
@@ -50,7 +51,6 @@ import {
 import {
   areDefaultRenderersRegistered,
   markDefaultRenderersRegistered,
-  collectOlorinContext,
   resolveToolRenderer,
 } from "../lib/registry"
 import { registerCustomerSummaryRenderer } from "./tools/customer-summary-card"
@@ -96,13 +96,12 @@ if (!areDefaultRenderersRegistered()) {
 // pair on unknown routes.
 function pageSuggestionKeys(): readonly string[] {
   const path = typeof window !== "undefined" ? window.location.pathname : ""
-  if (path.startsWith("/finance")) return ["customer", "knowledge"] as const
-  if (path.startsWith("/hrm")) return ["customer", "knowledge"] as const
-  if (path.startsWith("/workflow")) return ["knowledge", "customer"] as const
+  if (path.startsWith("/loans") || path.startsWith("/finance") || path.startsWith("/statistical"))
+    return ["report", "alerts", "customer"] as const
   if (path.startsWith("/customers") || path.startsWith("/workbench"))
-    return ["customer", "knowledge"] as const
-  if (path.startsWith("/admin")) return ["knowledge", "customer"] as const
-  return ["customer", "knowledge"] as const
+    return ["customer", "report", "knowledge"] as const
+  if (path.startsWith("/hrm")) return ["customer", "knowledge", "report"] as const
+  return ["report", "alerts", "knowledge"] as const
 }
 
 export function OlorinPanel({
@@ -111,6 +110,7 @@ export function OlorinPanel({
 }: OlorinPanelProps) {
   const { t, formatDate } = useI18n()
   const { newThread, switchToThread, threadId, conversations } = useOlorinContext()
+  const isEmpty = useAuiState((state) => state.thread.messages.length === 0)
 
   return (
     <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col bg-background text-foreground", className)}>
@@ -209,30 +209,33 @@ export function OlorinPanel({
       )}
 
       <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <ThreadPrimitive.Viewport className="relative flex-1 overflow-y-auto px-4 py-4 space-y-3 scroll-smooth">
+        <ThreadPrimitive.Viewport className="relative flex flex-1 flex-col overflow-y-auto scroll-smooth">
           <ThreadPrimitive.Empty>
-            <OlorinEmptyState />
+            <OlorinWelcome />
           </ThreadPrimitive.Empty>
 
-          <ThreadPrimitive.Messages>
-            {({ message }) => {
-              if (message.role === "user") {
-                if (message.composer.isEditing) return <UserEditComposer />;
-                return <UserMessage />;
-              }
-              return <AssistantMessage />;
-            }}
-          </ThreadPrimitive.Messages>
+          <div className="mx-auto w-full max-w-3xl space-y-3 px-4 py-4">
+            <ThreadPrimitive.Messages>
+              {({ message }) => {
+                if (message.role === "user") {
+                  if (message.composer.isEditing) return <UserEditComposer />;
+                  return <UserMessage />;
+                }
+                return <AssistantMessage />;
+              }}
+            </ThreadPrimitive.Messages>
 
-          <ThinkingBubble />
-          <RunErrorBubble />
+            <ThinkingBubble />
+            <RunErrorBubble />
+          </div>
+
           <ThreadPrimitive.ScrollToBottom asChild>
             <Button
               type="button"
               size="icon"
               aria-label={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
               title={t("ai.scroll.bottom") || "Xem tin nhắn mới nhất"}
-              className="sticky bottom-4 left-1/2 z-10 size-8 -translate-x-1/2 rounded-full border bg-background/90 shadow-lg backdrop-blur text-muted-foreground hover:text-foreground"
+              className="sticky bottom-4 z-10 mx-auto size-8 rounded-full border bg-background/90 shadow-lg backdrop-blur text-muted-foreground hover:text-foreground"
             >
               <ArrowDown className="size-4" />
             </Button>
@@ -246,7 +249,28 @@ export function OlorinPanel({
           </SelectionToolbarPrimitive.Quote>
         </SelectionToolbarPrimitive.Root>
 
-        <ComposerPrimitive.Root className="border-t bg-background p-3">
+        {!isEmpty && (
+          <div className="border-t bg-background p-3">
+            <OlorinComposer />
+          </div>
+        )}
+      </ThreadPrimitive.Root>
+
+      {/* Registered meta-tool UIs — mounted once so part.toolUI can resolve
+          them by name inside GroupedParts. */}
+      <SearchMetaToolUI />
+      <ExecuteMetaToolUI />
+      <RenderChartToolUI />
+    </div>
+  )
+}
+
+// The composer is shared by the docked (conversation) and centered (welcome)
+// layouts, so it lives in one place.
+function OlorinComposer() {
+  const { t } = useI18n()
+  return (
+    <ComposerPrimitive.Root className="w-full">
           <div className="rounded-[1.75rem] border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
             <ComposerPrimitive.Quote className="mx-2 mt-1.5 mb-0.5">
               <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/60 px-2.5 py-1.5">
@@ -330,22 +354,14 @@ export function OlorinPanel({
               </div>
             </div>
           </div>
-        </ComposerPrimitive.Root>
-      </ThreadPrimitive.Root>
-
-      {/* Registered meta-tool UIs — mounted once so part.toolUI can resolve
-          them by name inside GroupedParts. */}
-      <SearchMetaToolUI />
-      <ExecuteMetaToolUI />
-      <RenderChartToolUI />
-    </div>
+    </ComposerPrimitive.Root>
   )
 }
 
-function OlorinEmptyState() {
+function OlorinWelcome() {
   const { t } = useI18n()
   return (
-    <div className="flex min-h-[300px] flex-1 flex-col items-center justify-center p-6 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
       <div className="relative mb-4">
         <div
           className="absolute inset-0 -z-10 rounded-full bg-primary/20 blur-2xl motion-safe:animate-pulse"
@@ -355,11 +371,16 @@ function OlorinEmptyState() {
           <Sparkles className="size-7" />
         </div>
       </div>
-      <p className="text-base font-semibold tracking-tight">{t("ai.empty.title")}</p>
-      <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground">
+      <p className="text-xl font-semibold tracking-tight">{t("ai.empty.title")}</p>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
         {t("ai.empty.hint")}
       </p>
-      <div className="mt-6 flex max-w-sm flex-wrap justify-center gap-2">
+
+      <div className="mt-6 w-full max-w-2xl text-left">
+        <OlorinComposer />
+      </div>
+
+      <div className="mt-5 flex max-w-2xl flex-wrap justify-center gap-2">
         {pageSuggestionKeys().map((key, index) => (
           <ThreadPrimitive.Suggestion
             key={key}
@@ -371,7 +392,7 @@ function OlorinEmptyState() {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 rounded-full px-3.5 text-xs font-normal shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1"
+              className="h-9 rounded-full px-4 text-xs font-normal shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1"
               style={{ animationDelay: `${index * 60}ms` }}
             >
               {t(`ai.suggestions.${key}`)}
@@ -385,9 +406,6 @@ function OlorinEmptyState() {
 
 function UserMessage() {
   const { t } = useI18n()
-  const context = collectOlorinContext()
-  const displayName = typeof context.userDisplayName === "string" ? context.userDisplayName : ""
-  const initials = getInitials(displayName) || "U"
 
   return (
     <MessagePrimitive.Root
@@ -397,16 +415,8 @@ function UserMessage() {
       className="group/message flex w-full justify-end py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200"
     >
       <div className="flex max-w-[85%] flex-col items-end gap-1">
-        <div className="flex items-end gap-2 flex-row-reverse">
-          <div
-            title={displayName || t("ai.message.you")}
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-2xs select-none"
-          >
-            {initials}
-          </div>
-          <div className="rounded-2xl rounded-br-xs bg-primary px-3.5 py-2 text-sm leading-relaxed text-primary-foreground shadow-2xs wrap-break-word">
-            <MessagePrimitive.Content />
-          </div>
+        <div className="rounded-2xl bg-muted px-4 py-2.5 text-sm leading-relaxed text-foreground shadow-2xs wrap-break-word">
+          <MessagePrimitive.Content />
         </div>
         <div className="flex items-center gap-1 opacity-100 transition-opacity pr-1 md:opacity-0 md:group-hover/message:opacity-100 md:group-focus-within/message:opacity-100">
           <ActionBarPrimitive.Root className="flex items-center gap-0.5">
@@ -462,13 +472,6 @@ function UserEditComposer() {
   )
 }
 
-function getInitials(name?: string): string | undefined {
-  if (!name?.trim()) return undefined
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
 // A tool result that resolves to a rich view (report presentation, chart, KPI
 // grid, customer card, or a data table) is an artifact, not a processing step.
 // Returning an empty group path keeps it out of the collapsible activity group
@@ -513,11 +516,7 @@ function AssistantMessage() {
 
   return (
     <MessagePrimitive.Root className="group/message flex w-full justify-start py-2 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
-      <div className="flex w-full items-start gap-2.5">
-        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground text-xs font-bold shadow-2xs ring-1 ring-primary/20">
-          <Sparkles className="size-3.5" />
-        </div>
-        <div className="flex-1 min-w-0 space-y-1.5">
+      <div className="min-w-0 flex-1 space-y-1.5">
           {/* empty:hidden — the runtime creates the assistant message before
               the first content part arrives; hide the bare card so the
               ThinkingBubble skeleton is the single visible placeholder.
@@ -629,7 +628,6 @@ function AssistantMessage() {
             </ActionBarPrimitive.Root>
             <MessageTimingStats />
           </div>
-        </div>
       </div>
     </MessagePrimitive.Root>
   )
