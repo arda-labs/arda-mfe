@@ -1,3 +1,4 @@
+import { useI18n } from "@workspace/i18n"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import { registerToolRenderer } from "../../lib/registry"
 
@@ -14,11 +15,22 @@ export function isKpiResult(result: ToolResultPayload): boolean {
   return isKpiPayload(result)
 }
 
-function formatAmount(value: number): string {
+type Translate = (key: string, params?: Record<string, string | number>) => string
+type FormatNumber = (value: number, options?: Intl.NumberFormatOptions) => string
+
+function formatAmount(value: number, t: Translate, formatNumber: FormatNumber): string {
   const abs = Math.abs(value)
-  if (abs >= 1e9) return `${(value / 1e9).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} tỷ VNĐ`
-  if (abs >= 1e6) return `${(value / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} triệu VNĐ`
-  return `${value.toLocaleString("vi-VN", { maximumFractionDigits: 0 })} VNĐ`
+  if (abs >= 1e9)
+    return t("ai.tool.kpi.billion", {
+      value: formatNumber(value / 1e9, { maximumFractionDigits: 2 }),
+    })
+  if (abs >= 1e6)
+    return t("ai.tool.kpi.million", {
+      value: formatNumber(value / 1e6, { maximumFractionDigits: 2 }),
+    })
+  return t("ai.tool.kpi.amount", {
+    value: formatNumber(value, { maximumFractionDigits: 0 }),
+  })
 }
 
 function accentFor(unit: string): string {
@@ -28,18 +40,24 @@ function accentFor(unit: string): string {
   return "border-l-slate-400"
 }
 
-function renderValue(value: unknown, unit: string): { display: string; suffix: string } {
+function renderValue(
+  value: unknown,
+  unit: string,
+  t: Translate,
+  formatNumber: FormatNumber
+): { display: string; suffix: string } {
   const text = value === null || value === undefined ? "" : String(value).trim()
   if (text === "") return { display: "—", suffix: "" }
   const numeric = Number(text)
   const isMoney = /vnd|đồng|dong|đ$/i.test(unit)
   if (Number.isFinite(numeric) && isMoney) {
-    return { display: formatAmount(numeric), suffix: "" }
+    return { display: formatAmount(numeric, t, formatNumber), suffix: "" }
   }
   return { display: text, suffix: unit }
 }
 
 export function KpiGrid({ kpis, title }: { kpis: unknown[]; title?: string }) {
+  const { t, formatNumber } = useI18n()
   const items = kpis.filter(
     (item): item is Record<string, unknown> => typeof item === "object" && item !== null
   )
@@ -52,7 +70,7 @@ export function KpiGrid({ kpis, title }: { kpis: unknown[]; title?: string }) {
         {items.map((item, index) => {
           const label = textValue(item.label, textValue(item.code, `KPI ${index + 1}`))
           const unit = textValue(item.unit)
-          const { display, suffix } = renderValue(item.value, unit)
+          const { display, suffix } = renderValue(item.value, unit, t, formatNumber)
           return (
             <div
               key={`${textValue(item.code, "kpi")}-${index}`}

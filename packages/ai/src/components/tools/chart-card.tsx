@@ -54,46 +54,55 @@ function toSeries(value: unknown): { name: string; values: number[] }[] {
     }))
 }
 
+type Translate = (key: string, params?: Record<string, string | number>) => string
+type FormatNumber = (value: number, options?: Intl.NumberFormatOptions) => string
+
 // formatAmount renders large VNĐ figures the way banking reports do.
-function formatAmount(value: number): string {
+function formatAmount(value: number, t: Translate, formatNumber: FormatNumber): string {
   const abs = Math.abs(value)
-  if (abs >= 1e9) return `${(value / 1e9).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} tỷ`
-  if (abs >= 1e6) return `${(value / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} tr`
-  return value.toLocaleString("vi-VN", { maximumFractionDigits: 0 })
+  if (abs >= 1e9) return `${formatNumber(value / 1e9, { maximumFractionDigits: 2 })} ${t("ai.tool.chart.billion")}`
+  if (abs >= 1e6) return `${formatNumber(value / 1e6, { maximumFractionDigits: 2 })} ${t("ai.tool.chart.million")}`
+  return formatNumber(value, { maximumFractionDigits: 0 })
 }
 
-function formatValue(value: number, format: string): string {
+function formatValue(value: number, format: string, t: Translate, formatNumber: FormatNumber): string {
   switch (format) {
     case "percent":
-      return `${value.toLocaleString("vi-VN", { maximumFractionDigits: 2 })}%`
+      return `${formatNumber(value, { maximumFractionDigits: 2 })}%`
     case "int":
-      return value.toLocaleString("vi-VN", { maximumFractionDigits: 0 })
+      return formatNumber(value, { maximumFractionDigits: 0 })
     case "amount":
-      return formatAmount(value)
+      return formatAmount(value, t, formatNumber)
     default:
-      return value.toLocaleString("vi-VN", { maximumFractionDigits: 2 })
+      return formatNumber(value, { maximumFractionDigits: 2 })
   }
 }
 
-function formatSubtitle(format: string): string {
+function formatSubtitle(format: string, t: Translate): string {
   switch (format) {
     case "amount":
-      return "Đơn vị: VNĐ"
+      return t("ai.tool.chart.unit_amount")
     case "percent":
-      return "Đơn vị: %"
+      return t("ai.tool.chart.unit_percent")
     case "int":
-      return "Đơn vị: số lượng"
+      return t("ai.tool.chart.unit_count")
     default:
       return ""
   }
 }
 
-function buildOption(chart: ChartPayload, kind: ChartKind, showTitle: boolean): EChartsOption {
+function buildOption(
+  chart: ChartPayload,
+  kind: ChartKind,
+  showTitle: boolean,
+  t: Translate,
+  formatNumber: FormatNumber
+): EChartsOption {
   const format = typeof chart.value_format === "string" ? chart.value_format : ""
   const categories = toStringArray(chart.categories)
   const series = toSeries(chart.series)
   const title = textValue(chart.title)
-  const subtitle = formatSubtitle(format)
+  const subtitle = formatSubtitle(format, t)
 
   const heading =
     (showTitle && title) || subtitle
@@ -114,7 +123,7 @@ function buildOption(chart: ChartPayload, kind: ChartKind, showTitle: boolean): 
         trigger: "item",
         formatter: (params: unknown) => {
           const point = params as { name?: unknown; value?: unknown }
-          return `${String(point.name ?? "")}: ${formatValue(Number(point.value) || 0, format)}`
+          return `${String(point.name ?? "")}: ${formatValue(Number(point.value) || 0, format, t, formatNumber)}`
         },
       },
       legend: { bottom: 0, type: "scroll", textStyle: { fontSize: 11 } },
@@ -143,7 +152,7 @@ function buildOption(chart: ChartPayload, kind: ChartKind, showTitle: boolean): 
   }
   const valueAxis = {
     type: "value" as const,
-    axisLabel: { fontSize: 10, formatter: (value: number) => formatValue(value, format) },
+    axisLabel: { fontSize: 10, formatter: (value: number) => formatValue(value, format, t, formatNumber) },
     splitLine: { lineStyle: { opacity: 0.3 } },
   }
 
@@ -152,7 +161,7 @@ function buildOption(chart: ChartPayload, kind: ChartKind, showTitle: boolean): 
     title: heading,
     tooltip: {
       trigger: "axis",
-      valueFormatter: (value) => formatValue(Number(value) || 0, format),
+      valueFormatter: (value) => formatValue(Number(value) || 0, format, t, formatNumber),
     },
     grid: { left: 8, right: 16, top: subtitle || title ? 52 : 24, bottom: 8, containLabel: true },
     xAxis: horizontal ? valueAxis : categoryAxis,
@@ -183,7 +192,7 @@ export function ChartView({
   hideTitle?: boolean
   allowSwitch?: boolean
 }) {
-  const { t } = useI18n()
+  const { t, formatNumber } = useI18n()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const instanceRef = useRef<EChartsType | undefined>(undefined)
   const [failed, setFailed] = useState(false)
@@ -207,7 +216,7 @@ export function ChartView({
         if (disposed || !containerRef.current) return
         const instance = echarts.init(containerRef.current, undefined, { renderer: "canvas" })
         instanceRef.current = instance
-        instance.setOption(buildOption(chart, kind, !hideTitle), true)
+        instance.setOption(buildOption(chart, kind, !hideTitle, t, formatNumber), true)
         observer = new ResizeObserver(() => instance.resize())
         observer.observe(containerRef.current)
       } catch {
@@ -220,7 +229,7 @@ export function ChartView({
       instanceRef.current?.dispose()
       instanceRef.current = undefined
     }
-  }, [chart, type, kind, hideTitle])
+  }, [chart, type, kind, hideTitle, t, formatNumber])
 
   const handleDownloadPng = () => {
     const instance = instanceRef.current

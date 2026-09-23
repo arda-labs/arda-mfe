@@ -755,6 +755,18 @@
       "chart_pie": "Biểu đồ tròn",
       "chart_download": "Tải ảnh biểu đồ"
     },
+    "chart": {
+      "unit_amount": "Đơn vị: VNĐ",
+      "unit_percent": "Đơn vị: %",
+      "unit_count": "Đơn vị: số lượng",
+      "billion": "tỷ",
+      "million": "tr"
+    },
+    "kpi": {
+      "billion": "{value} tỷ VNĐ",
+      "million": "{value} triệu VNĐ",
+      "amount": "{value} VNĐ"
+    },
     "customer": {
       "code": "Mã KH",
       "rank": "Hạng",

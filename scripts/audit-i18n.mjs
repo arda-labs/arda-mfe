@@ -126,7 +126,23 @@ for (const app of apps) {
 
 // Shared UI packages live under packages/* but resolve keys through an app
 // namespace (e.g. @workspace/ai -> apps/ai). Audit those too so a component
-// can never ship a t() key that no locale defines.
+// can never ship a t() key that no locale defines — and so new hardcoded
+// Vietnamese literals cannot slip past the apps-only scan.
+// Legacy files below already carry hardcoded copy; they are baselined so only
+// new literals fail the gate.
+const PACKAGE_VN_BASELINE_FILES = new Set([
+  "packages/ai/src/components/status/run-error-card.tsx",
+  "packages/ai/src/components/tools/approval-card.tsx",
+  "packages/ai/src/components/olorin-panel.tsx",
+  "packages/ai/src/components/tools/meta-tool-ui.tsx",
+  "packages/ai/src/components/tools/table-controls.tsx",
+  "packages/list-page/src/table-export-dialog.tsx",
+  "packages/list-page/src/table-export.ts",
+  "packages/posting-flow/src/types.ts",
+  "packages/ui/src/components/data-table/data-table-faceted-filter.tsx",
+  "packages/ui/src/components/message-scroller.tsx",
+])
+
 for (const pkg of await readdir(path.join(root, "packages"))) {
   const pkgSrc = path.join(root, "packages", pkg, "src")
   if (!existsSync(pkgSrc)) continue
@@ -136,6 +152,7 @@ for (const pkg of await readdir(path.join(root, "packages"))) {
   const appKeys = new Set(getAllKeys(JSON.parse(await readFile(viFile, "utf8"))))
   const files = await walk(pkgSrc)
   const missing = new Map()
+  const hardVnFiles = new Map()
   for (const f of files) {
     const s = await readFile(f, "utf8")
     for (const m of s.matchAll(tCall)) {
@@ -147,15 +164,34 @@ for (const pkg of await readdir(path.join(root, "packages"))) {
         missing.get(key).push(path.relative(root, f))
       }
     }
+    const rel = path.relative(root, f).replace(/\\/g, "/")
+    if (PACKAGE_VN_BASELINE_FILES.has(rel)) continue
+    s.split("\n").forEach((line, i) => {
+      const t = line.trim()
+      if (t.startsWith("//") || t.startsWith("*")) return
+      if (vnLiteral.test(line) && (/["'`>]/.test(line))) {
+        if (!hardVnFiles.has(rel)) hardVnFiles.set(rel, [])
+        hardVnFiles.get(rel).push(i + 1)
+      }
+    })
   }
-  if (missing.size > 0) {
-    violations += missing.size
+  const hardVn = [...hardVnFiles.values()].reduce((n, ls) => n + ls.length, 0)
+  if (missing.size > 0 || hardVn > 0) {
+    violations += missing.size + hardVn
     console.log(`\n=== packages/${pkg} ===`)
-    console.log(`  MISSING KEYS (${missing.size}):`)
-    for (const [k, fs] of [...missing.entries()].slice(0, 60)) {
-      console.log(`    ${k}  <- ${fs[0]}${fs.length > 1 ? ` (+${fs.length - 1} files)` : ""}`)
+    if (missing.size > 0) {
+      console.log(`  MISSING KEYS (${missing.size}):`)
+      for (const [k, fs] of [...missing.entries()].slice(0, 60)) {
+        console.log(`    ${k}  <- ${fs[0]}${fs.length > 1 ? ` (+${fs.length - 1} files)` : ""}`)
+      }
+      if (missing.size > 60) console.log(`    ... and ${missing.size - 60} more`)
     }
-    if (missing.size > 60) console.log(`    ... and ${missing.size - 60} more`)
+    if (hardVn > 0) {
+      console.log(`  HARDCODED VN lines: ${hardVn} in ${hardVnFiles.size} files:`)
+      for (const [f, ls] of [...hardVnFiles.entries()].sort((a, b) => b[1].length - a[1].length).slice(0, 15)) {
+        console.log(`    ${f} (${ls.length} lines)`)
+      }
+    }
   }
 }
 

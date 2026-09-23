@@ -755,6 +755,18 @@
       "chart_pie": "Pie chart",
       "chart_download": "Download chart image"
     },
+    "chart": {
+      "unit_amount": "Unit: VND",
+      "unit_percent": "Unit: %",
+      "unit_count": "Unit: count",
+      "billion": "B",
+      "million": "M"
+    },
+    "kpi": {
+      "billion": "VND {value}B",
+      "million": "VND {value}M",
+      "amount": "VND {value}"
+    },
     "customer": {
       "code": "Customer code",
       "rank": "Rank",
