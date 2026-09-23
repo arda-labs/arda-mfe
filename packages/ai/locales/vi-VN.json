@@ -34,6 +34,15 @@
     "stop_dictation": "Dừng nhập liệu",
     "rate_limit_countdown": "Thử lại sau {seconds}s"
   },
+  "mode": {
+    "ask": "Hỏi",
+    "act": "Thực hiện",
+    "act_banner": "Chế độ Thực hiện — thao tác sẽ chạy ngay khi bạn có quyền.",
+    "warning_title": "Bật chế độ Thực hiện?",
+    "warning_body": "Trợ lý có thể tự thực hiện một số thao tác thay đổi dữ liệu (rủi ro thấp/vừa) mà không cần bạn phê duyệt, miễn là bạn có quyền. Thao tác rủi ro cao vẫn luôn cần phê duyệt. Chỉ bật khi bạn hiểu rõ.",
+    "confirm": "Bật chế độ Thực hiện",
+    "cancel": "Huỷ"
+  },
   "transcript": {
     "label": "Lịch sử hội thoại với Olorin"
   },

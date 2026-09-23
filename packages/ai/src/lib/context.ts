@@ -7,6 +7,10 @@ export type OlorinContextValue = {
   newThread: () => void
   switchToThread: (threadId: string) => Promise<void> | void
   runtime: AssistantRuntime
+  // Ask vs Act: in act mode the assistant may execute confirm tools at or below
+  // the tenant's risk ceiling without an approval (server-enforced).
+  actMode: boolean
+  setActMode: (value: boolean) => void
   conversations: {
     list: OlorinConversation[]
     loading: boolean

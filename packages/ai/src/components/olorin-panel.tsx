@@ -41,6 +41,8 @@ import {
   RefreshCw,
   RotateCcw,
   Send,
+  ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Square,
   Trash2,
@@ -73,6 +75,16 @@ import {
 import { RenderChartToolUI } from "./tools/render-chart-tool-ui"
 import { isArrayResult } from "./tools/data-table-view"
 import { DeleteConversationDialog } from "./conversation-delete-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
 import { ActivityGroup } from "./activity"
 import { useOlorinContext } from "../lib/context"
@@ -335,8 +347,19 @@ export function OlorinPanel({
 // layouts, so it lives in one place.
 function OlorinComposer() {
   const { t } = useI18n()
+  const { actMode, setActMode } = useOlorinContext()
+  const [actWarningOpen, setActWarningOpen] = useState(false)
   return (
     <ComposerPrimitive.Root className="w-full">
+      {actMode && (
+        <div className="mb-1.5 flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+          <ShieldAlert className="size-3.5 shrink-0" />
+          <span>
+            {t("ai.mode.act_banner") ||
+              "Chế độ Thực hiện — thao tác sẽ chạy ngay khi bạn có quyền."}
+          </span>
+        </div>
+      )}
           <div className="rounded-[1.75rem] border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
             <ComposerPrimitive.Quote className="mx-2 mt-1.5 mb-0.5">
               <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/60 px-2.5 py-1.5">
@@ -362,7 +385,21 @@ function OlorinComposer() {
               placeholder={t("ai.composer.placeholder")}
               className="max-h-40 min-h-10 w-full resize-none border-0 bg-transparent px-3.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground"
             />
-            <div className="flex items-center justify-end gap-1.5 px-2 pt-1 pb-0.5">
+            <div className="flex items-center justify-between gap-1.5 px-2 pt-1 pb-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 gap-1 rounded-full px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  if (actMode) setActMode(false)
+                  else setActWarningOpen(true)
+                }}
+                title={actMode ? t("ai.mode.act") : t("ai.mode.ask")}
+              >
+                {actMode ? <ShieldAlert className="size-3" /> : <ShieldCheck className="size-3" />}
+                {actMode ? t("ai.mode.act") : t("ai.mode.ask")}
+              </Button>
               <div className="flex items-center gap-1.5">
                 <AuiIf condition={(s) => s.composer.dictation == null}>
                   <ComposerPrimitive.Dictate asChild>
@@ -420,6 +457,30 @@ function OlorinComposer() {
               </div>
             </div>
           </div>
+      <AlertDialog open={actWarningOpen} onOpenChange={setActWarningOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("ai.mode.warning_title") || "Bật chế độ Thực hiện?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{t("ai.mode.warning_body")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("ai.mode.cancel") || "Huỷ"}</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                type="button"
+                onClick={() => {
+                  setActMode(true)
+                  setActWarningOpen(false)
+                }}
+              >
+                {t("ai.mode.confirm") || "Bật chế độ Thực hiện"}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ComposerPrimitive.Root>
   )
 }

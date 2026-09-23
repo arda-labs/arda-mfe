@@ -34,6 +34,15 @@
     "stop_dictation": "Stop dictation",
     "rate_limit_countdown": "Retry in {seconds}s"
   },
+  "mode": {
+    "ask": "Ask",
+    "act": "Act",
+    "act_banner": "Act mode — actions run immediately when you have permission.",
+    "warning_title": "Enable act mode?",
+    "warning_body": "The assistant may perform some data-changing actions (low/medium risk) without your approval, as long as you hold the permission. High-risk actions always require approval. Only enable if you understand this.",
+    "confirm": "Enable act mode",
+    "cancel": "Cancel"
+  },
   "transcript": {
     "label": "Conversation history with Olorin"
   },

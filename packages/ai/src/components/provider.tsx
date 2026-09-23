@@ -118,6 +118,14 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
     () => readStoredThreadId() ?? crypto.randomUUID()
   )
 
+  // Ask (default) vs Act. The server only honours "act" when the tenant has
+  // enabled act mode, so flipping this is a request, not a grant.
+  const [actMode, setActMode] = useState(false)
+  const actModeRef = useRef(false)
+  useEffect(() => {
+    actModeRef.current = actMode
+  }, [actMode])
+
   // The AG-UI runtime drives the whole chat (streaming, tool calls,
   // reasoning, HITL interrupts) against our Go agent endpoint speaking the
   // AG-UI SSE protocol — no hand-written adapter.
@@ -242,6 +250,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       getModelContext: () => ({
         config: {
           ardaContext: collectOlorinContext(),
+          ardaMode: actModeRef.current ? "act" : "ask",
         } as unknown as LanguageModelConfig,
       }),
     })
@@ -301,6 +310,8 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       newThread,
       switchToThread,
       runtime,
+      actMode,
+      setActMode,
       conversations: {
         list: conversationItems,
         loading: conversationsLoading,
@@ -313,6 +324,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       newThread,
       switchToThread,
       runtime,
+      actMode,
       conversationItems,
       conversationsLoading,
       conversationsError,
