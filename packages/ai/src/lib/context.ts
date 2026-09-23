@@ -14,6 +14,9 @@ export type OlorinContextValue = {
   // AG-UI run id of the most recent run, used to attach answer feedback to the
   // exact assistant message. Null before the first run.
   getLastRunId: () => string | null
+  // AG-UI run id of the run that produced one assistant message, so rating an
+  // older answer never carries the newest run id. Null when unknown.
+  getRunIdForMessage: (messageId: string | null) => string | null
   conversations: {
     list: OlorinConversation[]
     loading: boolean

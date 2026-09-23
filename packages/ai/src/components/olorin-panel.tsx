@@ -705,15 +705,6 @@ function isArtifactPart(part: PartState): boolean {
 
 function AssistantMessage() {
   const { t } = useI18n()
-  const { threadId, getLastRunId } = useOlorinContext()
-  const [rating, setRating] = useState<"up" | "down" | null>(null)
-
-  const rate = (helpful: boolean) => {
-    setRating(helpful ? "up" : "down")
-    void sendAnswerFeedback({ threadId, runId: getLastRunId(), helpful }).catch(() =>
-      setRating(null)
-    )
-  }
 
   const baseGroupBy = useMemo(
     () =>
@@ -849,39 +840,64 @@ function AssistantMessage() {
                   <RefreshCw className="size-3" />
                 </Button>
               </ActionBarPrimitive.Reload>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "size-6 rounded",
-                  rating === "up" ? "text-emerald-600" : "text-muted-foreground hover:text-foreground"
-                )}
-                aria-label={t("ai.feedback.helpful") || "Hữu ích"}
-                title={t("ai.feedback.helpful") || "Hữu ích"}
-                onClick={() => rate(true)}
-              >
-                <ThumbsUp className="size-3" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "size-6 rounded",
-                  rating === "down" ? "text-destructive" : "text-muted-foreground hover:text-foreground"
-                )}
-                aria-label={t("ai.feedback.not_helpful") || "Không hữu ích"}
-                title={t("ai.feedback.not_helpful") || "Không hữu ích"}
-                onClick={() => rate(false)}
-              >
-                <ThumbsDown className="size-3" />
-              </Button>
+              <AssistantFeedbackButtons />
             </ActionBarPrimitive.Root>
             <MessageTimingStats />
           </div>
       </div>
     </MessagePrimitive.Root>
+  )
+}
+
+// Thumbs up/down on one assistant answer. The run id comes from the message
+// that produced it, so rating an older answer never carries the newest run id.
+function AssistantFeedbackButtons() {
+  const { t } = useI18n()
+  const { threadId, getLastRunId, getRunIdForMessage } = useOlorinContext()
+  const messageId = useAuiState((state) => state.message.id)
+  const isLast = useAuiState((state) => state.message.isLast)
+  const [rating, setRating] = useState<"up" | "down" | null>(null)
+
+  const rate = (helpful: boolean) => {
+    setRating(helpful ? "up" : "down")
+    const runId =
+      getRunIdForMessage(messageId) ?? (isLast ? getLastRunId() : null)
+    void sendAnswerFeedback({ threadId, runId, helpful }).catch(() =>
+      setRating(null)
+    )
+  }
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "size-6 rounded",
+          rating === "up" ? "text-emerald-600" : "text-muted-foreground hover:text-foreground"
+        )}
+        aria-label={t("ai.feedback.helpful") || "Hữu ích"}
+        title={t("ai.feedback.helpful") || "Hữu ích"}
+        onClick={() => rate(true)}
+      >
+        <ThumbsUp className="size-3" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "size-6 rounded",
+          rating === "down" ? "text-destructive" : "text-muted-foreground hover:text-foreground"
+        )}
+        aria-label={t("ai.feedback.not_helpful") || "Không hữu ích"}
+        title={t("ai.feedback.not_helpful") || "Không hữu ích"}
+        onClick={() => rate(false)}
+      >
+        <ThumbsDown className="size-3" />
+      </Button>
+    </>
   )
 }
 

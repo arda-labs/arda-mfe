@@ -150,16 +150,32 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
   // AG-UI run id of the last finished run, so answer feedback can point at the
   // exact assistant message. Kept in a ref to avoid re-rendering on every run.
   const lastRunIdRef = useRef<string | null>(null)
+  // run id keyed by the assistant message it produced, so an older answer is
+  // never attributed to the newest run.
+  const runIdByMessageIdRef = useRef<Map<string, string>>(new Map())
   useEffect(() => {
     const subscription = agent.subscribe({
-      onRunFinishedEvent: ({ event }) => {
+      onRunFinishedEvent: ({ event, messages }) => {
         const runId = event.runId
-        if (typeof runId === "string" && runId !== "") lastRunIdRef.current = runId
+        if (typeof runId !== "string" || runId === "") return
+        lastRunIdRef.current = runId
+        for (let index = messages.length - 1; index >= 0; index -= 1) {
+          const message = messages[index]
+          if (message.role === "assistant" && typeof message.id === "string") {
+            runIdByMessageIdRef.current.set(message.id, runId)
+            break
+          }
+        }
       },
     })
     return () => subscription.unsubscribe()
   }, [agent])
   const getLastRunId = useCallback(() => lastRunIdRef.current, [])
+  const getRunIdForMessage = useCallback(
+    (messageId: string | null) =>
+      messageId ? runIdByMessageIdRef.current.get(messageId) ?? null : null,
+    []
+  )
 
   // Mirror threadId in a ref so adapter callbacks (which only depend on the
   // memoized deps below) can read the current thread without re-creating the
@@ -333,6 +349,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       actMode,
       setActMode,
       getLastRunId,
+      getRunIdForMessage,
       conversations: {
         list: conversationItems,
         loading: conversationsLoading,
@@ -347,6 +364,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       runtime,
       actMode,
       getLastRunId,
+      getRunIdForMessage,
       conversationItems,
       conversationsLoading,
       conversationsError,
