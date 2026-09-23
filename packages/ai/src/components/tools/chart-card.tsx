@@ -125,7 +125,15 @@ function buildOption(chart: ChartPayload): EChartsOption {
   } as EChartsOption
 }
 
-export function ChartView({ chart, className }: { chart: ChartPayload; className?: string }) {
+export function ChartView({
+  chart,
+  className,
+  hideTitle = false,
+}: {
+  chart: ChartPayload
+  className?: string
+  hideTitle?: boolean
+}) {
   const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [failed, setFailed] = useState(false)
@@ -169,7 +177,7 @@ export function ChartView({ chart, className }: { chart: ChartPayload; className
 
   return (
     <div className={cn("space-y-1", className)}>
-      {title && <p className="text-xs font-medium text-foreground">{title}</p>}
+      {!hideTitle && title && <p className="text-xs font-medium text-foreground">{title}</p>}
       <div ref={containerRef} className="h-64 w-full" />
       {failed && <p className="text-[11px] text-muted-foreground">{t("ai.tool.report.chart_empty")}</p>}
     </div>

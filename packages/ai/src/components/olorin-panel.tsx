@@ -7,7 +7,10 @@ import {
   SelectionToolbarPrimitive,
   useMessageTiming,
   groupPartByType,
+  type GroupByContext,
+  type PartState,
 } from "@assistant-ui/react"
+import { useCallback, useMemo } from "react"
 import {
   ReasoningRoot,
   ReasoningTrigger,
@@ -48,6 +51,7 @@ import {
   areDefaultRenderersRegistered,
   markDefaultRenderersRegistered,
   collectOlorinContext,
+  resolveToolRenderer,
 } from "../lib/registry"
 import { registerCustomerSummaryRenderer } from "./tools/customer-summary-card"
 import { registerEmployeeRenderer } from "./tools/employee-card"
@@ -65,6 +69,7 @@ import {
   GenericToolView,
 } from "./tools/generic-tool-view"
 import { RenderChartToolUI } from "./tools/render-chart-tool-ui"
+import { isArrayResult } from "./tools/data-table-view"
 import { RunErrorBubble, ThinkingBubble } from "./status/run-status-bar"
 import { ActivityGroup } from "./activity"
 import { useOlorinContext } from "../lib/context"
@@ -464,8 +469,48 @@ function getInitials(name?: string): string | undefined {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
+// A tool result that resolves to a rich view (report presentation, chart, KPI
+// grid, customer card, or a data table) is an artifact, not a processing step.
+// Returning an empty group path keeps it out of the collapsible activity group
+// so it stays visible after the turn settles — for live runs and history alike.
+function isArtifactPart(part: PartState): boolean {
+  if (part.type !== "tool-call") return false
+  const result: unknown = part.result
+  if (typeof result !== "object" || result === null) return false
+  const payload = part.toolName === "execute" ? (result as Record<string, unknown>).output : result
+  if (Array.isArray(payload)) return isArrayResult(payload)
+  if (typeof payload === "object" && payload !== null) {
+    return Boolean(resolveToolRenderer(payload as Record<string, unknown>))
+  }
+  return false
+}
+
 function AssistantMessage() {
   const { t } = useI18n()
+
+  const baseGroupBy = useMemo(
+    () =>
+      groupPartByType({
+        // Group adjacent text parts into a single block so a streamed answer
+        // split across multiple text parts doesn't render as two bubbles.
+        text: ["group-text"],
+        reasoning: ["group-chainOfThought", "group-reasoning"],
+        "tool-call": ["group-chainOfThought", "group-tool"],
+        // Tools whose UI opts into `display: "standalone"` (the chart renderer)
+        // stay outside the collapsible activity group.
+        "standalone-tool-call": [],
+      }),
+    []
+  )
+
+  const groupBy = useCallback(
+    (part: PartState, context: GroupByContext) => {
+      if (isArtifactPart(part)) return []
+      return baseGroupBy(part, context)
+    },
+    [baseGroupBy]
+  )
+
   return (
     <MessagePrimitive.Root className="group/message flex w-full justify-start py-2 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200">
       <div className="flex w-full items-start gap-2.5">
@@ -485,20 +530,7 @@ function AssistantMessage() {
             {/* GroupedParts + groupPartByType — the official chain-of-thought
                 pattern: consecutive reasoning/tool-call parts fold into one
                 ChatGPT-style activity disclosure. */}
-            <MessagePrimitive.GroupedParts
-              groupBy={groupPartByType({
-                // Group adjacent text parts into a single block so a streamed
-                // answer split across multiple text parts doesn't render as
-                // two separate bubbles while streaming.
-                text: ["group-text"],
-                reasoning: ["group-chainOfThought", "group-reasoning"],
-                "tool-call": ["group-chainOfThought", "group-tool"],
-                // Tools whose UI opts into `display: "standalone"` (the chart
-                // renderer) stay outside the collapsible activity group so the
-                // chart is visible after the turn settles.
-                "standalone-tool-call": [],
-              })}
-            >
+            <MessagePrimitive.GroupedParts groupBy={groupBy}>
               {({ part, children }) => {
                 switch (part.type) {
                   case "group-chainOfThought":
