@@ -2,11 +2,12 @@ import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { Cpu, Gauge, ShieldAlert, SlidersHorizontal } from "lucide-react"
+import { Cpu, Gauge, GitBranch, ShieldAlert, SlidersHorizontal } from "lucide-react"
 
 import { ModelConfigTab } from "./components/model-config-tab"
 import { QuotasTab } from "./components/quotas-tab"
 import { AgentTab } from "./components/agent-tab"
+import { DecisionTab } from "./components/decision-tab"
 
 export function SettingsPage() {
   const { t } = useI18n()
@@ -27,6 +28,10 @@ export function SettingsPage() {
               <Cpu className="size-3.5 shrink-0" />
               <span>{t("ai.settings.tabs.model")}</span>
             </TabsTrigger>
+            <TabsTrigger value="decision" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
+              <GitBranch className="size-3.5 shrink-0" />
+              <span>{t("ai.settings.tabs.decision")}</span>
+            </TabsTrigger>
             <TabsTrigger value="quotas" className="shrink-0 gap-2 px-3 py-1.5 text-xs sm:text-sm">
               <Gauge className="size-3.5 shrink-0" />
               <span>{t("ai.settings.tabs.quotas")}</span>
@@ -43,6 +48,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="quotas" className="m-0">
           <QuotasTab />
+        </TabsContent>
+        <TabsContent value="decision" className="m-0">
+          <DecisionTab />
         </TabsContent>
         <TabsContent value="agent" className="m-0">
           <AgentTab />
