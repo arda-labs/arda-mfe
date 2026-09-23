@@ -24,21 +24,25 @@ import type { OlorinConversation } from "../lib/conversations"
 export function ConversationTrashDialog({
   open,
   loading,
+  error,
   conversations,
   busyId,
   onOpenChange,
   onRestore,
   onDelete,
   onEmpty,
+  onRetry,
 }: {
   open: boolean
   loading: boolean
+  error: boolean
   conversations: OlorinConversation[]
   busyId: string | null
   onOpenChange: (open: boolean) => void
   onRestore: (id: string) => void
   onDelete: (id: string) => void
   onEmpty: () => void
+  onRetry: () => void
 }) {
   const { t, formatDate } = useI18n()
   const [confirm, setConfirm] = useState<"empty" | string | null>(null)
@@ -62,6 +66,13 @@ export function ConversationTrashDialog({
               <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
                 <LoaderCircle className="size-4 animate-spin" />
                 {t("ai.threads.trash_loading")}
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center gap-3 py-10 text-sm text-muted-foreground">
+                <p>{t("ai.threads.trash_load_failed")}</p>
+                <Button variant="outline" size="sm" onClick={onRetry}>
+                  {t("ai.action.retry")}
+                </Button>
               </div>
             ) : conversations.length === 0 ? (
               <p className="py-10 text-center text-sm text-muted-foreground">

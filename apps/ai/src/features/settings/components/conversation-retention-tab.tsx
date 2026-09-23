@@ -22,6 +22,7 @@ import { fetchConversationRetention, saveConversationRetention } from "../api"
 export function ConversationRetentionTab() {
   const { t } = useI18n()
   const [months, setMonths] = useState("1")
+  const [maxMonths, setMaxMonths] = useState(12)
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -31,6 +32,7 @@ export function ConversationRetentionTab() {
     try {
       const value = await fetchConversationRetention()
       setMonths(String(value.trash_retention_months || 1))
+      setMaxMonths(value.maximum_months || 12)
       setLoadFailed(false)
     } catch {
       setLoadFailed(true)
@@ -97,7 +99,7 @@ export function ConversationRetentionTab() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 12 }, (_, index) => index + 1).map(
+                {Array.from({ length: maxMonths }, (_, index) => index + 1).map(
                   (month) => (
                     <SelectItem key={month} value={String(month)}>
                       {t("ai.settings.retention.months", { count: month })}

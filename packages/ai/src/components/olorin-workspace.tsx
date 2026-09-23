@@ -57,23 +57,28 @@ function OlorinWorkspaceSurface({
   const [deleting, setDeleting] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
   const [trashLoading, setTrashLoading] = useState(false)
+  const [trashError, setTrashError] = useState(false)
   const [trash, setTrash] = useState<OlorinConversation[]>([])
   const [trashBusyId, setTrashBusyId] = useState<string | null>(null)
 
   const loadTrash = useCallback(async () => {
     setTrashLoading(true)
+    setTrashError(false)
     try {
       setTrash(await fetchDeletedConversations())
-    } catch {
+    } catch (error) {
       setTrash([])
+      setTrashError(true)
+      notify.error(t("ai.threads.trash_load_failed"), error)
     } finally {
       setTrashLoading(false)
     }
-  }, [])
+  }, [t])
 
-  useEffect(() => {
-    if (trashOpen) void loadTrash()
-  }, [trashOpen, loadTrash])
+  const openTrash = useCallback(() => {
+    setTrashOpen(true)
+    void loadTrash()
+  }, [loadTrash])
 
   const confirmDelete = useCallback(async () => {
     if (!pendingDelete) return
@@ -85,12 +90,13 @@ function OlorinWorkspaceSurface({
       await conversations.refresh()
       setPendingDelete(null)
       if (trashOpen) await loadTrash()
-    } catch {
+    } catch (error) {
       // keep the dialog open for retry
+      notify.error(t("ai.threads.delete_failed"), error)
     } finally {
       setDeleting(false)
     }
-  }, [pendingDelete, threadId, newThread, conversations, trashOpen, loadTrash])
+  }, [pendingDelete, threadId, newThread, conversations, trashOpen, loadTrash, t])
 
   const restore = useCallback(
     async (id: string) => {
@@ -257,7 +263,7 @@ function OlorinWorkspaceSurface({
                     onClick={() =>
                       setPendingDelete({
                         threadId: threadListItem.id,
-                        title: "",
+                        title: threadListItem.title ?? "",
                       })
                     }
                   >
@@ -272,7 +278,7 @@ function OlorinWorkspaceSurface({
         <div className="border-t p-3">
           <button
             type="button"
-            onClick={() => setTrashOpen(true)}
+            onClick={openTrash}
             className="flex w-full items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase hover:text-foreground"
           >
             <Trash2 className="size-3" />
@@ -305,7 +311,7 @@ function OlorinWorkspaceSurface({
               size="icon"
               aria-label={t("ai.threads.trash")}
               title={t("ai.threads.trash")}
-              onClick={() => setTrashOpen(true)}
+              onClick={openTrash}
               className="size-8 text-muted-foreground hover:text-foreground md:hidden"
             >
               <Trash2 className="size-4" />
@@ -339,12 +345,14 @@ function OlorinWorkspaceSurface({
       <ConversationTrashDialog
         open={trashOpen}
         loading={trashLoading}
+        error={trashError}
         conversations={trash}
         busyId={trashBusyId}
         onOpenChange={setTrashOpen}
         onRestore={(id) => void restore(id)}
         onDelete={(id) => void permanentlyDelete(id)}
         onEmpty={() => void emptyTrash()}
+        onRetry={() => void loadTrash()}
       />
     </>
   )

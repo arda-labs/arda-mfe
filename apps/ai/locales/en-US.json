@@ -388,7 +388,7 @@
       "role_decision": "Jev selects task guidance",
       "role_decision_hint": "Selects relevant guidance for reporting, loan portfolios or knowledge lookup.",
       "role_chat": "The conversation model analyzes and answers",
-      "role_chat_hint": "The model applied in the Conversation tab continues to call tools, read data and write answers.",
+      "role_chat_hint": "The model applied in the Agents & models tab continues to call tools, read data and write answers.",
       "runtime_hint": "At most one Jev request per chat turn, with a 3-second deadline. Uncertain decisions or errors keep normal assistant behavior. Permissions and approvals remain enforced by the system.",
       "skills": { "general": "General", "report": "Reporting", "loan_portfolio": "Loan portfolio", "knowledge": "Knowledge lookup" }
     },
@@ -712,6 +712,8 @@
     "trash_empty": "Trash is empty",
     "trash_loading": "Loading deleted conversations…",
     "trash_action_failed": "Could not update the trash. Please try again.",
+    "trash_load_failed": "Could not load the trash. Please try again.",
+    "delete_failed": "Could not delete the conversation. Please try again.",
     "trash_retention_hint": "Conversations are deleted after the configured retention period. Restore them or delete them now.",
     "trash_expires": "Auto-deletes on {date}",
     "trash_deleted": "Deleted on {date}",

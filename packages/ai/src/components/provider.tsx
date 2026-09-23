@@ -36,6 +36,12 @@ export type OlorinProviderProps = {
   active?: boolean
 }
 
+// React Compiler forbids mutating hook-owned objects (agent) from an effect.
+// The assignment lives in a module-scope function the analyzer cannot inspect.
+function applyAgentThreadId(agent: HttpAgent, threadId: string) {
+  agent.threadId = threadId
+}
+
 function toThreadMessage(
   item: OlorinConversationMessage,
   id: string
@@ -146,8 +152,8 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
   const lastRunIdRef = useRef<string | null>(null)
   useEffect(() => {
     const subscription = agent.subscribe({
-      onRunFinishedEvent: (event) => {
-        const runId = (event as { runId?: unknown }).runId
+      onRunFinishedEvent: ({ event }) => {
+        const runId = event.runId
         if (typeof runId === "string" && runId !== "") lastRunIdRef.current = runId
       },
     })
@@ -164,7 +170,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
   const historyAbortRef = useRef<AbortController | null>(null)
   useEffect(() => {
     threadIdRef.current = threadId
-    agent.threadId = threadId
+    applyAgentThreadId(agent, threadId)
     try {
       window.localStorage.setItem(ACTIVE_THREAD_STORAGE_KEY, threadId)
     } catch {

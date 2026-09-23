@@ -388,7 +388,7 @@
       "role_decision": "Jev chọn hướng xử lý",
       "role_decision_hint": "Chọn nhóm tác vụ và hướng dẫn phù hợp: báo cáo, dư nợ theo nhóm nợ hoặc tra cứu kiến thức.",
       "role_chat": "Model hội thoại phân tích và trả lời",
-      "role_chat_hint": "Model đang áp dụng trong tab Hội thoại tiếp tục gọi công cụ, đọc dữ liệu và viết câu trả lời.",
+      "role_chat_hint": "Model đang áp dụng trong tab Agent & mô hình tiếp tục gọi công cụ, đọc dữ liệu và viết câu trả lời.",
       "runtime_hint": "Mỗi lượt chat dùng tối đa một yêu cầu Jev, chờ tối đa 3 giây. Nếu không chắc chắn hoặc có lỗi, trợ lý giữ cách xử lý thông thường. Quyền và phê duyệt do hệ thống kiểm soát.",
       "skills": { "general": "Thông thường", "report": "Báo cáo", "loan_portfolio": "Dư nợ theo nhóm nợ", "knowledge": "Tra cứu kiến thức" }
     },
@@ -712,6 +712,8 @@
     "trash_empty": "Thùng rác trống",
     "trash_loading": "Đang tải hội thoại đã xóa…",
     "trash_action_failed": "Không thể cập nhật thùng rác. Vui lòng thử lại.",
+    "trash_load_failed": "Không tải được thùng rác. Vui lòng thử lại.",
+    "delete_failed": "Không xóa được hội thoại. Vui lòng thử lại.",
     "trash_retention_hint": "Hội thoại sẽ tự xóa theo thời hạn lưu đã cấu hình. Bạn có thể khôi phục hoặc xóa ngay.",
     "trash_expires": "Tự động xóa vào {date}",
     "trash_deleted": "Đã xóa ngày {date}",
