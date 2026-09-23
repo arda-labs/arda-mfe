@@ -141,6 +141,20 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
     [runtimeUrl]
   )
 
+  // AG-UI run id of the last finished run, so answer feedback can point at the
+  // exact assistant message. Kept in a ref to avoid re-rendering on every run.
+  const lastRunIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    const subscription = agent.subscribe({
+      onRunFinishedEvent: (event) => {
+        const runId = (event as { runId?: unknown }).runId
+        if (typeof runId === "string" && runId !== "") lastRunIdRef.current = runId
+      },
+    })
+    return () => subscription.unsubscribe()
+  }, [agent])
+  const getLastRunId = useCallback(() => lastRunIdRef.current, [])
+
   // Mirror threadId in a ref so adapter callbacks (which only depend on the
   // memoized deps below) can read the current thread without re-creating the
   // adapter on every switch. The agent follows the same id — centralized here
@@ -312,6 +326,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       runtime,
       actMode,
       setActMode,
+      getLastRunId,
       conversations: {
         list: conversationItems,
         loading: conversationsLoading,
@@ -325,6 +340,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       switchToThread,
       runtime,
       actMode,
+      getLastRunId,
       conversationItems,
       conversationsLoading,
       conversationsError,

@@ -705,12 +705,14 @@ function isArtifactPart(part: PartState): boolean {
 
 function AssistantMessage() {
   const { t } = useI18n()
-  const { threadId } = useOlorinContext()
+  const { threadId, getLastRunId } = useOlorinContext()
   const [rating, setRating] = useState<"up" | "down" | null>(null)
 
   const rate = (helpful: boolean) => {
     setRating(helpful ? "up" : "down")
-    void sendAnswerFeedback({ threadId, helpful }).catch(() => setRating(null))
+    void sendAnswerFeedback({ threadId, runId: getLastRunId(), helpful }).catch(() =>
+      setRating(null)
+    )
   }
 
   const baseGroupBy = useMemo(

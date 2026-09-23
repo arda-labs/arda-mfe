@@ -11,6 +11,9 @@ export type OlorinContextValue = {
   // the tenant's risk ceiling without an approval (server-enforced).
   actMode: boolean
   setActMode: (value: boolean) => void
+  // AG-UI run id of the most recent run, used to attach answer feedback to the
+  // exact assistant message. Null before the first run.
+  getLastRunId: () => string | null
   conversations: {
     list: OlorinConversation[]
     loading: boolean
