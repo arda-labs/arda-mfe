@@ -1,13 +1,13 @@
 import { makeAssistantToolUI } from "@assistant-ui/react"
 import { useI18n } from "@workspace/i18n"
-import { ReportPresentationCard } from "./report-presentation-card"
+import { BarChart3 } from "lucide-react"
+import { ChartView, isChartPayload, type ChartPayload } from "./chart-card"
 import type { ToolResultPayload } from "../../lib/messages"
 
 function chartPayloadFromArgs(
   args: Record<string, unknown> | undefined,
-  categoryLabel: string,
   seriesLabel: string
-): ToolResultPayload | undefined {
+): ChartPayload | undefined {
   if (!args || !Array.isArray(args.categories) || !Array.isArray(args.series))
     return
   const categories = args.categories.filter(
@@ -29,39 +29,40 @@ function chartPayloadFromArgs(
       typeof value === "number" ? value : Number(value) || 0
     ),
   }))
-  const columns = [categoryLabel, ...values.map((item) => item.name)]
-  const rows = categories.map((category, index) => [
-    category,
-    ...values.map((item) => item.values[index] ?? 0),
-  ])
   return {
-    render: "report",
-    report_name: typeof args.title === "string" ? args.title : "",
-    report_code: typeof args.report_code === "string" ? args.report_code : "",
-    period_code: typeof args.period_code === "string" ? args.period_code : "",
-    org_code: typeof args.org_code === "string" ? args.org_code : "",
-    columns,
-    rows,
-    row_count: rows.length,
-    kpis: [],
-    chart: {
-      type: args.chart_type,
-      title: args.title,
-      categories,
-      series: values,
-      value_format: args.value_format,
-    },
+    type: args.chart_type,
+    title: args.title,
+    categories,
+    series: values,
+    value_format: args.value_format,
   }
+}
+
+function StandaloneChartCard({
+  chart,
+  title,
+}: {
+  chart: ChartPayload
+  title?: string
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border/80 bg-card p-3 shadow-2xs">
+      {title && (
+        <div className="mb-2 flex items-center gap-1.5 border-b border-border/40 pb-2">
+          <BarChart3 className="size-3.5 text-primary" />
+          <span className="text-xs font-semibold text-foreground">{title}</span>
+        </div>
+      )}
+      <ChartView chart={chart} hideTitle={Boolean(title)} />
+    </div>
+  )
 }
 
 function ChartArgsPreview({ args }: { args: Record<string, unknown> }) {
   const { t } = useI18n()
-  const payload = chartPayloadFromArgs(
-    args,
-    t("ai.tool.report.category"),
-    t("ai.tool.report.series")
-  )
-  return payload ? <ReportPresentationCard result={payload} /> : null
+  const chart = chartPayloadFromArgs(args, t("ai.tool.report.series"))
+  const title = typeof args.title === "string" ? args.title : undefined
+  return chart ? <StandaloneChartCard chart={chart} title={title} /> : null
 }
 
 // renderChart is a first-class output (a chart), not a processing step, so its
@@ -75,8 +76,23 @@ export const RenderChartToolUI = makeAssistantToolUI<
   toolName: "renderChart",
   display: "standalone",
   render: ({ args, result }) => {
-    if (result && Array.isArray((result as Record<string, unknown>).columns)) {
-      return <ReportPresentationCard result={result as ToolResultPayload} />
+    if (result) {
+      const res = result as ToolResultPayload
+      const chart = isChartPayload(res.chart)
+        ? res.chart
+        : isChartPayload(res)
+          ? res
+          : undefined
+      const title =
+        typeof res.report_name === "string"
+          ? res.report_name
+          : typeof (args as Record<string, unknown> | undefined)?.title === "string"
+            ? ((args as Record<string, unknown>).title as string)
+            : undefined
+
+      if (chart) {
+        return <StandaloneChartCard chart={chart} title={title} />
+      }
     }
     return args ? <ChartArgsPreview args={args} /> : null
   },

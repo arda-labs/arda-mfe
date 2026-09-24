@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { Table as TableIcon } from "lucide-react"
+import { Check, Copy, Table as TableIcon } from "lucide-react"
 import { normalizeText, TablePagination, TableSearchInput } from "./table-controls"
 
 export function isArrayResult(value: unknown): value is Array<Record<string, unknown>> {
@@ -24,6 +24,7 @@ export function DataTableView({
 }) {
   const { t } = useI18n()
   const [query, setQuery] = useState("")
+  const [copied, setCopied] = useState(false)
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(1)
 
@@ -48,26 +49,60 @@ export function DataTableView({
     [filtered, safePage, pageSize]
   )
 
+  const onCopy = async () => {
+    try {
+      const lines = [
+        columns.join("\t"),
+        ...data.map((row) => columns.map((col) => formatCellValue(row[col])).join("\t")),
+      ]
+      await navigator.clipboard.writeText(lines.join("\n"))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // ignore
+    }
+  }
+
   if (!isArrayResult(data)) return null
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-2xs text-xs">
-      <div className="flex items-center justify-between gap-2 border-b bg-muted/30 px-3 py-2">
+    <div className="overflow-hidden rounded-xl border border-border/80 bg-card text-card-foreground shadow-2xs text-xs">
+      <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/40 px-3 py-2">
         <div className="flex min-w-0 items-center gap-1.5 font-medium text-foreground">
           <TableIcon className="size-3.5 shrink-0 text-primary" />
           <span className="truncate">
             {title || t("ai.table.result_title", { count: data.length }) || `Dữ liệu (${data.length} bản ghi)`}
           </span>
         </div>
-        <TableSearchInput value={query} onChange={setQuery} className="w-40" />
+        <div className="flex items-center gap-1.5">
+          <TableSearchInput value={query} onChange={setQuery} className="w-40" />
+          <button
+            type="button"
+            onClick={onCopy}
+            className="flex h-7 items-center gap-1 rounded-md border border-border/60 bg-card px-2 text-[11px] font-medium text-muted-foreground shadow-2xs transition-colors hover:bg-muted hover:text-foreground"
+            title={t("ai.table.copy")}
+          >
+            {copied ? (
+              <>
+                <Check className="size-3 text-emerald-500" />
+                <span className="text-emerald-500 font-medium">{t("ai.table.copied")}</span>
+              </>
+            ) : (
+              <>
+                <Copy className="size-3" />
+                <span>{t("ai.table.copy")}</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
         <Table className="text-left text-xs">
-          <TableHeader className="bg-muted/40 text-[11px]">
-            <TableRow className="font-medium">
+          <TableHeader className="bg-muted/60 text-[11px] uppercase tracking-wider">
+            <TableRow className="font-semibold">
               {columns.map((col) => (
-                <TableHead key={col} className="h-auto whitespace-nowrap py-2 text-[11px] capitalize">
+                <TableHead key={col} className="h-auto whitespace-nowrap py-2 text-[11px] font-semibold text-muted-foreground capitalize">
                   {formatColumnName(col)}
                 </TableHead>
               ))}
@@ -75,7 +110,7 @@ export function DataTableView({
           </TableHeader>
           <TableBody>
             {pageRows.map((row, idx) => (
-              <TableRow key={idx} className="transition-colors hover:bg-muted/20">
+              <TableRow key={idx} className="transition-colors even:bg-muted/15 hover:bg-primary/[0.04]">
                 {columns.map((col) => (
                   <TableCell key={col} className="whitespace-nowrap font-mono text-[11px] text-foreground">
                     {formatCellValue(row[col])}
@@ -94,17 +129,19 @@ export function DataTableView({
         </Table>
       </div>
 
-      <TablePagination
-        page={safePage}
-        pageCount={pageCount}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={setPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size)
-          setPage(1)
-        }}
-      />
+      {total > 10 && (
+        <TablePagination
+          page={safePage}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size)
+            setPage(1)
+          }}
+        />
+      )}
     </div>
   )
 }

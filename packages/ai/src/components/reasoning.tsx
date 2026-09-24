@@ -22,12 +22,12 @@ export const ANIMATION_DURATION = 200;
 
 const ReasoningPreviewContext = createContext(false);
 
-const reasoningVariants = cva("aui-reasoning-root mb-4 w-full", {
+const reasoningVariants = cva("aui-reasoning-root relative mb-3 w-full rounded-xl transition-all duration-200 overflow-hidden", {
   variants: {
     variant: {
-      outline: "rounded-lg border px-3 py-2",
-      ghost: "",
-      muted: "bg-muted/50 rounded-lg px-3 py-2",
+      outline: "border border-border/80 bg-card/60 px-3 py-2 shadow-2xs",
+      ghost: "border border-border/40 bg-muted/20 px-3 py-1.5 hover:border-border/70",
+      muted: "border border-muted-foreground/15 bg-muted/50 px-3 py-2",
     },
   },
   defaultVariants: {
@@ -56,6 +56,22 @@ export type ReasoningRootProps = Omit<
     /** Called right before the disclosure animates, on toggle and on streaming transitions. */
     onAnimationStart?: () => void;
   };
+
+function LiveElapsedTimer() {
+  const [seconds, setSeconds] = useState(1);
+  useEffect(() => {
+    const start = Date.now();
+    const interval = setInterval(() => {
+      setSeconds(Math.max(1, Math.floor((Date.now() - start) / 1000)));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <span className="tabular-nums font-mono text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+      {seconds}s
+    </span>
+  );
+}
 
 function ReasoningRoot({
   className,
@@ -103,6 +119,7 @@ function ReasoningRoot({
     <Collapsible
       data-slot="reasoning-root"
       data-variant={variant}
+      data-streaming={streaming ? "true" : "false"}
       open={isOpen}
       onOpenChange={handleOpenChange}
       className={cn(
@@ -116,6 +133,9 @@ function ReasoningRoot({
       }
       {...props}
     >
+      {streaming && (
+        <div className="ai-beam-flow pointer-events-none absolute left-0 top-0 z-20" />
+      )}
       <ReasoningPreviewContext.Provider value={isPreview}>
         {children}
       </ReasoningPreviewContext.Provider>
@@ -172,40 +192,54 @@ function ReasoningTrigger({
   duration?: number;
   label?: string;
 }) {
-  const durationText = duration ? ` (${duration}s)` : "";
   const labelText = label ?? "Reasoning";
 
   return (
     <CollapsibleTrigger
       data-slot="reasoning-trigger"
       className={cn(
-        "aui-reasoning-trigger group/trigger text-muted-foreground hover:text-foreground flex max-w-[75%] origin-left items-center gap-2 py-1.5 text-sm transition-[color,scale] active:scale-[0.98]",
+        "aui-reasoning-trigger group/trigger text-muted-foreground hover:text-foreground flex w-full items-center justify-between gap-2 py-1 text-xs transition-[color,scale] active:scale-[0.99] focus-visible:outline-hidden",
         className,
       )}
       {...props}
     >
-      <BrainIcon
-        data-slot="reasoning-trigger-icon"
-        className="aui-reasoning-trigger-icon size-4 shrink-0"
-      />
-      <span
-        data-slot="reasoning-trigger-label"
-        className={cn(
-          "aui-reasoning-trigger-label-wrapper inline-block leading-none tabular-nums",
-          active && "shimmer motion-reduce:animate-none",
-        )}
-      >
-        {labelText}
-        {durationText}
-      </span>
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="relative flex size-5.5 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20">
+          {active && (
+            <span className="ai-pulse-glow absolute inset-0 rounded-lg bg-primary/25 blur-xs" />
+          )}
+          <BrainIcon
+            data-slot="reasoning-trigger-icon"
+            className={cn(
+              "aui-reasoning-trigger-icon size-3.5 relative z-10 transition-transform",
+              active && "animate-pulse"
+            )}
+          />
+        </div>
+        <span
+          data-slot="reasoning-trigger-label"
+          className={cn(
+            "aui-reasoning-trigger-label-wrapper truncate font-semibold text-foreground/90 transition-colors group-hover/trigger:text-foreground",
+            active && "shimmer motion-reduce:animate-none",
+          )}
+        >
+          {labelText}
+        </span>
+        {duration !== undefined && duration > 0 ? (
+          <span className="tabular-nums font-mono text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50">
+            {duration}s
+          </span>
+        ) : active ? (
+          <LiveElapsedTimer />
+        ) : null}
+      </div>
       <ChevronDownIcon
         data-slot="reasoning-trigger-chevron"
         className={cn(
-          "aui-reasoning-trigger-chevron mt-0.5 size-4 shrink-0",
-          "transition-transform duration-(--animation-duration) ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
-          "-rotate-90",
-          "group-data-open/trigger:rotate-0",
-          "group-data-panel-open/trigger:rotate-0",
+          "aui-reasoning-trigger-chevron size-3.5 shrink-0 text-muted-foreground/70 transition-transform duration-200 ease-out",
+          "group-data-[state=open]/trigger:rotate-180",
+          "group-data-open/trigger:rotate-180",
+          "group-data-panel-open/trigger:rotate-180",
         )}
       />
     </CollapsibleTrigger>
@@ -299,7 +333,7 @@ function ReasoningText({
       ref={scrollRef}
       data-slot="reasoning-text"
       className={cn(
-        "aui-reasoning-text relative z-0 max-h-64 overflow-y-auto ps-6 pt-2 pb-2 leading-relaxed text-pretty",
+        "aui-reasoning-text relative z-0 max-h-72 overflow-y-auto ps-4 pe-2 pt-2 pb-2 text-xs leading-relaxed text-muted-foreground/90 border-l-2 border-primary/30 my-1 ms-2",
         "transform-gpu transition-[transform,opacity] ease-[cubic-bezier(0.32,0.72,0,1)]",
         "motion-reduce:animate-none",
         "group-data-open/collapsible-content:animate-in",

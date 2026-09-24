@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react"
+import { ArrowDown, ArrowUp, Check, ChevronsUpDown, Copy } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { normalizeText, TablePagination, TableSearchInput } from "./table-controls"
 
@@ -52,6 +52,7 @@ export function ReportDataTable({
 }) {
   const { t } = useI18n()
   const [query, setQuery] = useState("")
+  const [copied, setCopied] = useState(false)
   const [sort, setSort] = useState<SortState>(null)
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(1)
@@ -101,27 +102,64 @@ export function ReportDataTable({
     })
   }
 
+  const onCopy = async () => {
+    try {
+      const colLabels = visibleColumns.map((c) => c.label)
+      const lines = [
+        colLabels.join("\t"),
+        ...rows.map((row) =>
+          visibleColumns.map((c) => formatCell(row[c.index], c.label)).join("\t")
+        ),
+      ]
+      await navigator.clipboard.writeText(lines.join("\n"))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // ignore
+    }
+  }
+
   if (visibleColumns.length === 0 || rows.length === 0) return null
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium text-foreground">{t("ai.tool.report.table_title")}</p>
-        <TableSearchInput value={query} onChange={setQuery} className="w-44" />
+        <p className="text-xs font-semibold text-foreground">{t("ai.tool.report.table_title")}</p>
+        <div className="flex items-center gap-1.5">
+          <TableSearchInput value={query} onChange={setQuery} className="w-40" />
+          <button
+            type="button"
+            onClick={onCopy}
+            className="flex h-7 items-center gap-1 rounded-md border border-border/60 bg-card px-2 text-[11px] font-medium text-muted-foreground shadow-2xs transition-colors hover:bg-muted hover:text-foreground"
+            title={t("ai.table.copy")}
+          >
+            {copied ? (
+              <>
+                <Check className="size-3 text-emerald-500" />
+                <span className="text-emerald-500 font-medium">{t("ai.table.copied")}</span>
+              </>
+            ) : (
+              <>
+                <Copy className="size-3" />
+                <span>{t("ai.table.copy")}</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl border border-border/80 bg-card shadow-2xs">
         <Table className="text-left text-xs">
-          <TableHeader className="bg-muted/40 text-[11px]">
+          <TableHeader className="bg-muted/60 text-[11px] uppercase tracking-wider">
             <TableRow>
               {visibleColumns.map(({ label, index }) => {
                 const active = sort?.index === index
                 return (
-                  <TableHead key={`${label}-${index}`} className="h-auto whitespace-nowrap py-2 text-[11px]">
+                  <TableHead key={`${label}-${index}`} className="h-auto whitespace-nowrap py-2 text-[11px] font-semibold text-muted-foreground">
                     <button
                       type="button"
                       onClick={() => toggleSort(index)}
-                      className="inline-flex items-center gap-1 font-medium hover:text-foreground"
+                      className="inline-flex items-center gap-1 font-semibold hover:text-foreground"
                       title={t("ai.table.sort") || "Sắp xếp"}
                     >
                       {label}
@@ -142,18 +180,34 @@ export function ReportDataTable({
           </TableHeader>
           <TableBody>
             {pageRows.map((row, rowIndex) => (
-              <TableRow key={rowIndex} className="transition-colors hover:bg-muted/20">
-                {visibleColumns.map(({ label, index }) => (
-                  <TableCell
-                    key={index}
-                    className={cn(
-                      "whitespace-nowrap py-1.5 text-[11px]",
-                      toNumber(row[index]) !== null && "tabular-nums"
-                    )}
-                  >
-                    {formatCell(row[index], label)}
-                  </TableCell>
-                ))}
+              <TableRow key={rowIndex} className="transition-colors even:bg-muted/15 hover:bg-primary/[0.04]">
+                {visibleColumns.map(({ label, index }) => {
+                  const val = row[index]
+                  const num = toNumber(val)
+                  const isRate = /rate|ratio|percent|%/i.test(label)
+                  const isDelta = isRate || /growth|change|tăng|giảm/i.test(label)
+                  const deltaColor =
+                    isDelta && num !== null
+                      ? num > 0
+                        ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                        : num < 0
+                          ? "text-rose-600 dark:text-rose-400 font-medium"
+                          : ""
+                      : ""
+
+                  return (
+                    <TableCell
+                      key={index}
+                      className={cn(
+                        "whitespace-nowrap py-2 text-[11px]",
+                        num !== null && "tabular-nums text-right font-mono",
+                        deltaColor
+                      )}
+                    >
+                      {formatCell(val, label)}
+                    </TableCell>
+                  )
+                })}
               </TableRow>
             ))}
             {pageRows.length === 0 && (
@@ -167,17 +221,19 @@ export function ReportDataTable({
         </Table>
       </div>
 
-      <TablePagination
-        page={safePage}
-        pageCount={pageCount}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={setPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size)
-          setPage(1)
-        }}
-      />
+      {total > 10 && (
+        <TablePagination
+          page={safePage}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size)
+            setPage(1)
+          }}
+        />
+      )}
 
       {truncated && (totalRows ?? 0) > rows.length && (
         <p className="px-1 text-[10px] text-muted-foreground">

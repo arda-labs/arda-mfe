@@ -176,7 +176,11 @@
     "range": "{from}–{to} / {total}",
     "empty": "Không có dòng nào khớp",
     "sort": "Sắp xếp",
-    "truncated": "Hiển thị {shown}/{total} dòng"
+    "truncated": "Hiển thị {shown}/{total} dòng",
+    "copy": "Sao chép bảng",
+    "copied": "Đã sao chép!",
+    "export_csv": "Xuất CSV",
+    "metrics": "{rows} dòng · {cols} cột"
   },
   "approval": {
     "badge": "Cần phê duyệt",

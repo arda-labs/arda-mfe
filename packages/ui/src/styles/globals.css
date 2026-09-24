@@ -383,6 +383,49 @@
   }
 }
 
+/* Thinking beam flow & pulse glow for Olorin deep reasoning */
+@keyframes ai-beam-flow {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+@keyframes ai-pulse-glow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.12);
+  }
+}
+
+@utility ai-beam-flow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 48px;
+  background: linear-gradient(180deg, transparent, var(--color-primary), var(--color-brand-accent, #6366f1), transparent);
+  animation: ai-beam-flow 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+  }
+}
+
+@utility ai-pulse-glow {
+  animation: ai-pulse-glow 2.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 /* PDF.js text layer: selectable/copyable text over the rendered canvas.
    PDF.js positions each span absolutely; the container must not intercept
    pointer events outside the text spans. */

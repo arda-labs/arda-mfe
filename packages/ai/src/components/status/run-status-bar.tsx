@@ -46,17 +46,23 @@ export function ThinkingBubble() {
 
   return (
     <div
-      className="flex w-full justify-start py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200"
+      className="flex w-full justify-start py-2 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200"
       role="status"
       aria-live="polite"
     >
-      <div className="flex w-full items-start gap-2.5">
-        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground shadow-2xs ring-1 ring-primary/20">
-          <Sparkles className="size-3.5 motion-safe:animate-pulse" />
+      <div className="inline-flex items-center gap-2.5 rounded-full border border-primary/20 bg-primary/[0.04] px-3 py-1 shadow-2xs">
+        <div className="relative flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs">
+          <span className="ai-pulse-glow absolute -inset-0.5 rounded-full bg-primary/40 blur-xs" />
+          <Sparkles className="relative z-10 size-2.5 animate-spin motion-reduce:animate-none" style={{ animationDuration: "6s" }} />
         </div>
-        <div className="flex min-h-7 items-center">
-          <span className="shimmer text-xs font-medium text-muted-foreground motion-reduce:animate-none">
+        <div className="flex items-center gap-1.5">
+          <span className="shimmer text-xs font-semibold text-foreground/90 motion-reduce:animate-none">
             {t("ai.status.thinking")}
+          </span>
+          <span className="flex items-center gap-0.5 text-primary">
+            <span className="size-1 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" />
+            <span className="size-1 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" />
+            <span className="size-1 rounded-full bg-current animate-bounce" />
           </span>
         </div>
       </div>

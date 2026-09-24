@@ -75,13 +75,18 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
 
       <div className="space-y-3 p-3">
         {kpis.length > 0 && <KpiGrid kpis={kpis} title={t("ai.tool.report.kpi_title")} />}
-        {chart && <ChartView chart={chart} hideTitle />}
-        <ReportDataTable
-          columns={columns}
-          rows={rows}
-          truncated={totalRows > rows.length}
-          totalRows={totalRows}
-        />
+        {chart ? (
+          <ChartView chart={chart} hideTitle />
+        ) : (
+          rows.length > 0 && (
+            <ReportDataTable
+              columns={columns}
+              rows={rows}
+              truncated={totalRows > rows.length}
+              totalRows={totalRows}
+            />
+          )
+        )}
       </div>
 
       {canDownload && (

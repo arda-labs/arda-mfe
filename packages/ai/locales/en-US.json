@@ -176,7 +176,11 @@
     "range": "{from}–{to} / {total}",
     "empty": "No matching rows",
     "sort": "Sort",
-    "truncated": "Showing {shown}/{total} rows"
+    "truncated": "Showing {shown}/{total} rows",
+    "copy": "Copy table",
+    "copied": "Copied!",
+    "export_csv": "Export CSV",
+    "metrics": "{rows} rows · {cols} cols"
   },
   "approval": {
     "badge": "Approval Required",
