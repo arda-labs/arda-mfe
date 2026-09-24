@@ -306,7 +306,7 @@ export function OlorinPanel({
 
           <div
             className={cn(
-              "mx-auto w-full space-y-3 px-4 py-4 transition-[max-width] duration-300",
+              "mx-auto w-full space-y-4 px-4 sm:px-6 md:px-8 py-4 transition-[max-width] duration-300",
               wideChat ? "max-w-none" : "max-w-3xl"
             )}
           >
@@ -345,7 +345,7 @@ export function OlorinPanel({
         </SelectionToolbarPrimitive.Root>
 
         {!isEmpty && (
-          <div className="bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-3 pt-4">
+          <div className="bg-gradient-to-t from-background via-background/95 to-transparent px-4 sm:px-6 md:px-8 pb-3 pt-4">
             <div
               className={cn(
                 "mx-auto w-full transition-[max-width] duration-300",
@@ -436,20 +436,56 @@ function OlorinComposer() {
               className="max-h-40 min-h-10 w-full resize-none border-0 bg-transparent px-3.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground"
             />
             <div className="flex items-center justify-between gap-1.5 px-2 pt-1 pb-0.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 gap-1 rounded-full px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  if (actMode) setActMode(false)
-                  else setActWarningOpen(true)
-                }}
-                title={actMode ? t("ai.mode.act") : t("ai.mode.ask")}
-              >
-                {actMode ? <ShieldAlert className="size-3" /> : <ShieldCheck className="size-3" />}
-                {actMode ? t("ai.mode.act") : t("ai.mode.ask")}
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-6.5 gap-1.5 rounded-full px-2.5 text-[11px] font-medium transition-colors",
+                      actMode
+                        ? "border border-amber-500/40 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                    )}
+                    title={actMode ? t("ai.mode.act") : t("ai.mode.ask")}
+                  >
+                    {actMode ? (
+                      <ShieldAlert className="size-3 text-amber-600 dark:text-amber-400" />
+                    ) : (
+                      <ShieldCheck className="size-3 text-emerald-600 dark:text-emerald-400" />
+                    )}
+                    <span>{actMode ? t("ai.mode.act") : t("ai.mode.ask")}</span>
+                    <ChevronDown className="size-2.5 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-44">
+                  <DropdownMenuItem
+                    className={cn(
+                      "flex items-center gap-2 text-xs py-1.5 cursor-pointer",
+                      !actMode && "bg-accent font-medium text-accent-foreground"
+                    )}
+                    onSelect={() => {
+                      if (actMode) setActMode(false)
+                    }}
+                  >
+                    <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="min-w-0 flex-1">{t("ai.mode.ask")}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={cn(
+                      "flex items-center gap-2 text-xs py-1.5 cursor-pointer text-amber-700 dark:text-amber-400",
+                      actMode && "bg-accent font-medium text-accent-foreground"
+                    )}
+                    onSelect={() => {
+                      if (!actMode) setActWarningOpen(true)
+                    }}
+                  >
+                    <ShieldAlert className="size-3.5 text-amber-600 dark:text-amber-400" />
+                    <span className="min-w-0 flex-1">{t("ai.mode.act")}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div className="flex items-center gap-1.5">
                 <AuiIf condition={(s) => s.composer.dictation == null}>
                   <ComposerPrimitive.Dictate asChild>
@@ -739,22 +775,28 @@ function AssistantMessage() {
               selections must stay inside it for the toolbar to appear. */}
           <div
             data-aui-quote-selectable=""
-            className="py-0.5 text-sm leading-relaxed text-foreground empty:hidden"
+            className="flex flex-col py-0.5 text-sm leading-relaxed text-foreground empty:hidden"
           >
             {/* GroupedParts + groupPartByType — the official chain-of-thought
                 pattern: consecutive reasoning/tool-call parts fold into one
-                ChatGPT-style activity disclosure. */}
+                ChatGPT-style activity disclosure.
+                Flex ordering (order-1 for reasoning/activity, order-2 for standalone
+                tools/charts, order-3 for text) ensures reasoning always renders
+                above charts, and charts above text, uniformly across live runs
+                and historical transcripts. */}
             <MessagePrimitive.GroupedParts groupBy={groupBy}>
               {({ part, children }) => {
                 switch (part.type) {
                   case "group-chainOfThought":
                     return (
-                      <ActivityGroup running={part.status?.type === "running"}>
-                        {children}
-                      </ActivityGroup>
+                      <div className="order-1 mb-2">
+                        <ActivityGroup running={part.status?.type === "running"}>
+                          {children}
+                        </ActivityGroup>
+                      </div>
                     )
                   case "group-text":
-                    return <div className="space-y-1">{children}</div>
+                    return <div className="order-3 space-y-1">{children}</div>
                   case "group-reasoning": {
                     const running = part.status?.type === "running"
                     return (
@@ -790,7 +832,7 @@ function AssistantMessage() {
                     // status row (the external ThinkingBubble covers the window
                     // before the assistant message exists).
                     return (
-                      <div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
+                      <div className="order-1 flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
                         <LoaderCircle className="size-3.5 shrink-0 animate-spin text-primary" />
                         <span className="shimmer font-medium motion-reduce:animate-none">
                           {t("ai.activity.working")}
@@ -801,13 +843,16 @@ function AssistantMessage() {
                     // Meta tools (search/execute) register via the mounted
                     // makeAssistantToolUI components below; part.toolUI resolves
                     // them. Anything else falls back to the generic view.
+                    const toolContent = part.toolUI ?? (
+                      <GenericToolView
+                        toolName={part.toolName}
+                        result={part.result as Record<string, unknown>}
+                      />
+                    )
                     return (
-                      part.toolUI ?? (
-                        <GenericToolView
-                          toolName={part.toolName}
-                          result={part.result as Record<string, unknown>}
-                        />
-                      )
+                      <div className={cn("order-2", isArtifactPart(part) && "my-3.5")}>
+                        {toolContent}
+                      </div>
                     )
                   }
                   default:

@@ -46,10 +46,10 @@ function StandaloneChartCard({
   title?: string
 }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border/80 bg-card p-3 shadow-2xs">
+    <div className="my-3 overflow-hidden rounded-xl border border-border/80 bg-card p-4 shadow-2xs">
       {title && (
-        <div className="mb-2 flex items-center gap-1.5 border-b border-border/40 pb-2">
-          <BarChart3 className="size-3.5 text-primary" />
+        <div className="mb-3 flex items-center gap-2 border-b border-border/40 pb-2.5">
+          <BarChart3 className="size-4 text-primary" />
           <span className="text-xs font-semibold text-foreground">{title}</span>
         </div>
       )}

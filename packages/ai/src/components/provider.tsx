@@ -50,9 +50,7 @@ function toThreadMessage(
 
   if (item.role === "assistant") {
     const artifacts = Array.isArray(item.artifacts) ? item.artifacts : []
-    const content: ThreadAssistantMessagePart[] = [
-      { type: "text" as const, text: item.content },
-    ]
+    const content: ThreadAssistantMessagePart[] = []
     // Replay persisted artifacts as renderChart tool parts so the chart/KPI
     // card is rebuilt from history exactly as it was streamed live.
     artifacts.forEach((artifact, index) => {
@@ -65,6 +63,9 @@ function toThreadMessage(
         result: artifact,
       })
     })
+    if (item.content) {
+      content.push({ type: "text" as const, text: item.content })
+    }
     return {
       id,
       role: "assistant" as const,
@@ -147,29 +148,91 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
     [runtimeUrl]
   )
 
+  // The runtime rebuilds its internal store whenever these option objects
+  // change identity. Inline literals here would recreate them on every render
+  // and drive React into "Maximum update depth exceeded" (#185) during fast
+  // streams — memoize everything passed to useAgUiRuntime.
+  const {
+    conversations: conversationItems,
+    loading: conversationsLoading,
+    error: conversationsError,
+    refresh: refreshConversations,
+    upsert: upsertConversation,
+  } = useOlorinConversations(active)
+
   // AG-UI run id of the last finished run, so answer feedback can point at the
   // exact assistant message. Kept in a ref to avoid re-rendering on every run.
   const lastRunIdRef = useRef<string | null>(null)
   // run id keyed by the assistant message it produced, so an older answer is
   // never attributed to the newest run.
   const runIdByMessageIdRef = useRef<Map<string, string>>(new Map())
+  const runtimeRef = useRef<ReturnType<typeof useAgUiRuntime> | null>(null)
+
   useEffect(() => {
     const subscription = agent.subscribe({
-      onRunFinishedEvent: ({ event, messages }) => {
-        const runId = event.runId
-        if (typeof runId !== "string" || runId === "") return
-        lastRunIdRef.current = runId
-        for (let index = messages.length - 1; index >= 0; index -= 1) {
-          const message = messages[index]
-          if (message.role === "assistant" && typeof message.id === "string") {
-            runIdByMessageIdRef.current.set(message.id, runId)
-            break
+      onRunStartedEvent: ({ messages, input }) => {
+        const currentThreadId = threadIdRef.current
+        if (!currentThreadId) return
+
+        let promptTitle = ""
+        if (Array.isArray(messages)) {
+          for (let index = messages.length - 1; index >= 0; index -= 1) {
+            const msg = messages[index]
+            if (msg.role === "user") {
+              const text =
+                typeof msg.content === "string"
+                  ? msg.content
+                  : Array.isArray(msg.content)
+                    ? (msg.content.find((p: unknown) => (p as { type?: string })?.type === "text") as { text?: string } | undefined)?.text
+                    : ""
+              if (typeof text === "string" && text.trim()) {
+                const runes = Array.from(text.trim())
+                promptTitle = runes.slice(0, 80).join("")
+                break
+              }
+            }
           }
         }
+        if (!promptTitle && input && Array.isArray((input as { messages?: unknown[] }).messages)) {
+          const inputMessages = (input as { messages: Array<{ role?: string; content?: unknown }> }).messages
+          for (let index = inputMessages.length - 1; index >= 0; index -= 1) {
+            const msg = inputMessages[index]
+            if (msg.role === "user") {
+              const text = typeof msg.content === "string" ? msg.content : ""
+              if (text.trim()) {
+                const runes = Array.from(text.trim())
+                promptTitle = runes.slice(0, 80).join("")
+                break
+              }
+            }
+          }
+        }
+
+        upsertConversation({
+          threadId: currentThreadId,
+          title: promptTitle || undefined,
+          messageCount: 1,
+          lastMessageAt: new Date().toISOString(),
+          status: "ACTIVE",
+        })
+      },
+      onRunFinishedEvent: ({ event, messages }) => {
+        const runId = event.runId
+        if (typeof runId === "string" && runId !== "") {
+          lastRunIdRef.current = runId
+          for (let index = messages.length - 1; index >= 0; index -= 1) {
+            const message = messages[index]
+            if (message.role === "assistant" && typeof message.id === "string") {
+              runIdByMessageIdRef.current.set(message.id, runId)
+              break
+            }
+          }
+        }
+        void refreshConversations()
       },
     })
     return () => subscription.unsubscribe()
-  }, [agent])
+  }, [agent, refreshConversations, upsertConversation])
   const getLastRunId = useCallback(() => lastRunIdRef.current, [])
   const getRunIdForMessage = useCallback(
     (messageId: string | null) =>
@@ -194,17 +257,6 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
     }
   }, [threadId, agent])
 
-  // The runtime rebuilds its internal store whenever these option objects
-  // change identity. Inline literals here would recreate them on every render
-  // and drive React into "Maximum update depth exceeded" (#185) during fast
-  // streams — memoize everything passed to useAgUiRuntime.
-  const {
-    conversations: conversationItems,
-    loading: conversationsLoading,
-    error: conversationsError,
-    refresh: refreshConversations,
-  } = useOlorinConversations(active)
-
   const threadListAdapter = useMemo(
     () => ({
       threads: conversationItems.map(
@@ -222,6 +274,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       onSwitchToNewThread: () => {
         // The effect above keeps the agent's threadId in sync with state.
         setThreadId(crypto.randomUUID())
+        runtimeRef.current?.thread?.import({ messages: [] })
       },
       onSwitchToThread: async (nextThreadId: string) => {
         const requestId = ++historyRequestRef.current
@@ -275,6 +328,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
   )
 
   const runtime = useAgUiRuntime(runtimeOptions)
+  runtimeRef.current = runtime
 
   // Send the registered UI context (current screen + active record ids) with
   // every run. The AG-UI adapter spreads model-context `config` into
@@ -355,6 +409,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
         loading: conversationsLoading,
         error: conversationsError,
         refresh: refreshConversations,
+        upsert: upsertConversation,
       },
     }),
     [
@@ -369,6 +424,7 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
       conversationsLoading,
       conversationsError,
       refreshConversations,
+      upsertConversation,
     ]
   )
 

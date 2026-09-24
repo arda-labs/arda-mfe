@@ -390,7 +390,17 @@
       "role_chat": "The conversation model analyzes and answers",
       "role_chat_hint": "The model applied in the Agents & models tab continues to call tools, read data and write answers.",
       "runtime_hint": "At most one Jev request per chat turn, with a 3-second deadline. Uncertain decisions or errors keep normal assistant behavior. Permissions and approvals remain enforced by the system.",
-      "skills": { "general": "General", "report": "Reporting", "loan_portfolio": "Loan portfolio", "knowledge": "Knowledge lookup" }
+      "skills": { "general": "General", "report": "Reporting", "loan_portfolio": "Loan portfolio", "knowledge": "Knowledge lookup" },
+      "custom_model": "Custom model ID…",
+      "custom_model_hint": "Enter a System One model ID (letters, numbers, ., _, -)",
+      "confidence_level_sensitive": "Sensitive (activates specialized skills easily)",
+      "confidence_level_balanced": "Balanced (Recommended default)",
+      "confidence_level_strict": "Strict (activates only when highly confident)",
+      "skill_packs_title": "Supported Skill Packs",
+      "skill_loan_desc": "Directly retrieves loan portfolio presentation and chart without catalog search.",
+      "skill_report_desc": "Analyzes metrics and renders statistical presentation reports.",
+      "skill_knowledge_desc": "RAG policy and documentation search with grounded citations.",
+      "skill_general_desc": "General conversation, greetings, and multi-domain requests."
     },
     "title": "AI Settings",
     "description": "Manage the Decision → Reasoning → Actions flow, usage limits, and conversation retention.",

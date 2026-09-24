@@ -70,7 +70,38 @@ export function useOlorinConversations(enabled: boolean) {
     }
   }, [enabled])
 
-  return { conversations, loading, error, refresh }
+  const upsert = useCallback(
+    (item: Partial<OlorinConversation> & { threadId: string }) => {
+      setConversations((prev) => {
+        const index = prev.findIndex((c) => c.threadId === item.threadId)
+        if (index >= 0) {
+          const updated: OlorinConversation = {
+            ...prev[index],
+            ...item,
+            threadId: item.threadId,
+            title: item.title ?? prev[index].title,
+            messageCount: item.messageCount ?? prev[index].messageCount,
+            lastMessageAt: item.lastMessageAt ?? prev[index].lastMessageAt,
+            status: item.status ?? prev[index].status,
+          }
+          return [updated, ...prev.filter((_, i) => i !== index)]
+        }
+        const created: OlorinConversation = {
+          threadId: item.threadId,
+          title: item.title || item.threadId,
+          messageCount: item.messageCount ?? 1,
+          lastMessageAt: item.lastMessageAt ?? new Date().toISOString(),
+          status: item.status ?? "ACTIVE",
+          deletedAt: item.deletedAt,
+          expiresAt: item.expiresAt,
+        }
+        return [created, ...prev]
+      })
+    },
+    []
+  )
+
+  return { conversations, loading, error, refresh, upsert }
 }
 
 function isAbortError(value: unknown): boolean {

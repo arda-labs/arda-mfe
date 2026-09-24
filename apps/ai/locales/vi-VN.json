@@ -390,7 +390,17 @@
       "role_chat": "Model hội thoại phân tích và trả lời",
       "role_chat_hint": "Model đang áp dụng trong tab Agent & mô hình tiếp tục gọi công cụ, đọc dữ liệu và viết câu trả lời.",
       "runtime_hint": "Mỗi lượt chat dùng tối đa một yêu cầu Jev, chờ tối đa 3 giây. Nếu không chắc chắn hoặc có lỗi, trợ lý giữ cách xử lý thông thường. Quyền và phê duyệt do hệ thống kiểm soát.",
-      "skills": { "general": "Thông thường", "report": "Báo cáo", "loan_portfolio": "Dư nợ theo nhóm nợ", "knowledge": "Tra cứu kiến thức" }
+      "skills": { "general": "Thông thường", "report": "Báo cáo", "loan_portfolio": "Dư nợ theo nhóm nợ", "knowledge": "Tra cứu kiến thức" },
+      "custom_model": "Tùy chỉnh mã model…",
+      "custom_model_hint": "Nhập mã định danh model System One (chữ cái, số, ., _, -)",
+      "confidence_level_sensitive": "Độ nhạy cao (dễ phân loại chuyên biệt)",
+      "confidence_level_balanced": "Cân bằng tối ưu (Mặc định khuyến nghị)",
+      "confidence_level_strict": "Nghiêm ngặt (chỉ kích hoạt khi chắc chắn)",
+      "skill_packs_title": "Các gói kỹ năng định tuyến (Skill Packs)",
+      "skill_loan_desc": "Tự động truy xuất báo cáo dư nợ và hiển thị biểu đồ không cần tìm danh mục.",
+      "skill_report_desc": "Hỗ trợ tra cứu, trích xuất và hiển thị các báo cáo thống kê quản trị.",
+      "skill_knowledge_desc": "Tìm kiếm tài liệu chính sách, quy chế và quy trình RAG kèm trích dẫn.",
+      "skill_general_desc": "Xử lý hội thoại thông thường, chào hỏi và các yêu cầu liên miền."
     },
     "title": "Cài đặt AI",
     "description": "Quản lý luồng Quyết định → Suy luận → Hành động, hạn mức sử dụng và thời gian lưu hội thoại.",

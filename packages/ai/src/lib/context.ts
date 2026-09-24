@@ -22,6 +22,7 @@ export type OlorinContextValue = {
     loading: boolean
     error: string
     refresh: () => Promise<void>
+    upsert: (item: Partial<OlorinConversation> & { threadId: string }) => void
   }
 }
 

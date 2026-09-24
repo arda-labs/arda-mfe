@@ -60,8 +60,8 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-2xs">
-      <div className="flex items-center justify-between gap-2 border-b bg-muted/30 px-3 py-2">
+    <div className="my-3 overflow-hidden rounded-xl border bg-card text-card-foreground shadow-2xs">
+      <div className="flex items-center justify-between gap-2 border-b bg-muted/30 px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-1.5 font-medium text-foreground">
           <BarChart3 className="size-3.5 shrink-0 text-primary" />
           <span className="truncate text-xs">{title}</span>
@@ -73,7 +73,7 @@ export function ReportPresentationCard({ result }: { result: ToolResultPayload }
         </div>
       </div>
 
-      <div className="space-y-3 p-3">
+      <div className="space-y-4 p-4">
         {kpis.length > 0 && <KpiGrid kpis={kpis} title={t("ai.tool.report.kpi_title")} />}
         {chart ? (
           <ChartView chart={chart} hideTitle />

@@ -1,7 +1,7 @@
 // Source: arda-be/apps/ai-service/internal/handler/decision_settings.go
 export interface DecisionSettings {
   enabled: boolean
-  model_id: "jev-1.13-free" | "jev-1.13"
+  model_id: string
   min_confidence: number
   has_api_key: boolean
   provider: "opencode-zen"
@@ -10,7 +10,7 @@ export interface DecisionSettings {
 
 export interface DecisionSettingsPayload {
   enabled: boolean
-  model_id: DecisionSettings["model_id"]
+  model_id: string
   min_confidence: number
   api_key?: string
 }
