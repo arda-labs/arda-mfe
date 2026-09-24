@@ -7,7 +7,6 @@ import { useNotificationsStore } from "./store"
 import type { NotificationItem, UnreadCountResponse } from "./types"
 
 const MAX_RECONNECT_DELAY_MS = 30_000
-const UNREAD_POLL_MS = 15_000
 
 export function useNotificationStream(enabled: boolean) {
   useEffect(() => {
@@ -20,29 +19,39 @@ export function useNotificationStream(enabled: boolean) {
     let closed = false
     let source: EventSource | undefined
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined
     let reconnectDelay = 1_000
+    let hasConnectedOnce = false
+    let inboxRefreshVersion = 0
+    let unreadRefreshVersion = 0
     const toastedIds = new Set<string>()
 
     const refreshUnreadCount = () => {
+      const version = ++unreadRefreshVersion
       notificationsApi
         .unreadCount()
-        .then((res) =>
-          useNotificationsStore.getState().setUnreadCount(res.count)
-        )
+        .then((res) => {
+          if (version === unreadRefreshVersion) {
+            useNotificationsStore.getState().setUnreadCount(res.count)
+          }
+        })
         .catch(() => {})
     }
 
-    const bootstrapInbox = () => {
+    const bootstrapInbox = (notifyNew = false) => {
+      const version = ++inboxRefreshVersion
       notificationsApi
         .list(20)
         .then((res) => {
+          if (version !== inboxRefreshVersion) return
           useNotificationsStore.getState().setNotifications(res.notifications)
           for (const item of res.notifications) {
+            if (notifyNew && !toastedIds.has(item.id)) pushToast(item)
             toastedIds.add(item.id)
           }
         })
         .catch(() => {})
-      refreshUnreadCount()
+        .finally(refreshUnreadCount)
     }
 
     const scheduleReconnect = () => {
@@ -61,7 +70,8 @@ export function useNotificationStream(enabled: boolean) {
       source.onopen = () => {
         reconnectDelay = 1_000
         useNotificationsStore.getState().setConnected(true)
-        refreshUnreadCount()
+        if (hasConnectedOnce) bootstrapInbox(true)
+        hasConnectedOnce = true
       }
 
       source.onerror = () => {
@@ -70,14 +80,9 @@ export function useNotificationStream(enabled: boolean) {
         scheduleReconnect()
       }
 
-      source.addEventListener("notification", (event) => {
-        const notification = parseEventData<NotificationItem>(event)
-        if (!notification) return
-        useNotificationsStore.getState().addNotification(notification)
-        if (!toastedIds.has(notification.id)) {
-          toastedIds.add(notification.id)
-          pushToast(notification)
-        }
+      source.addEventListener("inbox_changed", () => {
+        if (refreshTimer) clearTimeout(refreshTimer)
+        refreshTimer = setTimeout(() => bootstrapInbox(true), 150)
       })
 
       source.addEventListener("unread_count", (event) => {
@@ -91,15 +96,13 @@ export function useNotificationStream(enabled: boolean) {
     bootstrapInbox()
     connect()
 
-    const unreadPoll = window.setInterval(refreshUnreadCount, UNREAD_POLL_MS)
-
     const handleOnline = () => {
       if (!source || source.readyState === EventSource.CLOSED) connect()
-      refreshUnreadCount()
+      bootstrapInbox(true)
     }
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        bootstrapInbox()
+        bootstrapInbox(true)
       }
     }
     window.addEventListener("online", handleOnline)
@@ -109,7 +112,7 @@ export function useNotificationStream(enabled: boolean) {
       closed = true
       source?.close()
       if (reconnectTimer) clearTimeout(reconnectTimer)
-      window.clearInterval(unreadPoll)
+      if (refreshTimer) clearTimeout(refreshTimer)
       window.removeEventListener("online", handleOnline)
       document.removeEventListener("visibilitychange", handleVisibility)
       useNotificationsStore.getState().setConnected(false)

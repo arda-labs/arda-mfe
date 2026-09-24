@@ -61,4 +61,5 @@ export function CustomerEditForm({ customerId }: { customerId: string }) {
 Đối với chuông thông báo (Notification Bell), Web Push và Server-Sent Events (SSE):
 * **Component chuông thông báo:** `<NotificationBell />` được tích hợp sẵn ở thanh Navbar trên Shell.
 * **Store lắng nghe:** `useNotificationsStore` đồng bộ danh sách thông báo chưa đọc (`unreadCount`).
-* **Stream thời gian thực:** `useNotificationStream` kết nối SSE tới `notification-service`.
+* **Stream thời gian thực:** `useNotificationStream` kết nối SSE tới `notification-service`. SSE chỉ báo inbox thay đổi; FE tải lại inbox/count từ API khi nhận event, reconnect, tab hiện lại hoặc mở chuông. Không polling định kỳ.
+* **Backend fan-out:** notification-service nhận sự kiện inbox từ NATS và phát tới SSE connection có cùng tenant/user. DB inbox vẫn là nguồn dữ liệu chuẩn; khi stream gián đoạn, FE reconcile qua API.

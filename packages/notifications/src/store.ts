@@ -21,14 +21,18 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
   setNotifications: (notifications) => set({ notifications }),
   addNotification: (notification) =>
     set((state) => {
+      const wasAlreadyUnread = state.notifications.some(
+        (item) => item.id === notification.id && !item.readAt
+      )
       const withoutDuplicate = state.notifications.filter(
         (item) => item.id !== notification.id
       )
       return {
         notifications: [notification, ...withoutDuplicate].slice(0, 20),
-        unreadCount: notification.readAt
-          ? state.unreadCount
-          : state.unreadCount + 1,
+        unreadCount:
+          notification.readAt || wasAlreadyUnread
+            ? state.unreadCount
+            : state.unreadCount + 1,
       }
     }),
   setUnreadCount: (count) => set({ unreadCount: Math.max(0, count) }),
