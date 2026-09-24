@@ -3,7 +3,13 @@ import type { EChartsOption, EChartsType } from "echarts"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
-import { BarChart3, Download, LineChart, PieChart } from "lucide-react"
+import { BarChart3, Download, LineChart, Maximize2, PieChart } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import { registerToolRenderer } from "../../lib/registry"
 
@@ -186,16 +192,19 @@ export function ChartView({
   className,
   hideTitle = false,
   allowSwitch = true,
+  inDialog = false,
 }: {
   chart: ChartPayload
   className?: string
   hideTitle?: boolean
   allowSwitch?: boolean
+  inDialog?: boolean
 }) {
   const { t, formatNumber } = useI18n()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const instanceRef = useRef<EChartsType | undefined>(undefined)
   const [failed, setFailed] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
   const serverKind = asKind(chart.type) ?? "bar"
   const [kind, setKind] = useState<ChartKind>(serverKind)
   const type = typeof chart.type === "string" ? chart.type : "none"
@@ -251,7 +260,11 @@ export function ChartView({
     )
   }
 
-  const chartHeight = categories.length > 6 ? Math.min(520, Math.max(240, categories.length * 30)) : 256
+  const chartHeight = inDialog
+    ? 500
+    : categories.length > 6
+      ? Math.min(520, Math.max(240, categories.length * 30))
+      : 256
 
   return (
     <div className={cn("space-y-1.5", className)}>
@@ -292,11 +305,40 @@ export function ChartView({
             <Download className="size-3" />
             PNG
           </Button>
+          {!inDialog && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 gap-1 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+              onClick={() => setIsExpanded(true)}
+              title={t("ai.tool.chart.expand")}
+            >
+              <Maximize2 className="size-3" />
+              <span className="hidden sm:inline">{t("ai.tool.chart.expand")}</span>
+            </Button>
+          )}
         </div>
       )}
       {!hideTitle && !chart.title && null}
       <div ref={containerRef} className="w-full" style={{ height: chartHeight }} />
       {failed && <p className="text-[11px] text-muted-foreground">{t("ai.tool.report.chart_empty")}</p>}
+
+      {!inDialog && (
+        <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
+          <DialogContent className="max-w-6xl w-[95vw] max-h-[92vh] flex flex-col p-4 sm:p-5 overflow-hidden">
+            <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/60">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+                <BarChart3 className="size-4 text-primary" />
+                <span>{textValue(chart.title) || t("ai.tool.chart.fullscreen_title")}</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 w-full pt-2">
+              <ChartView chart={chart} inDialog />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

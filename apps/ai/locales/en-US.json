@@ -604,7 +604,9 @@
     "dictate": "Dictate",
     "stop_dictation": "Stop dictation",
     "quote_dismiss": "Remove quote",
-    "stop": "Stop generating"
+    "stop": "Stop generating",
+    "zoom_in": "Expand input box (60% height)",
+    "zoom_out": "Collapse input box"
   },
   "edit": {
     "title": "Edit message",
@@ -682,7 +684,11 @@
     "read": "Reading results…",
     "reasoning": "Thinking…",
     "done": "Worked",
-    "done_in": "Worked for {seconds}s"
+    "done_in": "Worked for {seconds}s",
+    "steps_count": "{count} steps",
+    "steps_count_done": "Completed {count} steps",
+    "steps_title": "Execution steps",
+    "toggle_steps": "Toggle steps view"
   },
   "table": {
     "result_title": "Data ({count} records)",
@@ -700,6 +706,8 @@
     "copy": "Copy table",
     "copied": "Copied!",
     "export_csv": "Export CSV",
+    "expand": "Expand",
+    "fullscreen_title": "Data table details",
     "metrics": "{rows} rows · {cols} cols"
   },
   "mode": {
@@ -771,6 +779,8 @@
       "chart_download": "Download chart image"
     },
     "chart": {
+      "expand": "Expand",
+      "fullscreen_title": "Chart details",
       "unit_amount": "Unit: VND",
       "unit_percent": "Unit: %",
       "unit_count": "Unit: count",

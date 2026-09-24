@@ -604,7 +604,9 @@
     "dictate": "Nhập bằng giọng nói",
     "stop_dictation": "Dừng nhập giọng nói",
     "quote_dismiss": "Bỏ trích dẫn",
-    "stop": "Dừng tạo câu trả lời"
+    "stop": "Dừng tạo câu trả lời",
+    "zoom_in": "Mở rộng ô nhập liệu (60% màn hình)",
+    "zoom_out": "Thu nhỏ ô nhập liệu"
   },
   "edit": {
     "title": "Sửa tin nhắn",
@@ -682,7 +684,11 @@
     "read": "Đang đọc kết quả…",
     "reasoning": "Đang suy nghĩ…",
     "done": "Đã xử lý",
-    "done_in": "Đã xử lý trong {seconds}s"
+    "done_in": "Đã xử lý trong {seconds}s",
+    "steps_count": "{count} bước xử lý",
+    "steps_count_done": "Đã xong {count} bước",
+    "steps_title": "Các bước thực hiện",
+    "toggle_steps": "Bật/tắt xem các bước"
   },
   "table": {
     "result_title": "Dữ liệu ({count} bản ghi)",
@@ -700,6 +706,8 @@
     "copy": "Sao chép bảng",
     "copied": "Đã sao chép!",
     "export_csv": "Xuất CSV",
+    "expand": "Mở rộng",
+    "fullscreen_title": "Chi tiết bảng dữ liệu",
     "metrics": "{rows} dòng · {cols} cột"
   },
   "mode": {
@@ -771,6 +779,8 @@
       "chart_download": "Tải ảnh biểu đồ"
     },
     "chart": {
+      "expand": "Mở rộng",
+      "fullscreen_title": "Chi tiết biểu đồ",
       "unit_amount": "Đơn vị: VNĐ",
       "unit_percent": "Đơn vị: %",
       "unit_count": "Đơn vị: số lượng",

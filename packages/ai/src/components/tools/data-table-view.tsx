@@ -8,7 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { Check, Copy, Table as TableIcon } from "lucide-react"
+import { Check, Copy, Maximize2, Table as TableIcon } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
 import { isSequenceColumn, normalizeText, TablePagination, TableSearchInput } from "./table-controls"
 
@@ -19,14 +25,17 @@ export function isArrayResult(value: unknown): value is Array<Record<string, unk
 export function DataTableView({
   data,
   title,
+  inDialog = false,
 }: {
   data: Array<Record<string, unknown>>
   title?: string
+  inDialog?: boolean
 }) {
   const { t } = useI18n()
   const [query, setQuery] = useState("")
   const [copied, setCopied] = useState(false)
-  const [pageSize, setPageSize] = useState(10)
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [pageSize, setPageSize] = useState(inDialog ? 25 : 10)
   const [page, setPage] = useState(1)
 
   const handleQueryChange = (val: string) => {
@@ -135,6 +144,17 @@ export function DataTableView({
               </>
             )}
           </button>
+          {!inDialog && (
+            <button
+              type="button"
+              onClick={() => setIsExpanded(true)}
+              className="flex h-7 items-center gap-1 rounded-md border border-border/60 bg-card px-2 text-[11px] font-medium text-muted-foreground shadow-2xs transition-colors hover:bg-muted hover:text-foreground"
+              title={t("ai.table.expand")}
+            >
+              <Maximize2 className="size-3" />
+              <span className="hidden sm:inline">{t("ai.table.expand")}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -224,6 +244,25 @@ export function DataTableView({
             setPage(1)
           }}
         />
+      )}
+
+      {!inDialog && (
+        <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
+          <DialogContent className="max-w-7xl w-[96vw] max-h-[92vh] flex flex-col p-4 sm:p-5 overflow-hidden">
+            <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/60">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+                <TableIcon className="size-4 text-primary" />
+                <span>{title || t("ai.table.fullscreen_title")}</span>
+                <span className="font-mono text-xs text-muted-foreground font-normal">
+                  ({data.length} {t("ai.table.page_size")})
+                </span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-auto py-2">
+              <DataTableView data={data} title={title} inDialog />
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   )

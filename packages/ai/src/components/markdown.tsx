@@ -12,11 +12,18 @@ import {
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { unstable_memoizeMarkdownComponents as memoizeMarkdownComponents } from "@assistant-ui/react-markdown"
-import { Check, ChevronLeft, ChevronRight, Copy, Download, Table as TableIcon } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Copy, Download, Maximize2, Table as TableIcon } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { isSequenceColumn, normalizeText, TableSearchInput } from "./tools/table-controls"
+import { ReportDataTable } from "./tools/report-data-table"
 
 type TableContextType = {
   page: number
@@ -353,6 +360,7 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
   const tableRef = useRef<HTMLTableElement>(null)
   const fullTableRef = useRef<HTMLTableElement>(null)
   const [copied, setCopied] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [meta, setMeta] = useState<{ rows: number; cols: number } | null>(null)
   const [page, setPage] = useState(1)
   const [totalRows, setTotalRows] = useState(0)
@@ -516,6 +524,16 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
               <Download className="size-3" />
               <span>{t("ai.table.export_csv")}</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setIsExpanded(true)}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              aria-label={t("ai.table.expand")}
+              title={t("ai.table.expand")}
+            >
+              <Maximize2 className="size-3" />
+              <span className="hidden sm:inline">{t("ai.table.expand")}</span>
+            </button>
           </div>
         </div>
         <TableScrollArea>
@@ -593,6 +611,24 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
             </div>
           </div>
         )}
+
+        {/* Full-screen interactive dialog for deep inspection */}
+        <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
+          <DialogContent className="max-w-7xl w-[96vw] max-h-[92vh] flex flex-col p-4 sm:p-5 overflow-hidden">
+            <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/60">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+                <TableIcon className="size-4 text-primary" />
+                <span>{t("ai.table.fullscreen_title")}</span>
+                <span className="font-mono text-xs text-muted-foreground font-normal">
+                  ({rows.length} {t("ai.table.page_size")})
+                </span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-auto py-2">
+              <ReportDataTable columns={headers} rows={rows} inDialog />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </TablePaginationContext.Provider>
   )

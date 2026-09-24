@@ -1,13 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { useAuiState, useMessageTiming } from "@assistant-ui/react"
 import { useI18n } from "@workspace/i18n"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible"
 import { cn } from "@workspace/ui/lib/utils"
-import { ChevronDown, CircleCheck, LoaderCircle } from "lucide-react"
+import { Brain, ChevronDown, CircleCheck, LoaderCircle } from "lucide-react"
 
 // Human activity labels for the tools the Code Mode agent calls. Anything
 // unknown falls back to the generic "working" phrase.
@@ -21,6 +16,8 @@ type PartLike = {
   type?: string
   toolName?: string
   result?: unknown
+  args?: Record<string, unknown>
+  status?: { type?: string }
 }
 
 function pendingToolName(
@@ -34,8 +31,7 @@ function pendingToolName(
 }
 
 // The thread runs one operation at a time, so the pending tool of the last
-// assistant message is the operation this activity group is running. Older
-// groups are never in the running state, so they never borrow the label.
+// assistant message is the operation this activity group is running.
 function useActiveToolName(active: boolean): string | undefined {
   return useAuiState((state) => {
     if (!active || !state.thread.isRunning) return undefined
@@ -46,8 +42,7 @@ function useActiveToolName(active: boolean): string | undefined {
   })
 }
 
-// Live elapsed hint for the running group. Mounted only while running, so the
-// counter starts at zero for every run and unmounting needs no cleanup state.
+// Live elapsed hint for the running group. Mounted only while running.
 function ElapsedHint() {
   const [seconds, setSeconds] = useState(0)
 
@@ -59,17 +54,17 @@ function ElapsedHint() {
     return () => clearInterval(interval)
   }, [])
 
-  if (seconds < 3) return null
+  if (seconds < 2) return null
   return (
-    <span className="shrink-0 tabular-nums text-muted-foreground/70">
+    <span className="shrink-0 tabular-nums text-primary/80">
       {seconds}s
     </span>
   )
 }
 
-// Chat-style activity disclosure: expanded with a shimmering status while the
-// agent works, collapsed into "Đã xử lý trong Xs" once the turn settles.
-// Mirrors the ReasoningRoot open/streaming behavior so manual toggles stick.
+// Streamlined activity view: pinned cleanly in the right corner of the message header
+// with zero layout flicker or bouncing accordions. Users can click to inspect the
+// exact steps performed.
 export function ActivityGroup({
   running,
   children,
@@ -79,9 +74,70 @@ export function ActivityGroup({
 }) {
   const { t } = useI18n()
   const timing = useMessageTiming()
-  const [userOpen, setUserOpen] = useState<boolean | null>(null)
+  const [isOpen, setIsOpen] = useState(false)
   const toolName = useActiveToolName(running)
-  const open = userOpen ?? running
+
+  const message = useAuiState((state) => state.message)
+  const steps = useMemo(() => {
+    const content = message?.content
+    if (!Array.isArray(content)) return []
+
+    const items: Array<{
+      key: string
+      type: "search" | "execute" | "read" | "reasoning" | "other"
+      label: string
+      status: "running" | "done"
+      detail?: string
+    }> = []
+
+    for (let i = 0; i < content.length; i++) {
+      const part = content[i] as PartLike
+      if (part.type === "reasoning") {
+        items.push({
+          key: `reasoning-${i}`,
+          type: "reasoning",
+          label: t("ai.activity.reasoning"),
+          status: part.status?.type === "running" ? "running" : "done",
+        })
+      } else if (part.type === "tool-call") {
+        if (part.toolName === "renderChart") continue
+        if (part.toolName === "search") {
+          const query = typeof part.args?.query === "string" ? part.args.query : undefined
+          items.push({
+            key: `tool-search-${i}`,
+            type: "search",
+            label: t("ai.activity.search"),
+            status: part.status?.type === "running" ? "running" : "done",
+            detail: query,
+          })
+        } else if (part.toolName === "execute") {
+          items.push({
+            key: `tool-execute-${i}`,
+            type: "execute",
+            label: t("ai.activity.execute"),
+            status: part.status?.type === "running" ? "running" : "done",
+          })
+        } else if (part.toolName === "readResult") {
+          items.push({
+            key: `tool-read-${i}`,
+            type: "read",
+            label: t("ai.activity.read"),
+            status: part.status?.type === "running" ? "running" : "done",
+          })
+        } else if (part.toolName) {
+          items.push({
+            key: `tool-${part.toolName}-${i}`,
+            type: "other",
+            label: part.toolName,
+            status: part.status?.type === "running" ? "running" : "done",
+          })
+        }
+      }
+    }
+    return items
+  }, [message?.content, t])
+
+  const stepCount = steps.length > 0 ? steps.length : 1
 
   const label = running
     ? t(TOOL_LABEL_KEYS[toolName ?? ""] ?? "ai.activity.working")
@@ -92,34 +148,103 @@ export function ActivityGroup({
       : t("ai.activity.done")
 
   return (
-    <Collapsible
-      open={open}
-      onOpenChange={setUserOpen}
-      className="group/activity mb-1.5 w-full"
-    >
-      <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-hidden">
+    <div className="group/activity w-full">
+      <div className="flex w-full items-center justify-end">
         {running ? (
-          <LoaderCircle className="size-3.5 shrink-0 animate-spin text-primary" />
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/5 px-2.5 py-1 text-xs text-primary shadow-2xs">
+            <LoaderCircle className="size-3 shrink-0 animate-spin text-primary" />
+            <span className="shimmer font-medium max-w-[180px] truncate motion-reduce:animate-none">
+              {label}
+            </span>
+            <ElapsedHint />
+            <button
+              type="button"
+              onClick={() => setIsOpen((prev) => !prev)}
+              className="ml-0.5 rounded p-0.5 hover:bg-primary/10 transition-colors"
+              title={t("ai.activity.toggle_steps")}
+              aria-label={t("ai.activity.toggle_steps")}
+            >
+              <ChevronDown
+                className={cn(
+                  "size-3 transition-transform duration-200",
+                  isOpen && "rotate-180"
+                )}
+              />
+            </button>
+          </div>
         ) : (
-          <CircleCheck className="size-3.5 shrink-0 text-emerald-500" />
+          <button
+            type="button"
+            onClick={() => setIsOpen((prev) => !prev)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
+              isOpen
+                ? "border-primary/40 bg-primary/10 text-primary font-medium shadow-2xs"
+                : "border-border/60 bg-muted/40 hover:bg-muted/70 text-muted-foreground hover:text-foreground"
+            )}
+            title={t("ai.activity.toggle_steps")}
+            aria-label={t("ai.activity.toggle_steps")}
+          >
+            <Brain className="size-3 text-primary/80 shrink-0" />
+            <span className="font-medium">
+              {timing?.totalStreamTime
+                ? t("ai.activity.steps_count_done", { count: stepCount }) +
+                  ` · ${(timing.totalStreamTime / 1000).toFixed(1)}s`
+                : t("ai.activity.steps_count_done", { count: stepCount })}
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-3 transition-transform duration-200",
+                isOpen && "rotate-180"
+              )}
+            />
+          </button>
         )}
-        <span
-          className={cn(
-            "min-w-0 truncate font-medium",
-            running && "shimmer motion-reduce:animate-none"
+      </div>
+
+      {isOpen && (
+        <div className="mt-2 w-full rounded-xl border border-border/60 bg-card/60 p-3 shadow-2xs backdrop-blur-xs motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150">
+          <div className="mb-2 flex items-center justify-between border-b border-border/40 pb-1.5 text-muted-foreground">
+            <span className="font-semibold text-foreground flex items-center gap-1.5">
+              <Brain className="size-3.5 text-primary" />
+              {t("ai.activity.steps_title")}
+            </span>
+            <span className="text-[11px] tabular-nums text-muted-foreground">
+              {t("ai.activity.steps_count", { count: stepCount })}
+            </span>
+          </div>
+
+          {steps.length > 0 && (
+            <div className="mb-2.5 space-y-1">
+              {steps.map((step, idx) => (
+                <div
+                  key={step.key}
+                  className="flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1 text-[11px]"
+                >
+                  <span className="font-mono text-[10px] text-muted-foreground/80 w-3.5 shrink-0">
+                    {idx + 1}.
+                  </span>
+                  {step.status === "running" ? (
+                    <LoaderCircle className="size-3 shrink-0 animate-spin text-primary" />
+                  ) : (
+                    <CircleCheck className="size-3 shrink-0 text-emerald-500" />
+                  )}
+                  <span className="font-medium text-foreground">{step.label}</span>
+                  {step.detail && (
+                    <span className="truncate text-muted-foreground max-w-[240px]">
+                      ({step.detail})
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
-          aria-live="polite"
-        >
-          {label}
-        </span>
-        {running && <ElapsedHint />}
-        <ChevronDown className="ml-auto size-3.5 shrink-0 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="overflow-hidden data-open:animate-collapsible-down data-closed:animate-collapsible-up">
-        <div className="mt-1.5 ml-[7px] space-y-1.5 border-l border-border/70 pl-3">
-          {children}
+
+          <div className="space-y-1.5 border-t border-border/40 pt-2">
+            {children}
+          </div>
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+    </div>
   )
 }

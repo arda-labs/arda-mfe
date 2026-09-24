@@ -34,7 +34,9 @@ import {
   Copy,
   History,
   LoaderCircle,
+  Maximize2,
   Mic,
+  Minimize2,
   MoveHorizontal,
   Pencil,
   Plus,
@@ -307,7 +309,7 @@ export function OlorinPanel({
           <div
             className={cn(
               "mx-auto w-full space-y-4 px-4 sm:px-6 md:px-8 py-4 transition-[max-width] duration-300",
-              wideChat ? "max-w-none" : "max-w-3xl"
+              wideChat ? "max-w-none" : "max-w-4xl"
             )}
           >
             <ThreadPrimitive.Messages>
@@ -349,7 +351,7 @@ export function OlorinPanel({
             <div
               className={cn(
                 "mx-auto w-full transition-[max-width] duration-300",
-                wideChat ? "max-w-none" : "max-w-3xl"
+                wideChat ? "max-w-none" : "max-w-4xl"
               )}
             >
               <OlorinComposer />
@@ -399,6 +401,7 @@ function OlorinComposer() {
   const { t } = useI18n()
   const { actMode, setActMode } = useOlorinContext()
   const [actWarningOpen, setActWarningOpen] = useState(false)
+  const [isZoomed, setIsZoomed] = useState(false)
   return (
     <ComposerPrimitive.Root className="w-full">
       {actMode && (
@@ -410,8 +413,15 @@ function OlorinComposer() {
           </span>
         </div>
       )}
-          <div className="rounded-[1.75rem] border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
-            <ComposerPrimitive.Quote className="mx-2 mt-1.5 mb-0.5">
+          <div
+            className={cn(
+              "border bg-card p-1.5 shadow-2xs transition-all duration-200 focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20",
+              isZoomed
+                ? "h-[60vh] max-h-[60vh] min-h-[300px] rounded-2xl flex flex-col justify-between"
+                : "rounded-[1.75rem]"
+            )}
+          >
+            <ComposerPrimitive.Quote className="mx-2 mt-1.5 mb-0.5 shrink-0">
               <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/60 px-2.5 py-1.5">
                 <Quote className="size-3 shrink-0 text-muted-foreground" />
                 <ComposerPrimitive.QuoteText className="min-w-0 flex-1 truncate text-xs text-muted-foreground" />
@@ -430,12 +440,22 @@ function OlorinComposer() {
               </div>
             </ComposerPrimitive.Quote>
             <ComposerPrimitive.Input
-              rows={1}
+              rows={isZoomed ? 8 : 1}
               autoFocus
               placeholder={t("ai.composer.placeholder")}
-              className="max-h-40 min-h-10 w-full resize-none border-0 bg-transparent px-3.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground"
+              className={cn(
+                "w-full resize-none border-0 bg-transparent px-3.5 py-1 text-sm shadow-none focus-visible:outline-hidden placeholder:text-muted-foreground",
+                isZoomed
+                  ? "flex-1 h-full max-h-none overflow-y-auto py-2 leading-relaxed"
+                  : "max-h-40 min-h-10"
+              )}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && isZoomed) {
+                  setIsZoomed(false)
+                }
+              }}
             />
-            <div className="flex items-center justify-between gap-1.5 px-2 pt-1 pb-0.5">
+            <div className="flex items-center justify-between gap-1.5 px-2 pt-1 pb-0.5 shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -487,6 +507,26 @@ function OlorinComposer() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsZoomed((prev) => !prev)}
+                  aria-label={isZoomed ? t("ai.composer.zoom_out") : t("ai.composer.zoom_in")}
+                  title={isZoomed ? t("ai.composer.zoom_out") : t("ai.composer.zoom_in")}
+                  className={cn(
+                    "size-7.5 rounded-full transition-colors",
+                    isZoomed
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {isZoomed ? (
+                    <Minimize2 className="size-3.5" />
+                  ) : (
+                    <Maximize2 className="size-3.5" />
+                  )}
+                </Button>
                 <AuiIf condition={(s) => s.composer.dictation == null}>
                   <ComposerPrimitive.Dictate asChild>
                     <Button
@@ -625,13 +665,13 @@ function OlorinWelcome({ wide = false }: { wide?: boolean }) {
       <div
         className={cn(
           "mt-6 w-full text-left transition-[max-width] duration-300",
-          wide ? "max-w-none" : "max-w-2xl"
+          wide ? "max-w-none" : "max-w-3xl"
         )}
       >
         <OlorinComposer />
       </div>
 
-      <div className="mt-5 flex max-w-2xl flex-wrap justify-center gap-2">
+      <div className="mt-5 flex max-w-3xl flex-wrap justify-center gap-2">
         {pageSuggestionKeys().map((key, index) => (
           <ThreadPrimitive.Suggestion
             key={key}
@@ -800,7 +840,7 @@ function AssistantMessage() {
                   case "group-reasoning": {
                     const running = part.status?.type === "running"
                     return (
-                      <ReasoningRoot streaming={running} variant="ghost">
+                      <ReasoningRoot streaming={running} defaultOpen={true} variant="ghost">
                         <ReasoningTrigger
                           active={running}
                           label={t("ai.message.reasoning")}

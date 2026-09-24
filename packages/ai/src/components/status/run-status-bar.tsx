@@ -41,7 +41,11 @@ export function ThinkingBubble() {
   const isRunning = useAuiState((s) => s.thread.isRunning)
   const messages = useAuiState((s) => s.thread.messages)
   const last = messages[messages.length - 1]
-  const show = isRunning && (!last || last.role !== "assistant")
+  const show =
+    isRunning &&
+    (!last ||
+      last.role !== "assistant" ||
+      (last.role === "assistant" && (!last.content || last.content.length === 0)))
   if (!show) return null
 
   return (
