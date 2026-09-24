@@ -10,7 +10,7 @@ import {
 } from "@workspace/ui/components/table"
 import { ArrowDown, ArrowUp, Check, ChevronsUpDown, Copy } from "lucide-react"
 import { cn } from "@workspace/ui/lib/utils"
-import { normalizeText, TablePagination, TableSearchInput } from "./table-controls"
+import { isSequenceColumn, normalizeText, TablePagination, TableSearchInput } from "./table-controls"
 
 type SortState = { index: number; dir: "asc" | "desc" } | null
 
@@ -57,12 +57,47 @@ export function ReportDataTable({
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(1)
 
+  const handleQueryChange = (val: string) => {
+    setQuery(val)
+    setPage(1)
+  }
+
   const visibleColumns = useMemo(
     () =>
       columns
         .map((label, index) => ({ label, index }))
         .filter(({ label }) => label && !label.startsWith("_")),
     [columns]
+  )
+
+  const isFirstColSeq = useMemo(
+    () => visibleColumns.length > 0 && isSequenceColumn(visibleColumns[0].label),
+    [visibleColumns]
+  )
+
+  const colWidths = useMemo(() => {
+    return visibleColumns.map(({ label, index }, colIdx) => {
+      const isSeq = colIdx === 0 && isFirstColSeq
+      if (isSeq) {
+        return { isSeq: true, width: 52, minWidth: 52 }
+      }
+      let maxLen = label.length
+      const sample = rows.length > 200 ? rows.slice(0, 200) : rows
+      for (const row of sample) {
+        const val = row[index]
+        if (val != null) {
+          const str = String(val)
+          if (str.length > maxLen) maxLen = str.length
+        }
+      }
+      const estimated = Math.min(Math.max(maxLen * 8.5 + 36, 100), 360)
+      return { isSeq: false, width: estimated, minWidth: estimated }
+    })
+  }, [visibleColumns, rows, isFirstColSeq])
+
+  const totalColWidth = useMemo(
+    () => colWidths.reduce((sum, col) => sum + col.width, 0),
+    [colWidths]
   )
 
   const filtered = useMemo(() => {
@@ -126,7 +161,12 @@ export function ReportDataTable({
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-foreground">{t("ai.tool.report.table_title")}</p>
         <div className="flex items-center gap-1.5">
-          <TableSearchInput value={query} onChange={setQuery} className="w-40" />
+          <TableSearchInput
+            value={query}
+            onChange={handleQueryChange}
+            filteredCount={filtered.length}
+            totalCount={rows.length}
+          />
           <button
             type="button"
             onClick={onCopy}
@@ -149,30 +189,60 @@ export function ReportDataTable({
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border/80 bg-card shadow-2xs">
-        <Table className="text-left text-xs">
+        <Table
+          style={{ minWidth: totalColWidth > 0 ? `${totalColWidth}px` : "100%" }}
+          className="w-full text-left text-xs table-fixed"
+        >
+          <colgroup>
+            {visibleColumns.map((col, idx) => (
+              <col
+                key={col.index}
+                style={{
+                  width: colWidths[idx]?.isSeq ? "52px" : `${colWidths[idx]?.width}px`,
+                  minWidth: colWidths[idx]?.isSeq ? "52px" : `${colWidths[idx]?.minWidth}px`,
+                }}
+              />
+            ))}
+          </colgroup>
           <TableHeader className="bg-muted/60 text-[11px] uppercase tracking-wider">
             <TableRow>
-              {visibleColumns.map(({ label, index }) => {
+              {visibleColumns.map(({ label, index }, colIdx) => {
+                const isSeq = colIdx === 0 && isFirstColSeq
                 const active = sort?.index === index
                 return (
-                  <TableHead key={`${label}-${index}`} className="h-auto whitespace-nowrap py-2 text-[11px] font-semibold text-muted-foreground">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort(index)}
-                      className="inline-flex items-center gap-1 font-semibold hover:text-foreground"
-                      title={t("ai.table.sort") || "Sắp xếp"}
-                    >
-                      {label}
-                      {active ? (
-                        sort?.dir === "asc" ? (
-                          <ArrowUp className="size-3 text-primary" />
+                  <TableHead
+                    key={`${label}-${index}`}
+                    style={{
+                      width: isSeq ? "52px" : `${colWidths[colIdx]?.width}px`,
+                      minWidth: isSeq ? "52px" : `${colWidths[colIdx]?.minWidth}px`,
+                      maxWidth: isSeq ? "56px" : undefined,
+                    }}
+                    className={cn(
+                      "h-auto whitespace-nowrap py-2 text-[11px] font-semibold text-muted-foreground",
+                      isSeq ? "w-12 min-w-[48px] max-w-[56px] px-2 text-center" : "px-3.5"
+                    )}
+                  >
+                    {isSeq ? (
+                      <span className="block text-center">{label}</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(index)}
+                        className="inline-flex items-center gap-1 font-semibold hover:text-foreground"
+                        title={t("ai.table.sort") || "Sắp xếp"}
+                      >
+                        {label}
+                        {active ? (
+                          sort?.dir === "asc" ? (
+                            <ArrowUp className="size-3 text-primary" />
+                          ) : (
+                            <ArrowDown className="size-3 text-primary" />
+                          )
                         ) : (
-                          <ArrowDown className="size-3 text-primary" />
-                        )
-                      ) : (
-                        <ChevronsUpDown className="size-3 opacity-40" />
-                      )}
-                    </button>
+                          <ChevronsUpDown className="size-3 opacity-40" />
+                        )}
+                      </button>
+                    )}
                   </TableHead>
                 )
               })}
@@ -181,7 +251,8 @@ export function ReportDataTable({
           <TableBody>
             {pageRows.map((row, rowIndex) => (
               <TableRow key={rowIndex} className="transition-colors even:bg-muted/15 hover:bg-primary/[0.04]">
-                {visibleColumns.map(({ label, index }) => {
+                {visibleColumns.map(({ label, index }, colIdx) => {
+                  const isSeq = colIdx === 0 && isFirstColSeq
                   const val = row[index]
                   const num = toNumber(val)
                   const isRate = /rate|ratio|percent|%/i.test(label)
@@ -198,9 +269,17 @@ export function ReportDataTable({
                   return (
                     <TableCell
                       key={index}
+                      style={{
+                        width: isSeq ? "52px" : `${colWidths[colIdx]?.width}px`,
+                        minWidth: isSeq ? "52px" : `${colWidths[colIdx]?.minWidth}px`,
+                        maxWidth: isSeq ? "56px" : undefined,
+                      }}
                       className={cn(
                         "whitespace-nowrap py-2 text-[11px]",
-                        num !== null && "tabular-nums text-right font-mono",
+                        isSeq
+                          ? "w-12 min-w-[48px] max-w-[56px] px-2 text-center font-mono text-muted-foreground tabular-nums"
+                          : "px-3.5",
+                        !isSeq && num !== null && "tabular-nums text-right font-mono",
                         deltaColor
                       )}
                     >

@@ -9,7 +9,8 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Check, Copy, Table as TableIcon } from "lucide-react"
-import { normalizeText, TablePagination, TableSearchInput } from "./table-controls"
+import { cn } from "@workspace/ui/lib/utils"
+import { isSequenceColumn, normalizeText, TablePagination, TableSearchInput } from "./table-controls"
 
 export function isArrayResult(value: unknown): value is Array<Record<string, unknown>> {
   return Array.isArray(value) && value.length > 0 && typeof value[0] === "object" && value[0] !== null
@@ -28,9 +29,44 @@ export function DataTableView({
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(1)
 
+  const handleQueryChange = (val: string) => {
+    setQuery(val)
+    setPage(1)
+  }
+
   const columns = useMemo(
     () => (isArrayResult(data) ? Object.keys(data[0]).filter((key) => !key.startsWith("_")) : []),
     [data]
+  )
+
+  const isFirstColSeq = useMemo(
+    () => columns.length > 0 && isSequenceColumn(columns[0]),
+    [columns]
+  )
+
+  const colWidths = useMemo(() => {
+    return columns.map((col, colIdx) => {
+      const isSeq = colIdx === 0 && isFirstColSeq
+      if (isSeq) {
+        return { isSeq: true, width: 52, minWidth: 52 }
+      }
+      let maxLen = formatColumnName(col).length
+      const sample = data.length > 200 ? data.slice(0, 200) : data
+      for (const row of sample) {
+        const val = row[col]
+        if (val != null) {
+          const str = formatCellValue(val)
+          if (str.length > maxLen) maxLen = str.length
+        }
+      }
+      const estimated = Math.min(Math.max(maxLen * 8.5 + 36, 100), 360)
+      return { isSeq: false, width: estimated, minWidth: estimated }
+    })
+  }, [columns, data, isFirstColSeq])
+
+  const totalColWidth = useMemo(
+    () => colWidths.reduce((sum, col) => sum + col.width, 0),
+    [colWidths]
   )
 
   const filtered = useMemo(() => {
@@ -75,7 +111,12 @@ export function DataTableView({
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <TableSearchInput value={query} onChange={setQuery} className="w-40" />
+          <TableSearchInput
+            value={query}
+            onChange={handleQueryChange}
+            filteredCount={filtered.length}
+            totalCount={data.length}
+          />
           <button
             type="button"
             onClick={onCopy}
@@ -98,24 +139,66 @@ export function DataTableView({
       </div>
 
       <div className="overflow-x-auto">
-        <Table className="text-left text-xs">
+        <Table
+          style={{ minWidth: totalColWidth > 0 ? `${totalColWidth}px` : "100%" }}
+          className="w-full text-left text-xs table-fixed"
+        >
+          <colgroup>
+            {columns.map((col, idx) => (
+              <col
+                key={col}
+                style={{
+                  width: colWidths[idx]?.isSeq ? "52px" : `${colWidths[idx]?.width}px`,
+                  minWidth: colWidths[idx]?.isSeq ? "52px" : `${colWidths[idx]?.minWidth}px`,
+                }}
+              />
+            ))}
+          </colgroup>
           <TableHeader className="bg-muted/60 text-[11px] uppercase tracking-wider">
             <TableRow className="font-semibold">
-              {columns.map((col) => (
-                <TableHead key={col} className="h-auto whitespace-nowrap py-2 text-[11px] font-semibold text-muted-foreground capitalize">
-                  {formatColumnName(col)}
-                </TableHead>
-              ))}
+              {columns.map((col, colIdx) => {
+                const isSeq = colIdx === 0 && isFirstColSeq
+                return (
+                  <TableHead
+                    key={col}
+                    style={{
+                      width: isSeq ? "52px" : `${colWidths[colIdx]?.width}px`,
+                      minWidth: isSeq ? "52px" : `${colWidths[colIdx]?.minWidth}px`,
+                      maxWidth: isSeq ? "56px" : undefined,
+                    }}
+                    className={cn(
+                      "h-auto whitespace-nowrap py-2 text-[11px] font-semibold text-muted-foreground capitalize",
+                      isSeq ? "w-12 min-w-[48px] max-w-[56px] px-2 text-center" : "px-3.5"
+                    )}
+                  >
+                    {isSeq ? <span className="block text-center">{col}</span> : formatColumnName(col)}
+                  </TableHead>
+                )
+              })}
             </TableRow>
           </TableHeader>
           <TableBody>
             {pageRows.map((row, idx) => (
               <TableRow key={idx} className="transition-colors even:bg-muted/15 hover:bg-primary/[0.04]">
-                {columns.map((col) => (
-                  <TableCell key={col} className="whitespace-nowrap font-mono text-[11px] text-foreground">
-                    {formatCellValue(row[col])}
-                  </TableCell>
-                ))}
+                {columns.map((col, colIdx) => {
+                  const isSeq = colIdx === 0 && isFirstColSeq
+                  return (
+                    <TableCell
+                      key={col}
+                      style={{
+                        width: isSeq ? "52px" : `${colWidths[colIdx]?.width}px`,
+                        minWidth: isSeq ? "52px" : `${colWidths[colIdx]?.minWidth}px`,
+                        maxWidth: isSeq ? "56px" : undefined,
+                      }}
+                      className={cn(
+                        "whitespace-nowrap font-mono text-[11px] text-foreground",
+                        isSeq ? "w-12 min-w-[48px] max-w-[56px] px-2 text-center text-muted-foreground tabular-nums" : "px-3.5"
+                      )}
+                    >
+                      {formatCellValue(row[col])}
+                    </TableCell>
+                  )
+                })}
               </TableRow>
             ))}
             {pageRows.length === 0 && (

@@ -16,11 +16,13 @@ import { Check, ChevronLeft, ChevronRight, Copy, Download, Table as TableIcon } 
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
+import { isSequenceColumn, normalizeText, TableSearchInput } from "./tools/table-controls"
 
 type TableContextType = {
   page: number
   pageSize: number
   totalRows: number
+  query: string
   registerRowCount: (count: number) => void
 }
 
@@ -230,6 +232,75 @@ function SmartCellContent({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function getNodeText(node: unknown): string {
+  if (node == null) return ""
+  if (typeof node === "string" || typeof node === "number") return String(node)
+  if (Array.isArray(node)) return node.map(getNodeText).join("")
+  if (typeof node === "object" && "props" in (node as { props?: { children?: unknown } })) {
+    return getNodeText((node as { props?: { children?: unknown } }).props?.children)
+  }
+  return ""
+}
+
+function extractTableStructure(children: ReactNode): {
+  headers: string[]
+  rows: string[][]
+} {
+  let headers: string[] = []
+  const rows: string[][] = []
+
+  const findRows = (node: ReactNode): ReactNode[] => {
+    const list: ReactNode[] = []
+    Children.forEach(node, (child) => {
+      if (!child || typeof child !== "object") return
+      const el = child as { props?: { children?: ReactNode; node?: { tagName?: string } }; type?: unknown }
+      const tagName = el.props?.node?.tagName || (typeof el.type === "string" ? el.type : "")
+      if (tagName === "tr") {
+        list.push(child)
+      } else if (el.props?.children) {
+        list.push(...findRows(el.props.children))
+      }
+    })
+    return list
+  }
+
+  Children.forEach(children, (child) => {
+    if (!child || typeof child !== "object") return
+    const el = child as { props?: { children?: ReactNode; node?: { tagName?: string } }; type?: unknown }
+    const tagName = el.props?.node?.tagName || (typeof el.type === "string" ? el.type : "")
+
+    if (tagName === "thead") {
+      const trs = findRows(el.props?.children)
+      if (trs[0] && typeof trs[0] === "object" && "props" in trs[0]) {
+        const cells = Children.toArray((trs[0] as { props?: { children?: ReactNode } }).props?.children)
+        headers = cells.map(getNodeText).map((s) => s.trim())
+      }
+    } else if (tagName === "tbody") {
+      const trs = findRows(el.props?.children)
+      for (const tr of trs) {
+        if (tr && typeof tr === "object" && "props" in tr) {
+          const cells = Children.toArray((tr as { props?: { children?: ReactNode } }).props?.children)
+          rows.push(cells.map(getNodeText).map((s) => s.trim()))
+        }
+      }
+    }
+  })
+
+  if (headers.length === 0 && rows.length === 0) {
+    const allTrs = findRows(children)
+    if (allTrs.length > 0) {
+      const firstCells = Children.toArray((allTrs[0] as { props?: { children?: ReactNode } }).props?.children)
+      headers = firstCells.map(getNodeText).map((s) => s.trim())
+      for (let i = 1; i < allTrs.length; i++) {
+        const cells = Children.toArray((allTrs[i] as { props?: { children?: ReactNode } }).props?.children)
+        rows.push(cells.map(getNodeText).map((s) => s.trim()))
+      }
+    }
+  }
+
+  return { headers, rows }
+}
+
 // Scroll container for markdown tables: shows a fade on each edge while the
 // table overflows, so a clipped last column reads as "scrollable" instead of
 // broken — the docked AI panel is much narrower than a full-page chat column.
@@ -285,7 +356,52 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
   const [meta, setMeta] = useState<{ rows: number; cols: number } | null>(null)
   const [page, setPage] = useState(1)
   const [totalRows, setTotalRows] = useState(0)
+  const [query, setQuery] = useState("")
   const pageSize = 10
+
+  const handleQueryChange = (val: string) => {
+    setQuery(val)
+    setPage(1)
+  }
+
+  const { headers, rows } = useMemo(() => extractTableStructure(children), [children])
+  const isFirstColSeq = useMemo(
+    () => headers.length > 0 && isSequenceColumn(headers[0]),
+    [headers]
+  )
+
+  const filteredRows = useMemo(() => {
+    const needle = normalizeText(query)
+    if (!needle) return rows
+    return rows.filter((r) => r.some((cell) => normalizeText(cell).includes(needle)))
+  }, [rows, query])
+
+  const colWidths = useMemo(() => {
+    const colCount = Math.max(headers.length, ...rows.map((r) => r.length), 0)
+    if (colCount === 0) return []
+
+    const sample = rows.length > 200 ? rows.slice(0, 200) : rows
+    return Array.from({ length: colCount }, (_, colIdx) => {
+      const isSeq = colIdx === 0 && isFirstColSeq
+      if (isSeq) {
+        return { isSeq: true, width: 52, minWidth: 52 }
+      }
+      let maxLen = headers[colIdx]?.length || 0
+      for (const row of sample) {
+        const cell = row[colIdx]
+        if (cell && cell.length > maxLen) {
+          maxLen = cell.length
+        }
+      }
+      const estimated = Math.min(Math.max(maxLen * 8.5 + 36, 100), 360)
+      return { isSeq: false, width: estimated, minWidth: estimated }
+    })
+  }, [headers, rows, isFirstColSeq])
+
+  const totalColWidth = useMemo(
+    () => colWidths.reduce((sum, col) => sum + col.width, 0),
+    [colWidths]
+  )
 
   const registerRowCount = useCallback((count: number) => {
     setTotalRows((prev) => (prev === count ? prev : count))
@@ -296,22 +412,23 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
       page,
       pageSize,
       totalRows,
+      query,
       registerRowCount,
     }),
-    [page, pageSize, totalRows, registerRowCount]
+    [page, pageSize, totalRows, query, registerRowCount]
   )
 
   useEffect(() => {
     if (!tableRef.current) return
     const cols = tableRef.current.querySelectorAll("thead th")
     setMeta({
-      rows: totalRows,
+      rows: rows.length || totalRows,
       cols: cols.length || (tableRef.current.querySelector("tr")?.children.length ?? 0),
     })
-  }, [totalRows, children])
+  }, [totalRows, rows.length, children])
 
   const onCopy = async () => {
-    const target = fullTableRef.current || tableRef.current
+    const target = query.trim() ? tableRef.current : (fullTableRef.current || tableRef.current)
     if (!target) return
     try {
       const { markdown } = extractTableData(target)
@@ -324,7 +441,7 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
   }
 
   const onExportCsv = () => {
-    const target = fullTableRef.current || tableRef.current
+    const target = query.trim() ? tableRef.current : (fullTableRef.current || tableRef.current)
     if (!target) return
     try {
       const { csv } = extractTableData(target)
@@ -348,9 +465,9 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
   return (
     <TablePaginationContext.Provider value={contextValue}>
       <div className="my-3 overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xs">
-        <div className="flex h-8 items-center justify-between border-b border-border/60 bg-muted/40 px-3">
+        <div className="flex min-h-8 flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/40 px-3 py-1.5">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <TableIcon className="size-3.5 text-primary" />
+            <TableIcon className="size-3.5 shrink-0 text-primary" />
             {meta ? (
               <span className="font-mono text-[10px] text-muted-foreground">
                 {t("ai.table.metrics", { rows: meta.rows, cols: meta.cols })}
@@ -361,7 +478,15 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {rows.length > 3 && (
+              <TableSearchInput
+                value={query}
+                onChange={handleQueryChange}
+                filteredCount={query.trim() ? filteredRows.length : undefined}
+                totalCount={rows.length}
+              />
+            )}
             <button
               type="button"
               onClick={onCopy}
@@ -396,8 +521,28 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
         <TableScrollArea>
           <table
             ref={tableRef}
-            className="w-full text-left text-xs [&>tbody>tr:last-child>td]:border-b-0"
+            style={{ minWidth: totalColWidth > 0 ? `${totalColWidth}px` : "100%" }}
+            className={cn(
+              "w-full text-left text-xs table-fixed [&>tbody>tr:last-child>td]:border-b-0",
+              isFirstColSeq && [
+                "[&_th:first-child]:w-12 [&_th:first-child]:min-w-[48px] [&_th:first-child]:max-w-[56px] [&_th:first-child]:px-2 [&_th:first-child]:text-center",
+                "[&_td:first-child]:w-12 [&_td:first-child]:min-w-[48px] [&_td:first-child]:max-w-[56px] [&_td:first-child]:px-2 [&_td:first-child]:text-center [&_td:first-child]:font-mono [&_td:first-child]:text-muted-foreground [&_td:first-child]:tabular-nums",
+              ]
+            )}
           >
+            {colWidths.length > 0 && (
+              <colgroup>
+                {colWidths.map((col, idx) => (
+                  <col
+                    key={idx}
+                    style={{
+                      width: col.isSeq ? "52px" : `${col.width}px`,
+                      minWidth: col.isSeq ? "52px" : `${col.minWidth}px`,
+                    }}
+                  />
+                ))}
+              </colgroup>
+            )}
             {children}
           </table>
         </TableScrollArea>
@@ -489,24 +634,37 @@ const markdownComponents = memoizeMarkdownComponents({
     )
   },
   tbody({ children }) {
+    const { t } = useI18n()
     const tableCtx = useContext(TablePaginationContext)
     const rows = Children.toArray(children)
 
-    useEffect(() => {
-      tableCtx?.registerRowCount(rows.length)
-    }, [tableCtx, rows.length])
+    const query = tableCtx?.query ? normalizeText(tableCtx.query) : ""
+    const filteredRows = useMemo(() => {
+      if (!query) return rows
+      return rows.filter((row) => normalizeText(getNodeText(row)).includes(query))
+    }, [rows, query])
 
+    useEffect(() => {
+      tableCtx?.registerRowCount(filteredRows.length)
+    }, [tableCtx, filteredRows.length])
+
+    const page = tableCtx?.page || 1
+    const pageSize = tableCtx?.pageSize || 10
     const displayedRows =
-      tableCtx && rows.length > tableCtx.pageSize
-        ? rows.slice(
-            (tableCtx.page - 1) * tableCtx.pageSize,
-            tableCtx.page * tableCtx.pageSize
-          )
-        : rows
+      tableCtx && filteredRows.length > pageSize
+        ? filteredRows.slice((page - 1) * pageSize, page * pageSize)
+        : filteredRows
 
     return (
       <tbody className="[&>tr]:transition-colors [&>tr:nth-child(even)]:bg-muted/15 [&>tr:hover]:bg-primary/[0.04]">
         {displayedRows}
+        {filteredRows.length === 0 && (
+          <tr>
+            <td colSpan={50} className="py-4 text-center text-[11px] text-muted-foreground">
+              {t("ai.table.empty")}
+            </td>
+          </tr>
+        )}
       </tbody>
     )
   },
