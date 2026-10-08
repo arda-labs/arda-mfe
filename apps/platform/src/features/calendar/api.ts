@@ -7,9 +7,9 @@ export const calendarApi = {
     getCanonical<SystemDate>(
       `/api/platform/calendar/status?branchCode=${branchCode || "HEAD_OFFICE"}`
     ),
-  triggerEOD: (branchCode?: string) =>
+  triggerEOD: (branchCode?: string, businessDate?: string) =>
     postCanonical<{ message: string; data: SystemDate }>(
-      `/api/platform/calendar/eod?branchCode=${branchCode || "HEAD_OFFICE"}`
+      `/api/platform/calendar/eod?${buildSearchParams({ branchCode: branchCode || "HEAD_OFFICE", business_date: businessDate }).toString()}`
     ),
   evaluateDate: (channel: string, type: string, time?: string) => {
     const p = buildSearchParams({ channel, type, time })
