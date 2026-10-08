@@ -12,6 +12,7 @@ const VfuPage = lazyWithPreload(() => import("@/features/vfu/page").then((m) => 
 const DisbursementsPage = lazyWithPreload(() => import("@/features/disbursements/page").then((m) => ({ default: m.DisbursementsPage })))
 const CollectionsPage = lazyWithPreload(() => import("@/features/collections/page").then((m) => ({ default: m.CollectionsPage })))
 const BatchRegisterPage = lazyWithPreload(() => import("@/features/disbursements/batch-register/page").then((m) => ({ default: m.BatchRegisterPage })))
+const DisbursementTrackingPage = lazyWithPreload(() => import("@/features/disbursements/tracking/page").then((m) => ({ default: m.DisbursementTrackingPage })))
 const BatchCompletePage = lazyWithPreload(() => import("@/features/disbursements/batch-complete/page").then((m) => ({ default: m.BatchCompletePage })))
 const BatchCollectionPage = lazyWithPreload(() => import("@/features/collections/batch-new/page").then((m) => ({ default: m.BatchCollectionPage })))
 const FormationPage = lazyWithPreload(() => import("@/features/formation/page").then((m) => ({ default: m.FormationPage })))
@@ -42,6 +43,7 @@ export default createRemoteRoutes({
     { prefix: "/loans/plans", component: PlansPage },
     { prefix: "/loans/specific-provision", component: SpecificProvisionPage },
     { prefix: "/loans/disbursements/register", component: BatchRegisterPage },
+    { prefix: "/loans/disbursements/tracking", component: DisbursementTrackingPage },
     { prefix: "/loans/disbursements/complete", component: BatchCompletePage },
     { prefix: "/loans/collections/new", component: BatchCollectionPage },
     { prefix: "/loans/disbursements", component: DisbursementsPage },

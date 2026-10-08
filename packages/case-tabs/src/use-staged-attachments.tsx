@@ -14,6 +14,7 @@ import type { CaseTabItem } from "./types"
  */
 export function useStagedAttachments({ module }: { module: string }): {
   ids: string[]
+  uploading: boolean
   tab: CaseTabItem
 } {
   const { t } = useI18n()
@@ -80,7 +81,7 @@ export function useStagedAttachments({ module }: { module: string }): {
     ),
   }
 
-  return { ids: files.map((item) => item.public_id), tab }
+  return { ids: files.map((item) => item.public_id), uploading, tab }
 }
 
 /** Attach staged temp files to the created case (no-op when either is empty). */

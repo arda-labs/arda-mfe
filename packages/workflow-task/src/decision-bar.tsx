@@ -92,6 +92,7 @@ export function TaskDecisionBar({
   actions,
   labels,
   readOnly = false,
+  disabled = false,
   submitting = false,
   showComment = false,
   comment,
@@ -103,6 +104,7 @@ export function TaskDecisionBar({
   actions: WorkflowTaskAction[]
   labels: TaskDecisionLabels
   readOnly?: boolean
+  disabled?: boolean
   submitting?: boolean
   showComment?: boolean
   comment: string
@@ -111,7 +113,7 @@ export function TaskDecisionBar({
   onSubmit: (action: WorkflowTaskAction) => void
   onReturn: () => void
 }) {
-  const disabled = submitting || readOnly
+  const actionsDisabled = submitting || readOnly || disabled
   const ordered = [
     ...actions.filter((action) => action === TASK_ACTIONS.requestChanges),
     ...actions.filter((action) => action === TASK_ACTIONS.reject),
@@ -129,7 +131,7 @@ export function TaskDecisionBar({
           <Button
             key={action}
             type="button"
-            disabled={disabled}
+            disabled={actionsDisabled}
             onClick={() => onSubmit(action)}
           >
             <Check className="size-4" />
@@ -142,7 +144,7 @@ export function TaskDecisionBar({
             key={action}
             type="button"
             variant="outline"
-            disabled={disabled}
+            disabled={actionsDisabled}
             onClick={() => onSubmit(action)}
           >
             <MessageSquareWarning className="size-4" />
@@ -155,7 +157,7 @@ export function TaskDecisionBar({
             key={action}
             type="button"
             variant="destructive"
-            disabled={disabled}
+            disabled={actionsDisabled}
             onClick={() => onSubmit(action)}
           >
             <X className="size-4" />

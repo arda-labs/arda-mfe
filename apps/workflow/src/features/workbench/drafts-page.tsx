@@ -43,6 +43,7 @@ import {
 import { notify } from "@workspace/ui/feedback/notify"
 import { fetchPlatformDrafts } from "./drafts/sources"
 import { customerDraftApi } from "./drafts/customer-client"
+import { cancelLoanDisbursementDraft } from "./api/drafts"
 import type {
   PlatformDraft,
   PlatformDraftDomain,
@@ -56,6 +57,7 @@ const DRAFT_DOMAINS: PlatformDraftDomain[] = [
   "finance_incoming",
   "finance_outgoing",
   "hrm_employee_registration",
+  "loan_disbursement",
 ]
 
 const DRAFT_STATUSES: PlatformDraft["displayStatus"][] = [
@@ -81,6 +83,10 @@ const createActions: { domain: PlatformDraftDomain; href: string }[] = [
   {
     domain: "hrm_employee_registration",
     href: "/hrm/registrations",
+  },
+  {
+    domain: "loan_disbursement",
+    href: "/loans/disbursements/register",
   },
 ]
 
@@ -290,10 +296,16 @@ export function DraftWorkbenchPage() {
     if (!deleteTarget?.id) return
     setCancelling(true)
     try {
-      if (deleteTarget.domain !== "crm_customer_registration") {
+      if (deleteTarget.domain === "crm_customer_registration") {
+        await customerDraftApi.cancel(deleteTarget.id)
+      } else if (
+        deleteTarget.domain === "loan_disbursement" &&
+        deleteTarget.dataVersion != null
+      ) {
+        await cancelLoanDisbursementDraft(deleteTarget.id, deleteTarget.dataVersion)
+      } else {
         throw new Error(t("workflow.workbench.cancel_unsupported"))
       }
-      await customerDraftApi.cancel(deleteTarget.id)
       notify.success(t("workflow.workbench.cancel_success"))
       setDeleteTarget(null)
       await load()

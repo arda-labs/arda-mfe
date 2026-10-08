@@ -3,11 +3,12 @@ export type PlatformDraftDomain =
   | "finance_incoming"
   | "finance_outgoing"
   | "hrm_employee_registration"
+  | "loan_disbursement"
 
 export type PlatformDraftStatus = "DRAFT" | "NEEDS_CHANGES"
 
 export type PlatformDraftSource =
-  "crm" | "finance_incoming" | "finance_outgoing" | "hrm"
+  "crm" | "finance_incoming" | "finance_outgoing" | "hrm" | "loan"
 
 export interface PlatformDraft {
   id: string
@@ -20,6 +21,7 @@ export interface PlatformDraft {
   updatedAt: string
   openHref: string
   canCancel: boolean
+  dataVersion?: number
 }
 
 export interface PlatformDraftsResult {
