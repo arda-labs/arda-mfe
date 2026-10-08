@@ -1,4 +1,9 @@
-import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
+import {
+  getCanonical,
+  getCanonicalList,
+  postCanonical,
+  putCanonical,
+} from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 import type { LoanDisbursementFlowType } from "./disbursements"
 
@@ -32,7 +37,16 @@ export interface LoanBatchCreated {
   workflow_case_code?: string
 }
 
+/** Draft create response: a workflow case is created only after explicit submit. */
+export interface LoanDisbursementBatchDraftCreated {
+  id: string
+  batch_id: string
+  status: "DRAFT"
+  data_version: number
+}
+
 export interface DisbursementBatchRegisterInput {
+  data_version?: number
   org_code?: string
   txn_date: string
   payment_method: LoanBatchPaymentMethod
@@ -47,6 +61,7 @@ export interface DisbursementBatchRegisterInput {
 }
 
 export interface DisbursementBatchCompleteInput {
+  data_version?: number
   source_batch_id: string
   txn_date: string
   description?: string
@@ -59,6 +74,10 @@ export interface DisbursementBatchCompleteInput {
     is_closed?: boolean
   }[]
 }
+
+export type DisbursementBatchDraftInput =
+  | (DisbursementBatchRegisterInput & { data_version: number })
+  | (Omit<DisbursementBatchCompleteInput, "source_batch_id"> & { data_version: number })
 
 export interface CollectionBatchCreateInput {
   txn_date: string
@@ -95,6 +114,23 @@ export interface LoanDisbursementBatch {
   data_version?: number
   /** Chỉ có trên detail (GET /{id}). */
   rows?: LoanDisbursementBatchRow[]
+  history?: LoanDisbursementBatchEvent[]
+}
+
+export interface LoanDisbursementBatchEvent {
+  event_type: string
+  from_status?: string
+  to_status?: string
+  detail?: string
+  actor?: string
+  created_at: string
+}
+
+export interface DisbursementBatchSubmitResult {
+  batch_id: string
+  reference_no: string
+  status: "PENDING_APPROVAL"
+  data_version: number
 }
 
 export interface LoanDisbursementBatchRow {
@@ -135,9 +171,24 @@ export interface LoanCollectionBatchRow {
 
 export const disbursementBatchApi = {
   createRegister: (body: DisbursementBatchRegisterInput) =>
-    postCanonical<LoanBatchCreated>("/api/loan/disbursement-batches", body),
+    postCanonical<LoanDisbursementBatchDraftCreated>("/api/loan/disbursement-batches", body),
+  updateDraft: (id: string, body: DisbursementBatchDraftInput) =>
+    putCanonical<LoanDisbursementBatch>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}`,
+      body
+    ),
+  submit: (id: string, dataVersion: number) =>
+    postCanonical<DisbursementBatchSubmitResult>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}/submit`,
+      { data_version: dataVersion }
+    ),
+  cancelDraft: (id: string, dataVersion: number) =>
+    postCanonical<{ batch_id: string; status: string }>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}/cancel`,
+      { data_version: dataVersion }
+    ),
   createComplete: (body: DisbursementBatchCompleteInput) =>
-    postCanonical<LoanBatchCreated>(
+    postCanonical<LoanDisbursementBatchDraftCreated>(
       "/api/loan/disbursement-batches/complete",
       body
     ),
