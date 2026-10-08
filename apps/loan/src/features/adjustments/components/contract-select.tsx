@@ -12,8 +12,8 @@ import {
 import { loanApi, type LoanContract } from "../../api"
 
 /**
- * Hợp đồng tín dụng select cho màn điều chỉnh — ACTIVE + CLOSED (adjustment
- * cần tra lịch trả nợ của hợp đồng đã ACTIVE; CLOSED giữ lại để tra cũ),
+ * Hợp đồng tín dụng select cho màn điều chỉnh — DISBURSED + CLOSED (adjustment
+ * cần tra lịch trả nợ của hợp đồng đã giải ngân; CLOSED giữ lại để tra cũ),
  * hiển thị số HĐ + khách hàng + trạng thái. Value = contract_code (BE
  * adjustment keyed theo contract_code); `onChange` trả kèm row (uuid id cho
  * dossier lookup). Controlled hoàn toàn — không state shadow.
@@ -36,7 +36,7 @@ export function ContractSelect({
   useEffect(() => {
     let cancelled = false
     const loadActive = loanApi
-      .listContracts({ status: "ACTIVE" })
+      .listContracts({ status: "DISBURSED" })
       .then(async (res) => {
         if (cancelled) return
         const active = res.items
