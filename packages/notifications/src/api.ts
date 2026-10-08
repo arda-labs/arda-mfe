@@ -1,5 +1,42 @@
 import { api, type ApiSuccess } from "@workspace/api"
-import type { NotificationListResponse, UnreadCountResponse } from "./types"
+import type {
+  NotificationListResponse,
+  NotificationPreference,
+  UnreadCountResponse,
+} from "./types"
+
+type NotificationPreferenceDTO = {
+  event_group: string
+  channel: NotificationPreference["channel"]
+  enabled: boolean
+  quiet_start?: string | null
+  quiet_end?: string | null
+  timezone: string
+  digest_mode: NotificationPreference["digestMode"]
+  locale: string
+}
+
+const toPreference = (dto: NotificationPreferenceDTO): NotificationPreference => ({
+  eventGroup: dto.event_group,
+  channel: dto.channel,
+  enabled: dto.enabled,
+  quietStart: dto.quiet_start,
+  quietEnd: dto.quiet_end,
+  timezone: dto.timezone,
+  digestMode: dto.digest_mode,
+  locale: dto.locale,
+})
+
+const toPreferenceDTO = (preference: NotificationPreference): NotificationPreferenceDTO => ({
+  event_group: preference.eventGroup,
+  channel: preference.channel,
+  enabled: preference.enabled,
+  quiet_start: preference.quietStart,
+  quiet_end: preference.quietEnd,
+  timezone: preference.timezone,
+  digest_mode: preference.digestMode,
+  locale: preference.locale,
+})
 
 export const notificationsApi = {
   // Background traffic (bootstrap + 15s unread poll): a 401 here must not
@@ -22,12 +59,25 @@ export const notificationsApi = {
   markRead: (id: string) =>
     api
       .post<ApiSuccess<{ ok: boolean }>>(
-        `/api/notifications/${encodeURIComponent(id)}/read`
+        `/api/notifications/inbox/${encodeURIComponent(id)}/read`
       )
       .then((res) => res.result),
   markAllRead: () =>
     api
       .post<ApiSuccess<{ ok: boolean }>>("/api/notifications/read-all")
+      .then((res) => res.result),
+  preferences: () =>
+    api
+      .get<ApiSuccess<{ items: NotificationPreferenceDTO[] }>>(
+        "/api/notifications/preferences"
+      )
+      .then((res) => (res.result.items ?? []).map(toPreference)),
+  savePreference: (preference: NotificationPreference) =>
+    api
+      .put<ApiSuccess<{ ok: boolean }>>(
+        "/api/notifications/preferences",
+        toPreferenceDTO(preference)
+      )
       .then((res) => res.result),
   pushPublicKey: () =>
     api
