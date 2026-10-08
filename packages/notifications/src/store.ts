@@ -21,18 +21,29 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
   setNotifications: (notifications) => set({ notifications }),
   addNotification: (notification) =>
     set((state) => {
-      const wasAlreadyUnread = state.notifications.some(
-        (item) => item.id === notification.id && !item.readAt
+      const previous = state.notifications.find(
+        (item) => item.id === notification.id
+      )
+      const wasAlreadyUnread = Boolean(
+        previous &&
+        !previous.readAt &&
+        !previous.resolvedAt &&
+        !previous.supersededAt
+      )
+      const isUnread = Boolean(
+        !notification.readAt &&
+        !notification.resolvedAt &&
+        !notification.supersededAt
       )
       const withoutDuplicate = state.notifications.filter(
         (item) => item.id !== notification.id
       )
       return {
         notifications: [notification, ...withoutDuplicate].slice(0, 20),
-        unreadCount:
-          notification.readAt || wasAlreadyUnread
-            ? state.unreadCount
-            : state.unreadCount + 1,
+        unreadCount: Math.max(
+          0,
+          state.unreadCount + Number(isUnread) - Number(wasAlreadyUnread)
+        ),
       }
     }),
   setUnreadCount: (count) => set({ unreadCount: Math.max(0, count) }),
@@ -42,7 +53,8 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
       const item = state.notifications.find(
         (notification) => notification.id === id
       )
-      if (!item || item.readAt) return state
+      if (!item || item.readAt || item.resolvedAt || item.supersededAt)
+        return state
       return {
         notifications: state.notifications.map((notification) =>
           notification.id === id

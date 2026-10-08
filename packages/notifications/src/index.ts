@@ -12,5 +12,6 @@ export type {
   NotificationItem,
   NotificationKind,
   NotificationListResponse,
+  NotificationPreference,
   UnreadCountResponse,
 } from "./types"

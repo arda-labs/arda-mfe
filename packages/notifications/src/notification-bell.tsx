@@ -1,7 +1,7 @@
 import { APP_TIMEZONE } from "@workspace/format"
 import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
-import { Bell, CheckCheck } from "lucide-react"
+import { Bell, CheckCheck, Settings2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Popover,
@@ -18,10 +18,12 @@ import {
 import { disableWebPush, enableWebPush, webPushSupported } from "./web-push"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem } from "./types"
+import { NotificationPreferencesDialog } from "./notification-preferences-dialog"
 
 export function NotificationBell() {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  const [preferencesOpen, setPreferencesOpen] = useState(false)
   const [browserPermission, setBrowserPermission] = useState(
     getBrowserNotificationPermission
   )
@@ -92,16 +94,28 @@ export function NotificationBell() {
       <PopoverContent align="end" sideOffset={8} className="w-96 p-0">
         <div className="flex h-11 items-center justify-between border-b px-3">
           <p className="text-sm font-semibold">{t("notifications.title")}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleMarkAllRead}
-            disabled={unreadCount === 0}
-            className="h-8 gap-1.5 px-2 text-xs"
-          >
-            <CheckCheck className="size-3.5" />
-            {t("notifications.mark_all_read")}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t("notifications.preferences.open")}
+              aria-label={t("notifications.preferences.open")}
+              onClick={() => setPreferencesOpen(true)}
+              className="size-8"
+            >
+              <Settings2 className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMarkAllRead}
+              disabled={unreadCount === 0}
+              className="h-8 gap-1.5 px-2 text-xs"
+            >
+              <CheckCheck className="size-3.5" />
+              {t("notifications.mark_all_read")}
+            </Button>
+          </div>
         </div>
         {showBrowserPrompt ? (
           <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
@@ -156,6 +170,10 @@ export function NotificationBell() {
           </div>
         )}
       </PopoverContent>
+      <NotificationPreferencesDialog
+        open={preferencesOpen}
+        onOpenChange={setPreferencesOpen}
+      />
     </Popover>
   )
 }
@@ -169,7 +187,8 @@ function NotificationRow({
 }) {
   const { t } = useI18n()
   const markRead = useNotificationsStore((state) => state.markRead)
-  const unread = !notification.readAt
+  const resolved = Boolean(notification.resolvedAt || notification.supersededAt)
+  const unread = !notification.readAt && !resolved
   const params = notification.params ?? {}
   const title = notification.titleKey
     ? t(notification.titleKey, params)
@@ -186,7 +205,8 @@ function NotificationRow({
     if (notification.href) {
       close()
       const url = new URL(notification.href, location.origin)
-      if (url.origin === location.origin) navigateTo(`${url.pathname}${url.search}${url.hash}`)
+      if (url.origin === location.origin)
+        navigateTo(`${url.pathname}${url.search}${url.hash}`)
       else window.location.assign(url.href)
     }
   }
@@ -198,7 +218,8 @@ function NotificationRow({
       data-preload-href={notification.href}
       className={cn(
         "flex w-full gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted",
-        unread && "bg-primary/5"
+        unread && "bg-primary/5",
+        resolved && "opacity-60"
       )}
     >
       <span
@@ -208,7 +229,14 @@ function NotificationRow({
         )}
       />
       <span className="min-w-0 flex-1 space-y-1">
-        <span className="block truncate font-medium">{title}</span>
+        <span className="block truncate font-medium">
+          {title}
+          {resolved && (
+            <span className="ml-2 font-normal text-muted-foreground">
+              {t("notifications.resolved")}
+            </span>
+          )}
+        </span>
         {body && (
           <span className="line-clamp-2 block text-xs text-muted-foreground">
             {body}
