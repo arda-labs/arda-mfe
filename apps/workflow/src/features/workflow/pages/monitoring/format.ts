@@ -1,3 +1,5 @@
+export { formatDateTime } from "@workspace/format"
+
 type Translate = (key: string) => string
 
 export function instanceStateLabel(t: Translate, state: string): string {
@@ -14,13 +16,6 @@ export function instanceStateLabel(t: Translate, state: string): string {
     default:
       return state
   }
-}
-
-export function formatDateTime(value?: string): string {
-  if (!value) return "—"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString()
 }
 
 export function formatDuration(start?: string, end?: string): string {

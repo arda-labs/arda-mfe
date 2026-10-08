@@ -1,5 +1,6 @@
 import { APP_TIMEZONE } from "@workspace/format"
 import { cn } from "@workspace/ui/lib/utils"
+import { StatusBadge as SharedStatusBadge } from "@workspace/ui/components/status-badge"
 import { useI18n } from "@workspace/i18n"
 import { formatDateTime } from "./step-labels"
 
@@ -103,14 +104,12 @@ export function StatusBadge({ status }: { status: string }) {
     className: "border-border text-muted-foreground",
   }
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] leading-none font-medium",
-        meta.className
-      )}
-    >
-      {meta.label}
-    </span>
+    <SharedStatusBadge
+      status={status}
+      label={meta.label}
+      variant="outline"
+      className={cn("rounded-md px-1.5 py-0.5 text-[11px] leading-none", meta.className)}
+    />
   )
 }
 

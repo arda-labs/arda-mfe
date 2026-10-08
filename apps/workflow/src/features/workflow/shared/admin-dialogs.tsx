@@ -1507,4 +1507,3 @@ export function DelegationDialog({
     </AdminUi.ConfigDialog>
   )
 }
-
