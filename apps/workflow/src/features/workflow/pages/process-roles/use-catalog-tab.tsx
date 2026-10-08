@@ -8,7 +8,7 @@ import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import type { WorkflowRoleCatalog } from "../../api"
 import { processRolesApi } from "../../api"
-import { RoleCatalogDialog } from "../../shared/admin-ui"
+import { RoleCatalogDialog } from "../../shared/admin-dialogs"
 import {
   byString,
   statusFilterOptions,

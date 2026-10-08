@@ -24,8 +24,8 @@ import {
 } from "@workspace/ui/components/status"
 import type { WorkflowCaseType } from "../api"
 import { casesApi } from "../api"
+import { CaseTypeDialog } from "../shared/admin-dialogs"
 import {
-  CaseTypeDialog,
   defaultBusinessAreaOptions,
   roleOptionsFromCaseTypes,
   uniqueOptions,
