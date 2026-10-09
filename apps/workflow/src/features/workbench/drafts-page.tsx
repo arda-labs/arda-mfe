@@ -1,4 +1,4 @@
-import { APP_TIMEZONE } from "@workspace/format"
+import { formatDateTime } from "@workspace/format"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, Eye, Plus, RefreshCw, Trash2 } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
@@ -466,20 +466,6 @@ function domainLabel(
   t: ReturnType<typeof useI18n>["t"]
 ) {
   return t(`workflow.workbench.drafts.domain_${domain}`)
-}
-
-function formatDateTime(value?: string) {
-  if (!value) return "—"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString("vi-VN", {
-    timeZone: APP_TIMEZONE,
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
 }
 
 function openDraft(item: PlatformDraft) {

@@ -8,7 +8,7 @@ import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import type { WorkflowAssignmentRule } from "../../api"
 import { processRolesApi } from "../../api"
-import { AssignmentRuleDialog } from "../../shared/admin-ui"
+import { AssignmentRuleDialog } from "../../shared/admin-dialogs"
 import {
   byNumber,
   byString,

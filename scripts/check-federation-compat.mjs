@@ -28,6 +28,20 @@ const configuredPorts = portBlock
   : []
 
 const violations = []
+if (!shellVite.includes("shared: { ...shellSharedDeps }")) {
+  violations.push("apps/shell/vite.config.ts: host-only shared providers must use shellSharedDeps")
+}
+const shellShares = shared.match(/export const shellSharedDeps = \{([\s\S]*?)\} as const/)?.[1] ?? ""
+const remoteShares = extractBlock("remoteSharedDeps")
+for (const pkg of ["exceljs", "pdfjs-dist"]) {
+  const key = pkg === "exceljs" ? pkg : `"${pkg}"`
+  if (!new RegExp(`${key}: \\{ singleton: true, requiredVersion: false \\}`).test(shellShares)) {
+    violations.push(`federation.shared.ts: shell must provide ${pkg}`)
+  }
+  if (!new RegExp(`${key}: \\{ singleton: true, requiredVersion: false, import: false`).test(remoteShares)) {
+    violations.push(`federation.shared.ts: remotes must consume host-provided ${pkg}`)
+  }
+}
 const routeRegistrySource = await source("federation.routes.ts")
 const routeRegistry = ts.createSourceFile("federation.routes.ts", routeRegistrySource, ts.ScriptTarget.Latest, true)
 const ownership = new Map()

@@ -22,6 +22,8 @@ export interface LoanRepayPlan {
   coln_principal_amt_minor: number
   coln_interest_amt_minor: number
   is_active: boolean
+  lifecycle_status: "ACTIVE" | "SUPERSEDED"
+  payment_status: "PLANNED" | "PARTIALLY_PAID" | "PAID"
 }
 
 /**

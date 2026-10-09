@@ -109,6 +109,7 @@ export function ProductsPage(_props: { pathname: string }) {
               variant="ghost"
               size="icon"
               className="size-7 text-muted-foreground"
+              aria-label={t("loan.loan_products.edit")}
               onClick={() => {
                 setEditing(row.original)
                 setDialogOpen(true)

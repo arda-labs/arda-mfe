@@ -11,6 +11,26 @@ export type NotificationItem = {
   href?: string
   readAt?: string | null
   createdAt: string
+  entityType?: string
+  entityId?: string
+  resolvedAt?: string | null
+  resolvedReason?: string
+  supersededAt?: string | null
+  expiresAt?: string | null
+  locale?: string
+  priority?: number
+  eventSeq?: number
+}
+
+export type NotificationPreference = {
+  eventGroup: string
+  channel: "email" | "push" | "in_app" | "sms"
+  enabled: boolean
+  quietStart?: string | null
+  quietEnd?: string | null
+  timezone: string
+  digestMode: "NONE" | "HOURLY" | "DAILY"
+  locale: string
 }
 
 export type NotificationListResponse = {

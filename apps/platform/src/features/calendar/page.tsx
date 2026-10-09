@@ -91,9 +91,14 @@ export function CalendarPage() {
   })
 
   const handleRunEOD = async () => {
+    const businessDate = status?.current_business_date.split("T")[0]
+    if (!businessDate) {
+      notify.error("Khong the chay EOD", "Khong co ngay lam viec he thong de gui")
+      return
+    }
     setEodPending(true)
     try {
-      const result = await calendarApi.triggerEOD("HEAD_OFFICE")
+      const result = await calendarApi.triggerEOD("HEAD_OFFICE", businessDate)
       notify.success(result.message || "Xu ly cuoi ngay (EOD) thanh cong")
       await loadCalendar()
     } catch (err) {

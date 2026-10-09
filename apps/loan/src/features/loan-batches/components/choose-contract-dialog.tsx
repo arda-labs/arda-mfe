@@ -30,7 +30,7 @@ export type ContractPickerSelection = LoanAgreement & { contract: LoanContract }
 
 /**
  * Contract + agreement picker for the batch grids (iteration 13): search by
- * contract no / CCCD over server-paged ACTIVE contracts (loanApi.listContracts),
+ * contract no / CCCD over server-paged DISBURSED contracts (loanApi.listContracts),
  * expandable to the contract's agreements (loanApi.listAgreements) with
  * outstanding/pending headroom columns. `multi` mode queues N picks (badge +
  * Xoá hết) for batch entry; single mode returns one row immediately.
@@ -86,7 +86,7 @@ function PickerContent({
   const contractsQuery = useQuery({
     queryKey: ["loan", "contract-picker", "contracts", debouncedSearch, page],
     queryFn: () =>
-      loanApi.listContracts({ status: "ACTIVE", q: debouncedSearch || undefined, page, per_page: PAGE_SIZE }),
+      loanApi.listContracts({ status: "DISBURSED", q: debouncedSearch || undefined, page, per_page: PAGE_SIZE }),
     placeholderData: (prev) => prev,
   })
 
