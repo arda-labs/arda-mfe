@@ -32,5 +32,23 @@
         "body": "{ruleName}: {indicatorCode} for {periodCode} = {value} (threshold {operator} {threshold})"
       }
     }
+  },
+  "workflow": {
+    "task": {
+      "assigned": { "title": "New task assigned", "body": "You have a new task to review." },
+      "overdue": { "title": "Task is overdue", "body": "Please review the overdue task." }
+    },
+    "case": {
+      "approved": { "title": "Case approved", "body": "Your case has been approved." },
+      "rejected": { "title": "Case rejected", "body": "Your case has been rejected." },
+      "failed": { "title": "Case processing failed", "body": "The case needs another review." }
+    }
+  },
+  "loan": {
+    "disbursement": {
+      "approved": { "title": "Disbursement approved", "body": "The disbursement request was approved." },
+      "rejected": { "title": "Disbursement rejected", "body": "The disbursement request was rejected." },
+      "failed": { "title": "Disbursement incomplete", "body": "The disbursement request needs another review." }
+    }
   }
 }

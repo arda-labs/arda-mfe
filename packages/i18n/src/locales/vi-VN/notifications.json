@@ -32,5 +32,23 @@
         "body": "{ruleName}: {indicatorCode} kỳ {periodCode} = {value} (ngưỡng {operator} {threshold})"
       }
     }
+  },
+  "workflow": {
+    "task": {
+      "assigned": { "title": "Công việc mới được giao", "body": "Bạn có một công việc mới cần xử lý." },
+      "overdue": { "title": "Công việc đã quá hạn", "body": "Vui lòng xử lý công việc đang quá hạn." }
+    },
+    "case": {
+      "approved": { "title": "Hồ sơ đã được duyệt", "body": "Hồ sơ của bạn đã được duyệt." },
+      "rejected": { "title": "Hồ sơ bị từ chối", "body": "Hồ sơ của bạn đã bị từ chối." },
+      "failed": { "title": "Không thể xử lý hồ sơ", "body": "Hồ sơ cần được kiểm tra lại." }
+    }
+  },
+  "loan": {
+    "disbursement": {
+      "approved": { "title": "Giải ngân đã được duyệt", "body": "Yêu cầu giải ngân đã được duyệt." },
+      "rejected": { "title": "Yêu cầu giải ngân bị từ chối", "body": "Yêu cầu giải ngân đã bị từ chối." },
+      "failed": { "title": "Giải ngân chưa hoàn tất", "body": "Yêu cầu giải ngân cần được kiểm tra lại." }
+    }
   }
 }
