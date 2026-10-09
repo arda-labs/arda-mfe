@@ -3,6 +3,7 @@ import type { DecisionSettings } from "./types"
 
 export const decisionSettingsSchema = z.object({
   enabled: z.boolean(),
+  provider: z.enum(["opencode-zen", "typesafe"]),
   model_id: z.string().min(1).max(128).regex(/^[A-Za-z0-9][A-Za-z0-9._:/_-]{0,127}$/),
   min_confidence: z.number().min(0.5).max(1),
   api_key: z.string().max(4096).optional(),

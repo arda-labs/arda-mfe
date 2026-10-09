@@ -11,18 +11,40 @@ import {
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import {
   RadioGroup,
   RadioGroupItem,
 } from "@workspace/ui/components/radio-group"
 import { cn } from "@workspace/ui/lib/utils"
-import { CheckCircle2, Pencil, PlugZap, Plus, Trash2 } from "lucide-react"
+import {
+  CheckCircle2,
+  ListPlus,
+  Pencil,
+  PlugZap,
+  Plus,
+  Trash2,
+  Wand2,
+} from "lucide-react"
 import {
   addProfileModels,
   applyProfileModel,
   deleteProfileModel,
+  setProfileModelFormat,
   testProfileModel,
+  type AIApiFormat,
   type AIProfile,
 } from "../api"
+import { API_FORMATS, API_FORMAT_PATH } from "../formats"
+import { AvailableModelsDialog } from "./available-models-dialog"
+
+// Radix Select rejects an empty item value, so "follow the profile" is keyed.
+const INHERIT = "inherit"
 
 interface ProfileCardProps {
   profile: AIProfile
@@ -54,6 +76,7 @@ export function ProfileCard({
   const [busyModel, setBusyModel] = useState("")
   const [applying, setApplying] = useState(false)
   const [testResult, setTestResult] = useState<Record<string, string>>({})
+  const [listOpen, setListOpen] = useState(false)
 
   const isAppliedProfile = profile.isActive
   const isAppliedSelection =
@@ -104,6 +127,24 @@ export function ProfileCard({
     } catch (err) {
       notify.error(
         t("ai.settings.profiles.toast.model_delete_failed"),
+        err instanceof Error ? err.message : String(err)
+      )
+    } finally {
+      setBusyModel("")
+    }
+  }
+
+  const handleModelFormat = async (
+    modelId: string,
+    format: AIApiFormat | ""
+  ) => {
+    setBusyModel(modelId)
+    try {
+      await setProfileModelFormat(profile.id, modelId, format)
+      await onChanged()
+    } catch (err) {
+      notify.error(
+        t("ai.settings.profiles.toast_format_failed"),
         err instanceof Error ? err.message : String(err)
       )
     } finally {
@@ -163,6 +204,16 @@ export function ProfileCard({
                 <Badge variant="outline" className="text-[10px]">
                   {t(`ai.settings.profiles.provider.${profile.providerType}`)}
                 </Badge>
+                <Badge variant="secondary" className="font-mono text-[10px]">
+                  {API_FORMAT_PATH[profile.apiFormat ?? "chat_completions"]}
+                </Badge>
+                {profile.reasoningEffort && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    {t(
+                      `ai.settings.profiles.reasoning_effort.${profile.reasoningEffort}`
+                    )}
+                  </Badge>
+                )}
                 {isAppliedProfile && (
                   <Badge variant="success" className="gap-1 text-[10px]">
                     <CheckCircle2 className="size-3" />
@@ -254,6 +305,64 @@ export function ProfileCard({
                     </span>
                   )}
                   <div className="ml-auto flex items-center gap-1">
+                    {!model.apiFormat &&
+                      model.suggestedApiFormat !== profile.apiFormat && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 gap-1 px-1.5 text-[10px] text-amber-600"
+                          disabled={busyModel === model.modelId}
+                          title={t("ai.settings.profiles.suggest_apply", {
+                            format: t(
+                              `ai.settings.profiles.api_format.${model.suggestedApiFormat}`
+                            ),
+                          })}
+                          onClick={() =>
+                            handleModelFormat(
+                              model.modelId,
+                              model.suggestedApiFormat
+                            )
+                          }
+                        >
+                          <Wand2 className="size-3" />
+                          <span className="font-mono">
+                            {API_FORMAT_PATH[model.suggestedApiFormat]}
+                          </span>
+                        </Button>
+                      )}
+                    <Select
+                      value={model.apiFormat || INHERIT}
+                      onValueChange={(value) =>
+                        handleModelFormat(
+                          model.modelId,
+                          value === INHERIT ? "" : (value as AIApiFormat)
+                        )
+                      }
+                      disabled={busyModel === model.modelId}
+                    >
+                      <SelectTrigger
+                        className="h-7 w-40 font-mono text-[10px]"
+                        aria-label={t("ai.settings.profiles.model_format")}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={INHERIT} className="text-xs">
+                          {t("ai.settings.profiles.format_inherit")} (
+                          {API_FORMAT_PATH[profile.apiFormat ?? "chat_completions"]}
+                          )
+                        </SelectItem>
+                        {API_FORMATS.map((format) => (
+                          <SelectItem
+                            key={format}
+                            value={format}
+                            className="font-mono text-xs"
+                          >
+                            {API_FORMAT_PATH[format]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Button
                       variant="outline"
                       size="sm"
@@ -304,7 +413,22 @@ export function ProfileCard({
             <Plus className="size-3.5" />
             {t("ai.settings.profiles.btn.add_model")}
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 text-xs"
+            onClick={() => setListOpen(true)}
+          >
+            <ListPlus className="size-3.5" />
+            {t("ai.settings.profiles.btn.fetch_models")}
+          </Button>
         </div>
+        <AvailableModelsDialog
+          open={listOpen}
+          onOpenChange={setListOpen}
+          profile={profile}
+          onAdded={onChanged}
+        />
 
         {isSelected && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-2">
