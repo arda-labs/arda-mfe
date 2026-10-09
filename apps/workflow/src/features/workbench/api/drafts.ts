@@ -36,3 +36,16 @@ export function listHrmRegistrations<T>(params: { status?: string } = {}) {
     `/api/hrm/employee-registrations?${search.toString()}`
   )
 }
+
+export function listLoanDisbursementDrafts<T>() {
+  return getCanonicalList<T>(
+    "/api/loan/disbursement-batches?status=DRAFT&per_page=100"
+  )
+}
+
+export function cancelLoanDisbursementDraft<T>(id: string, dataVersion: number) {
+  return postCanonical<T>(
+    `/api/loan/disbursement-batches/${encodeURIComponent(id)}/cancel`,
+    { data_version: dataVersion }
+  )
+}

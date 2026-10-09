@@ -180,6 +180,9 @@ export function PostingTabsShell({
   tabs,
   systemTabs = [],
   defaultValue,
+  value,
+  onValueChange,
+  banner,
   footer,
 }: {
   labels: PostingTabsShellLabels
@@ -195,6 +198,11 @@ export function PostingTabsShell({
   systemTabs?: PostingTabItem[]
   /** Initially active tab id; defaults to the first tab. */
   defaultValue?: string
+  /** Controlled active tab for sequential maker workflows. */
+  value?: string
+  onValueChange?: (value: string) => void
+  /** Validation summary or workflow guidance shown before the tab content. */
+  banner?: ReactNode
   /** Fixed action row below the scroll container (submit/cancel). */
   footer?: ReactNode
 }) {
@@ -203,7 +211,12 @@ export function PostingTabsShell({
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => event.preventDefault()}>
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
-          <Tabs defaultValue={defaultValue ?? allTabs[0]?.id} className="flex flex-col">
+          <Tabs
+            defaultValue={defaultValue ?? allTabs[0]?.id}
+            value={value}
+            onValueChange={onValueChange}
+            className="flex flex-col"
+          >
             <div className="space-y-4 p-4 pb-3">
               <PageTitleBlock title={labels.title} description={labels.description} meta={meta} />
             </div>
@@ -216,6 +229,7 @@ export function PostingTabsShell({
                 ))}
               </TabsList>
             </div>
+            {banner ? <div className="px-4 pt-4">{banner}</div> : null}
             <div className="space-y-4 p-4">
               {allTabs.map((tab) => (
                 <TabsContent key={tab.id} value={tab.id} className="mt-0">
