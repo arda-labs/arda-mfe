@@ -130,9 +130,17 @@ export function ReportsPage() {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="py-4 text-center text-muted-foreground"
+                  className="py-4 text-center text-destructive"
+                  role="alert"
                 >
-                  {t("crm.reports.load_failed")}
+                  <span className="mr-3">{t("crm.reports.load_failed")}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void load()}
+                  >
+                    {t("common.action.retry")}
+                  </Button>
                 </TableCell>
               </TableRow>
             )}

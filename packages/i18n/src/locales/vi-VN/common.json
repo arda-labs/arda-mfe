@@ -1,4 +1,11 @@
 {
+  "dashboard": {
+    "greeting": "Xin chào, {name}",
+    "subtitle": "Chọn một phân hệ để bắt đầu làm việc.",
+    "modules": "Phân hệ của bạn",
+    "empty": "Tài khoản chưa được cấp quyền vào phân hệ nào. Liên hệ quản trị viên để được hỗ trợ.",
+    "items_count": "{count} mục"
+  },
   "app": {
     "name": "Arda"
   },

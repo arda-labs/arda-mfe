@@ -6,6 +6,7 @@ import { formatAmount, fromMinor } from "@workspace/format"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import {
@@ -16,6 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+
+const PAGE_CLASS =
+  "flex h-full min-h-0 flex-col gap-5 overflow-auto p-4 sm:p-5"
 
 /**
  * Fixed-format statements (P3b): pick a statement code + as-of date, render
@@ -128,7 +132,7 @@ export function StatementsPage() {
 
   if (statements.length === 0) {
     return (
-      <div className="space-y-4">
+      <div className={PAGE_CLASS}>
         <Header
           selected={selected}
           asOf={asOf}
@@ -144,7 +148,7 @@ export function StatementsPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={PAGE_CLASS}>
       <Header
         selected={selected}
         asOf={asOf}
@@ -284,10 +288,10 @@ function Header({
 }) {
   const { t } = useI18n()
   return (
+    <PageHeader
+      title={t("finance.statements.title")}
+      actions={
     <div className="flex flex-wrap items-center gap-2">
-      <Badge variant="secondary" className="px-2.5 py-1 text-xs">
-        {t("finance.statements.title")}
-      </Badge>
       <Input
         type="date"
         value={from}
@@ -309,6 +313,8 @@ function Header({
         })}
       />
     </div>
+      }
+    />
   )
 }
 

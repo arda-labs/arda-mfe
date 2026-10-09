@@ -215,11 +215,12 @@ export function ProcessConfigsPage() {
           {t("workflow.process_configs.description")}
         </p>
       }
-      criticalPending={caseTypeQuery.isPending || slaQuery.isPending}
-      criticalError={caseTypeQuery.error ?? slaQuery.error}
+      // SLA policies only feed the edit dialog's options and sit behind a
+      // step-up (risk: high) read, so a cancelled OTP must not block the table.
+      criticalPending={caseTypeQuery.isPending}
+      criticalError={caseTypeQuery.error}
       onRetry={() => {
         void caseTypeQuery.refetch()
-        void slaQuery.refetch()
       }}
       loadErrorTitle={t("workflow.process_configs.load_failed")}
       fetching={caseTypeQuery.isFetching}

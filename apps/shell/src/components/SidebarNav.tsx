@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react"
+import { useEffect, useRef, type Dispatch, type SetStateAction } from "react"
 import { ChevronRight } from "lucide-react"
 import type { MessageKey } from "@workspace/i18n"
 import { cn } from "@workspace/ui/lib/utils"
@@ -14,6 +14,7 @@ export function SidebarNode({
   sidebarOpen,
   openGroups,
   setOpenGroups,
+  siblingGroupIds = [],
   t,
 }: {
   item: NavNode
@@ -23,8 +24,11 @@ export function SidebarNode({
   sidebarOpen: boolean
   openGroups: Record<string, boolean>
   setOpenGroups: Dispatch<SetStateAction<Record<string, boolean>>>
+  /** Ids of the other top-level groups; opening one collapses these (accordion). */
+  siblingGroupIds?: string[]
   t: (key: MessageKey) => string
 }) {
+  const activeRef = useRef<HTMLButtonElement>(null)
   const label = getNavLabel(item, t)
   const hasChildren = Boolean(item.children?.length)
   const isActive =
@@ -41,6 +45,13 @@ export function SidebarNode({
   const open = sidebarOpen && isExpanded
 
   const isChild = depth > 0
+
+  // Keep the current page visible in a long menu after navigation.
+  useEffect(() => {
+    if (isActive && !hasChildren) {
+      activeRef.current?.scrollIntoView({ block: "nearest" })
+    }
+  }, [isActive, hasChildren])
 
   const itemClassName = cn(
     "flex w-full items-center gap-2.5 rounded-md transition-colors select-none",
@@ -60,7 +71,13 @@ export function SidebarNode({
           onClick={() =>
             setOpenGroups((current) => {
               const currentVal = current[nodeId] ?? hasActiveChild
-              return { ...current, [nodeId]: !currentVal }
+              const next = { ...current, [nodeId]: !currentVal }
+              if (!currentVal && depth === 0) {
+                for (const id of siblingGroupIds) {
+                  if (id !== nodeId) next[id] = false
+                }
+              }
+              return next
             })
           }
           className={itemClassName}
@@ -105,6 +122,7 @@ export function SidebarNode({
 
   return (
     <button
+      ref={activeRef}
       type="button"
       data-preload-href={item.href}
       onClick={() => { void preloadNavigation(item.href!); navigate(item.href!) }}
