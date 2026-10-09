@@ -2,6 +2,8 @@ import { flexRender, type Row } from "@tanstack/react-table"
 import type { Table as TanstackTable } from "@tanstack/react-table"
 import * as React from "react"
 
+import { useI18n } from "@workspace/i18n"
+
 import { DataTablePagination } from "@workspace/ui/components/data-table/data-table-pagination"
 import {
   Table,
@@ -85,6 +87,7 @@ export function DataTable<TData>({
   rowClassName,
   ...props
 }: DataTableProps<TData>) {
+  const { t } = useI18n()
   const [density, setDensity] = React.useState<DataTableDensity>(defaultDensity)
   const densityClass = densityStyles[density]
   const isPanel = layout === "panel"
@@ -189,7 +192,7 @@ export function DataTable<TData>({
         colSpan={table.getAllColumns().length}
         className={densityClass.empty}
       >
-        No results.
+        {t("table.no_results")}
       </TableCell>
     </TableRow>
   )

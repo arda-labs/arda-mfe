@@ -360,7 +360,9 @@
     "new": "New project",
     "count": "{count} projects",
     "placeholder": {
-      "search": "Search by project code or name..."
+      "search": "Search by project code or name...",
+      "search_code": "Search by project code...",
+      "search_name": "Search by project name..."
     },
     "dialog": {
       "create_title": "Create project",

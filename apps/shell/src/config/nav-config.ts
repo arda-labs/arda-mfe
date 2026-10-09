@@ -36,12 +36,6 @@ export type NavNode = {
 export const navItems: NavNode[] = [
   { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
   {
-    href: "/ai",
-    labelKey: "nav.ai",
-    icon: Sparkles,
-    permissions: ["ai.assistant.use"],
-  },
-  {
     labelKey: "nav.ai_center",
     icon: Sparkles,
     permissions: ["ai.admin", "ai.knowledge.manage", "superadmin", "platform.manage"],

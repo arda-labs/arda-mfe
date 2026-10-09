@@ -3,6 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { useSearchParams } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import {
@@ -77,15 +78,11 @@ export function AccountingConfigPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="min-w-0 space-y-1">
-        <h1 className="text-2xl font-semibold tracking-normal">
-          {t("finance.operation.title")}
-        </h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          {t("finance.operation.description")}
-        </p>
-      </div>
+    <div className="flex h-full min-h-0 flex-col gap-5 overflow-auto p-4 sm:p-5">
+      <PageHeader
+        title={t("finance.operation.title")}
+        description={t("finance.operation.description")}
+      />
       {loading ? (
         <LoadingBlock />
       ) : (

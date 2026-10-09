@@ -60,6 +60,20 @@ function formatUserLabel(name: string, nickname?: string) {
   return cleanNickname ? `${name} (${cleanNickname})` : name
 }
 
+const OPEN_GROUPS_KEY = "arda-sidebar-open-groups"
+
+function loadOpenGroups(): Record<string, boolean> {
+  try {
+    const raw = window.localStorage.getItem(OPEN_GROUPS_KEY)
+    const parsed: unknown = raw ? JSON.parse(raw) : {}
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, boolean>)
+      : {}
+  } catch {
+    return {}
+  }
+}
+
 type AiView = "closed" | "panel" | "full"
 
 export function ShellLayout() {
@@ -67,13 +81,18 @@ export function ShellLayout() {
   const navigate = useNavigate()
   const pathname = location.pathname
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    "nav.admin": true,
-    "nav.workbench": true,
-    "nav.finance": true,
-    "nav.hrm": true,
-    "nav.workflow": true,
-  })
+  // Only the group holding the current page opens by default; the user's own
+  // toggles persist across reloads so a long menu does not reshuffle each visit.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+    loadOpenGroups
+  )
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(openGroups))
+    } catch {
+      // Storage can be unavailable; the in-memory state still works.
+    }
+  }, [openGroups])
   const [pageTitle, setPageTitle] = useState<ShellPageTitleState | null>(null)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [aiState, setAiState] = useState({ view: "closed" as AiView, activated: false })
@@ -266,6 +285,9 @@ export function ShellLayout() {
               sidebarOpen={sidebarOpen}
               openGroups={openGroups}
               setOpenGroups={setOpenGroups}
+              siblingGroupIds={visibleNavItems
+                .filter((node) => node.children?.length)
+                .map(getNavNodeId)}
               t={t}
             />
           ))}

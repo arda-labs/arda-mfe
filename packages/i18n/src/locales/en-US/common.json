@@ -1,4 +1,11 @@
 {
+  "dashboard": {
+    "greeting": "Hello, {name}",
+    "subtitle": "Pick a module to start working.",
+    "modules": "Your modules",
+    "empty": "Your account has no module access yet. Contact an administrator.",
+    "items_count": "{count} items"
+  },
   "app": {
     "name": "Arda"
   },

@@ -55,7 +55,7 @@ export function useProjectColumns({
         enableColumnFilter: true,
         meta: textSearchMeta(
           t("crm.projects.field.code"),
-          t("crm.projects.placeholder.search")
+          t("crm.projects.placeholder.search_code")
         ),
         cell: ({ row }) => (
           <span className="font-mono text-xs font-semibold text-primary">
@@ -75,7 +75,7 @@ export function useProjectColumns({
         enableColumnFilter: true,
         meta: textSearchMeta(
           t("common.field.name"),
-          t("crm.projects.placeholder.search")
+          t("crm.projects.placeholder.search_name")
         ),
         cell: ({ row }) => (
           <span className="font-medium">{row.original.name}</span>

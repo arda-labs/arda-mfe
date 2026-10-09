@@ -3,6 +3,7 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import {
   Table,
   TableBody,
@@ -58,11 +59,11 @@ export function LedgerPage() {
   }, [result])
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div>
-        <h1 className="text-lg font-semibold">{t("finance.ledger.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("finance.ledger.description")}</p>
-      </div>
+    <div className="flex h-full min-h-0 flex-col gap-5 overflow-auto p-4 sm:p-5">
+      <PageHeader
+        title={t("finance.ledger.title")}
+        description={t("finance.ledger.description")}
+      />
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
         <div className="space-y-1.5">

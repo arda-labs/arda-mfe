@@ -360,7 +360,9 @@
     "new": "Dự án mới",
     "count": "{count} dự án",
     "placeholder": {
-      "search": "Tìm theo mã hoặc tên dự án..."
+      "search": "Tìm theo mã hoặc tên dự án...",
+      "search_code": "Tìm theo mã dự án...",
+      "search_name": "Tìm theo tên dự án..."
     },
     "dialog": {
       "create_title": "Tạo dự án",

@@ -4,7 +4,7 @@ import { trialBalanceApi, type TrialBalanceEntry } from "@/features/finance/api"
 import { formatAmount, fromMinor } from "@workspace/format"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Badge } from "@workspace/ui/components/badge"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import {
   Table,
   TableBody,
@@ -57,15 +57,11 @@ export function TrialBalancePage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Badge variant="secondary" className="px-2.5 py-1 text-xs">
-          {t("finance.trial_balance.title")}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {t("finance.trial_balance.as_of", { date: asOf })}
-        </span>
-      </div>
+    <div className="flex h-full min-h-0 flex-col gap-5 overflow-auto p-4 sm:p-5">
+      <PageHeader
+        title={t("finance.trial_balance.title")}
+        description={t("finance.trial_balance.as_of", { date: asOf })}
+      />
       <div className="rounded-lg border">
         <Table>
           <TableHeader className="bg-muted/50">

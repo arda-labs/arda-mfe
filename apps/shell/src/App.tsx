@@ -18,8 +18,6 @@ const LoginPage = lazyWithPreload(() => import("@workspace/auth/pages").then((m)
 const RecoveryPage = lazyWithPreload(() => import("@workspace/auth/pages").then((m) => ({ default: m.RecoveryPage })))
 const CallbackPage = lazyWithPreload(() => import("@workspace/auth/pages").then((m) => ({ default: m.CallbackPage })))
 const ConsentPage = lazyWithPreload(() => import("@workspace/auth/pages").then((m) => ({ default: m.ConsentPage })))
-const OlorinPage = lazyWithPreload(() => import("./features/ai/olorin-page").then((m) => ({ default: m.OlorinPage })))
-const aiAssistantEnabled = import.meta.env.VITE_AI_ENABLED !== "false"
 
 export function App() {
   const { pathname } = useLocation()
@@ -73,7 +71,6 @@ export function App() {
         <Route path="/502" element={<BadGatewayPage />} />
         <Route element={<authShare.StepUpProvider><authShare.AuthGuard><ShellLayout /></authShare.AuthGuard></authShare.StepUpProvider>}>
           <Route index element={<Dashboard />} />
-          <Route path="/ai" element={aiAssistantEnabled ? <RemoteRoute><OlorinPage /></RemoteRoute> : <NotFoundPage />} />
           <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
           {remoteRouteEntries.map(({ path, component: Remote }) => (
             <Route key={path} path={path} element={<RemoteRoute><Remote /></RemoteRoute>} />
