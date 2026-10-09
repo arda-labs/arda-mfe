@@ -3,6 +3,49 @@
   "open": "Open notifications",
   "empty": "No notifications",
   "mark_all_read": "Mark all as read",
+  "resolved": "Resolved",
+  "preferences": {
+    "open": "Notification preferences",
+    "title": "Notification preferences",
+    "description": "Choose delivery channels, quiet hours, and digest frequency for each event group.",
+    "loading": "Loading preferences…",
+    "empty": "No notification groups are configured yet.",
+    "enabled": "Enable this channel",
+    "channel": "Channel",
+    "quiet_start": "Quiet hours start",
+    "quiet_end": "Quiet hours end",
+    "digest": "Digest",
+    "timezone": "Timezone",
+    "locale": "Language",
+    "save": "Save preferences",
+    "saving": "Saving…",
+    "cancel": "Close",
+    "saved": "Notification preferences saved",
+    "load_failed": "Could not load notification preferences",
+    "save_failed": "Could not save notification preferences",
+    "channels": {
+      "in_app": "In app",
+      "push": "Web Push",
+      "email": "Email",
+      "sms": "SMS"
+    },
+    "digests": {
+      "none": "No digest",
+      "hourly": "Hourly",
+      "daily": "Daily"
+    },
+    "groups": {
+      "workflow.task": "Workflow tasks",
+      "workflow.case": "Workflow cases",
+      "loan.disbursement": "Disbursements",
+      "crm.customer": "Customer registrations",
+      "statistical.indicator": "Indicator alerts"
+    },
+    "locales": {
+      "vi": "Vietnamese",
+      "en": "English"
+    }
+  },
   "browser": {
     "enable": "Enable Chrome notifications",
     "enabled": "Web Push enabled (Chrome)",
@@ -30,6 +73,48 @@
       "breached": {
         "title": "Indicator breached its threshold",
         "body": "{ruleName}: {indicatorCode} for {periodCode} = {value} (threshold {operator} {threshold})"
+      }
+    }
+  },
+  "workflow": {
+    "task": {
+      "assigned": {
+        "title": "New task assigned",
+        "body": "You have a new task to review."
+      },
+      "overdue": {
+        "title": "Task is overdue",
+        "body": "Please review the overdue task."
+      }
+    },
+    "case": {
+      "approved": {
+        "title": "Case approved",
+        "body": "Your case has been approved."
+      },
+      "rejected": {
+        "title": "Case rejected",
+        "body": "Your case has been rejected."
+      },
+      "failed": {
+        "title": "Case processing failed",
+        "body": "The case needs another review."
+      }
+    }
+  },
+  "loan": {
+    "disbursement": {
+      "approved": {
+        "title": "Disbursement approved",
+        "body": "The disbursement request was approved."
+      },
+      "rejected": {
+        "title": "Disbursement rejected",
+        "body": "The disbursement request was rejected."
+      },
+      "failed": {
+        "title": "Disbursement incomplete",
+        "body": "The disbursement request needs another review."
       }
     }
   }

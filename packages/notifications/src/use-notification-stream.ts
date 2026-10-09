@@ -1,12 +1,14 @@
 import { useEffect } from "react"
 import { apiUrl } from "@workspace/api/url"
 import { i18n } from "@workspace/i18n"
+import { notify } from "@workspace/ui/feedback/notify"
 import { notificationsApi } from "./api"
 import { maybeShowBrowserNotification } from "./browser-notification"
 import { useNotificationsStore } from "./store"
 import type { NotificationItem, UnreadCountResponse } from "./types"
 
-const MAX_RECONNECT_DELAY_MS = 30_000
+const STREAM_LOCK_NAME = "arda-notification-sse-v1"
+const STREAM_CHANNEL_NAME = "arda-notification-sse-events-v1"
 
 export function useNotificationStream(enabled: boolean) {
   useEffect(() => {
@@ -18,13 +20,16 @@ export function useNotificationStream(enabled: boolean) {
 
     let closed = false
     let source: EventSource | undefined
-    let reconnectTimer: ReturnType<typeof setTimeout> | undefined
+    let lockRetryTimer: ReturnType<typeof setTimeout> | undefined
     let refreshTimer: ReturnType<typeof setTimeout> | undefined
-    let reconnectDelay = 1_000
     let hasConnectedOnce = false
     let inboxRefreshVersion = 0
     let unreadRefreshVersion = 0
     const toastedIds = new Set<string>()
+    const channel =
+      typeof BroadcastChannel !== "undefined"
+        ? new BroadcastChannel(STREAM_CHANNEL_NAME)
+        : undefined
 
     const refreshUnreadCount = () => {
       const version = ++unreadRefreshVersion
@@ -54,13 +59,6 @@ export function useNotificationStream(enabled: boolean) {
         .finally(refreshUnreadCount)
     }
 
-    const scheduleReconnect = () => {
-      if (closed) return
-      if (reconnectTimer) clearTimeout(reconnectTimer)
-      reconnectTimer = setTimeout(connect, reconnectDelay)
-      reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS)
-    }
-
     const connect = () => {
       source?.close()
       source = new EventSource(apiUrl("/api/notifications/stream"), {
@@ -68,7 +66,6 @@ export function useNotificationStream(enabled: boolean) {
       })
 
       source.onopen = () => {
-        reconnectDelay = 1_000
         useNotificationsStore.getState().setConnected(true)
         if (hasConnectedOnce) bootstrapInbox(true)
         hasConnectedOnce = true
@@ -76,11 +73,18 @@ export function useNotificationStream(enabled: boolean) {
 
       source.onerror = () => {
         useNotificationsStore.getState().setConnected(false)
-        source?.close()
-        scheduleReconnect()
+        // Keep this EventSource alive: native reconnect sends its Last-Event-ID
+        // header, allowing the server to replay missed inbox changes.
       }
 
       source.addEventListener("inbox_changed", () => {
+        channel?.postMessage({ type: "inbox_changed" })
+        if (refreshTimer) clearTimeout(refreshTimer)
+        refreshTimer = setTimeout(() => bootstrapInbox(true), 150)
+      })
+
+      source.addEventListener("resolved", () => {
+        channel?.postMessage({ type: "inbox_changed" })
         if (refreshTimer) clearTimeout(refreshTimer)
         refreshTimer = setTimeout(() => bootstrapInbox(true), 150)
       })
@@ -89,15 +93,68 @@ export function useNotificationStream(enabled: boolean) {
         const payload = parseEventData<UnreadCountResponse>(event)
         if (payload) {
           useNotificationsStore.getState().setUnreadCount(payload.count)
+          channel?.postMessage({ type: "unread_count", count: payload.count })
         }
       })
     }
 
+    const handleChannelMessage = (event: MessageEvent) => {
+      if (event.data?.type === "inbox_changed") bootstrapInbox(false)
+      if (event.data?.type === "unread_count") {
+        useNotificationsStore
+          .getState()
+          .setUnreadCount(Number(event.data.count) || 0)
+      }
+    }
+    channel?.addEventListener("message", handleChannelMessage)
+
+    let releaseLock: (() => void) | undefined
+    const holdLock = () =>
+      new Promise<void>((resolve) => {
+        releaseLock = resolve
+      })
+
+    const acquireStream = async () => {
+      if (closed) return
+      const locks =
+        typeof navigator !== "undefined" ? navigator.locks : undefined
+      if (!locks) {
+        // Older browsers do not expose Web Locks. Preserve functionality there;
+        // current supported browsers coordinate through the lock below.
+        connect()
+        return
+      }
+      try {
+        let acquired = false
+        const request = locks.request(
+          STREAM_LOCK_NAME,
+          { ifAvailable: true },
+          async (lock) => {
+            if (!lock || closed) return
+            acquired = true
+            connect()
+            await holdLock()
+          }
+        )
+        void request.catch(() => {})
+        await Promise.race([
+          request,
+          new Promise((resolve) => setTimeout(resolve, 100)),
+        ])
+        if (!acquired && !closed) {
+          lockRetryTimer = setTimeout(acquireStream, 2_000)
+        }
+      } catch {
+        if (!closed) connect()
+      }
+    }
+
     bootstrapInbox()
-    connect()
+    void acquireStream()
 
     const handleOnline = () => {
-      if (!source || source.readyState === EventSource.CLOSED) connect()
+      if (!source || source.readyState === EventSource.CLOSED)
+        void acquireStream()
       bootstrapInbox(true)
     }
     const handleVisibility = () => {
@@ -110,9 +167,12 @@ export function useNotificationStream(enabled: boolean) {
 
     return () => {
       closed = true
+      releaseLock?.()
       source?.close()
-      if (reconnectTimer) clearTimeout(reconnectTimer)
+      if (lockRetryTimer) clearTimeout(lockRetryTimer)
       if (refreshTimer) clearTimeout(refreshTimer)
+      channel?.removeEventListener("message", handleChannelMessage)
+      channel?.close()
       window.removeEventListener("online", handleOnline)
       document.removeEventListener("visibilitychange", handleVisibility)
       useNotificationsStore.getState().setConnected(false)
@@ -133,8 +193,15 @@ function pushToast(notification: NotificationItem) {
     notification.params
   )
   if (!title && !body) return
-  // In-app: bell badge only. OS banner via Web Push / Notification API.
-  maybeShowBrowserNotification(notification, title || "Thông báo", body || "")
+  if (notification.type === "error" || (notification.priority ?? 0) >= 2) {
+    notify.warning(title || i18n.t("notifications.title"), body || undefined)
+  }
+  // Web Push stays generic; detailed content is loaded from the authenticated inbox.
+  maybeShowBrowserNotification(
+    notification,
+    title || i18n.t("notifications.title"),
+    body || ""
+  )
 }
 
 function resolveNotificationText(

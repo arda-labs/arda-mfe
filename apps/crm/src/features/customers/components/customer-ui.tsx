@@ -3,7 +3,7 @@ import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
 import { Upload } from "lucide-react"
-import { Badge } from "@workspace/ui/components/badge"
+import { StatusBadge as SharedStatusBadge } from "@workspace/ui/components/status-badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
@@ -283,7 +283,7 @@ export function Panel({
 export function StatusBadge({ status }: { status: string }) {
   const variant =
     status === "ACTIVE" || status === "APPROVED" ? "default" : "secondary"
-  return <Badge variant={variant}>{status}</Badge>
+  return <SharedStatusBadge status={status} variant={variant} />
 }
 
 export function EmptyTable({

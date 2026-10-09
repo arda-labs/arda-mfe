@@ -78,6 +78,7 @@
     "cancelled": "Cancelled",
     "pending": "Pending",
     "active": "Active",
+    "disbursed": "Disbursed",
     "closed": "Closed"
   },
   "count_badge": "{count} records",
@@ -268,7 +269,7 @@
     "created_draft": "Collection created (DRAFT)",
     "create_failed": "Failed to create the collection",
     "field": {
-      "contract": "Credit contract (ACTIVE)",
+      "contract": "Credit contract (DISBURSED)",
       "principal": "Principal",
       "interest": "Interest",
       "collection_date": "Collection date"
@@ -343,11 +344,11 @@
       "complete_created": "Completion batch created — case: {case}",
       "complete_failed": "Failed to create the completion batch"
     },
-    "dialog_description": "Pick an ACTIVE contract and enter the disbursement amount. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
+    "dialog_description": "Pick a DISBURSED contract and enter the disbursement amount. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
     "created_draft": "Disbursement created (DRAFT)",
     "create_failed": "Failed to create the disbursement",
     "field": {
-      "contract": "Credit contract (ACTIVE)",
+      "contract": "Credit contract (DISBURSED)",
       "amount": "Disbursement amount",
       "amount_short": "Amount",
       "currency": "Currency",
@@ -373,7 +374,7 @@
     },
     "register": {
       "title": "Register disbursement",
-      "dialog_description": "Create the original disbursement for an ACTIVE contract. Once the row is posted (POSTED), further drawdowns can be recorded via the Complete disbursement flow."
+      "dialog_description": "Create the original disbursement for an approved contract. Once the row is posted (POSTED), further drawdowns can be recorded via the Complete disbursement flow."
     },
     "complete": {
       "action": "Complete disbursement",

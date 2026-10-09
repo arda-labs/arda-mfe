@@ -21,14 +21,14 @@ import { collectionsListDefinition } from "./list-query"
 
 const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   DRAFT: "outline",
-  SUBMITTED: "secondary",
+  PENDING_APPROVAL: "secondary",
   APPROVED: "default",
   POSTED: "default",
   REJECTED: "destructive",
   CANCELLED: "outline",
 }
 
-const STATUS_VALUES = ["DRAFT", "SUBMITTED", "APPROVED", "POSTED", "REJECTED", "CANCELLED"] as const
+const STATUS_VALUES = ["DRAFT", "PENDING_APPROVAL", "APPROVED", "POSTED", "REJECTED", "CANCELLED"] as const
 
 /** Collections — principal + interest receipts (LNM.301.02): create →
  * submit case → approval → finance posting. Server tier after the BE
@@ -40,7 +40,7 @@ export function CollectionsPage(_props: { pathname: string }) {
   const statusLabels = useMemo<Record<string, string>>(
     () => ({
       DRAFT: t("loan.status.draft"),
-      SUBMITTED: t("loan.status.submitted"),
+      PENDING_APPROVAL: t("loan.status.pending"),
       APPROVED: t("loan.status.approved"),
       POSTED: t("loan.status.posted"),
       REJECTED: t("loan.status.rejected"),

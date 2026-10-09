@@ -9,7 +9,7 @@ import { useI18n } from "@workspace/i18n"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import type { ProcessRole } from "../../api"
 import { processRolesApi } from "../../api"
-import { ProcessRoleDialog } from "../../shared/admin-ui"
+import { ProcessRoleDialog } from "../../shared/admin-dialogs"
 import {
   byString,
   statusFilterOptions,

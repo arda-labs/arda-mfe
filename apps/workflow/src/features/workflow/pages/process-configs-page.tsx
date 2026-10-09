@@ -23,10 +23,8 @@ import {
 } from "@workspace/ui/components/status"
 import type { SlaPolicy, WorkflowCaseType } from "../api"
 import { caseConfigApi, casesApi } from "../api"
-import {
-  ProcessConfigDialog,
-  roleOptionsFromCaseTypes,
-} from "../shared/admin-ui"
+import { ProcessConfigDialog } from "../shared/admin-dialogs"
+import { roleOptionsFromCaseTypes } from "../shared/admin-ui"
 
 const DEFAULT_PAGE_SIZE = 10
 

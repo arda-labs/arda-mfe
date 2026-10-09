@@ -78,6 +78,7 @@
     "cancelled": "Đã hủy",
     "pending": "Chờ duyệt",
     "active": "Hoạt động",
+    "disbursed": "Đã giải ngân",
     "closed": "Đã đóng"
   },
   "count_badge": "{count} bản ghi",
@@ -268,7 +269,7 @@
     "created_draft": "Đã tạo phiếu thu nợ (DRAFT)",
     "create_failed": "Không thể tạo thu nợ",
     "field": {
-      "contract": "Hợp đồng tín dụng (ACTIVE)",
+      "contract": "Hợp đồng tín dụng (đã giải ngân)",
       "principal": "Thu gốc",
       "interest": "Thu lãi",
       "collection_date": "Ngày thu"
@@ -343,11 +344,11 @@
       "complete_created": "Đã tạo hồ sơ hoàn tất giải ngân — case: {case}",
       "complete_failed": "Không thể tạo hồ sơ hoàn tất giải ngân"
     },
-    "dialog_description": "Chọn hợp đồng ACTIVE, nhập số tiền giải ngân. Sau khi tạo, trình duyệt qua workbench — duyệt xong bút toán tự post.",
+    "dialog_description": "Chọn hợp đồng đã giải ngân, nhập số tiền giải ngân. Sau khi tạo, trình duyệt qua workbench — duyệt xong bút toán tự post.",
     "created_draft": "Đã tạo phiếu giải ngân (DRAFT)",
     "create_failed": "Không thể tạo giải ngân",
     "field": {
-      "contract": "Hợp đồng tín dụng (ACTIVE)",
+      "contract": "Hợp đồng tín dụng (đã giải ngân)",
       "amount": "Số tiền giải ngân",
       "amount_short": "Số tiền",
       "currency": "Loại tiền",
@@ -373,7 +374,7 @@
     },
     "register": {
       "title": "Khởi tạo giải ngân",
-      "dialog_description": "Tạo phiếu giải ngân gốc cho hợp đồng ACTIVE. Sau khi phiếu được định khoản (POSTED), có thể rút vốn tiếp bằng luồng Hoàn tất giải ngân."
+      "dialog_description": "Tạo phiếu giải ngân gốc cho hợp đồng đã được duyệt. Sau khi phiếu được định khoản (POSTED), có thể rút vốn tiếp bằng luồng Hoàn tất giải ngân."
     },
     "complete": {
       "action": "Hoàn tất giải ngân",
