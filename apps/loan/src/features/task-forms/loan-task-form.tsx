@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
+import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   formatAmount,
   formatDateShort,
@@ -24,6 +26,7 @@ import {
   type LoanCollectionBatch,
   type LoanDisbursement,
   type LoanDisbursementBatch,
+  type DisbursementPostingPreview,
   type SpecificProvision,
 } from "../api"
 
@@ -107,25 +110,46 @@ export function LoanTaskForm({
 }: TaskFormProps & { variant?: LoanTaskFormVariant }) {
   const { t } = useI18n()
   const [detail, setDetail] = useState<LoadedDetail | null>(null)
+  const [detailError, setDetailError] = useState(false)
+  const [detailAttempt, setDetailAttempt] = useState(0)
+  const [postingPreview, setPostingPreview] = useState<DisbursementPostingPreview | null>(null)
+  const [postingPreviewError, setPostingPreviewError] = useState(false)
+  const needsPostingPreview = variant === "disbursement_batch" && task.caseType?.toUpperCase() === "LNM_DISB_BATCH_REGISTER_V2"
 
   const readOnly = mode === "view"
   const objectId =
     pick(data, VARIANT_ID_KEYS[variant]) ?? task.primaryObjectId ?? ""
 
   useEffect(() => {
-    if (!objectId) return
+    setDetail(null)
+    setDetailError(false)
+    setPostingPreview(null)
+    setPostingPreviewError(false)
+    if (!objectId) {
+      setDetailError(true)
+      return
+    }
     let cancelled = false
     loadDetail(variant, objectId)
       .then((value) => {
         if (!cancelled) setDetail(value)
       })
       .catch(() => {
-        // Preview only — the decision still goes through the domain guard.
+        if (!cancelled) setDetailError(true)
       })
+    if (needsPostingPreview) {
+      void disbursementBatchApi.preview(objectId)
+        .then((value) => {
+          if (!cancelled) setPostingPreview(value)
+        })
+        .catch(() => {
+          if (!cancelled) setPostingPreviewError(true)
+        })
+    }
     return () => {
       cancelled = true
     }
-  }, [variant, objectId])
+  }, [variant, objectId, detailAttempt, needsPostingPreview])
 
   const dataVersion = detail?.value.data_version
 
@@ -157,6 +181,11 @@ export function LoanTaskForm({
     status ? t(`loan.status.${status.toLowerCase()}`) : "—"
 
   const rows: Array<{ label: string; value: string }> = []
+  const batchRows = detail?.variant === "disbursement_batch" ? detail.value.rows ?? [] : []
+  const batchHistory = detail?.variant === "disbursement_batch" ? detail.value.history ?? [] : []
+  const headroomByContract = new Map(
+    (postingPreview?.headroom ?? []).map((item) => [item.contract_code, item.remaining_after_minor])
+  )
 
   if (detail?.variant === "disbursement") {
     const d = detail.value
@@ -302,16 +331,93 @@ export function LoanTaskForm({
           ))}
         </dl>
       ) : (
-        <p className="py-4 text-center text-sm text-muted-foreground">
-          {t("loan.task_form.loading")}
-        </p>
+        detailError ? (
+          <div className="space-y-2 rounded-md border border-destructive/40 p-3" role="alert">
+            <p className="text-sm text-destructive">{t("loan.task_form.detail_load_failed")}</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setDetailAttempt((n) => n + 1)}>
+              {t("common.action.retry")}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2 py-2" aria-label={t("loan.task_form.loading")}>
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        )
       )}
+
+      {detail && dataVersion == null ? (
+        <p className="text-sm text-destructive" role="alert">
+          {t("loan.task_form.data_version_missing")}
+        </p>
+      ) : null}
+
+      {detail?.variant === "disbursement_batch" ? (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">{t("loan.task_form.batch_rows")}</h3>
+          <div className="overflow-x-auto rounded-md border">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted/50 text-xs text-muted-foreground">
+                <tr><th className="p-2">{t("loan.task_form.field.contract_code")}</th><th className="p-2">{t("loan.task_form.field.agreement_code")}</th><th className="p-2 text-right">{t("loan.task_form.field.amount")}</th><th className="p-2 text-right">{t("loan.task_form.headroom_after")}</th><th className="p-2">{t("loan.task_form.field.status")}</th></tr>
+              </thead>
+              <tbody>
+                {batchRows.map((row, index) => (
+                  <tr key={`${row.agreement_code}-${index}`} className="border-t">
+                    <td className="p-2 font-mono text-xs">{row.contract_code}</td>
+                    <td className="p-2 font-mono text-xs">{row.agreement_code}</td>
+                    <td className="p-2 text-right tabular-nums">{formatAmount(fromMinor(row.amount_minor))}</td>
+                    <td className="p-2 text-right tabular-nums">{headroomByContract.has(row.contract_code) ? formatAmount(fromMinor(headroomByContract.get(row.contract_code)!)) : "—"}</td>
+                    <td className="p-2">{statusLabel(row.status)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {needsPostingPreview ? (
+            <section className="space-y-2 rounded-md border p-3" aria-labelledby="disbursement-posting-preview-title">
+              <h3 id="disbursement-posting-preview-title" className="text-sm font-semibold">{t("loan.disbursements.batch.posting_preview")}</h3>
+              {postingPreviewError ? (
+                <div className="flex items-center gap-2" role="alert">
+                  <p className="text-sm text-destructive">{t("loan.disbursements.batch.posting_preview_failed")}</p>
+                  <Button type="button" variant="link" size="sm" onClick={() => setDetailAttempt((n) => n + 1)}>{t("common.action.retry")}</Button>
+                </div>
+              ) : null}
+              {!postingPreview && !postingPreviewError ? <Skeleton className="h-16 w-full" /> : null}
+              {postingPreview ? (
+                <>
+                  <p className={postingPreview.valid ? "text-sm text-emerald-700" : "text-sm text-destructive"}>
+                    {t(postingPreview.valid ? "loan.disbursements.batch.posting_preview_valid" : "loan.disbursements.batch.posting_preview_invalid", { version: postingPreview.coa_version_id })}
+                  </p>
+                  {postingPreview.global_errors.map((error, index) => <p key={`${error}-${index}`} className="text-sm text-destructive">{error}</p>)}
+                  {postingPreview.lines.map((line) => (
+                    <div key={line.line_no} className="grid grid-cols-[auto_1fr_auto] gap-2 border-t pt-2 text-sm">
+                      <span className="text-muted-foreground">{line.line_no}</span>
+                      <span>{line.description || line.account_name || line.account_code}</span>
+                      <span className="text-right tabular-nums">{line.direction} · {formatAmount(fromMinor(line.amount_minor), line.currency_code)}</span>
+                      {line.errors.map((error, index) => <p key={`${error}-${index}`} className="col-span-3 text-destructive">{error}</p>)}
+                    </div>
+                  ))}
+                </>
+              ) : null}
+            </section>
+          ) : null}
+          <h3 className="text-sm font-semibold">{t("loan.task_form.history")}</h3>
+          {batchHistory.length ? <ol className="space-y-2 border-l pl-3">
+            {batchHistory.map((event, index) => <li key={`${event.created_at}-${index}`} className="text-sm">
+              <p className="font-medium">{event.to_status || event.event_type}</p>
+              {event.detail ? <p className="text-muted-foreground">{event.detail}</p> : null}
+              <p className="text-xs text-muted-foreground">{event.created_at}</p>
+            </li>)}
+          </ol> : <p className="text-sm text-muted-foreground">{t("loan.task_form.no_history")}</p>}
+        </div>
+      ) : null}
 
       <TaskDecisionBar
         actions={decision.actions}
         labels={labels}
         readOnly={readOnly}
         submitting={submitting}
+        disabled={detailError || !detail || dataVersion == null || (needsPostingPreview && (postingPreviewError || !postingPreview?.valid))}
         showComment={!decision.maker}
         comment={decision.comment}
         onCommentChange={decision.setComment}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useCaseTabs } from "@workspace/case-tabs"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,16 @@ function loadTaskFormModule(remote: TaskFormRemote): Promise<TaskFormModule> {
   return load
 }
 
+function loadTaskFormForLocale(
+  remote: TaskFormRemote,
+  locale: string
+): Promise<TaskFormModule> {
+  return loadTaskFormModule(remote).then(async (module) => {
+    await module.locales?.preload(locale)
+    return module
+  })
+}
+
 /**
  * Server-driven task form host: resolves the form by the work item's
  * `formKey`, registers the owner remote's locale bundle, passes the case
@@ -87,8 +98,10 @@ export function TaskFormHost({
     setData(undefined)
     void (async () => {
       try {
-        const module = await loadTaskFormModule(remote)
-        await module.locales?.preload(locale)
+        const [module, caseVars] = await Promise.all([
+          loadTaskFormForLocale(remote, locale),
+          workbenchApi.getCaseVariables(item.caseId),
+        ])
         const component = resolveTaskForm(
           registryFromModule(module),
           item.formKey
@@ -97,11 +110,8 @@ export function TaskFormHost({
           if (!cancelled) setState("unsupported")
           return
         }
-        const caseVars = await workbenchApi
-          .getCaseVariables(item.caseId)
-          .catch(() => undefined)
         if (cancelled) return
-        setData(caseVars?.variables)
+        setData(caseVars.variables)
         setForm(() => component)
         setState("ready")
       } catch {
@@ -131,9 +141,11 @@ export function TaskFormHost({
         </DialogHeader>
 
         {state === "loading" ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            {t("workflow.workbench.task_form.loading")}
-          </p>
+          <div className="space-y-3 py-4" aria-label={t("workflow.workbench.task_form.loading")}>
+            <Skeleton className="h-5 w-2/5" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-10 w-1/3" />
+          </div>
         ) : null}
 
         {state === "unsupported" ? (
@@ -203,4 +215,8 @@ export function TaskFormHost({
       </DialogContent>
     </Dialog>
   )
+}
+
+export function preloadTaskFormRemote(remote: TaskFormRemote, locale: string) {
+  return loadTaskFormForLocale(remote, locale)
 }

@@ -37,7 +37,13 @@
     "comment_label": "Comment / reason",
     "comment_placeholder": "Enter the processing comment (required for request changes or reject)",
     "comment_required": "Please enter a processing comment",
-    "view_only": "View only — actions are disabled."
+    "view_only": "View only — actions are disabled.",
+    "detail_load_failed": "The dossier details could not be loaded. Retry before taking action.",
+    "data_version_missing": "The data version is missing, so this decision cannot be safely applied to the latest dossier.",
+    "batch_rows": "Agreement rows",
+    "headroom_after": "Remaining headroom after batch",
+    "history": "Dossier history",
+    "no_history": "No processing history yet."
   },
   "title": "Credit",
   "description": "Credit contracts, disbursements and adjustment flows (loan-service).",
@@ -78,6 +84,7 @@
     "cancelled": "Cancelled",
     "pending": "Pending",
     "active": "Active",
+    "disbursed": "Disbursed",
     "closed": "Closed"
   },
   "count_badge": "{count} records",
@@ -268,7 +275,7 @@
     "created_draft": "Collection created (DRAFT)",
     "create_failed": "Failed to create the collection",
     "field": {
-      "contract": "Credit contract (ACTIVE)",
+      "contract": "Credit contract (DISBURSED)",
       "principal": "Principal",
       "interest": "Interest",
       "collection_date": "Collection date"
@@ -281,6 +288,38 @@
   "disbursements": {
     "title": "Disbursements",
     "description": "Register and complete disbursements, submit through the workbench; after approval the entry posts to the ledger automatically.",
+    "tracking": {
+      "title": "Disbursement tracking",
+      "description": "Follow the processing status of a submitted batch.",
+      "reference": "Reference",
+      "next_step": "The request was received and is waiting in the configured approval workflow.",
+      "expected_approver": "Expected approver",
+      "approver_loan_checker": "Loan checker",
+      "approver_workflow": "Approver assigned by the workflow",
+      "approver_pending": "Waiting for the workflow to assign an approver",
+      "approver_unavailable": "Expected approver details are unavailable",
+      "processing_deadline": "Processing deadline",
+      "deadline_unavailable": "The workflow has not provided a deadline",
+      "workflow_details_failed": "Could not load assignment and deadline details.",
+      "failed_detail": "The approval workflow could not be created. You can retry submission.",
+      "timeline": "Processing history",
+      "no_history": "No processing events yet.",
+      "load_failed": "Could not load this tracking record.",
+      "retry_submit": "Retry submission",
+      "open_workbench": "Open approval task",
+      "attach_failed": "Could not attach files to the case. Contact operations.",
+      "back_to_list": "Back to list",
+      "edit_draft": "Continue editing draft",
+      "status": {
+        "draft": "Draft",
+        "pending_approval": "Received",
+        "submit_failed": "Submission failed",
+        "approved": "Processing",
+        "rejected": "Rejected",
+        "posted": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
     "create": "New disbursement",
     "batch_register_action": "Register disbursement",
     "batch": {
@@ -289,6 +328,27 @@
       "complete_title": "Complete disbursement",
       "complete_description": "Draw against a posted (POSTED) register batch; the Close-contract rows carry amount 0.",
       "tab_info": "Disbursement information",
+      "tab_attachments": "Attachments",
+      "tab_review": "Check and submit",
+      "review_header": "General information",
+      "review_contract_count": "Agreements: {count}",
+      "posting_preview": "Expected posting",
+      "posting_preview_pending": "The server posting preview will load before submission.",
+      "posting_preview_failed": "Could not load the posting preview.",
+      "posting_preview_valid": "Posting is valid against COA version {version}.",
+      "posting_preview_invalid": "Posting is invalid against COA version {version}.",
+      "headroom_after": "Remaining after this batch: {amount}",
+      "change": "Change",
+      "saved_at": "Saved at {time}",
+      "validation_summary_title": "Fix {count} items before continuing",
+      "leave_unsaved": "You have unsaved changes. Leave this page?",
+      "confirm_title": "Confirm disbursement registration",
+      "confirm_description": "Submit {count} agreements totaling {amount} for approval.",
+      "confirm_irreversible": "Once approved, this request cannot be undone.",
+      "confirm_submit": "Submit registration",
+      "submit": "Submit registration",
+      "submit_failed": "Failed to submit the disbursement registration",
+      "resume_failed": "Could not load this draft for editing.",
       "field": {
         "txn_date": "Disbursement date",
         "payment_method": "Payment method",
@@ -343,11 +403,11 @@
       "complete_created": "Completion batch created — case: {case}",
       "complete_failed": "Failed to create the completion batch"
     },
-    "dialog_description": "Pick an ACTIVE contract and enter the disbursement amount. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
+    "dialog_description": "Pick a DISBURSED contract and enter the disbursement amount. After creation, submit it through the workbench — the posting is journaled automatically once approved.",
     "created_draft": "Disbursement created (DRAFT)",
     "create_failed": "Failed to create the disbursement",
     "field": {
-      "contract": "Credit contract (ACTIVE)",
+      "contract": "Credit contract (DISBURSED)",
       "amount": "Disbursement amount",
       "amount_short": "Amount",
       "currency": "Currency",
@@ -373,7 +433,7 @@
     },
     "register": {
       "title": "Register disbursement",
-      "dialog_description": "Create the original disbursement for an ACTIVE contract. Once the row is posted (POSTED), further drawdowns can be recorded via the Complete disbursement flow."
+      "dialog_description": "Create the original disbursement for an approved contract. Once the row is posted (POSTED), further drawdowns can be recorded via the Complete disbursement flow."
     },
     "complete": {
       "action": "Complete disbursement",

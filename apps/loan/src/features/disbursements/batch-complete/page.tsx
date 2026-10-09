@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { MoreHorizontal, Save } from "lucide-react"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
-import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
+import { useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -40,7 +40,7 @@ export function BatchCompletePage() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
-  // EPAS lib-bpm-tabs: staged files gắn vào case của batch sau khi create trả về.
+  // Files are attached to the workflow case after draft submit (T5.2).
   const staged = useStagedAttachments({ module: "loan" })
   const tabsLabels = useBatchTabsLabels(
     "loan.disbursements.batch.complete_title",
@@ -175,14 +175,11 @@ export function BatchCompletePage() {
         },
         rows: bodyRows,
       })
-      try {
-        await attachStagedCaseFiles(staged.ids, created.case_id || created.workflow_case_id || "")
-      } catch {
-        notify.error(t("common.case_tabs.attachments.attach_error"))
-      }
+      // The saved draft has no workflow case yet; T5.2 attaches staged files
+      // once the maker submits it.
       notify.success(
         t("loan.disbursements.batch.complete_created", {
-          case: created.case_code || created.case_id,
+          case: created.batch_id || created.id,
         })
       )
       navigate("/loans/disbursements")

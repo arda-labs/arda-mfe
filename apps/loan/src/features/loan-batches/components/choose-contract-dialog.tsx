@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
@@ -30,7 +30,7 @@ export type ContractPickerSelection = LoanAgreement & { contract: LoanContract }
 
 /**
  * Contract + agreement picker for the batch grids (iteration 13): search by
- * contract no / CCCD over server-paged ACTIVE contracts (loanApi.listContracts),
+ * contract no / CCCD over server-paged DISBURSED contracts (loanApi.listContracts),
  * expandable to the contract's agreements (loanApi.listAgreements) with
  * outstanding/pending headroom columns. `multi` mode queues N picks (badge +
  * Xoá hết) for batch entry; single mode returns one row immediately.
@@ -77,15 +77,16 @@ function PickerContent({
 }) {
   const { t } = useI18n()
   const [search, setSearch] = useState("")
+  const debouncedSearch = useDebouncedValue(search, 300)
   const [page, setPage] = useState(1)
   const [expanded, setExpanded] = useState<LoanContract | null>(null)
   /** Multi-mode queue (preview of pending picks before closing the dialog). */
   const [picked, setPicked] = useState<ContractPickerSelection[]>([])
 
   const contractsQuery = useQuery({
-    queryKey: ["loan", "contract-picker", "contracts", search, page],
+    queryKey: ["loan", "contract-picker", "contracts", debouncedSearch, page],
     queryFn: () =>
-      loanApi.listContracts({ status: "ACTIVE", q: search || undefined, page, per_page: PAGE_SIZE }),
+      loanApi.listContracts({ status: "DISBURSED", q: debouncedSearch || undefined, page, per_page: PAGE_SIZE }),
     placeholderData: (prev) => prev,
   })
 
@@ -299,4 +300,13 @@ function PickerContent({
       </DialogFooter>
     </>
   )
+}
+
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delay)
+    return () => window.clearTimeout(timer)
+  }, [value, delay])
+  return debounced
 }

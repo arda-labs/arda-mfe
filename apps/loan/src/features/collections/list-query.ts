@@ -20,7 +20,7 @@ export const collectionsListDefinition = defineServerList({
       {
         urlKey: "status",
         mode: "single",
-        allowedValues: ["DRAFT", "SUBMITTED", "APPROVED", "POSTED", "REJECTED", "CANCELLED"],
+        allowedValues: ["DRAFT", "PENDING_APPROVAL", "APPROVED", "POSTED", "REJECTED", "CANCELLED"],
       },
     ],
   },

@@ -5,7 +5,7 @@ import { listQuery } from "./list-query"
  * Credit contract header — mirrors loan-service `domain.Contract`
  * (internal/domain/loan.go). The BE list/get/submit responses all carry the
  * full row, including `workflow_case_id` once the formation case exists
- * (SubmitContract sets it together with status PENDING). `workflow_case_code`
+ * (SubmitContract sets it together with status PENDING_APPROVAL). `workflow_case_code`
  * is the friendly human-readable case code (e.g. LOAN-20260909-000123).
  */
 export interface LoanContract {

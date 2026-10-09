@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RefreshCw } from "lucide-react"
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { useQuery } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { Page } from "@workspace/ui/components/page"
@@ -12,12 +13,11 @@ import type {
   WorkbenchDirection,
   WorkItem,
   WorkItemFilter,
-  WorkItemSummaryNode,
 } from "../api"
 import { workbenchApi } from "../api"
 import { WorkItemTree } from "./workbench-tree"
 import { DecisionDialog, type ReviewDecision } from "./decision-dialog"
-import { TaskFormHost } from "./task-form-host"
+import { TaskFormHost, preloadTaskFormRemote } from "./task-form-host"
 import { taskFormRemoteFor } from "../utils/task-form-routing"
 import type { TaskFormSubmit } from "@workspace/workflow-task"
 import { WorkbenchToolbar, type FilterState } from "./workbench-toolbar"
@@ -66,66 +66,32 @@ export function createTransactionWorkbench(
   }
 }
 
-function useWorkbenchData(filter: WorkItemFilter, baseFilter: WorkItemFilter) {
-  const filterRef = useRef(filter)
-  filterRef.current = filter
-  const baseFilterRef = useRef(baseFilter)
-  baseFilterRef.current = baseFilter
-  const [items, setItems] = useState<WorkItem[]>([])
-  const [summary, setSummary] = useState<WorkItemSummaryNode[]>([])
-  const [fetching, setFetching] = useState(false)
-  const [error, setError] = useState<unknown>(null)
-  const mountedRef = useRef(true)
-  const loadingRef = useRef(false)
-
-  const reloadRef = useRef<() => Promise<void>>(async () => {})
-
-  const reload = useCallback(async () => {
-    if (loadingRef.current) return // no overlap
-    loadingRef.current = true
-    setFetching(true)
-    setError(null)
-    const filterAtCall = filterRef.current
-    const baseAtCall = baseFilterRef.current
-    try {
-      const [wi, sm] = await Promise.all([
-        workbenchApi.listWorkItems(filterAtCall),
-        workbenchApi.listWorkItemSummary(baseAtCall),
+function useWorkbenchData(
+  filter: WorkItemFilter,
+  baseFilter: WorkItemFilter,
+  refetchInterval: number
+) {
+  const query = useQuery({
+    queryKey: ["workflow", "workbench", filter, baseFilter],
+    queryFn: async () => {
+      const [items, summary] = await Promise.all([
+        workbenchApi.listWorkItems(filter),
+        workbenchApi.listWorkItemSummary(baseFilter),
       ])
-      if (mountedRef.current) {
-        setItems(wi)
-        setSummary(sm)
-      }
-    } catch (reason) {
-      if (mountedRef.current) setError(reason)
-    } finally {
-      if (mountedRef.current) setFetching(false)
-      loadingRef.current = false
-      // Retry nếu filter thay đổi trong lúc fetch (tránh mất request)
-      if (
-        mountedRef.current &&
-        (JSON.stringify(filterRef.current) !== JSON.stringify(filterAtCall) ||
-          JSON.stringify(baseFilterRef.current) !== JSON.stringify(baseAtCall))
-      ) {
-        loadingRef.current = false
-        void reloadRef.current()
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    reloadRef.current = reload
-  }, [reload])
-
-  useEffect(() => {
-    mountedRef.current = true
-    void reload()
-    return () => {
-      mountedRef.current = false
-    }
-  }, [reload])
-
-  return { items, summary, fetching, error, reload }
+      return { items, summary }
+    },
+    refetchInterval,
+    refetchIntervalInBackground: false,
+  })
+  return {
+    items: query.data?.items ?? [],
+    summary: query.data?.summary ?? [],
+    fetching: query.isFetching,
+    error: query.error,
+    reload: async () => {
+      await query.refetch()
+    },
+  }
 }
 
 function TransactionWorkbenchInner({
@@ -137,7 +103,7 @@ function TransactionWorkbenchInner({
   title?: string
   description?: string
 }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const meta = directionMeta[direction]
   const [activeNode, setActiveNode] = useState("ALL")
   const [filters, setFilters] = useState<FilterState>({})
@@ -171,12 +137,19 @@ function TransactionWorkbenchInner({
     filters.slaStatus,
   ])
 
+  // Warm the loan form remote while the workbench list is loading.
+  useEffect(() => {
+    void preloadTaskFormRemote("loan", locale).catch(() => undefined)
+  }, [locale])
+
+  const expectCaseCode = workbenchExpectCaseCode()
+  const refetchInterval = useWorkbenchBurstRefetch(expectCaseCode)
   const {
     items: allItems,
     summary: summaryData,
     fetching,
     reload,
-  } = useWorkbenchData(queryFilter, baseFilter)
+  } = useWorkbenchData(queryFilter, baseFilter, refetchInterval)
   const [claimPending, setClaimPending] = useState(false)
   const [decisionItem, setDecisionItem] = useState<WorkItem | null>(null)
   const [formItem, setFormItem] = useState<WorkItem | null>(null)
@@ -186,43 +159,6 @@ function TransactionWorkbenchInner({
     () => filterWorkItemsByNode(allItems, activeNode),
     [allItems, activeNode]
   )
-
-  // Burst polling: own effect that awaits reload(), schedules next, pauses when hidden
-  const expectCaseCode = workbenchExpectCaseCode()
-  const refetchInterval = useWorkbenchBurstRefetch(expectCaseCode)
-  const reloadRef = useRef(reload)
-  reloadRef.current = reload
-  const filterStable = JSON.stringify(queryFilter)
-
-  // Reload ngay khi filter thay đổi (không chờ poll cycle)
-  useEffect(() => {
-    void reload()
-  }, [reload, filterStable])
-
-  useEffect(() => {
-    let cancelled = false
-    let timer: ReturnType<typeof setTimeout>
-
-    async function poll() {
-      if (document.hidden) {
-        timer = setTimeout(poll, 500)
-        return
-      }
-      await reloadRef.current()
-      if (!cancelled) {
-        timer = setTimeout(poll, refetchInterval)
-      }
-    }
-
-    // start poll loop after initial load completes
-    timer = setTimeout(poll, refetchInterval)
-
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-    // reset poll when filter changes
-  }, [filterStable, refetchInterval])
 
   const openClaimedItem = useCallback(
     (item: WorkItem) => {
@@ -260,7 +196,6 @@ function TransactionWorkbenchInner({
           const { workItem } = await workbenchApi.claimWorkItem({
             workItemId: item.id,
           })
-          await reload()
           openClaimedItem(workItem)
         } catch (error) {
           notify.error(

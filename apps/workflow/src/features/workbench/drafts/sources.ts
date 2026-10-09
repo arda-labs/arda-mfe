@@ -6,6 +6,7 @@ import {
 import {
   listFinanceTransactions,
   listHrmRegistrations,
+  listLoanDisbursementDrafts,
 } from "../api/drafts"
 import type {
   PlatformDraft,
@@ -35,6 +36,16 @@ interface EmployeeRegistration {
   payload: string
   status: string
   updated_at: string
+}
+
+interface LoanDisbursementDraft {
+  id: string
+  txn_date: string
+  description?: string
+  status: string
+  data_version?: number
+  created_at?: string
+  updated_at?: string
 }
 
 function isFinanceDraft(item: FinanceTransaction) {
@@ -108,6 +119,21 @@ function hrmDraft(item: EmployeeRegistration): PlatformDraft {
   }
 }
 
+function loanDisbursementDraft(item: LoanDisbursementDraft): PlatformDraft {
+  return {
+    id: item.id,
+    domain: "loan_disbursement",
+    code: item.id,
+    title: item.description || item.txn_date,
+    status: item.status,
+    displayStatus: "DRAFT",
+    updatedAt: item.updated_at || item.created_at || "",
+    openHref: `/loans/disbursements/tracking/${encodeURIComponent(item.id)}`,
+    canCancel: item.status === "DRAFT" && item.data_version != null,
+    dataVersion: item.data_version,
+  }
+}
+
 async function fetchCrmDrafts(): Promise<PlatformDraft[]> {
   const statuses: CustomerStatus[] = ["DRAFT", "NEEDS_CHANGES"]
   const groups = await Promise.all(
@@ -136,6 +162,11 @@ async function fetchHrmDrafts(): Promise<PlatformDraft[]> {
   })
 
   return data.items.map(hrmDraft)
+}
+
+async function fetchLoanDisbursementDrafts(): Promise<PlatformDraft[]> {
+  const items = await listLoanDisbursementDrafts<LoanDisbursementDraft>()
+  return items.items.map(loanDisbursementDraft)
 }
 
 async function loadSource(
@@ -168,6 +199,7 @@ export async function fetchPlatformDrafts(): Promise<PlatformDraftsResult> {
     loadSource("finance_incoming", () => fetchFinanceDrafts("incoming")),
     loadSource("finance_outgoing", () => fetchFinanceDrafts("outgoing")),
     loadSource("hrm", fetchHrmDrafts),
+    loadSource("loan", fetchLoanDisbursementDrafts),
   ])
 
   const errors: PlatformDraftsResult["errors"] = {}

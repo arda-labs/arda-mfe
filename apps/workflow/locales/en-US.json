@@ -185,6 +185,7 @@
       "domain_finance_incoming": "Incoming transaction",
       "domain_finance_outgoing": "Outgoing transaction",
       "domain_hrm_employee_registration": "Employee registration",
+      "domain_loan_disbursement": "Disbursement",
       "source_crm": "CRM",
       "source_finance_incoming": "Incoming finance",
       "source_finance_outgoing": "Outgoing finance",

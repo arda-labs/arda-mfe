@@ -7,10 +7,12 @@ const IDLE_INTERVAL_MS = 15_000
 /** After submit/complete, workbench may land before Zeebe binds jobKey.
  *  Poll quickly for a short window, then fall back to the idle interval. */
 export function useWorkbenchBurstRefetch(expectCaseCode?: string | null) {
-  const [burstUntil, setBurstUntil] = useState(() => Date.now() + BURST_MS)
+  const [burstUntil, setBurstUntil] = useState(() =>
+    expectCaseCode ? Date.now() + BURST_MS : 0
+  )
 
   useEffect(() => {
-    setBurstUntil(Date.now() + BURST_MS)
+    setBurstUntil(expectCaseCode ? Date.now() + BURST_MS : 0)
   }, [expectCaseCode])
 
   useEffect(() => {

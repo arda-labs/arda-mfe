@@ -1,4 +1,9 @@
-import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
+import {
+  getCanonical,
+  getCanonicalList,
+  postCanonical,
+  putCanonical,
+} from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 import type { LoanDisbursementFlowType } from "./disbursements"
 
@@ -32,7 +37,16 @@ export interface LoanBatchCreated {
   workflow_case_code?: string
 }
 
+/** Draft create response: a workflow case is created only after explicit submit. */
+export interface LoanDisbursementBatchDraftCreated {
+  id: string
+  batch_id: string
+  status: "DRAFT"
+  data_version: number
+}
+
 export interface DisbursementBatchRegisterInput {
+  data_version?: number
   org_code?: string
   txn_date: string
   payment_method: LoanBatchPaymentMethod
@@ -47,6 +61,7 @@ export interface DisbursementBatchRegisterInput {
 }
 
 export interface DisbursementBatchCompleteInput {
+  data_version?: number
   source_batch_id: string
   txn_date: string
   description?: string
@@ -59,6 +74,10 @@ export interface DisbursementBatchCompleteInput {
     is_closed?: boolean
   }[]
 }
+
+export type DisbursementBatchDraftInput =
+  | (DisbursementBatchRegisterInput & { data_version: number })
+  | (Omit<DisbursementBatchCompleteInput, "source_batch_id"> & { data_version: number })
 
 export interface CollectionBatchCreateInput {
   txn_date: string
@@ -81,6 +100,7 @@ export interface LoanDisbursementBatch {
   payment_method?: LoanBatchPaymentMethod
   account_code?: string
   description?: string
+  trader?: LoanBatchTrader
   flow_type?: LoanDisbursementFlowType
   source_batch_id?: string
   total_amt_minor?: number
@@ -88,6 +108,7 @@ export interface LoanDisbursementBatch {
   status: string
   case_id?: string
   case_code?: string
+  workflow_case_id?: string
   workflow_case_code?: string
   created_by?: string
   created_at?: string
@@ -95,6 +116,56 @@ export interface LoanDisbursementBatch {
   data_version?: number
   /** Chỉ có trên detail (GET /{id}). */
   rows?: LoanDisbursementBatchRow[]
+  history?: LoanDisbursementBatchEvent[]
+}
+
+export interface LoanDisbursementBatchEvent {
+  event_type: string
+  from_status?: string
+  to_status?: string
+  detail?: string
+  actor?: string
+  created_at: string
+}
+
+export interface DisbursementBatchSubmitResult {
+  batch_id: string
+  reference_no: string
+  status: "PENDING_APPROVAL"
+  data_version: number
+}
+
+export interface DisbursementPostingPreview {
+  valid: boolean
+  coa_version_id: string
+  global_errors: string[]
+  headroom: {
+    contract_code: string
+    available_before_minor: number
+    remaining_after_minor: number
+  }[]
+  lines: {
+    line_no: number
+    resolved: boolean
+    account_code: string
+    account_name: string
+    direction: "DEBIT" | "CREDIT"
+    amount_minor: number
+    currency_code: string
+    description: string
+    errors: string[]
+  }[]
+}
+
+export interface DisbursementWorkflowContext {
+  id: string
+  currentStep?: string
+  candidateRole?: string
+  slaDueAt?: string
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined
 }
 
 export interface LoanDisbursementBatchRow {
@@ -135,9 +206,29 @@ export interface LoanCollectionBatchRow {
 
 export const disbursementBatchApi = {
   createRegister: (body: DisbursementBatchRegisterInput) =>
-    postCanonical<LoanBatchCreated>("/api/loan/disbursement-batches", body),
+    postCanonical<LoanDisbursementBatchDraftCreated>("/api/loan/disbursement-batches", body),
+  updateDraft: (id: string, body: DisbursementBatchDraftInput) =>
+    putCanonical<LoanDisbursementBatch>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}`,
+      body
+    ),
+  submit: (id: string, dataVersion: number) =>
+    postCanonical<DisbursementBatchSubmitResult>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}/submit`,
+      { data_version: dataVersion }
+    ),
+  preview: (id: string) =>
+    postCanonical<DisbursementPostingPreview>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}/preview`,
+      {}
+    ),
+  cancelDraft: (id: string, dataVersion: number) =>
+    postCanonical<{ batch_id: string; status: string }>(
+      `/api/loan/disbursement-batches/${encodeURIComponent(id)}/cancel`,
+      { data_version: dataVersion }
+    ),
   createComplete: (body: DisbursementBatchCompleteInput) =>
-    postCanonical<LoanBatchCreated>(
+    postCanonical<LoanDisbursementBatchDraftCreated>(
       "/api/loan/disbursement-batches/complete",
       body
     ),
@@ -157,6 +248,19 @@ export const disbursementBatchApi = {
     getCanonical<LoanDisbursementBatch>(
       `/api/loan/disbursement-batches/${encodeURIComponent(id)}`
     ),
+  workflowCase: async (caseId: string): Promise<DisbursementWorkflowContext> => {
+    // The existing workflow case endpoint uses camelCase JSON. Normalize its
+    // wire payload here so the rest of the loan UI consumes a view model.
+    const response = await getCanonical<Record<string, unknown>>(
+      `/api/workflow/cases/${encodeURIComponent(caseId)}`
+    )
+    return {
+      id: optionalString(response.id) ?? caseId,
+      currentStep: optionalString(response.currentStep),
+      candidateRole: optionalString(response.candidateRole),
+      slaDueAt: optionalString(response.slaDueAt),
+    }
+  },
 }
 
 export const collectionBatchApi = {

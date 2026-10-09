@@ -31,7 +31,7 @@ import {
 
 /**
  * Kế hoạch trả nợ (route /loans/repay-plan): chọn hợp đồng (select
- * ACTIVE/CLOSED-like — đã giải ngân mới có lịch trả nợ) → dossier → grid
+ * DISBURSED/CLOSED — đã giải ngân mới có lịch trả nợ) → dossier → grid
  * readonly repay_plans (mirror domain.RepayPlan — STT, ngày kỳ, gốc phải trả,
  * dư nợ sau kỳ, lãi suất, tiền lãi, tổng phải trả). Dư nợ sau kỳ tính FE:
  * lũy kế gốc phải trả trừ lùi từ dư nợ kỳ trước.
@@ -45,13 +45,13 @@ export function RepayPlanPage() {
   const [loadingDossier, setLoadingDossier] = useState(false)
   const [loadError, setLoadError] = useState(false)
 
-  // Hợp đồng có khả năng có lịch trả nợ: ACTIVE/CLOSED (đã setActive) —
+  // Hợp đồng có khả năng có lịch trả nợ: DISBURSED/CLOSED —
   // DRAFT/PENDING chưa qua ST_Execute thì chưa có repay plan.
   useEffect(() => {
     let cancelled = false
     setLoadingContracts(true)
     loanApi
-      .listContracts({ status: "ACTIVE" })
+      .listContracts({ status: "DISBURSED" })
       .then((res) => {
         if (cancelled) return
         const active = res.items

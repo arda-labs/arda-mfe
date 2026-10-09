@@ -1,7 +1,8 @@
 // Nguồn duy nhất cho Module Federation shared deps + port registry.
 //
-// Bắt buộc: object `remoteSharedDeps` phải khớp 1:1 giữa shell và MỌI remote.
-// Lệch 1 mục = runtime có 2 instance singleton (auth store, toast, theme, query)
+// Shared singleton inventory is centralized here; the shell is the sole provider
+// for the two large optional runtimes, while remotes consume them without fallback.
+// Lệch singleton = runtime có 2 instance (auth store, toast, theme, query)
 // → state lệch, đăng xuất không lan, toast mất, theme lệch dark/light.
 // Thêm package dùng chung mới → thêm vào `remoteSharedDeps` Ở ĐÂY, không sửa
 // từng apps/<remote>/vite.config.ts.
@@ -11,6 +12,9 @@
 // only its own locale JSON, then registers it into the shared i18n singleton.
 
 export const remoteSharedDeps = {
+  // The host owns the fallback; remotes must not each ship a 930/430 kB copy.
+  exceljs: { singleton: true, requiredVersion: false, import: false, suppressMissingImportWarning: true },
+  "pdfjs-dist": { singleton: true, requiredVersion: false, import: false, suppressMissingImportWarning: true },
   react: { singleton: true, requiredVersion: false },
   "react-dom": { singleton: true, requiredVersion: false },
   "react-dom/client": { singleton: true, requiredVersion: false },
@@ -40,6 +44,14 @@ export const remoteSharedDeps = {
   // Bắt buộc singleton: notify.* gọi `toast` từ react-toastify; shell render
   // ToastContainer từ cùng instance — thiếu share = toast remote không hiện UI shell.
   "react-toastify": { singleton: true, requiredVersion: false },
+} as const
+
+// The shell provides the heavy runtimes for all remotes. Its config deliberately
+// omits `import: false`; remotes consume these entries from the host share scope.
+export const shellSharedDeps = {
+  ...remoteSharedDeps,
+  exceljs: { singleton: true, requiredVersion: false },
+  "pdfjs-dist": { singleton: true, requiredVersion: false },
 } as const
 
 // Port cố định từng remote. app shell hardcode entry URL theo các port này,

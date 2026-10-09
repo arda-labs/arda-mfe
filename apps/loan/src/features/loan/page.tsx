@@ -20,10 +20,10 @@ import { ContractDetailDialog } from "./components/ContractDetailDialog"
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
-    case "ACTIVE":
+    case "DISBURSED":
     case "APPROVED":
       return "default"
-    case "PENDING":
+    case "PENDING_APPROVAL":
     case "DRAFT":
       return "secondary"
     case "REJECTED":
@@ -38,10 +38,12 @@ function contractStatusLabelKey(status: string): string {
   switch (status) {
     case "DRAFT":
       return "loan.status.draft"
-    case "PENDING":
+    case "PENDING_APPROVAL":
       return "loan.status.pending"
-    case "ACTIVE":
-      return "loan.status.active"
+    case "APPROVED":
+      return "loan.status.approved"
+    case "DISBURSED":
+      return "loan.status.disbursed"
     case "REJECTED":
       return "loan.status.rejected"
     case "CLOSED":

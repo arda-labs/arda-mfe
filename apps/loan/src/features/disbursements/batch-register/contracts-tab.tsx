@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { memo, useMemo } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -13,7 +13,8 @@ import {
   PlanGroupedTable,
 } from "../../loan-batches"
 import { headroomMinor, inputToMinor } from "../../loan-batches/row-math"
-import type { RegisterRow } from "./page"
+import type { RegisterRow } from "./batch-register-form"
+import type { RegisterValidationIssue } from "./validation"
 
 function rowAmountMinor(row: RegisterRow): number {
   return inputToMinor(row.amount, row.agreement.currency_code)
@@ -25,7 +26,7 @@ function rowAmountMinor(row: RegisterRow): number {
  * readonly = Σ dòng, nút Xoá nhóm / Xoá dòng, and the multi-pick
  * ChooseContractDialog. Presentational — row state lives in page.tsx.
  */
-export function RegisterContractsTab({
+export const RegisterContractsTab = memo(function RegisterContractsTab({
   rows,
   pickerOpen,
   onPickerOpenChange,
@@ -33,6 +34,8 @@ export function RegisterContractsTab({
   onChangeRow,
   onRemoveRow,
   onRemoveGroup,
+  rowIssues,
+  onValidateRow,
 }: {
   rows: RegisterRow[]
   pickerOpen: boolean
@@ -41,6 +44,8 @@ export function RegisterContractsTab({
   onChangeRow: (key: string, patch: Partial<RegisterRow>) => void
   onRemoveRow: (key: string) => void
   onRemoveGroup: (planCode: string) => void
+  rowIssues: RegisterValidationIssue[]
+  onValidateRow: (row: RegisterRow) => void
 }) {
   const { t } = useI18n()
 
@@ -68,12 +73,22 @@ export function RegisterContractsTab({
           <TableCell className="text-xs">{row.contract.customer_code}</TableCell>
           <TableCell>
             <Input
+              id={`disburse-amount-${row.key}`}
               className="h-8 w-36 text-right tabular-nums"
               inputMode="decimal"
               value={row.amount}
               placeholder="0"
               onChange={(e) => onChangeRow(row.key, { amount: e.target.value })}
+              onBlur={() => onValidateRow(row)}
             />
+            {rowIssues.find((issue) => issue.fieldId === `disburse-amount-${row.key}`) ? (
+              <p className="mt-1 text-xs text-destructive">
+                {(() => {
+                  const issue = rowIssues.find((item) => item.fieldId === `disburse-amount-${row.key}`)
+                  return issue?.row == null ? t(issue?.messageKey ?? "loan.disbursements.batch.validation.amount_positive") : t(issue.messageKey, { row: issue.row })
+                })()}
+              </p>
+            ) : null}
             <p className="mt-0.5 text-[10px] text-muted-foreground">
               {t("loan.disbursements.batch.headroom_hint", {
                 amount: formatAmount(
@@ -92,7 +107,7 @@ export function RegisterContractsTab({
         </TableRow>
       )),
     }))
-  }, [rows, onRemoveGroup, onRemoveRow, onChangeRow, t])
+  }, [rows, onRemoveGroup, onRemoveRow, onChangeRow, onValidateRow, rowIssues, t])
 
   return (
     <div className="space-y-3">
@@ -123,7 +138,7 @@ export function RegisterContractsTab({
       />
     </div>
   )
-}
+})
 
 function RegisterHeaderCells() {
   const { t } = useI18n()
