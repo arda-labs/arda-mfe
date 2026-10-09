@@ -9,7 +9,7 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { useAuthStore } from "@workspace/auth"
 import type { WorkflowDelegation } from "../../api"
 import { processRolesApi } from "../../api"
-import { DelegationDialog } from "../../shared/admin-ui"
+import { DelegationDialog } from "../../shared/admin-dialogs"
 import {
   byString,
   statusFilterOptions,
