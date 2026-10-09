@@ -9,6 +9,16 @@ import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
 const UsersPage = lazyWithPreload(() =>
   import("@/features/users/page").then((m) => ({ default: m.UsersPage }))
 )
+const UserCreatePage = lazyWithPreload(() =>
+  import("@/features/users/create-page").then((m) => ({
+    default: m.UserCreatePage,
+  }))
+)
+const UserDetailPage = lazyWithPreload(() =>
+  import("@/features/users/detail-page").then((m) => ({
+    default: m.UserDetailPage,
+  }))
+)
 const GroupsPage = lazyWithPreload(() =>
   import("@/features/groups/page").then((m) => ({ default: m.GroupsPage }))
 )
@@ -46,6 +56,10 @@ export default createRemoteRoutes({
   locales,
   defaultPrefixes: ["/admin/users"],
   routes: [
+    // Longest prefix wins: list (exact) -> create -> any other id = detail.
+    { prefix: "/admin/users", exact: true, component: UsersPage },
+    { prefix: "/admin/users/new", component: UserCreatePage },
+    { prefix: "/admin/users", component: UserDetailPage },
     { prefix: "/admin/groups", component: GroupsPage },
     { prefix: "/admin/roles", component: RolesPage },
     { prefix: "/admin/permissions", component: PermissionsPage },
