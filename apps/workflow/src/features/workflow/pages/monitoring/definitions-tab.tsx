@@ -19,7 +19,7 @@ import {
   sortByColumn,
   useClientListTable,
 } from "@workspace/list-page/client-list"
-import { Badge } from "@workspace/ui/components/badge"
+import { StatusBadge as SharedStatusBadge } from "@workspace/ui/components/status-badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import {
@@ -139,7 +139,7 @@ export function useDefinitionsTable({
             ),
           }))
         ),
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        cell: ({ row }) => <SharedStatusBadge status={row.original.status} />,
       },
       {
         id: "actions",
@@ -239,12 +239,6 @@ export function useDefinitionsTable({
       }),
     defaultPageSize: DEFINITIONS_PAGE_SIZE,
   })
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const variant =
-    status === "ACTIVE" || status === "COMPLETED" ? "secondary" : "outline"
-  return <Badge variant={variant}>{status}</Badge>
 }
 
 async function downloadDefinition(item: WorkflowProcessDefinition) {

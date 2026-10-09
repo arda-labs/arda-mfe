@@ -144,6 +144,7 @@ export function MdmPage(_props: { pathname: string }) {
                 variant="ghost"
                 size="icon"
                 className="size-7 text-muted-foreground"
+                aria-label={t("common.action.edit")}
                 onClick={() => {
                   setEditing(row.original)
                   setDialogOpen(true)
@@ -156,6 +157,7 @@ export function MdmPage(_props: { pathname: string }) {
                 variant="ghost"
                 size="icon"
                 className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+                aria-label={t("common.action.delete")}
                 onClick={() => setDeleteTarget(row.original)}
                 title={t("common.action.delete")}
               >
