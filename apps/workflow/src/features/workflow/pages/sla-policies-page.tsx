@@ -23,7 +23,8 @@ import {
 } from "@workspace/ui/components/status"
 import type { SlaPolicy } from "../api"
 import { caseConfigApi, casesApi } from "../api"
-import { SlaPolicyDialog, caseTypeOptionsFromCaseTypes } from "../shared/admin-ui"
+import { SlaPolicyDialog } from "../shared/admin-dialogs"
+import { caseTypeOptionsFromCaseTypes } from "../shared/admin-ui"
 
 const DEFAULT_PAGE_SIZE = 10
 

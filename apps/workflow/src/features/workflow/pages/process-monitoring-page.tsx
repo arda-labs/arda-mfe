@@ -29,7 +29,7 @@ import type {
 import { casesApi, definitionsApi, monitoringApi } from "../api"
 import { BpmnDefinitionViewerDialog } from "../components/bpmn-monitor-lazy"
 import { ProcessInstanceOperate } from "../components/process-instance-operate"
-import { ProcessDefinitionDialog } from "../shared/admin-ui"
+import { ProcessDefinitionDialog } from "../shared/admin-dialogs"
 import { InstancesTab } from "./monitoring/instances-tab"
 import { IncidentsTab } from "./monitoring/incidents-tab"
 import { JobsTab } from "./monitoring/jobs-tab"

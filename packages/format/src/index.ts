@@ -12,6 +12,7 @@ export {
   APP_TIMEZONE,
   dateInputValue,
   formatDateShort,
+  formatDateTime,
   todayISO,
   isValidISODate,
 } from "./date"

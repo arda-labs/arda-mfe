@@ -24,8 +24,8 @@ import {
 } from "@workspace/ui/components/status"
 import type { DescriptionTemplate } from "../api"
 import { caseConfigApi, casesApi } from "../api"
+import { DescriptionTemplateDialog } from "../shared/admin-dialogs"
 import {
-  DescriptionTemplateDialog,
   businessSubsystemOptions,
   caseTypeOptionsFromCaseTypes,
 } from "../shared/admin-ui"

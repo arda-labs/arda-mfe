@@ -257,6 +257,7 @@ export function TierEditorDialog({
                           variant="ghost"
                           size="icon"
                           className="size-7"
+                          aria-label={t("common.action.edit")}
                           onClick={() => openEdit(tier)}
                         >
                           <Edit2 className="size-3.5" />
@@ -265,6 +266,7 @@ export function TierEditorDialog({
                           variant="ghost"
                           size="icon"
                           className="size-7 text-destructive"
+                          aria-label={t("common.action.delete")}
                           onClick={() => setDeleteTarget(tier)}
                         >
                           <Trash2 className="size-3.5" />
