@@ -152,6 +152,7 @@ export function InterestRatesPage(_props: { pathname: string }) {
               variant="ghost"
               size="icon"
               className="size-7 text-muted-foreground"
+              aria-label={t("common.action.edit")}
               onClick={() => {
                 setEditing(row.original)
                 setDialogOpen(true)

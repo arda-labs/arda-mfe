@@ -3,6 +3,49 @@
   "open": "Mở thông báo",
   "empty": "Không có thông báo",
   "mark_all_read": "Đã đọc hết",
+  "resolved": "Đã xử lý",
+  "preferences": {
+    "open": "Tùy chọn thông báo",
+    "title": "Tùy chọn thông báo",
+    "description": "Chọn kênh nhận tin, giờ yên lặng và tần suất tổng hợp cho từng nhóm sự kiện.",
+    "loading": "Đang tải tùy chọn…",
+    "empty": "Chưa có nhóm thông báo nào được cấu hình.",
+    "enabled": "Bật kênh này",
+    "channel": "Kênh",
+    "quiet_start": "Bắt đầu giờ yên lặng",
+    "quiet_end": "Kết thúc giờ yên lặng",
+    "digest": "Tổng hợp",
+    "timezone": "Múi giờ",
+    "locale": "Ngôn ngữ",
+    "save": "Lưu tùy chọn",
+    "saving": "Đang lưu…",
+    "cancel": "Đóng",
+    "saved": "Đã lưu tùy chọn thông báo",
+    "load_failed": "Không tải được tùy chọn thông báo",
+    "save_failed": "Không lưu được tùy chọn thông báo",
+    "channels": {
+      "in_app": "Trong ứng dụng",
+      "push": "Web Push",
+      "email": "Email",
+      "sms": "SMS"
+    },
+    "digests": {
+      "none": "Không tổng hợp",
+      "hourly": "Mỗi giờ",
+      "daily": "Mỗi ngày"
+    },
+    "groups": {
+      "workflow.task": "Công việc quy trình",
+      "workflow.case": "Hồ sơ quy trình",
+      "loan.disbursement": "Giải ngân",
+      "crm.customer": "Hồ sơ khách hàng",
+      "statistical.indicator": "Cảnh báo chỉ tiêu"
+    },
+    "locales": {
+      "vi": "Tiếng Việt",
+      "en": "Tiếng Anh"
+    }
+  },
   "browser": {
     "enable": "Bật thông báo Chrome",
     "enabled": "Đã bật Web Push (Chrome)",
@@ -30,6 +73,48 @@
       "breached": {
         "title": "Chỉ tiêu vượt ngưỡng cảnh báo",
         "body": "{ruleName}: {indicatorCode} kỳ {periodCode} = {value} (ngưỡng {operator} {threshold})"
+      }
+    }
+  },
+  "workflow": {
+    "task": {
+      "assigned": {
+        "title": "Công việc mới được giao",
+        "body": "Bạn có một công việc mới cần xử lý."
+      },
+      "overdue": {
+        "title": "Công việc đã quá hạn",
+        "body": "Vui lòng xử lý công việc đang quá hạn."
+      }
+    },
+    "case": {
+      "approved": {
+        "title": "Hồ sơ đã được duyệt",
+        "body": "Hồ sơ của bạn đã được duyệt."
+      },
+      "rejected": {
+        "title": "Hồ sơ bị từ chối",
+        "body": "Hồ sơ của bạn đã bị từ chối."
+      },
+      "failed": {
+        "title": "Không thể xử lý hồ sơ",
+        "body": "Hồ sơ cần được kiểm tra lại."
+      }
+    }
+  },
+  "loan": {
+    "disbursement": {
+      "approved": {
+        "title": "Giải ngân đã được duyệt",
+        "body": "Yêu cầu giải ngân đã được duyệt."
+      },
+      "rejected": {
+        "title": "Yêu cầu giải ngân bị từ chối",
+        "body": "Yêu cầu giải ngân đã bị từ chối."
+      },
+      "failed": {
+        "title": "Giải ngân chưa hoàn tất",
+        "body": "Yêu cầu giải ngân cần được kiểm tra lại."
       }
     }
   }
