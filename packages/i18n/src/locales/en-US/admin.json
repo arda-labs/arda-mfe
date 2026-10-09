@@ -97,6 +97,25 @@
     "create": "Create Permission"
   },
   "users": {
+    "detail": {
+      "back": "Users",
+      "view": "View details",
+      "not_found": "User not found",
+      "load_failed": "Could not load the user",
+      "unsaved": "Unsaved changes",
+      "section": {
+        "nav": "Sections",
+        "account": "Account",
+        "profile": "Personal profile",
+        "access": "Access"
+      },
+      "discard": {
+        "title": "Discard unsaved changes?",
+        "description": "Your edits will be lost if you leave this page.",
+        "keep": "Keep editing",
+        "confirm": "Discard changes"
+      }
+    },
     "title": "Users",
     "count": "{count} users",
     "create": "Create User",

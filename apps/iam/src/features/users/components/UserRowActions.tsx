@@ -12,6 +12,7 @@ import {
   Check,
   KeyRound,
   MonitorCog,
+  Eye,
   MoreHorizontal,
   Pencil,
   ShieldCheck,
@@ -21,6 +22,8 @@ import {
 } from "lucide-react"
 
 export type UserRowActionHandlers = {
+  /** Open the detail page; omitted where the user is already on it. */
+  onView?: (user: User) => void
   onEdit: (user: User) => void
   onManageRoles: (user: User) => void
   onManageSessions: (user: User) => void
@@ -54,6 +57,12 @@ export function UserRowActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {handlers.onView ? (
+            <DropdownMenuItem onClick={() => handlers.onView?.(user)}>
+              <Eye className="mr-2 size-4" />
+              {t("admin.users.detail.view")}
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem onClick={() => handlers.onEdit(user)}>
             <Pencil className="mr-2 size-4" />
             {t("common.action.edit")}

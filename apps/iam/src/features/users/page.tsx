@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { downloadFile } from "@workspace/api"
 import { useAppQueryClient } from "@workspace/query/provider"
 import { translateApiError, useI18n } from "@workspace/i18n"
@@ -14,160 +15,48 @@ import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { SearchCheck } from "lucide-react"
 import { useUserColumns } from "./components/user-columns"
 import { UsersBatchActions } from "./components/UsersBatchActions"
-import { CreateUserDialog } from "./components/CreateUserDialog"
-import { EditUserDialog } from "./components/EditUserDialog"
-import { UserRolesDialog } from "./components/UserRolesDialog"
-import { UserSessionsDialog } from "./components/UserSessionsDialog"
-import { UserScopeDialog } from "./components/UserScopeDialog"
-import { UserIdentityDialog } from "./components/UserIdentityDialog"
-import {
-  UserDeleteDialog,
-  UserMfaResetDialog,
-} from "./components/UserConfirmDialogs"
 import { IdentityAuditDialog } from "./components/IdentityAuditDialog"
-import type { UserRowActionHandlers } from "./components/UserRowActions"
-import type { CreateUserValues, EditUserValues } from "./schema"
-import type {
-  IdentityConsistencyIssue,
-  User,
-} from "./types"
+import { useUserActions } from "./components/use-user-actions"
+import type { IdentityConsistencyIssue, User } from "./types"
 
 const USERS_QUERY_KEY = ["iam", "users", "list"]
+const USERS_BASE_PATH = "/admin/users"
+
+function userDetailPath(user: User, edit = false) {
+  const params = new URLSearchParams({ tenant: user.tenantId })
+  if (edit) params.set("mode", "edit")
+  return `${USERS_BASE_PATH}/${encodeURIComponent(user.id)}?${params.toString()}`
+}
 
 export function UsersPage() {
   const { t } = useI18n()
+  const navigate = useNavigate()
   const actorTenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const queryClient = useAppQueryClient()
-  const [createOpen, setCreateOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<User | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
-  const [resetTarget, setResetTarget] = useState<User | null>(null)
-  const [mfaResetTarget, setMfaResetTarget] = useState<User | null>(null)
-  const [provisionTarget, setProvisionTarget] = useState<User | null>(null)
-  const [roleTarget, setRoleTarget] = useState<User | null>(null)
-  const [sessionTarget, setSessionTarget] = useState<User | null>(null)
-  const [scopeTarget, setScopeTarget] = useState<User | null>(null)
   const [identityIssues, setIdentityIssues] = useState<
     IdentityConsistencyIssue[] | null
   >(null)
   const [identityAuditOpen, setIdentityAuditOpen] = useState(false)
-  const [deleting, setDeleting] = useState(false)
 
   /** Mutations refresh the list through the shared TanStack Query cache. */
   const invalidateList = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY })
   }, [queryClient])
 
-  const handleCreate = async (values: CreateUserValues) => {
-    try {
-      await usersApi.createUser(values)
-      notify.success(t("admin.users.create_success"))
-      invalidateList()
-    } catch (err) {
-      notify.error(t("admin.users.create_failed"), translateApiError(err))
-    }
-  }
-
-  const handleEdit = async (values: EditUserValues) => {
-    if (!editTarget) return
-    try {
-      await usersApi.updateUser(editTarget.id, editTarget.tenantId, {
-        username: values.username.trim(),
-        email: values.email.trim(),
-        firstName: values.firstName?.trim() || "",
-        lastName: values.lastName?.trim() || "",
-        nickname: values.nickname?.trim() || "",
-        gender: values.gender?.trim() || "",
-        country: values.country?.trim() || "",
-        address: values.address?.trim() || "",
-        position: values.position?.trim() || "",
-        status: values.status,
-        tenantId: values.tenantId.trim(),
-      })
-      notify.success(t("admin.users.update_success"))
-      invalidateList()
-    } catch (err) {
-      notify.error(t("admin.users.update_failed"), translateApiError(err))
-    }
-  }
-
-  const handleSetStatus = useCallback(
-    async (user: User, nextStatus: "ACTIVE" | "DISABLED") => {
-      try {
-        await usersApi.updateUser(user.id, user.tenantId, {
-          status: nextStatus,
-        })
-        notify.success(
-          nextStatus === "ACTIVE"
-            ? t("admin.users.enable_success")
-            : t("admin.users.disable_success")
-        )
-        invalidateList()
-      } catch (err) {
-        notify.error(t("admin.users.update_failed"), translateApiError(err))
-      }
-    },
-    [t, invalidateList]
+  const openDetail = useCallback(
+    (user: User) => navigate(userDetailPath(user)),
+    [navigate]
+  )
+  const openEdit = useCallback(
+    (user: User) => navigate(userDetailPath(user, true)),
+    [navigate]
   )
 
-  const handleDelete = async (user: User) => {
-    setDeleting(true)
-    try {
-      await usersApi.deleteUser(user.id, user.tenantId)
-      notify.success(t("admin.users.delete_success"))
-      setDeleteTarget(null)
-      invalidateList()
-    } catch (err) {
-      notify.error(t("admin.users.delete_failed"), translateApiError(err))
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const handleResetPassword = async (target: User, password: string) => {
-    try {
-      await usersApi.resetUserPassword(target.id, target.tenantId, password)
-      notify.success(t("admin.users.identity.reset_success"))
-      setResetTarget(null)
-    } catch (err) {
-      notify.error(
-        t("admin.users.identity.reset_failed"),
-        translateApiError(err)
-      )
-    }
-  }
-
-  const handleResetMFA = (target: User) => {
-    void usersApi
-      .resetUserMFA(target.id, target.tenantId)
-      .then(() => {
-        notify.success(t("admin.users.mfa.reset_success"))
-        setMfaResetTarget(null)
-      })
-      .catch((err: unknown) =>
-        notify.error(t("admin.users.mfa.reset_failed"), translateApiError(err))
-      )
-  }
-
-  const handleProvisionIdentity = async (target: User, password: string) => {
-    try {
-      const res = await usersApi.provisionUserIdentity(
-        target.id,
-        target.tenantId,
-        password
-      )
-      notify.success(
-        t("admin.users.identity.provision_success"),
-        res.kratosIdentityId
-      )
-      setProvisionTarget(null)
-    } catch (err) {
-      notify.error(
-        t("admin.users.identity.provision_failed"),
-        translateApiError(err)
-      )
-    }
-  }
+  const { handlers: rowHandlers, dialogs } = useUserActions({
+    onView: openDetail,
+    onEdit: openEdit,
+    onChanged: invalidateList,
+  })
 
   const handleAuditIdentity = async () => {
     try {
@@ -183,26 +72,6 @@ export function UsersPage() {
       notify.error(t("admin.users.identity.audit_failed"), translateApiError(err))
     }
   }
-
-  // Stable identity: `columns` (useUserColumns) memoizes on this object, and
-  // use-data-table derives filter state from `columns` — a fresh object per
-  // render would re-run the URL-filter sync effect forever (React error #185).
-  const rowHandlers: UserRowActionHandlers = useMemo(
-    () => ({
-      onEdit: setEditTarget,
-      onManageRoles: setRoleTarget,
-      onManageSessions: setSessionTarget,
-      onManageScope: setScopeTarget,
-      onResetPassword: setResetTarget,
-      onResetMfa: setMfaResetTarget,
-      onProvisionIdentity: setProvisionTarget,
-      onToggleStatus: (user, nextStatus) => {
-        void handleSetStatus(user, nextStatus)
-      },
-      onDelete: setDeleteTarget,
-    }),
-    [handleSetStatus]
-  )
 
   const columns = useUserColumns(rowHandlers)
 
@@ -254,11 +123,12 @@ export function UsersPage() {
       loadErrorTitle={t("admin.users.load_failed")}
       fetching={isFetching}
       table={table}
+      onRowDoubleClick={(row) => openDetail(row.original)}
       batchActions={(batchTable) => <UsersBatchActions table={batchTable} />}
       toolbar={
         <ListTableToolbar
           table={table}
-          onCreate={() => setCreateOpen(true)}
+          onCreate={() => navigate(`${USERS_BASE_PATH}/new`)}
           createLabel={t("admin.users.create")}
           exportFilename={t("admin.users.title")}
           sheetName={t("admin.users.title")}
@@ -296,55 +166,7 @@ export function UsersPage() {
       }
       dialogs={
         <>
-          <CreateUserDialog
-            open={createOpen}
-            onOpenChange={setCreateOpen}
-            onSubmit={handleCreate}
-          />
-          <EditUserDialog
-            user={editTarget}
-            open={editTarget !== null}
-            onOpenChange={(open) => !open && setEditTarget(null)}
-            onSubmit={handleEdit}
-          />
-          <UserRolesDialog
-            user={roleTarget}
-            open={roleTarget !== null}
-            onOpenChange={(open) => !open && setRoleTarget(null)}
-          />
-          <UserSessionsDialog
-            user={sessionTarget}
-            open={sessionTarget !== null}
-            onOpenChange={(open) => !open && setSessionTarget(null)}
-          />
-          <UserScopeDialog
-            user={scopeTarget}
-            open={scopeTarget !== null}
-            onOpenChange={(open) => !open && setScopeTarget(null)}
-          />
-          <UserIdentityDialog
-            kind="reset_password"
-            target={resetTarget}
-            onClose={() => setResetTarget(null)}
-            onSubmit={handleResetPassword}
-          />
-          <UserIdentityDialog
-            kind="provision_identity"
-            target={provisionTarget}
-            onClose={() => setProvisionTarget(null)}
-            onSubmit={handleProvisionIdentity}
-          />
-          <UserMfaResetDialog
-            target={mfaResetTarget}
-            onClose={() => setMfaResetTarget(null)}
-            onConfirm={handleResetMFA}
-          />
-          <UserDeleteDialog
-            target={deleteTarget}
-            deleting={deleting}
-            onClose={() => setDeleteTarget(null)}
-            onConfirm={(user) => void handleDelete(user)}
-          />
+          {dialogs}
           <IdentityAuditDialog
             open={identityAuditOpen}
             onOpenChange={setIdentityAuditOpen}

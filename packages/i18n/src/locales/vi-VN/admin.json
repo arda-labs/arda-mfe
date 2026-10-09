@@ -97,6 +97,25 @@
     "create": "Tạo quyền"
   },
   "users": {
+    "detail": {
+      "back": "Danh sách người dùng",
+      "view": "Xem chi tiết",
+      "not_found": "Không tìm thấy người dùng",
+      "load_failed": "Không tải được thông tin người dùng",
+      "unsaved": "Có thay đổi chưa lưu",
+      "section": {
+        "nav": "Các mục",
+        "account": "Tài khoản",
+        "profile": "Hồ sơ cá nhân",
+        "access": "Quyền truy cập"
+      },
+      "discard": {
+        "title": "Bỏ các thay đổi chưa lưu?",
+        "description": "Các chỉnh sửa của bạn sẽ bị mất nếu rời khỏi trang này.",
+        "keep": "Tiếp tục chỉnh sửa",
+        "confirm": "Bỏ thay đổi"
+      }
+    },
     "title": "Người dùng",
     "count": "{count} người dùng",
     "create": "Tạo người dùng",
