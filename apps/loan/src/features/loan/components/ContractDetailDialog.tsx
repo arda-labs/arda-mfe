@@ -22,10 +22,10 @@ import { caseDisplayLabel, truncateMiddle } from "../../case-display"
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
-    case "ACTIVE":
+    case "DISBURSED":
     case "APPROVED":
       return "default"
-    case "PENDING":
+    case "PENDING_APPROVAL":
     case "DRAFT":
       return "secondary"
     case "REJECTED":
@@ -40,10 +40,12 @@ function statusLabelKey(status: string): string {
   switch (status) {
     case "DRAFT":
       return "loan.status.draft"
-    case "PENDING":
+    case "PENDING_APPROVAL":
       return "loan.status.pending"
-    case "ACTIVE":
-      return "loan.status.active"
+    case "APPROVED":
+      return "loan.status.approved"
+    case "DISBURSED":
+      return "loan.status.disbursed"
     case "REJECTED":
       return "loan.status.rejected"
     case "CLOSED":
@@ -66,7 +68,7 @@ function DetailField({ label, children }: { label: string; children?: React.Reac
 /**
  * Contract detail dialog (click a row / "Chi tiết"): full contract header per
  * BE domain.Contract, status badge, the formation case id, and status-driven
- * actions — DRAFT submits, PENDING points at the workbench, ACTIVE opens the
+ * actions — DRAFT submits, PENDING_APPROVAL points at the workbench, DISBURSED opens the
  * disbursement/collection flows, REJECTED explains where to look.
  */
 export function ContractDetailDialog({
@@ -160,7 +162,7 @@ export function ContractDetailDialog({
         {contract.workflow_case_id ? (
           <p className="text-xs text-muted-foreground">{t("loan.workbench_hint")}</p>
         ) : null}
-        {status === "PENDING" ? (
+        {status === "PENDING_APPROVAL" ? (
           <p className="text-sm text-muted-foreground">{t("loan.detail.pending_hint")}</p>
         ) : null}
         {status === "REJECTED" ? (
@@ -171,7 +173,7 @@ export function ContractDetailDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("loan.cancel")}
           </Button>
-          {status === "ACTIVE" ? (
+          {status === "DISBURSED" ? (
             <>
               <Button
                 variant="outline"
