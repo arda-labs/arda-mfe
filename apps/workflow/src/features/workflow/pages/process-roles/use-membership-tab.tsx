@@ -9,7 +9,7 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { useAuthStore } from "@workspace/auth"
 import type { WorkflowRoleMembership } from "../../api"
 import { processRolesApi } from "../../api"
-import { RoleMembershipDialog } from "../../shared/admin-ui"
+import { RoleMembershipDialog } from "../../shared/admin-dialogs"
 import {
   byString,
   statusFilterOptions,

@@ -1,4 +1,5 @@
-import { APP_TIMEZONE } from "@workspace/format"
+import { formatDateTime } from "@workspace/format"
+export { formatDateTime } from "@workspace/format"
 /**
  * Static step-code to i18n-key map. Translations live under
  * workflow.workbench.step_* in the app locales; pass t to translate.
@@ -33,17 +34,6 @@ const stepKeys: Record<string, string> = {
 export function stepLabel(value: string, t?: TFn) {
   const key = stepKeys[value]
   return key && t ? t(key) : value
-}
-
-export function formatDateTime(value?: string) {
-  if (!value) return "-"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat("vi-VN", {
-    timeZone: APP_TIMEZONE,
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date)
 }
 
 export function completionTime(item: {

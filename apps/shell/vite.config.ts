@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import {
-  remoteSharedDeps,
+  shellSharedDeps,
   shellOptimizeInclude,
   federationBuild,
   federationRemote,
@@ -44,7 +44,7 @@ export default defineConfig(({ command }) => {
           capital: remote("capital", "CAPITAL_REMOTE_ENTRY"),
           statistical: remote("statistical", "STATISTICAL_REMOTE_ENTRY"),
         },
-        shared: { ...remoteSharedDeps },
+        shared: { ...shellSharedDeps },
       }),
     ],
     resolve: {

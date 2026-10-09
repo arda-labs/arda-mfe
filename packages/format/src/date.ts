@@ -26,6 +26,21 @@ export function formatDateShort(value: string | null | undefined, locale = "vi-V
   }).format(date)
 }
 
+/** Formats an API timestamp consistently in the platform business timezone. */
+export function formatDateTime(
+  value: string | null | undefined,
+  locale = "vi-VN"
+): string {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date)
+}
+
 /** "YYYY-MM-DD" of an instant rendered in the app timezone. */
 function isoDayInAppTz(date: Date): string {
   // "sv-SE" formats dates as ISO-like "YYYY-MM-DD" — the stable trick for
