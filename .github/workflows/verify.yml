@@ -19,6 +19,8 @@ jobs:
       - run: bun pm cache rm
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
+      - run: bun run test:packages
+      - run: node scripts/check-vuln.test.mjs
       - run: bun run test:federation
       - run: bun run test:features
       - run: git diff --check

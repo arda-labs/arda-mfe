@@ -4,6 +4,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@workspace/ui/components/collapsible"
+import { safeExternalHref } from "@workspace/ui/lib/safe-url"
 import { ChevronDown, ExternalLink } from "lucide-react"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import type { ToolResultViewProps } from "../../lib/registry"
@@ -45,7 +46,12 @@ export function KnowledgeCitationList({ result }: ToolResultViewProps) {
           <p className="font-medium">{t("ai.tool.citations.title")}</p>
           <ul className="space-y-1.5">
             {citations.map((citation, index) => {
-              const url = textValue(citation.url)
+              // The citation URL comes out of the retrieval tool result, which
+              // means it is derived from a knowledge-base document that any
+              // permitted user can author. A document carrying indirect prompt
+              // injection can therefore get a `javascript:` href rendered as a
+              // live link. The protocol allowlist is applied here, at the sink.
+              const url = safeExternalHref(textValue(citation.url))
               const title = textValue(citation.title, t("ai.tool.citations.fallback"))
               const heading = textValue(citation.heading)
               const version = textValue(citation.version)

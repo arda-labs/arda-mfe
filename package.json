@@ -21,6 +21,7 @@
     "create:feature": "bun ./scripts/create-feature.mjs",
     "test:federation": "bun test tests/federation",
     "test:features": "bun test apps",
+    "test:packages": "bun test packages",
     "test:browser": "playwright test",
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",

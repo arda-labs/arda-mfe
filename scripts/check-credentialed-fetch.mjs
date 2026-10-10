@@ -12,6 +12,11 @@ async function walk(dir) {
       await walk(path)
       continue
     }
+    // Test files are excluded: this gate exists to make every *shipped* fetch
+    // credentialed, and a test asserting on a hostile payload legitimately
+    // contains fetch() inside a string literal. Excluding them keeps the gate
+    // strict on real code without forcing test fixtures to be rewritten.
+    if (/\.(test|spec)\.[a-z]+$/.test(entry.name)) continue
     if (!extensions.has(entry.name.slice(entry.name.lastIndexOf(".")))) continue
     const source = (await readFile(path, "utf8")).replace(/\/\/.*$/gm, "")
     for (const match of source.matchAll(/(^|[^\w.])fetch\s*\(/gm)) {

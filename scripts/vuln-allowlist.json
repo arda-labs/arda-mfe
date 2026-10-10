@@ -1,0 +1,64 @@
+{
+  "$comment": [
+    "Dependency advisories that are knowingly accepted in arda-mfe.",
+    "",
+    "scripts/check-vuln.mjs runs `bun audit --json` and fails on any advisory",
+    "that is not listed here. All four current entries are transitive: none is a",
+    "direct dependency, so none can be fixed here without a patch or an override",
+    "that would diverge from the upstream lockfile.",
+    "",
+    "The gate refuses an entry without package, severity, scope, reason,",
+    "revisitWhen and reviewed, so an exception has to state what it is and when",
+    "to look again."
+  ],
+  "accepted": [
+    {
+      "id": "GHSA-vwc7-r8mq-g2x9",
+      "url": "https://github.com/advisories/GHSA-vwc7-r8mq-g2x9",
+      "package": "adm-zip",
+      "severity": "moderate",
+      "scope": "build-time only",
+      "via": "@module-federation/vite > @module-federation/dts-plugin",
+      "reason": "adm-zip is pulled in by the federation dts plugin, which only generates TypeScript declarations during `bun run build`. It is not in any bundle that reaches a browser, and the advisory needs a crafted zip extracted to a destination containing symlinks, which the plugin never does with untrusted input.",
+      "revisitWhen": "@module-federation/vite ships a dts-plugin release that drops adm-zip, or adm-zip publishes the 0.6.1 fix",
+      "reviewed": "2026-09-26",
+      "reviewBy": "2026-12-26"
+    },
+    {
+      "id": "GHSA-7q85-xj36-vmfc",
+      "url": "https://github.com/advisories/GHSA-7q85-xj36-vmfc",
+      "package": "adm-zip",
+      "severity": "high",
+      "scope": "build-time only",
+      "via": "@module-federation/vite > @module-federation/dts-plugin",
+      "reason": "Same dependency path as GHSA-vwc7-r8mq-g2x9. The advisory is a denial of service from a declared uncompressed size in the zip header, which requires the build step to extract a hostile archive. The inputs are the repository's own source files.",
+      "revisitWhen": "the adm-zip entry above is resolved",
+      "reviewed": "2026-09-26",
+      "reviewBy": "2026-12-26"
+    },
+    {
+      "id": "GHSA-rgj7-g3m4-5g8c",
+      "url": "https://github.com/advisories/GHSA-rgj7-g3m4-5g8c",
+      "package": "sharp",
+      "severity": "high",
+      "scope": "dev dependency, not shipped",
+      "via": "wrangler > miniflare",
+      "reason": "sharp is a devDependency reached through wrangler/miniflare, which run the Workers locally and in `wrangler dev`. The libheif issues affect image decoding of attacker-supplied files; nothing in this repository decodes an untrusted image at build or preview time, and the native module is never part of a browser bundle.",
+      "revisitWhen": "wrangler or miniflare ships a release depending on sharp >= 0.35.4",
+      "reviewed": "2026-09-26",
+      "reviewBy": "2026-12-26"
+    },
+    {
+      "id": "GHSA-w5hq-g745-h8pq",
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+      "package": "uuid",
+      "severity": "moderate",
+      "scope": "production path, not reachable with the current call pattern",
+      "via": "@ag-ui/client and exceljs",
+      "reason": "The one entry with a production dependency path, tracked deliberately. The advisory is a missing bounds check in uuid v3/v5/v6 when the caller supplies its own output buffer, which lets a write run past that buffer. Nothing in this repository calls uuid.v3, v5 or v6 with a caller-provided buffer: v4 is generated internally and the exceljs path does not use those versions with an external buffer. Re-check this if a hashing or namespaced-uuid helper is ever added.",
+      "revisitWhen": "@ag-ui/client and exceljs both ship releases depending on uuid >= 11.1.1",
+      "reviewed": "2026-09-26",
+      "reviewBy": "2026-11-26"
+    }
+  ]
+}
