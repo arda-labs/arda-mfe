@@ -360,6 +360,18 @@
       "enable": "Bật định tuyến bằng Jev",
       "enable_hint": "Áp dụng cho các lượt chat mới sau khi lưu cấu hình.",
       "provider": "Nhà cung cấp",
+      "providers": {
+        "opencode-zen": "OpenCode Zen · System One",
+        "typesafe": "TypeSafe AI · System One (trực tiếp)"
+      },
+      "provider_hint": {
+        "opencode-zen": "Jev qua gateway OpenCode Zen. Model: jev-1.13, jev-1.13-free.",
+        "typesafe": "Jev gọi trực tiếp api.typesafe.ai. Model: jev-latest, jev-1.13.0 (hoặc ghim phiên bản để ổn định confidence)."
+      },
+      "key_for": {
+        "opencode-zen": "API key OpenCode Zen",
+        "typesafe": "API key TypeSafe AI"
+      },
       "model": "Model quyết định",
       "free_hint": "Bản Free được OpenCode cung cấp có thời hạn. Hệ thống không tự chuyển sang bản trả phí.",
       "key": "API key OpenCode Zen",
@@ -515,11 +527,14 @@
         "add": "Thêm hồ sơ",
         "add_model": "Thêm model",
         "test": "Kiểm tra",
-        "apply_config": "Áp dụng cấu hình"
+        "apply_config": "Áp dụng cấu hình",
+        "fetch_models": "Lấy danh sách"
       },
       "field": {
         "name": "Tên hồ sơ",
         "provider": "Preset nhà cung cấp",
+        "api_format": "Định dạng API",
+        "reasoning_effort": "Mức suy luận",
         "base_url": "Base URL",
         "api_key": "API Key",
         "models": "Danh sách Model ID",
@@ -552,6 +567,45 @@
         "ollama": "Endpoint OpenAI-compatible /v1. URL local phải được deployment cho phép.",
         "vllm": "Endpoint OpenAI-compatible /v1. Dùng URL nội bộ hoặc gateway đã được cho phép."
       },
+      "api_format": {
+        "chat_completions": "Chat completions (/chat/completions)",
+        "anthropic_messages": "Anthropic messages (/v1/messages)",
+        "openai_responses": "Responses (/responses)",
+        "google_gemini": "Google Gemini (/models/{model})"
+      },
+      "api_format_hint": {
+        "chat_completions": "Giao thức OpenAI Chat Completions: hầu hết nhà cung cấp và gateway tương thích. Gửi tới {base}/chat/completions.",
+        "anthropic_messages": "Giao thức Anthropic Messages (Claude, và các model Qwen chạy qua endpoint này). Gửi tới {base}/v1/messages; không lặp /v1 nếu Base URL đã có.",
+        "openai_responses": "Giao thức OpenAI Responses (GPT-5.x, Grok, Muse…). Gửi tới {base}/responses.",
+        "google_gemini": "Giao thức Gemini generateContent (Gemini 3.x). Gửi tới {base}/models/{model}:streamGenerateContent; khóa gửi qua x-goog-api-key."
+      },
+      "reasoning_effort": {
+        "default": "Mặc định của nhà cung cấp",
+        "low": "Thấp",
+        "medium": "Trung bình",
+        "high": "Cao"
+      },
+      "reasoning_effort_hint": "Chỉ áp dụng cho model suy luận (thinking). Để mặc định nếu model không hỗ trợ: tham số này bị một số nhà cung cấp từ chối. Không áp dụng cho truy vấn viết lại RAG.",
+      "reasoning_budget": "Ngân sách suy luận (token)",
+      "reasoning_budget_hint": "Tùy chọn, 1024–64000. Ghi đè mức suy luận cho Anthropic messages và Gemini; để trống hoặc 0 để dùng theo mức ở trên.",
+      "format_inherit": "Theo hồ sơ",
+      "model_format": "Định dạng API của model",
+      "suggest_format": "Gợi ý: {format}",
+      "use_suggestion": "Dùng gợi ý",
+      "suggest_apply": "Model này thường chạy trên {format}. Dùng định dạng đó cho riêng model?",
+      "available": {
+        "title": "Model của nhà cung cấp",
+        "description": "Danh sách do endpoint của hồ sơ công bố (GET /models). Model Jev/System One được ẩn vì thuộc phần Model quyết định.",
+        "loading": "Đang lấy danh sách model…",
+        "empty": "Endpoint không trả về model nào.",
+        "failed": "Không lấy được danh sách model",
+        "added": "Đã có",
+        "filter": "Lọc theo tên…",
+        "add": "Thêm {count} model",
+        "hint": "Định dạng gợi ý được áp dụng riêng cho model khi khác định dạng của hồ sơ."
+      },
+      "toast_models_added": "Đã thêm model",
+      "toast_format_failed": "Không đổi được định dạng API của model",
       "test": {
         "success": "Kết nối thành công! (Độ trễ: {latency}ms)",
         "failed": "Kết nối thất bại"

@@ -13,7 +13,25 @@ import { cn } from "@workspace/ui/lib/utils"
 import { AlertCircle, CheckCircle2, GitBranch, Loader2, Sparkles } from "lucide-react"
 import { fetchDecisionSettings, saveDecisionSettings, testDecisionSettings } from "../api/decision"
 import { decisionSettingsSchema, defaultDecisionSettings } from "../schema"
-import type { DecisionSettings, DecisionTestResult } from "../types"
+import type { DecisionProvider, DecisionSettings, DecisionTestResult } from "../types"
+
+const decisionProviders: DecisionProvider[] = ["opencode-zen", "typesafe"]
+
+// Model IDs differ per provider: Zen publishes jev-1.13 / jev-1.13-free,
+// TypeSafe publishes versioned IDs and the jev-latest / jev-preview aliases.
+const providerModels: Record<DecisionProvider, Array<{ value: string; label: string }>> = {
+  "opencode-zen": [
+    { value: "jev-1.13-free", label: "Jev 1.13 Free" },
+    { value: "jev-1.13", label: "Jev 1.13" },
+  ],
+  typesafe: [
+    { value: "jev-latest", label: "Jev (jev-latest)" },
+    { value: "jev-1.13.0", label: "Jev 1.13.0" },
+  ],
+}
+
+const isListedModel = (provider: DecisionProvider, modelId: string) =>
+  providerModels[provider].some((item) => item.value === modelId)
 
 export function DecisionTab() {
   const { t } = useI18n()
@@ -34,7 +52,7 @@ export function DecisionTab() {
     fetchDecisionSettings().then((data) => {
       if (active) {
         setSettings(data)
-        setCustomModel(data.model_id !== "jev-1.13-free" && data.model_id !== "jev-1.13")
+        setCustomModel(!isListedModel(data.provider, data.model_id))
         setLoading(false)
         setLoadFailed(false)
       }
@@ -66,6 +84,7 @@ export function DecisionTab() {
   const submit = async (action: "save" | "test") => {
     const payload = {
       enabled: settings.enabled,
+      provider: settings.provider,
       model_id: settings.model_id.trim(),
       min_confidence: settings.min_confidence,
       ...(clearKey ? { api_key: "" } : apiKey.trim() ? { api_key: apiKey.trim() } : {}),
@@ -123,7 +142,26 @@ export function DecisionTab() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="decision-provider">{t("ai.settings.decision.provider")}</Label>
-                  <Input id="decision-provider" value="OpenCode Zen · System One" readOnly />
+                  <Select
+                    value={settings.provider}
+                    onValueChange={(value) => {
+                      const provider = value as DecisionProvider
+                      // The saved key and model belong to the previous provider.
+                      setCustomModel(false)
+                      change({ provider, model_id: providerModels[provider][0]?.value ?? settings.model_id })
+                    }}
+                    disabled={busy !== null}
+                  >
+                    <SelectTrigger id="decision-provider"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {decisionProviders.map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          {t(`ai.settings.decision.providers.${provider}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">{t(`ai.settings.decision.provider_hint.${settings.provider}`)}</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="decision-model">{t("ai.settings.decision.model")}</Label>
@@ -141,8 +179,9 @@ export function DecisionTab() {
                   >
                     <SelectTrigger id="decision-model"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="jev-1.13-free">Jev 1.13 Free</SelectItem>
-                      <SelectItem value="jev-1.13">Jev 1.13</SelectItem>
+                      {providerModels[settings.provider].map((item) => (
+                        <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                      ))}
                       <SelectItem value="custom">{t("ai.settings.decision.custom_model")}</SelectItem>
                     </SelectContent>
                   </Select>
@@ -154,7 +193,7 @@ export function DecisionTab() {
                   <Label htmlFor="decision-custom-model">{t("ai.settings.decision.custom_model")}</Label>
                   <Input
                     id="decision-custom-model"
-                    placeholder="ví dụ: jev-latest, typesafe/jev-2"
+                    placeholder={providerModels[settings.provider][0]?.value}
                     value={settings.model_id}
                     onChange={(e) => change({ model_id: e.target.value })}
                     maxLength={128}
@@ -163,12 +202,12 @@ export function DecisionTab() {
                 </div>
               )}
 
-              {settings.model_id === "jev-1.13-free" && !customModel && (
+              {settings.provider === "opencode-zen" && settings.model_id === "jev-1.13-free" && !customModel && (
                 <p className="text-xs text-muted-foreground">{t("ai.settings.decision.free_hint")}</p>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="decision-key">{t("ai.settings.decision.key")}</Label>
+                <Label htmlFor="decision-key">{t(`ai.settings.decision.key_for.${settings.provider}`)}</Label>
                 <Input
                   id="decision-key"
                   type="password"

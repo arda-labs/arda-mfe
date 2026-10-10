@@ -360,6 +360,18 @@
       "enable": "Enable Jev routing",
       "enable_hint": "Applies to new chat turns after saving.",
       "provider": "Provider",
+      "providers": {
+        "opencode-zen": "OpenCode Zen · System One",
+        "typesafe": "TypeSafe AI · System One (direct)"
+      },
+      "provider_hint": {
+        "opencode-zen": "Jev through the OpenCode Zen gateway. Models: jev-1.13, jev-1.13-free.",
+        "typesafe": "Jev called directly on api.typesafe.ai. Models: jev-latest, jev-1.13.0 (or pin a version to keep confidence stable)."
+      },
+      "key_for": {
+        "opencode-zen": "OpenCode Zen API key",
+        "typesafe": "TypeSafe AI API key"
+      },
       "model": "Decision model",
       "free_hint": "OpenCode offers the Free model for a limited time. Arda never switches to the paid model automatically.",
       "key": "OpenCode Zen API key",
@@ -515,11 +527,14 @@
         "add": "Add profile",
         "add_model": "Add model",
         "test": "Test",
-        "apply_config": "Apply configuration"
+        "apply_config": "Apply configuration",
+        "fetch_models": "Fetch list"
       },
       "field": {
         "name": "Profile name",
         "provider": "Provider preset",
+        "api_format": "API format",
+        "reasoning_effort": "Reasoning effort",
         "base_url": "Base URL",
         "api_key": "API Key",
         "models": "Model IDs",
@@ -552,6 +567,45 @@
         "ollama": "OpenAI-compatible /v1 endpoint. Local URLs must be permitted by the deployment.",
         "vllm": "OpenAI-compatible /v1 endpoint. Use an approved internal or gateway URL."
       },
+      "api_format": {
+        "chat_completions": "Chat completions (/chat/completions)",
+        "anthropic_messages": "Anthropic messages (/v1/messages)",
+        "openai_responses": "Responses (/responses)",
+        "google_gemini": "Google Gemini (/models/{model})"
+      },
+      "api_format_hint": {
+        "chat_completions": "OpenAI Chat Completions protocol: most providers and compatible gateways. Sent to {base}/chat/completions.",
+        "anthropic_messages": "Anthropic Messages protocol (Claude, plus Qwen models served on this endpoint). Sent to {base}/v1/messages; /v1 is not repeated when the Base URL already has it.",
+        "openai_responses": "OpenAI Responses protocol (GPT-5.x, Grok, Muse…). Sent to {base}/responses.",
+        "google_gemini": "Gemini generateContent protocol (Gemini 3.x). Sent to {base}/models/{model}:streamGenerateContent; the key travels in x-goog-api-key."
+      },
+      "reasoning_effort": {
+        "default": "Provider default",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "reasoning_effort_hint": "Only for reasoning (thinking) models. Leave on default if the model does not support it: some providers reject the parameter. Not applied to RAG query rewriting.",
+      "reasoning_budget": "Reasoning budget (tokens)",
+      "reasoning_budget_hint": "Optional, 1024–64000. Overrides the reasoning effort for Anthropic messages and Gemini; leave empty or 0 to follow the level above.",
+      "format_inherit": "Same as profile",
+      "model_format": "Model API format",
+      "suggest_format": "Suggested: {format}",
+      "use_suggestion": "Use suggestion",
+      "suggest_apply": "This model usually runs on {format}. Use that format for this model only?",
+      "available": {
+        "title": "Provider models",
+        "description": "Models advertised by the profile endpoint (GET /models). Jev/System One models are hidden: they belong to the decision model settings.",
+        "loading": "Fetching models…",
+        "empty": "The endpoint returned no models.",
+        "failed": "Could not fetch the model list",
+        "added": "Added",
+        "filter": "Filter by name…",
+        "add": "Add {count} models",
+        "hint": "A suggested format is applied to that model only when it differs from the profile format."
+      },
+      "toast_models_added": "Models added",
+      "toast_format_failed": "Could not change the model API format",
       "test": {
         "success": "Connected successfully! (Latency: {latency}ms)",
         "failed": "Connection failed"

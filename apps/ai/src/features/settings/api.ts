@@ -10,12 +10,26 @@ export interface AIProfileModel {
   modelId: string
   label?: string
   isActive: boolean
+  /** This model's own API format; undefined means it follows the profile. */
+  apiFormat?: AIApiFormat
+  /** Server-side hint derived from the model ID; never applied silently. */
+  suggestedApiFormat: AIApiFormat
 }
+
+/** One entry of GET /profiles/{id}/available-models; `added` = already held. */
+export type AIAvailableModel = Pick<
+  AIProfileModel,
+  "modelId" | "suggestedApiFormat"
+> & { added: boolean }
 
 export interface AIProfile {
   id: string
   name: string
   providerType: AIProviderType
+  apiFormat: AIApiFormat
+  reasoningEffort: AIReasoningEffort
+  /** Explicit thinking-token budget; 0 follows the reasoning effort. */
+  reasoningBudgetTokens: number
   baseUrl: string
   apiKey: string
   hasApiKey: boolean
@@ -26,9 +40,22 @@ export interface AIProfile {
 export type AIProviderType =
   "openai" | "openai-compatible" | "opencode-go" | "ollama" | "vllm"
 
+// Wire protocol of the endpoint (mirrors ai-service model.APIFormat).
+export type AIApiFormat =
+  | "chat_completions"
+  | "anthropic_messages"
+  | "openai_responses"
+  | "google_gemini"
+
+// "" lets the provider pick; other values are sent only when chosen.
+export type AIReasoningEffort = "" | "low" | "medium" | "high"
+
 export interface ProfileUpsertPayload {
   name: string
   providerType: AIProviderType
+  apiFormat: AIApiFormat
+  reasoningEffort: AIReasoningEffort
+  reasoningBudgetTokens: number
   baseUrl: string
   apiKey?: string
   models?: string[]
@@ -76,13 +103,36 @@ export async function deleteProfile(id: string): Promise<void> {
 
 export async function addProfileModels(
   id: string,
-  models: string[]
+  models: string[],
+  formats?: Record<string, AIApiFormat>
 ): Promise<AIProfile> {
   const res = await postCanonical<{ profile: AIProfile }>(
     `/api/ai/settings/profiles/${encodeURIComponent(id)}/models`,
-    { models }
+    formats && Object.keys(formats).length > 0 ? { models, formats } : { models }
   )
   return res.profile
+}
+
+/** Sets one model's API format; "" clears it so the model follows the profile. */
+export async function setProfileModelFormat(
+  id: string,
+  modelId: string,
+  apiFormat: AIApiFormat | ""
+): Promise<AIProfile> {
+  const res = await putCanonical<{ profile: AIProfile }>(
+    `/api/ai/settings/profiles/${encodeURIComponent(id)}/models/${encodeURIComponent(modelId)}`,
+    { apiFormat }
+  )
+  return res.profile
+}
+
+/** Models the saved profile's endpoint advertises (GET {base}/models). */
+export async function fetchAvailableModels(
+  id: string
+): Promise<{ models: AIAvailableModel[]; error?: string }> {
+  return getCanonical<{ models: AIAvailableModel[]; error?: string }>(
+    `/api/ai/settings/profiles/${encodeURIComponent(id)}/available-models`
+  )
 }
 
 export async function deleteProfileModel(

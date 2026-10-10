@@ -22,15 +22,29 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { Eye, EyeOff } from "lucide-react"
 import {
+  API_FORMATS,
+  BUDGET_FORMATS,
+  MAX_REASONING_BUDGET,
+  MIN_REASONING_BUDGET,
+  suggestApiFormat,
+  API_FORMAT_PATH,
+} from "../formats"
+import {
   createProfile,
   updateProfile,
+  type AIApiFormat,
   type AIProfile,
   type AIProviderType,
+  type AIReasoningEffort,
 } from "../api"
 
 export type ProfileForm = {
   name: string
   providerType: AIProviderType
+  apiFormat: AIApiFormat
+  reasoningEffort: AIReasoningEffort
+  /** Text so an empty field stays empty; parsed on submit. */
+  reasoningBudget: string
   baseUrl: string
   apiKey: string
   models: string
@@ -44,9 +58,17 @@ const providerPresets: Array<{ value: AIProviderType; defaultURL: string }> = [
   { value: "openai-compatible", defaultURL: "" },
 ]
 
+const reasoningEfforts: AIReasoningEffort[] = ["", "low", "medium", "high"]
+
+// Radix Select rejects an empty item value, so "provider default" is keyed.
+const defaultEffortKey = "default"
+
 const emptyForm: ProfileForm = {
   name: "",
   providerType: "openai",
+  apiFormat: "chat_completions",
+  reasoningEffort: "",
+  reasoningBudget: "",
   baseUrl: "https://api.openai.com/v1",
   apiKey: "",
   models: "",
@@ -74,6 +96,11 @@ export function ProfileDialog({
       setForm({
         name: editing.name,
         providerType: editing.providerType || "openai-compatible",
+        apiFormat: editing.apiFormat || "chat_completions",
+        reasoningEffort: editing.reasoningEffort ?? "",
+        reasoningBudget: editing.reasoningBudgetTokens
+          ? String(editing.reasoningBudgetTokens)
+          : "",
         baseUrl: editing.baseUrl,
         apiKey: editing.apiKey ?? "",
         models: "",
@@ -83,6 +110,18 @@ export function ProfileDialog({
     }
     setShowKey(false)
   }, [open, editing])
+
+  // A model typed into the list that usually runs on another protocol.
+  const suggestion = (() => {
+    if (editing) return null
+    const first = form.models
+      .split(/[\n,]+/)
+      .map((m) => m.trim())
+      .find(Boolean)
+    if (!first) return null
+    const suggested = suggestApiFormat(first)
+    return suggested !== form.apiFormat ? suggested : null
+  })()
 
   const submit = async () => {
     const name = form.name.trim()
@@ -96,12 +135,25 @@ export function ProfileDialog({
       .split(/[\n,]+/)
       .map((m) => m.trim())
       .filter(Boolean)
+    const budgetText = form.reasoningBudget.trim()
+    const budget = budgetText === "" ? 0 : Number(budgetText)
+    if (
+      !Number.isInteger(budget) ||
+      (budget !== 0 &&
+        (budget < MIN_REASONING_BUDGET || budget > MAX_REASONING_BUDGET))
+    ) {
+      notify.error(t("ai.settings.profiles.reasoning_budget"), t("ai.settings.profiles.reasoning_budget_hint"))
+      return
+    }
     setSaving(true)
     try {
       if (editing) {
         await updateProfile(editing.id, {
           name,
           providerType: form.providerType,
+          apiFormat: form.apiFormat,
+          reasoningEffort: form.reasoningEffort,
+          reasoningBudgetTokens: budget,
           baseUrl,
           apiKey,
         })
@@ -110,6 +162,9 @@ export function ProfileDialog({
         await createProfile({
           name,
           providerType: form.providerType,
+          apiFormat: form.apiFormat,
+          reasoningEffort: form.reasoningEffort,
+          reasoningBudgetTokens: budget,
           baseUrl,
           apiKey,
           models,
@@ -182,6 +237,59 @@ export function ProfileDialog({
 
           <div className="space-y-1.5">
             <Label className="text-xs">
+              {t("ai.settings.profiles.field.api_format")}
+            </Label>
+            <Select
+              value={form.apiFormat}
+              onValueChange={(value) =>
+                setForm((current) => ({
+                  ...current,
+                  apiFormat: value as AIApiFormat,
+                }))
+              }
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {API_FORMATS.map((format) => (
+                  <SelectItem key={format} value={format} className="text-xs">
+                    {t(`ai.settings.profiles.api_format.${format}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">
+              {t(`ai.settings.profiles.api_format_hint.${form.apiFormat}`, {
+                base: form.baseUrl.trim() || "{Base URL}",
+                model: "{model}",
+              })}
+            </p>
+            {suggestion && (
+              <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/30 px-2 py-1.5">
+                <span className="text-[10px] text-muted-foreground">
+                  {t("ai.settings.profiles.suggest_apply", {
+                    format: `${t(`ai.settings.profiles.api_format.${suggestion}`)}`,
+                  })}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px]"
+                  onClick={() =>
+                    setForm((current) => ({ ...current, apiFormat: suggestion }))
+                  }
+                >
+                  {t("ai.settings.profiles.use_suggestion")} ·{" "}
+                  <span className="font-mono">{API_FORMAT_PATH[suggestion]}</span>
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">
               {t("ai.settings.profiles.field.name")}
             </Label>
             <Input
@@ -249,6 +357,68 @@ export function ProfileDialog({
               </p>
             )}
           </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">
+              {t("ai.settings.profiles.field.reasoning_effort")}
+            </Label>
+            <Select
+              value={form.reasoningEffort || defaultEffortKey}
+              onValueChange={(value) =>
+                setForm((current) => ({
+                  ...current,
+                  reasoningEffort:
+                    value === defaultEffortKey
+                      ? ""
+                      : (value as AIReasoningEffort),
+                }))
+              }
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {reasoningEfforts.map((effort) => (
+                  <SelectItem
+                    key={effort || defaultEffortKey}
+                    value={effort || defaultEffortKey}
+                    className="text-xs"
+                  >
+                    {t(
+                      `ai.settings.profiles.reasoning_effort.${effort || defaultEffortKey}`
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">
+              {t("ai.settings.profiles.reasoning_effort_hint")}
+            </p>
+          </div>
+
+          {BUDGET_FORMATS.includes(form.apiFormat) && (
+            <div className="space-y-1.5">
+              <Label className="text-xs">
+                {t("ai.settings.profiles.reasoning_budget")}
+              </Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={MIN_REASONING_BUDGET}
+                max={MAX_REASONING_BUDGET}
+                step={256}
+                className="h-8 w-40 font-mono text-xs"
+                value={form.reasoningBudget}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, reasoningBudget: e.target.value }))
+                }
+                placeholder="0"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                {t("ai.settings.profiles.reasoning_budget_hint")}
+              </p>
+            </div>
+          )}
 
           {!editing && (
             <div className="space-y-1.5">

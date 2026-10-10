@@ -4,12 +4,17 @@ export interface DecisionSettings {
   model_id: string
   min_confidence: number
   has_api_key: boolean
-  provider: "opencode-zen"
+  provider: DecisionProvider
   purpose: "decision"
 }
 
+// Who serves the System One model (Jev): the OpenCode Zen gateway or TypeSafe
+// AI directly. Both speak POST /systemone.
+export type DecisionProvider = "opencode-zen" | "typesafe"
+
 export interface DecisionSettingsPayload {
   enabled: boolean
+  provider: DecisionProvider
   model_id: string
   min_confidence: number
   api_key?: string
