@@ -1,0 +1,64 @@
+{
+  "$comment": [
+    "Dependency advisories that are knowingly accepted in arda-mfe.",
+    "",
+    "scripts/check-vuln.mjs runs `bun audit --json` and fails on any advisory",
+    "that is not listed here. All current entries are transitive: none is a",
+    "direct dependency, so none can be fixed here without a patch or an override",
+    "that would diverge from the upstream lockfile.",
+    "",
+    "The gate refuses an entry without package, severity, scope, reason,",
+    "revisitWhen and reviewed, so an exception has to state what it is and when",
+    "to look again."
+  ],
+  "accepted": [
+    {
+      "id": "GHSA-w5hq-g745-h8pq",
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+      "package": "uuid",
+      "severity": "moderate",
+      "scope": "production path, not reachable with the current call pattern",
+      "via": "@ag-ui/client and exceljs",
+      "reason": "The one entry with a production dependency path, tracked deliberately. The advisory is a missing bounds check in uuid v3/v5/v6 when the caller supplies its own output buffer, which lets a write run past that buffer. Nothing in this repository calls uuid.v3, v5 or v6 with a caller-provided buffer: v4 is generated internally and the exceljs path does not use those versions with an external buffer. Re-check this if a hashing or namespaced-uuid helper is ever added.",
+      "revisitWhen": "@ag-ui/client and exceljs both ship releases depending on uuid >= 11.1.1",
+      "reviewed": "2026-09-26",
+      "reviewBy": "2026-11-26"
+    },
+    {
+      "id": "GHSA-qhr7-859c-m2p7",
+      "url": "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+      "severity": "high",
+      "reason": "Stack exhaustion on deeply nested brace groups. All three are denial of service when an attacker controls the glob pattern. Every pattern here comes from repository config (eslint config, build globs, exceljs archive paths) and none is built from user input; readdir-glob is a Node fs walker that never runs in the browser bundle.",
+      "package": "brace-expansion",
+      "scope": "build/lint-time only",
+      "via": "eslint > minimatch@10 (5.x); glob > minimatch@3 (1.x); exceljs > archiver > readdir-glob > minimatch@5 (2.x)",
+      "revisitWhen": "a lockfile refresh can move all three majors to 5.0.12 / 1.1.21 / 2.1.7 without re-resolving unrelated packages (bun overrides take one version per package name, so the three majors cannot be pinned separately)",
+      "reviewed": "2026-10-11",
+      "reviewBy": "2027-01-11"
+    },
+    {
+      "id": "GHSA-6j4f-fj2g-mc7p",
+      "url": "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+      "severity": "high",
+      "reason": "Stack exhaustion in parseCommaParts. All three are denial of service when an attacker controls the glob pattern. Every pattern here comes from repository config (eslint config, build globs, exceljs archive paths) and none is built from user input; readdir-glob is a Node fs walker that never runs in the browser bundle.",
+      "package": "brace-expansion",
+      "scope": "build/lint-time only",
+      "via": "eslint > minimatch@10 (5.x); glob > minimatch@3 (1.x); exceljs > archiver > readdir-glob > minimatch@5 (2.x)",
+      "revisitWhen": "a lockfile refresh can move all three majors to 5.0.12 / 1.1.21 / 2.1.7 without re-resolving unrelated packages (bun overrides take one version per package name, so the three majors cannot be pinned separately)",
+      "reviewed": "2026-10-11",
+      "reviewBy": "2027-01-11"
+    },
+    {
+      "id": "GHSA-q2hr-2g5m-vwhr",
+      "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+      "severity": "moderate",
+      "reason": "Quadratic-time expansion of the `{a},b}` rewrite. All three are denial of service when an attacker controls the glob pattern. Every pattern here comes from repository config (eslint config, build globs, exceljs archive paths) and none is built from user input; readdir-glob is a Node fs walker that never runs in the browser bundle.",
+      "package": "brace-expansion",
+      "scope": "build/lint-time only",
+      "via": "eslint > minimatch@10 (5.x); glob > minimatch@3 (1.x); exceljs > archiver > readdir-glob > minimatch@5 (2.x)",
+      "revisitWhen": "a lockfile refresh can move all three majors to 5.0.12 / 1.1.21 / 2.1.7 without re-resolving unrelated packages (bun overrides take one version per package name, so the three majors cannot be pinned separately)",
+      "reviewed": "2026-10-11",
+      "reviewBy": "2027-01-11"
+    }
+  ]
+}

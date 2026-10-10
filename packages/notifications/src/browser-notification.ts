@@ -1,5 +1,6 @@
 import type { NotificationItem } from "./types"
 import { navigateTo } from "@workspace/ui/shell/routing"
+import { classifyHref } from "@workspace/ui/lib/safe-url"
 
 const PREFERENCE_KEY = "arda.browser-notifications"
 
@@ -68,9 +69,15 @@ export function showBrowserNotification(
     n.onclick = () => {
       window.focus()
       if (options.href) {
-        const url = new URL(options.href, location.origin)
-        if (url.origin === location.origin) navigateTo(`${url.pathname}${url.search}${url.hash}`)
-        else window.location.assign(url.href)
+        // Same allowlist as the in-app notification bell. This path is reached
+        // from an OS-level notification click, so it is the easier of the two to
+        // overlook when auditing.
+        const target = classifyHref(options.href, location.origin)
+        if (target.kind === "internal") {
+          navigateTo(target.href)
+        } else if (target.kind === "external") {
+          window.open(target.href, "_blank", "noopener,noreferrer")
+        }
       }
       n.close()
     }

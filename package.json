@@ -21,6 +21,7 @@
     "create:feature": "bun ./scripts/create-feature.mjs",
     "test:federation": "bun test tests/federation",
     "test:features": "bun test apps",
+    "test:packages": "bun test packages",
     "test:browser": "playwright test",
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
@@ -55,5 +56,11 @@
   "dependencies": {
     "@assistant-ui/react": "^0.15.17",
     "@assistant-ui/react-markdown": "^0.14.13"
+  },
+  "overrides": {
+    "adm-zip": "0.6.1",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2",
+    "undici": "7.29.1"
   }
 }

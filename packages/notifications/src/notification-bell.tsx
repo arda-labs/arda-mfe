@@ -10,6 +10,7 @@ import {
 } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
 import { navigateTo } from "@workspace/ui/shell/routing"
+import { classifyHref } from "@workspace/ui/lib/safe-url"
 import { notificationsApi } from "./api"
 import {
   getBrowserNotificationPermission,
@@ -204,10 +205,18 @@ function NotificationRow({
     }
     if (notification.href) {
       close()
-      const url = new URL(notification.href, location.origin)
-      if (url.origin === location.origin)
-        navigateTo(`${url.pathname}${url.search}${url.hash}`)
-      else window.location.assign(url.href)
+      // The href is server-supplied and reaches this component unvalidated from
+      // both the SSE stream and the list endpoint. An origin comparison is not a
+      // scheme check: `javascript:` reports origin "null", so it used to fall
+      // through to location.assign and run in this origin. classifyHref
+      // allowlists the protocol before anything navigates.
+      const target = classifyHref(notification.href, location.origin)
+      if (target.kind === "internal") {
+        navigateTo(target.href)
+      } else if (target.kind === "external") {
+        // New context, so the destination cannot reach back via window.opener.
+        window.open(target.href, "_blank", "noopener,noreferrer")
+      }
     }
   }
 

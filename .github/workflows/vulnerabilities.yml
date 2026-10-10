@@ -1,0 +1,59 @@
+name: vulnerabilities
+
+# Dependency advisories arrive without a code change: a new advisory can turn
+# this build red on a commit that touched nothing but a lockfile. That is why it
+# runs on a schedule as well as on push.
+#
+# The audit that motivated this found four advisories in the frontend and none of
+# the workflows running a dependency check at all.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly, Monday 06:31 UTC. Deliberately off the hour: every scheduled
+    # workflow fires at :00 and GitHub queues the backlog.
+    - cron: "31 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vulnerabilities-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependencies:
+    name: JavaScript dependency advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      # The allowlist logic is covered on every push; this is the network-bound
+      # half that queries the advisory database.
+      - name: Validate the advisory allowlist
+        run: node scripts/check-vuln.test.mjs
+
+      - name: Audit dependencies
+        run: node scripts/check-vuln.mjs
+
+      - name: Show what is still accepted
+        if: always()
+        run: |
+          node -e '
+            const a = require("./scripts/vuln-allowlist.json");
+            console.log("Accepted advisories:");
+            for (const e of a.accepted ?? []) {
+              console.log(`  ${e.id}  ${e.package}@? (${e.severity})  reviewBy=${e.reviewBy}`);
+              console.log(`    via: ${e.via ?? "-"}`);
+              console.log(`    revisit: ${e.revisitWhen}`);
+            }
+          '
