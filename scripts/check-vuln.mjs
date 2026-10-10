@@ -1,14 +1,14 @@
 // Fails on a JavaScript dependency advisory that is not explicitly accepted in
 // scripts/vuln-allowlist.json.
 //
-// Why this exists: the audit found four advisories in arda-mfe and, separately,
+// Why this exists: the audit found several advisories in arda-mfe and, separately,
 // none of the four CI workflows ran a dependency check at all. `bun audit` exits
 // non-zero on any advisory, so dropping it into the workflow as-is would have
 // left the build permanently red and taught everyone to ignore it. This gate
 // keeps the signal: an unknown advisory fails, and a known one has to carry a
 // reason and a review date.
 //
-// The four current findings are all transitive and reach no browser code, so
+// The current findings are all transitive and reach no browser code, so
 // they are accepted explicitly rather than waved through. See the allowlist.
 
 import { readFile } from "node:fs/promises"

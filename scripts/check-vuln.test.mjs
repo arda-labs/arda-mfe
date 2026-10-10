@@ -45,12 +45,12 @@ try {
 
   // Dropping an accepted entry must surface the advisory again.
   const dropped = structuredClone(base)
-  dropped.accepted = dropped.accepted.filter((e) => e.id !== "GHSA-rgj7-g3m4-5g8c")
+  dropped.accepted = dropped.accepted.filter((e) => e.id !== "GHSA-w5hq-g745-h8pq")
   await writeFile(target, JSON.stringify(dropped, null, 2), "utf8")
   const missing = run()
   expect(
     "an unaccepted advisory fails",
-    missing.code === 1 && /GHSA-rgj7-g3m4-5g8c/.test(missing.out) && /Unaccepted/.test(missing.out),
+    missing.code === 1 && /GHSA-w5hq-g745-h8pq/.test(missing.out) && /Unaccepted/.test(missing.out),
     missing.out,
   )
 
