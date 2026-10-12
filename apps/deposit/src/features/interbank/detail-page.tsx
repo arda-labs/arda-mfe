@@ -50,7 +50,7 @@ export function InterbankDetailPage() {
   // linked to a workflow case owns its case attachments; otherwise files attach
   // to the interbank deposit entity and there is no activity log.
   const systemTabs = useCaseTabs({
-    caseId: deposit?.workflow_case_id,
+    caseId: deposit?.workflow_case_id ?? undefined,
     attachmentEntity:
       deposit && !deposit.workflow_case_id
         ? { type: "ibm_deposit", id: deposit.id, module: "deposit" }

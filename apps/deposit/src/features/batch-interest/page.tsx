@@ -52,7 +52,7 @@ export function BatchInterestPage() {
       const result = await depositApi.submitBatchInterest()
       // One workflow case covers the whole batch — attach staged files to it.
       try {
-        await attachStagedCaseFiles(staged.ids, result.items[0]?.workflow_case_id ?? "")
+        await attachStagedCaseFiles(staged.ids, (result.items ?? [])[0]?.workflow_case_id ?? "")
       } catch {
         notify.error(t("common.case_tabs.attachments.attach_error"))
       }

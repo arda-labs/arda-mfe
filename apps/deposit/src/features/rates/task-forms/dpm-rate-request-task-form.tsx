@@ -7,7 +7,7 @@ import {
   type TaskDecisionLabels,
   type TaskFormProps,
 } from "@workspace/workflow-task"
-import { depositApi, type RateRequest } from "../../api"
+import { depositApi, type RateChangePayload, type RateRequest } from "../../api"
 
 /**
  * DPM.100/101 rate register/adjust — the checker sees the staged payload from
@@ -76,7 +76,7 @@ export function DpmRateRequestTaskForm({
     commentRequired: t("deposit.rate_task_form.comment_required"),
   }
 
-  const payload = request?.payload
+  const payload = request?.payload as RateChangePayload | undefined
   const rows: Array<{ label: string; value: string }> = request
     ? [
         {
