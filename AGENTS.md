@@ -123,12 +123,14 @@ Tạo feature mới: `bun run create:feature <app> <domain>`.
 # Cài đặt dependencies (sử dụng bun 1.3.14+)
 bun install
 
-# Kiểm tra ranh giới package (Package boundaries & no circular deps)
+# Kiểm tra ranh giới package: không vòng, import phải khai báo, khai báo
+# @workspace/* phải được import (app được miễn cho shared key Module Federation
+# trong vite config, và bắt buộc khai báo đủ các key đó)
 bun run check:packages
 
 # Kiểm tra TypeScript toàn bộ monorepo (25 workspaces: 14 apps + 11 packages)
 # Bao gồm các invariant: check:packages, check:credentials, check:fallbacks,
-# check:federation (chính sách shared deps + registry route ownership), check:pages
+# check:federation (glue sinh từ registry + chính sách shared deps + route ownership), check:pages
 # (giới hạn độ dài page.tsx với LEGACY_BASELINE cho debt cũ), check:features
 # (api.ts/types.ts size, transport boundary, cross-feature imports)
 bun run typecheck

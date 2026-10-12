@@ -23,7 +23,6 @@
     "@workspace/list-page": "workspace:*",
     "@workspace/media": "workspace:*",
     "@workspace/notifications": "workspace:*",
-    "@workspace/posting-flow": "workspace:*",
     "@workspace/query": "workspace:*",
     "@workspace/theme": "workspace:*",
     "@workspace/ui": "workspace:*",

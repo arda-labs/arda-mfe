@@ -49,7 +49,9 @@ there, run `bun run gen:federation` (see AGENTS.md §2.2).
 | `@workspace/format`        | Pure formatting helpers (money/percent/date)        |
 
 Dependency direction is enforced by `bun run check:packages`. Workspace code
-must import package exports, never another package's `src` directory. The only
+must import package exports, never another package's `src` directory, and must
+not declare an `@workspace/*` dependency it never imports (apps must declare
+every Module Federation shared key instead). The only
 exception is the shell Module Federation share bootstrap, which must seed shared
 modules before lazy chunks are evaluated.
 
