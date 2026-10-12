@@ -10,6 +10,7 @@ import {
   registerResourceBundles,
   registerAppLocales,
   loadRemoteAppLocale,
+  isKnownNamespace,
   type Locale,
   type ResourceBundles,
 } from "./config"
@@ -120,30 +121,6 @@ export function translateApiError(
   return fallback
 }
 
-const KNOWN_NAMESPACES = new Set([
-  "admin",
-  "auth",
-  "common",
-  "navigation",
-  "notifications",
-  "profile",
-  "user",
-  "validation",
-  "iam",
-  "crm",
-  "finance",
-  "hrm",
-  "platform",
-  "workflow",
-  "ai",
-  "account",
-  "loan",
-  "mdm",
-  "statistical",
-  "deposit",
-  "capital",
-])
-
 function translate(
   key: string,
   locale: Locale,
@@ -178,7 +155,7 @@ function translate(
   if (firstDot > 0) {
     const namespace = key.slice(0, firstDot)
     const rest = key.slice(firstDot + 1)
-    if (KNOWN_NAMESPACES.has(namespace)) {
+    if (isKnownNamespace(namespace)) {
       const nsRes =
         tryI18nTranslate(`${namespace}:${rest}`, opts) ||
         tryI18nTranslate(`${namespace}:${rest}._self`, opts)
