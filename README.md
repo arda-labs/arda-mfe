@@ -18,8 +18,8 @@ Bun + Vite micro frontend workspace for Arda.
 | `finance`     | 5103 | Finance operations remote                     |
 | `account`     | 5104 | Profile & account settings remote             |
 | `hrm`         | 5105 | HRM remote                                    |
-| `workflow`    | 5106 | Workflow / BPMN admin remote                  |
-| `crm`         | 5107 | CRM & workbench remote                        |
+| `workflow`    | 5106 | Workflow / BPMN admin and workbench remote    |
+| `crm`         | 5107 | CRM remote                                    |
 | `ai`          | 5108 | AI assistant full-page workspace (`/ai`)      |
 | `loan`        | 5109 | Loan lifecycle remote (collections, disbursements) |
 | `mdm`         | 5110 | Master data management remote                 |
@@ -27,7 +27,9 @@ Bun + Vite micro frontend workspace for Arda.
 | `capital`     | 8111 | Capital management remote                     |
 | `statistical` | 8112 | Statistical reporting remote                  |
 
-Ports are the single source of truth in `federation.shared.ts` (`remotePorts`).
+Ports are the single source of truth in `federation.shared.ts` (`remotePorts`);
+remote names and route prefixes in `federation.routes.ts`. After adding a remote
+there, run `bun run gen:federation` (see AGENTS.md §2.2).
 
 ## Packages
 
@@ -36,17 +38,20 @@ Ports are the single source of truth in `federation.shared.ts` (`remotePorts`).
 | `@workspace/api`           | HTTP client, URL resolver, list transport contract  |
 | `@workspace/query`         | TanStack Query client and cache policy              |
 | `@workspace/ui`            | Design system, generic table and feedback UI        |
+| `@workspace/federation-runtime` | Lazy remote routes, Routes contract, route timing, `navigateTo`, browser telemetry, standalone remote harness |
 | `@workspace/list-page`    | URL/search/filter/list page orchestration           |
 | `@workspace/auth`          | Session, step-up, auth store and API auth bridge    |
 | `@workspace/i18n`          | Locales and `translateApiError`                     |
-| `@workspace/notifications` | Notification inbox, stream and browser push         |
+| `@workspace/notifications` | Notification inbox, stream, browser push and the error ask-AI channel |
 | `@workspace/theme`         | Theme, appearance and branding                      |
 | `@workspace/media`         | Media API and URL helpers                           |
 | `@workspace/ai`            | Olorin assistant panel: provider wrapper, tool renderer registry, approval card |
 | `@workspace/format`        | Pure formatting helpers (money/percent/date)        |
 
 Dependency direction is enforced by `bun run check:packages`. Workspace code
-must import package exports, never another package's `src` directory. The only
+must import package exports, never another package's `src` directory, and must
+not declare an `@workspace/*` dependency it never imports (apps must declare
+every Module Federation shared key instead). The only
 exception is the shell Module Federation share bootstrap, which must seed shared
 modules before lazy chunks are evaluated.
 

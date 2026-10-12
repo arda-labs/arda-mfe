@@ -4,7 +4,7 @@ const locales = createAppLocaleLoader("iam", {
   "en-US": () => import("../locales/en-US.json"),
 })
 import { QueryProvider } from "@workspace/query/provider"
-import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/federation-runtime/lazy"
 
 const UsersPage = lazyWithPreload(() =>
   import("@/features/users/page").then((m) => ({ default: m.UsersPage }))

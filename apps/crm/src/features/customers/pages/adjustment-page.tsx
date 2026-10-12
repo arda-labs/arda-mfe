@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { navigateTo } from "@workspace/ui/shell/routing"
+import { navigateTo } from "@workspace/federation-runtime/routing"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { useCaseTabs } from "@workspace/case-tabs"

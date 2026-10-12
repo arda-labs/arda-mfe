@@ -15,6 +15,16 @@ export const remoteRoutePrefixes = {
   statistical: ["/statistical"],
 } as const
 export type RemoteName = keyof typeof remoteRoutePrefixes
+/** Every remote, in registry order. Shell federation config and glue derive from it. */
+export const remoteNames = Object.keys(remoteRoutePrefixes) as RemoteName[]
+
+/**
+ * Remotes that expose `./taskForms` for the workflow workbench form host.
+ * Add the owner here when it registers its first form, then run
+ * `bun run gen:federation`.
+ */
+export const taskFormRemotes = ["deposit", "capital", "loan", "statistical", "hrm", "finance"] as const satisfies readonly RemoteName[]
+export type TaskFormRemoteName = (typeof taskFormRemotes)[number]
 
 export function resolveRemoteRoute(pathname: string) {
   for (const [name, prefixes] of Object.entries(remoteRoutePrefixes)) {

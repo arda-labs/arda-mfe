@@ -1,3 +1,5 @@
+import type { TaskFormRemoteName } from "../../../../../../federation.routes"
+
 /**
  * Case types whose owner remote has registered `./taskForms` entries. Adding a
  * case type here requires the remote to expose the module AND to register the
@@ -34,7 +36,7 @@ export const CASE_TYPE_FORM_REMOTE = {
   HRM_EMPLOYEE_REGISTRATION: "hrm",
   FIN_FUND_APPROP_V2: "finance",
   FIN_FUND_USE_V2: "finance",
-} as const
+} as const satisfies Record<string, TaskFormRemoteName>
 
 export type TaskFormRemote =
   (typeof CASE_TYPE_FORM_REMOTE)[keyof typeof CASE_TYPE_FORM_REMOTE]

@@ -74,11 +74,22 @@ if (!i18n.isInitialized) {
     })
 }
 
+// Namespaces that "<ns>.<key>" shorthand may resolve to: the core bundles plus
+// every namespace registered since (app locales, package labels). Derived from
+// registration so a new remote's namespace works without rebuilding the shell,
+// which owns this singleton.
+const knownNamespaces = new Set<string>(Object.keys(coreResources[defaultLocale]))
+
+export function isKnownNamespace(namespace: string) {
+  return knownNamespaces.has(namespace)
+}
+
 export function registerResourceBundles(resources: ResourceBundles) {
   for (const locale of supportedLocales) {
     if (!resources[locale]) continue
     for (const [namespace, bundle] of Object.entries(resources[locale])) {
       i18n.addResourceBundle(locale, namespace, bundle, true, true)
+      knownNamespaces.add(namespace)
     }
   }
 }
@@ -90,6 +101,7 @@ export function registerAppLocales(
   for (const locale of supportedLocales) {
     if (bundles[locale]) {
       i18n.addResourceBundle(locale, namespace, bundles[locale], true, true)
+      knownNamespaces.add(namespace)
     }
   }
 }
@@ -115,7 +127,7 @@ export async function loadRemoteAppLocale(
       })
       if (res.ok) {
         const bundle = (await res.json()) as Record<string, unknown>
-        i18n.addResourceBundle(locale, appName, bundle, true, true)
+        registerAppLocales(appName, { [locale]: bundle })
       }
     }
   } catch (err) {

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { translateApiError, useI18n } from "@workspace/i18n"
+import * as notifications from "@workspace/notifications"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +29,14 @@ type PageErrorDialogProps = {
 // Sentinel that never equals a real error object.
 const NOT_DISMISSED = Symbol("not-dismissed")
 
+// @workspace/notifications is a shared singleton provided by the shell. During
+// a rolling release this remote can run inside a shell whose copy predates the
+// ask-AI channel; treat a missing export as "no assistant" instead of crashing.
+const useErrorAskAiHandler: () => notifications.ErrorAskAiHandler | undefined =
+  typeof notifications.useErrorAskAiHandler === "function"
+    ? notifications.useErrorAskAiHandler
+    : () => undefined
+
 /**
  * Blocking error dialog for pages whose critical data never loaded.
  *
@@ -46,6 +55,7 @@ export function PageErrorDialog({
   const message = translateApiError(error)
   const details = readErrorDetails(error, message)
   const prompt = buildErrorAiPrompt(details, t)
+  const askAi = useErrorAskAiHandler()
 
   // The dialog is driven by the load state, not a local flag; "ask AI" hides
   // it without clearing the underlying error. Tracking the dismissed error
@@ -77,7 +87,14 @@ export function PageErrorDialog({
           <div className="mr-auto">
             <ErrorDialogAskAiButton
               prompt={prompt}
-              onAsked={() => setDismissedFor(error)}
+              onAsk={
+                askAi
+                  ? (text) => {
+                      askAi(text)
+                      setDismissedFor(error)
+                    }
+                  : undefined
+              }
             />
           </div>
           <AlertDialogCancel onClick={() => window.history.back()}>

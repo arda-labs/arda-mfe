@@ -1,5 +1,5 @@
 import { Activity, Suspense, useState } from "react"
-import { attachPreload, lazyWithPreload, RouteReady } from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload, RouteReady } from "@workspace/federation-runtime/lazy"
 import { RouteLoading } from "@workspace/ui/components/route-loading"
 import { routeFromPath, type WorkflowRoute } from "./routes"
 

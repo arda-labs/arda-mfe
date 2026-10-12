@@ -1,6 +1,6 @@
 import { createAppLocaleLoader } from "@workspace/i18n"
 import { QueryProvider } from "@workspace/query/provider"
-import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/federation-runtime/lazy"
 
 const locales = createAppLocaleLoader("finance", {
   "vi-VN": () => import("../locales/vi-VN.json"),

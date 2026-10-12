@@ -1,5 +1,5 @@
 import type { NotificationItem } from "./types"
-import { navigateTo } from "@workspace/ui/shell/routing"
+import { navigateTo } from "@workspace/federation-runtime/routing"
 import { classifyHref } from "@workspace/ui/lib/safe-url"
 
 const PREFERENCE_KEY = "arda.browser-notifications"

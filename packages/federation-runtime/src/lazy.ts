@@ -8,9 +8,9 @@ import {
   type ReactNode,
 } from "react"
 import { useLocation } from "react-router-dom"
-import { RouteLoading } from "../components/route-loading"
+import { RouteLoading } from "@workspace/ui/components/route-loading"
 import { markRoutePhase } from "./route-performance"
-import { routesContract } from "./federation-contract"
+import { routesContract } from "./contract"
 import { useI18n, type AppLocaleLoader } from "@workspace/i18n"
 
 const retryKey = Symbol.for("arda.lazy-retries.v1")

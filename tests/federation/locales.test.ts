@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { createAppLocaleLoader } from "../../packages/i18n/src/app-locales"
-import { retryFailedLazyLoads } from "../../packages/ui/src/lib/lazy"
+import { retryFailedLazyLoads } from "../../packages/federation-runtime/src/lazy"
 
 test("locale loader loads only the requested language and recovers a failed chunk", async () => {
   let vi = 0

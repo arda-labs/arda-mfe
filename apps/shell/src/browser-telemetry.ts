@@ -1,5 +1,5 @@
-import { getBuildId } from "@workspace/ui/lib/federation-contract"
-import type { BrowserErrorReport } from "@workspace/ui/observability/browser-telemetry"
+import { getBuildId } from "@workspace/federation-runtime/contract"
+import type { BrowserErrorReport } from "@workspace/federation-runtime/telemetry"
 import { resolveRemoteRoute } from "../../../federation.routes"
 
 /** Bounded diagnostics in-session, plus optional batch export to a configured collector. */

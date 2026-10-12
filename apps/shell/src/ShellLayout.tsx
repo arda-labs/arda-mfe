@@ -13,17 +13,11 @@ import { Button } from "@workspace/ui/components/button"
 import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
 import { getAuthScope, useAuthStore } from "@workspace/auth/store"
-import { useNotificationStream } from "@workspace/notifications"
+import { setErrorAskAiHandler, useNotificationStream } from "@workspace/notifications"
 import "@workspace/ai/labels"
 import { registerOlorinContext } from "@workspace/ai/registry"
-import { lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { lazyWithPreload } from "@workspace/federation-runtime/lazy"
 import { RouteLoading } from "@workspace/ui/components/route-loading"
-import { GlobalErrorDialog } from "@workspace/ui/feedback/global-error-dialog"
-import {
-  ERROR_ASK_AI_EVENT,
-  setErrorAskAiEnabled,
-  type ErrorAskAiDetail,
-} from "@workspace/ui/feedback/error-dialog-ask-ai"
 import { composeOlorinMessage } from "@workspace/ai/compose"
 import {
   filterNavItems,
@@ -171,26 +165,15 @@ export function ShellLayout() {
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [setAiView])
 
-  // Error dialogs (shell + remotes) ask AI through a window event so the
-  // request crosses the Module Federation bundle boundary. Advertise whether
-  // the assistant exists so remotes only render the button when it works.
+  // Error dialogs in the shell and in remotes ask AI through the shared
+  // @workspace/notifications singleton; they only render the button while a
+  // handler is registered, i.e. while the assistant exists.
   useEffect(() => {
-    if (!aiEnabled) {
-      setErrorAskAiEnabled(false)
-      return
-    }
-    setErrorAskAiEnabled(true)
-    function onAskAi(event: Event) {
-      const prompt = (event as CustomEvent<ErrorAskAiDetail>).detail?.prompt
-      if (!prompt) return
+    if (!aiEnabled) return
+    return setErrorAskAiHandler((prompt) => {
       setAiView((current) => (current === "closed" ? "panel" : current))
       composeOlorinMessage({ text: prompt })
-    }
-    window.addEventListener(ERROR_ASK_AI_EVENT, onAskAi)
-    return () => {
-      window.removeEventListener(ERROR_ASK_AI_EVENT, onAskAi)
-      setErrorAskAiEnabled(false)
-    }
+    })
   }, [setAiView])
 
   const startAiPanelResize = useCallback((event: React.MouseEvent) => {
@@ -337,7 +320,6 @@ export function ShellLayout() {
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Outlet key={authScope} />
           <Toaster />
-          <GlobalErrorDialog />
         </main>
       </div>
       <CommandPalette

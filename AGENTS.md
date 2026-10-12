@@ -16,16 +16,16 @@ Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host S
 | **`finance`** | `5103` | `/finance/*` | Kế toán: Accounts, Journal, Operations, Trial balance |
 | **`account`** | `5104` | `/my-account/*`, `/settings/*`, `/in/*` | Quản lý Profile, Security, Sessions, Devices, Appearance |
 | **`hrm`** | `5105` | `/hrm/*` | Quản trị nhân sự: Positions, Job Titles, Org Units, Employees |
-| **`workflow`** | `5106` | `/workflow/*` | Quy trình & BPMN: Case Types, SLA, Roles, Zeebe 8.5 Monitoring |
-| **`crm`** | `5107` | `/customers/*`, `/workbench/*` | Quản lý khách hàng hội viên, bàn làm việc xử lý giao dịch |
-| **`ai`** | `5108` | `/ai` | AI assistant full-page workspace (dock panel vẫn nằm ở shell) |
+| **`workflow`** | `5106` | `/workflow/*`, `/workbench/*` | Quy trình & BPMN: Case Types, SLA, Roles, Zeebe 8.5 Monitoring; bàn làm việc xử lý giao dịch |
+| **`crm`** | `5107` | `/customers/*` | Quản lý khách hàng hội viên |
+| **`ai`** | `5108` | `/ai/*` | AI assistant full-page workspace (dock panel vẫn nằm ở shell) |
 | **`loan`** | `5109` | `/loans/*` | Cho vay: products, VFU, collections, disbursements |
 | **`mdm`** | `5110` | `/admin/mdm/*` | Master data: currencies, countries, interest rates |
 | **`deposit`** | `8110` | `/deposit/*` | Tiền gửi: savings, products, interbank |
 | **`capital`** | `8111` | `/capital/*` | Quản lý vốn: contracts |
 | **`statistical`** | `8112` | `/statistical/*` | Báo cáo thống kê: report definitions, indicators, submissions |
 
-Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
+Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`; route prefix chính xác nằm ở `federation.routes.ts`.
 
 ---
 
@@ -40,10 +40,10 @@ Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
 
 ### 2.2. Chuẩn hoá Remote Router với `createRemoteRoutes`
 * Mọi remote đều export một file duy nhất `src/Routes.tsx` (ví dụ `apps/platform/src/Routes.tsx`) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.
-* Sử dụng factory `createRemoteRoutes` từ `@workspace/ui/lib/lazy`:
+* Sử dụng factory `createRemoteRoutes` từ `@workspace/federation-runtime/lazy`:
   ```tsx
   import { createAppLocaleLoader } from "@workspace/i18n"
-  import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
+  import { createRemoteRoutes, lazyWithPreload } from "@workspace/federation-runtime/lazy"
 
   const locales = createAppLocaleLoader("platform", {
     "vi-VN": () => import("../locales/vi-VN.json"),
@@ -64,6 +64,7 @@ Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
   ```
   `createRemoteRoutes` chọn theo prefix dài nhất (`exact: true` cho index dùng chung tiền tố), preload leaf qua `preload(pathname)`, và chỉ rơi về `defaultComponent` khi pathname khớp `defaultPrefixes` — path ngoài namespace render 404 thay vì trang mặc định.
 * **Registry ownership là `federation.routes.ts` ở root** (cạnh `federation.shared.ts`): shell render (`remoteRouteEntries`) và preload (`preloadRemoteForPath`) đều đọc từ đây. Thêm prefix mới ⇒ sửa registry + `defaultPrefixes`/`routes` của remote tương ứng; `check:federation` chặn registry không owner, owner trùng nhau và prefix không có route/fallback.
+* **Thêm remote mới**: thêm tên + prefix vào `remoteRoutePrefixes` (và vào `taskFormRemotes` nếu remote expose `./taskForms` cho form host của workflow) trong `federation.routes.ts`, thêm port vào `remotePorts`, rồi chạy `bun run gen:federation`. Lệnh này sinh các file phải ghi tên remote dạng literal (plugin federation và TypeScript chỉ thấy `import("<remote>/Routes")` literal): `apps/shell/src/remotes.d.ts`, `apps/shell/src/remote-route-modules.generated.ts`, `apps/workflow/src/remotes.d.ts`, `task-form-modules.generated.ts`. Shell `vite.config.ts`, `remotes` của workflow, danh sách app của `cf:build`/`cf:deploy` và `clear:dev-ports` đọc registry trực tiếp. `check:federation` fail khi file sinh ra đã cũ.
 * Host Shell luôn bọc các Remote Routes bên trong `<RemoteErrorBoundary>` (`apps/shell/src/components/RemoteRoute.tsx`: retry lazy + skeleton) để cô lập sự cố khi remote gặp lỗi mạng.
 
 ### 2.3. Tenant context từ BFF session
@@ -122,12 +123,14 @@ Tạo feature mới: `bun run create:feature <app> <domain>`.
 # Cài đặt dependencies (sử dụng bun 1.3.14+)
 bun install
 
-# Kiểm tra ranh giới package (Package boundaries & no circular deps)
+# Kiểm tra ranh giới package: không vòng, import phải khai báo, khai báo
+# @workspace/* phải được import (app được miễn cho shared key Module Federation
+# trong vite config, và bắt buộc khai báo đủ các key đó)
 bun run check:packages
 
 # Kiểm tra TypeScript toàn bộ monorepo (25 workspaces: 14 apps + 11 packages)
 # Bao gồm các invariant: check:packages, check:credentials, check:fallbacks,
-# check:federation (chính sách shared deps + registry route ownership), check:pages
+# check:federation (glue sinh từ registry + chính sách shared deps + route ownership), check:pages
 # (giới hạn độ dài page.tsx với LEGACY_BASELINE cho debt cũ), check:features
 # (api.ts/types.ts size, transport boundary, cross-feature imports)
 bun run typecheck

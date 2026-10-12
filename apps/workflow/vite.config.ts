@@ -4,7 +4,8 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { remoteSharedDeps, remotePorts } from "../../federation.shared"
-import { federationBuild, federationRemote } from "../../federation.shared"
+import { federationBuild, federationRemotes } from "../../federation.shared"
+import { taskFormRemotes } from "../../federation.routes"
 
 const name = "workflow"
 const port = remotePorts[name]
@@ -22,16 +23,9 @@ export default defineConfig(({ command }) => ({
       shareStrategy: "loaded-first",
       exposes: { "./Routes": "./src/Routes.tsx" },
       // Form host (P1.6): the workbench renders task forms owned by the domain
-      // remotes (server `formKey` → `./taskForms`). Only remotes that already
-      // registered forms are declared here; add the owner when a form lands.
-      remotes: {
-        deposit: federationRemote("deposit", "DEPOSIT_REMOTE_ENTRY", command === "serve"),
-        capital: federationRemote("capital", "CAPITAL_REMOTE_ENTRY", command === "serve"),
-        loan: federationRemote("loan", "LOAN_REMOTE_ENTRY", command === "serve"),
-        statistical: federationRemote("statistical", "STATISTICAL_REMOTE_ENTRY", command === "serve"),
-        hrm: federationRemote("hrm", "HRM_REMOTE_ENTRY", command === "serve"),
-        finance: federationRemote("finance", "FINANCE_REMOTE_ENTRY", command === "serve"),
-      },
+      // remotes (server `formKey` → `./taskForms`). The owners are listed in
+      // federation.routes.ts `taskFormRemotes`.
+      remotes: federationRemotes(taskFormRemotes, command === "serve"),
       shared: { ...remoteSharedDeps },
     }),
   ],

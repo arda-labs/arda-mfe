@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { Suspense } from "react"
 import { renderToString } from "react-dom/server"
-import { createRemoteRoutes, lazyWithPreload, retryFailedLazyLoads } from "../../packages/ui/src/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload, retryFailedLazyLoads } from "../../packages/federation-runtime/src/lazy"
 import { lazyRemote } from "../../apps/shell/src/lazy-remote"
 import { remoteRoutePrefixes, resolveRemoteRoute } from "../../federation.routes"
 

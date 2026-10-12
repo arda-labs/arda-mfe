@@ -11,6 +11,8 @@
 // i18n app resource subpaths are intentionally NOT shared: each remote bundles
 // only its own locale JSON, then registers it into the shared i18n singleton.
 
+import type { RemoteName } from "./federation.routes"
+
 export const remoteSharedDeps = {
   // The host owns the fallback; remotes must not each ship a 930/430 kB copy.
   exceljs: { singleton: true, requiredVersion: false, import: false, suppressMissingImportWarning: true },
@@ -71,7 +73,7 @@ export const remotePorts = {
   deposit: 8110,
   capital: 8111,
   statistical: 8112,
-} as const
+} as const satisfies Record<RemoteName, number>
 
 // Vite dev dependency optimization only; production uses lazy chunks + budgets.
 export const shellOptimizeInclude = ["react-toastify"]
@@ -92,18 +94,22 @@ export function federationRemoteEntry(
     : `/mfes/${name}/remoteEntry.js`
 }
 
-/** Standard MF remote descriptor (module type + default share scope). */
-export function federationRemote(
-  name: keyof typeof remotePorts,
-  envVar: string,
-  dev: boolean
-) {
+/**
+ * Standard MF remote descriptor (module type + default share scope).
+ * `<NAME>_REMOTE_ENTRY` overrides the entry URL, e.g. LOAN_REMOTE_ENTRY.
+ */
+export function federationRemote(name: keyof typeof remotePorts, dev: boolean) {
   return {
     type: "module" as const,
     name,
-    entry: process.env[envVar] ?? federationRemoteEntry(name, dev),
+    entry: process.env[`${name.toUpperCase()}_REMOTE_ENTRY`] ?? federationRemoteEntry(name, dev),
     shareScope: "default",
   }
+}
+
+/** `remotes` for a host: one {@link federationRemote} per name. */
+export function federationRemotes(names: readonly (keyof typeof remotePorts)[], dev: boolean) {
+  return Object.fromEntries(names.map((name) => [name, federationRemote(name, dev)]))
 }
 
 /**
@@ -120,7 +126,16 @@ export function federationRemote(
  *   invalidation timing across independently released units.
  */
 export const sharedWorkspaceExemptions = {
-  "@workspace/ui": "presentational-only; no cross-tree state",
+  // The page-title portal (shell/page-title.ts) is ui's only cross-bundle
+  // contract: a window event plus a DOM slot id, both stable across releases.
+  "@workspace/ui": "presentational components; cross-tree contract is the page-title window event only",
+  // Bundled per app on purpose. Cross-bundle state goes through versioned
+  // Symbol.for registries and window events (lazy retries, route timing,
+  // navigation intent, browser errors), which keep working when the shell and
+  // a remote come from different releases, and adding a share-scope entry
+  // carries the boot-order risk of the 2026-09-08 incident.
+  "@workspace/federation-runtime":
+    "per-app runtime; cross-bundle state uses versioned Symbol.for registries and window events",
   "@workspace/list-page": "per-remote list isolation",
   "@workspace/query": "per-remote cache isolation; retained across navigation, cleared on auth scope changes",
   "@workspace/media": "stateless protocol helpers",

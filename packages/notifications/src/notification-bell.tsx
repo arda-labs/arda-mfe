@@ -9,7 +9,7 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import { navigateTo } from "@workspace/ui/shell/routing"
+import { navigateTo } from "@workspace/federation-runtime/routing"
 import { classifyHref } from "@workspace/ui/lib/safe-url"
 import { notificationsApi } from "./api"
 import {

@@ -3,8 +3,8 @@ import { useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { RouteLoading } from "@workspace/ui/components/route-loading"
-import { retryFailedLazyLoads } from "@workspace/ui/lib/lazy"
-import { reportBrowserError } from "@workspace/ui/observability/browser-telemetry"
+import { retryFailedLazyLoads } from "@workspace/federation-runtime/lazy"
+import { reportBrowserError } from "@workspace/federation-runtime/telemetry"
 
 class RemoteErrorBoundary extends Component<
   { children: ReactNode; resetKey: string; labels: { title: string; body: string; retry: string; reload: string } },

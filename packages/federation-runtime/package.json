@@ -1,0 +1,33 @@
+{
+  "name": "@workspace/federation-runtime",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/auth": "workspace:*",
+    "@workspace/i18n": "workspace:*",
+    "@workspace/theme": "workspace:*",
+    "@workspace/ui": "workspace:*",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "~6"
+  },
+  "exports": {
+    "./contract": "./src/contract.ts",
+    "./lazy": "./src/lazy.ts",
+    "./route-performance": "./src/route-performance.ts",
+    "./routing": "./src/routing.ts",
+    "./standalone": "./src/standalone.tsx",
+    "./telemetry": "./src/telemetry.ts"
+  }
+}

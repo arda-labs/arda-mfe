@@ -2,14 +2,10 @@ import { Fragment, useState, type ReactNode } from "react"
 import { AlertTriangle, BookOpen, Check, Copy, Sparkles } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import {
-  requestErrorAskAi,
-  useErrorAskAiEnabled,
-} from "./error-dialog-ask-ai"
 
-// Shared building blocks for the app's error dialogs (global shell dialog +
-// per-page list dialog). Keeping the shape in one place means the problem
-// link, trace id and "Ask AI" affordances stay identical everywhere.
+// Shared building blocks for the app's error dialogs. Keeping the shape in one
+// place means the problem link, trace id and "Ask AI" affordances stay
+// identical everywhere.
 //
 // Error objects are duck-typed (ApiClientError) on purpose — this package
 // must not depend on @workspace/api.
@@ -203,20 +199,20 @@ export function ErrorDialogDetails({ details }: { details: ErrorDialogDetails })
 }
 
 /**
- * "Ask AI" action — only rendered once the shell advertises AI availability.
- * `onAsked` lets the host dialog close itself so the modal does not trap focus
- * away from the Olorin panel that is about to open.
+ * "Ask AI" action. Rendered only when the host passes `onAsk`, i.e. when an
+ * assistant is available (see `useErrorAskAiHandler` in
+ * @workspace/notifications). `onAsk` should also close the host dialog so the
+ * modal does not trap focus away from the Olorin panel that is about to open.
  */
 export function ErrorDialogAskAiButton({
   prompt,
-  onAsked,
+  onAsk,
 }: {
   prompt: string
-  onAsked?: () => void
+  onAsk?: (prompt: string) => void
 }) {
   const { t } = useI18n()
-  const enabled = useErrorAskAiEnabled()
-  if (!enabled || !prompt.trim()) return null
+  if (!onAsk || !prompt.trim()) return null
 
   return (
     <Button
@@ -224,10 +220,7 @@ export function ErrorDialogAskAiButton({
       variant="outline"
       size="sm"
       className="gap-1.5"
-      onClick={() => {
-        requestErrorAskAi(prompt)
-        onAsked?.()
-      }}
+      onClick={() => onAsk(prompt)}
     >
       <Sparkles className="size-3.5" />
       {t("common.error.ask_ai")}

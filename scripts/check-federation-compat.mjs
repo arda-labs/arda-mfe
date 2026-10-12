@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises"
 import { join } from "node:path"
-import ts from "typescript"
+import { remoteNames, remoteRoutePrefixes, taskFormRemotes } from "../federation.routes.ts"
+import { remotePorts } from "../federation.shared.ts"
 
 const root = process.cwd()
 const appsDir = join(root, "apps")
@@ -11,25 +12,28 @@ const appNames = (await readdir(appsDir, { withFileTypes: true }))
 
 const source = async (path) => readFile(join(root, path), "utf8")
 const shellVite = await source("apps/shell/vite.config.ts")
-const shellRoutes = await source("apps/shell/src/remote-routes.ts")
+const workflowVite = await source("apps/workflow/vite.config.ts")
+// Generated from federation.routes.ts by scripts/generate-federation-glue.mjs;
+// `check:federation` runs its --check before this script.
+const shellRouteModules = await source("apps/shell/src/remote-route-modules.generated.ts")
 const shellTypes = await source("apps/shell/src/remotes.d.ts")
 const shared = await source("federation.shared.ts")
 
-const shellRemotes = [...shellVite.matchAll(/\b(\w+):\s*remote\("([^"]+)"/g)].map(
-  ([, , name]) => name
-)
-const routeRemotes = [...shellRoutes.matchAll(/import\("([^"/]+)\/Routes"\)/g)].map(([, name]) => name)
+const routeRemotes = [...shellRouteModules.matchAll(/import\("([^"/]+)\/Routes"\)/g)].map(([, name]) => name)
 const declaredRemotes = [...shellTypes.matchAll(/declare module "([^"]+)\/Routes"/g)].map(
   ([, name]) => name
 )
-const portBlock = shared.match(/export const remotePorts = \{([\s\S]*?)\} as const/)
-const configuredPorts = portBlock
-  ? [...portBlock[1].matchAll(/^\s*(\w+):/gm)].map(([, name]) => name)
-  : []
+const configuredPorts = Object.keys(remotePorts)
 
 const violations = []
 if (!shellVite.includes("shared: { ...shellSharedDeps }")) {
   violations.push("apps/shell/vite.config.ts: host-only shared providers must use shellSharedDeps")
+}
+if (!shellVite.includes("remotes: federationRemotes(remoteNames,")) {
+  violations.push("apps/shell/vite.config.ts: remotes must come from federation.routes.ts via federationRemotes(remoteNames, ...)")
+}
+if (!workflowVite.includes("remotes: federationRemotes(taskFormRemotes,")) {
+  violations.push("apps/workflow/vite.config.ts: form host remotes must come from federation.routes.ts via federationRemotes(taskFormRemotes, ...)")
 }
 const shellShares = shared.match(/export const shellSharedDeps = \{([\s\S]*?)\} as const/)?.[1] ?? ""
 const remoteShares = extractBlock("remoteSharedDeps")
@@ -42,21 +46,11 @@ for (const pkg of ["exceljs", "pdfjs-dist"]) {
     violations.push(`federation.shared.ts: remotes must consume host-provided ${pkg}`)
   }
 }
-const routeRegistrySource = await source("federation.routes.ts")
-const routeRegistry = ts.createSourceFile("federation.routes.ts", routeRegistrySource, ts.ScriptTarget.Latest, true)
 const ownership = new Map()
-for (const statement of routeRegistry.statements) {
-  if (!ts.isVariableStatement(statement)) continue
-  for (const declaration of statement.declarationList.declarations) {
-    if (declaration.name.getText(routeRegistry) !== "remoteRoutePrefixes") continue
-    const object = ts.isAsExpression(declaration.initializer) ? declaration.initializer.expression : declaration.initializer
-    for (const property of object.properties) {
-      for (const element of property.initializer.elements) {
-        const prefix = element.text
-        if (ownership.has(prefix)) violations.push(`Duplicate route ownership: ${prefix}`)
-        ownership.set(prefix, property.name.getText(routeRegistry))
-      }
-    }
+for (const [owner, prefixes] of Object.entries(remoteRoutePrefixes)) {
+  for (const prefix of prefixes) {
+    if (ownership.has(prefix)) violations.push(`Duplicate route ownership: ${prefix}`)
+    ownership.set(prefix, owner)
   }
 }
 const ownerFor = (pathname) => [...ownership].find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.[1]
@@ -73,11 +67,11 @@ const extra = (label, values) => {
   for (const value of values) if (!appNames.includes(value)) violations.push(`${label}: unknown ${value}`)
 }
 
-missing("shell remotes", shellRemotes)
+missing("federation.routes.ts remotes", remoteNames)
 missing("route remotes", routeRemotes)
 missing("remote type declarations", declaredRemotes)
 missing("remote ports", configuredPorts)
-extra("shell remotes", shellRemotes)
+extra("federation.routes.ts remotes", remoteNames)
 extra("route remotes", routeRemotes)
 extra("remote type declarations", declaredRemotes)
 extra("remote ports", configuredPorts)
@@ -125,6 +119,14 @@ for (const app of appNames) {
   }
   if (typeof manifest.version !== "string" || manifest.version.trim() === "") {
     violations.push(`apps/${app}/package.json: immutable remote version is required`)
+  }
+  const exposesTaskForms = config.includes('"./taskForms"')
+  if (exposesTaskForms !== taskFormRemotes.includes(app)) {
+    violations.push(
+      exposesTaskForms
+        ? `apps/${app}/vite.config.ts: exposes ./taskForms but federation.routes.ts taskFormRemotes does not list ${app}`
+        : `federation.routes.ts: taskFormRemotes lists ${app}, but apps/${app}/vite.config.ts does not expose ./taskForms`
+    )
   }
 }
 

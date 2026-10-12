@@ -1,7 +1,7 @@
 import type { ComponentType } from "react"
-import { lazyWithPreload } from "@workspace/ui/lib/lazy"
-import { ROUTES_CONTRACT_VERSION } from "@workspace/ui/lib/federation-contract"
-import { markRoutePhase } from "@workspace/ui/lib/route-performance"
+import { lazyWithPreload } from "@workspace/federation-runtime/lazy"
+import { ROUTES_CONTRACT_VERSION } from "@workspace/federation-runtime/contract"
+import { markRoutePhase } from "@workspace/federation-runtime/route-performance"
 
 type RemoteComponent = ComponentType & {
   preload?: (pathname?: string) => Promise<void>

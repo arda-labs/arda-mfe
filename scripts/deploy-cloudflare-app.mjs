@@ -1,22 +1,8 @@
 import path from "node:path"
 import process from "node:process"
+import { remoteNames } from "../federation.routes.ts"
 
-const apps = [
-  "shell",
-  "iam",
-  "platform",
-  "finance",
-  "account",
-  "hrm",
-  "workflow",
-  "crm",
-  "ai",
-  "loan",
-  "mdm",
-  "deposit",
-  "capital",
-  "statistical",
-]
+const apps = ["shell", ...remoteNames]
 
 const app = process.argv[2]
 if (!apps.includes(app)) {

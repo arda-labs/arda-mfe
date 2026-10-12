@@ -27,15 +27,9 @@ import {
 import type { WorkItem } from "../api"
 import { workbenchApi } from "../api"
 import { taskFormRemoteFor, type TaskFormRemote } from "../utils/task-form-routing"
+import { taskFormModules } from "./task-form-modules.generated"
 
-const moduleLoaders: Record<TaskFormRemote, () => Promise<TaskFormModule>> = {
-  deposit: () => import("deposit/taskForms"),
-  capital: () => import("capital/taskForms"),
-  loan: () => import("loan/taskForms"),
-  statistical: () => import("statistical/taskForms"),
-  hrm: () => import("hrm/taskForms"),
-  finance: () => import("finance/taskForms"),
-}
+const moduleLoaders: Record<TaskFormRemote, () => Promise<TaskFormModule>> = taskFormModules
 
 const moduleCache = new Map<TaskFormRemote, Promise<TaskFormModule>>()
 

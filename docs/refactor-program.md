@@ -105,7 +105,7 @@ It does not own endpoint URLs, notification copy, query invalidation, form state
 business retries, or domain DTO mapping.
 
 The shell installs the global browser error handlers from
-`@workspace/ui/observability/browser-telemetry`. Reports are bounded and redact
+`@workspace/federation-runtime/telemetry`. Reports are bounded and redact
 email, UUID, bearer and query-token values before dispatching the
 `arda:browser-error` event; production transport/export is configured by the
 host rather than by feature remotes.
