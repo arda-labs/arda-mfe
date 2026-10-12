@@ -1,33 +1,15 @@
 import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
 
+// Wire types generated from arda-be/contracts/openapi/loan-v1.json (ADR-005).
+import type { LoanDisbursement } from "@workspace/api/generated/loan-v1"
+export type { LoanDisbursement }
+
 /**
  * P1b v2 flow split: REGISTER = khởi tạo giải ngân (phiếu gốc),
  * COMPLETE = hoàn tất giải ngân (rút theo phiếu REGISTER đã POSTED).
  */
 export type LoanDisbursementFlowType = "REGISTER" | "COMPLETE"
-
-export interface LoanDisbursement {
-  id: string
-  tenant_id: string
-  contract_code: string
-  agreement_code: string
-  disburse_date: string
-  disburse_amt_minor: number
-  currency_code: string
-  fund_source_code: string
-  status: string
-  workflow_case_id?: string
-  workflow_case_code?: string
-  journal_entry_id?: string
-  created_by: string
-  created_at?: string
-  flow_type?: LoanDisbursementFlowType
-  /** Chỉ có trên row COMPLETE: id phiếu REGISTER gốc (POSTED, cùng agreement). */
-  source_register_id?: string
-  /** Row version the checker saw — sent back as `dataVersion` on approve. */
-  data_version?: number
-}
 
 export const disbursementApi = {
   detail: (id: string) =>

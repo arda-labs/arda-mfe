@@ -91,7 +91,7 @@ export function ContractDetailDialog({
   const status = contract.status
   const caseLabel = caseDisplayLabel(
     contract.workflow_case_code,
-    contract.workflow_case_id
+    contract.workflow_case_id ?? undefined
   )
 
   return (

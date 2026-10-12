@@ -365,7 +365,7 @@ export function LoanTaskForm({
                   <tr key={`${row.agreement_code}-${index}`} className="border-t">
                     <td className="p-2 font-mono text-xs">{row.contract_code}</td>
                     <td className="p-2 font-mono text-xs">{row.agreement_code}</td>
-                    <td className="p-2 text-right tabular-nums">{formatAmount(fromMinor(row.amount_minor))}</td>
+                    <td className="p-2 text-right tabular-nums">{formatAmount(fromMinor(row.disburse_amt_minor))}</td>
                     <td className="p-2 text-right tabular-nums">{headroomByContract.has(row.contract_code) ? formatAmount(fromMinor(headroomByContract.get(row.contract_code)!)) : "—"}</td>
                     <td className="p-2">{statusLabel(row.status)}</td>
                   </tr>

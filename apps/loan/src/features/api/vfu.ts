@@ -1,47 +1,11 @@
 import { getCanonicalList, postCanonical, putCanonical } from "@workspace/api"
 import { listQuery } from "./list-query"
 
-export interface VfuParty {
-  id: string
-  tenant_id: string
-  party_code: string
-  party_name: string
-  party_type: "ORG" | "PERSON"
-  identification_id?: string
-  mobile_number?: string
-  status: string
-  created_at?: string
-}
-
-export interface VfuMandate {
-  id: string
-  tenant_id: string
-  mandate_code: string
-  mandate_no?: string
-  mandate_date?: string
-  party_code: string
-  rep_name?: string
-  bank_name?: string
-  bank_account?: string
-  fee_payment_freq?: string
-  rate_value?: number
-  status: string
-  created_at?: string
-}
-
-export interface VfuPlan {
-  id: string
-  tenant_id: string
-  plan_code: string
-  plan_date?: string
-  mandate_code: string
-  contract_code?: string
-  allocated_amt_minor: number
-  settled_amt_minor: number
-  fee_amt_minor: number
-  status: string
-  created_at?: string
-}
+// Wire types generated from arda-be/contracts/openapi/loan-v1.json (ADR-005).
+import type { LoanVfuMandate, LoanVfuParty, LoanVfuPlan } from "@workspace/api/generated/loan-v1"
+export type VfuParty = LoanVfuParty
+export type VfuMandate = LoanVfuMandate
+export type VfuPlan = LoanVfuPlan
 
 export const vfuApi = {
   listParties: (

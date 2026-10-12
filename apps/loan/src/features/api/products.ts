@@ -1,25 +1,9 @@
 import { getCanonicalList, postCanonical } from "@workspace/api"
 import { listQuery } from "./list-query"
 
-export interface LoanProduct {
-  id: string
-  tenant_id: string
-  code: string
-  name: string
-  product_type: "TERM" | "LIMIT"
-  currency_code: string
-  interest_rate_code?: string
-  interest_rate?: number
-  loan_term_from?: number
-  loan_term_to?: number
-  term_unit: string
-  min_amount_minor?: number
-  max_amount_minor?: number
-  acc_classification?: string
-  is_active: boolean
-  description?: string
-  created_at?: string
-}
+// Wire types generated from arda-be/contracts/openapi/loan-v1.json (ADR-005).
+import type { LoanLoanProduct } from "@workspace/api/generated/loan-v1"
+export type LoanProduct = LoanLoanProduct
 
 export const productApi = {
   listProducts: (

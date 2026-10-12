@@ -174,12 +174,12 @@ export function BatchCollectionPage() {
         })),
       })
       try {
-        await attachStagedCaseFiles(staged.ids, created.case_id || created.workflow_case_id || "")
+        await attachStagedCaseFiles(staged.ids, created.workflow_case_id ?? "")
       } catch {
         notify.error(t("common.case_tabs.attachments.attach_error"))
       }
       notify.success(
-        t("loan.collections.batch.created", { case: created.case_code || created.case_id })
+        t("loan.collections.batch.created", { case: created.workflow_case_code ?? created.workflow_case_id ?? created.id })
       )
       navigate("/loans/collections")
     } catch (error) {

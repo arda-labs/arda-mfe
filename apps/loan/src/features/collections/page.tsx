@@ -56,7 +56,7 @@ export function CollectionsPage(_props: { pathname: string }) {
         // Prefer the friendly case_code; the uuid is the fallback.
         const caseLabel = caseDisplayLabel(
           updated.workflow_case_code,
-          updated.workflow_case_id
+          updated.workflow_case_id ?? undefined
         )
         notify.success(
           caseLabel
@@ -135,7 +135,7 @@ export function CollectionsPage(_props: { pathname: string }) {
         cell: ({ row }) => {
           const caseLabel = caseDisplayLabel(
             row.original.workflow_case_code,
-            row.original.workflow_case_id
+            row.original.workflow_case_id ?? undefined
           )
           return caseLabel ? (
             <span

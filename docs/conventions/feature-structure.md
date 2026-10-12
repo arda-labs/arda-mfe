@@ -105,7 +105,8 @@ feature hooks → domain adapter → generated contract types → `@workspace/ap
   `T | null`, and request schemas leave every field optional. Handle that in the adapter
   (`items ?? []`, `value ?? undefined`), and use `WireBody<T, K>` to state which fields
   this client always sends.
-- Migrated so far: `apps/deposit` (`deposit-v1`). The other documents are hand-written
+- Migrated so far: `apps/deposit` (`deposit-v1`) and `apps/loan` (`loan-v1`, which
+  replaces the hand-written `loan-disbursement-v1`). The other documents are hand-written
   pilots in arda-be until their service generates its document from Go.
 
 Generated type modules are stateless and erased at build; if two or more apps import

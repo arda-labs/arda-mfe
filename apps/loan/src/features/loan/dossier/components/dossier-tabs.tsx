@@ -150,7 +150,7 @@ export function DossierTabs({
                   <TableCell>{agreement.status}</TableCell>
                 </TableRow>
               ))}
-              {dossier.agreements.length === 0 ? (
+              {(dossier.agreements ?? []).length === 0 ? (
                 <EmptyRow colSpan={5} label={t("loan.dossier.empty")} />
               ) : null}
             </TableBody>
@@ -191,7 +191,7 @@ export function DossierTabs({
                   </TableCell>
                 </TableRow>
               ))}
-              {dossier.disbursements.length === 0 ? (
+              {(dossier.disbursements ?? []).length === 0 ? (
                 <EmptyRow colSpan={6} label={t("loan.dossier.empty")} />
               ) : null}
             </TableBody>
@@ -234,7 +234,7 @@ export function DossierTabs({
                   </TableCell>
                 </TableRow>
               ))}
-              {dossier.collections.length === 0 ? (
+              {(dossier.collections ?? []).length === 0 ? (
                 <EmptyRow colSpan={6} label={t("loan.dossier.empty")} />
               ) : null}
             </TableBody>
@@ -258,7 +258,7 @@ export function DossierTabs({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortPlans(dossier.repay_plans).map((plan) => (
+              {sortPlans(dossier.repay_plans ?? []).map((plan) => (
                 <TableRow key={plan.id}>
                   <TableCell className="tabular-nums">{plan.plan_no}</TableCell>
                   <TableCell className="whitespace-nowrap">
@@ -272,7 +272,7 @@ export function DossierTabs({
                   </TableCell>
                 </TableRow>
               ))}
-              {dossier.repay_plans.length === 0 ? (
+              {(dossier.repay_plans ?? []).length === 0 ? (
                 <EmptyRow colSpan={4} label={t("loan.dossier.empty")} />
               ) : null}
             </TableBody>
@@ -353,12 +353,12 @@ export function DossierTabs({
 
         <SectionTitle title={t("loan.dossier.section.cases")} />
         <div className="flex flex-wrap gap-2">
-          {dossier.workflow_case_ids.length === 0 ? (
+          {(dossier.workflow_case_ids ?? []).length === 0 ? (
             <span className="text-sm text-muted-foreground">
               {t("loan.dossier.empty")}
             </span>
           ) : (
-            dossier.workflow_case_ids.map((caseId) => (
+            (dossier.workflow_case_ids ?? []).map((caseId) => (
               <Badge key={caseId} variant="outline" className="tabular-nums">
                 {caseId}
               </Badge>
