@@ -19,6 +19,7 @@ import { registerOlorinContext } from "@workspace/ai/registry"
 import { lazyWithPreload } from "@workspace/federation-runtime/lazy"
 import { RouteLoading } from "@workspace/ui/components/route-loading"
 import { composeOlorinMessage } from "@workspace/ai/compose"
+import { bridgeLegacyErrorAskAi } from "./legacy-error-ask-ai"
 import {
   filterNavItems,
   getNavNodeId,
@@ -167,13 +168,20 @@ export function ShellLayout() {
 
   // Error dialogs in the shell and in remotes ask AI through the shared
   // @workspace/notifications singleton; they only render the button while a
-  // handler is registered, i.e. while the assistant exists.
+  // handler is registered, i.e. while the assistant exists. Remotes built
+  // before that channel still use the window protocol (legacy-error-ask-ai).
   useEffect(() => {
     if (!aiEnabled) return
-    return setErrorAskAiHandler((prompt) => {
+    const askAi = (prompt: string) => {
       setAiView((current) => (current === "closed" ? "panel" : current))
       composeOlorinMessage({ text: prompt })
-    })
+    }
+    const clearHandler = setErrorAskAiHandler(askAi)
+    const clearLegacy = bridgeLegacyErrorAskAi(askAi)
+    return () => {
+      clearHandler()
+      clearLegacy()
+    }
   }, [setAiView])
 
   const startAiPanelResize = useCallback((event: React.MouseEvent) => {
