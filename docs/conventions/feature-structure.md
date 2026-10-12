@@ -43,7 +43,7 @@ features/finance/api/            # was features/finance/api.ts
 | R2 | Only feature api modules may import transport values (`api`, `getCanonical*`, `postCanonical`, client factories) from `@workspace/api*`. Type-only imports and pure helpers (`downloadFile`, `buildListSearchParams`, `serializeListQuery`) stay available to every layer. Shell bootstrap (`apps/shell`) is the only approved exception. | One transport seam; components never build URLs |
 | R3 | Cross-feature imports may only reach a feature's `api.ts` / `types.ts` / `list-query.ts` / `index.ts`. Never its `components/` or `page`. The app-level `features/shared/` area is public. | No UI internals leaking between domains |
 | R4 | `api.ts` is framework-free: no React, no i18n keys, no table columns, no label specs. Those live in `components/` (see `apps/loan/src/features/adjustments/kind-spec.ts`). | Adapters stay testable and codegen-friendly |
-| R5 | Wire types state their source in a doc comment: `OpenAPI <operationId>` when a spec exists, otherwise `arda-be/apps/<service>/...:<line>`. When ADR-005 codegen lands, `types.ts` re-exports the generated type — consumers do not change. | Auditable contract, no silent divergence |
+| R5 | When `arda-be/contracts/openapi` has a document for the service, wire types are aliases of `@workspace/api/generated/<doc>` (for example `DepositSavings`) and request bodies are built from the generated input schemas (`WireBody<DepositOpenSavingsInput, ...>`); never redeclare wire fields. Without a document, wire types state their source in a doc comment (`arda-be/apps/<service>/...:<line>`). | Auditable contract, no silent divergence |
 | R6 | Query keys come from a factory: server lists via `defineServerList` in `list-query.ts`, everything else via a `keys.ts`/`list-query.ts` export. No new inline key literals. | Deterministic invalidation |
 | R7 | Mutations run through `hooks.ts` (`useMutation` + `invalidateQueries({ queryKey: xxxKeys.all })`) once a feature has more than a trivial refresh. Pages call hooks, not transport. | Cache correctness instead of ad-hoc refetch |
 | R8 | Code shared by two or more apps is a workspace package (`@workspace/api/generated/*` for wire types, a dedicated client package for stateless helpers) registered in `federation.shared.ts` (`remoteSharedDeps` or `sharedWorkspaceExemptions` with a justification). Never deep-import another app. | Federation policy stays green |
@@ -90,17 +90,25 @@ export const sessionApi = { list: () => getCanonicalList<SessionApiItem>(...).th
 
 ## 3. Contract and codegen seam
 
-`docs/refactor-program.md` §2-3 and `arda-be/docs/refactor-program/phase-0/adr-register.md`
-(ADR-005) define the target: page → feature hooks → domain adapter → generated
-contract types → `@workspace/api` transport. Until specs exist for a service, the seam
-is `types.ts` (R5). When a spec lands:
+ADR-005 (`arda-be/docs/refactor-program/phase-0/adr-register.md`) is in place: page →
+feature hooks → domain adapter → generated contract types → `@workspace/api` transport.
 
-1. Generate types into `packages/api/src/generated/<service>-v1.ts` (subpath export in
-   `packages/api/package.json`).
-2. `types.ts` re-exports the generated type and keeps only view-model mapping.
-3. Delete handwritten duplicates; `check:features` keeps everything else honest.
+- `bun run gen:api-types` turns every `arda-be/contracts/openapi/<doc>.json` into
+  `packages/api/src/generated/<doc>.ts` with openapi-typescript, plus one alias per
+  schema prefixed with the document name (`deposit-v1.json` `Savings` →
+  `DepositSavings`). Set `ARDA_BE_PATH` when arda-be is not at `../arda-be`.
+- The output is committed. CI runs `bun run check:api-types` against arda-be `main`, so a
+  merged contract change fails here until the types are regenerated.
+- `types.ts` keeps the feature's names as aliases of the generated types and adds only
+  view-model mapping and client-side narrowing (literal unions the forms offer).
+- Generated schemas are honest about the wire: a Go slice may be `null`, a Go pointer is
+  `T | null`, and request schemas leave every field optional. Handle that in the adapter
+  (`items ?? []`, `value ?? undefined`), and use `WireBody<T, K>` to state which fields
+  this client always sends.
+- Migrated so far: `apps/deposit` (`deposit-v1`). The other documents are hand-written
+  pilots in arda-be until their service generates its document from Go.
 
-Generated type packages are stateless and erased at build; if two or more apps import
+Generated type modules are stateless and erased at build; if two or more apps import
 them, register the exemption in `federation.shared.ts`:
 `"@workspace/contracts": "generated wire types only; erased at build"`.
 
