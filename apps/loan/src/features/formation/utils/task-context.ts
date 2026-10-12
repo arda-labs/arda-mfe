@@ -2,7 +2,7 @@ import { useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { navigateTo } from "@workspace/ui/shell/routing"
+import { navigateTo } from "@workspace/federation-runtime/routing"
 import {
   claimWithRetry,
   isViewOnlyTaskContext,

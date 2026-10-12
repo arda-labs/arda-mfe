@@ -16,7 +16,7 @@ import { getAuthScope, useAuthStore } from "@workspace/auth/store"
 import { setErrorAskAiHandler, useNotificationStream } from "@workspace/notifications"
 import "@workspace/ai/labels"
 import { registerOlorinContext } from "@workspace/ai/registry"
-import { lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { lazyWithPreload } from "@workspace/federation-runtime/lazy"
 import { RouteLoading } from "@workspace/ui/components/route-loading"
 import { composeOlorinMessage } from "@workspace/ai/compose"
 import {

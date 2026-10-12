@@ -1,6 +1,6 @@
 import { preloadRemoteForPath } from "./remote-routes"
 import { resolveRemoteRoute } from "../../../federation.routes"
-import { beginRouteNavigation } from "@workspace/ui/lib/route-performance"
+import { beginRouteNavigation } from "@workspace/federation-runtime/route-performance"
 
 let intentTimer: ReturnType<typeof setTimeout> | undefined
 let speculativePending = false

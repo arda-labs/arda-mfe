@@ -120,7 +120,16 @@ export function federationRemote(
  *   invalidation timing across independently released units.
  */
 export const sharedWorkspaceExemptions = {
-  "@workspace/ui": "presentational-only; no cross-tree state",
+  // The page-title portal (shell/page-title.ts) is ui's only cross-bundle
+  // contract: a window event plus a DOM slot id, both stable across releases.
+  "@workspace/ui": "presentational components; cross-tree contract is the page-title window event only",
+  // Bundled per app on purpose. Cross-bundle state goes through versioned
+  // Symbol.for registries and window events (lazy retries, route timing,
+  // navigation intent, browser errors), which keep working when the shell and
+  // a remote come from different releases, and adding a share-scope entry
+  // carries the boot-order risk of the 2026-09-08 incident.
+  "@workspace/federation-runtime":
+    "per-app runtime; cross-bundle state uses versioned Symbol.for registries and window events",
   "@workspace/list-page": "per-remote list isolation",
   "@workspace/query": "per-remote cache isolation; retained across navigation, cleared on auth scope changes",
   "@workspace/media": "stateless protocol helpers",

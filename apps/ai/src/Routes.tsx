@@ -5,7 +5,7 @@ const locales = createAppLocaleLoader("ai", {
 })
 
 import { QueryProvider } from "@workspace/query/provider"
-import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { createRemoteRoutes, lazyWithPreload } from "@workspace/federation-runtime/lazy"
 
 const KnowledgePage = lazyWithPreload(() =>
   import("@/features/knowledge/page").then((m) => ({ default: m.KnowledgePage }))

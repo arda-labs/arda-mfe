@@ -4,7 +4,7 @@ import { FileSpreadsheet, Plus } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableToolbar } from "@workspace/ui/components/data-table/data-table-toolbar"
-import { lazyWithPreload } from "@workspace/ui/lib/lazy"
+import { lazyWithPreload } from "@workspace/federation-runtime/lazy"
 import type { ExportFormat, ExportScope } from "./table-export"
 
 const TableExportDialog = lazyWithPreload(() =>

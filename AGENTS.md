@@ -40,10 +40,10 @@ Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
 
 ### 2.2. Chuẩn hoá Remote Router với `createRemoteRoutes`
 * Mọi remote đều export một file duy nhất `src/Routes.tsx` (ví dụ `apps/platform/src/Routes.tsx`) qua Module Federation `exposes: { "./Routes": "./src/Routes.tsx" }`.
-* Sử dụng factory `createRemoteRoutes` từ `@workspace/ui/lib/lazy`:
+* Sử dụng factory `createRemoteRoutes` từ `@workspace/federation-runtime/lazy`:
   ```tsx
   import { createAppLocaleLoader } from "@workspace/i18n"
-  import { createRemoteRoutes, lazyWithPreload } from "@workspace/ui/lib/lazy"
+  import { createRemoteRoutes, lazyWithPreload } from "@workspace/federation-runtime/lazy"
 
   const locales = createAppLocaleLoader("platform", {
     "vi-VN": () => import("../locales/vi-VN.json"),

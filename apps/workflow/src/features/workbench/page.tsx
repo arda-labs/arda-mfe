@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { markRoutePhase } from "@workspace/ui/lib/route-performance"
+import { markRoutePhase } from "@workspace/federation-runtime/route-performance"
 import { useI18n } from "@workspace/i18n"
 import {
   createTransactionWorkbench,

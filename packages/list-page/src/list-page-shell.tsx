@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react"
 import { useLocation } from "react-router-dom"
-import { markRoutePhase } from "@workspace/ui/lib/route-performance"
+import { markRoutePhase } from "@workspace/federation-runtime/route-performance"
 import type { Row, Table as TanstackTable } from "@tanstack/react-table"
 import { PageErrorDialog } from "./page-error-dialog"
 import { PageLoadOverlay } from "./page-load-overlay"

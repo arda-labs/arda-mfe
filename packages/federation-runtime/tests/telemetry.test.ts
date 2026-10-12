@@ -3,7 +3,7 @@ import {
   reportBrowserError,
   setBrowserTelemetryListener,
   type BrowserErrorReport,
-} from "./browser-telemetry"
+} from "../src/telemetry"
 
 afterEach(() => setBrowserTelemetryListener(null))
 

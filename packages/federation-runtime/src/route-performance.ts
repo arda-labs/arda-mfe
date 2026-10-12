@@ -12,7 +12,7 @@ const key = Symbol.for("arda.route-performance.v1")
 const root = globalThis as typeof globalThis & { [key]?: TimingRegistry }
 const registry = (root[key] ??= { sequence: 0 })
 
-/** Shared through a symbol because UI is bundled independently by each remote. */
+/** Shared through a symbol because this package is bundled independently by each app. */
 export function beginRouteNavigation(pathname: string, route: string, remote: string) {
   if (typeof window === "undefined") return
   if (registry.current?.pathname === pathname) return

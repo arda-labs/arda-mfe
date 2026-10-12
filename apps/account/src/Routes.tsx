@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { createAppLocaleLoader, useI18n } from "@workspace/i18n"
 import { QueryProvider } from "@workspace/query/provider"
-import { attachPreload, lazyWithPreload, matchesRoutePrefix, RouteReady } from "@workspace/ui/lib/lazy"
+import { attachPreload, lazyWithPreload, matchesRoutePrefix, RouteReady } from "@workspace/federation-runtime/lazy"
 import { RouteLoading } from "@workspace/ui/components/route-loading"
 
 const locales = createAppLocaleLoader("profile", {

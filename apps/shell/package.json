@@ -18,6 +18,7 @@
     "@workspace/ai": "workspace:*",
     "@workspace/api": "workspace:*",
     "@workspace/auth": "workspace:*",
+    "@workspace/federation-runtime": "workspace:*",
     "@workspace/format": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/media": "workspace:*",
