@@ -5,14 +5,32 @@ import {
   putCanonical,
 } from "@workspace/api"
 import { buildSearchParams } from "@workspace/api/query"
+import type {
+  LoanBatchCancelled,
+  LoanBatchCollectionRowInput,
+  LoanBatchCompleteRequest,
+  LoanBatchDraftCreated,
+  LoanBatchPostingPreview,
+  LoanBatchRowInput,
+  LoanBatchSubmitAccepted,
+  LoanCollectionBatch,
+  LoanCreateBatchInput,
+  LoanCreateBatchInputCollectionInput,
+  LoanDisbursementBatch,
+  LoanDisbursementBatchHeadroom,
+  LoanValidationLine,
+} from "@workspace/api/generated/loan-v1"
+import type { WireBody } from "./wire"
 import type { LoanDisbursementFlowType } from "./disbursements"
 
 export type LoanBatchPaymentMethod = "CASH" | "TRANSFER"
 
 /**
- * Trader (người giao dịch) — mirror của `ObjectInfoValue` (posting-flow) trên wire.
+ * Trader (người giao dịch) — mirror của `ObjectInfoValue` (posting-flow). The
+ * backend stores it as a string map, so this is the client's narrowing of the
+ * generated `trader` field.
  */
-export interface LoanBatchTrader {
+export type LoanBatchTrader = {
   object_type: string
   object_code: string
   object_name: string
@@ -22,139 +40,75 @@ export interface LoanBatchTrader {
   address?: string
 }
 
-/**
- * Response chung của create batch: case (workflow) + batch ledger id.
- * BE trả nguyên hàng batch (`domain.DisbursementBatch` / `CollectionBatch`)
- * nên case thực tế nằm ở `workflow_case_id`/`workflow_case_code`, batch ledger
- * ở `id`; các alias `case_id`/`case_code`/`batch_id` giữ để tương thích.
- */
-export interface LoanBatchCreated {
-  case_id: string
-  case_code: string
-  batch_id: string
-  id?: string
-  workflow_case_id?: string
-  workflow_case_code?: string
-}
-
+// Wire types generated from arda-be/contracts/openapi/loan-v1.json (ADR-005).
+export type {
+  LoanDisbursementBatch,
+  LoanDisbursementBatchEvent,
+  LoanCollectionBatch,
+} from "@workspace/api/generated/loan-v1"
 /** Draft create response: a workflow case is created only after explicit submit. */
-export interface LoanDisbursementBatchDraftCreated {
-  id: string
-  batch_id: string
-  status: "DRAFT"
-  data_version: number
+export type LoanDisbursementBatchDraftCreated = LoanBatchDraftCreated
+export type DisbursementBatchSubmitResult = LoanBatchSubmitAccepted
+/**
+ * Posting preview view model: the generated type allows null arrays (Go nil
+ * slices) and null lines (protobuf pointers); preview() normalizes them.
+ */
+export type DisbursementPostingPreview = Omit<LoanBatchPostingPreview, "headroom" | "global_errors" | "lines"> & {
+  headroom: LoanDisbursementBatchHeadroom[]
+  global_errors: string[]
+  lines: (LoanValidationLine & { errors: string[] })[]
 }
 
-export interface DisbursementBatchRegisterInput {
-  data_version?: number
-  org_code?: string
-  txn_date: string
+function normalizePostingPreview(preview: LoanBatchPostingPreview): DisbursementPostingPreview {
+  return {
+    ...preview,
+    headroom: preview.headroom ?? [],
+    global_errors: preview.global_errors ?? [],
+    lines: (preview.lines ?? [])
+      .filter((line): line is LoanValidationLine => line != null)
+      .map((line) => ({ ...line, errors: line.errors ?? [] })),
+  }
+}
+export type DisbursementBatchCancelled = LoanBatchCancelled
+/** A batch row: the backend returns the full disbursement record. */
+export type LoanDisbursementBatchRow = NonNullable<LoanDisbursementBatch["rows"]>[number]
+/** A batch row: the backend returns the full collection record. */
+export type LoanCollectionBatchRow = NonNullable<LoanCollectionBatch["rows"]>[number]
+
+type BatchRow = WireBody<Partial<LoanBatchRowInput>, "contract_code" | "agreement_code" | "amount_minor">
+type CollectionRow = WireBody<
+  Partial<LoanBatchCollectionRowInput>,
+  "contract_code" | "agreement_code" | "principal_minor" | "interest_minor"
+>
+
+export type DisbursementBatchRegisterInput = WireBody<
+  Omit<LoanCreateBatchInput, "rows" | "trader" | "payment_method">,
+  "txn_date"
+> & {
   payment_method: LoanBatchPaymentMethod
-  account_code?: string
-  description?: string
   trader?: LoanBatchTrader
-  rows: {
-    contract_code: string
-    agreement_code: string
-    amount_minor: number
-  }[]
+  rows: BatchRow[]
 }
 
-export interface DisbursementBatchCompleteInput {
-  data_version?: number
-  source_batch_id: string
-  txn_date: string
-  description?: string
+export type DisbursementBatchCompleteInput = WireBody<
+  Omit<LoanBatchCompleteRequest, "rows" | "trader">,
+  "source_batch_id" | "txn_date"
+> & {
   trader?: LoanBatchTrader
   /** amount_minor = 0 khi is_closed (đóng hợp đồng, không rút tiếp). */
-  rows: {
-    contract_code: string
-    agreement_code: string
-    amount_minor: number
-    is_closed?: boolean
-  }[]
+  rows: BatchRow[]
 }
 
 export type DisbursementBatchDraftInput =
   | (DisbursementBatchRegisterInput & { data_version: number })
   | (Omit<DisbursementBatchCompleteInput, "source_batch_id"> & { data_version: number })
 
-export interface CollectionBatchCreateInput {
-  txn_date: string
-  description?: string
+export type CollectionBatchCreateInput = WireBody<
+  Omit<LoanCreateBatchInputCollectionInput, "rows" | "trader">,
+  "txn_date"
+> & {
   trader?: LoanBatchTrader
-  rows: {
-    contract_code: string
-    agreement_code: string
-    principal_minor: number
-    interest_minor: number
-    overdue_interest_minor?: number
-  }[]
-}
-
-/** Batch list item: header fields + friendly workflow_case_code. */
-export interface LoanDisbursementBatch {
-  id: string
-  tenant_id?: string
-  txn_date: string
-  payment_method?: LoanBatchPaymentMethod
-  account_code?: string
-  description?: string
-  trader?: LoanBatchTrader
-  flow_type?: LoanDisbursementFlowType
-  source_batch_id?: string
-  total_amt_minor?: number
-  currency_code?: string
-  status: string
-  case_id?: string
-  case_code?: string
-  workflow_case_id?: string
-  workflow_case_code?: string
-  created_by?: string
-  created_at?: string
-  /** Row version the checker saw — sent back as `dataVersion` on approve. */
-  data_version?: number
-  /** Chỉ có trên detail (GET /{id}). */
-  rows?: LoanDisbursementBatchRow[]
-  history?: LoanDisbursementBatchEvent[]
-}
-
-export interface LoanDisbursementBatchEvent {
-  event_type: string
-  from_status?: string
-  to_status?: string
-  detail?: string
-  actor?: string
-  created_at: string
-}
-
-export interface DisbursementBatchSubmitResult {
-  batch_id: string
-  reference_no: string
-  status: "PENDING_APPROVAL"
-  data_version: number
-}
-
-export interface DisbursementPostingPreview {
-  valid: boolean
-  coa_version_id: string
-  global_errors: string[]
-  headroom: {
-    contract_code: string
-    available_before_minor: number
-    remaining_after_minor: number
-  }[]
-  lines: {
-    line_no: number
-    resolved: boolean
-    account_code: string
-    account_name: string
-    direction: "DEBIT" | "CREDIT"
-    amount_minor: number
-    currency_code: string
-    description: string
-    errors: string[]
-  }[]
+  rows: CollectionRow[]
 }
 
 export interface DisbursementWorkflowContext {
@@ -166,42 +120,6 @@ export interface DisbursementWorkflowContext {
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined
-}
-
-export interface LoanDisbursementBatchRow {
-  contract_code: string
-  agreement_code: string
-  amount_minor: number
-  status?: string
-  is_closed?: boolean
-}
-
-export interface LoanCollectionBatch {
-  id: string
-  tenant_id?: string
-  txn_date: string
-  description?: string
-  total_amt_minor?: number
-  total_principal_minor?: number
-  total_interest_minor?: number
-  currency_code?: string
-  status: string
-  case_id?: string
-  case_code?: string
-  workflow_case_code?: string
-  created_by?: string
-  created_at?: string
-  /** Row version the checker saw — sent back as `dataVersion` on approve. */
-  data_version?: number
-  rows?: LoanCollectionBatchRow[]
-}
-
-export interface LoanCollectionBatchRow {
-  contract_code: string
-  agreement_code: string
-  principal_minor: number
-  interest_minor: number
-  overdue_interest_minor?: number
 }
 
 export const disbursementBatchApi = {
@@ -218,12 +136,12 @@ export const disbursementBatchApi = {
       { data_version: dataVersion }
     ),
   preview: (id: string) =>
-    postCanonical<DisbursementPostingPreview>(
+    postCanonical<LoanBatchPostingPreview>(
       `/api/loan/disbursement-batches/${encodeURIComponent(id)}/preview`,
       {}
-    ),
+    ).then(normalizePostingPreview),
   cancelDraft: (id: string, dataVersion: number) =>
-    postCanonical<{ batch_id: string; status: string }>(
+    postCanonical<DisbursementBatchCancelled>(
       `/api/loan/disbursement-batches/${encodeURIComponent(id)}/cancel`,
       { data_version: dataVersion }
     ),
@@ -265,7 +183,7 @@ export const disbursementBatchApi = {
 
 export const collectionBatchApi = {
   create: (body: CollectionBatchCreateInput) =>
-    postCanonical<LoanBatchCreated>("/api/loan/collection-batches", body),
+    postCanonical<LoanCollectionBatch>("/api/loan/collection-batches", body),
   list: (
     params: {
       status?: string

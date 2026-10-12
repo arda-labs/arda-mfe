@@ -123,7 +123,7 @@ function PickerContent({
                 items.map((batch) => (
                   <TableRow key={batch.id}>
                     <TableCell className="font-mono text-xs text-primary">
-                      {batch.case_code || batch.workflow_case_code || batch.id.slice(0, 8)}
+                      {batch.workflow_case_code || batch.id.slice(0, 8)}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-xs">
                       {formatDateShort(batch.txn_date)}

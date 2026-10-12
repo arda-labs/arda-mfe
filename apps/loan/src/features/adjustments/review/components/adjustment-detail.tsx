@@ -14,7 +14,8 @@ export function AdjustmentDetail({
 }) {
   const { t } = useI18n()
   const spec = ADJUSTMENT_KIND_SPECS[kind]
-  const payload = adjustment.payload ?? {}
+  // payload is raw JSON on the wire (domain.Adjustment.Payload).
+  const payload = (adjustment.payload ?? {}) as Record<string, unknown>
   const known = new Set(spec.fields.map((field) => field.key))
   const extra = Object.entries(payload).filter(
     ([key]) => !known.has(key) && key !== "trader"

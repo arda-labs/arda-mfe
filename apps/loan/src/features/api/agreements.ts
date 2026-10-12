@@ -1,33 +1,12 @@
 import { getCanonicalList } from "@workspace/api"
 
-/**
- * Disbursement agreement — mirrors loan-service agreement rows. `plan_code`
- * groups contracts into posting plans (batch grids group rows by it);
- * `outstanding_amt_minor` (dư nợ đã giải ngân) + `pending_disburse_amt_minor`
- * (đang chờ duyệt) are the headroom inputs against `loan_amt_minor`.
- */
-export interface LoanAgreement {
-  agreement_code: string
-  contract_code: string
-  plan_code?: string
-  currency_code: string
-  outstanding_amt_minor: number
-  pending_disburse_amt_minor: number
-  disburse_amt_minor?: number
-  status: string
-}
+// Wire types generated from arda-be/contracts/openapi/loan-v1.json (ADR-005).
+import type { LoanAgreement, LoanPostingRuleView } from "@workspace/api/generated/loan-v1"
+export type { LoanAgreement }
+export type LoanPostingRule = LoanPostingRuleView
 
 export type LoanBatchDocumentType =
   "LNM_DISB_REGISTER" | "LNM_DISB_COMPLETE" | "LNM_COLLECTION"
-
-/** One resolved posting-rule line (STT / Nợ-Có / phân giải / tài khoản). */
-export interface LoanPostingRule {
-  line_no: number
-  direction: "DEBIT" | "CREDIT"
-  resolution_type: string
-  account_ref: string
-  acc_classification?: string
-}
 
 /**
  * Agreement + posting-rule reference reads shared by the contract pickers and

@@ -161,14 +161,14 @@ export function BatchRegisterForm() {
             key: crypto.randomUUID(),
             contract,
             agreement,
-            amount: String(fromMinor(row.amount_minor, agreement.currency_code)),
+            amount: String(fromMinor(row.disburse_amt_minor, agreement.currency_code)),
           }
         })
         if (cancelled) return
         setDraftId(detail.id)
         setDataVersion(detail.data_version)
         setTxnDate(detail.txn_date)
-        setPaymentMethod(detail.payment_method ?? "TRANSFER")
+        setPaymentMethod(detail.payment_method === "CASH" ? "CASH" : "TRANSFER")
         setAccountCode(detail.account_code ?? "")
         setDescriptionOverride(detail.description ?? null)
         setTrader((current) => detail.trader ? { ...current, ...detail.trader } : current)

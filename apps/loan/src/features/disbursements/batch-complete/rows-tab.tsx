@@ -57,7 +57,7 @@ export function CompleteRowsTab({
           <TableCell className="font-mono text-xs">{row.contract_code}</TableCell>
           <TableCell className="font-mono text-xs text-primary">{row.agreement_code}</TableCell>
           <TableCell className="whitespace-nowrap text-right text-xs tabular-nums">
-            {formatAmount(fromMinor(row.amount_minor), "VND")}
+            {formatAmount(fromMinor(row.disburse_amt_minor), "VND")}
           </TableCell>
           <TableCell>
             <Input

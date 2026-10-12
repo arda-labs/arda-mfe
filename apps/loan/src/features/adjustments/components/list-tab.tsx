@@ -121,7 +121,7 @@ export function AdjustmentListTab({
         }
         notify.success(
           t("loan.submitted_with_case", {
-            case: caseDisplayLabel(updated.workflow_case_id, updated.id) ?? updated.id,
+            case: caseDisplayLabel(updated.workflow_case_id ?? undefined, updated.id) ?? updated.id,
           })
         )
         reload()
@@ -147,7 +147,7 @@ export function AdjustmentListTab({
         enableSorting: false,
         cell: ({ row }) => {
           const label =
-            caseDisplayLabel(row.original.workflow_case_id, row.original.id) ?? row.original.id
+            caseDisplayLabel(row.original.workflow_case_id ?? undefined, row.original.id) ?? row.original.id
           return (
             <span className="block max-w-44 truncate font-mono text-xs" title={label}>
               {label}
