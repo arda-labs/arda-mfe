@@ -15,7 +15,24 @@ import type {
   DepositSubmission,
   ProductRequest,
   RateRequest,
+  BatchInterestResult,
+  RateChangePayload,
+  WireBody,
 } from "./types"
+import type {
+  DepositAdditionalDepositRequest,
+  DepositBorrowDecisionRequest,
+  DepositIBMBorrowMovementInput,
+  DepositIBMMovementRequest,
+  DepositIBMProductInput,
+  DepositInterbankBorrowInput,
+  DepositInterbankDepositInput,
+  DepositOpenSavingsInput,
+  DepositProductRequestInput,
+  DepositRateChangeRequest,
+  DepositSavingsInterestRequest,
+  DepositSavingsProductInput,
+} from "@workspace/api/generated/deposit-v1"
 import type {
   InterbankBorrow,
   IbmBorrowDetail,
@@ -53,27 +70,20 @@ export const depositApi = {
       requestOptions
     )
   },
-  upsertProduct: (body: {
-    code: string
-    name: string
-    term_months: number
-    interest_rate: number
-    currency_code?: string
-  }) => postCanonical<SavingsProduct>("/api/deposit/products", body),
+  upsertProduct: (
+    body: WireBody<DepositSavingsProductInput, "code" | "name" | "term_months" | "interest_rate">
+  ) => postCanonical<SavingsProduct>("/api/deposit/products", body),
   submitProductRequest: (
     requestType: "REGISTER" | "EDIT",
-    body: {
-      product_code: string
-      name: string
-      term_months: number
-      interest_rate: number
-      currency_code?: string
-    }
+    body: WireBody<
+      Omit<DepositProductRequestInput, "request_type">,
+      "product_code" | "name" | "term_months" | "interest_rate"
+    >
   ) =>
     postCanonical<DepositSubmission>("/api/deposit/product-requests", {
       request_type: requestType,
       ...body,
-    }),
+    } satisfies DepositProductRequestInput),
   listProductRequests: (
     params: { status?: string } = {},
     requestOptions?: ApiRequestOptions
@@ -103,14 +113,12 @@ export const depositApi = {
       requestOptions
     )
   },
-  openSavings: (body: {
-    savings_code: string
-    customer_code: string
-    product_code: string
-    open_date: string
-    principal_minor: number
-    currency_code?: string
-  }) => postCanonical<Savings>("/api/deposit/savings/open", body),
+  openSavings: (
+    body: WireBody<
+      DepositOpenSavingsInput,
+      "savings_code" | "customer_code" | "product_code" | "open_date" | "principal_minor"
+    >
+  ) => postCanonical<Savings>("/api/deposit/savings/open", body),
   settleSavings: (savingsCode: string) =>
     postCanonical<DepositSubmission>(
       `/api/deposit/savings/${encodeURIComponent(savingsCode)}/settle`,
@@ -118,7 +126,7 @@ export const depositApi = {
     ),
   depositAdditional: (
     savingsCode: string,
-    body: { amount_minor: number; txn_date?: string }
+    body: WireBody<DepositAdditionalDepositRequest, "amount_minor">
   ) =>
     postCanonical<DepositSubmission>(
       `/api/deposit/savings/${encodeURIComponent(savingsCode)}/deposit`,
@@ -136,28 +144,23 @@ export const depositApi = {
       requestOptions
     )
   },
-  createInterbank: (body: {
-    deposit_code: string
-    counterparty_code: string
-    counterparty_name?: string
-    product_code?: string
-    deposit_date: string
-    maturity_date: string
-    principal_minor: number
-    interest_rate: number
-    currency_code?: string
-  }) => postCanonical<InterbankDeposit>("/api/deposit/interbank", body),
+  createInterbank: (
+    body: WireBody<
+      DepositInterbankDepositInput,
+      | "deposit_code"
+      | "counterparty_code"
+      | "deposit_date"
+      | "maturity_date"
+      | "principal_minor"
+      | "interest_rate"
+    >
+  ) => postCanonical<InterbankDeposit>("/api/deposit/interbank", body),
   getInterbank: (id: string) =>
     getCanonical<IbmDetail>(`/api/deposit/interbank/${encodeURIComponent(id)}`),
   submitIbmMovement: (
     depositId: string,
-    body: {
+    body: WireBody<DepositIBMMovementRequest, "kind" | "amount_minor" | "movement_date"> & {
       kind: "TOP_UP" | "INTEREST" | "EXPECTED" | "WITHDRAW"
-      amount_minor: number
-      movement_date: string
-      period_from?: string
-      period_to?: string
-      note?: string
     }
   ) =>
     postCanonical<IbmMovement>(
@@ -168,7 +171,7 @@ export const depositApi = {
     getCanonicalList<IbmProduct>(
       `/api/deposit/ibm-products${includeInactive ? "?include_inactive=true" : ""}`
     ),
-  upsertIbmProduct: (body: Partial<IbmProduct>) =>
+  upsertIbmProduct: (body: DepositIBMProductInput) =>
     postCanonical<IbmProduct>("/api/deposit/ibm-products", body),
 
   // ── Interbank borrowing (mirror of the placement side) ──
@@ -182,36 +185,32 @@ export const depositApi = {
       requestOptions
     )
   },
-  createBorrow: (body: {
-    borrow_code: string
-    counterparty_code: string
-    counterparty_name?: string
-    product_code?: string
-    lender_type: IbmLenderType
-    funding_purpose: IbmFundingPurpose
-    term_months: number
-    drawdown_date: string
-    maturity_date: string
-    principal_minor: number
-    interest_rate: number
-    currency_code?: string
-  }) => postCanonical<InterbankBorrow>("/api/deposit/borrows", body),
+  createBorrow: (
+    body: WireBody<
+      DepositInterbankBorrowInput,
+      | "borrow_code"
+      | "counterparty_code"
+      | "term_months"
+      | "drawdown_date"
+      | "maturity_date"
+      | "principal_minor"
+      | "interest_rate"
+    > & { lender_type: IbmLenderType; funding_purpose: IbmFundingPurpose }
+  ) => postCanonical<InterbankBorrow>("/api/deposit/borrows", body),
   getBorrow: (id: string) =>
     getCanonical<IbmBorrowDetail>(`/api/deposit/borrows/${encodeURIComponent(id)}`),
-  decideBorrow: (id: string, body: { decision: "APPROVE" | "REJECT"; data_version?: string }) =>
+  decideBorrow: (
+    id: string,
+    body: WireBody<DepositBorrowDecisionRequest, "decision"> & { decision: "APPROVE" | "REJECT" }
+  ) =>
     postCanonical<InterbankBorrow>(
       `/api/deposit/borrows/${encodeURIComponent(id)}/decision`,
       body
     ),
   submitBorrowMovement: (
     borrowId: string,
-    body: {
+    body: WireBody<DepositIBMBorrowMovementInput, "kind" | "amount_minor" | "movement_date"> & {
       kind: IbmBorrowMovementKind
-      amount_minor: number
-      movement_date: string
-      period_from?: string
-      period_to?: string
-      note?: string
     }
   ) =>
     postCanonical<IbmBorrowMovement>(
@@ -223,21 +222,14 @@ export const depositApi = {
     getCanonicalList<InterestRate>(
       `/api/deposit/rates${productCode ? `?product_code=${encodeURIComponent(productCode)}` : ""}`
     ),
-  submitRate: (body: {
-    request_type: "REGISTER" | "EDIT" | "ADJUST"
-    payload: {
-      product_code?: string
-      term_months: number
-      method?: string
-      denominator?: number
-      rate: number
-      effective_from: string
+  // The backend stores `payload` as raw JSON (RateChangeRequest.payload), so
+  // the generated type is `unknown`; this client pins the shape it sends.
+  submitRate: (
+    body: WireBody<DepositRateChangeRequest, "request_type"> & {
+      request_type: "REGISTER" | "EDIT" | "ADJUST"
+      payload: RateChangePayload
     }
-  }) =>
-    postCanonical<{ id: string; status: string; workflow_case_id?: string }>(
-      "/api/deposit/rates",
-      body
-    ),
+  ) => postCanonical<RateRequest>("/api/deposit/rates", body),
   getRateRequest: (id: string) =>
     getCanonical<RateRequest>(`/api/deposit/rates/${encodeURIComponent(id)}`),
   getInterestOpsByCase: (caseId: string) =>
@@ -250,14 +242,16 @@ export const depositApi = {
     ),
   submitSavingsInterest: (
     code: string,
-    body: { op_type: "PAY" | "CAPITALIZE"; amount_minor: number }
+    body: WireBody<DepositSavingsInterestRequest, "op_type" | "amount_minor"> & {
+      op_type: "PAY" | "CAPITALIZE"
+    }
   ) =>
     postCanonical<InterestOp>(
       `/api/deposit/savings/${encodeURIComponent(code)}/interest`,
       body
     ),
   submitBatchInterest: () =>
-    postCanonical<{ items: InterestOp[]; total: number }>(
+    postCanonical<BatchInterestResult>(
       "/api/deposit/batch-interest",
       {}
     ),

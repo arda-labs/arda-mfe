@@ -75,7 +75,7 @@ export function DisbursementsPage(_props: { pathname: string }) {
         // Prefer the friendly case_code; the uuid is the fallback.
         const caseLabel = caseDisplayLabel(
           updated.workflow_case_code,
-          updated.workflow_case_id
+          updated.workflow_case_id ?? undefined
         )
         notify.success(
           caseLabel
@@ -145,7 +145,7 @@ export function DisbursementsPage(_props: { pathname: string }) {
           FLOW_VALUES.map((value) => ({ label: flowLabels[value], value }))
         ),
         cell: ({ row }) => {
-          const flow = row.original.flow_type ?? "REGISTER"
+          const flow: LoanDisbursementFlowType = row.original.flow_type === "COMPLETE" ? "COMPLETE" : "REGISTER"
           return (
             <Badge variant={flowVariant[flow]} className="px-2 py-0 text-[10px]">
               {flowLabels[flow] ?? flow}
@@ -176,7 +176,7 @@ export function DisbursementsPage(_props: { pathname: string }) {
         cell: ({ row }) => {
           const caseLabel = caseDisplayLabel(
             row.original.workflow_case_code,
-            row.original.workflow_case_id
+            row.original.workflow_case_id ?? undefined
           )
           return caseLabel ? (
             <span

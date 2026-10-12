@@ -5,18 +5,9 @@ import {
 } from "@workspace/api"
 import { listQuery } from "./list-query"
 
-/** Loan plan catalog (W7). */
-export interface LoanPlan {
-  id: string
-  code: string
-  name: string
-  from_date?: string
-  to_date?: string
-  target_amount_minor: number
-  note?: string
-  status: string
-  org_code?: string
-}
+// Wire types generated from arda-be/contracts/openapi/loan-v1.json (ADR-005).
+import type { LoanLoanPlan } from "@workspace/api/generated/loan-v1"
+export type LoanPlan = LoanLoanPlan
 
 export const loanPlanApi = {
   list: (params: { status?: string } = {}) =>

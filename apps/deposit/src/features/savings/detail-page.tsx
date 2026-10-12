@@ -54,7 +54,7 @@ export function SavingsDetailPage() {
   // case); settle/additional/interest staged files attach to the case — merge
   // both owners so the dossier shows every document.
   const systemTabs = useCaseTabs({
-    caseId: savings?.workflow_case_id,
+    caseId: savings?.workflow_case_id ?? undefined,
     attachmentEntities: savings
       ? [
           { type: "dpm_savings", id: savings.id, module: "deposit" },

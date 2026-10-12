@@ -42,3 +42,6 @@ dist-ssr
 # Browser regression artifacts
 playwright-report/
 test-results/
+
+# CI-only checkouts (arda-be contracts for check:api-types)
+.ci/

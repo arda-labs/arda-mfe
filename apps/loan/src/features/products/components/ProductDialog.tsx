@@ -68,7 +68,7 @@ export function ProductDialog({
       setForm({
         code: editing.code,
         name: editing.name,
-        product_type: editing.product_type,
+        product_type: editing.product_type === "LIMIT" ? "LIMIT" : "TERM",
         interest_rate: editing.interest_rate?.toString() ?? "",
         loan_term_from: editing.loan_term_from?.toString() ?? "",
         loan_term_to: editing.loan_term_to?.toString() ?? "",

@@ -1,40 +1,9 @@
 import { getCanonical, getCanonicalList, postCanonical } from "@workspace/api"
 import { listQuery } from "./list-query"
 
-/**
- * Loan adjustment row — mirrors loan-service `domain.Adjustment`
- * (internal/domain/loan.go:179-195). Flow-specific data lives in `payload`
- * (jsonb) — the exact keys per kind are enforced BE-side by
- * `validateKindPayload` (internal/service/adjustment_service.go:183):
- *   - debt-change → payload.to_debt_group_code (GROUP_1..5)
- *   - rate-change → payload.new_rate
- *   - restructure → payload.new_term + payload.new_maturity_date
- *   - waiver      → amount_minor OR payload.waiver_percent
- *   - writeoff    → amount_minor AND payload.reason
- *   - recovery    → amount_minor AND top-level agreement_code
- *   - fund-check  → payload.result
- *   - revenue-allocation / vfu-fee-allocation → amount_minor
- *   - off-balance-export → payload.reason (amount optional)
- *   - mortgage-adjust → no payload validation
- */
-export interface LoanAdjustment {
-  id: string
-  tenant_id: string
-  kind: string
-  contract_code: string
-  agreement_code?: string
-  effective_date?: string
-  amount_minor?: number
-  /** JSON object — per-kind payload keys (see validateKindPayload note). */
-  payload?: Record<string, unknown>
-  status: string
-  workflow_case_id?: string
-  decision_note?: string
-  decided_by?: string
-  created_by?: string
-  created_at?: string
-  updated_at?: string
-}
+// Wire types generated from arda-be/contracts/openapi/loan-v1.json (ADR-005).
+import type { LoanAdjustment } from "@workspace/api/generated/loan-v1"
+export type { LoanAdjustment }
 
 export const loanAdjustmentKinds = [
   { key: "debt-change", labelKey: "loan.kind.debt_change" },
@@ -181,7 +150,7 @@ export function adjustmentFieldValue(
 ): string | number | undefined {
   if (field.startsWith("payload.")) {
     const key = field.slice("payload.".length)
-    const value = item.payload?.[key]
+    const value = (item.payload as Record<string, unknown> | null | undefined)?.[key]
     return typeof value === "number" || typeof value === "string"
       ? value
       : undefined

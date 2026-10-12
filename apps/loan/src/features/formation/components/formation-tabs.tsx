@@ -142,7 +142,7 @@ export function buildFormationTabs({
     id: "contract",
     label: t("loan.formation.tab.contract"),
     content: (
-      <ContractSnapshot contract={contract} repayPlans={repayPlans} />
+      <ContractSnapshot contract={contract} repayPlans={repayPlans ?? []} />
     ),
   })
 

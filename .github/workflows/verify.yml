@@ -24,6 +24,19 @@ jobs:
       - run: bun run test:federation
       - run: bun run test:features
       - run: git diff --check
+      # ADR-005: generated wire types must match arda-be main's OpenAPI
+      # documents. A contract change merged in arda-be fails here until
+      # `bun run gen:api-types` is run and committed.
+      - name: Check out arda-be contracts
+        uses: actions/checkout@v4
+        with:
+          repository: arda-labs/arda-be
+          path: .ci/arda-be
+          sparse-checkout: contracts/openapi
+      - name: Check generated API types
+        run: bun run check:api-types
+        env:
+          ARDA_BE_PATH: .ci/arda-be
 
   federation-runtime:
     runs-on: ubuntu-latest

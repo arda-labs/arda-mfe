@@ -76,7 +76,7 @@ export function BatchCompletePage() {
   // follows the auto value; user edits always win (no effect needed).
   const autoDescription = source
     ? t("loan.disbursements.batch.complete_description_auto", {
-        case: source.case_code || source.workflow_case_code || source.id.slice(0, 8),
+        case: source.workflow_case_code || source.id.slice(0, 8),
       })
     : ""
   const description = descriptionOverride ?? autoDescription
@@ -108,7 +108,7 @@ export function BatchCompletePage() {
         detailRows.map((row) => ({
           ...row,
           key: crypto.randomUUID(),
-          amount: String(fromMinor(row.amount_minor)),
+          amount: String(fromMinor(row.disburse_amt_minor)),
           isClosed: row.is_closed ?? false,
           planCode: planByAgreement.get(row.agreement_code) ?? "",
         }))
@@ -138,7 +138,7 @@ export function BatchCompletePage() {
     }
     for (let index = 0; index < rows.length; index += 1) {
       const row = rows[index]
-      if (!row.isClosed && completeAmountMinor(row) > row.amount_minor) {
+      if (!row.isClosed && completeAmountMinor(row) > row.disburse_amt_minor) {
         notify.error(
           t("loan.disbursements.batch.validation.amount_exceeds_initial", { row: index + 1 })
         )
@@ -231,7 +231,6 @@ export function BatchCompletePage() {
                           source
                             ? t("loan.disbursements.batch.source_value", {
                                 case:
-                                  source.case_code ||
                                   source.workflow_case_code ||
                                   source.id.slice(0, 8),
                                 date: formatDateShort(source.txn_date),
