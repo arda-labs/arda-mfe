@@ -11,6 +11,8 @@
 // i18n app resource subpaths are intentionally NOT shared: each remote bundles
 // only its own locale JSON, then registers it into the shared i18n singleton.
 
+import type { RemoteName } from "./federation.routes"
+
 export const remoteSharedDeps = {
   // The host owns the fallback; remotes must not each ship a 930/430 kB copy.
   exceljs: { singleton: true, requiredVersion: false, import: false, suppressMissingImportWarning: true },
@@ -71,7 +73,7 @@ export const remotePorts = {
   deposit: 8110,
   capital: 8111,
   statistical: 8112,
-} as const
+} as const satisfies Record<RemoteName, number>
 
 // Vite dev dependency optimization only; production uses lazy chunks + budgets.
 export const shellOptimizeInclude = ["react-toastify"]
@@ -92,18 +94,22 @@ export function federationRemoteEntry(
     : `/mfes/${name}/remoteEntry.js`
 }
 
-/** Standard MF remote descriptor (module type + default share scope). */
-export function federationRemote(
-  name: keyof typeof remotePorts,
-  envVar: string,
-  dev: boolean
-) {
+/**
+ * Standard MF remote descriptor (module type + default share scope).
+ * `<NAME>_REMOTE_ENTRY` overrides the entry URL, e.g. LOAN_REMOTE_ENTRY.
+ */
+export function federationRemote(name: keyof typeof remotePorts, dev: boolean) {
   return {
     type: "module" as const,
     name,
-    entry: process.env[envVar] ?? federationRemoteEntry(name, dev),
+    entry: process.env[`${name.toUpperCase()}_REMOTE_ENTRY`] ?? federationRemoteEntry(name, dev),
     shareScope: "default",
   }
+}
+
+/** `remotes` for a host: one {@link federationRemote} per name. */
+export function federationRemotes(names: readonly (keyof typeof remotePorts)[], dev: boolean) {
+  return Object.fromEntries(names.map((name) => [name, federationRemote(name, dev)]))
 }
 
 /**

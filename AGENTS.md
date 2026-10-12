@@ -16,16 +16,16 @@ Arda MFE sử dụng mô hình **Vite + Module Federation + Bun** gồm 1 Host S
 | **`finance`** | `5103` | `/finance/*` | Kế toán: Accounts, Journal, Operations, Trial balance |
 | **`account`** | `5104` | `/my-account/*`, `/settings/*`, `/in/*` | Quản lý Profile, Security, Sessions, Devices, Appearance |
 | **`hrm`** | `5105` | `/hrm/*` | Quản trị nhân sự: Positions, Job Titles, Org Units, Employees |
-| **`workflow`** | `5106` | `/workflow/*` | Quy trình & BPMN: Case Types, SLA, Roles, Zeebe 8.5 Monitoring |
-| **`crm`** | `5107` | `/customers/*`, `/workbench/*` | Quản lý khách hàng hội viên, bàn làm việc xử lý giao dịch |
-| **`ai`** | `5108` | `/ai` | AI assistant full-page workspace (dock panel vẫn nằm ở shell) |
+| **`workflow`** | `5106` | `/workflow/*`, `/workbench/*` | Quy trình & BPMN: Case Types, SLA, Roles, Zeebe 8.5 Monitoring; bàn làm việc xử lý giao dịch |
+| **`crm`** | `5107` | `/customers/*` | Quản lý khách hàng hội viên |
+| **`ai`** | `5108` | `/ai/*` | AI assistant full-page workspace (dock panel vẫn nằm ở shell) |
 | **`loan`** | `5109` | `/loans/*` | Cho vay: products, VFU, collections, disbursements |
 | **`mdm`** | `5110` | `/admin/mdm/*` | Master data: currencies, countries, interest rates |
 | **`deposit`** | `8110` | `/deposit/*` | Tiền gửi: savings, products, interbank |
 | **`capital`** | `8111` | `/capital/*` | Quản lý vốn: contracts |
 | **`statistical`** | `8112` | `/statistical/*` | Báo cáo thống kê: report definitions, indicators, submissions |
 
-Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
+Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`; route prefix chính xác nằm ở `federation.routes.ts`.
 
 ---
 
@@ -64,6 +64,7 @@ Cổng dev là registry cố định `remotePorts` trong `federation.shared.ts`.
   ```
   `createRemoteRoutes` chọn theo prefix dài nhất (`exact: true` cho index dùng chung tiền tố), preload leaf qua `preload(pathname)`, và chỉ rơi về `defaultComponent` khi pathname khớp `defaultPrefixes` — path ngoài namespace render 404 thay vì trang mặc định.
 * **Registry ownership là `federation.routes.ts` ở root** (cạnh `federation.shared.ts`): shell render (`remoteRouteEntries`) và preload (`preloadRemoteForPath`) đều đọc từ đây. Thêm prefix mới ⇒ sửa registry + `defaultPrefixes`/`routes` của remote tương ứng; `check:federation` chặn registry không owner, owner trùng nhau và prefix không có route/fallback.
+* **Thêm remote mới**: thêm tên + prefix vào `remoteRoutePrefixes` (và vào `taskFormRemotes` nếu remote expose `./taskForms` cho form host của workflow) trong `federation.routes.ts`, thêm port vào `remotePorts`, rồi chạy `bun run gen:federation`. Lệnh này sinh các file phải ghi tên remote dạng literal (plugin federation và TypeScript chỉ thấy `import("<remote>/Routes")` literal): `apps/shell/src/remotes.d.ts`, `apps/shell/src/remote-route-modules.generated.ts`, `apps/workflow/src/remotes.d.ts`, `task-form-modules.generated.ts`. Shell `vite.config.ts`, `remotes` của workflow, danh sách app của `cf:build`/`cf:deploy` và `clear:dev-ports` đọc registry trực tiếp. `check:federation` fail khi file sinh ra đã cũ.
 * Host Shell luôn bọc các Remote Routes bên trong `<RemoteErrorBoundary>` (`apps/shell/src/components/RemoteRoute.tsx`: retry lazy + skeleton) để cô lập sự cố khi remote gặp lỗi mạng.
 
 ### 2.3. Tenant context từ BFF session

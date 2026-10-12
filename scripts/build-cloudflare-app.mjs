@@ -4,23 +4,9 @@ import path from "node:path"
 import process from "node:process"
 import { execFileSync } from "node:child_process"
 import { describeRelease, fetchPreviousRelease, fetchReleaseAsset, retainRelease } from "./asset-release.mjs"
+import { remoteNames } from "../federation.routes.ts"
 
-const apps = [
-  "shell",
-  "iam",
-  "platform",
-  "finance",
-  "account",
-  "hrm",
-  "workflow",
-  "crm",
-  "ai",
-  "loan",
-  "mdm",
-  "deposit",
-  "capital",
-  "statistical",
-]
+const apps = ["shell", ...remoteNames]
 
 const targetArg = process.argv[2] ?? "all"
 function resolveBuildId() {

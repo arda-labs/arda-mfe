@@ -1,8 +1,11 @@
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
+import { remotePorts } from "../federation.shared.ts"
 
 const execFileAsync = promisify(execFile)
-const ports = (process.env.DEV_PORTS ?? "5000,5101,5102,5103,5104,5105,5106,5107")
+// Shell dev port (apps/shell/package.json) plus every remote's fixed port.
+const SHELL_PORT = 5000
+const ports = (process.env.DEV_PORTS ?? [SHELL_PORT, ...Object.values(remotePorts)].join(","))
   .split(",")
   .map((port) => Number(port.trim()))
   .filter(Boolean)
