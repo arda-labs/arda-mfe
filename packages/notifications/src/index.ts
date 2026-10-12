@@ -8,6 +8,12 @@ export {
   showBrowserNotification,
 } from "./browser-notification"
 export { disableWebPush, enableWebPush, webPushSupported } from "./web-push"
+export {
+  getErrorAskAiHandler,
+  setErrorAskAiHandler,
+  useErrorAskAiHandler,
+  type ErrorAskAiHandler,
+} from "./error-ask-ai"
 export type {
   NotificationItem,
   NotificationKind,

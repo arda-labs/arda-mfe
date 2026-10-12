@@ -722,6 +722,7 @@
         "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/i18n": "workspace:*",
+        "@workspace/notifications": "workspace:*",
         "@workspace/ui": "workspace:*",
         "exceljs": "^4.4.0",
         "lucide-react": "^1.22.0",
@@ -866,7 +867,6 @@
         "tw-shimmer": "^0.4.12",
         "vaul": "^1.1.2",
         "zod": "^4.4.3",
-        "zustand": "^5.0.13",
       },
       "devDependencies": {
         "@eslint/js": "^10",
