@@ -334,5 +334,14 @@
   },
   "doc_code": {
     "pending": "Code issued on submit"
+  },
+  "context": {
+    "business_date": "Business date",
+    "status_open": "Open",
+    "status_eod": "End of day running",
+    "status_closed": "Closed",
+    "date_mismatch": "Not today ({today})",
+    "date_unknown": "Date unknown",
+    "eod_short": "EOD"
   }
 }
