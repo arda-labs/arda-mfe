@@ -18,6 +18,7 @@ import {
   Wallet,
   Wrench,
 } from "lucide-react"
+import { MENU_SECTIONS, type MenuSection } from "@workspace/api"
 import type { MessageKey } from "@workspace/i18n"
 import type { AuthUser } from "@workspace/auth/store"
 import { hasAnyPermission } from "@workspace/auth/store"
@@ -30,6 +31,8 @@ export type NavNode = {
   label?: string
   icon: LucideIcon
   permissions?: string[]
+  /** Sidebar department of a top-level node (MENU_SECTIONS code). */
+  section?: string
   children?: NavNode[]
 }
 
@@ -37,6 +40,7 @@ export const navItems: NavNode[] = [
   { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
   {
     labelKey: "nav.ai_center",
+    section: "shared",
     icon: Sparkles,
     permissions: ["ai.admin", "ai.knowledge.manage", "superadmin", "platform.manage"],
     children: [
@@ -74,6 +78,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.admin",
+    section: "admin",
     icon: Users,
     children: [
       {
@@ -128,6 +133,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.workbench",
+    section: "shared",
     icon: Clock,
     children: [
       {
@@ -154,6 +160,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.customer_members",
+    section: "shared",
     icon: Users,
     children: [
       {
@@ -175,6 +182,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.finance",
+    section: "accounting",
     icon: Wallet,
     children: [
       {
@@ -231,6 +239,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.hrm._self",
+    section: "hr",
     icon: Users,
     children: [
       {
@@ -267,6 +276,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.platform",
+    section: "admin",
     icon: Settings,
     children: [
       {
@@ -339,6 +349,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.workflow",
+    section: "shared",
     icon: ListTree,
     children: [
       {
@@ -380,6 +391,7 @@ export const navItems: NavNode[] = [
   },
   {
     labelKey: "nav.loan",
+    section: "credit",
     icon: Wallet,
     children: [
       {
@@ -488,6 +500,53 @@ export function filterNavItems(items: NavNode[], user: AuthUser | null): NavNode
     visible.push({ ...item, children })
   }
   return visible
+}
+
+/**
+ * Department for menu rows served without a section (platform-service builds
+ * before plt_menus.section). Keys are plt_menus codes.
+ */
+export const DEFAULT_MENU_SECTION_BY_CODE: Record<string, MenuSection> = {
+  "admin.loan": "credit",
+  deposit: "funding",
+  capital: "funding",
+  finance: "accounting",
+  statistical: "control",
+  hrm: "hr",
+  customers: "shared",
+  workflow: "shared",
+  workbench: "shared",
+  ai_center: "shared",
+  admin: "admin",
+}
+
+export type NavSectionGroup = {
+  /** MENU_SECTIONS code, another code from the DB, or "" for ungrouped. */
+  section: string
+  items: NavNode[]
+}
+
+/**
+ * Splits top-level nodes into department groups for the sidebar. Ungrouped
+ * nodes (the dashboard) come first, then the known departments in
+ * MENU_SECTIONS order, then any other section code in first-seen order.
+ */
+export function groupNavBySection(items: NavNode[]): NavSectionGroup[] {
+  const groups = new Map<string, NavNode[]>()
+  for (const item of items) {
+    const section = item.section ?? ""
+    groups.set(section, [...(groups.get(section) ?? []), item])
+  }
+  const order = [
+    "",
+    ...MENU_SECTIONS,
+    ...[...groups.keys()].filter(
+      (key) => key !== "" && !(MENU_SECTIONS as readonly string[]).includes(key)
+    ),
+  ]
+  return order
+    .filter((section) => groups.has(section))
+    .map((section) => ({ section, items: groups.get(section) ?? [] }))
 }
 
 export function getNavNodeId(item: NavNode) {

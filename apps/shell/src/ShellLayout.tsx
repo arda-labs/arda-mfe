@@ -23,6 +23,7 @@ import {
   filterNavItems,
   findActiveHref,
   getNavNodeId,
+  groupNavBySection,
 } from "./config/nav-config"
 import { useDynamicNavItems } from "./config/use-dynamic-nav"
 import { SidebarNode } from "./components/SidebarNav"
@@ -110,6 +111,17 @@ export function ShellLayout() {
   const { items: navSource } = useDynamicNavItems(authScope)
   const visibleNavItems = filterNavItems(navSource, user)
   const activeHref = findActiveHref(visibleNavItems, pathname)
+  const navSections = groupNavBySection(visibleNavItems)
+  const topLevelGroupIds = visibleNavItems
+    .filter((node) => node.children?.length)
+    .map(getNavNodeId)
+  // Known departments have catalogue labels; a code added only in the DB
+  // shows as-is rather than as a raw i18n key.
+  const sectionLabel = (section: string) => {
+    const key = `nav.section.${section}`
+    const label = t(key)
+    return label === key ? section : label
+  }
   const orgIds = user?.orgIds ?? []
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
 
@@ -280,22 +292,38 @@ export function ShellLayout() {
             <SidebarOrgSwitcher compact={!sidebarOpen} />
           </div>
         ) : null}
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
-          {visibleNavItems.map((item) => (
-            <SidebarNode
-              key={getNavNodeId(item)}
-              item={item}
-              depth={0}
-              activeHref={activeHref}
-              navigate={navigate}
-              sidebarOpen={sidebarOpen}
-              openGroups={openGroups}
-              setOpenGroups={setOpenGroups}
-              siblingGroupIds={visibleNavItems
-                .filter((node) => node.children?.length)
-                .map(getNavNodeId)}
-              t={t}
-            />
+        <nav className="flex-1 overflow-y-auto p-2">
+          {navSections.map((group) => (
+            <div
+              key={group.section || "_root"}
+              role={group.section ? "group" : undefined}
+              aria-label={group.section ? sectionLabel(group.section) : undefined}
+              className={cn("space-y-0.5", group.section && "pt-4")}
+            >
+              {group.section ? (
+                sidebarOpen ? (
+                  <p className="truncate px-3 pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                    {sectionLabel(group.section)}
+                  </p>
+                ) : (
+                  <div aria-hidden className="mx-3 mb-2 border-t" />
+                )
+              ) : null}
+              {group.items.map((item) => (
+                <SidebarNode
+                  key={getNavNodeId(item)}
+                  item={item}
+                  depth={0}
+                  activeHref={activeHref}
+                  navigate={navigate}
+                  sidebarOpen={sidebarOpen}
+                  openGroups={openGroups}
+                  setOpenGroups={setOpenGroups}
+                  siblingGroupIds={topLevelGroupIds}
+                  t={t}
+                />
+              ))}
+            </div>
           ))}
         </nav>
         <div

@@ -25,7 +25,10 @@
       "sort_order": "Sort order",
       "is_active": "Visible",
       "scope": "Scope",
-      "status": "Status"
+      "status": "Status",
+      "section": "Department",
+      "section_none": "Ungrouped",
+      "section_child_hint": "Child items use their root menu's department"
     },
     "placeholder": {
       "search": "Search by title, code, path...",

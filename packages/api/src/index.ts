@@ -53,5 +53,7 @@ export {
   fetchMenuItems,
   upsertMenuItem,
   deleteMenuItem,
+  MENU_SECTIONS,
+  type MenuSection,
   type PlatformMenuItem,
 } from "./platform-menu"

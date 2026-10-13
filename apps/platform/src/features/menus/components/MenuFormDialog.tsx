@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -24,7 +24,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Info } from "lucide-react"
 import type { PlatformMenuItem } from "../api"
-import { upsertMenuItem } from "../api"
+import { MENU_SECTIONS, upsertMenuItem } from "../api"
 import {
   buildMenuSchema,
   menuDefaultValues,
@@ -99,6 +99,10 @@ export function MenuFormDialog({
       : menuDefaultValues,
   })
 
+  // Only top-level rows head a sidebar department; children inherit theirs.
+  const parentCode = useWatch({ control, name: "parent_code" })
+  const isRootItem = !parentCode
+
   const isEditing = Boolean(editingItem)
   const isGlobalOverride = Boolean(editingItem && !editingItem.tenant_id)
 
@@ -122,6 +126,7 @@ export function MenuFormDialog({
         remote: values.remote,
         required_permission: values.required_permission.trim(),
         sort_order: values.sort_order,
+        section: values.parent_code ? "" : values.section,
         is_active: values.is_active,
       })
       notify.success(t("platform.menus.toast.save_success"))
@@ -314,20 +319,57 @@ export function MenuFormDialog({
             </FormField>
           </div>
 
-          <FormField
-            label={t("platform.menus.field.required_permission")}
-            htmlFor="menu_permission"
-            error={errors.required_permission?.message}
-          >
-            <Input
-              id="menu_permission"
-              placeholder={t("platform.menus.placeholder.permission")}
-              aria-invalid={Boolean(errors.required_permission)}
-              className="font-mono"
-              autoComplete="off"
-              {...register("required_permission")}
-            />
-          </FormField>
+          <div className="grid grid-cols-2 items-start gap-4">
+            <FormField
+              label={t("platform.menus.field.required_permission")}
+              htmlFor="menu_permission"
+              error={errors.required_permission?.message}
+            >
+              <Input
+                id="menu_permission"
+                placeholder={t("platform.menus.placeholder.permission")}
+                aria-invalid={Boolean(errors.required_permission)}
+                className="font-mono"
+                autoComplete="off"
+                {...register("required_permission")}
+              />
+            </FormField>
+            <FormField
+              label={t("platform.menus.field.section")}
+              htmlFor="menu_section"
+              description={
+                isRootItem ? undefined : t("platform.menus.field.section_child_hint")
+              }
+            >
+              <Controller
+                control={control}
+                name="section"
+                render={({ field }) => (
+                  <Select
+                    value={(isRootItem && field.value) || "__none__"}
+                    disabled={!isRootItem}
+                    onValueChange={(selected) =>
+                      field.onChange(selected === "__none__" ? "" : selected)
+                    }
+                  >
+                    <SelectTrigger id="menu_section">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">
+                        {t("platform.menus.field.section_none")}
+                      </SelectItem>
+                      {MENU_SECTIONS.map((section) => (
+                        <SelectItem key={section} value={section}>
+                          {t(`nav.section.${section}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </FormField>
+          </div>
 
           <div className="grid grid-cols-2 items-start gap-4">
             <FormField
