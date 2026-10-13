@@ -374,5 +374,13 @@
     "balanced": "Cân đối",
     "off_by": "Lệch {amount}",
     "empty": "Chưa có dòng bút toán"
+  },
+  "activity": {
+    "empty": "Chưa có hoạt động",
+    "today": "Hôm nay"
+  },
+  "checklist": {
+    "title": "Kiểm tra trước khi gửi",
+    "passed": "{passed}/{total} đạt"
   }
 }

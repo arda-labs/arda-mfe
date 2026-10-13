@@ -441,6 +441,23 @@
       "maker": "Prepare",
       "checker": "Check",
       "posted": "Post"
+    },
+    "checklist": {
+      "date": "Valid transaction date",
+      "date_hint": "Enter the date as dd/mm/yyyy",
+      "currency": "Valid currency code",
+      "currency_hint": "Use a 3-letter code: VND, USD…",
+      "accounts": "Every line has an account",
+      "accounts_hint": "{count} lines without an account",
+      "amounts": "Every line has an amount above 0",
+      "amounts_hint": "{count} lines without an amount",
+      "balanced": "Debits equal credits",
+      "balanced_hint": "Adjust the amounts until they balance",
+      "description": "Transaction has a description",
+      "description_hint": "Reviewers usually ask when it is missing",
+      "attachments": "Supporting documents attached",
+      "attachments_hint": "You can submit, but attach the source documents",
+      "blocked": "Some required checks have not passed"
     }
   },
   "operation": {

@@ -1,44 +1,41 @@
+import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+import { ActivityLog, type ActivityTone } from "@workspace/ui/components/activity-log"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 import type { CaseTimelineEvent } from "./types"
 import { useCaseTimeline } from "./use-case-timeline"
 
+const EVENT_TONE: Record<string, ActivityTone> = {
+  CASE_SUBMITTED: "info",
+  CHECKER_APPROVED: "success",
+  TASK_COMPLETED: "success",
+  CHECKER_REQUEST_CHANGES: "warning",
+  CHECKER_REJECTED: "danger",
+  JOB_FAILED: "danger",
+}
+
+type View = "all" | "comments"
+
 /**
- * "Lưu vết tác vụ" tab (EPAS `lib-task-activity-log`): the case timeline split
- * into the two EPAS blocks — "Danh sách ý kiến" (events carrying a note, i.e.
- * review/return reasons) and "Danh sách lưu vết" (the full lifecycle trace:
- * claim/submit/approve/reject events with actor + timestamp).
+ * "Lưu vết tác vụ" tab (EPAS `lib-task-activity-log`): the case timeline as
+ * one activity feed. EPAS splits it into "Danh sách lưu vết" and "Danh
+ * sách ý kiến"; here the second is a filter of the first (events carrying
+ * a note — review and return reasons).
  *
  * Data source: GET /api/workflow/cases/{id}/timeline (workflow-service
  * `case_timeline_events`, readable via the standard workflow-read policy).
  */
 export function CaseActivityLogPanel({ caseId }: { caseId: string }) {
-  const { t, formatDate } = useI18n()
+  const { t } = useI18n()
   const { events, loading, failed } = useCaseTimeline(caseId)
+  const [view, setView] = useState<View>("all")
 
   function eventLabel(eventType: string) {
     const key = `case_tabs.activity.events.${eventType}`
     const translated = t(key)
     return translated === key ? eventType : translated
   }
-
-  function statusLabel(event: CaseTimelineEvent) {
-    const from = event.fromStatus?.trim()
-    const to = event.toStatus?.trim()
-    if (from && to) return `${from} → ${to}`
-    return to || from || "—"
-  }
-
-  const comments = events.filter((event) => event.note?.trim())
 
   if (loading) {
     return (
@@ -57,101 +54,34 @@ export function CaseActivityLogPanel({ caseId }: { caseId: string }) {
     )
   }
 
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold">
-            {t("case_tabs.activity.traces_title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {events.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              {t("case_tabs.activity.empty")}
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("case_tabs.activity.col_task")}</TableHead>
-                  <TableHead className="w-56">
-                    {t("case_tabs.activity.col_status")}
-                  </TableHead>
-                  <TableHead className="w-48">
-                    {t("case_tabs.activity.col_time")}
-                  </TableHead>
-                  <TableHead className="w-56">
-                    {t("case_tabs.activity.col_actor")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {events.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell className="font-medium">
-                      {eventLabel(event.eventType)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {statusLabel(event)}
-                    </TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">
-                      {formatDate(event.createdAt)}
-                    </TableCell>
-                    <TableCell className="max-w-0 truncate text-muted-foreground">
-                      {event.actor || "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+  const comments = events.filter((event) => event.note?.trim())
+  const shown: CaseTimelineEvent[] = view === "comments" ? comments : events
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold">
-            {t("case_tabs.activity.comments_title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {comments.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              {t("case_tabs.activity.comments_empty")}
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("case_tabs.activity.col_content")}</TableHead>
-                  <TableHead className="w-48">
-                    {t("case_tabs.activity.col_time")}
-                  </TableHead>
-                  <TableHead className="w-56">
-                    {t("case_tabs.activity.col_actor")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {comments.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell className="whitespace-normal">
-                      {event.note}
-                    </TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">
-                      {formatDate(event.createdAt)}
-                    </TableCell>
-                    <TableCell className="max-w-0 truncate text-muted-foreground">
-                      {event.actor || "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+  return (
+    <div className="max-w-3xl space-y-4">
+      <SegmentedControl<View>
+        size="sm"
+        value={view}
+        onValueChange={setView}
+        aria-label={t("case_tabs.activity.title")}
+        options={[
+          { value: "all", label: `${t("case_tabs.activity.traces_title")} · ${events.length}` },
+          { value: "comments", label: `${t("case_tabs.activity.comments_title")} · ${comments.length}` },
+        ]}
+      />
+      <ActivityLog
+        emptyText={t(view === "comments" ? "case_tabs.activity.comments_empty" : "case_tabs.activity.empty")}
+        items={shown.map((event) => ({
+          id: event.id,
+          actor: event.actor,
+          action: eventLabel(event.eventType),
+          at: event.createdAt,
+          from: event.fromStatus?.trim() || undefined,
+          to: event.toStatus?.trim() || undefined,
+          note: event.note?.trim() || undefined,
+          tone: EVENT_TONE[event.eventType] ?? "neutral",
+        }))}
+      />
     </div>
   )
 }

@@ -374,5 +374,13 @@
     "balanced": "Balanced",
     "off_by": "Off by {amount}",
     "empty": "No entry lines"
+  },
+  "activity": {
+    "empty": "No activity yet",
+    "today": "Today"
+  },
+  "checklist": {
+    "title": "Before you submit",
+    "passed": "{passed}/{total} passed"
   }
 }
