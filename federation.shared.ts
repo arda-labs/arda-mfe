@@ -11,6 +11,8 @@
 // i18n app resource subpaths are intentionally NOT shared: each remote bundles
 // only its own locale JSON, then registers it into the shared i18n singleton.
 
+import { createRequire } from "node:module"
+import { dirname, join } from "node:path"
 import type { RemoteName } from "./federation.routes"
 
 export const remoteSharedDeps = {
@@ -55,6 +57,21 @@ export const shellSharedDeps = {
   exceljs: { singleton: true, requiredVersion: false },
   "pdfjs-dist": { singleton: true, requiredVersion: false },
 } as const
+
+// A remote opened on its own port (standalone dev, `createRemoteMain`) has no
+// host, so the federation runtime imports every shared dep locally — including
+// the host-only ones above, which remotes do not install (bun isolated deps).
+// Point those specifiers at the workspace package that owns them so standalone
+// dev resolves; under the shell the host copy still wins (`import: false`).
+const ownerRequire = (pkg: string) =>
+  createRequire(join(import.meta.dirname, pkg, "package.json"))
+const packageDir = (owner: string, name: string) =>
+  dirname(ownerRequire(owner).resolve(`${name}/package.json`))
+
+export const hostRuntimeDevAliases = {
+  exceljs: packageDir("packages/list-page", "exceljs"),
+  "pdfjs-dist": packageDir("packages/ui", "pdfjs-dist"),
+}
 
 // Port cố định từng remote. app shell hardcode entry URL theo các port này,
 // nên strictPort:true ở mỗi vite remote để không rơi về port khác rồi shell

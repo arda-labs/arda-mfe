@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { remoteSharedDeps, remotePorts } from "../../federation.shared"
-import { federationBuild, federationRemotes } from "../../federation.shared"
+import { federationBuild, federationRemotes, hostRuntimeDevAliases } from "../../federation.shared"
 import { taskFormRemotes } from "../../federation.routes"
 
 const name = "workflow"
@@ -29,7 +29,9 @@ export default defineConfig(({ command }) => ({
       shared: { ...remoteSharedDeps },
     }),
   ],
-  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
+  resolve: {
+    alias: { "@": path.resolve(__dirname, "./src"), ...hostRuntimeDevAliases },
+  },
   server: {
     port,
     // strictPort: port cố định match shell entry — lệch port = shell
