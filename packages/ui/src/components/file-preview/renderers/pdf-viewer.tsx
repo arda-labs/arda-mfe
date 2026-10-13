@@ -5,6 +5,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  ExternalLink,
+  FileWarning,
   MoveHorizontal,
   RotateCw,
   Search,
@@ -22,7 +24,9 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { safeExternalHref } from "@workspace/ui/lib/safe-url"
 import { cn } from "@workspace/ui/lib/utils"
+import { canFrameSource } from "../frame-policy"
 import { usePreviewControlsTarget } from "../preview-toolbar"
 
 type PdfLibrary = typeof import("pdfjs-dist")
@@ -510,15 +514,47 @@ export function PdfViewer({ src, filename, className }: PdfViewerProps) {
 
   if (error) {
     // Some sources (external hosts without CORS) cannot be fetched by PDF.js;
-    // fall back to the browser's native viewer instead of a dead end.
+    // fall back to the browser's native viewer instead of a dead end. The
+    // shell's `frame-src 'self' blob:` blocks any other origin, so those open
+    // in a new tab (top-level navigation is not governed by frame-src).
+    if (canFrameSource(src, window.location.href)) {
+      return (
+        <div
+          className={cn(
+            "flex h-full flex-col overflow-hidden rounded-lg border bg-card",
+            className
+          )}
+        >
+          <iframe
+            src={src}
+            title={filename}
+            className="h-full w-full border-0"
+          />
+        </div>
+      )
+    }
+    // Only http(s) may become a link: a `javascript:` src must never be an href.
+    const externalHref = safeExternalHref(src)
     return (
       <div
         className={cn(
-          "flex h-full flex-col overflow-hidden rounded-lg border bg-card",
+          "flex h-full flex-col items-center justify-center gap-3 overflow-hidden rounded-lg border bg-card p-6 text-center",
           className
         )}
       >
-        <iframe src={src} title={filename} className="h-full w-full border-0" />
+        <FileWarning className="size-8 text-muted-foreground" />
+        <p className="text-sm font-semibold">{t("preview.load_failed")}</p>
+        <p className="max-w-sm text-xs break-all text-muted-foreground">
+          {filename}
+        </p>
+        {externalHref ? (
+          <Button asChild variant="outline" size="sm" className="gap-1.5">
+            <a href={externalHref} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="size-3.5" />
+              {t("preview.open_new_tab")}
+            </a>
+          </Button>
+        ) : null}
       </div>
     )
   }

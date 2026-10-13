@@ -5,10 +5,13 @@
 
 export type ChartTheme = {
   palette: string[]
+  background: string
   card: string
   border: string
   mutedForeground: string
   foreground: string
+  primary: string
+  primaryForeground: string
 }
 
 export const CHART_TOKEN_COUNT = 10
@@ -34,10 +37,13 @@ export function readChartTheme(read: CssVarReader): ChartTheme {
   )
   return {
     palette,
+    background: pick(read, "--background", "#ffffff"),
     card: pick(read, "--card", "#ffffff"),
     border: pick(read, "--border", "#e2e8f0"),
     mutedForeground: pick(read, "--muted-foreground", "#64748b"),
     foreground: pick(read, "--foreground", "#0f172a"),
+    primary: pick(read, "--primary", "#2563eb"),
+    primaryForeground: pick(read, "--primary-foreground", "#ffffff"),
   }
 }
 

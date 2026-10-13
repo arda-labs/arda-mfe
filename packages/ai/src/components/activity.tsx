@@ -100,7 +100,7 @@ export function ActivityGroup({
           status: part.status?.type === "running" ? "running" : "done",
         })
       } else if (part.type === "tool-call") {
-        if (part.toolName === "renderChart") continue
+        if (part.toolName === "renderChart" || part.toolName === "renderWidget") continue
         if (part.toolName === "search") {
           const query = typeof part.args?.query === "string" ? part.args.query : undefined
           items.push({

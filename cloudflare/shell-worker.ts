@@ -1,7 +1,10 @@
+import { withShellCsp } from "./shell-csp"
+
 interface Env {
   ASSETS: Fetcher
 }
 
+// `default` must stay the ONLY export (see shell-csp.ts).
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url)
@@ -12,6 +15,6 @@ export default {
       return fetch(request)
     }
 
-    return env.ASSETS.fetch(request)
+    return withShellCsp(await env.ASSETS.fetch(request))
   },
 }

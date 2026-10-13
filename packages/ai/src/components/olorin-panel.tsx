@@ -79,6 +79,7 @@ import {
   GenericToolView,
 } from "./tools/generic-tool-view"
 import { RenderChartToolUI } from "./tools/render-chart-tool-ui"
+import { RenderWidgetToolUI } from "./tools/render-widget-tool-ui"
 import { isArrayResult } from "./tools/data-table-view"
 import { DeleteConversationDialog } from "./conversation-delete-dialog"
 import {
@@ -365,6 +366,7 @@ export function OlorinPanel({
       <SearchMetaToolUI />
       <ExecuteMetaToolUI />
       <RenderChartToolUI />
+      <RenderWidgetToolUI />
 
       <DeleteConversationDialog
         open={pendingDelete !== null}
