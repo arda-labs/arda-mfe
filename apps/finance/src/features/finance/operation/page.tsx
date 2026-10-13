@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useSearchParams } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -21,6 +20,7 @@ import {
 import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
 import type { AccountingConfigItem } from "./api"
 import { financeOperationApi } from "./api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const GROUPS = [
   "process",
@@ -163,7 +163,7 @@ function AccountingConfigTable({ items }: { items: AccountingConfigItem[] }) {
             label={t("finance.operation.col.status")}
           />
         ),
-        cell: ({ row }) => <Badge variant="secondary">{row.original.status}</Badge>,
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         id: "updated",

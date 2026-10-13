@@ -26,14 +26,7 @@ import {
 import { ArrowLeft, Plus, Trash2 } from "lucide-react"
 import { knowledgeApi, type SourceOut, type VersionOut } from "../api"
 import { VersionActionsInner } from "./version-actions"
-
-const STATUS_COLOR: Record<string, "default" | "secondary" | "success" | "destructive" | "warning" | "info"> = {
-  DRAFT: "default",
-  APPROVED: "info",
-  INDEXING: "secondary",
-  PUBLISHED: "success",
-  FAILED: "destructive",
-}
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 function statusLabel(status: string | null): string {
   if (!status) return "-"
@@ -43,9 +36,9 @@ function statusLabel(status: string | null): string {
 export function VersionStatusBadge({ status }: { status: string }) {
   const { t } = useI18n()
   return (
-    <Badge variant={STATUS_COLOR[status] ?? "secondary"}>
+    <StatusBadge status={status}>
       {t(statusLabel(status))}
-    </Badge>
+    </StatusBadge>
   )
 }
 

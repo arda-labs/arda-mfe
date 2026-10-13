@@ -5,11 +5,11 @@ import {
   multiSelectFilterMeta,
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { Pencil, Users } from "lucide-react"
 import type { CrmProject } from "../../api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 export interface ProjectColumnOption {
   value: string
@@ -111,11 +111,9 @@ export function useProjectColumns({
           statusOptions
         ),
         cell: ({ row }) => (
-          <Badge
-            variant={row.original.status === "ACTIVE" ? "default" : "outline"}
-          >
+          <StatusBadge status={row.original.status}>
             {projectStatusLabel(t, row.original.status)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

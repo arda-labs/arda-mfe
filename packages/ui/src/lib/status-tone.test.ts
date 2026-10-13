@@ -16,4 +16,9 @@ describe("statusTone", () => {
     expect(statusTone("SOMETHING_NEW")).toBe("neutral")
     expect(statusTone(null)).toBe("neutral")
   })
+
+  test("unlisted codes follow the PENDING_* / *_FAILED convention", () => {
+    expect(statusTone("PENDING_AMENDMENT")).toBe("pending")
+    expect(statusTone("SYNC_FAILED")).toBe("danger")
+  })
 })

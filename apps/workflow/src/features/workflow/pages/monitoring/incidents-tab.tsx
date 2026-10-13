@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react"
 import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
 import { DateField } from "@workspace/ui/components/date-field"
 import { SelectField } from "@workspace/ui/components/select-field"
 import {
@@ -18,6 +17,7 @@ import { monitoringApi } from "../../api"
 import type { OperateIncidentQuery, OperateIncidentRow } from "../../api"
 import { InstanceDetail } from "./instance-detail"
 import { formatDateTime, toIsoRange } from "./format"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 type DraftFilters = {
   state?: string
@@ -48,9 +48,9 @@ function IncidentStateBadge({ state }: { state: string }) {
         ? t("workflow.operate.incident_state_resolved")
         : state
   return (
-    <Badge variant={state === "CREATED" ? "destructive" : "secondary"}>
+    <StatusBadge status={state} tone={state === "CREATED" ? "danger" : "neutral"}>
       {label}
-    </Badge>
+    </StatusBadge>
   )
 }
 

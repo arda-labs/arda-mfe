@@ -24,6 +24,7 @@ const TONE_BY_STATUS: Record<string, StatusTone> = {
   RUNNING: "info",
   IN_PROGRESS: "info",
   PROCESSING: "info",
+  INDEXING: "info",
   PENDING: "pending",
   PENDING_APPROVAL: "pending",
   SUBMITTED: "pending",
@@ -42,6 +43,8 @@ const TONE_BY_STATUS: Record<string, StatusTone> = {
   PAID: "success",
   DISBURSED: "success",
   VERIFIED: "success",
+  PUBLISHED: "success",
+  APPLIED: "success",
   POSTED: "posted",
   BOOKED: "posted",
   REJECTED: "danger",
@@ -57,7 +60,15 @@ const TONE_BY_STATUS: Record<string, StatusTone> = {
   TIMED_OUT: "danger",
 }
 
-/** Tone for a backend status code; unknown codes are neutral. */
+/**
+ * Tone for a backend status code. Codes not in the table still follow the
+ * naming convention (PENDING_* waits, *_FAILED failed); the rest are neutral.
+ */
 export function statusTone(status: string | null | undefined): StatusTone {
-  return TONE_BY_STATUS[(status ?? "").trim().toUpperCase()] ?? "neutral"
+  const code = (status ?? "").trim().toUpperCase()
+  const known = TONE_BY_STATUS[code]
+  if (known) return known
+  if (code.startsWith("PENDING_")) return "pending"
+  if (code.endsWith("_FAILED")) return "danger"
+  return "neutral"
 }

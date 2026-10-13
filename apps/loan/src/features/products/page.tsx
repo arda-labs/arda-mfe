@@ -16,6 +16,7 @@ import { formatMoney, formatRatePercent, fromMinor } from "@workspace/format"
 import { productApi, type LoanProduct } from "../api"
 import { productsListDefinition } from "./list-query"
 import { ProductDialog } from "./components/ProductDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /**
  * Credit product catalog — server tier: page/perPage/sort/is_active are
@@ -93,9 +94,9 @@ export function ProductsPage(_props: { pathname: string }) {
         enableColumnFilter: true,
         meta: activeStatusMeta(t("loan.field.status"), t("loan.status_active"), t("loan.status_inactive")),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active ? t("loan.status_active") : t("loan.status_inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

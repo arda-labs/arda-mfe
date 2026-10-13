@@ -5,7 +5,6 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
@@ -26,6 +25,7 @@ import {
 } from "../../loan-batches/labels"
 import { ChooseSourceBatchDialog } from "../../loan-batches"
 import { CompleteRowsTab, completeAmountMinor, type CompleteRow } from "./rows-tab"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const TAB_INFO = "complete-info"
 const TAB_ROWS = "complete-rows"
@@ -195,9 +195,9 @@ export function BatchCompletePage() {
     <PostingTabsShell
       labels={tabsLabels}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("loan.batch.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {

@@ -6,7 +6,6 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
@@ -53,6 +52,7 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const TAB_INFO = "disburse-info"
 const TAB_CONTRACTS = "disburse-contracts"
@@ -422,7 +422,7 @@ export function BatchRegisterForm() {
       labels={tabsLabels}
       meta={
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="shrink-0">{t("loan.batch.status_draft")}</Badge>
+          <StatusBadge status="DRAFT">{t("loan.batch.status_draft")}</StatusBadge>
           {savedAt ? <span className="text-xs text-muted-foreground">{t("loan.disbursements.batch.saved_at", { time: savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })}</span> : null}
         </div>
       }

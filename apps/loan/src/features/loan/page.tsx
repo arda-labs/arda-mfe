@@ -17,7 +17,8 @@ import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { loanContractsListDefinition } from "./list-query"
 import { ContractDialog } from "./components/ContractDialog"
 import { ContractDetailDialog } from "./components/ContractDetailDialog"
-import { contractStatusLabel, contractStatusVariant } from "./contract-status"
+import { contractStatusLabel } from "./contract-status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /**
  * Loans hub — dual-table page. The contracts table (transactional, grows
@@ -164,9 +165,9 @@ export function LoanPage(_props: { pathname: string }) {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={contractStatusVariant(row.original.status)}>
+          <StatusBadge status={row.original.status}>
             {contractStatusLabel(row.original.status, t)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

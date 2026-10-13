@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Table,
@@ -21,6 +20,7 @@ import {
   type SavingsDetail,
 } from "../api"
 import { InterestDialog } from "./components/InterestDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** Savings detail (DPM.300 contract view): info + txns + accruals + ops. */
 export function SavingsDetailPage() {
@@ -192,9 +192,7 @@ export function SavingsDetailPage() {
             ← {t("deposit.savings.title")}
           </Link>
           <h1 className="font-mono text-lg font-semibold">{savings.savings_code}</h1>
-          <Badge variant={savings.status === "ACTIVE" ? "default" : "outline"}>
-            {savings.status}
-          </Badge>
+          <StatusBadge status={savings.status} />
         </div>
         {savings.status === "ACTIVE" && savings.accrued_minor > 0 && (
           <div className="flex gap-2">

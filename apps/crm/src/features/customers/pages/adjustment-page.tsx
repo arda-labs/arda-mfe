@@ -5,7 +5,6 @@ import { navigateTo } from "@workspace/federation-runtime/routing"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { useCaseTabs } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import type { CaseTabItem } from "@workspace/case-tabs/types"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -393,9 +392,7 @@ export function CustomerAdjustmentPage({
                 description={pageDescription}
                 meta={
                   customer ? (
-                    <Badge className="shrink-0" variant="secondary">
-                      {customer.status}
-                    </Badge>
+                    <StatusBadge status={customer.status} className="shrink-0" />
                   ) : null
                 }
               />

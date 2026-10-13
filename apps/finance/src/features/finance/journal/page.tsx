@@ -13,6 +13,7 @@ import { Sparkles } from "lucide-react"
 import { postingApi, type JournalEntry } from "../api"
 import { journalListDefinition } from "./list-query"
 import { PostingPreviewDialog } from "./components/PostingPreviewDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** Journal — posted entries per the PostingService (P1a.6), read-only. */
 export function JournalPage(_props?: { pathname?: string }) {
@@ -89,9 +90,7 @@ export function JournalPage(_props?: { pathname?: string }) {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "POSTED" ? "default" : "outline"}>
-            {row.original.status}
-          </Badge>
+          <StatusBadge status={row.original.status} />
         ),
       },
     ],

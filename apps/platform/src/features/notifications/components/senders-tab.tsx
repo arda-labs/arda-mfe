@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Pencil } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Input } from "@workspace/ui/components/input"
@@ -20,6 +19,7 @@ import {
   upsertNotificationSender,
 } from "../api"
 import { type NotificationSender } from "../types"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const emptyForm = {
   host: "",
@@ -249,11 +249,11 @@ export function SendersTab() {
                     : t("platform.notifications.password_missing")}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.is_active ? "default" : "outline"}>
+                  <StatusBadge tone={row.is_active ? "success" : "neutral"}>
                     {row.is_active
                       ? t("platform.working_hours.active")
                       : t("platform.working_hours.inactive")}
-                  </Badge>
+                  </StatusBadge>
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

@@ -1,23 +1,3 @@
-/** Badge variant and label key for a credit-contract status (loan-service). */
-export function contractStatusVariant(
-  status: string
-): "default" | "secondary" | "destructive" | "outline" {
-  switch (status) {
-    case "DISBURSED":
-    case "APPROVED":
-    case "ACTIVE":
-      return "default"
-    case "PENDING_APPROVAL":
-    case "DRAFT":
-      return "secondary"
-    case "REJECTED":
-    case "CANCELLED":
-      return "destructive"
-    default:
-      return "outline"
-  }
-}
-
 const LABEL_KEYS: Record<string, string> = {
   DRAFT: "loan.status.draft",
   PENDING_APPROVAL: "loan.status.pending",

@@ -5,7 +5,6 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
 import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DateField } from "@workspace/ui/components/date-field"
@@ -34,6 +33,7 @@ import {
 import { ClosingAccountsTable } from "./closing/accounts-table"
 import { CLOSING_PERIOD_LABEL_KEYS, computeClosingTotals, periodEndISO } from "./closing/period"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const TAB_INFO = "closing-info"
 const TAB_ACCOUNTS = "closing-accounts"
@@ -179,9 +179,9 @@ export function ClosingFormPage() {
       progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("finance.posting.control.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {

@@ -18,15 +18,7 @@ import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
 import { collectionApi, type LoanCollection } from "../api"
 import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { collectionsListDefinition } from "./list-query"
-
-const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  DRAFT: "outline",
-  PENDING_APPROVAL: "secondary",
-  APPROVED: "default",
-  POSTED: "default",
-  REJECTED: "destructive",
-  CANCELLED: "outline",
-}
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const STATUS_VALUES = ["DRAFT", "PENDING_APPROVAL", "APPROVED", "POSTED", "REJECTED", "CANCELLED"] as const
 
@@ -161,9 +153,9 @@ export function CollectionsPage(_props: { pathname: string }) {
           STATUS_VALUES.map((value) => ({ label: statusLabels[value], value }))
         ),
         cell: ({ row }) => (
-          <Badge variant={statusVariant[row.original.status] ?? "outline"}>
+          <StatusBadge status={row.original.status}>
             {statusLabels[row.original.status] ?? row.original.status}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

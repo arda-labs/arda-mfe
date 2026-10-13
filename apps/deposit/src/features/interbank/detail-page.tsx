@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Table,
@@ -17,6 +16,7 @@ import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@wo
 import { depositApi, type IbmDetail, type IbmMovement } from "../api"
 import { printVoucher } from "../../lib/print-voucher"
 import { IbmMovementDialog } from "./components/IbmMovementDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** IBM contract detail: info + movements + staging actions. */
 export function InterbankDetailPage() {
@@ -164,17 +164,9 @@ export function InterbankDetailPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{row.note || "—"}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        row.status === "POSTED"
-                          ? "default"
-                          : row.status === "REJECTED"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                    >
+                    <StatusBadge status={row.status}>
                       {t(`deposit.interbank.movement_status.${row.status}`)}
-                    </Badge>
+                    </StatusBadge>
                   </TableCell>
                 </TableRow>
               ))}
@@ -194,9 +186,9 @@ export function InterbankDetailPage() {
             ← {t("deposit.interbank.title")}
           </Link>
           <h1 className="font-mono text-lg font-semibold">{deposit.deposit_code}</h1>
-          <Badge variant={deposit.status === "ACTIVE" ? "default" : "outline"}>
+          <StatusBadge status={deposit.status}>
             {t(`deposit.interbank.status.${deposit.status}`)}
-          </Badge>
+          </StatusBadge>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={handlePrint}>

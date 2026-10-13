@@ -2,7 +2,6 @@ import { useMemo, useState, type ReactNode } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useAppQueryClient } from "@workspace/query/provider"
 import { useI18n, translateApiError } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -25,6 +24,7 @@ import {
   vfuPlanListDefinition,
 } from "./list-query"
 import { VfuCreateDialog, type VfuDialogTarget, type VfuDialogEditing } from "./components/VfuCreateDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** One server-tier catalog section of the VFU page (own URL namespace). */
 function VfuSection<TItem>({
@@ -127,9 +127,7 @@ export function VfuPage(_props: { pathname: string }) {
         header: t("loan.field.status"),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
-            {row.original.status}
-          </Badge>
+          <StatusBadge status={row.original.status} />
         ),
       },
       createActionsColumn<VfuParty>({
@@ -189,9 +187,7 @@ export function VfuPage(_props: { pathname: string }) {
         header: t("loan.field.status"),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
-            {row.original.status}
-          </Badge>
+          <StatusBadge status={row.original.status} />
         ),
       },
       createActionsColumn<VfuMandate>({

@@ -14,6 +14,7 @@ import { postingApi, type JournalEntry } from "../api"
 import { postingListDefinition } from "./list-query"
 import { ImportPostingDialog } from "./import-posting-dialog"
 import type { PostingFlow } from "../api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** Title key + create-route per flow — the four posting case lists share the
  * same columns and list contract, only the pinned document type differs. */
@@ -122,9 +123,7 @@ export function PostingCaseListPage({
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "POSTED" ? "default" : "outline"}>
-            {row.original.status}
-          </Badge>
+          <StatusBadge status={row.original.status} />
         ),
       },
       {

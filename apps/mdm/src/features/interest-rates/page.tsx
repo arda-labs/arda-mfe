@@ -16,6 +16,7 @@ import { interestRateApi, type InterestRate } from "../api"
 import { interestRatesListDefinition } from "./list-query"
 import { InterestRateDialog } from "./components/InterestRateDialog"
 import { TierEditorDialog } from "./components/TierEditorDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const rateTypeMeta: Record<
   string,
@@ -112,11 +113,11 @@ export function InterestRatesPage(_props: { pathname: string }) {
           t("mdm.status.inactive")
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active
               ? t("mdm.status.active")
               : t("mdm.status.inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {
