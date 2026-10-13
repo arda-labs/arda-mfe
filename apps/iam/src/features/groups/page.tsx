@@ -24,11 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { useAuthStore } from "@workspace/auth/store"
 import { Pencil, ShieldCheck, Trash2, Users } from "lucide-react"
@@ -116,12 +112,8 @@ export function GroupsPage() {
           ],
         },
         cell: ({ row }) => (
-          <Status
-            variant={row.original.status === "ACTIVE" ? "success" : "default"}
-          >
-            <StatusIndicator />
-            <StatusLabel>{row.original.status || "-"}</StatusLabel>
-          </Status>
+          <StatusBadge
+            tone={row.original.status === "ACTIVE" ? "success" : "neutral"}>{row.original.status || "-"}</StatusBadge>
         ),
       },
       {

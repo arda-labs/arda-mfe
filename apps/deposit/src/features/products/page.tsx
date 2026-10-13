@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Badge } from "@workspace/ui/components/badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
@@ -137,14 +133,9 @@ export function ProductsPage(_props: { pathname: string }) {
           ]
         ),
         cell: ({ row }) => (
-          <Status variant={row.original.is_active ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.is_active
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
                 ? t("deposit.status.active")
-                : t("deposit.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("deposit.status.inactive")}</StatusBadge>
         ),
       },
       {

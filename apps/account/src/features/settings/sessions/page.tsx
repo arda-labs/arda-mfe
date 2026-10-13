@@ -6,11 +6,7 @@ import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertDialog,
@@ -197,25 +193,11 @@ export function SessionsPage() {
                     <span className="text-base leading-none font-semibold text-foreground">
                       {formatSessionName(session)}
                     </span>
-                    <Status
-                      variant={session.isCurrent ? "success" : "default"}
-                      className="rounded-full px-2.5"
-                    >
-                      <StatusIndicator />
-                      <StatusLabel className="text-[10px] font-bold">
-                        {session.isCurrent ? "Current" : "Active"}
-                      </StatusLabel>
-                    </Status>
+                    <StatusBadge tone={session.isCurrent ? "success" : "neutral"}>
+                      {session.isCurrent ? "Current" : "Active"}
+                    </StatusBadge>
                     {session.isTrusted && (
-                      <Status
-                        variant="success"
-                        className="rounded-full border-success/20 bg-success/10 px-2.5 text-success"
-                      >
-                        <StatusIndicator className="bg-success" />
-                        <StatusLabel className="text-[10px] font-bold">
-                          Trusted
-                        </StatusLabel>
-                      </Status>
+                      <StatusBadge tone="success">Trusted</StatusBadge>
                     )}
                   </div>
                   <p className="text-xs font-medium text-muted-foreground">

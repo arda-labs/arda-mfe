@@ -17,11 +17,7 @@ import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-tabl
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { PageHeader } from "@workspace/ui/components/page-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   Dialog,
   DialogContent,
@@ -289,14 +285,9 @@ export function OrganizationsPage() {
           ],
         },
         cell: ({ row }) => (
-          <Status variant={row.original.is_active ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.is_active
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
                 ? t("platform.organizations.status.active")
-                : t("platform.organizations.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("platform.organizations.status.inactive")}</StatusBadge>
         ),
       },
       {

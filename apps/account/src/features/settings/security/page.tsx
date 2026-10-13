@@ -17,11 +17,7 @@ import {
 } from "@workspace/ui/components/input-otp"
 import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { CheckCircle2, Copy, KeyRound, QrCode, ShieldAlert } from "lucide-react"
 import { mfaApi, type MFASecret, type MFAStatus } from "@/features/settings/api"
 
@@ -131,15 +127,9 @@ export function SecurityPage() {
               <span>Two-Factor Authentication (TOTP)</span>
             </div>
             {status && (
-              <Status
-                variant={status.is_enrolled ? "success" : "default"}
-                className="rounded-full px-3"
-              >
-                <StatusIndicator />
-                <StatusLabel className="text-xs font-semibold">
-                  {status.is_enrolled ? "Enabled" : "Disabled"}
-                </StatusLabel>
-              </Status>
+              <StatusBadge
+                tone={status.is_enrolled ? "success" : "neutral"}
+                className="rounded-full px-3"><span className="text-xs font-semibold">{status.is_enrolled ? "Enabled" : "Disabled"}</span></StatusBadge>
             )}
           </CardTitle>
         </CardHeader>

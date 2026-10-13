@@ -281,9 +281,7 @@ export function Panel({
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const variant =
-    status === "ACTIVE" || status === "APPROVED" ? "default" : "secondary"
-  return <SharedStatusBadge status={status} variant={variant} />
+  return <SharedStatusBadge status={status} />
 }
 
 export function EmptyTable({

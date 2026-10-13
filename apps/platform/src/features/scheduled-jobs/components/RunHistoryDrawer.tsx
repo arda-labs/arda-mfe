@@ -15,7 +15,6 @@ import {
   extractEvalCases,
   formatDuration,
   formatResultJson,
-  statusVariant,
 } from "../format"
 import { useJobRun, useJobRuns } from "../hooks"
 import type { JobStatus, ScheduledJobRun } from "../types"
@@ -105,7 +104,7 @@ export function RunHistoryDrawer({ jobCode, runId, open, onOpenChange, onSelectR
                     {t(`${ns}.trigger.${run.trigger}`)} · {t(`${ns}.attempt`, { n: run.attempt })}
                   </span>
                 </span>
-                <StatusBadge status={run.status} variant={statusVariant(run.status)} />
+                <StatusBadge status={run.status} />
               </button>
             </li>
           ))}
@@ -152,7 +151,7 @@ function RunDetail({ run }: { run: ScheduledJobRun }) {
   return (
     <section className="space-y-2 rounded-md border border-border p-3 text-sm" data-testid="run-detail">
       <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge status={run.status} variant={statusVariant(run.status)} />
+        <StatusBadge status={run.status} />
         <span className="text-xs text-muted-foreground">
           {t(`${ns}.trigger.${run.trigger}`)} · {t(`${ns}.attempt`, { n: run.attempt })}
           {duration ? ` · ${duration}` : ""}

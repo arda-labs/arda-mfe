@@ -12,11 +12,7 @@ import { geoApi } from "../shared/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -183,16 +179,10 @@ export function AreasPage() {
           { label: t("platform.areas.status.inactive"), value: "inactive" },
         ]),
         cell: ({ row }) => (
-          <Status
-            variant={row.original.status === "active" ? "success" : "default"}
-          >
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.status === "active"
+          <StatusBadge
+            tone={row.original.status === "active" ? "success" : "neutral"}>{row.original.status === "active"
                 ? t("platform.areas.status.active")
-                : t("platform.areas.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("platform.areas.status.inactive")}</StatusBadge>
         ),
       },
       {

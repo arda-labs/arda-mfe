@@ -6,11 +6,7 @@ import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertDialog,
@@ -183,15 +179,9 @@ export function DevicesPage() {
                     <span className="text-base leading-none font-semibold text-foreground">
                       {formatDeviceName(device)}
                     </span>
-                    <Status
-                      variant={device.isTrusted ? "success" : "warning"}
-                      className="rounded-full px-2.5"
-                    >
-                      <StatusIndicator />
-                      <StatusLabel className="text-[10px] font-bold">
-                        {device.isTrusted ? "Trusted for MFA" : "Not trusted"}
-                      </StatusLabel>
-                    </Status>
+                    <StatusBadge
+                      tone={device.isTrusted ? "success" : "pending"}
+                      className="rounded-full px-2.5"><span className="text-[10px] font-bold">{device.isTrusted ? "Trusted for MFA" : "Not trusted"}</span></StatusBadge>
                   </div>
                   <p className="text-xs font-medium text-muted-foreground">
                     {[

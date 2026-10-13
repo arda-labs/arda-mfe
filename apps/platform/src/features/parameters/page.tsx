@@ -9,11 +9,7 @@ import { parametersApi } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -164,14 +160,9 @@ export function ParametersPage() {
           }
           if (param.value_type === "boolean") {
             return (
-              <Status variant={param.value === "true" ? "success" : "default"}>
-                <StatusIndicator />
-                <StatusLabel>
-                  {param.value === "true"
+              <StatusBadge tone={param.value === "true" ? "success" : "neutral"}>{param.value === "true"
                     ? t("platform.parameters.boolean.true")
-                    : t("platform.parameters.boolean.false")}
-                </StatusLabel>
-              </Status>
+                    : t("platform.parameters.boolean.false")}</StatusBadge>
             )
           }
           if (param.value_type === "json") {

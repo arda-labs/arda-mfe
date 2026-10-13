@@ -4,11 +4,7 @@ import { accountsApi, type Account } from "@/features/finance/api"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
@@ -136,14 +132,9 @@ export function AccountsPage() {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Status variant={row.original.isActive ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.isActive
+          <StatusBadge tone={row.original.isActive ? "success" : "neutral"}>{row.original.isActive
                 ? t("common.status.active")
-                : t("common.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("common.status.inactive")}</StatusBadge>
         ),
       },
       {

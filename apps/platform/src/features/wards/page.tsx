@@ -6,11 +6,7 @@ import { geoApi } from "../shared/api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Edit2 } from "lucide-react"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { textSearchMeta, selectFilterMeta } from "@workspace/list-page/column-filters"
@@ -188,14 +184,9 @@ export function WardsPage() {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Status variant={row.original.is_active ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.is_active
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
                 ? t("platform.wards.status.active")
-                : t("platform.wards.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("platform.wards.status.inactive")}</StatusBadge>
         ),
       },
       {

@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url"
  *   - <select>              -> SelectField / Combobox (@workspace/ui)
  *   - <input type="date">   -> DateField (@workspace/ui)
  *   - components/page-title -> PageHeader (PageTitle is a deprecated alias)
+ *   - components/status     -> StatusBadge (one status pill, tone from code)
  *   - colours come from tokens (globals.css): no hex literals, no raw
  *     Tailwind palette classes such as bg-red-500 / text-emerald-600
  * Exemptions are per file and per rule, each with its reason.
@@ -30,6 +31,11 @@ const RULES = [
     id: "page-title-import",
     pattern: /@workspace\/ui\/components\/page-title["']/,
     hint: "import PageHeader from @workspace/ui/components/page-header",
+  },
+  {
+    id: "status-import",
+    pattern: /@workspace\/ui\/components\/status["']/,
+    hint: "use StatusBadge from @workspace/ui/components/status-badge",
   },
   {
     id: "hex-color",

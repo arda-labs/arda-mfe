@@ -43,6 +43,8 @@
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-warning-ink: var(--warning-ink);
+  --color-posted: var(--posted);
+  --color-posted-foreground: var(--posted-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
@@ -190,6 +192,9 @@
   --warning-foreground: #3d2600;
   /* Amber for text on light surfaces: --warning itself is ~2:1 on white. */
   --warning-ink: #b45309;
+  /* Booked to the ledger (StatusBadge "posted"). */
+  --posted: #7c3aed;
+  --posted-foreground: #ffffff;
   --info: #2459e8;
   --info-foreground: #ffffff;
   --border: #e1e4ea;
@@ -286,6 +291,8 @@
   --warning: #fbbf24;
   --warning-foreground: #1f1300;
   --warning-ink: #fbbf24;
+  --posted: #a78bfa;
+  --posted-foreground: #0b0f19;
   --info: #6f95ff;
   --info-foreground: #0b0f19;
   --border: rgb(255 255 255 / 9%);

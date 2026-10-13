@@ -13,7 +13,7 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Status, StatusIndicator, StatusLabel } from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
@@ -72,14 +72,9 @@ export function FundTypesPage() {
           <DataTableColumnHeader column={column} label={t("common.field.status")} />
         ),
         cell: ({ row }) => (
-          <Status variant={row.original.is_active ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.is_active
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
                 ? t("capital.catalogs.is_active")
-                : t("capital.catalogs.is_inactive")}
-            </StatusLabel>
-          </Status>
+                : t("capital.catalogs.is_inactive")}</StatusBadge>
         ),
       },
       {
