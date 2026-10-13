@@ -30,6 +30,7 @@ import {
   usePostingFlowLabels,
   usePostingTabsLabels,
 } from "./labels"
+import { DraftLifecycle, PendingDocCode } from "./draft-header"
 
 const TAB_INFO = "transaction-info"
 const TAB_LINES = "accounting-lines"
@@ -140,6 +141,8 @@ export function OffBalanceFormPage() {
 
   return (
     <PostingTabsShell
+      docCode={<PendingDocCode />}
+      progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
         <Badge variant="secondary" className="shrink-0">

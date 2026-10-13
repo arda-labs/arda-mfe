@@ -31,6 +31,7 @@ import {
   usePostingTabsLabels,
 } from "./labels"
 import { OriginalEntryLines } from "./original-entry-lines"
+import { DraftLifecycle, PendingDocCode } from "./draft-header"
 
 const TAB_INFO = "transaction-info"
 const TAB_ORIGINAL = "original-entries"
@@ -144,6 +145,8 @@ export function CancellationFormPage() {
 
   return (
     <PostingTabsShell
+      docCode={<PendingDocCode />}
+      progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
         <Badge variant="secondary" className="shrink-0">
