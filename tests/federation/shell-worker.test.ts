@@ -1,5 +1,7 @@
 import { afterEach, expect, test } from "bun:test"
-import worker, { SHELL_CSP } from "../../cloudflare/shell-worker"
+import { readFileSync } from "node:fs"
+import worker from "../../cloudflare/shell-worker"
+import { SHELL_CSP } from "../../cloudflare/shell-csp"
 
 const EXPECTED =
   "frame-src 'self' blob:; object-src 'none'; frame-ancestors 'self'; base-uri 'self'"
@@ -20,8 +22,31 @@ afterEach(() => {
   globalThis.fetch = originalFetch
 })
 
-test("the policy keeps blob: framing and nothing broader than same-origin", () => {
-  expect(SHELL_CSP).toBe(EXPECTED)
+test("the policy has each directive exactly once and never touches script loading", () => {
+  const directives = SHELL_CSP.split(";").map((d) => d.trim().split(/\s+/)[0])
+  expect(directives.sort()).toEqual(["base-uri", "frame-ancestors", "frame-src", "object-src"])
+  expect(SHELL_CSP).toContain("frame-src 'self' blob:")
+  expect(SHELL_CSP).not.toMatch(/script-src|default-src|connect-src|style-src/)
+})
+
+test("default is the Worker's only export (workerd rejects named exports)", async () => {
+  expect(Object.keys(await import("../../cloudflare/shell-worker"))).toEqual(["default"])
+})
+
+// Static assets are served before the Worker unless run_worker_first matches,
+// in which case the CSP never reaches HTML documents. Guard the routing config.
+function runWorkerFirst(): string[] {
+  const text = readFileSync(new URL("../../cloudflare/wrangler.shell.jsonc", import.meta.url), "utf8")
+  // Strip JSONC comments but keep string literals ("/*" is a legitimate value).
+  const json = text.replace(/("(?:[^"\\]|\\.)*")|\/\/[^\n]*|\/\*[\s\S]*?\*\//g, (_m, str) => str ?? "")
+  const rules = JSON.parse(json).assets.run_worker_first
+  return Array.isArray(rules) ? rules : []
+}
+
+test("wrangler.shell.jsonc runs the Worker first for HTML but not hashed static dirs", () => {
+  const rules = runWorkerFirst()
+  expect(rules).toContain("/*")
+  for (const excluded of ["!/assets/*", "!/locales/*"]) expect(rules).toContain(excluded)
 })
 
 test("HTML responses get exactly the narrow CSP", async () => {

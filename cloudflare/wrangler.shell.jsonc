@@ -11,7 +11,12 @@
     "directory": "../.cloudflare/dist/shell",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api", "/api/*"]
+    // The Worker must see HTML documents to attach the Content-Security-Policy
+    // (see shell-csp.ts); anything matching run_worker_first is NOT served by the
+    // static-asset layer first. Hashed/immutable static trees are excluded so
+    // they stay Worker-free and keep their _headers caching. /api is handled by
+    // the Worker's legacy passthrough.
+    "run_worker_first": ["/*", "!/assets/*", "!/locales/*", "!/remoteEntry-*"]
   },
   "observability": {
     "traces": {

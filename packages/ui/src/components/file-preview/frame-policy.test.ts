@@ -4,8 +4,15 @@ import { canFrameSource } from "./frame-policy"
 const ORIGIN = "https://arda.io.vn"
 
 describe("canFrameSource", () => {
-  it("allows blob: URLs", () => {
+  it("allows blob: URLs minted by the current origin", () => {
     expect(canFrameSource("blob:https://arda.io.vn/3f2a-uuid", ORIGIN)).toBe(true)
+  })
+
+  it("denies blob: URLs of another or opaque origin", () => {
+    expect(canFrameSource("blob:https://evil.example/uuid", ORIGIN)).toBe(false)
+    expect(canFrameSource("blob:https://api.arda.io.vn/uuid", ORIGIN)).toBe(false)
+    expect(canFrameSource("blob:null/uuid", ORIGIN)).toBe(false)
+    expect(canFrameSource("blob:", ORIGIN)).toBe(false)
   })
 
   it("allows same-origin absolute and relative URLs", () => {
