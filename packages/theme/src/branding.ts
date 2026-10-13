@@ -9,6 +9,13 @@ import {
   useState,
   type ReactNode,
 } from "react"
+import {
+  applyOrgTheme,
+  cacheOrgTheme,
+  defaultOrgTheme,
+  normalizeOrgTheme,
+  type ChartPalette,
+} from "./brand"
 
 export const SYSTEM_SETTINGS_KEY = "system.settings"
 export const BRANDING_CACHE_KEY = "arda-branding"
@@ -27,6 +34,9 @@ export type BrandingSettings = {
   loginBackgroundEnabled: boolean
   loginWelcomeTitle: string
   loginWelcomeSubtitle: string
+  /** Organisation brand colour (#rrggbb), see brand.ts. */
+  brandColor: string
+  chartPalette: ChartPalette
 }
 
 type SystemBrandingContextValue = {
@@ -58,12 +68,14 @@ export const defaultBranding: BrandingSettings = {
   loginWelcomeTitle: "Welcome back",
   loginWelcomeSubtitle:
     "Access your secure workspace for identity, workflow, and financial operations.",
+  ...defaultOrgTheme,
 }
 
 export function normalizeBranding(value: unknown): BrandingSettings {
   if (!value || typeof value !== "object") return defaultBranding
   const raw = value as Partial<Record<keyof BrandingSettings, unknown>>
   return {
+    ...normalizeOrgTheme(raw),
     appName: readString(raw.appName, defaultBranding.appName),
     shortName: readString(raw.shortName, defaultBranding.shortName),
     organizationName: readString(
@@ -131,6 +143,15 @@ export function SystemBrandingProvider({ children }: { children: ReactNode }) {
     }
   }, [reloadVersion])
 
+  // The org theme is cached separately so ThemeProvider can re-apply it on a
+  // light/dark switch without depending on this provider.
+  const { brandColor, chartPalette } = branding
+  useEffect(() => {
+    const theme = normalizeOrgTheme({ brandColor, chartPalette })
+    cacheOrgTheme(theme)
+    applyOrgTheme(theme)
+  }, [brandColor, chartPalette])
+
   useEffect(() => {
     if (typeof document === "undefined") return
     const title = branding.appName.trim() || defaultBranding.appName
@@ -163,10 +184,11 @@ export function useSystemBranding() {
 
 export function cacheBranding(value: unknown) {
   if (typeof localStorage === "undefined") return
-  localStorage.setItem(
-    BRANDING_CACHE_KEY,
-    JSON.stringify(normalizeBranding(value))
-  )
+  const branding = normalizeBranding(value)
+  localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify(branding))
+  const theme = normalizeOrgTheme(branding)
+  cacheOrgTheme(theme)
+  applyOrgTheme(theme)
 }
 
 export function readCachedBranding() {

@@ -4,6 +4,8 @@ import {
   defaultBranding,
   isSafeBrandImageUrl,
 } from "@workspace/theme/branding"
+import { isUsableBrandColor, type ChartPalette } from "@workspace/theme/brand"
+import { BrandThemeCard } from "./components/BrandThemeCard"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { listParameters, upsertParameter, type Parameter } from "./api"
@@ -50,6 +52,8 @@ type SystemSettings = {
   loginBackgroundEnabled: boolean
   loginWelcomeTitle: string
   loginWelcomeSubtitle: string
+  brandColor: string
+  chartPalette: ChartPalette
   loginSingleDevice: boolean
   maxFailedAttempts: number
   lockoutMinutes: number
@@ -81,6 +85,8 @@ const defaults: SystemSettings = {
   loginBackgroundEnabled: defaultBranding.loginBackgroundEnabled,
   loginWelcomeTitle: defaultBranding.loginWelcomeTitle,
   loginWelcomeSubtitle: defaultBranding.loginWelcomeSubtitle,
+  brandColor: defaultBranding.brandColor,
+  chartPalette: defaultBranding.chartPalette,
   loginSingleDevice: false,
   maxFailedAttempts: 5,
   lockoutMinutes: 15,
@@ -135,6 +141,12 @@ const fields: Record<keyof SystemSettings, { key: string }> = {
   },
   loginWelcomeSubtitle: {
     key: "app.login_welcome_subtitle",
+  },
+  brandColor: {
+    key: "app.brand_color",
+  },
+  chartPalette: {
+    key: "app.chart_palette",
   },
   loginSingleDevice: {
     key: "auth.login.single_device",
@@ -399,6 +411,16 @@ export function SystemSettingsPage() {
                   <BrandingPreview settings={settings} />
                 </CardContent>
               </Card>
+              <BrandThemeCard
+                brandColor={settings.brandColor}
+                chartPalette={settings.chartPalette}
+                onBrandColorChange={(brandColor) =>
+                  setSettings((s) => ({ ...s, brandColor }))
+                }
+                onChartPaletteChange={(chartPalette) =>
+                  setSettings((s) => ({ ...s, chartPalette }))
+                }
+              />
             </TabsContent>
 
             <TabsContent value="password" className="space-y-4">
@@ -744,6 +766,8 @@ function validateSettings(
 ) {
   if (!settings.appName.trim())
     return t("iam.system_settings.validation.app_name_required")
+  if (!isUsableBrandColor(settings.brandColor))
+    return t("iam.system_settings.theme.save_blocked")
   if (
     settings.supportEmail &&
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.supportEmail)
