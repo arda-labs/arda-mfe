@@ -58,16 +58,7 @@ test("widget reads ARDA_DATA and reports height; fetch is blocked by CSP", async
   console.log("[probe] console errors:", JSON.stringify(consoleErrors))
 })
 
-// KNOWN DEFECT (Task 5, packages/ai/src/lib/widget-host.ts RUNTIME): the runtime
-// is inlined in <head> and calls `new ResizeObserver(reportHeight).observe(document.body)`
-// while document.body is still null. That throws "Failed to execute 'observe' on
-// 'ResizeObserver': parameter 1 is not of type 'Element'", which the runtime's own
-// error listener turns into a spurious arda:error for EVERY widget, and the
-// following `load` listener is never registered. test.fail() keeps this
-// assertion strict: once the runtime is fixed this test starts "unexpectedly
-// passing" and the test.fail() line must be removed.
 test("a healthy widget produces no arda:error", async ({ page }) => {
-  test.fail(true, "runtime observes document.body from <head> (body is null) and posts a spurious arda:error")
   const doc = buildWidgetDocument({ html: `<div id="out"></div>`, js: `1`, theme })
   await page.setContent(outerPage(doc))
   await expect.poll(async () => (await msgs(page)).some((m) => m.type === "arda:height")).toBe(true)

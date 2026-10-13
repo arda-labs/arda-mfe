@@ -27,9 +27,14 @@ type Event = { type: string; message?: string; data?: unknown; source?: unknown 
 // wrapper) against a minimal fake window. This checks behaviour without a DOM.
 // `size.height` stands in for document.body.getBoundingClientRect().height and
 // can be changed between calls to simulate content shrinking.
-function runDocument(doc: string, size: { height: number }) {
+function runDocument(
+  doc: string,
+  size: { height: number },
+  options: { readyState?: string; ResizeObserver?: unknown } = {},
+) {
   const posted: Message[] = []
   const listeners: Record<string, Array<(event: Event) => void>> = {}
+  const documentListeners: Record<string, Array<(event: Event) => void>> = {}
   const parent = { postMessage: (msg: Message) => void posted.push(msg) }
   const win = {
     parent,
@@ -41,10 +46,17 @@ function runDocument(doc: string, size: { height: number }) {
       return true
     },
   }
-  const fakeDocument = {
+  const bodyElement = { getBoundingClientRect: () => ({ height: size.height }) }
+  // The runtime is parsed in <head>: the body does not exist yet and the
+  // document is still loading. The body appears before the model script runs.
+  const fakeDocument: { documentElement: unknown; body: unknown; readyState: string; addEventListener: unknown } = {
     // Must not be used: the runtime measures the body box.
     documentElement: { scrollHeight: 9999 },
-    body: { getBoundingClientRect: () => ({ height: size.height }) },
+    body: null,
+    readyState: options.readyState ?? "loading",
+    addEventListener: (type: string, fn: (event: Event) => void) => {
+      ;(documentListeners[type] ??= []).push(fn)
+    },
   }
   const CustomEvent = function (type: string) {
     return { type }
@@ -53,17 +65,22 @@ function runDocument(doc: string, size: { height: number }) {
     return { type, message: init.message }
   }
   const scripts = [...doc.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
-  for (const code of scripts) {
+  scripts.forEach((code, index) => {
+    if (index > 0) fakeDocument.body = bodyElement
     const run = new Function("window", "document", "CustomEvent", "ErrorEvent", "ResizeObserver", code)
-    run(win, fakeDocument, CustomEvent, ErrorEvent, undefined)
-  }
+    run(win, fakeDocument, CustomEvent, ErrorEvent, options.ResizeObserver)
+  })
   const send = (data: unknown) => {
     for (const fn of listeners.message ?? []) fn({ type: "message", source: parent, data })
   }
   const load = () => {
     for (const fn of listeners.load ?? []) fn({ type: "load" })
   }
-  return { posted, send, load }
+  const domContentLoaded = () => {
+    fakeDocument.body = bodyElement
+    for (const fn of documentListeners.DOMContentLoaded ?? []) fn({ type: "DOMContentLoaded" })
+  }
+  return { posted, send, load, listeners, documentListeners, domContentLoaded, bodyElement }
 }
 
 describe("buildWidgetDocument", () => {
@@ -150,6 +167,41 @@ describe("buildWidgetDocument", () => {
     size.height = 20
     send({ type: "arda:data", data: {} })
     expect(posted.filter((m) => m.type === "arda:height").map((m) => m.height)).toEqual([58, 20])
+  })
+
+  test("runtime parsed before <body> does not throw and defers observation to DOMContentLoaded", () => {
+    const doc = buildWidgetDocument({ html: "", js: "1", theme })
+    const observed: unknown[] = []
+    const FakeObserver = function () {
+      return { observe: (el: unknown) => void observed.push(el) }
+    }
+    // runDocument evaluates the runtime with document.body === null and readyState "loading".
+    let result!: ReturnType<typeof runDocument>
+    expect(() => {
+      result = runDocument(doc, { height: 10 }, { ResizeObserver: FakeObserver })
+    }).not.toThrow()
+    for (const type of ["message", "error", "unhandledrejection", "load"]) {
+      expect(result.listeners[type]?.length).toBe(1)
+    }
+    expect(result.documentListeners.DOMContentLoaded?.length).toBe(1)
+    expect(result.posted.filter((m) => m.type === "arda:error")).toEqual([])
+    expect(observed).toEqual([])
+    result.domContentLoaded()
+    expect(observed).toEqual([result.bodyElement])
+  })
+
+  test("a missing body or a missing ResizeObserver is tolerated without arda:error", () => {
+    const doc = buildWidgetDocument({ html: "", js: "1", theme })
+    const seen: unknown[] = []
+    const Observer = function (this: unknown) {
+      return { observe: (el: unknown) => void seen.push(el) }
+    }
+    // body is null while the runtime runs, so even a non-loading document must not observe or throw.
+    expect(() => runDocument(doc, { height: 10 }, { readyState: "complete", ResizeObserver: Observer })).not.toThrow()
+    expect(seen).toEqual([])
+    const none = runDocument(doc, { height: 10 }, { ResizeObserver: undefined })
+    none.domContentLoaded()
+    expect(none.posted.filter((m) => m.type === "arda:error")).toEqual([])
   })
 
   test("runtime posts only arda:height and arda:error; arda:data is the one inbound type", () => {

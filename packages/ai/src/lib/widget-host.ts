@@ -68,6 +68,8 @@ const RUNTIME = `(function () {
   var parent = window.parent;
   function post(msg) { try { parent.postMessage(msg, "*"); } catch (e) {} }
   function reportHeight() {
+    var body = document.body;
+    if (!body) return;
     var h = Math.ceil(document.body.getBoundingClientRect().height);
     post({ type: "arda:height", height: h });
   }
@@ -86,10 +88,15 @@ const RUNTIME = `(function () {
     var reason = event.reason;
     post({ type: "arda:error", message: String(reason && reason.message || reason || "rejection").slice(0, 500) });
   });
-  if (typeof ResizeObserver === "function") {
+  window.addEventListener("load", reportHeight);
+  // This script is parsed in <head>, before document.body exists, so observation
+  // starts only once the body is there.
+  function start() {
+    if (!document.body || typeof ResizeObserver !== "function") return;
     new ResizeObserver(reportHeight).observe(document.body);
   }
-  window.addEventListener("load", reportHeight);
+  if (document.readyState !== "loading") start();
+  else document.addEventListener("DOMContentLoaded", start);
 })();`
 
 export function buildWidgetDocument(input: WidgetSource & { theme: ChartTheme }): string {
