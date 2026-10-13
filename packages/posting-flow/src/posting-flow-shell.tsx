@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Select,
@@ -327,9 +328,8 @@ export function ObjectInfoCard({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="object-info-issue-date">{labels.issueDate}</Label>
-          <Input
+          <DateField
             id="object-info-issue-date"
-            type="date"
             value={value.issue_date}
             onChange={(e) => set({ issue_date: e.target.value })}
           />

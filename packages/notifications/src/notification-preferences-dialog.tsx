@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { notificationsApi } from "./api"
 import type { NotificationPreference } from "./types"
 
@@ -176,20 +177,24 @@ export function NotificationPreferencesDialog({
                     <span className="block text-muted-foreground">
                       {t("notifications.preferences.locale")}
                     </span>
-                    <select
-                      className="h-8 w-full rounded-md border bg-background px-2"
+                    <SelectField
+                      className="h-8"
+                      aria-label={t("notifications.preferences.locale")}
                       value={preference.locale}
                       onChange={(event) =>
                         update(index, { locale: event.target.value })
                       }
-                    >
-                      <option value="vi-VN">
-                        {t("notifications.preferences.locales.vi")}
-                      </option>
-                      <option value="en-US">
-                        {t("notifications.preferences.locales.en")}
-                      </option>
-                    </select>
+                      options={[
+                        {
+                          value: "vi-VN",
+                          label: t("notifications.preferences.locales.vi"),
+                        },
+                        {
+                          value: "en-US",
+                          label: t("notifications.preferences.locales.en"),
+                        },
+                      ]}
+                    />
                   </label>
                   <label className="space-y-1 text-xs">
                     <span className="block text-muted-foreground">
@@ -208,8 +213,9 @@ export function NotificationPreferencesDialog({
                     <span className="block text-muted-foreground">
                       {t("notifications.preferences.digest")}
                     </span>
-                    <select
-                      className="h-8 w-full rounded-md border bg-background px-2"
+                    <SelectField
+                      className="h-8"
+                      aria-label={t("notifications.preferences.digest")}
                       value={preference.digestMode}
                       onChange={(event) =>
                         update(index, {
@@ -217,15 +223,15 @@ export function NotificationPreferencesDialog({
                             .value as NotificationPreference["digestMode"],
                         })
                       }
-                    >
-                      {(["NONE", "HOURLY", "DAILY"] as const).map((mode) => (
-                        <option key={mode} value={mode}>
-                          {t(
+                      options={(["NONE", "HOURLY", "DAILY"] as const).map(
+                        (mode) => ({
+                          value: mode,
+                          label: t(
                             `notifications.preferences.digests.${mode.toLowerCase()}`
-                          )}
-                        </option>
-                      ))}
-                    </select>
+                          ),
+                        })
+                      )}
+                    />
                   </label>
                   <label className="space-y-1 text-xs">
                     <span className="block text-muted-foreground">

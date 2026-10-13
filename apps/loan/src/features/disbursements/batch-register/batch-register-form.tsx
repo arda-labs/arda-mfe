@@ -8,6 +8,7 @@ import { useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -440,9 +441,8 @@ export function BatchRegisterForm() {
                     <Label htmlFor="disburse-date">
                       {t("loan.disbursements.batch.field.txn_date")}
                     </Label>
-                    <Input
+                    <DateField
                       id="disburse-date"
-                      type="date"
                       value={txnDate}
                       aria-invalid={issues.some((issue) => issue.fieldId === "disburse-date")}
                       onBlur={() => setIssues(validateRegister({ txnDate, paymentMethod, accountCode, rows: [] }).filter((issue) => issue.fieldId === "disburse-date"))}

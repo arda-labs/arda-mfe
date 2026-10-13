@@ -3,6 +3,8 @@ import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
   TableBody,
@@ -116,24 +118,19 @@ export function InstancesTab({
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_state")}
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <SelectField
+            className="h-8 w-44 text-xs"
             value={draft.state ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, state: event.target.value || undefined })
             }
-          >
-            <option value="">{t("workflow.operate.filter_all_states")}</option>
-            <option value="ACTIVE">
-              {t("workflow.operate.instance_state_active")}
-            </option>
-            <option value="COMPLETED">
-              {t("workflow.operate.instance_state_completed")}
-            </option>
-            <option value="TERMINATED">
-              {t("workflow.operate.state_terminated")}
-            </option>
-          </select>
+            placeholder={t("workflow.operate.filter_all_states")}
+            options={[
+              { value: "ACTIVE", label: t("workflow.operate.instance_state_active") },
+              { value: "COMPLETED", label: t("workflow.operate.instance_state_completed") },
+              { value: "TERMINATED", label: t("workflow.operate.state_terminated") },
+            ]}
+          />
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_bpmn_process")}
@@ -157,9 +154,8 @@ export function InstancesTab({
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_from")}
-          <input
-            type="date"
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <DateField
+            className="h-8 w-40 text-xs"
             value={draft.startFromDate ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, startFromDate: event.target.value })
@@ -168,9 +164,8 @@ export function InstancesTab({
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_to")}
-          <input
-            type="date"
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <DateField
+            className="h-8 w-40 text-xs"
             value={draft.startToDate ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, startToDate: event.target.value })

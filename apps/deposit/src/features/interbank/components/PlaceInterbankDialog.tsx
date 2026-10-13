@@ -13,6 +13,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { depositApi, type IbmProduct } from "../../api"
 
@@ -119,31 +121,27 @@ export function PlaceInterbankDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.field.product")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={productCode}
               onChange={(e) => setProductCode(e.target.value)}
-            >
-              <option value="">{t("deposit.placeholder.select")}</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.code}>
-                  {product.code} — {product.name}
-                </option>
-              ))}
-            </select>
+              placeholder={t("deposit.placeholder.select")}
+              options={products.map((product) => ({
+                value: product.code,
+                code: product.code,
+                label: product.name,
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.field.deposit_date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={depositDate}
               onChange={(e) => setDepositDate(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.field.maturity_date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={maturityDate}
               onChange={(e) => setMaturityDate(e.target.value)}
             />

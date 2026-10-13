@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
@@ -699,8 +700,7 @@ function SlaTaskPolicyEditor({
                   />
                 </TableCell>
                 <TableCell>
-                  <Input
-                    type="date"
+                  <DateField
                     value={item.effectiveFrom}
                     onChange={(event) =>
                       update(index, { effectiveFrom: event.target.value })
@@ -708,8 +708,7 @@ function SlaTaskPolicyEditor({
                   />
                 </TableCell>
                 <TableCell>
-                  <Input
-                    type="date"
+                  <DateField
                     value={item.effectiveTo}
                     onChange={(event) =>
                       update(index, { effectiveTo: event.target.value })

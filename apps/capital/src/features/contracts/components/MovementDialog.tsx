@@ -13,6 +13,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { capitalApi } from "../../api"
 
@@ -89,22 +91,18 @@ export function MovementDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>{t("capital.movements.field.type")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={movementType}
               onChange={(e) => setMovementType(e.target.value)}
-            >
-              {MOVEMENT_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {t(`capital.movement_type.${type}`)}
-                </option>
-              ))}
-            </select>
+              options={MOVEMENT_TYPES.map((type) => ({
+                value: type,
+                label: t(`capital.movement_type.${type}`),
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("capital.movements.field.date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={movementDate}
               onChange={(e) => setMovementDate(e.target.value)}
             />

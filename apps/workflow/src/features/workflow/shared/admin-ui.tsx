@@ -43,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import {
   Popover,
@@ -1048,8 +1049,7 @@ export function DateInput({
   return (
     <label className="grid gap-1 text-sm">
       <span className="text-xs font-medium text-foreground/80">{label}</span>
-      <Input
-        type="date"
+      <DateField
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />

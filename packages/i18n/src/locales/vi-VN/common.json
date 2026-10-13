@@ -296,5 +296,9 @@
     "search_placeholder": "Tìm theo mã hoặc tên…",
     "empty": "Không có kết quả",
     "clear": "Bỏ chọn"
+  },
+  "date_field": {
+    "placeholder": "dd/mm/yyyy",
+    "open_calendar": "Mở lịch"
   }
 }

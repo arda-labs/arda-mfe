@@ -3,7 +3,7 @@ import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { apiUrl } from "@workspace/api/url"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Table,
@@ -77,11 +77,11 @@ export function DashboardPage() {
         <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1.5">
             <Label>{t("workflow.dashboard.field.from")}</Label>
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <DateField className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>{t("workflow.dashboard.field.to")}</Label>
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            <DateField className="w-40" value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
           <Button variant="outline" onClick={() => void load()} disabled={loading}>
             {t("workflow.dashboard.run")}

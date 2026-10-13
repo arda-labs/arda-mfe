@@ -5,7 +5,7 @@ import { todayISO } from "@workspace/format"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Table,
@@ -86,9 +86,8 @@ export function EodTab() {
         <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1.5">
             <Label htmlFor="eod-business-date">{t("platform.jobs.field.business_date")}</Label>
-            <Input
+            <DateField
               id="eod-business-date"
-              type="date"
               value={businessDate}
               onChange={(e) => setBusinessDate(e.target.value)}
             />

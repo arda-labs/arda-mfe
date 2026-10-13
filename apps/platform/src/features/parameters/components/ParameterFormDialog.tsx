@@ -17,6 +17,7 @@ import {
   CommandList,
 } from "@workspace/ui/components/command"
 import { FormField } from "@workspace/ui/components/form-field"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import {
   Popover,
@@ -373,9 +374,8 @@ export function ParameterFormDialog({
                 {...register("value")}
               />
             ) : valueType === "date" ? (
-              <Input
+              <DateField
                 id="param_value"
-                type="date"
                 aria-invalid={Boolean(errors.value)}
                 {...register("value")}
               />

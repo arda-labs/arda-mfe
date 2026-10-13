@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { formatAmount, fromMinor, toMinor } from "@workspace/format"
 import { depositApi } from "../../api"
 
@@ -89,14 +90,14 @@ export function InterestDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interest.field.op_type")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={opType}
               onChange={(e) => setOpType(e.target.value as "PAY" | "CAPITALIZE")}
-            >
-              <option value="PAY">{t("deposit.interest.op_type.PAY")}</option>
-              <option value="CAPITALIZE">{t("deposit.interest.op_type.CAPITALIZE")}</option>
-            </select>
+              options={[
+                { value: "PAY", label: t("deposit.interest.op_type.PAY") },
+                { value: "CAPITALIZE", label: t("deposit.interest.op_type.CAPITALIZE") },
+              ]}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interest.field.amount")}</Label>

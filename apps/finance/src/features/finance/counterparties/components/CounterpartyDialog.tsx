@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { counterpartyApi, type Counterparty } from "../../api"
 
 /** Create/edit one counterparty (TK đối tác). */
@@ -102,15 +103,11 @@ export function CounterpartyDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("finance.counterparties.field.party_type")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={partyType}
               onChange={(e) => setPartyType(e.target.value)}
-            >
-              <option value="INTERNAL">INTERNAL</option>
-              <option value="BANK">BANK</option>
-              <option value="OTHER">OTHER</option>
-            </select>
+              options={["INTERNAL", "BANK", "OTHER"].map((v) => ({ value: v, label: v }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("finance.counterparties.field.org")}</Label>

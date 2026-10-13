@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { statisticalApi } from "../../api"
@@ -174,16 +175,10 @@ export function ReportDefinitionFormDialog({
             label={t("statistical.report_definitions.field.output_format")}
             error={errors.output_format?.message}
           >
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               {...register("output_format")}
-            >
-              {OUTPUT_FORMATS.map((format) => (
-                <option key={format} value={format}>
-                  {format}
-                </option>
-              ))}
-            </select>
+              options={OUTPUT_FORMATS.map((format) => ({ value: format, label: format }))}
+            />
           </FormField>
           <Button className="w-full" type="submit" disabled={isSubmitting || saving}>
             {definition ? t("common.action.save") : t("common.action.create")}

@@ -8,6 +8,7 @@ import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tab
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import {
@@ -189,9 +190,8 @@ export function OffBalanceFormPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="off-balance-date">{t("finance.posting.field.txn_date")}</Label>
-                    <Input
+                    <DateField
                       id="off-balance-date"
-                      type="date"
                       value={accountingDate}
                       onChange={(e) => setAccountingDate(e.target.value)}
                     />

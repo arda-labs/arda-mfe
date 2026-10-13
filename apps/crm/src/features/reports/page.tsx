@@ -3,6 +3,7 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
   TableBody,
@@ -75,19 +76,16 @@ export function ReportsPage() {
           </div>
           <div className="space-y-1.5">
             <Label>{t("crm.reports.field.type")}</Label>
-            <select
-              className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
+              className="w-44"
               value={customerType}
               onChange={(e) => setCustomerType(e.target.value)}
-            >
-              <option value="">{t("common.action.select_all")}</option>
-              <option value="PERSONAL">
-                {t("crm.customers.options.customer_type_personal")}
-              </option>
-              <option value="BUSINESS">
-                {t("crm.customers.options.customer_type_business")}
-              </option>
-            </select>
+              placeholder={t("common.action.select_all")}
+              options={[
+                { value: "PERSONAL", label: t("crm.customers.options.customer_type_personal") },
+                { value: "BUSINESS", label: t("crm.customers.options.customer_type_business") },
+              ]}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("common.field.status")}</Label>

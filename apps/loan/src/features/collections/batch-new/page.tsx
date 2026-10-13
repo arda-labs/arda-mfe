@@ -7,6 +7,7 @@ import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tab
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -209,9 +210,8 @@ export function BatchCollectionPage() {
                     <Label htmlFor="collection-date">
                       {t("loan.collections.batch.field.txn_date")}
                     </Label>
-                    <Input
+                    <DateField
                       id="collection-date"
-                      type="date"
                       value={txnDate}
                       onChange={(e) => setTxnDate(e.target.value)}
                     />

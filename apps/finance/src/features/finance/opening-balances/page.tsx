@@ -6,7 +6,7 @@ import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
@@ -241,9 +241,8 @@ export function OpeningBalancesPage() {
             <Label htmlFor="ob-as-of">
               {t("finance.opening_balances.field.as_of")}
             </Label>
-            <Input
+            <DateField
               id="ob-as-of"
-              type="date"
               value={asOf}
               onChange={(event) => changeAsOf(event.target.value)}
             />

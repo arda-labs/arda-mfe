@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -287,9 +288,8 @@ export function TierEditorDialog({
                 <Label htmlFor="tier-from">
                   {t("mdm.interest_rates.tiers.field.effective_from")}
                 </Label>
-                <Input
+                <DateField
                   id="tier-from"
-                  type="date"
                   value={form.effective_from}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -303,9 +303,8 @@ export function TierEditorDialog({
                 <Label htmlFor="tier-to">
                   {t("mdm.interest_rates.tiers.field.effective_to")}
                 </Label>
-                <Input
+                <DateField
                   id="tier-to"
-                  type="date"
                   value={form.effective_to}
                   onChange={(event) =>
                     setForm((current) => ({

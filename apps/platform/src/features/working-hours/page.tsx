@@ -16,6 +16,7 @@ import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { notify } from "@workspace/ui/feedback/notify"
 import {
   activeStatusMeta,
@@ -258,17 +259,14 @@ export function WorkingHoursPage() {
       </div>
       <div className="space-y-1.5">
         <Label>{t("platform.working_hours.field.day")}</Label>
-        <select
-          className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
-          value={dayOfWeek}
+        <SelectField
+          value={String(dayOfWeek)}
           onChange={(e) => setDayOfWeek(Number(e.target.value))}
-        >
-          {DAY_KEYS.map((key, index) => (
-            <option key={key} value={index + 1}>
-              {t(`platform.working_hours.day.${key}`)}
-            </option>
-          ))}
-        </select>
+          options={DAY_KEYS.map((key, index) => ({
+            value: String(index + 1),
+            label: t(`platform.working_hours.day.${key}`),
+          }))}
+        />
       </div>
       <div className="space-y-1.5">
         <Label>{t("platform.working_hours.field.start")}</Label>

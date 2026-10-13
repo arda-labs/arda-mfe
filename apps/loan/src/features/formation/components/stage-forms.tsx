@@ -1,4 +1,5 @@
 import { useI18n } from "@workspace/i18n"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -42,6 +43,7 @@ function TextField({
   onChange,
   disabled,
   type = "text",
+  date = false,
   placeholder,
 }: {
   id: string
@@ -50,19 +52,31 @@ function TextField({
   onChange: (value: string) => void
   disabled?: boolean
   type?: string
+  /** Renders a DateField (ISO value) instead of a text input. */
+  date?: boolean
   placeholder?: string
 }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type={type}
-        value={value}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      {date ? (
+        <DateField
+          id={id}
+          value={value}
+          disabled={disabled}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <Input
+          id={id}
+          type={type}
+          value={value}
+          disabled={disabled}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
     </div>
   )
 }
@@ -108,7 +122,7 @@ export function AppraisalFields({
       />
       <TextField
         id="formation-appraisal-date"
-        type="date"
+        date
         label={t("loan.formation.appraisal.field.appraisal_date")}
         value={values.appraisalDate}
         onChange={(v) => set({ appraisalDate: v })}
@@ -189,7 +203,7 @@ export function ApprovalFields({
       />
       <TextField
         id="formation-approval-date"
-        type="date"
+        date
         label={t("loan.formation.approval.field.approval_date")}
         value={values.approvalDate}
         disabled={disabled}

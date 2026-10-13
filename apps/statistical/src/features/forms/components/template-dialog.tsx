@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { statisticalApi, type FormTemplate } from "../../api"
 
 type SchemaField = { key: string; label: string; type: string; required: boolean }
@@ -179,17 +180,12 @@ export function TemplateDialog({
                 placeholder={t("statistical.forms.field.label")}
                 onChange={(e) => updateField(index, { label: e.target.value })}
               />
-              <select
-                className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+              <SelectField
+                className="h-8 w-32 text-xs"
                 value={field.type}
                 onChange={(e) => updateField(index, { type: e.target.value })}
-              >
-                {FIELD_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+                options={FIELD_TYPES.map((type) => ({ value: type, label: type }))}
+              />
               <label className="flex items-center gap-1 text-xs">
                 <input
                   type="checkbox"

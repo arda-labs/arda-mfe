@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
   Table,
@@ -11,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { DateField } from "@workspace/ui/components/date-field"
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
 import { capitalApi } from "../api"
 
@@ -102,11 +102,11 @@ export function ReportsPage() {
         <div className="flex items-end gap-2">
           <div className="space-y-1.5">
             <Label>{t("capital.reports.field.from")}</Label>
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <DateField value={from} onChange={(e) => setFrom(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>{t("capital.reports.field.to")}</Label>
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            <DateField value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
           <Button variant="outline" onClick={() => void load()} disabled={loading}>
             {t("capital.reports.run")}

@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -128,9 +129,8 @@ export function CapitalMovementDialog({
 
           <div className="grid gap-1.5">
             <Label htmlFor="member-effective">{t("members.capital.effectiveDate")}</Label>
-            <Input
+            <DateField
               id="member-effective"
-              type="date"
               value={effectiveDate}
               onChange={(e) => setEffectiveDate(e.target.value)}
             />

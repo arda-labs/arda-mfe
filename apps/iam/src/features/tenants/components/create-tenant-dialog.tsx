@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { tenantsApi } from "../api"
@@ -152,17 +153,14 @@ export function CreateTenantDialog({
           </FormField>
           {editing ? (
             <FormField label={t("common.field.status")}>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              <SelectField
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-              >
-                {TENANT_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`iam.tenants.status.${value}`)}
-                  </option>
-                ))}
-              </select>
+                options={TENANT_STATUSES.map((value) => ({
+                  value,
+                  label: t(`iam.tenants.status.${value}`),
+                }))}
+              />
             </FormField>
           ) : null}
           <Button
