@@ -1,16 +1,14 @@
 import type { ListResponse } from "@workspace/api/list"
 import { buildSearchParams } from "@workspace/api/query"
 import { getCanonical } from "@workspace/api"
+import type {
+  PlatformGeoAdminUnit,
+  PlatformOrganization,
+} from "@workspace/api/reference/platform"
 
-export interface GeoAdminUnit {
-  code: string
-  name: string
-  full_name?: string
-  parent_code?: string
-  level: number
-  unit_type: string
-  is_active: boolean
-}
+/** Platform reference types (ADR-005): declared once, re-exported here. */
+export type GeoAdminUnit = PlatformGeoAdminUnit
+export type { PlatformOrganization }
 
 export interface PlatformArea {
   id: string
@@ -19,13 +17,6 @@ export interface PlatformArea {
   area_type_code: string
   admin_unit_code?: string
   status: "active" | "inactive"
-}
-
-export interface PlatformOrganization {
-  id: string
-  code: string
-  name: string
-  is_active: boolean
 }
 
 export const platformReferenceApi = {
