@@ -440,10 +440,41 @@ export const navItems: NavNode[] = [
   },
 ]
 
-export function isNodeActive(item: NavNode, pathname: string): boolean {
-  if (item.href)
-    return item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-  return Boolean(item.children?.some((child) => isNodeActive(child, pathname)))
+function matchesPath(href: string, pathname: string) {
+  if (href === "/") return pathname === "/"
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+/**
+ * The single menu href that owns `pathname`: the longest matching href in the
+ * tree, so a group such as "/finance" and its leaf "/finance/posting/single-entry"
+ * are never highlighted together.
+ */
+export function findActiveHref(
+  items: NavNode[],
+  pathname: string
+): string | undefined {
+  let best: string | undefined
+  const visit = (nodes: NavNode[]) => {
+    for (const node of nodes) {
+      if (
+        node.href &&
+        matchesPath(node.href, pathname) &&
+        node.href.length > (best?.length ?? -1)
+      ) {
+        best = node.href
+      }
+      if (node.children?.length) visit(node.children)
+    }
+  }
+  visit(items)
+  return best
+}
+
+export function containsHref(item: NavNode, href: string | undefined): boolean {
+  if (!href) return false
+  if (item.href === href) return true
+  return Boolean(item.children?.some((child) => containsHref(child, href)))
 }
 
 export function filterNavItems(items: NavNode[], user: AuthUser | null): NavNode[] {
