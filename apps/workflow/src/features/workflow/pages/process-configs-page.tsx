@@ -16,11 +16,7 @@ import { useI18n } from "@workspace/i18n"
 import {
   DataTableColumnHeader,
 } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import type { SlaPolicy, WorkflowCaseType } from "../api"
 import { caseConfigApi, casesApi } from "../api"
 import { ProcessConfigDialog } from "../shared/admin-dialogs"
@@ -145,12 +141,8 @@ export function ProcessConfigsPage() {
           ],
         },
         cell: ({ row }) => (
-          <Status
-            variant={row.original.status === "ACTIVE" ? "success" : "default"}
-          >
-            <StatusIndicator />
-            <StatusLabel>{row.original.status || "-"}</StatusLabel>
-          </Status>
+          <StatusBadge
+            tone={row.original.status === "ACTIVE" ? "success" : "neutral"}>{row.original.status || "-"}</StatusBadge>
         ),
       },
       {

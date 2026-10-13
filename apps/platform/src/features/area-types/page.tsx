@@ -15,11 +15,7 @@ import { DataTableKeyCell } from "@workspace/ui/components/data-table/data-table
 import { createActionsColumn } from "@workspace/list-page/table-columns"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   Dialog,
   DialogContent,
@@ -229,14 +225,9 @@ export function AreaTypesPage() {
           t("platform.area_types.status.inactive")
         ),
         cell: ({ row }) => (
-          <Status variant={row.original.is_active ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.is_active
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
                 ? t("platform.area_types.status.active")
-                : t("platform.area_types.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("platform.area_types.status.inactive")}</StatusBadge>
         ),
       },
       createActionsColumn<LookupValue>({

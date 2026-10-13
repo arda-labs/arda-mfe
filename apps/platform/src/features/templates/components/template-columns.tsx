@@ -6,11 +6,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { formatFileSize } from "@workspace/ui/components/file-preview"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   activeStatusMeta,
   textSearchMeta,
@@ -137,14 +133,9 @@ export function buildTemplateColumns(
         t("platform.templates.status.inactive")
       ),
       cell: ({ row }) => (
-        <Status variant={row.original.is_active ? "success" : "default"}>
-          <StatusIndicator />
-          <StatusLabel>
-            {row.original.is_active
+        <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
               ? t("platform.templates.status.active")
-              : t("platform.templates.status.inactive")}
-          </StatusLabel>
-        </Status>
+              : t("platform.templates.status.inactive")}</StatusBadge>
       ),
     },
     {

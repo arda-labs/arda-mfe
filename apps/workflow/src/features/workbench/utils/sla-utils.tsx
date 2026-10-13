@@ -103,14 +103,7 @@ export function StatusBadge({ status }: { status: string }) {
     variant: "outline" as BadgeVariant,
     className: "border-border text-muted-foreground",
   }
-  return (
-    <SharedStatusBadge
-      status={status}
-      label={meta.label}
-      variant="outline"
-      className={cn("rounded-md px-1.5 py-0.5 text-[11px] leading-none", meta.className)}
-    />
-  )
+  return <SharedStatusBadge status={status}>{meta.label}</SharedStatusBadge>
 }
 
 export function TimeProgress({

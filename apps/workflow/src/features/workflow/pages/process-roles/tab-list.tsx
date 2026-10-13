@@ -10,11 +10,7 @@ import {
   sortByColumn,
   useClientListTable,
 } from "@workspace/list-page/client-list"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { useI18n } from "@workspace/i18n"
 import { casesApi, type WorkflowCaseType } from "../../api"
 
@@ -97,10 +93,7 @@ export function useTabList<T>({
 
 export function WorkflowStatusCell({ status }: { status: string }) {
   return (
-    <Status variant={status === "ACTIVE" ? "success" : "default"}>
-      <StatusIndicator />
-      <StatusLabel>{status || "-"}</StatusLabel>
-    </Status>
+    <StatusBadge tone={status === "ACTIVE" ? "success" : "neutral"}>{status || "-"}</StatusBadge>
   )
 }
 

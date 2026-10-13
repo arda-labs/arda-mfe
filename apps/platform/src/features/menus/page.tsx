@@ -8,11 +8,7 @@ import { deleteMenuItem, fetchMenuItems } from "./api"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -264,14 +260,9 @@ export function MenusPage() {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Status variant={row.original.is_active ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.is_active
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
                 ? t("platform.menus.status.active")
-                : t("platform.menus.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("platform.menus.status.inactive")}</StatusBadge>
         ),
       },
       {

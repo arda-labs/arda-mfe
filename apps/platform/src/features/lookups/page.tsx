@@ -17,11 +17,7 @@ import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { DataTableSkeleton } from "@workspace/ui/components/data-table/data-table-skeleton"
 import { PageHeader } from "@workspace/ui/components/page-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -242,14 +238,9 @@ export function LookupsPage() {
         cell: ({ row }) => {
           const active = row.original.is_active
           return (
-            <Status variant={active ? "success" : "default"}>
-              <StatusIndicator />
-              <StatusLabel>
-                {active
+            <StatusBadge tone={active ? "success" : "neutral"}>{active
                   ? t("platform.lookups.status.active")
-                  : t("platform.lookups.status.inactive")}
-              </StatusLabel>
-            </Status>
+                  : t("platform.lookups.status.inactive")}</StatusBadge>
           )
         },
       },

@@ -13,11 +13,7 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { MaskInput } from "@workspace/ui/components/mask-input"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import {
   Dialog,
   DialogContent,
@@ -313,14 +309,9 @@ export function ProvincesPage() {
           t("platform.provinces.status.inactive")
         ),
         cell: ({ row }) => (
-          <Status variant={row.original.is_active ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.is_active
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>{row.original.is_active
                 ? t("platform.provinces.status.active")
-                : t("platform.provinces.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("platform.provinces.status.inactive")}</StatusBadge>
         ),
       },
       {

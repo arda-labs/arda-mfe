@@ -6,11 +6,7 @@ import type { TenantMember } from "../types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Trash2 } from "lucide-react"
 
 export function memberLabel(member: TenantMember) {
@@ -27,12 +23,7 @@ function statusBadge(
   disabledLabel: string
 ) {
   return (
-    <Status variant={status === "ACTIVE" ? "success" : "default"}>
-      <StatusIndicator />
-      <StatusLabel>
-        {status === "ACTIVE" ? activeLabel : disabledLabel}
-      </StatusLabel>
-    </Status>
+    <StatusBadge tone={status === "ACTIVE" ? "success" : "neutral"}>{status === "ACTIVE" ? activeLabel : disabledLabel}</StatusBadge>
   )
 }
 

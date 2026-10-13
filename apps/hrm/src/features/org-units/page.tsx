@@ -1,10 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   AlertDialog,
@@ -165,16 +161,10 @@ export function OrgUnitsPage() {
           { label: t("hrm.status.inactive"), value: "inactive" },
         ]),
         cell: ({ row }) => (
-          <Status
-            variant={row.original.status === "active" ? "success" : "default"}
-          >
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.status === "active"
+          <StatusBadge
+            tone={row.original.status === "active" ? "success" : "neutral"}>{row.original.status === "active"
                 ? t("hrm.status.active")
-                : t("hrm.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("hrm.status.inactive")}</StatusBadge>
         ),
       },
       {
