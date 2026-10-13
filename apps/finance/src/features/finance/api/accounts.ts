@@ -56,6 +56,28 @@ export function normalizeAccountsPage(
   }
 }
 
+/**
+ * Every page of a list, for catalogs shown whole (the chart of accounts
+ * tree). The BE caps per_page at 100 and `all=1` at 500, so a large chart
+ * is read page by page instead of being silently cut off.
+ */
+export async function fetchAllPages<T extends { id: string }>(
+  fetchPage: (page: number) => Promise<ListResponse<T>>
+): Promise<T[]> {
+  const first = await fetchPage(1)
+  const pageCount = Math.ceil(first.total / Math.max(first.per_page, 1))
+  const rest =
+    pageCount > 1
+      ? await Promise.all(
+          Array.from({ length: pageCount - 1 }, (_, index) => fetchPage(index + 2))
+        )
+      : []
+  const seen = new Set<string>()
+  return [first, ...rest]
+    .flatMap((page) => page.items)
+    .filter((item) => (seen.has(item.id) ? false : (seen.add(item.id), true)))
+}
+
 export const accountsApi = {
   listAccounts: () =>
     api
@@ -75,6 +97,11 @@ export const accountsApi = {
       .then((res): ListResponse<Account> =>
         normalizeAccountsPage(res.result, params)
       ),
+  /** The whole chart of accounts, ordered by code (for the tree view). */
+  listAllAccounts: () =>
+    fetchAllPages((page) =>
+      accountsApi.listAccountsPaged({ page, perPage: 100, sort: "code", order: "asc" })
+    ),
   getAccount: (id: string) =>
     api
       .get<ApiSuccess<Account>>(`/api/finance/accounts/${id}`)

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { buildTree, expandedToDepth } from "./tree"
+import { buildTree, expandedToDepth, textMatches } from "./tree"
 
 type Unit = { id: string; parent?: string; code: string }
 const units: Unit[] = [
@@ -38,5 +38,15 @@ describe("expandedToDepth", () => {
       "hs-td": true,
     })
     expect(expandedToDepth(roots, children, (u) => u.id, 0)).toEqual({})
+  })
+})
+
+describe("textMatches", () => {
+  test("matches any value ignoring case and Vietnamese accents", () => {
+    expect(textMatches("doanh nghiep", "HS-TD-DN", "Tổ tín dụng doanh nghiệp")).toBe(true)
+    expect(textMatches("ĐƠN", "Đơn vị")).toBe(true)
+    expect(textMatches("1011", "1011", "Tiền mặt")).toBe(true)
+    expect(textMatches("xyz", "1011", undefined)).toBe(false)
+    expect(textMatches("  ", "anything")).toBe(true)
   })
 })

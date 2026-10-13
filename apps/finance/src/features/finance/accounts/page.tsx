@@ -7,11 +7,15 @@ import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-
 import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { useTreeTable } from "@workspace/list-page/use-tree-table"
+import { textMatches } from "@workspace/list-page/tree"
+import { TreeCell } from "@workspace/ui/components/data-table/tree-cell"
+import { Button } from "@workspace/ui/components/button"
+import { useQuery } from "@tanstack/react-query"
+import { ChevronsDownUp, ChevronsUpDown } from "lucide-react"
 import { textSearchMeta } from "@workspace/list-page/column-filters"
 import { createActionsColumn } from "@workspace/list-page/table-columns"
 import { useState } from "react"
-import { accountsListDefinition } from "./list-query"
 import { CreateAccountDialog } from "./components/CreateAccountDialog"
 
 const ACCOUNT_TYPE_COLORS: Record<string, string> = {
@@ -32,6 +36,10 @@ function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {
   }
   return keys[type] ? t(keys[type]) : type
 }
+
+const accountId = (account: Account) => account.id
+const accountParentId = (account: Account) => account.parentId
+const byCode = (a: Account, b: Account) => a.code.localeCompare(b.code, "en", { numeric: true })
 
 export function AccountsPage() {
   const { t, formatDate } = useI18n()
@@ -54,8 +62,13 @@ export function AccountsPage() {
           t("common.field.code"),
           t("finance.accounts.placeholder.search")
         ),
+        // Toolbar search: account code or name, ignoring case and accents.
+        filterFn: (row, _columnId, value) =>
+          textMatches(value, row.original.code, row.original.name),
         cell: ({ row }) => (
-          <span className="font-mono text-sm">{row.original.code}</span>
+          <TreeCell row={row}>
+            <span className="font-mono text-sm">{row.original.code}</span>
+          </TreeCell>
         ),
       },
       {
@@ -165,30 +178,24 @@ export function AccountsPage() {
   )
 
   /**
-   * Server-driven list controller: URL page/perPage + `code`→q filter and
-   * whitelisted sort <-> TanStack Query cache. The BE adapter returns the
-   * standard ListResponse shape over the `{ accounts, total }` envelope.
+   * The chart of accounts as a tree (design board 09, TreeTable): parent
+   * accounts fold their sub-accounts, search keeps the branch of each match.
+   * The whole chart is read page by page (BE caps per_page at 100).
    * Create/edit go through CreateAccountDialog; the account code is immutable.
    */
-  const {
-    total,
-    isLoading,
-    isFetching,
-    error: loadError,
-    refetch,
-    table,
-  } = useServerDataTable<Account>({
-    ...accountsListDefinition,
-    columns,
-    queryFn: async (query) =>
-      accountsApi.listAccountsPaged({
-        page: query.page,
-        perPage: query.perPage,
-        q: query.q === undefined ? undefined : String(query.q),
-        sort: query.sort,
-        order: query.order,
-      }),
+  const accounts = useQuery({
+    queryKey: ["finance", "accounts", "tree"],
+    queryFn: () => accountsApi.listAllAccounts(),
+    staleTime: 60_000,
   })
+  const { table, total, expandAll, collapseAll } = useTreeTable<Account>({
+    items: accounts.data ?? [],
+    columns,
+    getId: accountId,
+    getParentId: accountParentId,
+    compare: byCode,
+  })
+  const refetch = accounts.refetch
 
   return (
     <ListPageShell
@@ -199,11 +206,11 @@ export function AccountsPage() {
           {t("finance.accounts.count", { count: total })}
         </Badge>
       }
-      criticalPending={isLoading}
-      criticalError={loadError}
+      criticalPending={accounts.isLoading}
+      criticalError={accounts.error}
       onRetry={() => void refetch()}
       loadErrorTitle={t("finance.accounts.load_failed")}
-      fetching={isFetching}
+      fetching={accounts.isFetching}
       table={table}
       toolbar={
         <ListTableToolbar
@@ -216,7 +223,16 @@ export function AccountsPage() {
           exportFilename={t("finance.accounts.title")}
           sheetName={t("finance.accounts.title")}
           totalRowsCount={total}
-        />
+        >
+          <Button type="button" variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={expandAll}>
+            <ChevronsUpDown className="size-3.5" />
+            {t("common.tree.expand_all")}
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={collapseAll}>
+            <ChevronsDownUp className="size-3.5" />
+            {t("common.tree.collapse_all")}
+          </Button>
+        </ListTableToolbar>
       }
       dialogs={
         <CreateAccountDialog

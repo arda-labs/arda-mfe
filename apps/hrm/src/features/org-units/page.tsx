@@ -14,6 +14,7 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { useTreeTable } from "@workspace/list-page/use-tree-table"
+import { textMatches } from "@workspace/list-page/tree"
 import { TreeCell } from "@workspace/ui/components/data-table/tree-cell"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
@@ -36,9 +37,6 @@ const unitId = (unit: OrgUnit) => unit.id
 const unitParentId = (unit: OrgUnit) => unit.parent_id
 const byCode = (a: OrgUnit, b: OrgUnit) => a.code.localeCompare(b.code)
 
-/** Toolbar search: code or name, ignoring case and Vietnamese accents. */
-const fold = (text: string) =>
-  text.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase()
 
 export function OrgUnitsPage() {
   const { t } = useI18n()
@@ -85,14 +83,9 @@ export function OrgUnitsPage() {
           t("hrm.org_units.field.code"),
           t("hrm.org_units.search_placeholder")
         ),
-        filterFn: (row, _columnId, value) => {
-          const query = fold(String(value ?? "").trim())
-          return (
-            !query ||
-            fold(row.original.code).includes(query) ||
-            fold(row.original.name).includes(query)
-          )
-        },
+        // Toolbar search: code or name, ignoring case and Vietnamese accents.
+        filterFn: (row, _columnId, value) =>
+          textMatches(value, row.original.code, row.original.name),
         cell: ({ row }) => (
           <TreeCell row={row}>
             <span className="font-mono text-sm">{row.original.code}</span>
