@@ -3,6 +3,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { CheckCircle2, Clock, Eye, XCircle } from "lucide-react"
 import type { ApprovalDetail } from "../types"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 interface ProposalListTabProps {
   proposals: ApprovalDetail[]
@@ -79,22 +80,13 @@ export function ProposalListTab({
                 >
                   {t(`ai.approvals.risk.${p.risk}`)}
                 </Badge>
-                <Badge
-                  variant={
-                    p.status === "APPROVED"
-                      ? "default"
-                      : p.status === "REJECTED"
-                        ? "destructive"
-                        : isExpired
-                          ? "outline"
-                          : "secondary"
-                  }
+                <StatusBadge status={p.status}
                   className="text-[10px]"
                 >
                   {isExpired && isPending
                     ? t("ai.approvals.status.expired")
                     : t(`ai.approvals.status.${p.status.toLowerCase()}`)}
-                </Badge>
+                </StatusBadge>
               </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">

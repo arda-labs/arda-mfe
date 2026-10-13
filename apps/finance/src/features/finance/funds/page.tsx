@@ -36,6 +36,7 @@ import {
   parseFundTab,
   type FundTab,
 } from "./list-query"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const FUND_CODES = [
   "DEV",
@@ -124,9 +125,7 @@ export function FundsPage() {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "POSTED" ? "default" : "outline"}>
-            {row.original.status}
-          </Badge>
+          <StatusBadge status={row.original.status} />
         ),
       },
     ],

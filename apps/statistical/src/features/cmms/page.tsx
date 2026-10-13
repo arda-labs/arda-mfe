@@ -21,6 +21,7 @@ import {
 } from "@workspace/list-page/client-list"
 import { formatDateShort } from "@workspace/format"
 import { statisticalApi, type CmmsResult } from "../api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -180,11 +181,9 @@ export function CmmsPage() {
           }))
         ),
         cell: ({ row }) => (
-          <Badge
-            variant={row.original.status === "PASSED" ? "default" : "destructive"}
-          >
+          <StatusBadge status={row.original.status}>
             {statusLabel(row.original.status, t)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

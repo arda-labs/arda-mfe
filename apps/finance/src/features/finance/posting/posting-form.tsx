@@ -28,6 +28,7 @@ import { formatAmount, formatDateShort, fromMinor, isValidISODate, parseMoneyInp
 import { accountsApi, postingApi, postingCaseApi, type PostingFlow } from "../api"
 import { usePostingFlowLabels } from "./labels"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
   SINGLE_ENTRY: "FIN_SINGLE_ENTRY",
@@ -162,9 +163,9 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
         ),
       }}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("finance.posting.control.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {

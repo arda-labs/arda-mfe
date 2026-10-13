@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
@@ -35,6 +34,7 @@ import {
 import { ContractSelect } from "./contract-select"
 import { RepayPlanGrid } from "./repay-plan-grid"
 import { ADJUSTMENT_KIND_SPECS, type KindFieldSpec } from "../kind-spec"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /**
  * Tab 1 "Thông tin điều chỉnh" — form per-kind dựng từ `ADJUSTMENT_KIND_SPECS`
@@ -260,7 +260,7 @@ export function AdjustmentInfoTab({ kind }: { kind: LoanAdjustmentKind }) {
         <ControlInfoCard
           labels={controlLabels}
           unit={unitName}
-          status={<Badge variant="secondary">{t("loan.batch.status_draft")}</Badge>}
+          status={<StatusBadge status="DRAFT">{t("loan.batch.status_draft")}</StatusBadge>}
           enteredAt={todayISO()}
           enteredBy={user?.displayName || (user?.name ?? "")}
         />

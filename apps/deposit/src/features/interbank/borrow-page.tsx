@@ -10,6 +10,7 @@ import { sortByColumn, useClientListTable } from "@workspace/list-page/client-li
 import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
 import { depositApi, type InterbankBorrow } from "../api"
 import { RaiseBorrowDialog } from "./components/RaiseBorrowDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -166,17 +167,9 @@ export function InterbankBorrowPage(_props: { pathname: string }) {
           <DataTableColumnHeader column={column} label={t("common.field.status")} />
         ),
         cell: ({ row }) => (
-          <Badge
-            variant={
-              row.original.status === "ACTIVE"
-                ? "default"
-                : row.original.status === "PENDING_APPROVAL"
-                  ? "secondary"
-                  : "outline"
-            }
-          >
+          <StatusBadge status={row.original.status}>
             {t(`deposit.borrow.status.${row.original.status}`)}
-          </Badge>
+          </StatusBadge>
         ),
       },
     ],

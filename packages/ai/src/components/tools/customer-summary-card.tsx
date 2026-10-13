@@ -1,11 +1,11 @@
 import { useI18n } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   textValue,
   type ToolResultPayload,
 } from "../../lib/messages"
 import type { ToolResultViewProps } from "../../lib/registry"
 import { registerToolRenderer } from "../../lib/registry"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 type CustomerSummary = {
   id: string
@@ -47,9 +47,9 @@ export function CustomerSummaryCard({ result }: ToolResultViewProps) {
       <div className="flex items-center gap-2">
         <p className="text-sm font-semibold">{customer.name}</p>
         {customer.status && (
-          <Badge variant={customer.status === "ACTIVE" ? "default" : "secondary"}>
+          <StatusBadge status={customer.status}>
             {t("ai.tool.customer.status", { status: customer.status })}
-          </Badge>
+          </StatusBadge>
         )}
       </div>
       <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">

@@ -12,6 +12,7 @@ import { sortByColumn, useClientListTable } from "@workspace/list-page/client-li
 import { formatDateShort, formatRatePercent } from "@workspace/format"
 import { depositApi, type InterestRate } from "../api"
 import { RateDialog } from "./components/RateDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** DPM rate tiers (DPM.100/101) — register/adjust goes through approval. */
 export function RatesPage() {
@@ -106,9 +107,9 @@ export function RatesPage() {
           <DataTableColumnHeader column={column} label={t("common.field.status")} />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active ? t("deposit.status.active") : t("deposit.status.inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

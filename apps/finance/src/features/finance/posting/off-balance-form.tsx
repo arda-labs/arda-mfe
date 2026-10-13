@@ -31,6 +31,7 @@ import {
   usePostingTabsLabels,
 } from "./labels"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const TAB_INFO = "transaction-info"
 const TAB_LINES = "accounting-lines"
@@ -145,9 +146,9 @@ export function OffBalanceFormPage() {
       progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("finance.posting.control.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {

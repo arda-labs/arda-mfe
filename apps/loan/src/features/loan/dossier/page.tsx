@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom"
 import { FileSearch } from "lucide-react"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { DetailPageShell } from "@workspace/ui/components/detail-page-shell"
 import { DocCode } from "@workspace/ui/components/doc-code"
 import { KeyFigures, type KeyFigure } from "@workspace/ui/components/key-figures"
@@ -23,13 +22,14 @@ import {
   type LoanContract,
   type LoanDossier,
 } from "../../api"
-import { contractStatusLabel, contractStatusVariant } from "../contract-status"
+import { contractStatusLabel } from "../contract-status"
 import {
   DossierTabs,
   type DossierCollateral,
   type DossierMortgage,
 } from "./components/dossier-tabs"
 import { dossierLifecycle, summarizeDossier } from "./dossier-summary"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /**
  * Quản lý khoản vay — hồ sơ tổng hợp (EPAS `loan-management`): chọn hợp đồng
@@ -150,9 +150,9 @@ export function LoanDossierPage() {
       }
       badges={
         contract ? (
-          <Badge variant={contractStatusVariant(contract.status)}>
+          <StatusBadge status={contract.status}>
             {contractStatusLabel(contract.status, t)}
-          </Badge>
+          </StatusBadge>
         ) : undefined
       }
       actions={picker}

@@ -33,6 +33,7 @@ import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { createActionsColumn } from "@workspace/list-page/table-columns"
 import { deleteWorkingHour, listWorkingHours, upsertWorkingHour } from "./api"
 import { type WorkingHour } from "./types"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 const DEFAULT_PAGE_SIZE = 10
@@ -166,11 +167,11 @@ export function WorkingHoursPage() {
           t("platform.working_hours.inactive")
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active
               ? t("platform.working_hours.active")
               : t("platform.working_hours.inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       createActionsColumn<WorkingHour>({

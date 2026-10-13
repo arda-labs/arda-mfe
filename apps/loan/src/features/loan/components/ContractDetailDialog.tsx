@@ -1,7 +1,6 @@
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { useNavigate } from "react-router-dom"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -19,7 +18,8 @@ import {
 } from "@workspace/format"
 import type { LoanContract } from "../../api"
 import { caseDisplayLabel, truncateMiddle } from "../../case-display"
-import { contractStatusLabel, contractStatusVariant } from "../contract-status"
+import { contractStatusLabel } from "../contract-status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** Labeled detail row — read-only label:value pair, EPAS control-block style. */
 function DetailField({ label, children }: { label: string; children?: React.ReactNode }) {
@@ -66,7 +66,7 @@ export function ContractDetailDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="font-mono text-base">{contract.contract_code}</span>
-            <Badge variant={contractStatusVariant(status)}>{contractStatusLabel(status, t)}</Badge>
+            <StatusBadge status={status}>{contractStatusLabel(status, t)}</StatusBadge>
           </DialogTitle>
           <DialogDescription>{t("loan.detail.description")}</DialogDescription>
         </DialogHeader>

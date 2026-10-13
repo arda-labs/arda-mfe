@@ -21,6 +21,7 @@ import {
 import { formatDateShort } from "@workspace/format"
 import { statisticalApi, type FormTemplate } from "../api"
 import { TemplateDialog } from "./components/template-dialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -154,11 +155,11 @@ export function FormsPage() {
           t("statistical.catalogs.inactive")
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active
               ? t("statistical.catalogs.active")
               : t("statistical.catalogs.inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

@@ -9,6 +9,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { counterpartyApi, type Counterparty } from "../api"
 import { CounterpartyDialog } from "./components/CounterpartyDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** Counterparty master (TK đối tác) — catalog + accounts. */
 export function CounterpartiesPage() {
@@ -62,11 +63,11 @@ export function CounterpartiesPage() {
       accessorKey: "is_active",
       header: ({ column }) => <DataTableColumnHeader column={column} label={t("common.field.status")} />,
       cell: ({ row }) => (
-        <Badge variant={row.original.is_active ? "default" : "outline"}>
+        <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
           {row.original.is_active
             ? t("finance.counterparties.active")
             : t("finance.counterparties.inactive")}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {

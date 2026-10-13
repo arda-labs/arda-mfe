@@ -3,7 +3,6 @@ import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
 import { Upload } from "lucide-react"
-import { StatusBadge as SharedStatusBadge } from "@workspace/ui/components/status-badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
@@ -280,9 +279,8 @@ export function Panel({
   )
 }
 
-export function StatusBadge({ status }: { status: string }) {
-  return <SharedStatusBadge status={status} />
-}
+// Customer status pills are the shared StatusBadge (tone from the code).
+export { StatusBadge } from "@workspace/ui/components/status-badge"
 
 export function EmptyTable({
   colSpan,

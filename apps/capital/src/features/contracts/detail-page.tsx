@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Table,
@@ -16,6 +15,7 @@ import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@wo
 import { capitalApi, type ContractDetail, type ContractAmendment, type CapitalMovement } from "../api"
 import { MovementDialog } from "./components/MovementDialog"
 import { AmendmentDialog } from "./components/AmendmentDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 function useContractID(): string {
   const { pathname } = useLocation()
@@ -130,9 +130,9 @@ export function ContractDetailPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{row.note || "—"}</TableCell>
                   <TableCell>
-                    <Badge variant={row.status === "POSTED" ? "default" : row.status === "REJECTED" ? "destructive" : "secondary"}>
+                    <StatusBadge status={row.status}>
                       {t(`capital.movement_status.${row.status}`)}
-                    </Badge>
+                    </StatusBadge>
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {row.journal_entry_id ? row.journal_entry_id.slice(0, 8) : "—"}
@@ -174,9 +174,9 @@ export function ContractDetailPage() {
                   </TableCell>
                   <TableCell className="whitespace-nowrap">{formatDateShort(row.created_at)}</TableCell>
                   <TableCell>
-                    <Badge variant={row.status === "APPLIED" ? "default" : row.status === "REJECTED" ? "destructive" : "secondary"}>
+                    <StatusBadge status={row.status}>
                       {t(`capital.amendment_status.${row.status}`)}
-                    </Badge>
+                    </StatusBadge>
                   </TableCell>
                 </TableRow>
               ))}
@@ -196,9 +196,9 @@ export function ContractDetailPage() {
             ← {t("capital.contracts.title")}
           </Link>
           <h1 className="font-mono text-lg font-semibold">{contract.contract_code}</h1>
-          <Badge variant={contract.status === "ACTIVE" ? "default" : "outline"}>
+          <StatusBadge status={contract.status}>
             {t(`capital.status.${contract.status}`)}
-          </Badge>
+          </StatusBadge>
         </div>
         {canStage && (
           <div className="flex flex-wrap gap-2">

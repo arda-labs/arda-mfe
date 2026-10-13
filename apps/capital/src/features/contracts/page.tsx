@@ -12,13 +12,7 @@ import { formatDateShort, formatAmount, formatRatePercent, fromMinor } from "@wo
 import { capitalApi, type CapitalContract } from "../api"
 import { contractsListDefinition } from "./list-query"
 import { CreateContractDialog } from "./components/CreateContractDialog"
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  ACTIVE: "default",
-  PENDING_APPROVAL: "secondary",
-  CLOSED: "outline",
-  REJECTED: "destructive",
-}
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /**
  * Fund contracts (CFM): server tier. Formation is a maker/checker case —
@@ -139,9 +133,9 @@ export function ContractsPage(_props?: { pathname: string }) {
           />
         ),
         cell: ({ row }) => (
-          <Badge variant={STATUS_VARIANT[row.original.status] ?? "outline"}>
+          <StatusBadge status={row.original.status}>
             {t(`capital.status.${row.original.status}`)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

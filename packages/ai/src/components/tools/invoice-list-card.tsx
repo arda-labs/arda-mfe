@@ -1,5 +1,4 @@
 import { useI18n } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   Table,
   TableBody,
@@ -11,6 +10,7 @@ import {
 import type { ToolResultPayload } from "../../lib/messages"
 import type { ToolResultViewProps } from "../../lib/registry"
 import { registerToolRenderer } from "../../lib/registry"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 type Invoice = {
   id: string
@@ -76,17 +76,7 @@ export function InvoiceListCard({ result }: ToolResultViewProps) {
                   : inv.amount}
               </TableCell>
               <TableCell className="px-3 py-1.5 text-center">
-                <Badge
-                  variant={
-                    inv.status === "PAID"
-                      ? "default"
-                      : inv.status === "OVERDUE"
-                        ? "destructive"
-                        : "secondary"
-                  }
-                >
-                  {inv.status}
-                </Badge>
+                <StatusBadge status={inv.status}/>
               </TableCell>
             </TableRow>
           ))}

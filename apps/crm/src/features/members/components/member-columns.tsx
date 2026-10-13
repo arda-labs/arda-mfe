@@ -2,12 +2,12 @@ import { useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { multiSelectFilterMeta, textSearchMeta } from "@workspace/list-page/column-filters"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { Wallet } from "lucide-react"
 import type { CrmMember } from "../../api"
 import { formatMinor, memberStatusLabel, memberTypeLabel } from "./member-labels"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 export interface MemberColumnOption {
   value: string
@@ -96,9 +96,9 @@ export function useMemberColumns({
         enableColumnFilter: true,
         meta: multiSelectFilterMeta(t("common.field.status"), statusOptions),
         cell: ({ row }) => (
-          <Badge variant={row.original.member_status === "ACTIVE" ? "default" : "outline"}>
+          <StatusBadge status={row.original.member_status}>
             {memberStatusLabel(t, row.original.member_status)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

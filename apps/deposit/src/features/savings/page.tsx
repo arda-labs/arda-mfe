@@ -25,6 +25,7 @@ import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
 import { depositApi, type Savings } from "../api"
 import { OpenSavingsDialog } from "./components/OpenSavingsDialog"
 import { DepositAdditionalDialog } from "./components/DepositAdditionalDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -207,9 +208,9 @@ export function SavingsPage(_props: { pathname: string }) {
           />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
+          <StatusBadge status={row.original.status}>
             {t(`deposit.savings.status.${row.original.status}`)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

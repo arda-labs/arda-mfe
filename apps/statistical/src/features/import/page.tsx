@@ -21,6 +21,7 @@ import {
 } from "@workspace/list-page/client-list"
 import { formatDateShort } from "@workspace/format"
 import { statisticalApi, type ImportTransaction } from "../api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -185,11 +186,9 @@ export function ImportPage() {
           }))
         ),
         cell: ({ row }) => (
-          <Badge
-            variant={row.original.status === "POSTED" ? "default" : "secondary"}
-          >
+          <StatusBadge status={row.original.status}>
             {statusLabel(row.original.status, t)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

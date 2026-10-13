@@ -12,7 +12,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -38,6 +37,7 @@ import {
 } from "../api"
 import { type NotificationTemplate } from "../types"
 import { TemplateDialog } from "./template-dialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -170,11 +170,11 @@ export function TemplatesTab() {
           t("platform.working_hours.inactive")
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active
               ? t("platform.working_hours.active")
               : t("platform.working_hours.inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

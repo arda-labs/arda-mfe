@@ -3,7 +3,6 @@ import { useI18n } from "@workspace/i18n"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus } from "lucide-react"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -34,6 +33,7 @@ import {
   type RelationshipFormValues,
 } from "../schemas"
 import { EmptyTable, Panel } from "./customer-ui"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 export function RelationshipsPanel({ customer }: { customer: Customer }) {
   const { t } = useI18n()
@@ -264,7 +264,7 @@ export function RelationshipsPanel({ customer }: { customer: Customer }) {
                   {relationLabel(item.reciprocalRelationCode, t)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary">{item.status}</Badge>
+                  <StatusBadge status={item.status} />
                 </TableCell>
               </TableRow>
             ))}

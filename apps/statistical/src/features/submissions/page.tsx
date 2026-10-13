@@ -18,13 +18,7 @@ import { statisticalApi, type ReportSubmission } from "../api"
 import { SUBMISSION_STATUSES, submissionsListDefinition } from "./list-query"
 import { CreateSubmissionDialog } from "./components/CreateSubmissionDialog"
 import { SubmissionDetailDialog } from "./components/SubmissionDetailDialog"
-
-const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  DRAFT: "outline",
-  SUBMITTED: "secondary",
-  APPROVED: "default",
-  REJECTED: "destructive",
-}
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** Report submissions (QCMS): create DRAFT → submit case → approval. */
 export function SubmissionsPage(_props: { pathname: string }) {
@@ -104,11 +98,11 @@ export function SubmissionsPage(_props: { pathname: string }) {
           }))
         ),
         cell: ({ row }) => (
-          <Badge variant={statusVariant[row.original.status] ?? "outline"}>
+          <StatusBadge status={row.original.status}>
             {t(
               `statistical.submissions.status.${row.original.status.toLowerCase()}`
             )}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

@@ -3,13 +3,13 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { attachStagedCaseFiles } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Page } from "@workspace/ui/components/page"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { notify } from "@workspace/ui/feedback/notify"
 import { disbursementBatchApi } from "../../api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const ATTACHMENT_IDS_KEY = "arda.loan.disbursement.attachments"
 const ACTIVE_STATUSES = new Set(["PENDING_APPROVAL", "APPROVED"])
@@ -95,7 +95,7 @@ export function DisbursementTrackingPage() {
       <PageHeader
         title={t("loan.disbursements.tracking.title")}
         description={t("loan.disbursements.tracking.description")}
-        actions={<Badge variant={batch.status === "SUBMIT_FAILED" ? "destructive" : "secondary"}>{t(`loan.disbursements.tracking.status.${statusKey}`)}</Badge>}
+        actions={<StatusBadge status={batch.status}>{t(`loan.disbursements.tracking.status.${statusKey}`)}</StatusBadge>}
       />
       <div className="grid gap-4 p-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
