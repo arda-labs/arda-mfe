@@ -19,6 +19,8 @@ import {
   type CancellationVars,
   type PostingRequestVars,
 } from "./components/review-info"
+import { DocCode } from "@workspace/ui/components/doc-code"
+import { CaseApprovalTrail } from "@workspace/case-tabs/case-approval-trail"
 
 type Decision = "APPROVE" | "REQUEST_CHANGES" | "REJECT"
 
@@ -191,11 +193,9 @@ export function PostingReviewPage() {
       <PageHeader
         title={t("finance.posting_review.title")}
         description={item.title}
+        eyebrow={item.caseCode ? <DocCode code={item.caseCode} /> : undefined}
         meta={
           <>
-            <Badge variant="outline" className="shrink-0">
-              {item.caseCode}
-            </Badge>
             <Badge variant="secondary" className="shrink-0">
               {flow ? t(`finance.posting_review.flow.${flow}`) : item.caseType}
             </Badge>
@@ -208,7 +208,20 @@ export function PostingReviewPage() {
         }
       />
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
-        <CaseTabs tabs={tabs} />
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_17rem]">
+          <CaseTabs tabs={tabs} />
+          {item.caseId ? (
+            <aside className="space-y-3 lg:border-l lg:pl-4">
+              <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {t("common.approval.label")}
+              </h2>
+              <CaseApprovalTrail
+                caseId={item.caseId}
+                finalLabel={t("finance.posting.lifecycle.posted")}
+              />
+            </aside>
+          ) : null}
+        </div>
 
         {!isMakerStep ? (
           <div className="max-w-xl space-y-1.5">

@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { BalanceIndicator } from "@workspace/ui/components/ledger-table"
 
 /** Journal-aggregated trial balance (PostingService schema). */
 export function TrialBalancePage() {
@@ -119,13 +120,7 @@ export function TrialBalancePage() {
           </TableFooter>
         </Table>
       </div>
-      <p className="text-sm text-muted-foreground">
-        {totalDebit === totalCredit
-          ? t("finance.trial_balance.balanced")
-          : t("finance.trial_balance.unbalanced", {
-              amount: formatAmount(fromMinor(totalDebit - totalCredit), "VND"),
-            })}
-      </p>
+      <BalanceIndicator debitMinor={totalDebit} creditMinor={totalCredit} />
     </div>
   )
 }

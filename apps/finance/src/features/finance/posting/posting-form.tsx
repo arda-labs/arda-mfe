@@ -5,7 +5,6 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
 import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DateField } from "@workspace/ui/components/date-field"
@@ -30,6 +29,7 @@ import { usePostingFlowLabels } from "./labels"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { MoneyInput } from "@workspace/ui/components/money-input"
+import { BalanceIndicator } from "@workspace/ui/components/ledger-table"
 
 const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
   SINGLE_ENTRY: "FIN_SINGLE_ENTRY",
@@ -218,11 +218,11 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
                   <div className="space-y-1.5">
                     <Label>{t("common.field.status")}</Label>
                     <p className="flex items-center gap-2 px-3 py-2 text-sm">
-                      <Badge variant={totals.balanced ? "default" : "destructive"}>
-                        {totals.balanced
-                          ? t("finance.posting.balanced")
-                          : t("finance.posting.not_balanced")}
-                      </Badge>
+                      <BalanceIndicator
+                        debitMinor={totals.totalDebitMinor}
+                        creditMinor={totals.totalCreditMinor}
+                        currency={currency}
+                      />
                     </p>
                   </div>
                 )}
