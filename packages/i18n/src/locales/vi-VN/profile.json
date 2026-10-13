@@ -54,5 +54,32 @@
   "crop": {
     "avatar_title": "Cắt ảnh đại diện",
     "cover_title": "Cắt ảnh bìa"
+  },
+  "appearance": {
+    "title": "Giao diện",
+    "description": "Chỉ áp dụng cho tài khoản của bạn, trên trình duyệt này.",
+    "mode": {
+      "title": "Chế độ",
+      "description": "Chế độ tối dễ chịu hơn khi làm ca đêm hoặc chạy EOD.",
+      "light": "Sáng",
+      "dark": "Tối",
+      "system": "Theo hệ thống"
+    },
+    "density": {
+      "title": "Mật độ",
+      "description": "Độ cao của ô nhập, nút và dòng bảng.",
+      "compact": "Gọn",
+      "compact_hint": "Mặc định. Dòng 36px, thấy nhiều dữ liệu hơn.",
+      "comfortable": "Thoải mái",
+      "comfortable_hint": "Dòng 44px, dễ bấm hơn trên màn hình cảm ứng."
+    },
+    "font_scale": {
+      "title": "Cỡ chữ",
+      "description": "Phóng to hoặc thu nhỏ toàn bộ giao diện.",
+      "sm": "Nhỏ",
+      "md": "Vừa",
+      "lg": "Lớn"
+    },
+    "org_note": "Màu thương hiệu, logo và bảng màu biểu đồ do quản trị hệ thống đặt cho toàn đơn vị."
   }
 }

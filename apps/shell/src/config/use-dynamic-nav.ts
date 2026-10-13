@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react"
 import { getMenuIcon } from "@workspace/ui/config/menu-icons"
 import { fetchEffectiveMenu, type PlatformMenuItem } from "@workspace/api"
-import { navItems, type NavNode } from "./nav-config"
+import {
+  DEFAULT_MENU_SECTION_BY_CODE,
+  navItems,
+  type NavNode,
+} from "./nav-config"
 
-function toNavNodes(items: PlatformMenuItem[]): NavNode[] {
+export function toNavNodes(items: PlatformMenuItem[]): NavNode[] {
   const byId = new Map<string, NavNode>()
   const byCode = new Map<string, NavNode>()
   const codeById = new Map<string, string>()
@@ -21,6 +25,8 @@ function toNavNodes(items: PlatformMenuItem[]): NavNode[] {
       href: item.path || undefined,
       label: item.title,
       icon: getMenuIcon(item.icon),
+      section:
+        item.section?.trim() || DEFAULT_MENU_SECTION_BY_CODE[item.code] || undefined,
       // required_permission may hold a comma-separated list; empty = visible to all.
       permissions: item.required_permission
         ? item.required_permission
