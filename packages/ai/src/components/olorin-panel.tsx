@@ -407,7 +407,7 @@ function OlorinComposer() {
   return (
     <ComposerPrimitive.Root className="w-full">
       {actMode && (
-        <div className="mb-1.5 flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+        <div className="mb-1.5 flex items-center gap-1.5 rounded-lg border border-warning/40 bg-warning/10 px-2.5 py-1.5 text-[11px] text-warning-ink">
           <ShieldAlert className="size-3.5 shrink-0" />
           <span>
             {t("ai.mode.act_banner") ||
@@ -467,15 +467,15 @@ function OlorinComposer() {
                     className={cn(
                       "h-6.5 gap-1.5 rounded-full px-2.5 text-[11px] font-medium transition-colors",
                       actMode
-                        ? "border border-amber-500/40 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
+                        ? "border border-warning/40 bg-warning/10 text-warning-ink hover:bg-warning/20"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
                     )}
                     title={actMode ? t("ai.mode.act") : t("ai.mode.ask")}
                   >
                     {actMode ? (
-                      <ShieldAlert className="size-3 text-amber-600 dark:text-amber-400" />
+                      <ShieldAlert className="size-3 text-warning-ink" />
                     ) : (
-                      <ShieldCheck className="size-3 text-emerald-600 dark:text-emerald-400" />
+                      <ShieldCheck className="size-3 text-success" />
                     )}
                     <span>{actMode ? t("ai.mode.act") : t("ai.mode.ask")}</span>
                     <ChevronDown className="size-2.5 opacity-60" />
@@ -491,19 +491,19 @@ function OlorinComposer() {
                       if (actMode) setActMode(false)
                     }}
                   >
-                    <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <ShieldCheck className="size-3.5 text-success" />
                     <span className="min-w-0 flex-1">{t("ai.mode.ask")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className={cn(
-                      "flex items-center gap-2 text-xs py-1.5 cursor-pointer text-amber-700 dark:text-amber-400",
+                      "flex items-center gap-2 text-xs py-1.5 cursor-pointer text-warning-ink",
                       actMode && "bg-accent font-medium text-accent-foreground"
                     )}
                     onSelect={() => {
                       if (!actMode) setActWarningOpen(true)
                     }}
                   >
-                    <ShieldAlert className="size-3.5 text-amber-600 dark:text-amber-400" />
+                    <ShieldAlert className="size-3.5 text-warning-ink" />
                     <span className="min-w-0 flex-1">{t("ai.mode.act")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -962,7 +962,7 @@ function AssistantFeedbackButtons() {
         size="icon"
         className={cn(
           "size-6 rounded",
-          rating === "up" ? "text-emerald-600" : "text-muted-foreground hover:text-foreground"
+          rating ==="up" ? "text-success" : "text-muted-foreground hover:text-foreground"
         )}
         aria-label={t("ai.feedback.helpful") || "Hữu ích"}
         title={t("ai.feedback.helpful") || "Hữu ích"}

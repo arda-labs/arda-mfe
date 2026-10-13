@@ -400,14 +400,14 @@ function TableExportDialogContent<TData>({
       <div className="flex flex-col gap-5 px-6 py-5 max-h-[70vh] overflow-y-auto">
         {/* Large dataset banner */}
         {isLargeDataset && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.08] p-3.5 flex items-start gap-3">
-            <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="rounded-xl border border-warning/30 bg-warning/[0.08] p-3.5 flex items-start gap-3">
+            <AlertTriangle className="size-4 text-warning-ink shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
+              <p className="text-xs font-semibold text-warning-ink">
                 {t("export.large_dataset_warning", { count: targetRowCount })}
               </p>
               {isHugeDataset && (
-                <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80 leading-normal">
+                <p className="text-[11px] text-warning-ink/80 leading-normal">
                   {t("export.csv_recommendation")}
                 </p>
               )}
@@ -469,7 +469,7 @@ function TableExportDialogContent<TData>({
                   )}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <div className="size-6 rounded-md bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <div className="size-6 rounded-md bg-info/10 flex items-center justify-center text-info">
                       <Download className="size-3.5" />
                     </div>
                     {exportMode === "instant" && (
@@ -512,7 +512,7 @@ function TableExportDialogContent<TData>({
                 )}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <div className="size-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <div className="size-7 rounded-lg bg-success/10 flex items-center justify-center text-success">
                     <FileSpreadsheet className="size-4" />
                   </div>
                   {format === "xlsx" && (
@@ -542,7 +542,7 @@ function TableExportDialogContent<TData>({
                 )}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <div className="size-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <div className="size-7 rounded-lg bg-info/10 flex items-center justify-center text-info">
                     <FileText className="size-4" />
                   </div>
                   {format === "csv" && (
@@ -606,7 +606,7 @@ function TableExportDialogContent<TData>({
                 >
                   <span>{t("export.scope_all")}</span>
                   {isLargeDataset && (
-                    <Sparkles className="size-3 text-amber-500" />
+                    <Sparkles className="size-3 text-warning-ink" />
                   )}
                 </Label>
               </div>
@@ -810,7 +810,7 @@ function TableExportDialogContent<TData>({
       {/* Footer with summary badge & actions */}
       <DialogFooter className="flex items-center justify-between px-6 py-4 border-t bg-muted/20 gap-3">
         <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <CheckCircle2 className="size-3.5 text-emerald-500" />
+          <CheckCircle2 className="size-3.5 text-success" />
           <span>
             {t("export.summary")
               .replace("{rows}", String(targetRowCount))

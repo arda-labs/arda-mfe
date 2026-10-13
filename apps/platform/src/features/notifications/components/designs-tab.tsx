@@ -161,7 +161,7 @@ export function DesignsTab() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+                      className="size-7 text-muted-foreground hover:bg-destructive/50 hover:text-destructive"
                       title={t("common.action.delete")}
                       onClick={() => setDeleteTarget(row)}
                     >

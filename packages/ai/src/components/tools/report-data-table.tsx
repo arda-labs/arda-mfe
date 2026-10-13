@@ -184,8 +184,8 @@ export function ReportDataTable({
           >
             {copied ? (
               <>
-                <Check className="size-3 text-emerald-500" />
-                <span className="text-emerald-500 font-medium">{t("ai.table.copied")}</span>
+                <Check className="size-3 text-success" />
+                <span className="text-success font-medium">{t("ai.table.copied")}</span>
               </>
             ) : (
               <>
@@ -280,9 +280,9 @@ export function ReportDataTable({
                   const deltaColor =
                     isDelta && num !== null
                       ? num > 0
-                        ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                        ? "text-success font-medium"
                         : num < 0
-                          ? "text-rose-600 dark:text-rose-400 font-medium"
+                          ? "text-destructive font-medium"
                           : ""
                       : ""
 

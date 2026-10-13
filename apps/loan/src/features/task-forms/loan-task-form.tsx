@@ -385,7 +385,7 @@ export function LoanTaskForm({
               {!postingPreview && !postingPreviewError ? <Skeleton className="h-16 w-full" /> : null}
               {postingPreview ? (
                 <>
-                  <p className={postingPreview.valid ? "text-sm text-emerald-700" : "text-sm text-destructive"}>
+                  <p className={postingPreview.valid ? "text-sm text-success" : "text-sm text-destructive"}>
                     {t(postingPreview.valid ? "loan.disbursements.batch.posting_preview_valid" : "loan.disbursements.batch.posting_preview_invalid", { version: postingPreview.coa_version_id })}
                   </p>
                   {postingPreview.global_errors.map((error, index) => <p key={`${error}-${index}`} className="text-sm text-destructive">{error}</p>)}

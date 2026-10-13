@@ -152,7 +152,7 @@ export function RetrievalPlayground({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-6 text-muted-foreground hover:text-emerald-600"
+                    className="size-6 text-muted-foreground hover:text-success"
                     onClick={() => void handleFeedback(response.run_id, true)}
                   >
                     <ThumbsUp className="size-3.5" />
@@ -160,14 +160,14 @@ export function RetrievalPlayground({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-6 text-muted-foreground hover:text-rose-600"
+                    className="size-6 text-muted-foreground hover:text-destructive"
                     onClick={() => void handleFeedback(response.run_id, false)}
                   >
                     <ThumbsDown className="size-3.5" />
                   </Button>
                 </div>
               ) : (
-                <span className="text-[11px] text-emerald-600 font-medium">
+                <span className="text-[11px] text-success font-medium">
                   {t("ai.knowledge.playground.feedback_thank_you")}
                 </span>
               )}

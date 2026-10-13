@@ -274,12 +274,12 @@ export function DecisionTab() {
               role="status"
               className={cn(
                 "mt-4 space-y-3 rounded-lg border p-4 text-sm transition-all",
-                testResult.success ? "border-emerald-500/20 bg-emerald-500/5" : "border-destructive/20 bg-destructive/5"
+                testResult.success ? "border-success/20 bg-success/5" : "border-destructive/20 bg-destructive/5"
               )}
             >
               <div className="flex items-center justify-between">
                 <p className="flex items-center gap-2 font-medium">
-                  {testResult.success ? <CheckCircle2 className="size-4 text-emerald-600" /> : <AlertCircle className="size-4 text-destructive" />}
+                  {testResult.success ? <CheckCircle2 className="size-4 text-success" /> : <AlertCircle className="size-4 text-destructive" />}
                   {t(testResult.success ? "ai.settings.decision.test_ok" : "ai.settings.decision.test_failed")}
                 </p>
                 {testResult.success && testResult.latency_ms !== undefined && (
@@ -311,13 +311,13 @@ export function DecisionTab() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <div className="space-y-1">
-              <p className="font-medium text-xs uppercase tracking-wider text-violet-600 dark:text-violet-400">
+              <p className="font-medium text-xs uppercase tracking-wider text-primary">
                 {t("ai.settings.decision.role_decision")}
               </p>
               <p className="text-xs text-muted-foreground">{t("ai.settings.decision.role_decision_hint")}</p>
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-xs uppercase tracking-wider text-sky-600 dark:text-sky-400">
+              <p className="font-medium text-xs uppercase tracking-wider text-info">
                 {t("ai.settings.decision.role_chat")}
               </p>
               <p className="text-xs text-muted-foreground">{t("ai.settings.decision.role_chat_hint")}</p>
@@ -336,21 +336,21 @@ export function DecisionTab() {
           <CardContent className="space-y-2.5 text-xs">
             <div className="rounded-md border bg-muted/30 p-2.5 space-y-1">
               <div className="flex items-center justify-between font-semibold">
-                <span className="text-violet-600 dark:text-violet-400">{t("ai.settings.decision.skills.loan_portfolio")}</span>
+                <span className="text-primary">{t("ai.settings.decision.skills.loan_portfolio")}</span>
                 <code className="text-[10px] text-muted-foreground">loan_portfolio</code>
               </div>
               <p className="text-muted-foreground">{t("ai.settings.decision.skill_loan_desc")}</p>
             </div>
             <div className="rounded-md border bg-muted/30 p-2.5 space-y-1">
               <div className="flex items-center justify-between font-semibold">
-                <span className="text-sky-600 dark:text-sky-400">{t("ai.settings.decision.skills.report")}</span>
+                <span className="text-info">{t("ai.settings.decision.skills.report")}</span>
                 <code className="text-[10px] text-muted-foreground">report</code>
               </div>
               <p className="text-muted-foreground">{t("ai.settings.decision.skill_report_desc")}</p>
             </div>
             <div className="rounded-md border bg-muted/30 p-2.5 space-y-1">
               <div className="flex items-center justify-between font-semibold">
-                <span className="text-emerald-600 dark:text-emerald-400">{t("ai.settings.decision.skills.knowledge")}</span>
+                <span className="text-success">{t("ai.settings.decision.skills.knowledge")}</span>
                 <code className="text-[10px] text-muted-foreground">knowledge</code>
               </div>
               <p className="text-muted-foreground">{t("ai.settings.decision.skill_knowledge_desc")}</p>

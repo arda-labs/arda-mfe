@@ -169,7 +169,7 @@ export function CutoffPage() {
                   <TableCell className="p-3 text-center">
                     <Badge
                       variant="default"
-                      className="bg-green-500 hover:bg-green-600"
+                      className="bg-success hover:bg-success"
                     >
                       Hoat dong
                     </Badge>
@@ -258,12 +258,12 @@ export function CutoffPage() {
                 <div className="mt-1 border-t pt-2">
                   {status &&
                   simResult === status.next_business_date.split("T")[0] ? (
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-warning-ink">
                       <AlertTriangle className="size-4 shrink-0" />
                       <span>Qua gio cut-off. Hach toan T+1.</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-success">
                       <CheckCircle2 className="size-4 shrink-0" />
                       <span>Hop le. Hach toan trong ngay T.</span>
                     </div>

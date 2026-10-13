@@ -8,8 +8,13 @@ import { fileURLToPath } from "node:url"
  *   - <select>              -> SelectField / Combobox (@workspace/ui)
  *   - <input type="date">   -> DateField (@workspace/ui)
  *   - components/page-title -> PageHeader (PageTitle is a deprecated alias)
- * The primitives themselves live in packages/ui and are exempt.
+ *   - colours come from tokens (globals.css): no hex literals, no raw
+ *     Tailwind palette classes such as bg-red-500 / text-emerald-600
+ * Exemptions are per file and per rule, each with its reason.
  */
+const PALETTE =
+  "red|green|blue|amber|yellow|emerald|indigo|violet|purple|orange|rose|sky|slate|gray|zinc|teal|cyan|lime|pink|fuchsia|neutral|stone"
+
 const RULES = [
   {
     id: "native-select",
@@ -26,12 +31,34 @@ const RULES = [
     pattern: /@workspace\/ui\/components\/page-title["']/,
     hint: "import PageHeader from @workspace/ui/components/page-header",
   },
+  {
+    id: "hex-color",
+    pattern: /\[#[0-9a-fA-F]{3,8}\]|["'`]#[0-9a-fA-F]{3,8}["'`]/,
+    hint: "use a token (bg-primary, var(--success)...) from globals.css",
+  },
+  {
+    id: "raw-palette-color",
+    pattern: new RegExp(
+      String.raw`(?<![\w-])(?:[\w\-\[\]=&:]+:)*(?:bg|text|border|ring|fill|stroke|from|via|to|divide|outline|decoration|shadow|placeholder|accent|caret)(?:-[xytblrse])?-(?:${PALETTE})-\d{2,3}(?![\w-])`
+    ),
+    hint: "use success / warning(-ink) / info / destructive / primary / muted tokens",
+  },
 ]
 
-/** Files allowed to keep a native control, with the reason. */
+/** path -> rule ids the file may break, with the reason. */
 const EXEMPT = new Map([
   // Month/year pickers inside the filter date popover are part of the primitive.
-  ["packages/ui/src/components/date-popover.tsx", "primitive"],
+  ["packages/ui/src/components/date-popover.tsx", ["native-select"]],
+  // Thumbnails draw the light and the dark theme side by side.
+  ["apps/account/src/features/settings/appearance/page.tsx", ["hex-color"]],
+  // Code blocks keep a dark surface in both themes.
+  ["packages/ai/src/components/markdown.tsx", ["raw-palette-color"]],
+  // Where the colours are defined: brand presets and the chart fallback palette.
+  ["packages/theme/src/brand.ts", ["hex-color"]],
+  ["packages/ai/src/lib/chart-theme.ts", ["hex-color"]],
+  // Scanners need black on white; canvas exports need an opaque background.
+  ["packages/ui/src/components/qr-code.tsx", ["hex-color"]],
+  ["packages/ui/src/components/image-crop-dialog.tsx", ["hex-color"]],
 ])
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)))
@@ -46,16 +73,17 @@ let checked = 0
 
 for (const dir of scanRoots) {
   for (const entry of readdirSync(dir, { recursive: true })) {
-    if (!/\.tsx$/.test(entry) || /\.test\.tsx$/.test(entry)) continue
+    if (!/\.tsx?$/.test(entry) || /\.test\.tsx?$/.test(entry)) continue
     const absolute = join(dir, entry)
     const path = relative(root, absolute).replaceAll("\\", "/")
-    if (EXEMPT.has(path)) continue
+    const allowed = EXEMPT.get(path) ?? []
     checked++
     const lines = readFileSync(absolute, "utf8").split("\n")
     lines.forEach((line, index) => {
       const trimmed = line.trim()
       if (/^(\/\/|\/\*|\*)/.test(trimmed)) return
       for (const rule of RULES) {
+        if (allowed.includes(rule.id)) continue
         if (rule.pattern.test(line)) {
           violations.push(`${path}:${index + 1} ${rule.id} — ${rule.hint}`)
         }

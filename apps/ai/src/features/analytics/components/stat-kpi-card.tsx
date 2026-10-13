@@ -33,7 +33,7 @@ export function StatKpiCard({
             {trend && (
               <span
                 className={`font-semibold ${
-                  trendPositive ? "text-emerald-500" : "text-rose-500"
+                  trendPositive ? "text-success" : "text-destructive"
                 }`}
               >
                 {trend}

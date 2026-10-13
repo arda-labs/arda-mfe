@@ -39,7 +39,8 @@ export function FloatingBatchActionBar<TData>({
       aria-label={t("batch_actions.selected_count", { count: selectedCount })}
       className={cn(
         // Dark pill (design board 12.2): reads as a mode, not another card.
-        "dark fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#0f1424] py-1.5 pr-1.5 pl-4 text-sm text-white shadow-dialog transition-all duration-200 animate-in fade-in slide-in-from-bottom-4",
+        // The `dark` class scopes the dark tokens to the bar in both themes.
+        "dark fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full bg-background py-1.5 pr-1.5 pl-4 text-sm text-foreground shadow-dialog transition-all duration-200 animate-in fade-in slide-in-from-bottom-4",
         className
       )}
       {...props}

@@ -385,7 +385,7 @@ export function GroupMembersDialog({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              className="size-7 text-muted-foreground hover:bg-destructive/50 hover:text-destructive"
               onClick={() => removeFromDraft([row.original.id])}
               title={t("admin.groups.members.remove_row")}
             >

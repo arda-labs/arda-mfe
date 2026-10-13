@@ -11,13 +11,13 @@ const steps = [
   {
     key: "decision",
     icon: GitBranch,
-    tone: "text-violet-600 bg-violet-500/10",
+    tone: "text-primary bg-primary/10",
   },
-  { key: "reasoning", icon: Bot, tone: "text-sky-600 bg-sky-500/10" },
+  { key: "reasoning", icon: Bot, tone: "text-info bg-info/10" },
   {
     key: "actions",
     icon: ShieldCheck,
-    tone: "text-emerald-600 bg-emerald-500/10",
+    tone: "text-success bg-success/10",
   },
 ] as const
 

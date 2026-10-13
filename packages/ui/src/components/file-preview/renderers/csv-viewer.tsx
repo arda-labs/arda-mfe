@@ -109,7 +109,7 @@ export function CsvViewer({
       <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="gap-1 font-mono text-[11px]">
-            <TableIcon className="size-3 text-emerald-600" />
+            <TableIcon className="size-3 text-success" />
             TABLE VIEW
           </Badge>
           <span className="font-mono text-xs text-muted-foreground">

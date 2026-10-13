@@ -25,7 +25,7 @@ export function UsersBatchActions({ table }: { table: Table<User> }) {
       <Button
         size="sm"
         variant="outline"
-        className="h-7 px-2.5 text-xs font-semibold border-emerald-600/30 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
+        className="h-7 px-2.5 text-xs font-semibold border-success/30 text-success hover:text-success hover:bg-success/10"
         disabled={exporting}
         onClick={async () => {
           setExporting(true)
@@ -52,7 +52,7 @@ export function UsersBatchActions({ table }: { table: Table<User> }) {
           }
         }}
       >
-        <FileSpreadsheet className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+        <FileSpreadsheet className="mr-1.5 size-3.5 text-success" />
         {t("iam.users.batch.export_selected", { count: selectedCount })}
       </Button>
       <Button

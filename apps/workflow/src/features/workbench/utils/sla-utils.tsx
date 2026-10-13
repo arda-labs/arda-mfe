@@ -57,42 +57,42 @@ const statusMeta = (
   SUBMITTED: {
     label: t("workflow.workbench.status_submitted"),
     variant: "secondary",
-    className: "bg-sky-50 text-sky-700 border-sky-200",
+    className: "bg-info/10 text-info border-info/30",
   },
   IN_REVIEW: {
     label: t("workflow.workbench.status_in_review"),
     variant: "secondary",
-    className: "bg-amber-50 text-amber-700 border-amber-200",
+    className: "bg-warning/10 text-warning-ink border-warning/30",
   },
   COMPLETED: {
     label: t("workflow.workbench.status_completed"),
     variant: "default",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    className: "bg-success/10 text-success border-success/30",
   },
   APPROVED: {
     label: t("workflow.workbench.status_approved"),
     variant: "default",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    className: "bg-success/10 text-success border-success/30",
   },
   REJECTED: {
     label: t("workflow.workbench.status_rejected"),
     variant: "destructive",
-    className: "bg-red-50 text-red-700 border-red-200",
+    className: "bg-destructive/10 text-destructive border-destructive/30",
   },
   FAILED: {
     label: t("workflow.workbench.status_failed"),
     variant: "destructive",
-    className: "bg-red-50 text-red-700 border-red-200",
+    className: "bg-destructive/10 text-destructive border-destructive/30",
   },
   DRAFT: {
     label: t("workflow.workbench.status_draft"),
     variant: "secondary",
-    className: "bg-slate-50 text-slate-600 border-slate-200",
+    className: "bg-muted text-muted-foreground border-border",
   },
   ACTIVE: {
     label: t("workflow.workbench.status_active"),
     variant: "default",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    className: "bg-success/10 text-success border-success/30",
   },
 })
 
@@ -138,11 +138,11 @@ export function TimeProgress({
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
-            !sla || sla.dotColor === "bg-emerald-500"
-              ? "bg-emerald-500"
-              : sla.dotColor === "bg-amber-500"
-                ? "bg-amber-500"
-                : "bg-red-500"
+            !sla || sla.dotColor ==="bg-success"
+              ? "bg-success"
+              : sla.dotColor ==="bg-warning"
+                ? "bg-warning"
+                : "bg-destructive"
           )}
           style={{ width: `${Math.min(100, Math.max(2, progress))}%` }}
         />
@@ -277,8 +277,8 @@ export function slaInfo(
         -diffMs,
         dueAt
       ),
-      className: "text-red-700 bg-red-50 border border-red-200",
-      dotColor: "bg-red-500",
+      className: "text-destructive bg-destructive/10 border border-destructive/30",
+      dotColor: "bg-destructive",
     }
   }
   if (diffMs <= 2 * 60 * 60 * 1000) {
@@ -290,8 +290,8 @@ export function slaInfo(
         diffMs,
         dueAt
       ),
-      className: "text-amber-700 bg-amber-50 border border-amber-200",
-      dotColor: "bg-amber-500",
+      className: "text-warning-ink bg-warning/10 border border-warning/30",
+      dotColor: "bg-warning",
     }
   }
   return {
@@ -302,8 +302,8 @@ export function slaInfo(
       diffMs,
       dueAt
     ),
-    className: "text-emerald-700 bg-emerald-50 border border-emerald-200",
-    dotColor: "bg-emerald-500",
+    className: "text-success bg-success/10 border border-success/30",
+    dotColor: "bg-success",
   }
 }
 

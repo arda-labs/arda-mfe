@@ -235,7 +235,7 @@ function AuditMetric({
 }) {
   const valueClass =
     tone === "success"
-      ? "text-green-600"
+      ? "text-success"
       : tone === "error"
         ? "text-destructive"
         : "text-foreground"

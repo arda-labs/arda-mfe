@@ -34,7 +34,7 @@ export function MediaViewer({
           </video>
         ) : (
           <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-xl border bg-card p-8 shadow-sm">
-            <div className="flex size-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+            <div className="flex size-16 items-center justify-center rounded-full bg-warning/10 text-warning-ink">
               <Music className="size-8" />
             </div>
             <div className="text-center">
