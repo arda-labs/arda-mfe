@@ -47,7 +47,7 @@ const densityStyles: Record<
   { head: string; cell: string; empty: string }
 > = {
   compact: {
-    head: "h-9 px-3 text-xs font-bold text-foreground",
+    head: "h-control px-3 text-xs font-bold text-foreground",
     cell: "px-3 py-2 text-xs",
     empty: "h-20 px-3 py-2 text-center text-xs",
   },
@@ -61,6 +61,14 @@ const densityStyles: Record<
     cell: "p-4 text-sm",
     empty: "h-24 p-4 text-center text-sm",
   },
+}
+
+/** The user's display density (Cài đặt › Giao diện) seeds every table. */
+function preferredTableDensity(): DataTableDensity {
+  if (typeof document === "undefined") return "compact"
+  return document.documentElement.dataset.density === "comfortable"
+    ? "comfortable"
+    : "compact"
 }
 
 export function useDataTableDensity() {
@@ -80,7 +88,7 @@ export function DataTable<TData>({
   actionBar,
   children,
   className,
-  defaultDensity = "compact",
+  defaultDensity = preferredTableDensity(),
   layout = "default",
   onRowDoubleClick,
   fetching = false,

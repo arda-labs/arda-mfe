@@ -237,6 +237,32 @@
       "support_email_invalid": "Email hỗ trợ không hợp lệ",
       "help_url_invalid": "Help center URL không hợp lệ",
       "url_not_allowed": "{field} chỉ chấp nhận đường dẫn nội bộ hoặc HTTPS"
+    },
+    "theme": {
+      "title": "Màu thương hiệu",
+      "description": "Áp dụng cho mọi người dùng của đơn vị. Người dùng không tự đổi được.",
+      "brand_color": "Mã màu",
+      "pick_color": "Chọn màu",
+      "chart_palette": "Bảng màu biểu đồ",
+      "preview": "Xem trước",
+      "link_sample": "Liên kết mẫu",
+      "invalid_hex": "Nhập mã màu dạng #rrggbb",
+      "low_contrast": "Chữ trắng trên màu này chỉ đạt {ratio}:1, cần tối thiểu 4,5:1",
+      "contrast_ok": "Chữ trắng trên nút đạt {ratio}:1",
+      "save_blocked": "Màu thương hiệu chưa hợp lệ hoặc chưa đủ độ tương phản",
+      "preset": {
+        "arda": "Xanh Arda",
+        "teal": "Ngọc",
+        "green": "Xanh lá",
+        "violet": "Tím",
+        "earth": "Cam đất"
+      },
+      "palette": {
+        "default": "Mặc định",
+        "finance": "Tài chính",
+        "cool": "Lạnh",
+        "warm": "Ấm"
+      }
     }
   }
 }
