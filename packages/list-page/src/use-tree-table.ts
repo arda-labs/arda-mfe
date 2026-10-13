@@ -83,7 +83,8 @@ export function useTreeTable<TData>({
     filterFromLeafRows: true,
     manualPagination: true,
     pageCount: 1,
-    meta: { totalRows: items.length },
+    // `unpaged` hides the pager: the whole tree is on screen.
+    meta: { totalRows: items.length, unpaged: true },
   })
 
   return {

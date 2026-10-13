@@ -12,6 +12,7 @@
     "preview": "vite preview --host 0.0.0.0 --port 5103"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.90.0",
     "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-table": "^8.21.3",
     "@workspace/federation-runtime": "workspace:*",

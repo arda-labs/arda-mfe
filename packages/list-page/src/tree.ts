@@ -47,3 +47,19 @@ export function expandedToDepth<T>(
   walk(roots, 0, new Set())
   return expanded
 }
+
+/** Lowercase without Vietnamese accents ("Đơn vị" → "don vi"). */
+export function foldText(text: string) {
+  return text
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+}
+
+/** Tree/catalog search: any of `values` contains the query, accent-blind. */
+export function textMatches(query: unknown, ...values: (string | null | undefined)[]) {
+  const needle = foldText(String(query ?? "").trim())
+  return !needle || values.some((value) => value && foldText(value).includes(needle))
+}
