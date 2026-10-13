@@ -12,6 +12,11 @@ import {
 } from "@workspace/ui/components/dialog"
 import { textValue, type ToolResultPayload } from "../../lib/messages"
 import { registerToolRenderer } from "../../lib/registry"
+import {
+  observeThemeChange,
+  readChartThemeFromDocument,
+  type ChartTheme,
+} from "../../lib/chart-theme"
 
 // ChartPayload mirrors the deterministic `chart` contract emitted by
 // statistical-service (presentation.Chart -> AiChart in the AI contract).
@@ -36,13 +41,6 @@ export function isChartResult(result: ToolResultPayload): boolean {
 }
 
 type ChartKind = "bar" | "line" | "pie"
-
-// A curated banking palette so the chart matches the Arda theme instead of the
-// ECharts default colours.
-const PALETTE = [
-  "#2563eb", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444",
-  "#8b5cf6", "#14b8a6", "#f97316", "#64748b", "#a855f7",
-]
 
 function toStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.map((item) => (item == null ? "" : String(item))) : []
@@ -102,7 +100,8 @@ function buildOption(
   kind: ChartKind,
   showTitle: boolean,
   t: Translate,
-  formatNumber: FormatNumber
+  formatNumber: FormatNumber,
+  theme: ChartTheme
 ): EChartsOption {
   const format = typeof chart.value_format === "string" ? chart.value_format : ""
   const categories = toStringArray(chart.categories)
@@ -116,14 +115,14 @@ function buildOption(
           text: showTitle ? title : "",
           subtext: subtitle,
           left: "center",
-          textStyle: { fontSize: 13, fontWeight: 600 },
-          subtextStyle: { fontSize: 10, color: "#64748b" },
+          textStyle: { fontSize: 13, fontWeight: 600, color: theme.foreground },
+          subtextStyle: { fontSize: 10, color: theme.mutedForeground },
         }
       : undefined
 
   if (kind === "pie") {
     return {
-      color: PALETTE,
+      color: theme.palette,
       title: heading,
       tooltip: {
         trigger: "item",
@@ -132,14 +131,14 @@ function buildOption(
           return `${String(point.name ?? "")}: ${formatValue(Number(point.value) || 0, format, t, formatNumber)}`
         },
       },
-      legend: { bottom: 0, type: "scroll", textStyle: { fontSize: 11 } },
+      legend: { bottom: 0, type: "scroll", textStyle: { fontSize: 11, color: theme.foreground } },
       series: [
         {
           type: "pie",
           radius: ["42%", "68%"],
           center: ["50%", "46%"],
           avoidLabelOverlap: true,
-          itemStyle: { borderColor: "#fff", borderWidth: 1 },
+          itemStyle: { borderColor: theme.card, borderWidth: 1 },
           label: { fontSize: 10, formatter: (params: unknown) => String((params as { name?: unknown }).name ?? "") },
           data: categories.map((name, index) => ({ name, value: series[0]?.values[index] ?? 0 })),
         },
@@ -154,16 +153,25 @@ function buildOption(
     type: "category" as const,
     data: categories,
     axisTick: { show: false },
-    axisLabel: { fontSize: 10, interval: 0, rotate: horizontal ? 0 : categories.length > 6 ? 30 : 0 },
+    axisLabel: {
+      fontSize: 10,
+      interval: 0,
+      color: theme.mutedForeground,
+      rotate: horizontal ? 0 : categories.length > 6 ? 30 : 0,
+    },
   }
   const valueAxis = {
     type: "value" as const,
-    axisLabel: { fontSize: 10, formatter: (value: number) => formatValue(value, format, t, formatNumber) },
-    splitLine: { lineStyle: { opacity: 0.3 } },
+    axisLabel: {
+      fontSize: 10,
+      color: theme.mutedForeground,
+      formatter: (value: number) => formatValue(value, format, t, formatNumber),
+    },
+    splitLine: { lineStyle: { opacity: 0.3, color: theme.border } },
   }
 
   return {
-    color: PALETTE,
+    color: theme.palette,
     title: heading,
     tooltip: {
       trigger: "axis",
@@ -219,15 +227,22 @@ export function ChartView({
     if (!el) return
     let disposed = false
     let observer: ResizeObserver | undefined
+    let stopThemeObserver: (() => void) | undefined
     void (async () => {
       try {
         const echarts = await import("echarts")
         if (disposed || !containerRef.current) return
         const instance = echarts.init(containerRef.current, undefined, { renderer: "canvas" })
         instanceRef.current = instance
-        instance.setOption(buildOption(chart, kind, !hideTitle, t, formatNumber), true)
+        const render = () =>
+          instance.setOption(
+            buildOption(chart, kind, !hideTitle, t, formatNumber, readChartThemeFromDocument()),
+            true
+          )
+        render()
         observer = new ResizeObserver(() => instance.resize())
         observer.observe(containerRef.current)
+        stopThemeObserver = observeThemeChange(render)
       } catch {
         if (!disposed) setFailed(true)
       }
@@ -235,6 +250,7 @@ export function ChartView({
     return () => {
       disposed = true
       observer?.disconnect()
+      stopThemeObserver?.()
       instanceRef.current?.dispose()
       instanceRef.current = undefined
     }
@@ -243,7 +259,11 @@ export function ChartView({
   const handleDownloadPng = () => {
     const instance = instanceRef.current
     if (!instance) return
-    const url = instance.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: "#ffffff" })
+    const url = instance.getDataURL({
+      type: "png",
+      pixelRatio: 2,
+      backgroundColor: readChartThemeFromDocument().card,
+    })
     const link = document.createElement("a")
     link.href = url
     link.download = `${textValue(chart.title, "chart")}.png`

@@ -53,6 +53,11 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-9: var(--chart-9);
+  --color-chart-10: var(--chart-10);
   --color-table-row-stripe: var(--table-row-stripe);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -179,6 +184,11 @@
   --chart-3: oklch(0.7 0.14 75);
   --chart-4: oklch(0.58 0.12 25);
   --chart-5: oklch(0.55 0.08 300);
+  --chart-6: oklch(0.55 0.11 160);
+  --chart-7: oklch(0.6 0.12 45);
+  --chart-8: oklch(0.52 0.1 330);
+  --chart-9: oklch(0.55 0.04 255);
+  --chart-10: oklch(0.6 0.11 120);
   --radius: 0.5rem;
   --control-height: 2.25rem;
   --control-height-sm: 2rem;
@@ -251,6 +261,11 @@
   --chart-3: oklch(0.78 0.13 75);
   --chart-4: oklch(0.68 0.18 25);
   --chart-5: oklch(0.72 0.1 300);
+  --chart-6: oklch(0.74 0.11 160);
+  --chart-7: oklch(0.76 0.12 45);
+  --chart-8: oklch(0.72 0.1 330);
+  --chart-9: oklch(0.72 0.04 255);
+  --chart-10: oklch(0.76 0.11 120);
   --elevation-card: 0 1px 2px oklch(0 0 0 / 24%);
   --elevation-popover: 0 12px 32px oklch(0 0 0 / 36%);
   --elevation-dialog: 0 22px 60px oklch(0 0 0 / 44%);
