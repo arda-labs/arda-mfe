@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import {
@@ -12,10 +12,11 @@ import {
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
+import { Combobox, type ComboboxOption } from "@workspace/ui/components/combobox"
+import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { hrmApi, type Employee } from "../../api"
-import { fieldClass } from "../../shared/schemas"
 
 /** Employee create/edit form values. Code is locked while editing. */
 const buildEmployeeSchema = (t: (key: string) => string) =>
@@ -70,9 +71,10 @@ interface EmployeeFormDialogProps {
   onOpenChange: (open: boolean) => void
   /** Present when editing an existing employee; null for create. */
   employee: Employee | null
-  orgUnitOptions: Array<{ id: string; label: string }>
-  positionOptions: Array<{ id: string; label: string }>
-  jobTitleOptions: Array<{ id: string; label: string }>
+  /** Tree-ordered (toTreeOptions) so the picker shows the org structure. */
+  orgUnitOptions: ComboboxOption[]
+  positionOptions: ComboboxOption[]
+  jobTitleOptions: ComboboxOption[]
   /** Called after a successful save so the page can refresh its server list. */
   onSaved?: () => void | Promise<void>
 }
@@ -90,6 +92,7 @@ export function EmployeeFormDialog({
   const [saving, setSaving] = useState(false)
   const employeeSchema = useMemo(() => buildEmployeeSchema(t), [t])
   const {
+    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
@@ -132,7 +135,7 @@ export function EmployeeFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
             {employee
@@ -143,73 +146,131 @@ export function EmployeeFormDialog({
             {t("hrm.employees.form_description")}
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-3" onSubmit={submit}>
-          <FormField
-            label={t("hrm.employees.field.employee_code")}
-            error={errors.employee_code?.message}
-          >
-            <Input
-              aria-invalid={Boolean(errors.employee_code)}
-              disabled={Boolean(employee)}
-              className="font-mono"
-              {...register("employee_code")}
-            />
-          </FormField>
+        <form className="space-y-4" onSubmit={submit}>
           <FormField
             label={t("hrm.employees.field.full_name")}
+            htmlFor="employee-full-name"
             error={errors.full_name?.message}
+            required
           >
-            <Input aria-invalid={Boolean(errors.full_name)} {...register("full_name")} />
+            <Input
+              id="employee-full-name"
+              aria-invalid={Boolean(errors.full_name)}
+              {...register("full_name")}
+            />
           </FormField>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              label={t("hrm.employees.field.employee_code")}
+              htmlFor="employee-code"
+              error={errors.employee_code?.message}
+              required
+            >
+              <Input
+                id="employee-code"
+                aria-invalid={Boolean(errors.employee_code)}
+                disabled={Boolean(employee)}
+                className="font-mono"
+                {...register("employee_code")}
+              />
+            </FormField>
+            <FormField
+              label={t("hrm.employees.field.status")}
+              error={errors.status?.message}
+            >
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    value={field.value}
+                    onValueChange={(next) => next && field.onChange(next)}
+                    aria-label={t("hrm.employees.field.status")}
+                    className="grid w-full grid-cols-2"
+                  >
+                    <ToggleGroupItem value="active" className="h-control">
+                      {t("hrm.status.active")}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="inactive" className="h-control">
+                      {t("hrm.status.inactive")}
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                )}
+              />
+            </FormField>
+          </div>
           <FormField
             label={t("hrm.employees.field.department")}
+            htmlFor="employee-org-unit"
             error={errors.org_unit_id?.message}
           >
-            <select className={fieldClass} {...register("org_unit_id")}>
-              <option value="">{t("hrm.employees.select.department")}</option>
-              {orgUnitOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <Controller
+              control={control}
+              name="org_unit_id"
+              render={({ field }) => (
+                <Combobox
+                  id="employee-org-unit"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  options={orgUnitOptions}
+                  placeholder={t("hrm.employees.select.department")}
+                />
+              )}
+            />
           </FormField>
-          <FormField
-            label={t("hrm.employees.field.position")}
-            error={errors.position_id?.message}
-          >
-            <select className={fieldClass} {...register("position_id")}>
-              <option value="">{t("hrm.employees.select.position")}</option>
-              {positionOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField
-            label={t("hrm.employees.field.job_title")}
-            error={errors.job_title_id?.message}
-          >
-            <select className={fieldClass} {...register("job_title_id")}>
-              <option value="">{t("hrm.employees.select.job_title")}</option>
-              {jobTitleOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField
-            label={t("hrm.employees.field.status")}
-            error={errors.status?.message}
-          >
-            <select className={fieldClass} {...register("status")}>
-              <option value="active">{t("hrm.status.active")}</option>
-              <option value="inactive">{t("hrm.status.inactive")}</option>
-            </select>
-          </FormField>
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              label={t("hrm.employees.field.position")}
+              htmlFor="employee-position"
+              error={errors.position_id?.message}
+            >
+              <Controller
+                control={control}
+                name="position_id"
+                render={({ field }) => (
+                  <Combobox
+                    id="employee-position"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    options={positionOptions}
+                    placeholder={t("hrm.employees.select.position")}
+                  />
+                )}
+              />
+            </FormField>
+            <FormField
+              label={t("hrm.employees.field.job_title")}
+              htmlFor="employee-job-title"
+              error={errors.job_title_id?.message}
+            >
+              <Controller
+                control={control}
+                name="job_title_id"
+                render={({ field }) => (
+                  <Combobox
+                    id="employee-job-title"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    options={jobTitleOptions}
+                    placeholder={t("hrm.employees.select.job_title")}
+                  />
+                )}
+              />
+            </FormField>
+          </div>
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+            >
+              {t("common.action.cancel")}
+            </Button>
             <Button type="submit" disabled={isSubmitting || saving}>
               {isSubmitting || saving
                 ? t("common.action.saving")

@@ -9,6 +9,9 @@ type FormFieldProps = {
   description?: React.ReactNode
   error?: React.ReactNode
   htmlFor?: string
+  /** Marks the label with "*" (design board 06: required fields are visible
+   * up front, not only in the dialog description). */
+  required?: boolean
 }
 
 function FormField({
@@ -18,10 +21,18 @@ function FormField({
   description,
   error,
   htmlFor,
+  required,
 }: FormFieldProps) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label htmlFor={htmlFor}>{label}</Label>
+      <Label htmlFor={htmlFor}>
+        {label}
+        {required ? (
+          <span aria-hidden className="ml-0.5 text-destructive">
+            *
+          </span>
+        ) : null}
+      </Label>
       {children}
       {description && !error ? (
         <p className="text-xs text-muted-foreground">{description}</p>

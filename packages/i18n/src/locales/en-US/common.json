@@ -290,5 +290,11 @@
         "JOB_FAILED": "System job failed"
       }
     }
+  },
+  "combobox": {
+    "placeholder": "Select…",
+    "search_placeholder": "Search by code or name…",
+    "empty": "No results",
+    "clear": "Clear"
   }
 }

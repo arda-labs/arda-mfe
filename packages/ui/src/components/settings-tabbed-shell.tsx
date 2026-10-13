@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
-import { PageTitle } from "@workspace/ui/components/page-title"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { cn } from "@workspace/ui/lib/utils"
 
 export type SettingsTabItem = {
@@ -46,7 +46,7 @@ export function SettingsTabbedShell({
     >
       {/* Top Header connected to Shell PageTitle */}
       <div className="pb-3">
-        <PageTitle
+        <PageHeader
           title={title}
           description={description}
           meta={meta}
