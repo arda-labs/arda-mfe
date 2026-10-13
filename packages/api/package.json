@@ -22,6 +22,7 @@
     "./list": "./src/list.ts",
     "./query": "./src/query.ts",
     "./url": "./src/url.ts",
-    "./generated/*": "./src/generated/*.ts"
+    "./generated/*": "./src/generated/*.ts",
+    "./reference/*": "./src/reference/*.ts"
   }
 }

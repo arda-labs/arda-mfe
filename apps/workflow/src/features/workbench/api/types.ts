@@ -1,44 +1,22 @@
+import type {
+  WorkflowBusinessCase,
+  WorkflowWorkItem,
+  WorkflowWorkItemClaimResult,
+  WorkflowWorkItemSummaryNode,
+  WorkflowWorkflowTask,
+} from "@workspace/api/generated/workflow-v1"
+
 export type WorkbenchDirection = "incoming" | "outgoing"
 export type WorkbenchSearchDirection = "ALL" | "INCOMING" | "OUTGOING"
 
-export interface WorkflowCase {
-  id: string
-  tenantId: string
-  caseType: string
-  caseCode: string
-  title: string
-  primaryObjectType: string
-  primaryObjectId: string
-  domainService: string
-  status: string
-  currentStep: string
-  priority: string
-  createdBy: string
-  assignedTo?: string
-  candidateRole?: string
-  slaDueAt?: string
-  processInstanceKey?: number
-  bpmnProcessId?: string
-  bpmnVersion?: number
-  createdAt: string
-  updatedAt: string
-  completedAt?: string
-}
+/**
+ * Generated workflow wire types (ADR-005): declared once in
+ * @workspace/api/generated/workflow-v1, never redeclared here. Only the
+ * literal unions the workbench UI switches on are narrowed.
+ */
+export type WorkflowCase = WorkflowBusinessCase
 
-export interface WorkflowTask {
-  jobKey?: number
-  type: string
-  elementId: string
-  processInstanceKey?: number
-  caseId: string
-  caseCode: string
-  customerId: string
-  customerName: string
-  candidateRole: string
-  formKey: string
-  slaDueAt?: string
-  variables: Record<string, unknown>
-}
+export type WorkflowTask = WorkflowWorkflowTask
 
 export interface WorkflowCaseSearchParams {
   keyword: string
@@ -51,60 +29,12 @@ export interface WorkflowTaskRequest {
   role: string
 }
 
-export interface WorkItem {
-  id: string
-  tenantId?: string
-  caseId: string
-  caseCode: string
-  caseType: string
-  title: string
-  description?: string
-  summary?: string
-  status: string
-  transactionStatus?: string
-  priority?: string
-  direction?: WorkbenchSearchDirection
-  currentStep?: string
-  stepCode: string
-  stepName?: string
-  taskType?: string
-  formKey?: string
-  primaryObjectType?: string
-  primaryObjectId?: string
-  domainService?: string
-  assignedTo?: string
-  assignedToName?: string
-  assignedToAvatar?: string
-  previousAssignedTo?: string
-  previousAssignedToName?: string
-  previousAssignedToAvatar?: string
-  assignedAt?: string
-  claimExpiresAt?: string
-  candidateRole?: string
-  candidateGroupId?: string
-  candidateOrgUnitId?: string
-  stepKind?: "INPUT" | "REVISE" | "CHECKER" | "REVIEW" | "OPERATE"
-  allowedActions?: string[]
-  requiredCommentOn?: string[]
-  registryVersion?: number
-  createdBy?: string
-  createdByName?: string
-  createdByAvatar?: string
-  claimable?: boolean
-  canClaim?: boolean
-  canOpen?: boolean
-  canReassign?: boolean
-  claimBlockedReason?: string
-  jobKey?: string
-  processInstanceKey?: string
-  bpmnProcessId?: string
-  bpmnVersion?: number
-  slaDueAt?: string
-  slaStatus?: "NONE" | "MET" | "WARNING" | "BREACHED"
-  createdAt?: string
-  updatedAt: string
-  completedAt?: string
-  variables?: Record<string, unknown>
+export type WorkItemStepKind = "INPUT" | "REVISE" | "CHECKER" | "REVIEW" | "OPERATE"
+export type WorkItemSlaStatus = "NONE" | "MET" | "WARNING" | "BREACHED"
+
+export type WorkItem = Omit<WorkflowWorkItem, "stepKind" | "slaStatus"> & {
+  stepKind: WorkItemStepKind
+  slaStatus: WorkItemSlaStatus
 }
 
 export interface WorkItemFilter {
@@ -127,16 +57,7 @@ export interface WorkItemFilter {
   offset?: number
 }
 
-export interface WorkItemSummaryNode {
-  id: string
-  label: string
-  count: number
-  overdue?: number
-  status?: string
-  caseType?: string
-  direction?: WorkbenchSearchDirection
-  children?: WorkItemSummaryNode[]
-}
+export type WorkItemSummaryNode = WorkflowWorkItemSummaryNode
 
 export interface ClaimWorkItemRequest {
   workItemId: string
@@ -144,8 +65,6 @@ export interface ClaimWorkItemRequest {
   role?: string
 }
 
-export interface ClaimWorkItemResponse {
+export type ClaimWorkItemResponse = Omit<WorkflowWorkItemClaimResult, "workItem"> & {
   workItem: WorkItem
-  claimedBy?: string
-  claimedAt?: string
 }

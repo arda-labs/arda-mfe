@@ -1,13 +1,10 @@
 import { api, type ApiSuccess } from "@workspace/api"
+import type { PlatformParameter } from "@workspace/api/reference/platform"
 
-export type Parameter = {
-  id: string
-  key: string
-  value: string
+/** Platform reference type (ADR-005); narrowed to the unions this form offers. */
+export type Parameter = Omit<PlatformParameter, "value_type" | "scope_type"> & {
   value_type: "string" | "number" | "boolean" | "json" | "date"
   scope_type: "global" | "tenant" | "org" | "branch" | "department"
-  description?: string
-  is_secret: boolean
 }
 
 /** Global parameters used by the system-settings screen (platform-service). */

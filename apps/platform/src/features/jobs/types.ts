@@ -1,6 +1,7 @@
 /**
  * Wire/view types for COB jobs + run history (W6).
  * Wire source: arda-be/apps/platform-service (job handlers).
+ * The manual EOD trigger returns a `ScheduledJobRun` (see ../scheduled-jobs/types).
  */
 export interface JobDefinition {
   code: string
@@ -17,9 +18,4 @@ export interface JobRun {
   error?: string
   started_at?: string
   finished_at?: string
-}
-
-export interface CobRunResult {
-  business_date: string
-  steps: { job_code: string; status: string; error?: string }[]
 }

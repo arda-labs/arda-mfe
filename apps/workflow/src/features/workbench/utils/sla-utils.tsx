@@ -12,7 +12,7 @@ export function SlaStatus({
   dueAt,
   status,
 }: {
-  dueAt?: string
+  dueAt?: string | null
   status?: SlaStatusValue
 }) {
   const { t } = useI18n()
@@ -119,8 +119,8 @@ export function TimeProgress({
   item: {
     status?: string
     slaStatus?: SlaStatusValue
-    createdAt?: string
-    slaDueAt?: string
+    createdAt?: string | null
+    slaDueAt?: string | null
   }
 }) {
   const { t } = useI18n()
@@ -196,8 +196,8 @@ export function TimeProgress({
 }
 
 function calcProgress(
-  createdAt?: string,
-  slaDueAt?: string,
+  createdAt?: string | null,
+  slaDueAt?: string | null,
   slaStatus?: SlaStatusValue
 ): number {
   if (!createdAt || !slaDueAt) return 0
@@ -210,7 +210,7 @@ function calcProgress(
   return ((now - start) / (end - start)) * 100
 }
 
-function formatTime(value?: string) {
+function formatTime(value?: string | null) {
   if (!value) return "-"
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
@@ -221,7 +221,7 @@ function formatTime(value?: string) {
   })
 }
 
-function formatDate(value?: string) {
+function formatDate(value?: string | null) {
   if (!value) return "-"
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
@@ -241,7 +241,7 @@ function slaDurationLabel(createdAt: string, slaDueAt: string, t: TFn) {
 }
 
 export function slaInfo(
-  dueAt?: string,
+  dueAt?: string | null,
   status?: SlaStatusValue,
   t: TFn = (key) => key
 ): {
