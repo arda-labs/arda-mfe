@@ -22,6 +22,7 @@ export function WorkItemTree({
           id: "ALL",
           label: t("workflow.workbench.tree_all_tasks"),
           count: 0,
+          overdue: 0,
         },
       ]
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>(

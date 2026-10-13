@@ -6,6 +6,7 @@ import {
   putCanonical,
 } from "@workspace/api"
 import { buildSearchParams, type SearchParams } from "@workspace/api/query"
+import type { PlatformOrganization } from "@workspace/api/reference/platform"
 
 export type Status = "active" | "inactive"
 
@@ -39,11 +40,8 @@ export interface JobTitle {
   updated_at?: string
 }
 
-export interface PlatformOrganization {
-  id: string
-  code: string
-  name: string
-}
+/** Platform reference type (ADR-005), re-exported for the org-unit screens. */
+export type { PlatformOrganization }
 
 export interface OrgUnit {
   id: string

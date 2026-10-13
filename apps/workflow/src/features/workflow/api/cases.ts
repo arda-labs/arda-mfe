@@ -1,98 +1,29 @@
 import { listParamsToQuery, request, requestList } from "./internal"
 import type { WorkflowListParams } from "./types"
+import type {
+  WorkflowBusinessCase,
+  WorkflowCaseType as WorkflowCaseTypeWire,
+  WorkflowProcessIncidentSnapshot,
+  WorkflowProcessInstanceRuntime,
+  WorkflowProcessJobSnapshot,
+  WorkflowTimelineEvent,
+} from "@workspace/api/generated/workflow-v1"
 
-export interface WorkflowCaseType {
-  caseType: string
-  businessArea: string
-  operationName: string
-  bpmnProcessId: string
-  bpmnVersion: number
-  workflowEnabled: boolean
-  defaultSlaPolicyId?: string
-  makerRole: string
-  checkerRole: string
-  ownerService: string
-  status: string
-  effectiveFrom: string
-  effectiveTo?: string
-}
+/**
+ * Generated workflow wire types (ADR-005): declared once in
+ * @workspace/api/generated/workflow-v1, never redeclared here.
+ */
+export type WorkflowCaseType = WorkflowCaseTypeWire
 
-export interface WorkflowCase {
-  id: string
-  caseType: string
-  caseCode: string
-  title: string
-  primaryObjectType?: string
-  primaryObjectId?: string
-  domainService?: string
-  status: string
-  currentStep: string
-  assignedTo?: string
-  candidateRole?: string
-  slaDueAt?: string
-  processInstanceKey?: number
-  bpmnProcessId?: string
-  bpmnVersion?: number
-  updatedAt: string
-}
+export type WorkflowCase = WorkflowBusinessCase
 
-export interface ProcessInstancePendingJob {
-  jobKey: string
-  jobType: string
-  elementId: string
-  processInstanceKey: string
-  caseId?: string
-  retries: number
-  state: string
-  errorMessage?: string
-}
+export type ProcessInstancePendingJob = WorkflowProcessJobSnapshot
 
-export interface ProcessInstanceIncident {
-  jobKey: string
-  jobType: string
-  elementId: string
-  retries: number
-  errorMessage: string
-  createdAt: string
-}
+export type ProcessInstanceIncident = WorkflowProcessIncidentSnapshot
 
-export interface ProcessInstanceRuntime {
-  processInstanceKey: string
-  zeebeStatus: "ok" | "unreachable" | string
-  activeElementId?: string
-  case?: WorkflowCase | null
-  activeWorkTask?: {
-    id: string
-    taskType?: string
-    stepCode: string
-    jobKey?: string
-    status: string
-    candidateRole?: string
-  } | null
-  pendingJobs: ProcessInstancePendingJob[]
-  incidents: ProcessInstanceIncident[]
-  pendingJobsError?: string
-  timeline?: Array<{
-    id: number
-    eventType: string
-    note?: string
-    createdAt: string
-  }>
-  hint: string
-  workerNote: string
-}
+export type ProcessInstanceRuntime = WorkflowProcessInstanceRuntime
 
-export interface WorkflowTimelineEvent {
-  id: number
-  caseId: string
-  eventType: string
-  fromStatus?: string
-  toStatus?: string
-  actor?: string
-  note: string
-  data?: unknown
-  createdAt: string
-}
+export type { WorkflowTimelineEvent }
 
 export const casesApi = {
   async listCaseTypes(params?: WorkflowListParams) {

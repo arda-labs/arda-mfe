@@ -789,7 +789,7 @@ export function ProcessDefinitionsTable({
 export function MonitoringDetail({ item }: { item: WorkflowCase }) {
   const { t } = useI18n()
   const domainHref = workflowDomainHref(item)
-  const runtimeQuery = useProcessInstanceRuntime(item.processInstanceKey)
+  const runtimeQuery = useProcessInstanceRuntime(item.processInstanceKey ?? undefined)
   const runtime = runtimeQuery.data
   const pendingJobs = runtime?.pendingJobs ?? []
   const timeline = runtime?.timeline ?? []

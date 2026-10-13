@@ -199,7 +199,7 @@ export function ProcessInstanceOperate({
   const [instanceFilter, setInstanceFilter] = useState("all")
   const [retryJobPending, setRetryJobPending] = useState<string | null>(null)
   const [actionPending, setActionPending] = useState<string | null>(null)
-  const runtimeQuery = useProcessInstanceRuntime(selected?.processInstanceKey)
+  const runtimeQuery = useProcessInstanceRuntime(selected?.processInstanceKey ?? undefined)
   const runtime: import("../api").ProcessInstanceRuntime | undefined =
     runtimeQuery.data ?? undefined
   const pendingJobs = runtime?.pendingJobs ?? []
