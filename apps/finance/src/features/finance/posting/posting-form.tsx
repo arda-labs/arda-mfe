@@ -24,7 +24,7 @@ import {
 } from "@workspace/posting-flow/entry-lines"
 import { PostingPreviewPanel } from "@workspace/posting-flow/posting-preview-panel"
 import type { EntryLineRow } from "@workspace/posting-flow/types"
-import { formatAmount, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
+import { formatAmount, formatDateShort, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
 import { accountsApi, postingApi, postingCaseApi, type PostingFlow } from "../api"
 import { usePostingFlowLabels } from "./labels"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
@@ -239,7 +239,7 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
                   labels={labels.shell}
                   unit={unitName}
                   status={t("finance.posting.control.status_draft")}
-                  enteredAt={todayISO()}
+                  enteredAt={formatDateShort(todayISO())}
                   enteredBy={user?.displayName || user?.name}
                 />
               </div>

@@ -272,7 +272,7 @@ export function ClosingFormPage() {
                 labels={labels.shell}
                 unit={unitName}
                 status={t("finance.posting.control.status_draft")}
-                enteredAt={todayISO()}
+                enteredAt={formatDateShort(todayISO())}
                 enteredBy={user?.displayName || (user?.name ?? "")}
               />
             </div>
