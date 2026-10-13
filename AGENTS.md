@@ -171,7 +171,7 @@ bun run cf:deploy <app_name>
 ```
 
 > [!IMPORTANT]
-> Khi thêm hoặc cập nhật dependencies, luôn chạy `bun install` và commit file `bun.lock`. CI/CD deploy trên Cloudflare sử dụng cờ `--frozen-lockfile`.
+> Khi thêm hoặc cập nhật dependencies, luôn chạy `bun install` và commit file `bun.lock`. Workflow deploy (`.github/workflows/deploy.yml`) sử dụng cờ `--frozen-lockfile`.
 
 ---
 
@@ -222,5 +222,5 @@ Kiến trúc backend, hợp đồng API và `policy.yaml` nằm ở repo `arda-b
   `Set-Content/-Encoding UTF8` (mojibake/BOM). Use the Edit tool or a small
   `node -e` fs script.
 * When adding dependencies to any package: run `bun install` and COMMIT the
-  root `bun.lock` in the same PR - Cloudflare Workers Builds runs
-  `bun install --frozen-lockfile` and fails otherwise.
+  root `bun.lock` in the same PR - `verify.yml` and `deploy.yml` run
+  `bun install --frozen-lockfile` and fail otherwise.
