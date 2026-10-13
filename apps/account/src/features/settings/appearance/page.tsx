@@ -9,7 +9,7 @@ import {
   type FontScale,
   type UserPreferences,
 } from "@workspace/theme/appearance"
-import { PageTitle } from "@workspace/ui/components/page-title"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { cn } from "@workspace/ui/lib/utils"
 import { ChoiceGroup } from "./components/ChoiceGroup"
 
@@ -64,7 +64,7 @@ export function AppearancePage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-2 p-4 md:p-6">
-      <PageTitle
+      <PageHeader
         title={t("profile.appearance.title")}
         description={t("profile.appearance.description")}
       />
