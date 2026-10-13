@@ -380,5 +380,13 @@
     "collapse": "Collapse branch",
     "expand_all": "Expand all",
     "collapse_all": "Collapse all"
+  },
+  "activity": {
+    "empty": "No activity yet",
+    "today": "Today"
+  },
+  "checklist": {
+    "title": "Before you submit",
+    "passed": "{passed}/{total} passed"
   }
 }

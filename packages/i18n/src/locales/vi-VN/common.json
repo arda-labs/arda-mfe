@@ -380,5 +380,13 @@
     "collapse": "Thu gọn nhánh",
     "expand_all": "Mở tất cả",
     "collapse_all": "Thu gọn tất cả"
+  },
+  "activity": {
+    "empty": "Chưa có hoạt động",
+    "today": "Hôm nay"
+  },
+  "checklist": {
+    "title": "Kiểm tra trước khi gửi",
+    "passed": "{passed}/{total} đạt"
   }
 }
