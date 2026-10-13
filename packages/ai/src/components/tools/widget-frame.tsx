@@ -40,7 +40,6 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const dataRef = useRef(data)
   const timerRef = useRef<number | null>(null)
-  const liveRef = useRef(false)
   const appliedHeightRef = useRef(clampWidgetHeight(0))
 
   const [theme, setTheme] = useState(readChartThemeFromDocument)
@@ -87,7 +86,6 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
   }, [data])
 
   useEffect(() => {
-    liveRef.current = false
     const clearTimer = () => {
       if (timerRef.current !== null) {
         window.clearTimeout(timerRef.current)
@@ -101,7 +99,6 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
       const msg = parseWidgetMessage(event.data)
       if (!msg) return
       if (msg.type === "arda:height") {
-        liveRef.current = true
         clearTimer()
         setPhase("live")
         // Slider drags fire many resizes; skip moves under 2px.
@@ -126,8 +123,9 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
   // event can fire before an effect attaches the listener.
   const handleLoad = useCallback((event: React.SyntheticEvent<HTMLIFrameElement>) => {
     event.currentTarget.contentWindow?.postMessage({ type: "arda:data", data: dataRef.current }, "*")
-    // The widget may already have reported its height before this event ran.
-    if (liveRef.current) return
+    // Always armed: the runtime replies to arda:data with arda:height even when
+    // the model handler throws, so any valid height clears this timer. A height
+    // that arrived before this event does not count; only the reply does.
     if (timerRef.current !== null) window.clearTimeout(timerRef.current)
     timerRef.current = window.setTimeout(() => {
       timerRef.current = null

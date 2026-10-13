@@ -147,6 +147,19 @@
       "fallback": "Tri thức Arda",
       "no_evidence": "Không tìm thấy tài liệu phù hợp đã được phê duyệt."
     },
+    "widget": {
+      "badge": "Công cụ do Olorin tạo",
+      "inputs": "Tham số chỉnh được: {summary}",
+      "error": "Công cụ gặp lỗi: {message}",
+      "timeout": "Công cụ không phản hồi.",
+      "data_error": "Không tải được dữ liệu cho công cụ này.",
+      "retry": "Thử lại",
+      "reload": "Tải lại",
+      "expand": "Mở rộng",
+      "collapse": "Thu nhỏ",
+      "collapsed": "Công cụ đã thu gọn để tiết kiệm tài nguyên.",
+      "run_again": "Chạy lại"
+    },
     "report": {
       "title": "Báo cáo",
       "kpi_title": "Chỉ số chính",
