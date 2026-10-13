@@ -159,11 +159,19 @@ resolver/client so credentialed cross-origin requests remain consistent.
 
 All 14 Workers (shell + 13 remotes) are deployed by the GitHub Actions workflow
 `.github/workflows/deploy.yml` on every push to `main` (or by hand via
-`workflow_dispatch`). One job installs once, runs `bun run cf:build:all`, then
-`wrangler deploy`s the remotes and finally the shell. The `deploy-production`
-concurrency group never cancels a running deploy; pushes that land meanwhile
-collapse into one pending run for the newest commit. Pull requests are checked
-by `verify.yml` only; there are no preview deployments (`preview_urls: false`).
+`workflow_dispatch`). Only changed units deploy:
+`scripts/plan-cloudflare-deploy.mjs` diffs each unit's live commit (the sha in
+its `mfe-release.json` buildId) against `HEAD`. `apps/<app>/**` and
+`cloudflare/wrangler.<app>.jsonc` (plus `cloudflare/shell-*.ts` for the shell)
+select that unit; `packages/**`, `scripts/**`, `package.json`, `bun.lock`,
+`tsconfig.json` and `federation.*.ts` select all of them; Markdown never does.
+Changed remotes build and deploy as a parallel matrix, then the shell. Because
+the diff starts from what is live, collapsed pushes and failed deploys are
+picked up by the next run. `workflow_dispatch` with `all` redeploys everything.
+The `deploy-production` concurrency group never cancels a running deploy;
+pushes that land meanwhile collapse into one pending run for the newest
+commit. Pull requests are checked by `verify.yml` only; there are no preview
+deployments (`preview_urls: false`).
 
 The workflow needs the repository secret `CLOUDFLARE_API_TOKEN` (Account ›
 Workers Scripts › Edit, plus Zone › Workers Routes › Edit on `arda.io.vn`) and
