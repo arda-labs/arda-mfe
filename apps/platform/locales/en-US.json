@@ -641,11 +641,12 @@
     "loading": "Loading...",
     "empty": "No data",
     "load_failed": "Could not load jobs",
-    "run_success": "EOD executed",
-    "run_failed": "EOD run failed",
+    "run_failed": "Could not start the EOD run",
+    "run_started": "EOD run requested",
+    "run_started_for": "EOD for {date} has started through the scheduled-jobs engine.",
+    "view_run": "Follow the run in the Schedule tab",
     "seed_success": "Jobs seeded",
     "seed_failed": "Could not seed jobs",
-    "result_for": "Result for {date}",
     "definitions": "COB steps",
     "history": "Run history",
     "enabled": "Enabled",
@@ -657,6 +658,122 @@
       "endpoint": "Endpoint",
       "error": "Error",
       "finished": "Finished"
+    }
+  },
+  "scheduled_jobs": {
+    "tab": {
+      "scheduled": "Schedule",
+      "eod": "EOD"
+    },
+    "page_description": "Cron-driven jobs of platform-service and end-of-day (COB) operations.",
+    "description": "The job catalog lives in code; edit the schedule, timeout, retries and who is notified when a job fails.",
+    "col": {
+      "name": "Job",
+      "schedule": "Schedule",
+      "next_run": "Next run",
+      "last_status": "Last status",
+      "enabled": "State"
+    },
+    "loading": "Loading...",
+    "empty": "No jobs",
+    "load_failed": "Could not load jobs",
+    "manual_only": "Manual only",
+    "target_not_configured": "Target not configured (JOB_TARGET_URLS)",
+    "retired": "Retired",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "run_now": "Run now",
+    "running": "Starting...",
+    "run_started": "Job {name} started",
+    "already_running": "Job {name} is already running; wait for the current run to finish",
+    "run_failed": "Could not run the job",
+    "history": "History",
+    "history_title": "Run history for {code}",
+    "history_description": "Pick a run to see its error and result.",
+    "history_empty": "No runs yet",
+    "filter_all": "All",
+    "attempt": "Attempt {n}",
+    "page_of": "Page {page}/{pages} · {total} runs",
+    "run_load_failed": "Could not load the run",
+    "trigger": {
+      "SCHEDULE": "Scheduled",
+      "MANUAL": "Manual"
+    },
+    "run": {
+      "id": "Run id",
+      "scheduled_for": "Scheduled for",
+      "started_at": "Started",
+      "finished_at": "Finished",
+      "triggered_by": "Triggered by",
+      "params": "Parameters",
+      "result": "Result (JSON)"
+    },
+    "cases": {
+      "id": "Case",
+      "passed": "Outcome",
+      "recall": "Recall",
+      "error": "Error",
+      "pass": "Pass",
+      "fail": "Fail"
+    },
+    "edit_title": "Configure {name}",
+    "saved": "Job {name} configuration saved",
+    "save_failed": "Could not save the job configuration",
+    "conflict": {
+      "title": "Configuration changed",
+      "body": "Someone else just edited this job. Reload to see the current settings, then apply your change again.",
+      "reload": "Reload"
+    },
+    "field": {
+      "enabled": "Run on schedule",
+      "enabled_hint": "When off, the job only runs via \"Run now\".",
+      "cron": "Cron expression",
+      "cron_hint": "5 fields: minute hour day month weekday. Leave empty for manual only.",
+      "timezone": "Timezone",
+      "timeout_seconds": "Timeout (seconds)",
+      "max_attempts": "Max attempts",
+      "retry_backoff_seconds": "Retry backoff (seconds)",
+      "roles": "Notify roles",
+      "groups": "Notify groups",
+      "users": "Notify users"
+    },
+    "presets": {
+      "label": "Quick picks",
+      "daily_06": "Daily 06:00",
+      "daily_02_30": "Daily 02:30",
+      "weekdays_08": "Weekdays 08:00",
+      "hourly": "Hourly",
+      "every_15m": "Every 15 minutes"
+    },
+    "preview": "Next {n} runs",
+    "preview_short": "Next",
+    "preview_loading": "Computing schedule...",
+    "preview_manual": "No schedule: the job only runs manually.",
+    "preview_none": "This schedule has no upcoming run.",
+    "cron": {
+      "every_minute": "Every minute",
+      "every_n_minutes": "Every {n} minutes",
+      "hourly_at": "Hourly at minute {minute}",
+      "daily_at": "Daily at {time}",
+      "weekdays_at": "Mon–Fri at {time}",
+      "weekly_at": "Weekly on cron weekday {day} at {time}",
+      "monthly_at": "Monthly on day {day} at {time}"
+    },
+    "recipients": {
+      "hint": "Type a code and press Enter or comma to add. At most 50 recipients in total.",
+      "group_placeholder": "IAM group id",
+      "user_placeholder": "IAM user id",
+      "remove": "Remove {value}"
+    },
+    "validation": {
+      "timezone_required": "Enter an IANA timezone such as Asia/Ho_Chi_Minh",
+      "number_required": "Enter a whole number",
+      "timeout_range": "Timeout must be between {min} and {max} seconds",
+      "attempts_range": "Max attempts must be between {min} and {max}",
+      "backoff_range": "Backoff must be between {min} and {max} seconds",
+      "cron_shape": "Cron needs exactly 5 fields and no @ or TZ= prefix",
+      "cron_required_when_enabled": "A cron expression is required when the schedule is enabled",
+      "too_many_recipients": "At most {max} recipients"
     }
   },
   "working_hours": {
