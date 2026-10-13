@@ -163,7 +163,8 @@ All 14 Workers (shell + 13 remotes) are deployed by the GitHub Actions workflow
 `scripts/plan-cloudflare-deploy.mjs` diffs each unit's live commit (the sha in
 its `mfe-release.json` buildId) against `HEAD`. `apps/<app>/**` and
 `cloudflare/wrangler.<app>.jsonc` (plus `cloudflare/shell-*.ts` for the shell)
-select that unit; `packages/**`, `scripts/**`, `package.json`, `bun.lock`,
+select that unit; `packages/**`, `scripts/build-cloudflare-app.mjs`,
+`scripts/asset-release.mjs`, `package.json`, `bun.lock`,
 `tsconfig.json` and `federation.*.ts` select all of them; Markdown never does.
 Changed remotes build and deploy as a parallel matrix, then the shell. Because
 the diff starts from what is live, collapsed pushes and failed deploys are
