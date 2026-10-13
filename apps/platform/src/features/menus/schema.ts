@@ -57,6 +57,7 @@ export function buildMenuSchema(t: TranslateFn) {
       .number()
       .int(t("platform.menus.validation.sort_integer"))
       .min(0, t("platform.menus.validation.sort_invalid")),
+    section: z.string(),
     is_active: z.boolean(),
   })
 }
@@ -72,6 +73,7 @@ export const menuDefaultValues: MenuFormValues = {
   remote: "",
   required_permission: "",
   sort_order: 0,
+  section: "",
   is_active: true,
 }
 
@@ -90,6 +92,7 @@ export function toMenuFormValues(
     remote: item.remote,
     required_permission: item.required_permission,
     sort_order: item.sort_order,
+    section: item.section ?? "",
     is_active: item.is_active,
   }
 }

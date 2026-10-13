@@ -16,8 +16,29 @@ export interface PlatformMenuItem {
   remote: string
   required_permission: string
   sort_order: number
+  /**
+   * Sidebar department for top-level rows (see MENU_SECTIONS). Older
+   * platform-service builds omit it; the shell then infers it from the code.
+   */
+  section?: string
   is_active: boolean
 }
+
+/**
+ * Sidebar departments in display order. Labels live in the navigation
+ * catalogue under `section.<code>`; codes are what plt_menus.section stores.
+ */
+export const MENU_SECTIONS = [
+  "credit",
+  "funding",
+  "accounting",
+  "control",
+  "hr",
+  "shared",
+  "admin",
+] as const
+
+export type MenuSection = (typeof MENU_SECTIONS)[number]
 
 function unwrapMenu(payload: unknown): PlatformMenuItem[] {
   if (Array.isArray(payload)) return payload as PlatformMenuItem[]

@@ -4,6 +4,8 @@ import {
   defaultBranding,
   isSafeBrandImageUrl,
 } from "@workspace/theme/branding"
+import { isUsableBrandColor, type ChartPalette } from "@workspace/theme/brand"
+import { BrandThemeCard } from "./components/BrandThemeCard"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { listParameters, upsertParameter, type Parameter } from "./api"
@@ -18,7 +20,7 @@ import {
 } from "@workspace/ui/components/card"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { PageTitle } from "@workspace/ui/components/page-title"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { Label } from "@workspace/ui/components/label"
 import { Switch } from "@workspace/ui/components/switch"
 import {
@@ -50,6 +52,8 @@ type SystemSettings = {
   loginBackgroundEnabled: boolean
   loginWelcomeTitle: string
   loginWelcomeSubtitle: string
+  brandColor: string
+  chartPalette: ChartPalette
   loginSingleDevice: boolean
   maxFailedAttempts: number
   lockoutMinutes: number
@@ -81,6 +85,8 @@ const defaults: SystemSettings = {
   loginBackgroundEnabled: defaultBranding.loginBackgroundEnabled,
   loginWelcomeTitle: defaultBranding.loginWelcomeTitle,
   loginWelcomeSubtitle: defaultBranding.loginWelcomeSubtitle,
+  brandColor: defaultBranding.brandColor,
+  chartPalette: defaultBranding.chartPalette,
   loginSingleDevice: false,
   maxFailedAttempts: 5,
   lockoutMinutes: 15,
@@ -135,6 +141,12 @@ const fields: Record<keyof SystemSettings, { key: string }> = {
   },
   loginWelcomeSubtitle: {
     key: "app.login_welcome_subtitle",
+  },
+  brandColor: {
+    key: "app.brand_color",
+  },
+  chartPalette: {
+    key: "app.chart_palette",
   },
   loginSingleDevice: {
     key: "auth.login.single_device",
@@ -249,7 +261,7 @@ export function SystemSettingsPage() {
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
         <div className="space-y-4 p-4 pb-3">
-          <PageTitle
+          <PageHeader
             title={t("iam.system_settings.title")}
             description={t("iam.system_settings.description")}
             meta={
@@ -399,6 +411,16 @@ export function SystemSettingsPage() {
                   <BrandingPreview settings={settings} />
                 </CardContent>
               </Card>
+              <BrandThemeCard
+                brandColor={settings.brandColor}
+                chartPalette={settings.chartPalette}
+                onBrandColorChange={(brandColor) =>
+                  setSettings((s) => ({ ...s, brandColor }))
+                }
+                onChartPaletteChange={(chartPalette) =>
+                  setSettings((s) => ({ ...s, chartPalette }))
+                }
+              />
             </TabsContent>
 
             <TabsContent value="password" className="space-y-4">
@@ -744,6 +766,8 @@ function validateSettings(
 ) {
   if (!settings.appName.trim())
     return t("iam.system_settings.validation.app_name_required")
+  if (!isUsableBrandColor(settings.brandColor))
+    return t("iam.system_settings.theme.save_blocked")
   if (
     settings.supportEmail &&
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.supportEmail)

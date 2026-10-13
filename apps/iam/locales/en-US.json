@@ -237,6 +237,32 @@
       "support_email_invalid": "Invalid support email",
       "help_url_invalid": "Invalid help center URL",
       "url_not_allowed": "{field} must be an internal path or HTTPS"
+    },
+    "theme": {
+      "title": "Brand colour",
+      "description": "Applies to every user in the organisation. Users cannot change it.",
+      "brand_color": "Colour code",
+      "pick_color": "Pick a colour",
+      "chart_palette": "Chart palette",
+      "preview": "Preview",
+      "link_sample": "Sample link",
+      "invalid_hex": "Enter a colour as #rrggbb",
+      "low_contrast": "White text on this colour only reaches {ratio}:1; at least 4.5:1 is required",
+      "contrast_ok": "White text on buttons reaches {ratio}:1",
+      "save_blocked": "The brand colour is invalid or lacks contrast",
+      "preset": {
+        "arda": "Arda blue",
+        "teal": "Teal",
+        "green": "Green",
+        "violet": "Violet",
+        "earth": "Earth orange"
+      },
+      "palette": {
+        "default": "Default",
+        "finance": "Finance",
+        "cool": "Cool",
+        "warm": "Warm"
+      }
     }
   }
 }

@@ -222,6 +222,16 @@ export function MenusPage() {
         },
       },
       {
+        accessorKey: "section",
+        header: () => <div className="text-xs font-semibold text-foreground/80">{t("platform.menus.field.section")}</div>,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className={`text-xs ${row.original.section ? "" : "text-muted-foreground"}`}>
+            {row.original.section ? t(`nav.section.${row.original.section}`) : "-"}
+          </span>
+        ),
+      },
+      {
         accessorKey: "required_permission",
         header: () => (
           <div className="text-xs font-semibold text-foreground/80">
