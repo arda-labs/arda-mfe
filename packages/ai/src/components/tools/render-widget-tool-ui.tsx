@@ -5,9 +5,10 @@ import { useOlorinContext } from "../../lib/context"
 import {
   fetchExecuteResult,
   isWidgetPayload,
-  widgetPayloadFromArgs,
+  widgetViewKind,
   type WidgetPayload,
 } from "../../lib/results"
+import { GenericToolView } from "./generic-tool-view"
 import { WidgetSlot } from "./widget-frame"
 
 type Hydration = { key: string; data: unknown; failed: boolean }
@@ -80,33 +81,26 @@ function HydratedWidget({ payload }: { payload: WidgetPayload }) {
   )
 }
 
-function BrokenWidget({ result }: { result: unknown }) {
-  const summary =
-    typeof result === "object" &&
-    result !== null &&
-    typeof (result as Record<string, unknown>).inputs_summary === "string"
-      ? ((result as Record<string, unknown>).inputs_summary as string)
-      : undefined
-  return <WidgetError summary={summary} />
-}
-
 // renderWidget is a first-class output like renderChart, so it opts into
 // display: "standalone" and never collapses into the activity group.
-// Precedence: a valid result payload wins; a complete set of tool-call args
-// renders when the result is missing or degraded; a result that is present but
-// unusable shows the broken-widget notice.
+// A widget mounts only from a result with `widget === true` (validated by the
+// backend). Tool-call args are never rendered: when the backend rejects the call
+// the result is an error payload and the user sees the generic tool view, the
+// same one the panel shows for any other tool.
 export const RenderWidgetToolUI = makeAssistantToolUI<
   Record<string, unknown>,
   Record<string, unknown>
 >({
   toolName: "renderWidget",
   display: "standalone",
-  render: ({ args, result, status }) => {
-    if (status?.type === "running") return null
-    if (isWidgetPayload(result)) return <HydratedWidget payload={result} />
-    const fromArgs = widgetPayloadFromArgs(args)
-    if (fromArgs) return <HydratedWidget payload={fromArgs} />
-    if (result != null) return <BrokenWidget result={result} />
-    return null
+  render: ({ result, status }) => {
+    switch (widgetViewKind(result, status?.type)) {
+      case "widget":
+        return isWidgetPayload(result) ? <HydratedWidget payload={result} /> : null
+      case "generic":
+        return <GenericToolView toolName="renderWidget" result={result} />
+      default:
+        return null
+    }
   },
 })

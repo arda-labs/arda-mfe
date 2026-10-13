@@ -28,12 +28,20 @@ export function isWidgetPayload(value: unknown): value is WidgetPayload {
   )
 }
 
-// Builds a widget payload from tool-call args when the result is missing or
-// degraded (same fields; the `widget` marker only exists on the result).
-export function widgetPayloadFromArgs(args: unknown): WidgetPayload | null {
-  if (typeof args !== "object" || args === null) return null
-  const candidate = { ...(args as Record<string, unknown>), widget: true }
-  return isWidgetPayload(candidate) ? candidate : null
+export type WidgetViewKind = "none" | "widget" | "generic"
+
+// What the renderWidget tool UI shows. A widget mounts ONLY from a result the
+// backend validated and marked `widget === true`; tool-call args are model text
+// that the backend may have refused (flag off, forbidden pattern, size limit)
+// and are never a source for the iframe. A result that is present but is not a
+// widget payload (e.g. a validation error) gets the same generic tool view the
+// panel uses for any other tool. While the call runs, or when no result ever
+// arrived, nothing renders.
+export function widgetViewKind(result: unknown, status: string | undefined): WidgetViewKind {
+  if (status === "running") return "none"
+  if (isWidgetPayload(result)) return "widget"
+  if (result != null) return "generic"
+  return "none"
 }
 
 // Which tool UI replays a persisted artifact when a thread is reopened. Widget

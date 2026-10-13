@@ -3,7 +3,7 @@ import {
   artifactToolName,
   buildResultPath,
   isWidgetPayload,
-  widgetPayloadFromArgs,
+  widgetViewKind,
 } from "./results"
 
 describe("buildResultPath", () => {
@@ -21,23 +21,23 @@ describe("buildResultPath", () => {
   })
 })
 
-describe("widgetPayloadFromArgs", () => {
-  test("accepts complete args and adds the marker", () => {
-    const p = widgetPayloadFromArgs({
-      title: "t",
-      html: "<p>",
-      js: "1",
-      inputs_summary: "s",
-      data: { a: 1 },
-    })
-    expect(p?.widget).toBe(true)
-    expect(p?.data).toEqual({ a: 1 })
+describe("widgetViewKind", () => {
+  const widget = { widget: true, title: "t", html: "<p>", js: "1", inputs_summary: "s" }
+  test("a validated widget result renders the widget", () => {
+    expect(widgetViewKind(widget, "complete")).toBe("widget")
   })
-  test("rejects partial args (streaming) and non-objects", () => {
-    expect(widgetPayloadFromArgs({ title: "t", html: "<p>" })).toBeNull()
-    expect(widgetPayloadFromArgs(undefined)).toBeNull()
-    expect(widgetPayloadFromArgs("x")).toBeNull()
-    expect(widgetPayloadFromArgs(null)).toBeNull()
+  test("a rejected call (error-shaped result) shows the generic view", () => {
+    expect(widgetViewKind({ error: "ai.tool_invalid_arguments" }, "complete")).toBe("generic")
+    expect(widgetViewKind({ ...widget, widget: false }, "complete")).toBe("generic")
+    expect(widgetViewKind({ title: "t", html: "<p>", js: "1" }, "complete")).toBe("generic")
+  })
+  test("no result (dropped stream, flag off) renders nothing", () => {
+    expect(widgetViewKind(undefined, "complete")).toBe("none")
+    expect(widgetViewKind(null, "complete")).toBe("none")
+  })
+  test("running renders nothing, even with a widget-shaped result", () => {
+    expect(widgetViewKind(undefined, "running")).toBe("none")
+    expect(widgetViewKind(widget, "running")).toBe("none")
   })
 })
 
