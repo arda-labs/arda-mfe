@@ -1,144 +1,118 @@
 import { useState } from "react"
-import { Layers, Palette, RotateCcw, Sparkles, Type } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
+import { Info } from "lucide-react"
+import { useI18n } from "@workspace/i18n"
+import { useTheme } from "@workspace/theme"
 import {
-  SettingsTabbedShell,
-  type SettingsTabItem,
-} from "@workspace/ui/components/settings-tabbed-shell"
-import { useAppearanceEditor } from "./hooks/useAppearanceEditor"
-import { ThemeModeSelector } from "./components/ThemeModeSelector"
-import { PresetsManager } from "./components/PresetsManager"
-import { ColorPaletteSelector } from "./components/ColorPaletteSelector"
-import { TypographyRadiusSelector } from "./components/TypographyRadiusSelector"
-import { SurfaceSelector } from "./components/SurfaceSelector"
-import { AppearancePreview } from "./components/AppearancePreview"
-import { AppearanceActionBar } from "./components/AppearanceActionBar"
+  readPreferences,
+  savePreferences,
+  type Density,
+  type FontScale,
+  type UserPreferences,
+} from "@workspace/theme/appearance"
+import { PageTitle } from "@workspace/ui/components/page-title"
+import { cn } from "@workspace/ui/lib/utils"
+import { ChoiceGroup } from "./components/ChoiceGroup"
 
-const appearanceTabs: SettingsTabItem[] = [
-  { id: "all", label: "All Settings" },
-  { id: "presets", label: "Presets & Templates", icon: Sparkles },
-  { id: "colors", label: "Theme & Colors", icon: Palette },
-  { id: "typography", label: "Typography & Radius", icon: Type },
-  { id: "surfaces", label: "Surfaces & Chrome", icon: Layers },
-]
+type ThemeMode = "light" | "dark" | "system"
+
+function ModePreview({ mode }: { mode: ThemeMode }) {
+  const pane = (dark: boolean) => (
+    <span className={cn("flex flex-1 gap-1 p-1.5", dark ? "bg-[#0b0f19]" : "bg-[#f1f2f5]")}>
+      <span className={cn("w-3 rounded-sm", dark ? "bg-[#161d2d]" : "bg-white")} />
+      <span className={cn("flex-1 rounded-sm", dark ? "bg-[#121826]" : "bg-white")} />
+    </span>
+  )
+  return (
+    <span aria-hidden className="flex h-14 overflow-hidden rounded-lg border">
+      {mode === "dark" ? pane(true) : pane(false)}
+      {mode === "system" ? pane(true) : null}
+    </span>
+  )
+}
+
+function DensityPreview({ density }: { density: Density }) {
+  const rows = density === "compact" ? 4 : 3
+  return (
+    <span aria-hidden className="flex h-14 flex-col justify-center gap-1 rounded-lg border bg-muted/40 px-2">
+      {Array.from({ length: rows }, (_, i) => (
+        <span key={i} className={cn("rounded-sm bg-border", density === "compact" ? "h-1.5" : "h-2.5")} />
+      ))}
+    </span>
+  )
+}
+
+const fontPreviewSize: Record<FontScale, string> = {
+  sm: "text-sm",
+  md: "text-base",
+  lg: "text-lg",
+}
 
 export function AppearancePage() {
-  const [activeTab, setActiveTab] = useState("all")
+  const { t } = useI18n()
+  const { theme, setTheme } = useTheme()
+  const [preferences, setPreferences] = useState(readPreferences)
 
-  const {
-    theme,
-    setTheme,
-    previewTheme,
-    setPreviewTheme,
-    draft,
-    isDirty,
-    saveFeedback,
-    builtinPresets,
-    customPresets,
-    updateDraft,
-    applyDraft,
-    discardDraft,
-    resetToDefault,
-    applyPreset,
-    saveAsPreset,
-    deletePreset,
-    importPresets,
-    exportPresets,
-  } = useAppearanceEditor()
+  function update(next: Partial<UserPreferences>) {
+    const merged = { ...preferences, ...next }
+    setPreferences(merged)
+    savePreferences(merged)
+  }
+
+  const modes: ThemeMode[] = ["light", "dark", "system"]
+  const densities: Density[] = ["compact", "comfortable"]
+  const scales: FontScale[] = ["sm", "md", "lg"]
 
   return (
-    <SettingsTabbedShell
-      title="Appearance & Theme Studio"
-      description="Configure color palettes, typography, layout geometry, and custom design templates"
-      actions={
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={resetToDefault}
-          className="h-8.5 gap-1.5 rounded-xl px-3 text-xs font-semibold"
-        >
-          <RotateCcw className="size-3.5" />
-          Reset to Defaults
-        </Button>
-      }
-      tabs={appearanceTabs}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      sidebar={
-        <AppearancePreview
-          settings={draft}
-          previewTheme={previewTheme}
-          onTogglePreviewTheme={setPreviewTheme}
+    <div className="mx-auto w-full max-w-4xl space-y-2 p-4 md:p-6">
+      <PageTitle
+        title={t("profile.appearance.title")}
+        description={t("profile.appearance.description")}
+      />
+      <div className="rounded-2xl border bg-card px-5">
+        <ChoiceGroup
+          title={t("profile.appearance.mode.title")}
+          description={t("profile.appearance.mode.description")}
+          value={theme}
+          onChange={setTheme}
+          choices={modes.map((mode) => ({
+            value: mode,
+            label: t(`profile.appearance.mode.${mode}`),
+            preview: <ModePreview mode={mode} />,
+          }))}
         />
-      }
-      stickyActionBar={
-        <AppearanceActionBar
-          isDirty={isDirty}
-          saveFeedback={saveFeedback}
-          onApply={applyDraft}
-          onDiscard={discardDraft}
-          onResetToDefault={resetToDefault}
+        <ChoiceGroup
+          title={t("profile.appearance.density.title")}
+          description={t("profile.appearance.density.description")}
+          value={preferences.density}
+          onChange={(density) => update({ density })}
+          columns={2}
+          choices={densities.map((density) => ({
+            value: density,
+            label: t(`profile.appearance.density.${density}`),
+            description: t(`profile.appearance.density.${density}_hint`),
+            preview: <DensityPreview density={density} />,
+          }))}
         />
-      }
-    >
-      <div className="space-y-8">
-        {/* Section 1: Presets & Templates */}
-        {(activeTab === "all" || activeTab === "presets") && (
-          <PresetsManager
-            currentSettings={draft}
-            builtinPresets={builtinPresets}
-            customPresets={customPresets}
-            onSelectPreset={applyPreset}
-            onSaveCurrentAsPreset={saveAsPreset}
-            onDeletePreset={deletePreset}
-            onImportPresets={importPresets}
-            onExportPresets={exportPresets}
-          />
-        )}
-
-        {activeTab === "all" && <div className="h-px bg-border/60" />}
-
-        {/* Section 2 & 3: Theme Mode & Colors */}
-        {(activeTab === "all" || activeTab === "colors") && (
-          <div className="space-y-8">
-            <ThemeModeSelector value={theme} onChange={setTheme} />
-            <div className="h-px bg-border/60" />
-            <ColorPaletteSelector
-              selectedBaseColor={draft.baseColor}
-              selectedChartPalette={draft.chartPalette}
-              onSelectBaseColor={(c) => updateDraft("baseColor", c)}
-              onSelectChartPalette={(p) => updateDraft("chartPalette", p)}
-            />
-          </div>
-        )}
-
-        {activeTab === "all" && <div className="h-px bg-border/60" />}
-
-        {/* Section 4: Typography & Radius */}
-        {(activeTab === "all" || activeTab === "typography") && (
-          <TypographyRadiusSelector
-            font={draft.font}
-            headingFont={draft.headingFont}
-            radius={draft.radius}
-            onSelectFont={(f) => updateDraft("font", f)}
-            onSelectHeadingFont={(hf) => updateDraft("headingFont", hf)}
-            onSelectRadius={(r) => updateDraft("radius", r)}
-          />
-        )}
-
-        {activeTab === "all" && <div className="h-px bg-border/60" />}
-
-        {/* Section 5: Layout Surfaces */}
-        {(activeTab === "all" || activeTab === "surfaces") && (
-          <SurfaceSelector
-            headerSurface={draft.headerSurface}
-            sidebarSurface={draft.sidebarSurface}
-            onSelectHeaderSurface={(s) => updateDraft("headerSurface", s)}
-            onSelectSidebarSurface={(s) => updateDraft("sidebarSurface", s)}
-          />
-        )}
+        <ChoiceGroup
+          title={t("profile.appearance.font_scale.title")}
+          description={t("profile.appearance.font_scale.description")}
+          value={preferences.fontScale}
+          onChange={(fontScale) => update({ fontScale })}
+          choices={scales.map((scale) => ({
+            value: scale,
+            label: t(`profile.appearance.font_scale.${scale}`),
+            preview: (
+              <span aria-hidden className={cn("flex h-14 items-center justify-center rounded-lg border bg-muted/40 font-semibold", fontPreviewSize[scale])}>
+                Aa
+              </span>
+            ),
+          }))}
+        />
       </div>
-    </SettingsTabbedShell>
+      <p className="flex items-start gap-2 px-1 pt-2 text-sm text-muted-foreground">
+        <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+        {t("profile.appearance.org_note")}
+      </p>
+    </div>
   )
 }

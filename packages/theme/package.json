@@ -21,6 +21,7 @@
   "exports": {
     ".": "./src/index.tsx",
     "./appearance": "./src/appearance.ts",
+    "./brand": "./src/brand.ts",
     "./branding": "./src/branding.ts"
   }
 }

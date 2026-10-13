@@ -54,5 +54,32 @@
   "crop": {
     "avatar_title": "Crop avatar",
     "cover_title": "Crop cover image"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Applies to your account, in this browser only.",
+    "mode": {
+      "title": "Mode",
+      "description": "Dark mode is easier on the eyes for night shifts and EOD runs.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "density": {
+      "title": "Density",
+      "description": "Height of inputs, buttons and table rows.",
+      "compact": "Compact",
+      "compact_hint": "Default. 36px rows, more data on screen.",
+      "comfortable": "Comfortable",
+      "comfortable_hint": "44px rows, easier to tap on touch screens."
+    },
+    "font_scale": {
+      "title": "Text size",
+      "description": "Scales the whole interface up or down.",
+      "sm": "Small",
+      "md": "Medium",
+      "lg": "Large"
+    },
+    "org_note": "Brand colour, logo and chart palette are set by system administrators for the whole organisation."
   }
 }
