@@ -39,7 +39,8 @@
       "workflow.case": "Workflow cases",
       "loan.disbursement": "Disbursements",
       "crm.customer": "Customer registrations",
-      "statistical.indicator": "Indicator alerts"
+      "statistical.indicator": "Indicator alerts",
+      "platform.job": "Scheduled jobs"
     },
     "locales": {
       "vi": "Vietnamese",
@@ -115,6 +116,18 @@
       "failed": {
         "title": "Disbursement incomplete",
         "body": "The disbursement request needs another review."
+      }
+    }
+  },
+  "platform": {
+    "job": {
+      "failed": {
+        "title": "Job {jobName} failed",
+        "body": "{errorMessage}"
+      },
+      "recovered": {
+        "title": "Job {jobName} recovered",
+        "body": "The latest run completed normally."
       }
     }
   }
