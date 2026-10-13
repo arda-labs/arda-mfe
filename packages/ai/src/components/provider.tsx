@@ -22,6 +22,7 @@ import "../labels"
 
 import { OlorinContext } from "../lib/context"
 import { collectOlorinContext } from "../lib/registry"
+import { artifactToolName } from "../lib/results"
 import { registerOlorinComposeSink } from "../lib/compose"
 import {
   deleteConversation,
@@ -51,13 +52,14 @@ function toThreadMessage(
   if (item.role === "assistant") {
     const artifacts = Array.isArray(item.artifacts) ? item.artifacts : []
     const content: ThreadAssistantMessagePart[] = []
-    // Replay persisted artifacts as renderChart tool parts so the chart/KPI
-    // card is rebuilt from history exactly as it was streamed live.
+    // Replay persisted artifacts as tool parts so the card is rebuilt from
+    // history exactly as it was streamed live: widget artifacts go to
+    // renderWidget, everything else (chart/KPI) to renderChart.
     artifacts.forEach((artifact, index) => {
       content.push({
         type: "tool-call",
         toolCallId: `${id}-artifact-${index}`,
-        toolName: "renderChart",
+        toolName: artifactToolName(artifact),
         args: {},
         argsText: "{}",
         result: artifact,

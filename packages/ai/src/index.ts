@@ -98,3 +98,5 @@ export {
   DataTableView,
   isArrayResult,
 } from "./components/tools/data-table-view"
+export { WidgetFrame, WidgetSlot } from "./components/tools/widget-frame"
+export { RenderWidgetToolUI } from "./components/tools/render-widget-tool-ui"
