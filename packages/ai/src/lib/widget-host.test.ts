@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test"
 import { CHART_FALLBACK_PALETTE, readChartTheme } from "./chart-theme"
-import { WIDGET_CSP, buildWidgetDocument, escapeInlineScript, escapeInlineStyle } from "./widget-host"
+import { readFileSync } from "node:fs"
+import {
+  WIDGET_CSP,
+  WIDGET_SANDBOX,
+  buildWidgetDocument,
+  escapeInlineScript,
+  escapeInlineStyle,
+} from "./widget-host"
 
 const theme = readChartTheme(() => "")
 
@@ -221,5 +228,26 @@ describe("buildWidgetDocument", () => {
     const { posted } = runDocument(doc, { height: 10 })
     const error = posted.find((m) => m.type === "arda:error")
     expect(String(error?.message).length).toBe(500)
+  })
+})
+
+describe("WIDGET_SANDBOX", () => {
+  test("is exactly allow-scripts", () => {
+    expect(WIDGET_SANDBOX.split(" ")).toEqual(["allow-scripts"])
+  })
+
+  // The real element lives in a component that bun test cannot render, so pin
+  // the source: it must use the shared constant and never grant same-origin.
+  test("WidgetFrame uses the constant and never grants allow-same-origin", () => {
+    // Comments may mention the forbidden token; only code counts.
+    const source = readFileSync(
+      new URL("../components/tools/widget-frame.tsx", import.meta.url),
+      "utf8"
+    )
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "")
+    expect(source).toContain("sandbox={WIDGET_SANDBOX}")
+    expect(source).not.toContain("allow-same-origin")
+    expect(source).not.toMatch(/sandbox="/)
   })
 })

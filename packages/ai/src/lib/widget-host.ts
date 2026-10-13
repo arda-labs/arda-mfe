@@ -16,6 +16,12 @@ import type { ChartTheme } from "./chart-theme"
 
 export type WidgetSource = { html: string; css?: string; js: string }
 
+// The iframe sandbox. Exactly allow-scripts: the document gets an opaque origin
+// (no cookies, storage or parent DOM). Never add allow-same-origin,
+// allow-forms, allow-popups, allow-modals or allow-top-navigation. WidgetFrame
+// and the Playwright outer page both use this constant.
+export const WIDGET_SANDBOX = "allow-scripts"
+
 // Blocks subresource and network loads from the document (scripts, styles,
 // images, fonts, fetch/XHR/WebSocket, nested frames, form posts). It does NOT
 // by itself stop navigation or WebRTC; see Known limits above.

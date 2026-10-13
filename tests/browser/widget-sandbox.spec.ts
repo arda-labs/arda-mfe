@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net"
 import { expect, test, type Page } from "@playwright/test"
 import { SHELL_CSP } from "../../cloudflare/shell-csp"
 import { readChartTheme } from "../../packages/ai/src/lib/chart-theme"
-import { buildWidgetDocument } from "../../packages/ai/src/lib/widget-host"
+import { WIDGET_SANDBOX, buildWidgetDocument } from "../../packages/ai/src/lib/widget-host"
 
 const theme = readChartTheme(() => "")
 
@@ -27,7 +27,7 @@ function outerPage(srcdoc: string, dark = false, data: unknown = { principal: 10
   window.addEventListener("error", (e) => window.__parentErrors.push(e.message));
   window.addEventListener("message", (e) => { if (e.source === document.getElementById("f").contentWindow) window.__msgs.push(e.data); });
 </script>
-<iframe id="f" sandbox="allow-scripts" srcdoc="${escaped}" style="width:600px;height:200px"></iframe>
+<iframe id="f" sandbox="${WIDGET_SANDBOX}" srcdoc="${escaped}" style="width:600px;height:200px"></iframe>
 <script>
   document.getElementById("f").addEventListener("load", () => {
     document.getElementById("f").contentWindow.postMessage({ type: "arda:data", data: ${JSON.stringify(data)} }, "*");

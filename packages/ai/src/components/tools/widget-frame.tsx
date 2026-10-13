@@ -10,7 +10,7 @@ import {
   shouldPostData,
   WidgetSlotRegistry,
 } from "../../lib/widget-frame-logic"
-import { buildWidgetDocument, type WidgetSource } from "../../lib/widget-host"
+import { buildWidgetDocument, WIDGET_SANDBOX, type WidgetSource } from "../../lib/widget-host"
 import {
   WIDGET_MAX_MOUNTED,
   WIDGET_TIMEOUT_MS,
@@ -203,7 +203,7 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
           ref={iframeRef}
           data-testid="olorin-widget-frame"
           title={title}
-          sandbox="allow-scripts"
+          sandbox={WIDGET_SANDBOX}
           srcDoc={doc}
           referrerPolicy="no-referrer"
           loading="lazy"
