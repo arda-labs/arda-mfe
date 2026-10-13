@@ -17,41 +17,7 @@ import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { loanContractsListDefinition } from "./list-query"
 import { ContractDialog } from "./components/ContractDialog"
 import { ContractDetailDialog } from "./components/ContractDetailDialog"
-
-function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
-  switch (status) {
-    case "DISBURSED":
-    case "APPROVED":
-      return "default"
-    case "PENDING_APPROVAL":
-    case "DRAFT":
-      return "secondary"
-    case "REJECTED":
-    case "CANCELLED":
-      return "destructive"
-    default:
-      return "outline"
-  }
-}
-
-function contractStatusLabelKey(status: string): string {
-  switch (status) {
-    case "DRAFT":
-      return "loan.status.draft"
-    case "PENDING_APPROVAL":
-      return "loan.status.pending"
-    case "APPROVED":
-      return "loan.status.approved"
-    case "DISBURSED":
-      return "loan.status.disbursed"
-    case "REJECTED":
-      return "loan.status.rejected"
-    case "CLOSED":
-      return "loan.status.closed"
-    default:
-      return "loan.status.draft"
-  }
-}
+import { contractStatusLabel, contractStatusVariant } from "./contract-status"
 
 /**
  * Loans hub — dual-table page. The contracts table (transactional, grows
@@ -198,8 +164,8 @@ export function LoanPage(_props: { pathname: string }) {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={statusVariant(row.original.status)}>
-            {t(contractStatusLabelKey(row.original.status))}
+          <Badge variant={contractStatusVariant(row.original.status)}>
+            {contractStatusLabel(row.original.status, t)}
           </Badge>
         ),
       },

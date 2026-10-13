@@ -90,35 +90,6 @@ export function DossierTabs({
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4 pt-3">
-        <div className="grid gap-x-8 gap-y-2 rounded-md border p-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
-          <Field label={t("loan.dossier.field.code")} value={contract.contract_code} />
-          <Field label={t("loan.dossier.field.customer")} value={contract.customer_code} />
-          <Field label={t("loan.dossier.field.status")} value={contract.status} />
-          <Field
-            label={t("loan.dossier.field.amount")}
-            value={formatMoney(fromMinor(contract.loan_amt_minor))}
-          />
-          <Field
-            label={t("loan.dossier.field.rate")}
-            value={contract.interest_rate !== undefined ? String(contract.interest_rate) : "—"}
-          />
-          <Field
-            label={t("loan.dossier.field.term")}
-            value={contract.loan_term ? `${contract.loan_term} ${contract.term_unit ?? ""}` : "—"}
-          />
-          <Field
-            label={t("loan.dossier.field.contract_date")}
-            value={contract.contract_date ? formatDateShort(contract.contract_date) : "—"}
-          />
-          <Field
-            label={t("loan.dossier.field.maturity")}
-            value={contract.maturity_date ? formatDateShort(contract.maturity_date) : "—"}
-          />
-          <Field
-            label={t("loan.dossier.field.case")}
-            value={contract.workflow_case_code || "—"}
-          />
-        </div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -373,15 +344,6 @@ export function DossierTabs({
         </TabsContent>
       ))}
     </Tabs>
-  )
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-right font-medium">{value}</span>
-    </div>
   )
 }
 

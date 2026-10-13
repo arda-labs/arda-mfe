@@ -12,6 +12,14 @@ type DetailPageShellProps = {
   subtitle?: ReactNode
   /** Status badge(s) shown next to the title. */
   badges?: ReactNode
+  /** Document identity (usually <DocCode/>), shown above the title. */
+  docCode?: ReactNode
+  /** Where the record stands (usually <LifecycleSteps/>), under the header. */
+  progress?: ReactNode
+  /** The record's key numbers (usually <KeyFigures/>), above the body. */
+  keyFigures?: ReactNode
+  /** Right column: properties, pending work, activity (design board 12.3). */
+  aside?: ReactNode
   /** Back-to-list control; the page owns navigation (router-agnostic). */
   backLabel?: string
   onBack?: () => void
@@ -57,13 +65,18 @@ function useActiveSection(ids: string[]) {
 
 /**
  * Standard layout for a record detail page (view, edit and create modes):
- * header with back link/status/actions, optional section navigation, a
- * scrolling body capped for wide monitors, and a sticky footer for actions.
+ * header with back link, document code, status, actions and lifecycle;
+ * key figures; a scrolling body with optional section navigation and a
+ * properties/activity side column; a sticky footer for edit-mode actions.
  */
 export function DetailPageShell({
   title,
   subtitle,
   badges,
+  docCode,
+  progress,
+  keyFigures,
+  aside,
   backLabel,
   onBack,
   actions,
@@ -90,28 +103,41 @@ export function DetailPageShell({
           </Button>
         ) : null}
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 space-y-1">
+          <div className="min-w-0 space-y-1.5">
+            {docCode ? (
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                {docCode}
+                {badges}
+              </div>
+            ) : null}
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h1 className="truncate text-[1.375rem] leading-tight font-semibold tracking-[-0.015em]">
                 {title}
               </h1>
-              {badges}
+              {docCode ? null : badges}
             </div>
             {subtitle ? (
               <p className="text-sm text-muted-foreground">{subtitle}</p>
             ) : null}
           </div>
           {actions ? (
-            <div className="flex shrink-0 items-center gap-2">{actions}</div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {actions}
+            </div>
           ) : null}
         </div>
+        {progress ? <div className="mt-3">{progress}</div> : null}
       </header>
 
       <div className="flex min-h-0 flex-1 overflow-y-auto">
         <div
           className={cn(
             "mx-auto flex w-full gap-8 px-4 py-5 sm:px-6",
-            sections.length === 0 ? "max-w-4xl" : "max-w-6xl"
+            aside
+              ? "max-w-7xl"
+              : sections.length === 0
+                ? "max-w-4xl"
+                : "max-w-6xl"
           )}
         >
           {sections.length > 0 ? (
@@ -145,7 +171,19 @@ export function DetailPageShell({
               </ul>
             </nav>
           ) : null}
-          <div className="min-w-0 flex-1 space-y-5">{children}</div>
+          <div className="min-w-0 flex-1 space-y-5">
+            {keyFigures}
+            {aside ? (
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                <div className="min-w-0 space-y-5">{children}</div>
+                <aside className="min-w-0 space-y-5 lg:border-l lg:pl-6">
+                  {aside}
+                </aside>
+              </div>
+            ) : (
+              children
+            )}
+          </div>
         </div>
       </div>
 
