@@ -33,5 +33,6 @@ describe("readChartTheme", () => {
     const theme = readChartTheme(() => "")
     expect(theme.palette).toEqual(CHART_FALLBACK_PALETTE)
     expect(theme.card).toBe("#ffffff")
+    expect(theme.background).toBe("#ffffff")
   })
 })
