@@ -305,5 +305,8 @@
   "date_field": {
     "placeholder": "dd/mm/yyyy",
     "open_calendar": "Mở lịch"
+  },
+  "doc_code": {
+    "pending": "Mã cấp khi gửi"
   }
 }

@@ -305,5 +305,8 @@
   "date_field": {
     "placeholder": "dd/mm/yyyy",
     "open_calendar": "Open calendar"
+  },
+  "doc_code": {
+    "pending": "Code issued on submit"
   }
 }

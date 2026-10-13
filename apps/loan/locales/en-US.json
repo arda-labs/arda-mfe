@@ -666,7 +666,11 @@
       "term": "Term",
       "contract_date": "Contract date",
       "maturity": "Maturity date",
-      "case": "Formation case"
+      "case": "Formation case",
+      "product": "Product",
+      "interest": "Interest rate",
+      "officer": "Loan officer",
+      "unit": "Unit"
     },
     "placeholder": {
       "contract": "Choose a contract"
@@ -709,6 +713,25 @@
       "owner": "Owner",
       "type": "Type",
       "value": "Use value"
+    },
+    "properties": "Contract details",
+    "lifecycle": {
+      "label": "Contract lifecycle",
+      "signed": "Signed",
+      "disbursement": "Disbursement",
+      "repayment": "Repayment",
+      "settled": "Settled",
+      "batches": "{count} batches"
+    },
+    "figure": {
+      "limit": "Limit",
+      "disbursed": "Disbursed",
+      "outstanding": "Principal outstanding",
+      "collected": "{amount} principal collected",
+      "next_due": "Next due",
+      "next_due_hint": "Term {term} · {amount}",
+      "overdue": "Overdue",
+      "overdue_terms": "{count} terms"
     }
   },
   "adjustment_review": {
