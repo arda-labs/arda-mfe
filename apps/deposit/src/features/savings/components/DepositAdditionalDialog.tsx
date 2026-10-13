@@ -11,11 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { DateField } from "@workspace/ui/components/date-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { depositApi } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /**
  * DPM.301 additional deposit — submits the maker/checker case; the principal
@@ -85,8 +85,7 @@ export function DepositAdditionalDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>{t("deposit.savings.field.amount")}</Label>
-            <Input
-              inputMode="decimal"
+            <MoneyInput
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
             />

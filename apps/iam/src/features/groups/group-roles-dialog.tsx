@@ -31,10 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@workspace/ui/components/toggle-group"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback"
 import { Search } from "lucide-react"
 
@@ -254,29 +251,16 @@ export function GroupRolesDialog({
               className="pl-9"
             />
           </div>
-          <ToggleGroup
-            type="single"
-            variant="outline"
+          <SegmentedControl<RoleFilter>
             size="sm"
             value={filter}
-            onValueChange={(value) => {
-              if (!value) return
-              setFilter(value as RoleFilter)
-            }}
-          >
-            <ToggleGroupItem
-              value="all"
-              aria-label={t("admin.groups.roles.filter.all")}
-            >
-              {t("admin.groups.roles.filter.all")}
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="assigned"
-              aria-label={t("admin.groups.roles.filter.assigned")}
-            >
-              {t("admin.groups.roles.filter.assigned")}
-            </ToggleGroupItem>
-          </ToggleGroup>
+            onValueChange={setFilter}
+            aria-label={t("admin.groups.roles.filter.all")}
+            options={[
+              { value: "all", label: t("admin.groups.roles.filter.all") },
+              { value: "assigned", label: t("admin.groups.roles.filter.assigned") },
+            ]}
+          />
           <Badge variant="secondary" className="shrink-0">
             {t("admin.groups.roles.assigned_count", {
               assigned: assignedCount,

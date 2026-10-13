@@ -14,6 +14,7 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { fromMinor, toMinor } from "@workspace/format"
 import { loanPlanApi, type LoanPlan } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /**
  * Create/edit dialog for a loan plan (W7). The plan code is the upsert key,
@@ -120,9 +121,8 @@ export function PlanForm({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="plan-target">{t("loan.plans.field.target")}</Label>
-            <Input
+            <MoneyInput
               id="plan-target"
-              inputMode="decimal"
               value={target}
               onChange={(event) => setTarget(event.target.value)}
             />

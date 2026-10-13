@@ -17,6 +17,7 @@ import { Label } from "@workspace/ui/components/label"
 import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { depositApi } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 const KINDS = ["TOP_UP", "INTEREST", "EXPECTED", "WITHDRAW"] as const
 
@@ -117,10 +118,10 @@ export function IbmMovementDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.movement.field.amount")}</Label>
-            <Input
-              inputMode="decimal"
+            <MoneyInput
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              currency={currencyCode}
             />
           </div>
           <div className="space-y-1.5">

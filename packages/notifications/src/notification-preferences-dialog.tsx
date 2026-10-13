@@ -12,6 +12,7 @@ import {
 import { SelectField } from "@workspace/ui/components/select-field"
 import { notificationsApi } from "./api"
 import type { NotificationPreference } from "./types"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 const channels: NotificationPreference["channel"][] = [
   "in_app",
@@ -177,8 +178,8 @@ export function NotificationPreferencesDialog({
                     <span className="block text-muted-foreground">
                       {t("notifications.preferences.locale")}
                     </span>
-                    <SelectField
-                      className="h-8"
+                    <SegmentedControl
+ size="sm"
                       aria-label={t("notifications.preferences.locale")}
                       value={preference.locale}
                       onChange={(event) =>

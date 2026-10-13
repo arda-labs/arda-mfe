@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 type TranslateFn = (
   key: string,
@@ -343,22 +344,16 @@ export function AreaFormDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger
-                      id="area_status"
-                      aria-invalid={Boolean(errors.status)}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">
-                        {t("platform.areas.status.active")}
-                      </SelectItem>
-                      <SelectItem value="inactive">
-                        {t("platform.areas.status.inactive")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SegmentedControl
+                    id="area_status"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    aria-invalid={Boolean(errors.status)}
+                    options={[
+                      { value: "active", label: t("platform.areas.status.active") },
+                      { value: "inactive", label: t("platform.areas.status.inactive") },
+                    ]}
+                  />
                 )}
               />
             </FormField>

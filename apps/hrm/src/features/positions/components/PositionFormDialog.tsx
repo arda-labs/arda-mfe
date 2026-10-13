@@ -13,11 +13,11 @@ import {
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
-import { SelectField } from "@workspace/ui/components/select-field"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { hrmApi, type Position } from "../../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 /** Position create/edit form values. Code is locked while editing. */
 const buildPositionSchema = (t: (key: string) => string) =>
@@ -161,7 +161,7 @@ export function PositionFormDialog({
             label={t("hrm.positions.field.status")}
             error={errors.status?.message}
           >
-            <SelectField
+            <SegmentedControl
               aria-invalid={Boolean(errors.status)}
               options={[
                 { value: "active", label: t("hrm.status.active") },

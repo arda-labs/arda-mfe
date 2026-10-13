@@ -1,7 +1,6 @@
 import { useMemo } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { Plus } from "lucide-react"
 import { formatAmount, fromMinor } from "@workspace/format"
@@ -14,6 +13,7 @@ import {
   PlanGroupedTable,
 } from "../../loan-batches"
 import { inputToMinor } from "../../loan-batches/row-math"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /** One editable collection row of the grouped grid (state owned by page.tsx). */
 export interface CollectionRow {
@@ -81,9 +81,9 @@ export function CollectionContractsTab({
             {row.agreement.agreement_code}
           </TableCell>
           <TableCell>
-            <Input
-              className="h-8 w-32 text-right tabular-nums"
-              inputMode="decimal"
+            <MoneyInput
+              className="w-32"
+              inputClassName="h-8"
               value={row.principal}
               placeholder="0"
               onChange={(e) => onChangeRow(row.key, { principal: e.target.value })}
@@ -98,18 +98,18 @@ export function CollectionContractsTab({
             </p>
           </TableCell>
           <TableCell>
-            <Input
-              className="h-8 w-32 text-right tabular-nums"
-              inputMode="decimal"
+            <MoneyInput
+              className="w-32"
+              inputClassName="h-8"
               value={row.interest}
               placeholder="0"
               onChange={(e) => onChangeRow(row.key, { interest: e.target.value })}
             />
           </TableCell>
           <TableCell>
-            <Input
-              className="h-8 w-32 text-right tabular-nums"
-              inputMode="decimal"
+            <MoneyInput
+              className="w-32"
+              inputClassName="h-8"
               value={row.overdueInterest}
               placeholder="0"
               onChange={(e) => onChangeRow(row.key, { overdueInterest: e.target.value })}

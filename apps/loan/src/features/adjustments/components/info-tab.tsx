@@ -35,6 +35,7 @@ import { ContractSelect } from "./contract-select"
 import { RepayPlanGrid } from "./repay-plan-grid"
 import { ADJUSTMENT_KIND_SPECS, type KindFieldSpec } from "../kind-spec"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /**
  * Tab 1 "Thông tin điều chỉnh" — form per-kind dựng từ `ADJUSTMENT_KIND_SPECS`
@@ -233,9 +234,8 @@ export function AdjustmentInfoTab({ kind }: { kind: LoanAdjustmentKind }) {
                   {t("loan.field.amount")}
                   {spec.amount === "required" ? " *" : ""}
                 </Label>
-                <Input
+                <MoneyInput
                   id="adjustment-amount"
-                  inputMode="decimal"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                 />

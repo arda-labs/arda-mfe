@@ -12,17 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { parseMoneyInput, toMinor } from "@workspace/format"
 import { ChooseAccountDialog } from "@workspace/posting-flow/choose-account-dialog"
 import type { AccountOption } from "@workspace/posting-flow/types"
 import { accountsApi, postingApi } from "../../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 interface FormState {
   accountingDate: string
@@ -180,35 +175,28 @@ export function UpsertOpeningBalanceDialog({
             </div>
             <div className="space-y-1.5">
               <Label>{t("finance.opening_balances.field.direction")}</Label>
-              <Select
+              <SegmentedControl
                 value={form.direction}
                 onValueChange={(value) =>
                   update("direction", value as FormState["direction"])
                 }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DEBIT">
-                    {t("finance.opening_balances.direction.DEBIT")}
-                  </SelectItem>
-                  <SelectItem value="CREDIT">
-                    {t("finance.opening_balances.direction.CREDIT")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                fullWidth
+                options={[
+                  { value: "DEBIT", label: t("finance.opening_balances.direction.DEBIT") },
+                  { value: "CREDIT", label: t("finance.opening_balances.direction.CREDIT") },
+                ]}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ob-amount">
                 {t("finance.opening_balances.field.amount")}
               </Label>
-              <Input
+              <MoneyInput
                 id="ob-amount"
-                inputMode="decimal"
                 placeholder="0"
                 value={form.amount}
                 onChange={(event) => update("amount", event.target.value)}
+                currency={form.currency.trim() || "VND"}
               />
             </div>
             <div className="space-y-1.5">

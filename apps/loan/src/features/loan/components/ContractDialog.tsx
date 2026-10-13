@@ -21,6 +21,7 @@ import {
 } from "@workspace/ui/components/select"
 import { parseMoneyInput, toMinor } from "@workspace/format"
 import { loanApi, productApi, type LoanProduct } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /** Create + submit-to-approval dialog for a credit contract. */
 export function ContractDialog({
@@ -152,9 +153,8 @@ export function ContractDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ctrt-amount">{t("loan.field.amount")}</Label>
-            <Input
+            <MoneyInput
               id="ctrt-amount"
-              inputMode="numeric"
               placeholder="1.250.000"
               value={form.loan_amt}
               onChange={(event) =>

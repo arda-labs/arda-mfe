@@ -11,13 +11,6 @@ import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
   ControlInfoCard,
   ObjectInfoCard,
   PostingTabsShell,
@@ -53,6 +46,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 const TAB_INFO = "disburse-info"
 const TAB_CONTRACTS = "disburse-contracts"
@@ -453,22 +447,16 @@ export function BatchRegisterForm() {
                     <Label htmlFor="disburse-method">
                       {t("loan.disbursements.batch.field.payment_method")}
                     </Label>
-                    <Select
+                    <SegmentedControl
+                      id="disburse-method"
                       value={paymentMethod}
                       onValueChange={(value) => { setPaymentMethod(value as "TRANSFER" | "CASH"); setDirty(true) }}
-                    >
-                      <SelectTrigger id="disburse-method" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="TRANSFER">
-                          {t("loan.disbursements.batch.payment.transfer")}
-                        </SelectItem>
-                        <SelectItem value="CASH">
-                          {t("loan.disbursements.batch.payment.cash")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                      fullWidth
+                      options={[
+                        { value: "TRANSFER", label: t("loan.disbursements.batch.payment.transfer") },
+                        { value: "CASH", label: t("loan.disbursements.batch.payment.cash") },
+                      ]}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="disburse-account">

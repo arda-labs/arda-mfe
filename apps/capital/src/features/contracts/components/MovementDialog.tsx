@@ -17,6 +17,7 @@ import { DateField } from "@workspace/ui/components/date-field"
 import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { capitalApi } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 const MOVEMENT_TYPES = ["RECEIPT", "DISBURSEMENT", "PAYMENT", "SETTLEMENT"] as const
 
@@ -109,10 +110,10 @@ export function MovementDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("capital.movements.field.amount")}</Label>
-            <Input
-              inputMode="decimal"
+            <MoneyInput
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              currency={currencyCode}
             />
           </div>
           <div className="space-y-1.5">

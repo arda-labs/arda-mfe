@@ -10,7 +10,6 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import {
   ControlInfoCard,
   ObjectInfoCard,
@@ -32,6 +31,8 @@ import {
 } from "./labels"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 const TAB_INFO = "transaction-info"
 const TAB_LINES = "accounting-lines"
@@ -160,29 +161,21 @@ export function OffBalanceFormPage() {
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="off-balance-kind">{t("finance.posting.field.business_type")}</Label>
-                    <Select
+                    <SegmentedControl
+                      id="off-balance-kind"
                       value={offBalanceKind}
                       onValueChange={(value) => handleKindChange(value as "IMPORT" | "EXPORT")}
-                    >
-                      <SelectTrigger id="off-balance-kind" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="IMPORT">
-                          {t("finance.posting.off_balance.kind_import")}
-                        </SelectItem>
-                        <SelectItem value="EXPORT">
-                          {t("finance.posting.off_balance.kind_export")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                      fullWidth
+                      options={[
+                        { value: "IMPORT", label: t("finance.posting.off_balance.kind_import") },
+                        { value: "EXPORT", label: t("finance.posting.off_balance.kind_export") },
+                      ]}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="off-balance-amount">{t("finance.posting.field.amount")}</Label>
-                    <Input
+                    <MoneyInput
                       id="off-balance-amount"
-                      className="text-right tabular-nums"
-                      inputMode="decimal"
                       value={amount}
                       onChange={(e) => {
                         setAmount(e.target.value)
@@ -190,6 +183,7 @@ export function OffBalanceFormPage() {
                           prev.map((row) => ({ ...row, amount: e.target.value })),
                         )
                       }}
+                      currency={currency}
                     />
                   </div>
                   <div className="space-y-1.5">

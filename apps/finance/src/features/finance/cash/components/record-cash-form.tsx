@@ -5,9 +5,10 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
-import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor } from "@workspace/format"
 import { recordCash } from "../../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 function today(): string {
   const now = new Date()
@@ -57,7 +58,7 @@ export function RecordCashForm({
     <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
       <div className="space-y-1.5">
         <Label>{t("finance.cash.field.direction")}</Label>
-        <SelectField
+        <SegmentedControl
           className="w-40"
           value={direction}
           onChange={(e) => setDirection(e.target.value as "IN" | "OUT")}
@@ -73,7 +74,7 @@ export function RecordCashForm({
       </div>
       <div className="space-y-1.5">
         <Label>{t("finance.cash.field.amount")}</Label>
-        <Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <MoneyInput value={amount} onChange={(e) => setAmount(e.target.value)} />
       </div>
       <div className="space-y-1.5">
         <Label>{t("finance.cash.field.description")}</Label>
