@@ -33,6 +33,7 @@ import {
 } from "./labels"
 import { ClosingAccountsTable } from "./closing/accounts-table"
 import { CLOSING_PERIOD_LABEL_KEYS, computeClosingTotals, periodEndISO } from "./closing/period"
+import { DraftLifecycle, PendingDocCode } from "./draft-header"
 
 const TAB_INFO = "closing-info"
 const TAB_ACCOUNTS = "closing-accounts"
@@ -174,6 +175,8 @@ export function ClosingFormPage() {
 
   return (
     <PostingTabsShell
+      docCode={<PendingDocCode />}
+      progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
         <Badge variant="secondary" className="shrink-0">
@@ -269,7 +272,7 @@ export function ClosingFormPage() {
                 labels={labels.shell}
                 unit={unitName}
                 status={t("finance.posting.control.status_draft")}
-                enteredAt={todayISO()}
+                enteredAt={formatDateShort(todayISO())}
                 enteredBy={user?.displayName || (user?.name ?? "")}
               />
             </div>

@@ -179,6 +179,8 @@ export function PostingFlowPage({
 export function PostingTabsShell({
   labels,
   meta,
+  docCode,
+  progress,
   tabs,
   systemTabs = [],
   defaultValue,
@@ -190,6 +192,10 @@ export function PostingTabsShell({
   labels: PostingTabsShellLabels
   /** Optional status badge next to the title (e.g. draft status). */
   meta?: ReactNode
+  /** Document code above the title (usually <DocCode/>, pending on drafts). */
+  docCode?: ReactNode
+  /** Where the document stands (usually <LifecycleSteps/>), under the title. */
+  progress?: ReactNode
   /** Repeatable tab instances — ids must be unique per screen. */
   tabs: PostingTabItem[]
   /**
@@ -220,7 +226,14 @@ export function PostingTabsShell({
             className="flex flex-col"
           >
             <div className="space-y-4 p-4 pb-3">
-              <PageTitleBlock title={labels.title} description={labels.description} meta={meta} />
+              <PageHeader
+                title={labels.title}
+                description={labels.description}
+                meta={meta}
+                eyebrow={docCode}
+              >
+                {progress}
+              </PageHeader>
             </div>
             <div className="sticky top-0 z-10 border-b bg-background px-4 py-2">
               <TabsList className="flex h-auto justify-start flex-wrap">
@@ -245,18 +258,6 @@ export function PostingTabsShell({
       </form>
     </section>
   )
-}
-
-function PageTitleBlock({
-  title,
-  description,
-  meta,
-}: {
-  title: string
-  description?: string
-  meta?: ReactNode
-}) {
-  return <PageHeader title={title} description={description} meta={meta} />
 }
 
 /**

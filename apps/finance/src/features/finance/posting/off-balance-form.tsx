@@ -22,7 +22,7 @@ import {
   newEntryLineRow,
 } from "@workspace/posting-flow/entry-lines"
 import type { EntryLineRow, ObjectInfoValue } from "@workspace/posting-flow/types"
-import { formatAmount, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
+import { formatAmount, formatDateShort, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
 import { accountsApi, postingCaseApi } from "../api"
 import {
   useObjectInfoLabels,
@@ -30,6 +30,7 @@ import {
   usePostingFlowLabels,
   usePostingTabsLabels,
 } from "./labels"
+import { DraftLifecycle, PendingDocCode } from "./draft-header"
 
 const TAB_INFO = "transaction-info"
 const TAB_LINES = "accounting-lines"
@@ -140,6 +141,8 @@ export function OffBalanceFormPage() {
 
   return (
     <PostingTabsShell
+      docCode={<PendingDocCode />}
+      progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
         <Badge variant="secondary" className="shrink-0">
@@ -227,7 +230,7 @@ export function OffBalanceFormPage() {
                 labels={labels.shell}
                 unit={unitName}
                 status={t("finance.posting.control.status_draft")}
-                enteredAt={todayISO()}
+                enteredAt={formatDateShort(todayISO())}
                 enteredBy={user?.displayName || (user?.name ?? "")}
               />
             </div>
