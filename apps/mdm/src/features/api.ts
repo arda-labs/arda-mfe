@@ -6,6 +6,7 @@ import {
   putCanonical,
 } from "@workspace/api"
 import type { ApiRequestOptions } from "@workspace/api/client"
+import type { MdmInterestRate, MdmInterestRateTier } from "@workspace/api/generated/mdm-v1"
 
 // ── Generic catalogs (attributes-based) ──
 
@@ -100,35 +101,16 @@ export const mdmApi = {
 export type InterestRateType = "central" | "loan" | "deposit"
 export type InterestApplyType = "by_balance" | "by_term" | "negotiated"
 
-export interface InterestRate {
-  id: string
-  tenant_id?: string
-  code: string
-  name: string
+/**
+ * Generated mdm wire type (ADR-005): declared once in
+ * @workspace/api/generated/mdm-v1; only the literal unions are narrowed.
+ */
+export type InterestRate = Omit<MdmInterestRate, "rate_type" | "apply_type"> & {
   rate_type: InterestRateType
   apply_type: InterestApplyType
-  currency_code?: string
-  description?: string
-  is_active: boolean
-  created_at?: string
-  updated_at?: string
 }
 
-export interface InterestRateTier {
-  id: string
-  rate_id: string
-  effective_from: string
-  effective_to?: string
-  amount_from_minor?: number
-  amount_to_minor?: number
-  rate_value: number
-  min_rate?: number
-  max_rate?: number
-  decision_no?: string
-  decision_date?: string
-  created_at?: string
-  updated_at?: string
-}
+export type InterestRateTier = MdmInterestRateTier
 
 export const interestRateApi = {
   /**

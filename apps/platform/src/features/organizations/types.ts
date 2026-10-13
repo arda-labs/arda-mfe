@@ -1,22 +1,12 @@
 /**
  * Wire/view types for the organizations screen.
- * Wire source: arda-be/apps/platform-service (organizations handlers).
+ * The organization shape is the platform reference type (ADR-005): declared
+ * once in @workspace/api/reference/platform, never redeclared here.
  */
 import type { ListQueryInput } from "@workspace/api/list"
+import type { PlatformOrganization } from "@workspace/api/reference/platform"
 
-export interface Organization {
-  id: string
-  tenant_id: string
-  parent_id?: string
-  parent_name?: string
-  code: string
-  name: string
-  admin_unit_code?: string
-  address?: string
-  is_active: boolean
-  created_at?: string
-  updated_at?: string
-}
+export type Organization = PlatformOrganization
 
 export type OrganizationsListParams = ListQueryInput & {
   is_active?: string

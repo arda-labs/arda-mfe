@@ -641,11 +641,12 @@
     "loading": "Đang tải...",
     "empty": "Chưa có dữ liệu",
     "load_failed": "Không tải được job",
-    "run_success": "Đã chạy EOD",
-    "run_failed": "Chạy EOD thất bại",
+    "run_failed": "Không chạy được EOD",
+    "run_started": "Đã gửi yêu cầu chạy EOD",
+    "run_started_for": "EOD ngày {date} đã bắt đầu chạy qua engine job định kỳ.",
+    "view_run": "Theo dõi lần chạy trong tab Lịch tự động",
     "seed_success": "Đã seed job",
     "seed_failed": "Seed job thất bại",
-    "result_for": "Kết quả ngày {date}",
     "definitions": "Bước COB",
     "history": "Lịch sử chạy",
     "enabled": "Đang bật",
@@ -657,6 +658,122 @@
       "endpoint": "Endpoint",
       "error": "Lỗi",
       "finished": "Kết thúc"
+    }
+  },
+  "scheduled_jobs": {
+    "tab": {
+      "scheduled": "Lịch tự động",
+      "eod": "EOD"
+    },
+    "page_description": "Job chạy theo lịch cron của platform-service và thao tác kết thúc ngày (COB).",
+    "description": "Danh mục job nằm trong code; tại đây chỉnh lịch, timeout, số lần thử và người nhận thông báo khi job lỗi.",
+    "col": {
+      "name": "Job",
+      "schedule": "Lịch",
+      "next_run": "Lần chạy tới",
+      "last_status": "Trạng thái gần nhất",
+      "enabled": "Trạng thái"
+    },
+    "loading": "Đang tải...",
+    "empty": "Chưa có job nào",
+    "load_failed": "Không tải được danh sách job",
+    "manual_only": "Chỉ chạy tay",
+    "target_not_configured": "Chưa cấu hình đích gọi (JOB_TARGET_URLS)",
+    "retired": "Đã gỡ",
+    "enabled": "Đang bật",
+    "disabled": "Đang tắt",
+    "run_now": "Chạy ngay",
+    "running": "Đang gửi...",
+    "run_started": "Đã bắt đầu chạy job {name}",
+    "already_running": "Job {name} đang chạy, chờ lần chạy hiện tại kết thúc",
+    "run_failed": "Không chạy được job",
+    "history": "Lịch sử",
+    "history_title": "Lịch sử chạy {code}",
+    "history_description": "Chọn một lần chạy để xem lỗi và kết quả.",
+    "history_empty": "Chưa có lần chạy nào",
+    "filter_all": "Tất cả",
+    "attempt": "Lần thử {n}",
+    "page_of": "Trang {page}/{pages} · {total} lần chạy",
+    "run_load_failed": "Không tải được lần chạy",
+    "trigger": {
+      "SCHEDULE": "Theo lịch",
+      "MANUAL": "Chạy tay"
+    },
+    "run": {
+      "id": "Mã lần chạy",
+      "scheduled_for": "Giờ dự kiến",
+      "started_at": "Bắt đầu",
+      "finished_at": "Kết thúc",
+      "triggered_by": "Người kích hoạt",
+      "params": "Tham số",
+      "result": "Kết quả (JSON)"
+    },
+    "cases": {
+      "id": "Case",
+      "passed": "Kết quả",
+      "recall": "Recall",
+      "error": "Lỗi",
+      "pass": "Đạt",
+      "fail": "Không đạt"
+    },
+    "edit_title": "Cấu hình {name}",
+    "saved": "Đã lưu cấu hình job {name}",
+    "save_failed": "Không lưu được cấu hình job",
+    "conflict": {
+      "title": "Cấu hình đã bị thay đổi",
+      "body": "Người khác vừa sửa job này. Tải lại để xem cấu hình mới rồi sửa lại.",
+      "reload": "Tải lại"
+    },
+    "field": {
+      "enabled": "Bật chạy theo lịch",
+      "enabled_hint": "Tắt thì job chỉ chạy khi bấm \"Chạy ngay\".",
+      "cron": "Biểu thức cron",
+      "cron_hint": "5 trường: phút giờ ngày tháng thứ. Để trống nếu chỉ chạy tay.",
+      "timezone": "Múi giờ",
+      "timeout_seconds": "Timeout (giây)",
+      "max_attempts": "Số lần thử",
+      "retry_backoff_seconds": "Chờ giữa các lần thử (giây)",
+      "roles": "Role nhận thông báo",
+      "groups": "Nhóm nhận thông báo",
+      "users": "User nhận thông báo"
+    },
+    "presets": {
+      "label": "Chọn nhanh",
+      "daily_06": "Hằng ngày 06:00",
+      "daily_02_30": "Hằng ngày 02:30",
+      "weekdays_08": "Ngày làm việc 08:00",
+      "hourly": "Mỗi giờ",
+      "every_15m": "Mỗi 15 phút"
+    },
+    "preview": "{n} lần chạy tới",
+    "preview_short": "Tới",
+    "preview_loading": "Đang tính lịch...",
+    "preview_manual": "Không có lịch: job chỉ chạy tay.",
+    "preview_none": "Lịch này không có lần chạy nào sắp tới.",
+    "cron": {
+      "every_minute": "Mỗi phút",
+      "every_n_minutes": "Mỗi {n} phút",
+      "hourly_at": "Mỗi giờ, tại phút {minute}",
+      "daily_at": "Hằng ngày lúc {time}",
+      "weekdays_at": "Thứ 2–6 lúc {time}",
+      "weekly_at": "Hằng tuần, thứ (cron) {day} lúc {time}",
+      "monthly_at": "Hằng tháng, ngày {day} lúc {time}"
+    },
+    "recipients": {
+      "hint": "Nhập mã rồi Enter hoặc dấu phẩy để thêm. Tổng tối đa 50 người nhận.",
+      "group_placeholder": "ID nhóm IAM",
+      "user_placeholder": "ID user IAM",
+      "remove": "Bỏ {value}"
+    },
+    "validation": {
+      "timezone_required": "Nhập múi giờ IANA, ví dụ Asia/Ho_Chi_Minh",
+      "number_required": "Nhập số nguyên",
+      "timeout_range": "Timeout phải từ {min} đến {max} giây",
+      "attempts_range": "Số lần thử phải từ {min} đến {max}",
+      "backoff_range": "Thời gian chờ phải từ {min} đến {max} giây",
+      "cron_shape": "Cron phải có đúng 5 trường và không dùng @ hay TZ=",
+      "cron_required_when_enabled": "Bật chạy theo lịch thì phải có biểu thức cron",
+      "too_many_recipients": "Tối đa {max} người nhận"
     }
   },
   "working_hours": {

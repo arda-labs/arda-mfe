@@ -24,6 +24,7 @@ const knownEventGroups = [
   "loan.disbursement",
   "crm.customer",
   "statistical.indicator",
+  "platform.job",
 ]
 
 function completePreferences(items: NotificationPreference[]) {

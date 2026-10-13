@@ -1,3 +1,11 @@
+import type {
+  WorkflowBusinessCase,
+  WorkflowTimelineEvent,
+  WorkflowWorkItem as GeneratedWorkItem,
+  WorkflowWorkflowTask,
+} from "@workspace/api/generated/workflow-v1"
+import type { CrmCustomer } from "@workspace/api/reference/crm"
+
 export type CustomerType = "PERSONAL" | "BUSINESS"
 export type CustomerStatus =
   | "DRAFT"
@@ -34,26 +42,13 @@ export interface AmendmentUpsertPayload {
   changedFields: string[]
 }
 
-export interface Customer {
-  id: string
-  customerCode: string
-  workflowCaseId?: string
+/**
+ * CRM reference type (ADR-005): the wire shape lives in
+ * @workspace/api/reference/crm; only the literal unions are narrowed here.
+ */
+export type Customer = Omit<CrmCustomer, "customerType" | "status"> & {
   customerType: CustomerType
-  name: string
-  email: string
   status: CustomerStatus
-  mobile: string
-  identityNo: string
-  address: string
-  segment: string
-  rank: string
-  riskLevel: string
-  generalInfo: Record<string, unknown>
-  personalInfo: Record<string, unknown>
-  businessInfo: Record<string, unknown>
-  extendedInfo: Record<string, unknown>
-  createdAt: string
-  updatedAt: string
 }
 
 export interface CustomerPayload {
@@ -109,52 +104,11 @@ export type CustomerListParams = {
 export type WorkflowTaskRole =
   "CUSTOMER_CHECKER" | "CUSTOMER_RISK_CHECKER" | "CUSTOMER_MAKER"
 
-export interface WorkflowTask {
-  jobKey: string
-  type: string
-  elementId: string
-  processInstanceKey: string
-  caseId: string
-  caseCode: string
-  customerId: string
-  customerName: string
-  candidateRole: string
-  formKey: string
-  variables: Record<string, unknown>
-}
+/** Generated workflow wire types (ADR-005); see workflow-v1.json. */
+export type WorkflowTask = WorkflowWorkflowTask
 
-export interface WorkflowWorkItem {
-  id: string
-  caseId: string
-  caseCode: string
-  primaryObjectId?: string
-  processInstanceKey?: string | number
-  jobKey?: string | number
-  stepCode?: string
-  candidateRole?: string
-  caseType?: string
-  /** ROUTING | READY | CLAIMED | COMPLETED | CANCELLED (server task status). */
-  status?: string
-  canClaim?: boolean
-  canOpen?: boolean
-}
+export type WorkflowWorkItem = GeneratedWorkItem
 
-export interface WorkflowCase {
-  id: string
-  caseCode: string
-  caseType: string
-  primaryObjectId?: string
-  processInstanceKey?: string | number
-  currentStep?: string
-  candidateRole?: string
-  status: string
-}
+export type WorkflowCase = WorkflowBusinessCase
 
-export interface WorkflowTimelineEvent {
-  id: number
-  caseId: string
-  eventType: string
-  note: string
-  actor?: string | null
-  createdAt: string
-}
+export type { WorkflowTimelineEvent }

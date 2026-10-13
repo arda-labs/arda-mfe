@@ -39,7 +39,8 @@
       "workflow.case": "Hồ sơ quy trình",
       "loan.disbursement": "Giải ngân",
       "crm.customer": "Hồ sơ khách hàng",
-      "statistical.indicator": "Cảnh báo chỉ tiêu"
+      "statistical.indicator": "Cảnh báo chỉ tiêu",
+      "platform.job": "Job định kỳ"
     },
     "locales": {
       "vi": "Tiếng Việt",
@@ -115,6 +116,18 @@
       "failed": {
         "title": "Giải ngân chưa hoàn tất",
         "body": "Yêu cầu giải ngân cần được kiểm tra lại."
+      }
+    }
+  },
+  "platform": {
+    "job": {
+      "failed": {
+        "title": "Job {jobName} lỗi",
+        "body": "{errorMessage}"
+      },
+      "recovered": {
+        "title": "Job {jobName} đã chạy lại thành công",
+        "body": "Lần chạy gần nhất hoàn tất bình thường."
       }
     }
   }

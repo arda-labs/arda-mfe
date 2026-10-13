@@ -15,8 +15,9 @@ export type WorkflowTaskAction =
 export interface WorkflowTaskStepMetadata {
   stepKind?: "INPUT" | "REVISE" | "CHECKER" | "REVIEW" | "OPERATE" | (string & {})
   formKey?: string
-  allowedActions?: WorkflowTaskAction[]
-  requiredCommentOn?: WorkflowTaskAction[]
+  /** A Go slice: `null` when the step declares none. */
+  allowedActions?: WorkflowTaskAction[] | null
+  requiredCommentOn?: WorkflowTaskAction[] | null
   registryVersion?: number
 }
 
@@ -39,8 +40,9 @@ export interface WorkItem extends WorkflowTaskStepMetadata {
   previousAssignedTo?: string
   jobKey?: string | number
   processInstanceKey?: string | number
-  claimExpiresAt?: string
-  slaDueAt?: string
+  assignedAt?: string | null
+  claimExpiresAt?: string | null
+  slaDueAt?: string | null
   slaStatus?: string
   canClaim?: boolean
   canOpen?: boolean

@@ -379,8 +379,8 @@ function TransactionWorkbenchInner({
       <DecisionDialog
         item={decisionItem}
         submitting={decisionSubmitting}
-        allowedActions={decisionItem?.allowedActions}
-        requiredCommentOn={decisionItem?.requiredCommentOn}
+        allowedActions={decisionItem?.allowedActions ?? undefined}
+        requiredCommentOn={decisionItem?.requiredCommentOn ?? undefined}
         onClose={() => setDecisionItem(null)}
         onConfirm={(decision, comment) =>
           void confirmDecision(decision, comment)
@@ -523,9 +523,8 @@ function filterWorkItemsByNode(items: WorkItem[], node: string) {
   if (node === "SLA_BREACHED") {
     return items.filter((item) => item.slaStatus === "BREACHED")
   }
-  return items.filter(
-    (item) => item.stepCode === node || item.currentStep === node
-  )
+  // Work items carry stepCode only (workflow-v1 WorkItem has no currentStep).
+  return items.filter((item) => item.stepCode === node)
 }
 
 /**

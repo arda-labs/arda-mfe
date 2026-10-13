@@ -1,17 +1,15 @@
 /**
  * Wire/view types for the parameters screen.
- * Wire source: arda-be/apps/platform-service (parameters handlers).
+ * The parameter shape is the platform reference type (ADR-005): declared once
+ * in @workspace/api/reference/platform. Only the literal unions the form
+ * offers are narrowed here.
  */
-export interface Parameter {
-  id: string
-  tenant_id?: string
-  key: string
-  value: string
-  value_type: "string" | "number" | "boolean" | "json" | "date"
-  scope_type: "global" | "tenant" | "org" | "branch" | "department"
-  scope_id?: string
-  description?: string
-  is_secret: boolean
-  created_at?: string
-  updated_at?: string
+import type { PlatformParameter } from "@workspace/api/reference/platform"
+
+export type ParameterValueType = "string" | "number" | "boolean" | "json" | "date"
+export type ParameterScopeType = "global" | "tenant" | "org" | "branch" | "department"
+
+export type Parameter = Omit<PlatformParameter, "value_type" | "scope_type"> & {
+  value_type: ParameterValueType
+  scope_type: ParameterScopeType
 }
