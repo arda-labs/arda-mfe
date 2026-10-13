@@ -38,10 +38,13 @@ export type ComboboxProps = {
   emptyText?: string
   /** Shows a clear button when a value is set. Default true. */
   clearable?: boolean
+  /** Search box in the list. Default: only when there are more than 7. */
+  searchable?: boolean
   disabled?: boolean
   className?: string
   "aria-invalid"?: boolean
   "aria-describedby"?: string
+  "aria-label"?: string
   onBlur?: () => void
 }
 
@@ -61,6 +64,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
       searchPlaceholder,
       emptyText,
       clearable = true,
+      searchable,
       disabled,
       className,
       onBlur,
@@ -146,11 +150,13 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                 : 0
             }
           >
-            <CommandInput
-              placeholder={
-                searchPlaceholder ?? t("common.combobox.search_placeholder")
-              }
-            />
+            {(searchable ?? options.length > 7) ? (
+              <CommandInput
+                placeholder={
+                  searchPlaceholder ?? t("common.combobox.search_placeholder")
+                }
+              />
+            ) : null}
             <CommandList>
               <CommandEmpty>{emptyText ?? t("common.combobox.empty")}</CommandEmpty>
               <CommandGroup>

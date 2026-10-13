@@ -296,5 +296,9 @@
     "search_placeholder": "Search by code or name…",
     "empty": "No results",
     "clear": "Clear"
+  },
+  "date_field": {
+    "placeholder": "dd/mm/yyyy",
+    "open_calendar": "Open calendar"
   }
 }
