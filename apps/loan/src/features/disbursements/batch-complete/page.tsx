@@ -7,6 +7,7 @@ import { useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -215,9 +216,8 @@ export function BatchCompletePage() {
                     <Label htmlFor="complete-date">
                       {t("loan.disbursements.batch.complete_field_txn_date")}
                     </Label>
-                    <Input
+                    <DateField
                       id="complete-date"
-                      type="date"
                       value={txnDate}
                       onChange={(e) => setTxnDate(e.target.value)}
                     />

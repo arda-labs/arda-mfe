@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
   TableBody,
@@ -254,20 +255,18 @@ export function JobsTab({
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_state")}
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <SelectField
+            className="h-8 w-44 text-xs"
             value={draft.state ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, state: event.target.value || undefined })
             }
-          >
-            <option value="">{t("workflow.operate.filter_all_states")}</option>
-            {JOB_STATES.map((state) => (
-              <option key={state} value={state}>
-                {jobStateLabel(t, state)}
-              </option>
-            ))}
-          </select>
+            placeholder={t("workflow.operate.filter_all_states")}
+            options={JOB_STATES.map((state) => ({
+              value: state,
+              label: jobStateLabel(t, state),
+            }))}
+          />
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_job_type")}

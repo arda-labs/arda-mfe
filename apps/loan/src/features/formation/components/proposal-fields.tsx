@@ -1,4 +1,5 @@
 import { useI18n } from "@workspace/i18n"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -141,9 +142,8 @@ export function ProposalFields({
   const dateInput = (key: "contract_date" | "maturity_date", id: string) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{t(`loan.formation.proposal.field.${key}`)}</Label>
-      <Input
+      <DateField
         id={id}
-        type="date"
         value={values[key]}
         disabled={disabled}
         onChange={(e) => set({ [key]: e.target.value })}

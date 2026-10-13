@@ -3,7 +3,9 @@ import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor } from "@workspace/format"
 import { recordCash } from "../../api"
 
@@ -55,18 +57,19 @@ export function RecordCashForm({
     <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
       <div className="space-y-1.5">
         <Label>{t("finance.cash.field.direction")}</Label>
-        <select
-          className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
+        <SelectField
+          className="w-40"
           value={direction}
           onChange={(e) => setDirection(e.target.value as "IN" | "OUT")}
-        >
-          <option value="IN">{t("finance.cash.direction.IN")}</option>
-          <option value="OUT">{t("finance.cash.direction.OUT")}</option>
-        </select>
+          options={[
+            { value: "IN", label: t("finance.cash.direction.IN") },
+            { value: "OUT", label: t("finance.cash.direction.OUT") },
+          ]}
+        />
       </div>
       <div className="space-y-1.5">
         <Label>{t("finance.cash.field.date")}</Label>
-        <Input type="date" value={txnDate} onChange={(e) => setTxnDate(e.target.value)} />
+        <DateField value={txnDate} onChange={(e) => setTxnDate(e.target.value)} />
       </div>
       <div className="space-y-1.5">
         <Label>{t("finance.cash.field.amount")}</Label>

@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import FullCalendar from "@fullcalendar/react"
@@ -403,9 +404,8 @@ export function CalendarPage() {
               htmlFor="holiday_date"
               error={errors.holidayDate?.message}
             >
-              <Input
+              <DateField
                 id="holiday_date"
-                type="date"
                 aria-invalid={Boolean(errors.holidayDate)}
                 {...register("holidayDate")}
               />

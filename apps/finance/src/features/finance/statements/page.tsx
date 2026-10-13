@@ -8,7 +8,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Badge } from "@workspace/ui/components/badge"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import {
   Table,
   TableBody,
@@ -292,8 +292,7 @@ function Header({
       title={t("finance.statements.title")}
       actions={
     <div className="flex flex-wrap items-center gap-2">
-      <Input
-        type="date"
+      <DateField
         value={from}
         onChange={(e) => onFromChange(e.target.value)}
         className="w-40"
@@ -302,8 +301,7 @@ function Header({
           code: selected || t("finance.statements.title"),
         })}
       />
-      <Input
-        type="date"
+      <DateField
         value={asOf}
         onChange={(e) => onAsOfChange(e.target.value)}
         className="w-40"

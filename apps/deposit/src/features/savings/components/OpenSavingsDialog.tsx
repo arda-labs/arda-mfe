@@ -14,6 +14,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { depositApi, type SavingsProduct } from "../../api"
 
@@ -128,18 +130,17 @@ export function OpenSavingsDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.savings.field.product")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={form.product_code}
               onChange={(e) => setForm((c) => ({ ...c, product_code: e.target.value }))}
-            >
-              <option value="">{t("deposit.placeholder.select")}</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.code}>
-                  {p.code} — {p.name} ({p.term_months} {t("deposit.products.months_short")}, {p.interest_rate}%)
-                </option>
-              ))}
-            </select>
+              placeholder={t("deposit.placeholder.select")}
+              options={products.map((p) => ({
+                value: p.code,
+                code: p.code,
+                label: p.name,
+                hint: `${p.term_months} ${t("deposit.products.months_short")}, ${p.interest_rate}%`,
+              }))}
+            />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
@@ -160,8 +161,7 @@ export function OpenSavingsDialog({
             </div>
             <div className="space-y-1.5">
               <Label>{t("deposit.savings.field.open_date")}</Label>
-              <Input
-                type="date"
+              <DateField
                 value={form.open_date}
                 onChange={(e) => setForm((c) => ({ ...c, open_date: e.target.value }))}
               />

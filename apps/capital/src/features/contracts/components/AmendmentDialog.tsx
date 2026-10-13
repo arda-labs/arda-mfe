@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { DateField } from "@workspace/ui/components/date-field"
 import { toMinor } from "@workspace/format"
 import { capitalApi } from "../../api"
 
@@ -102,16 +103,14 @@ export function AmendmentDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("capital.contracts.field.contract_date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={contractDate}
               onChange={(e) => setContractDate(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
             <Label>{t("capital.contracts.field.maturity_date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={maturityDate}
               onChange={(e) => setMaturityDate(e.target.value)}
             />

@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { capitalApi, type CapitalProduct, type FundType } from "../../../api"
 
 /** Create/edit one fund product (CFM catalog). */
@@ -99,18 +100,16 @@ export function ProductDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("capital.contracts.field.fund_type")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={fundTypeCode}
               onChange={(e) => setFundTypeCode(e.target.value)}
-            >
-              <option value="">{t("capital.placeholder.select")}</option>
-              {fundTypes.map((type) => (
-                <option key={type.id} value={type.code}>
-                  {type.code} — {type.name}
-                </option>
-              ))}
-            </select>
+              placeholder={t("capital.placeholder.select")}
+              options={fundTypes.map((type) => ({
+                value: type.code,
+                code: type.code,
+                label: type.name,
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("capital.products.field.term_months")}</Label>

@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { fromMinor, toMinor } from "@workspace/format"
@@ -103,18 +104,16 @@ export function PlanForm({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="plan-from">{t("loan.plans.field.from_date")}</Label>
-            <Input
+            <DateField
               id="plan-from"
-              type="date"
               value={fromDate}
               onChange={(event) => setFromDate(event.target.value)}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="plan-to">{t("loan.plans.field.to_date")}</Label>
-            <Input
+            <DateField
               id="plan-to"
-              type="date"
               value={toDate}
               onChange={(event) => setToDate(event.target.value)}
             />

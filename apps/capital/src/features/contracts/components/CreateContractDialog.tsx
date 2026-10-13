@@ -13,6 +13,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { capitalApi, type FundType } from "../../api"
 
@@ -114,18 +116,16 @@ export function CreateContractDialog({
             </div>
             <div className="space-y-1.5">
               <Label>{t("capital.contracts.field.fund_type")}</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              <SelectField
                 value={form.fund_type_code}
                 onChange={(e) => setForm((c) => ({ ...c, fund_type_code: e.target.value }))}
-              >
-                <option value="">{t("capital.placeholder.select")}</option>
-                {fundTypes.map((type) => (
-                  <option key={type.id} value={type.code}>
-                    {type.code} — {type.name}
-                  </option>
-                ))}
-              </select>
+                placeholder={t("capital.placeholder.select")}
+                options={fundTypes.map((type) => ({
+                  value: type.code,
+                  code: type.code,
+                  label: type.name,
+                }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>{t("capital.contracts.field.counterparty")}</Label>
@@ -136,8 +136,7 @@ export function CreateContractDialog({
             </div>
             <div className="space-y-1.5">
               <Label>{t("capital.contracts.field.contract_date")}</Label>
-              <Input
-                type="date"
+              <DateField
                 value={form.contract_date}
                 onChange={(e) => setForm((c) => ({ ...c, contract_date: e.target.value }))}
               />

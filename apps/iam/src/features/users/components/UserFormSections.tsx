@@ -3,6 +3,7 @@ import { useI18n } from "@workspace/i18n"
 import { DetailSection } from "@workspace/ui/components/detail-section"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
+import { SelectField } from "@workspace/ui/components/select-field"
 import type { CreateUserValues, EditUserValues } from "../schema"
 
 type AllValues = CreateUserValues & EditUserValues
@@ -10,9 +11,6 @@ type AllValues = CreateUserValues & EditUserValues
 export type UserFormSectionsProps =
   | { mode: "create"; form: UseFormReturn<CreateUserValues> }
   | { mode: "edit"; form: UseFormReturn<EditUserValues> }
-
-const selectClassName =
-  "flex h-9 w-full min-w-0 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:outline-none dark:bg-input/30"
 
 /**
  * Form fields for the user create and edit pages, grouped in the same sections
@@ -77,12 +75,17 @@ export function UserFormSections({ mode, form }: UserFormSectionsProps) {
               label={t("common.field.status")}
               error={errors.status?.message}
             >
-              <select className={selectClassName} {...register("status")}>
-                <option value="ACTIVE">{t("admin.users.status.active")}</option>
-                <option value="DISABLED">
-                  {t("admin.users.status.disabled")}
-                </option>
-              </select>
+              <SelectField
+                aria-invalid={Boolean(errors.status)}
+                options={[
+                  { value: "ACTIVE", label: t("admin.users.status.active") },
+                  {
+                    value: "DISABLED",
+                    label: t("admin.users.status.disabled"),
+                  },
+                ]}
+                {...register("status")}
+              />
             </FormField>
           )}
         </div>

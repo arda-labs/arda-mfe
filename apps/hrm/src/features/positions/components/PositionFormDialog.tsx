@@ -13,11 +13,11 @@ import {
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { hrmApi, type Position } from "../../api"
-import { fieldClass } from "../../shared/schemas"
 
 /** Position create/edit form values. Code is locked while editing. */
 const buildPositionSchema = (t: (key: string) => string) =>
@@ -161,10 +161,14 @@ export function PositionFormDialog({
             label={t("hrm.positions.field.status")}
             error={errors.status?.message}
           >
-            <select className={fieldClass} {...register("status")}>
-              <option value="active">{t("hrm.status.active")}</option>
-              <option value="inactive">{t("hrm.status.inactive")}</option>
-            </select>
+            <SelectField
+              aria-invalid={Boolean(errors.status)}
+              options={[
+                { value: "active", label: t("hrm.status.active") },
+                { value: "inactive", label: t("hrm.status.inactive") },
+              ]}
+              {...register("status")}
+            />
           </FormField>
           <label className="flex items-center gap-2 text-sm">
             <Checkbox

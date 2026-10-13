@@ -3,6 +3,7 @@ import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Dialog,
@@ -126,9 +127,8 @@ export function UpsertOpeningBalanceDialog({
               <Label htmlFor="ob-date">
                 {t("finance.opening_balances.field.accounting_date")}
               </Label>
-              <Input
+              <DateField
                 id="ob-date"
-                type="date"
                 value={form.accountingDate}
                 onChange={(event) => update("accountingDate", event.target.value)}
               />

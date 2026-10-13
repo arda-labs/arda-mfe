@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import { postingApi, type PostingFlow } from "../api"
 
@@ -91,9 +92,8 @@ export function ImportPostingDialog({
             <Label className="text-xs">
               {t("finance.posting.import.field.accounting_date")}
             </Label>
-            <Input
-              type="date"
-              className="h-8 w-44 text-xs"
+            <DateField
+              className="w-44"
               value={accountingDate}
               onChange={(e) => setAccountingDate(e.target.value)}
             />

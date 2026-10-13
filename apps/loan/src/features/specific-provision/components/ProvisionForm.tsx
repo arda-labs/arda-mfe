@@ -1,6 +1,7 @@
 import { Calculator, Send } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { formatMoney, fromMinor } from "@workspace/format"
@@ -53,9 +54,8 @@ export function ProvisionForm({
           <Label htmlFor="sp-date">
             {t("loan.specific_provision.field.date")}
           </Label>
-          <Input
+          <DateField
             id="sp-date"
-            type="date"
             value={provisionDate}
             onChange={(event) => onProvisionDateChange(event.target.value)}
           />

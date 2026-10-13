@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Select,
@@ -153,9 +154,8 @@ function TransactionPickerContent({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="choose-txn-from">{labels.fromDate}</Label>
-          <Input
+          <DateField
             id="choose-txn-from"
-            type="date"
             value={fromDate}
             onChange={(e) => {
               setFromDate(e.target.value)
@@ -165,9 +165,8 @@ function TransactionPickerContent({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="choose-txn-to">{labels.toDate}</Label>
-          <Input
+          <DateField
             id="choose-txn-to"
-            type="date"
             value={toDate}
             onChange={(e) => {
               setToDate(e.target.value)

@@ -11,8 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { depositApi } from "../../api"
 
@@ -97,22 +99,18 @@ export function IbmMovementDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.movement.field.kind")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={kind}
               onChange={(e) => setKind(e.target.value)}
-            >
-              {KINDS.map((value) => (
-                <option key={value} value={value}>
-                  {t(`deposit.interbank.movement_kind.${value}`)}
-                </option>
-              ))}
-            </select>
+              options={KINDS.map((value) => ({
+                value,
+                label: t(`deposit.interbank.movement_kind.${value}`),
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.movement.field.date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={movementDate}
               onChange={(e) => setMovementDate(e.target.value)}
             />
@@ -127,15 +125,14 @@ export function IbmMovementDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.movement.field.period_from")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={periodFrom}
               onChange={(e) => setPeriodFrom(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.movement.field.period_to")}</Label>
-            <Input type="date" value={periodTo} onChange={(e) => setPeriodTo(e.target.value)} />
+            <DateField value={periodTo} onChange={(e) => setPeriodTo(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.movement.field.note")}</Label>
