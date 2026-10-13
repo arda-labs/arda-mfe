@@ -33,11 +33,13 @@
     "./list-table-toolbar": "./src/list-table-toolbar.tsx",
     "./page-error-dialog": "./src/page-error-dialog.tsx",
     "./page-load-overlay": "./src/page-load-overlay.tsx",
+    "./saved-view-tabs": "./src/saved-view-tabs.tsx",
     "./server-data-table": "./src/server-data-table.ts",
     "./server-list": "./src/server-list.ts",
     "./table-columns": "./src/table-columns.tsx",
     "./table-export": "./src/table-export.ts",
     "./table-export-dialog": "./src/table-export-dialog.tsx",
-    "./use-data-table": "./src/use-data-table.ts"
+    "./use-data-table": "./src/use-data-table.ts",
+    "./use-record-sheet": "./src/use-record-sheet.ts"
   }
 }

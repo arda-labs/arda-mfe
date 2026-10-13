@@ -278,11 +278,18 @@
       "contract": "Hợp đồng tín dụng (đã giải ngân)",
       "principal": "Thu gốc",
       "interest": "Thu lãi",
-      "collection_date": "Ngày thu"
+      "collection_date": "Ngày thu",
+      "overdue_interest": "Thu lãi quá hạn",
+      "total": "Tổng thu",
+      "journal_entry": "Bút toán",
+      "created_by": "Người tạo"
     },
     "validation": {
       "contract_required": "Chọn hợp đồng và nhập mã hợp đồng giải ngân",
       "amounts_positive": "Gốc hoặc lãi phải dương"
+    },
+    "view": {
+      "all": "Tất cả"
     }
   },
   "disbursements": {
