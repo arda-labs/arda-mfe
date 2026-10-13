@@ -244,8 +244,8 @@ export function ClosingFormPage() {
                       id="closing-result"
                       className={`rounded-md border px-3 py-2 text-right text-sm font-semibold tabular-nums ${
                         totals.resultMinor >= 0
-                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                          : "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400"
+                          ? "border-success/40 bg-success/10 text-success"
+                          : "border-destructive/40 bg-destructive/10 text-destructive"
                       }`}
                     >
                       {formatAmount(fromMinor(totals.resultMinor), "VND")}

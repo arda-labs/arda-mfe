@@ -210,7 +210,7 @@ export function UserTasksTab({
       </div>
 
       {source === "unavailable" ? (
-        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-ink">
           {t("workflow.operate.source_unavailable")}
         </div>
       ) : null}

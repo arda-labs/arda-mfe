@@ -85,7 +85,7 @@ export function BatchInterestPage() {
       </div>
 
       {lastResult !== null && (
-        <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm">
+        <div className="rounded-lg border border-success/40 bg-success/10 p-3 text-sm">
           {t("deposit.batch_interest.submitted", { count: lastResult })}
         </div>
       )}

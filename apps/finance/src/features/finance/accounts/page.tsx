@@ -19,13 +19,11 @@ import { accountsListDefinition } from "./list-query"
 import { CreateAccountDialog } from "./components/CreateAccountDialog"
 
 const ACCOUNT_TYPE_COLORS: Record<string, string> = {
-  ASSET: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  LIABILITY:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  EQUITY: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  INCOME:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
-  EXPENSE: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  ASSET: "bg-info/10 text-info",
+  LIABILITY: "bg-warning/10 text-warning-ink",
+  EQUITY: "bg-muted text-foreground",
+  INCOME: "bg-success/10 text-success",
+  EXPENSE: "bg-destructive/10 text-destructive",
 }
 
 function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {

@@ -209,9 +209,9 @@ export function SessionsPage() {
                     {session.isTrusted && (
                       <Status
                         variant="success"
-                        className="rounded-full border-emerald-500/20 bg-emerald-500/10 px-2.5 text-emerald-600"
+                        className="rounded-full border-success/20 bg-success/10 px-2.5 text-success"
                       >
-                        <StatusIndicator className="bg-emerald-500" />
+                        <StatusIndicator className="bg-success" />
                         <StatusLabel className="text-[10px] font-bold">
                           Trusted
                         </StatusLabel>

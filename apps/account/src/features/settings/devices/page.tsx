@@ -213,7 +213,7 @@ export function DevicesPage() {
                     </span>
                   </div>
                   {device.isTrusted && device.trustedUntil && (
-                    <p className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    <p className="flex items-center gap-1 text-[11px] font-semibold text-success">
                       <ShieldCheck className="size-3" />
                       <span>
                         Trusted until:{" "}

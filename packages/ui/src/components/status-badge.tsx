@@ -21,7 +21,7 @@ export function StatusBadge({
     secondary: "border-transparent bg-secondary text-secondary-foreground",
     outline: "text-foreground",
     success: "border-success/20 bg-success/10 text-success",
-    warning: "border-warning/25 bg-warning/15 text-warning",
+    warning: "border-warning/25 bg-warning/15 text-warning-ink",
     destructive: "border-transparent bg-destructive text-destructive-foreground",
     info: "border-info/20 bg-info/10 text-info",
   }

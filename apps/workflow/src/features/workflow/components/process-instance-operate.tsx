@@ -68,26 +68,26 @@ function InstanceStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
     ACTIVE: {
       label: t("workflow.operate.instance_state_active"),
-      className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
+      className: "bg-info/10 text-info",
     },
     COMPLETED: {
       label: t("workflow.operate.instance_state_completed"),
       className:
-        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+        "bg-success/10 text-success",
     },
     CANCELED: {
       label: t("workflow.operate.instance_state_canceled"),
       className:
-        "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+        "bg-muted text-muted-foreground",
     },
     SUSPENDED: {
       label: t("workflow.operate.instance_state_suspended"),
       className:
-        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+        "bg-warning/10 text-warning-ink",
     },
     INCIDENT: {
       label: t("workflow.operate.instance_state_incident"),
-      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+      className: "bg-destructive/10 text-destructive",
     },
   }
   const c = config[state] ?? {
@@ -111,17 +111,17 @@ function IncidentStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
     CREATED: {
       label: t("workflow.operate.incident_state_created"),
-      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+      className: "bg-destructive/10 text-destructive",
     },
     RESOLVED: {
       label: t("workflow.operate.incident_state_resolved"),
       className:
-        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+        "bg-success/10 text-success",
     },
     PENDING: {
       label: t("workflow.operate.incident_state_pending"),
       className:
-        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+        "bg-warning/10 text-warning-ink",
     },
   }
   const c = config[state] ?? {
@@ -145,26 +145,26 @@ function JobStateBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
     ACTIVATABLE: {
       label: t("workflow.operate.job_state_activatable"),
-      className: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
+      className: "bg-info/10 text-info",
     },
     ACTIVATED: {
       label: t("workflow.operate.job_state_activated"),
       className:
-        "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+        "bg-info/10 text-info",
     },
     FAILED: {
       label: t("workflow.operate.job_state_failed"),
-      className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+      className: "bg-destructive/10 text-destructive",
     },
     ERROR_THROWN: {
       label: t("workflow.operate.job_state_error_thrown"),
       className:
-        "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
+        "bg-destructive/10 text-destructive",
     },
     SUSPENDED: {
       label: t("workflow.operate.job_def_state_suspended"),
       className:
-        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+        "bg-warning/10 text-warning-ink",
     },
   }
   const c = config[state] ?? {
@@ -501,7 +501,7 @@ export function ProcessInstanceOperate({
                     type="button"
                     className={cn(
                       "flex w-full flex-col gap-0.5 px-3 py-2 text-left text-xs transition-colors hover:bg-muted/50",
-                      item.id === selected?.id && "bg-sky-50 dark:bg-sky-950/30"
+                      item.id === selected?.id && "bg-info/10"
                     )}
                     onClick={() => onSelect(item)}
                   >
@@ -571,7 +571,7 @@ export function ProcessInstanceOperate({
                     disabled={actionPending != null}
                     onClick={handlePause}
                   >
-                    <PauseCircle className="mr-1 size-3.5 text-amber-600" />
+                    <PauseCircle className="mr-1 size-3.5 text-warning-ink" />
                     {t("workflow.operate.action_pause")}
                   </Button>
                 )}
@@ -584,7 +584,7 @@ export function ProcessInstanceOperate({
                     disabled={actionPending != null}
                     onClick={handleResume}
                   >
-                    <PlayCircle className="mr-1 size-3.5 text-emerald-600" />
+                    <PlayCircle className="mr-1 size-3.5 text-success" />
                     {t("workflow.operate.action_resume")}
                   </Button>
                 )}
@@ -684,7 +684,7 @@ export function ProcessInstanceOperate({
                       <AlertTriangle className="size-3.5 text-destructive" />
                       {t("workflow.operate.accordion_incidents")}
                       {activeIncidents.length + runtimeIncidents.length > 0 && (
-                        <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] leading-tight font-bold text-white">
+                        <span className="inline-flex items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] leading-tight font-bold text-white">
                           {activeIncidents.length + runtimeIncidents.length}
                         </span>
                       )}
@@ -694,7 +694,7 @@ export function ProcessInstanceOperate({
                     {runtimeIncidents.length === 0 &&
                     filteredIncidents.length === 0 ? (
                       <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
-                        <CheckCircle2 className="size-3.5 text-emerald-500" />
+                        <CheckCircle2 className="size-3.5 text-success" />
                         {t("workflow.operate.no_incidents")}
                       </div>
                     ) : (
@@ -702,7 +702,7 @@ export function ProcessInstanceOperate({
                         {runtimeIncidents.map((inc) => (
                           <div
                             key={`rt-${inc.jobKey}`}
-                            className="flex items-start gap-2 bg-red-50/30 px-3 py-2 text-xs dark:bg-red-950/10"
+                            className="flex items-start gap-2 bg-destructive/30 px-3 py-2 text-xs"
                           >
                             <IncidentStateBadge state="CREATED" />
                             <div className="min-w-0 flex-1">
@@ -729,7 +729,7 @@ export function ProcessInstanceOperate({
                         {filteredIncidents.map((inc) => (
                           <div
                             key={`op-${inc.incidentKey}`}
-                            className={`flex items-start gap-2 px-3 py-2 text-xs ${inc.state !== "RESOLVED" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}
+                            className={`flex items-start gap-2 px-3 py-2 text-xs ${inc.state !=="RESOLVED" ? "bg-destructive/30" : ""}`}
                           >
                             <IncidentStateBadge state={inc.state} />
                             <div className="min-w-0 flex-1">
@@ -761,7 +761,7 @@ export function ProcessInstanceOperate({
                                   type="button"
                                   size="sm"
                                   variant="ghost"
-                                  className="h-6 text-[11px] text-emerald-600"
+                                  className="h-6 text-[11px] text-success"
                                   onClick={() =>
                                     handleResolveIncident(inc.incidentKey)
                                   }
@@ -782,10 +782,10 @@ export function ProcessInstanceOperate({
                 <AccordionItem value="jobs" className="rounded-lg border">
                   <AccordionTrigger className="px-3 py-2 text-xs font-medium hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <CircleDot className="size-3.5 text-amber-500" />
+                      <CircleDot className="size-3.5 text-warning-ink" />
                       {t("workflow.operate.accordion_jobs")}
                       {failedJobs.length > 0 && (
-                        <span className="inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] leading-tight font-bold text-white">
+                        <span className="inline-flex items-center justify-center rounded-full bg-warning px-1.5 text-[10px] leading-tight font-bold text-white">
                           {failedJobs.length}
                         </span>
                       )}
@@ -794,7 +794,7 @@ export function ProcessInstanceOperate({
                   <AccordionContent className="px-0 pb-0">
                     {pendingJobs.length === 0 && filteredJobs.length === 0 ? (
                       <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
-                        <CheckCircle2 className="size-3.5 text-emerald-500" />
+                        <CheckCircle2 className="size-3.5 text-success" />
                         {t("workflow.operate.no_background_jobs")}
                       </div>
                     ) : (
@@ -802,7 +802,7 @@ export function ProcessInstanceOperate({
                         {pendingJobs.map((job) => (
                           <div
                             key={`rt-${job.jobKey}`}
-                            className={`flex items-start gap-2 px-3 py-2 text-xs ${job.retries === 0 ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}
+                            className={`flex items-start gap-2 px-3 py-2 text-xs ${job.retries === 0 ? "bg-destructive/30" : ""}`}
                           >
                             <JobStateBadge state={job.state} />
                             <div className="min-w-0 flex-1">
@@ -829,7 +829,7 @@ export function ProcessInstanceOperate({
                         {filteredJobs.map((job) => (
                           <div
                             key={`op-${job.jobKey}`}
-                            className={`flex items-start gap-2 px-3 py-2 text-xs ${job.state === "FAILED" || job.state === "ERROR_THROWN" ? "bg-red-50/30 dark:bg-red-950/10" : ""}`}
+                            className={`flex items-start gap-2 px-3 py-2 text-xs ${job.state ==="FAILED" || job.state ==="ERROR_THROWN" ? "bg-destructive/30" : ""}`}
                           >
                             <JobStateBadge state={job.state} />
                             <div className="min-w-0 flex-1">

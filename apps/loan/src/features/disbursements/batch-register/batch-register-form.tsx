@@ -577,7 +577,7 @@ export function BatchRegisterForm() {
                   {previewQuery.isPending ? <div className="space-y-2"><Skeleton className="h-5 w-1/2" /><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-4/5" /></div> : null}
                   {previewQuery.isError ? <div role="alert" className="space-y-2"><p className="text-sm text-destructive">{t("loan.disbursements.batch.posting_preview_failed")}</p><Button type="button" variant="outline" size="sm" onClick={() => void previewQuery.refetch()}>{t("common.action.retry")}</Button></div> : null}
                   {previewQuery.data ? <>
-                    <p className={previewQuery.data.valid ? "text-sm text-emerald-700" : "text-sm text-destructive"}>
+                    <p className={previewQuery.data.valid ? "text-sm text-success" : "text-sm text-destructive"}>
                       {t(previewQuery.data.valid ? "loan.disbursements.batch.posting_preview_valid" : "loan.disbursements.batch.posting_preview_invalid", { version: previewQuery.data.coa_version_id })}
                     </p>
                     {previewQuery.data.global_errors.map((error, index) => <p key={`${error}-${index}`} className="text-sm text-destructive">{error}</p>)}

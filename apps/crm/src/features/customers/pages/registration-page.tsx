@@ -546,7 +546,7 @@ export function CustomerRegistrationPage({
               ) : null}
               <RegistrationStatusBar customer={savedCustomer} />
               {awaitingMakerResubmit ? (
-                <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                <div className="rounded-md border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-ink">
                   <p className="font-medium">
                     {t(
                       "crm.customers.registrations.needs_changes_banner_title"

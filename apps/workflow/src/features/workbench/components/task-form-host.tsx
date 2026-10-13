@@ -144,7 +144,7 @@ export function TaskFormHost({
 
         {state === "unsupported" ? (
           <div className="space-y-3">
-            <p className="rounded-md border border-amber-500/40 bg-amber-500/5 px-4 py-3 text-sm">
+            <p className="rounded-md border border-warning/40 bg-warning/5 px-4 py-3 text-sm">
               {t("workflow.workbench.task_form.unsupported")}
             </p>
             <DialogFooter>

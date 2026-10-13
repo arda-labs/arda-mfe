@@ -227,7 +227,7 @@ export function ActivityGroup({
                   {step.status === "running" ? (
                     <LoaderCircle className="size-3 shrink-0 animate-spin text-primary" />
                   ) : (
-                    <CircleCheck className="size-3 shrink-0 text-emerald-500" />
+                    <CircleCheck className="size-3 shrink-0 text-success" />
                   )}
                   <span className="font-medium text-foreground">{step.label}</span>
                   {step.detail && (

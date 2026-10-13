@@ -1382,8 +1382,8 @@ export function monitoringMetrics(cases: WorkflowCase[], t: TFn) {
 }
 
 export function metricTone(tone: "default" | "success" | "warning" | "error") {
-  if (tone === "success") return "text-emerald-600"
-  if (tone === "warning") return "text-amber-600"
+  if (tone ==="success") return"text-success"
+  if (tone ==="warning") return"text-warning-ink"
   if (tone === "error") return "text-destructive"
   return ""
 }

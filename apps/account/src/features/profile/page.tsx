@@ -756,8 +756,8 @@ function Metric({
         <div
           className={
             tone === "success"
-              ? "flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600"
-              : "flex size-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600"
+              ? "flex size-10 items-center justify-center rounded-lg bg-success/10 text-success"
+              : "flex size-10 items-center justify-center rounded-lg bg-warning/10 text-warning-ink"
           }
         >
           <Icon className="size-5" />

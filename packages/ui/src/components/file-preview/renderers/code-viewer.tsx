@@ -161,7 +161,7 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
             title={t("action.copy")}
           >
             {copied ? (
-              <Check className="size-3.5 text-emerald-500" />
+              <Check className="size-3.5 text-success" />
             ) : (
               <Copy className="size-3.5" />
             )}
@@ -178,7 +178,7 @@ export function CodeViewer({ content, filename, className }: CodeViewerProps) {
                 key={num}
                 className={cn(
                   "transition-colors hover:bg-muted/40",
-                  highlight && "bg-amber-500/15 dark:bg-amber-500/20"
+                  highlight && "bg-warning/15"
                 )}
               >
                 <td className="w-10 border-r border-border/40 pr-3 text-right align-top text-[11px] text-muted-foreground/60 select-none">

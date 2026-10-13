@@ -16,7 +16,7 @@ const statusVariants = cva(
         error:
           "border-destructive/20 bg-destructive/10 text-destructive **:data-[slot=status-indicator]:bg-destructive",
         warning:
-          "border-warning/25 bg-warning/15 text-warning **:data-[slot=status-indicator]:bg-warning",
+          "border-warning/25 bg-warning/15 text-warning-ink **:data-[slot=status-indicator]:bg-warning",
         info: "border-info/20 bg-info/10 text-info **:data-[slot=status-indicator]:bg-info",
       },
     },

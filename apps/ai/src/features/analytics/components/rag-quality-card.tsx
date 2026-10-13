@@ -68,10 +68,10 @@ export function RAGQualityCard({ quality, feedback }: RAGQualityCardProps) {
 
         <div className="flex items-center justify-between rounded-lg border bg-muted/40 p-2.5 text-xs">
           <div className="flex items-center gap-2">
-            <ThumbsUp className="h-3.5 w-3.5 text-emerald-500" />
+            <ThumbsUp className="h-3.5 w-3.5 text-success" />
             <span>{t("ai.analytics.feedback.rate_label")}</span>
           </div>
-          <span className="font-bold text-emerald-500">
+          <span className="font-bold text-success">
             {feedback.satisfactionRate.toFixed(1)}%
           </span>
         </div>

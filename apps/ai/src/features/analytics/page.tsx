@@ -66,7 +66,7 @@ export function AnalyticsPage() {
         <div className="space-y-6">
           <section className="space-y-3" aria-labelledby="reasoning-metrics">
             <div className="flex items-center gap-2">
-              <Cpu className="size-4 text-sky-600" />
+              <Cpu className="size-4 text-info" />
               <h2 id="reasoning-metrics" className="text-sm font-semibold">
                 {t("ai.analytics.roles.reasoning")}
               </h2>
@@ -110,7 +110,7 @@ export function AnalyticsPage() {
 
           <section className="space-y-3" aria-labelledby="decision-metrics">
             <div className="flex items-center gap-2">
-              <GitBranch className="size-4 text-violet-600" />
+              <GitBranch className="size-4 text-primary" />
               <h2 id="decision-metrics" className="text-sm font-semibold">
                 {t("ai.analytics.roles.decision")}
               </h2>
@@ -146,7 +146,7 @@ export function AnalyticsPage() {
 
           <section className="space-y-3" aria-labelledby="action-metrics">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="size-4 text-emerald-600" />
+              <ShieldCheck className="size-4 text-success" />
               <h2 id="action-metrics" className="text-sm font-semibold">
                 {t("ai.analytics.roles.actions")}
               </h2>

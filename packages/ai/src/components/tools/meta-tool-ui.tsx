@@ -149,7 +149,7 @@ export function ExecuteMetaToolCard({
     return (
       <div className="space-y-1.5 py-0.5">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <LoaderCircle className="size-3 shrink-0 animate-spin text-amber-500" />
+          <LoaderCircle className="size-3 shrink-0 animate-spin text-warning-ink" />
           <span>
             {t("ai.tool.execute.pending") ||
               "Đang thực thi kịch bản xử lý trong sandbox an toàn..."}
@@ -199,7 +199,7 @@ export function ExecuteMetaToolCard({
           {isError ? (
             <AlertCircle className="size-3.5 shrink-0 text-destructive" />
           ) : (
-            <CircleCheck className="size-3.5 shrink-0 text-emerald-500" />
+            <CircleCheck className="size-3.5 shrink-0 text-success" />
           )}
 
           <span className="font-medium text-foreground">
@@ -249,7 +249,7 @@ export function ExecuteMetaToolCard({
                       key={`${method}-${index}`}
                       className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
                     >
-                      <CircleCheck className="size-3 shrink-0 text-emerald-500" />
+                      <CircleCheck className="size-3 shrink-0 text-success" />
                       <code className="font-mono">{method}</code>
                     </li>
                   ))}

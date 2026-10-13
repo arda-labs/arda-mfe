@@ -91,12 +91,12 @@ export function ApprovalCard({
         isExpired
           ? "border-muted bg-muted/20 opacity-75"
           : isUrgent
-            ? "border-amber-500/60 bg-amber-500/10"
-            : "border-amber-500/40 bg-amber-500/5"
+            ? "border-warning/60 bg-warning/10"
+            : "border-warning/40 bg-warning/5"
       }`}
     >
       <div className="flex items-center gap-2">
-        <ShieldCheck className={`size-4 shrink-0 ${isExpired ? "text-muted-foreground" : "text-amber-600"}`} />
+        <ShieldCheck className={`size-4 shrink-0 ${isExpired ? "text-muted-foreground" : "text-warning-ink"}`} />
         <h4 id={`approval-title-${proposalId}`} className="text-sm font-semibold text-foreground">
           {t("ai.approval.title") || "Yêu cầu phê duyệt hành động"}
         </h4>

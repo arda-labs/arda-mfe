@@ -197,7 +197,7 @@ export function PreferencesCard() {
           {savingPrefs ? t("profile.prefs.saving") : t("profile.prefs.save")}
         </Button>
         {message && (
-          <span className="text-xs text-emerald-700 dark:text-emerald-300">
+          <span className="text-xs text-success">
             {message}
           </span>
         )}
