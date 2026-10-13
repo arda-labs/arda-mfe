@@ -287,6 +287,128 @@ pure UI event handlers that the AI can invoke.
 
 ---
 
+## 4b. Interactive widgets (`renderWidget`)
+
+When the backend flag `AI_ENABLE_SANDBOXED_UI` is on (default off), Olorin may
+answer a "what-if" question with a small model-generated tool (HTML + CSS + JS)
+instead of prose. Static display is unchanged: markdown, `renderChart` and the
+report/tool cards cover it. With the flag off the model has no `renderWidget`
+tool and nothing in this section applies.
+
+`@workspace/ai` renders the tool with `WidgetFrame` (wrapped by `WidgetSlot`),
+mounted through `RenderWidgetToolUI` in `OlorinPanel`.
+
+### How it renders
+
+```html
+<iframe sandbox="allow-scripts" srcdoc="..." referrerpolicy="no-referrer">
+```
+
+- The sandbox is exactly `allow-scripts`. Never add `allow-same-origin`,
+  `allow-forms`, `allow-popups`, `allow-modals` or `allow-top-navigation`.
+- The frame has an opaque origin: no cookies, no storage, no access to the
+  parent DOM.
+- The document (`buildWidgetDocument` in `lib/widget-host.ts`) starts with a
+  `<meta>` CSP (`default-src 'none'; script-src 'unsafe-inline'; ...;
+  connect-src 'none'; form-action 'none'`) that blocks fetch/XHR/WebSocket,
+  external images, fonts, nested frames and form posts.
+- Theme tokens (`--background`, `--primary`, `--chart-1..`) are injected from
+  the shell theme. A theme change rebuilds the document and reloads the frame,
+  so interactive state is lost.
+
+### Protocol
+
+| Direction | Message | Notes |
+|:---|:---|:---|
+| parent -> iframe | `{ type: "arda:data", data }` | sent once per iframe load, after the `load` event (model listeners are registered while parsing); the iframe sets `window.ARDA_DATA` and fires an `arda:data` event |
+| iframe -> parent | `{ type: "arda:height", height }` | clamped to 160-720 px |
+| iframe -> parent | `{ type: "arda:error", message }` | capped at 500 chars |
+
+The parent accepts only those two inbound shapes (`parseWidgetMessage`) and
+only when `event.source` is its own iframe's `contentWindow`. `arda:error` text
+comes from model code and is untrusted: render it as a plain text child, never
+as HTML. There is no channel for the widget to send text into the conversation.
+
+Frame behavior: no `arda:height` within 5 s of sending the data shows "did not
+respond" with a retry button; an `arda:error` shows a warning bar (text capped
+at 200 chars) with a reload button and keeps the frame; at most 3 widgets are
+mounted at once (the oldest collapses to a "run again" card); expand is an
+in-place height change (70vh), not a dialog.
+
+### Data
+
+The tool result carries either inline `data` (at most 64 KB) or a `result_id`
+referring to an `execute()` result. For `result_id` the frame hydrates it with
+`GET /api/ai/results/{id}?thread_id=` (`fetchExecuteResult` in `lib/results.ts`;
+response envelope `{ success, result: { output } }`). Real ids look like
+`tenant|actor|thread:hex`, so the id path segment is percent-encoded. The
+endpoint is owner- and thread-scoped; a missing result returns 404
+`ai.result_not_found`. On any fetch failure the UI shows a "could not load
+data" box with the inputs summary instead of mounting a frame. Reopening a thread replays the
+widget from the persisted result (same full payload as the live one).
+
+### Security dependency on the shell header
+
+The iframe CSP does **not** govern the frame's own navigation. `location.href`,
+`<meta http-equiv="refresh">` and `<a href>` inside the widget are governed by
+the **embedding page's** `frame-src`. Without a shell policy, a widget could
+leak its data by navigating itself to an attacker URL. The shell Worker
+therefore sends, on HTML documents:
+
+```
+Content-Security-Policy: frame-src 'self' blob:; object-src 'none'; frame-ancestors 'self'; base-uri 'self'
+```
+
+- Source: `cloudflare/shell-csp.ts` (`SHELL_CSP`, `withShellCsp`); the Worker
+  is invoked for HTML via `run_worker_first` in `cloudflare/wrangler.shell.jsonc`.
+- Do not weaken the policy and do not remove `/*` from `run_worker_first`
+  (the exclusions for `/assets/*`, `/locales/*`, `/remoteEntry-*` are for
+  immutable static files only). If the Worker is bypassed, the header silently
+  disappears. A dedicated widget origin, when added, must be added to
+  `frame-src`.
+- After deploying a branch, verify the header on a navigation request:
+  `curl -sI -H "Sec-Fetch-Mode: navigate" <shell url> | findstr Content-Security-Policy`.
+- `tests/browser/widget-sandbox.spec.ts` (Playwright) runs a real attacker
+  listener and tries `location.href`, meta refresh and anchor click. Each variant
+  has a control without the header that leaks the data, and a run with
+  `SHELL_CSP` where the browser blocks the navigation and the listener receives
+  nothing.
+
+Side effects of `frame-src 'self' blob:`:
+
+- External-URL PDFs that PDF.js cannot fetch (no CORS) and printing a
+  non-same-origin source cannot use a hidden/visible iframe any more; they open
+  in a new tab (`packages/ui` file-preview, `canFrameSource`). Top-level
+  navigation is not governed by `frame-src`.
+- `srcdoc` iframes are not subject to `frame-src` but inherit the embedding
+  page's policy; this includes the notification design preview
+  (`sandbox=""`, `apps/platform` design dialog).
+
+### Known limits
+
+- **WebRTC is a residual exfiltration channel.** `RTCPeerConnection` (for
+  example a TURN `username`) is not covered by CSP `connect-src`. Mitigations:
+  the widget only ever receives the minimal `data` the model passes (no
+  tokens, cookies or UI context); the backend code filter rejects
+  `RTCPeerConnection` as an early check; a dedicated widget origin with network
+  egress controls is the planned next step.
+- The backend forbidden-pattern filter is **not** a security boundary. The
+  boundary is the browser sandbox plus the two CSPs above.
+- An infinite loop in widget JS can freeze the tab: a `srcdoc` frame shares the
+  process with the shell. The 5 s timeout only helps when the frame never
+  replies; it cannot interrupt a script that never yields. A dedicated origin
+  would fix this.
+- A widget can draw a fake form. The frame, title and "generated tool" badge
+  are rendered by the parent outside model control.
+
+### For domain MFE authors
+
+Nothing to register. Keep using `registerToolRenderer` for structured results
+and do not render model-supplied HTML yourself; if a result needs interactivity,
+let the model use `renderWidget`.
+
+---
+
 ## 5. Package Exports
 
 `packages/ai` exports the following for domain MFEs to use (authoritative
@@ -309,6 +431,9 @@ export {
   KnowledgeCitationList, KnowledgeSearchFeedback, GenericToolView,
   RunStatusBanner, RunErrorCard, ApprovalCard, DataTableView,
 }
+
+// sandboxed interactive widgets (section 4b); OlorinPanel already mounts the tool UI
+export { WidgetFrame, WidgetSlot, RenderWidgetToolUI }
 
 // settings & error handling
 export {
