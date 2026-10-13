@@ -9,6 +9,8 @@ import {
 } from "@workspace/ui/shell/page-title"
 import { useI18n } from "@workspace/i18n"
 import { BrandMark } from "@workspace/ui/components/brand-mark"
+import { ContextPill } from "@workspace/ui/components/context-pill"
+import { todayISO } from "@workspace/format"
 import { Button } from "@workspace/ui/components/button"
 import { Toaster } from "@workspace/ui/components/toaster"
 import { cn } from "@workspace/ui/lib/utils"
@@ -26,6 +28,7 @@ import {
   groupNavBySection,
 } from "./config/nav-config"
 import { useDynamicNavItems } from "./config/use-dynamic-nav"
+import { useBusinessDay } from "./config/use-business-day"
 import { SidebarNode } from "./components/SidebarNav"
 import { AppHeader } from "./components/AppHeader"
 import { SidebarOrgSwitcher } from "./components/SidebarOrgSwitcher"
@@ -124,6 +127,14 @@ export function ShellLayout() {
   }
   const orgIds = user?.orgIds ?? []
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
+  const { day: businessDay } = useBusinessDay(
+    authHydrated && isAuthenticated && Boolean(user)
+  )
+  const unitName =
+    user?.tenantMemberships?.find(
+      (membership) =>
+        membership.tenantId === (user.activeTenantId ?? user.tenantId)
+    )?.tenantName ?? branding.organizationName
 
   useEffect(() => {
     if (authHydrated) return
@@ -286,6 +297,15 @@ export function ShellLayout() {
               </>
             ) : null}
           </button>
+        </div>
+        <div className="px-2 pt-1 pb-1">
+          <ContextPill
+            unit={unitName}
+            businessDate={businessDay?.current_business_date}
+            status={businessDay?.status}
+            today={todayISO()}
+            compact={!sidebarOpen}
+          />
         </div>
         {orgIds.length > 1 ? (
           <div className={cn("p-2", !sidebarOpen && "flex justify-center")}>
