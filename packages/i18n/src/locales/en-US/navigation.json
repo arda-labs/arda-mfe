@@ -30,7 +30,15 @@
     "trial_balance": "Trial Balance",
     "statements": "Financial Statements",
     "opening_balances": "Opening Balances",
-    "accounting_config": "Accounting Configuration"
+    "accounting_config": "Accounting Configuration",
+    "posting": {
+      "_self": "Postings",
+      "single": "Single-entry posting",
+      "double": "Red-black double entry",
+      "off_balance": "Off-balance",
+      "closing": "Income/expense closing",
+      "cancellation": "Transaction cancellation"
+    }
   },
   "hrm": {
     "_self": "HRM",
@@ -116,5 +124,26 @@
       "dossier": "Loan dossier",
       "general_provision": "General provision"
     }
+  },
+  "section": {
+    "credit": "Credit",
+    "funding": "Funding",
+    "accounting": "Accounting & Treasury",
+    "control": "Control & Reporting",
+    "hr": "Admin & HR",
+    "shared": "Shared",
+    "admin": "Administration"
+  },
+  "loan": {
+    "_self": "Credit",
+    "contracts": "Credit contracts",
+    "products": "Loan products",
+    "disbursements": "Disbursements",
+    "collections": "Collections",
+    "vfu": "Entrusted lending (VFU)",
+    "adjustments": "Loan adjustments",
+    "repay_plan": "Repayment schedule",
+    "dossier": "Loan dossier",
+    "general_provision": "General provision"
   }
 }

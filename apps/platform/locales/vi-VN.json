@@ -25,7 +25,10 @@
       "sort_order": "Thứ tự",
       "is_active": "Đang hiển thị",
       "scope": "Phạm vi",
-      "status": "Trạng thái"
+      "status": "Trạng thái",
+      "section": "Phòng ban",
+      "section_none": "Không nhóm",
+      "section_child_hint": "Menu con dùng phòng ban của menu gốc"
     },
     "placeholder": {
       "search": "Tìm theo tiêu đề, mã, đường dẫn...",
