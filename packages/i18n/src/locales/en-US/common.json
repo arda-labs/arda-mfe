@@ -136,7 +136,12 @@
     "selected_count": "{count} selected",
     "no_results": "No results found.",
     "visible_columns": "Visible columns",
-    "search_columns": "Search columns..."
+    "search_columns": "Search columns...",
+    "columns": "Columns",
+    "empty_title": "Nothing here yet",
+    "empty_description": "New records will appear here.",
+    "filtered_empty_title": "No results match your filters",
+    "filtered_empty_description": "Try removing a filter or changing the search term."
   },
   "date": {
     "today": "Today",

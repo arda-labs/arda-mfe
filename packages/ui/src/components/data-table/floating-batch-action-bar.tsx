@@ -36,21 +36,17 @@ export function FloatingBatchActionBar<TData>({
   return (
     <div
       role="region"
-      aria-label="Batch actions toolbar"
+      aria-label={t("batch_actions.selected_count", { count: selectedCount })}
       className={cn(
-        "fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full border border-border/80 bg-background/95 px-4 py-2 shadow-xl backdrop-blur-md transition-all duration-200 animate-in fade-in slide-in-from-bottom-4",
+        // Dark pill (design board 12.2): reads as a mode, not another card.
+        "dark fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#0f1424] py-1.5 pr-1.5 pl-4 text-sm text-white shadow-dialog transition-all duration-200 animate-in fade-in slide-in-from-bottom-4",
         className
       )}
       {...props}
     >
-      <div className="flex items-center gap-2 pr-2 border-r border-border/60">
-        <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
-          {selectedCount}
-        </span>
-        <span className="text-xs font-medium text-foreground whitespace-nowrap">
-          {t("batch_actions.selected_count", { count: selectedCount })}
-        </span>
-      </div>
+      <span className="font-medium whitespace-nowrap">
+        {t("batch_actions.selected_count", { count: selectedCount })}
+      </span>
 
       <div className="flex items-center gap-2">
         {children}
@@ -60,7 +56,7 @@ export function FloatingBatchActionBar<TData>({
         variant="ghost"
         size="icon"
         onClick={handleClear}
-        className="size-7 rounded-full text-muted-foreground hover:text-foreground"
+        className="size-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white"
         title={t("batch_actions.clear_selection")}
         aria-label={t("batch_actions.clear_selection")}
       >

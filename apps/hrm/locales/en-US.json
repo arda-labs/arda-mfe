@@ -310,6 +310,8 @@
       "org_level_required": "Org level is required",
       "department_type_required": "Department type is required",
       "description_too_long": "Description is too long"
-    }
+    },
+    "empty_title": "No departments yet",
+    "empty_description": "Create the first department to build the organisation structure."
   }
 }

@@ -136,7 +136,12 @@
     "selected_count": "{count} đã chọn",
     "no_results": "Không tìm thấy kết quả",
     "visible_columns": "Cột hiển thị",
-    "search_columns": "Tìm kiếm cột..."
+    "search_columns": "Tìm kiếm cột...",
+    "columns": "Cột",
+    "empty_title": "Chưa có dữ liệu",
+    "empty_description": "Bản ghi mới sẽ hiện ở đây.",
+    "filtered_empty_title": "Không có kết quả khớp bộ lọc",
+    "filtered_empty_description": "Thử bỏ bớt điều kiện lọc hoặc đổi từ khóa tìm kiếm."
   },
   "date": {
     "today": "Hôm nay",
