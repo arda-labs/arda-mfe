@@ -375,6 +375,12 @@
     "off_by": "Lệch {amount}",
     "empty": "Chưa có dòng bút toán"
   },
+  "tree": {
+    "expand": "Mở nhánh",
+    "collapse": "Thu gọn nhánh",
+    "expand_all": "Mở tất cả",
+    "collapse_all": "Thu gọn tất cả"
+  },
   "activity": {
     "empty": "Chưa có hoạt động",
     "today": "Hôm nay"
