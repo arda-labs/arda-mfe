@@ -157,13 +157,19 @@ and switches only the production `https://arda.io.vn` origin to
 `https://api.arda.io.vn`. Fetch, SSE, and media URLs must use the shared
 resolver/client so credentialed cross-origin requests remain consistent.
 
-All 14 Workers (shell + 13 remotes) are connected directly to
-`arda-labs/arda-mfe` through
-Cloudflare Workers Builds. Pushes to `main` deploy production; non-production
-branches create preview versions. Build watch paths keep app-only changes scoped
-to that deployment unit, while shared packages and Cloudflare build files trigger
-all units. Cloudflare manages the build token, so GitHub deployment secrets are
-not required.
+All 14 Workers (shell + 13 remotes) are deployed by the GitHub Actions workflow
+`.github/workflows/deploy.yml` on every push to `main` (or by hand via
+`workflow_dispatch`). One job installs once, runs `bun run cf:build:all`, then
+`wrangler deploy`s the remotes and finally the shell. The `deploy-production`
+concurrency group never cancels a running deploy; pushes that land meanwhile
+collapse into one pending run for the newest commit. Pull requests are checked
+by `verify.yml` only; there are no preview deployments (`preview_urls: false`).
+
+The workflow needs the repository secret `CLOUDFLARE_API_TOKEN` (Account ›
+Workers Scripts › Edit, plus Zone › Workers Routes › Edit on `arda.io.vn`) and
+the repository variable `CLOUDFLARE_ACCOUNT_ID`. Cloudflare Workers Builds
+(the Git integration on each Worker) must stay disconnected, otherwise every
+push builds twice.
 
 ## Adding UI components
 

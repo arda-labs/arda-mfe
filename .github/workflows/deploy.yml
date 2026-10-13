@@ -1,0 +1,47 @@
+name: deploy
+
+# Production deploy of the shell and every remote to Cloudflare Workers.
+# One job installs once and builds all 14 units, instead of 14 separate
+# Workers Builds that queue behind each other (one concurrent build on the
+# Free plan). Pushes that land while a deploy runs collapse into a single
+# pending run for the newest commit; the running deploy is never cancelled
+# halfway, so the shell and remotes are not left on mixed builds.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  cloudflare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      # CI=true makes build-cloudflare-app.mjs read the deployed
+      # mfe-release.json from https://arda.io.vn and keep the N-1 chunks.
+      - run: bun run cf:build:all
+      # Remotes first, shell last: a new shell never points at a remote
+      # build that is not deployed yet.
+      - name: Deploy Workers
+        run: |
+          apps="$(bun -e 'import { remoteNames } from "./federation.routes.ts"; console.log(remoteNames.join(" "))') shell"
+          for app in $apps; do
+            echo "::group::deploy $app"
+            bunx wrangler deploy --config "cloudflare/wrangler.$app.jsonc"
+            echo "::endgroup::"
+          done
