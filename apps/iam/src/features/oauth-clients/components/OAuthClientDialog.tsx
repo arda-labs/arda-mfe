@@ -9,6 +9,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { notify } from "@workspace/ui/feedback/notify"
 import { oauthClientsApi, type OAuthClient } from "../api"
 
@@ -162,17 +163,18 @@ export function OAuthClientDialog({
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label>{t("admin.oauth_clients.field.auth_method")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
+              aria-label={t("admin.oauth_clients.field.auth_method")}
               value={form.token_endpoint_auth_method}
               onChange={(e) =>
                 setForm({ ...form, token_endpoint_auth_method: e.target.value })
               }
-            >
-              <option value="client_secret_basic">client_secret_basic</option>
-              <option value="client_secret_post">client_secret_post</option>
-              <option value="none">none (public)</option>
-            </select>
+              options={[
+                { value: "client_secret_basic", label: "client_secret_basic" },
+                { value: "client_secret_post", label: "client_secret_post" },
+                { value: "none", label: "none (public)" },
+              ]}
+            />
           </div>
           <div className="col-span-2 flex justify-end gap-2">
             <Button

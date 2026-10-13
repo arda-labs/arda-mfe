@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import type { CrmProject } from "../../api"
@@ -88,18 +89,16 @@ export function ProjectForm({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="crm_project_start">{t("crm.projects.field.start")}</Label>
-        <Input
+        <DateField
           id="crm_project_start"
-          type="date"
           value={values.start_date}
           onChange={(event) => update({ start_date: event.target.value })}
         />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="crm_project_end">{t("crm.projects.field.end")}</Label>
-        <Input
+        <DateField
           id="crm_project_end"
-          type="date"
           value={values.end_date}
           onChange={(event) => update({ end_date: event.target.value })}
         />

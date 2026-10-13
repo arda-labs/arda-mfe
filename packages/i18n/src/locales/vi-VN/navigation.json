@@ -30,7 +30,15 @@
     "trial_balance": "Bảng cân đối thử",
     "statements": "Báo cáo tài chính",
     "opening_balances": "Số dư đầu kỳ",
-    "accounting_config": "Cấu hình kế toán"
+    "accounting_config": "Cấu hình kế toán",
+    "posting": {
+      "_self": "Bút toán",
+      "single": "Bút toán lẻ",
+      "double": "Bút toán kép đỏ đen",
+      "off_balance": "Ngoại bảng",
+      "closing": "Kết chuyển thu chi",
+      "cancellation": "Hủy giao dịch"
+    }
   },
   "hrm": {
     "_self": "Nhân sự",
@@ -116,5 +124,26 @@
       "dossier": "Hồ sơ khoản vay",
       "general_provision": "Dự phòng chung"
     }
+  },
+  "section": {
+    "credit": "Phòng Tín dụng",
+    "funding": "Phòng Huy động vốn",
+    "accounting": "Phòng Kế toán – Ngân quỹ",
+    "control": "Phòng Kiểm soát – Báo cáo",
+    "hr": "Phòng HC – Nhân sự",
+    "shared": "Dùng chung",
+    "admin": "Quản trị"
+  },
+  "loan": {
+    "_self": "Tín dụng",
+    "contracts": "Hợp đồng tín dụng",
+    "products": "Sản phẩm vay",
+    "disbursements": "Giải ngân",
+    "collections": "Thu nợ",
+    "vfu": "Ủy thác (VFU)",
+    "adjustments": "Điều chỉnh khoản vay",
+    "repay_plan": "Lịch trả nợ",
+    "dossier": "Hồ sơ khoản vay",
+    "general_provision": "Dự phòng chung"
   }
 }

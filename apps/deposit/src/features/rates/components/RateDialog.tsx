@@ -13,6 +13,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { todayISO } from "@workspace/format"
 import { depositApi, type InterestRate } from "../../api"
 
@@ -109,15 +111,14 @@ export function RateDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>{t("deposit.rates.field.request_type")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={requestType}
               onChange={(e) => setRequestType(e.target.value as "REGISTER" | "ADJUST" | "EDIT")}
-            >
-              <option value="REGISTER">{t("deposit.rates.request_type.REGISTER")}</option>
-              <option value="ADJUST">{t("deposit.rates.request_type.ADJUST")}</option>
-              <option value="EDIT">{t("deposit.rates.request_type.EDIT")}</option>
-            </select>
+              options={(["REGISTER", "ADJUST", "EDIT"] as const).map((value) => ({
+                value,
+                label: t(`deposit.rates.request_type.${value}`),
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.rates.field.product")}</Label>
@@ -145,30 +146,29 @@ export function RateDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.rates.field.method")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-            >
-              <option value="SIMPLE">SIMPLE</option>
-              <option value="COMPOUND">COMPOUND</option>
-            </select>
+              options={[
+                { value: "SIMPLE", label: "SIMPLE" },
+                { value: "COMPOUND", label: "COMPOUND" },
+              ]}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.rates.field.denominator")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={denominator}
               onChange={(e) => setDenominator(e.target.value)}
-            >
-              <option value="365">365</option>
-              <option value="360">360</option>
-            </select>
+              options={[
+                { value: "365", label: "365" },
+                { value: "360", label: "360" },
+              ]}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.rates.field.effective_from")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={effectiveFrom}
               onChange={(e) => setEffectiveFrom(e.target.value)}
             />

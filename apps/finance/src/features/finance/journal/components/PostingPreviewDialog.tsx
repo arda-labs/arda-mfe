@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Table,
@@ -135,8 +136,7 @@ export function PostingPreviewDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("finance.posting_preview.field.accounting_date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={form.accounting_date}
               onChange={(e) => setForm((c) => ({ ...c, accounting_date: e.target.value }))}
             />

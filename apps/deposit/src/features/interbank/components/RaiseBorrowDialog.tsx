@@ -12,6 +12,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import {
   depositApi,
@@ -134,31 +136,25 @@ export function RaiseBorrowDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.borrow.field.lender_type")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={lenderType}
               onChange={(e) => setLenderType(e.target.value as IbmLenderType)}
-            >
-              {LENDER_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {t(`deposit.borrow.lender.${value}`)}
-                </option>
-              ))}
-            </select>
+              options={LENDER_TYPES.map((value) => ({
+                value,
+                label: t(`deposit.borrow.lender.${value}`),
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.borrow.field.funding_purpose")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={fundingPurpose}
               onChange={(e) => setFundingPurpose(e.target.value as IbmFundingPurpose)}
-            >
-              {FUNDING_PURPOSES.map((value) => (
-                <option key={value} value={value}>
-                  {t(`deposit.borrow.purpose.${value}`)}
-                </option>
-              ))}
-            </select>
+              options={FUNDING_PURPOSES.map((value) => ({
+                value,
+                label: t(`deposit.borrow.purpose.${value}`),
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.borrow.field.term_months")}</Label>
@@ -171,16 +167,14 @@ export function RaiseBorrowDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.borrow.field.drawdown_date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={drawdownDate}
               onChange={(e) => setDrawdownDate(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.borrow.field.maturity_date")}</Label>
-            <Input
-              type="date"
+            <DateField
               value={maturityDate}
               onChange={(e) => setMaturityDate(e.target.value)}
             />

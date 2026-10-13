@@ -3,6 +3,7 @@ import { Eye, RefreshCw, UserCheck } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
   TableBody,
@@ -120,24 +121,19 @@ export function UserTasksTab({
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_state")}
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <SelectField
+            className="h-8 w-44 text-xs"
             value={draft.state ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, state: event.target.value || undefined })
             }
-          >
-            <option value="">{t("workflow.operate.filter_all_states")}</option>
-            <option value="CREATED">
-              {t("workflow.operate.user_task_state_created")}
-            </option>
-            <option value="COMPLETED">
-              {t("workflow.operate.instance_state_completed")}
-            </option>
-            <option value="CANCELED">
-              {t("workflow.operate.instance_state_canceled")}
-            </option>
-          </select>
+            placeholder={t("workflow.operate.filter_all_states")}
+            options={[
+              { value: "CREATED", label: t("workflow.operate.user_task_state_created") },
+              { value: "COMPLETED", label: t("workflow.operate.instance_state_completed") },
+              { value: "CANCELED", label: t("workflow.operate.instance_state_canceled") },
+            ]}
+          />
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_assignee")}

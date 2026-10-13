@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { upsertNotificationTemplate } from "../api"
 import { type NotificationTemplate } from "../types"
@@ -122,19 +123,14 @@ export function TemplateDialog({
             </div>
             <div className="space-y-1.5">
               <Label>{t("platform.notifications.field.channel")}</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              <SelectField
+                className="w-full"
                 value={form.channel}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, channel: e.target.value }))
                 }
-              >
-                {CHANNELS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+                options={CHANNELS.map((value) => ({ value, label: value }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>{t("platform.notifications.field.locale")}</Label>

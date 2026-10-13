@@ -5,6 +5,7 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
@@ -194,29 +195,31 @@ export function CutoffPage() {
               <label className="text-xs font-medium text-muted-foreground">
                 Kenh giao dich
               </label>
-              <select
+              <SelectField
                 value={simChannel}
                 onChange={(event) => setSimChannel(event.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-              >
-                <option value="CITAD">CITAD (Chot: 16:30)</option>
-                <option value="NAPAS">NAPAS (Chot: 17:00)</option>
-                <option value="COUNTER">Tai quay (Chot: 17:00)</option>
-              </select>
+                className="mt-1 w-full"
+                options={[
+                  { value: "CITAD", label: "CITAD (Chot: 16:30)" },
+                  { value: "NAPAS", label: "NAPAS (Chot: 17:00)" },
+                  { value: "COUNTER", label: "Tai quay (Chot: 17:00)" },
+                ]}
+              />
             </div>
 
             <div>
               <label className="text-xs font-medium text-muted-foreground">
                 Loai giao dich
               </label>
-              <select
+              <SelectField
                 value={simType}
                 onChange={(event) => setSimType(event.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-              >
-                <option value="TRANSFER">TRANSFER (Chuyen khoan)</option>
-                <option value="DEPOSIT">DEPOSIT (Nop tien)</option>
-              </select>
+                className="mt-1 w-full"
+                options={[
+                  { value: "TRANSFER", label: "TRANSFER (Chuyen khoan)" },
+                  { value: "DEPOSIT", label: "DEPOSIT (Nop tien)" },
+                ]}
+              />
             </div>
 
             <div>

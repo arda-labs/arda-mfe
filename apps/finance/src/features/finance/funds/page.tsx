@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Select,
@@ -285,9 +286,8 @@ export function FundsPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">{t("finance.funds.field.date")}</Label>
-                <Input
-                  type="date"
-                  className="h-8 w-44 text-xs"
+                <DateField
+                  className="w-44"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                 />

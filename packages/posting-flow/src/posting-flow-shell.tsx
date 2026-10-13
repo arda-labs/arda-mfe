@@ -1,6 +1,8 @@
 import type { ReactNode } from "react"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import {
   Select,
@@ -159,7 +161,7 @@ export function PostingFlowPage({
  *   section.flex.h-full.min-h-0.flex-col
  *   └ form / scroll container
  *     └ Tabs (flex flex-col)
- *       ├ PageTitle block (title + optional status meta)
+ *       ├ PageHeader (title + optional status meta)
  *       ├ sticky tab bar (top-0 z-10 border-b bg-background px-4 py-2)
  *       └ <div.space-y-4.p-4> with one <TabsContent> per `tabs` item
  *
@@ -254,19 +256,7 @@ function PageTitleBlock({
   description?: string
   meta?: ReactNode
 }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h1 className="truncate text-2xl font-semibold">{title}</h1>
-            {meta}
-          </div>
-          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
-        </div>
-      </div>
-    </div>
-  )
+  return <PageHeader title={title} description={description} meta={meta} />
 }
 
 /**
@@ -338,9 +328,8 @@ export function ObjectInfoCard({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="object-info-issue-date">{labels.issueDate}</Label>
-          <Input
+          <DateField
             id="object-info-issue-date"
-            type="date"
             value={value.issue_date}
             onChange={(e) => set({ issue_date: e.target.value })}
           />

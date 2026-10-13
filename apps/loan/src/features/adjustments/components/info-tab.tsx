@@ -4,6 +4,7 @@ import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Textarea } from "@workspace/ui/components/textarea"
@@ -219,9 +220,8 @@ export function AdjustmentInfoTab({ kind }: { kind: LoanAdjustmentKind }) {
                 <Label htmlFor="adjustment-effective-date">
                   {t(spec.effectiveDateLabelKey)}
                 </Label>
-                <Input
+                <DateField
                   id="adjustment-effective-date"
-                  type="date"
                   value={effectiveDate}
                   onChange={(event) => setEffectiveDate(event.target.value)}
                 />

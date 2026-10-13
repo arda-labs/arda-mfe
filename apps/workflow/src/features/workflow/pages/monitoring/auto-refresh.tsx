@@ -1,4 +1,5 @@
 import { useI18n } from "@workspace/i18n"
+import { SelectField } from "@workspace/ui/components/select-field"
 
 const REFRESH_INTERVALS = [0, 5, 10, 30]
 
@@ -13,18 +14,18 @@ export function AutoRefreshSelect({
   return (
     <label className="flex flex-col gap-1 text-xs text-muted-foreground">
       {t("workflow.operate.auto_refresh")}
-      <select
-        className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
-        value={value}
+      <SelectField
+        className="h-8 w-36 text-xs"
+        value={String(value)}
         onChange={(event) => onChange(Number(event.target.value))}
-      >
-        <option value={0}>{t("workflow.operate.auto_refresh_off")}</option>
-        {REFRESH_INTERVALS.filter((seconds) => seconds > 0).map((seconds) => (
-          <option key={seconds} value={seconds}>
-            {t("workflow.operate.auto_refresh_seconds", { seconds })}
-          </option>
-        ))}
-      </select>
+        options={REFRESH_INTERVALS.map((seconds) => ({
+          value: String(seconds),
+          label:
+            seconds > 0
+              ? t("workflow.operate.auto_refresh_seconds", { seconds })
+              : t("workflow.operate.auto_refresh_off"),
+        }))}
+      />
     </label>
   )
 }

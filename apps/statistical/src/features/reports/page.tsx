@@ -4,6 +4,7 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
   TableBody,
@@ -87,17 +88,15 @@ export function ReportsPage() {
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
         <div className="min-w-[240px] space-y-1.5">
           <Label>{t("statistical.submissions.field.report")}</Label>
-          <select
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          <SelectField
             value={code}
             onChange={(e) => setCode(e.target.value)}
-          >
-            {definitions.map((definition) => (
-              <option key={definition.id} value={definition.code}>
-                {definition.code} — {definition.name}
-              </option>
-            ))}
-          </select>
+            options={definitions.map((definition) => ({
+              value: definition.code,
+              code: definition.code,
+              label: definition.name,
+            }))}
+          />
         </div>
         <div className="space-y-1.5">
           <Label>{t("statistical.submissions.field.period")}</Label>

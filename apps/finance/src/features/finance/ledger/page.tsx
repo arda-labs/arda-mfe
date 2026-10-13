@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { DateField } from "@workspace/ui/components/date-field"
 import { Label } from "@workspace/ui/components/label"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import {
@@ -77,11 +78,11 @@ export function LedgerPage() {
         </div>
         <div className="space-y-1.5">
           <Label>{t("finance.ledger.field.from")}</Label>
-          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <DateField value={from} onChange={(e) => setFrom(e.target.value)} />
         </div>
         <div className="space-y-1.5">
           <Label>{t("finance.ledger.field.to")}</Label>
-          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          <DateField value={to} onChange={(e) => setTo(e.target.value)} />
         </div>
         <Button onClick={() => void run()} disabled={loading || !account}>
           {t("finance.ledger.run")}

@@ -12,11 +12,12 @@ import {
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toTreeOptions } from "@workspace/ui/lib/tree-options"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { hrmApi, type OrgUnit, type PlatformOrganization } from "../../api"
-import { fieldClass } from "../../shared/schemas"
 
 /** Org unit create/edit form values. Code is locked while editing. */
 const buildOrgUnitSchema = (t: (key: string) => string) =>
@@ -173,16 +174,16 @@ export function OrgUnitFormDialog({
             label={t("hrm.org_units.field.organization")}
             error={errors.organization_id?.message}
           >
-            <select className={fieldClass} {...register("organization_id")}>
-              <option value="">
-                {t("hrm.org_units.select.organization")}
-              </option>
-              {organizations.map((org) => (
-                <option key={org.id} value={org.id}>
-                  {org.code} - {org.name}
-                </option>
-              ))}
-            </select>
+            <SelectField
+              aria-invalid={Boolean(errors.organization_id)}
+              placeholder={t("hrm.org_units.select.organization")}
+              options={organizations.map((org) => ({
+                value: org.id,
+                code: org.code,
+                label: org.name,
+              }))}
+              {...register("organization_id")}
+            />
           </FormField>
           <FormField
             label={t("hrm.org_units.field.name")}
@@ -201,16 +202,13 @@ export function OrgUnitFormDialog({
             />
           </FormField>
           <FormField label={t("hrm.org_units.field.parent")}>
-            <select className={fieldClass} {...register("parent_id")}>
-              <option value="">{t("hrm.org_units.select.no_parent")}</option>
-              {orgUnits
-                .filter((item) => item.id !== orgUnit?.id)
-                .map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.code} - {item.name}
-                  </option>
-                ))}
-            </select>
+            <SelectField
+              placeholder={t("hrm.org_units.select.no_parent")}
+              options={toTreeOptions(
+                orgUnits.filter((item) => item.id !== orgUnit?.id)
+              )}
+              {...register("parent_id")}
+            />
           </FormField>
           <FormField
             label={t("hrm.org_units.field.department_type")}
@@ -226,10 +224,14 @@ export function OrgUnitFormDialog({
             label={t("hrm.org_units.field.status")}
             error={errors.status?.message}
           >
-            <select className={fieldClass} {...register("status")}>
-              <option value="active">{t("hrm.status.active")}</option>
-              <option value="inactive">{t("hrm.status.inactive")}</option>
-            </select>
+            <SelectField
+              aria-invalid={Boolean(errors.status)}
+              options={[
+                { value: "active", label: t("hrm.status.active") },
+                { value: "inactive", label: t("hrm.status.inactive") },
+              ]}
+              {...register("status")}
+            />
           </FormField>
           <FormField
             label={t("hrm.org_units.field.description")}

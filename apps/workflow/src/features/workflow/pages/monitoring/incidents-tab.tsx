@@ -3,6 +3,8 @@ import { Eye, RefreshCw } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { DateField } from "@workspace/ui/components/date-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
   TableBody,
@@ -159,21 +161,18 @@ export function IncidentsTab({
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_state")}
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <SelectField
+            className="h-8 w-44 text-xs"
             value={draft.state ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, state: event.target.value || undefined })
             }
-          >
-            <option value="">{t("workflow.operate.filter_all_states")}</option>
-            <option value="CREATED">
-              {t("workflow.operate.incident_state_created")}
-            </option>
-            <option value="RESOLVED">
-              {t("workflow.operate.incident_state_resolved")}
-            </option>
-          </select>
+            placeholder={t("workflow.operate.filter_all_states")}
+            options={[
+              { value: "CREATED", label: t("workflow.operate.incident_state_created") },
+              { value: "RESOLVED", label: t("workflow.operate.incident_state_resolved") },
+            ]}
+          />
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_error_type")}
@@ -207,9 +206,8 @@ export function IncidentsTab({
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_from")}
-          <input
-            type="date"
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <DateField
+            className="h-8 w-40 text-xs"
             value={draft.fromDate ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, fromDate: event.target.value })
@@ -218,9 +216,8 @@ export function IncidentsTab({
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {t("workflow.operate.filter_to")}
-          <input
-            type="date"
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none"
+          <DateField
+            className="h-8 w-40 text-xs"
             value={draft.toDate ?? ""}
             onChange={(event) =>
               setDraft({ ...draft, toDate: event.target.value })

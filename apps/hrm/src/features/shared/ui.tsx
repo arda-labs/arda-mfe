@@ -18,6 +18,7 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { FormField } from "@workspace/ui/components/form-field"
 import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
 import { Input } from "@workspace/ui/components/input"
+import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
   TableBody,
@@ -27,11 +28,12 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import { toTreeOptions } from "@workspace/ui/lib/tree-options"
 import { cn } from "@workspace/ui/lib/utils"
 import type { CaseTabItem } from "@workspace/case-tabs/types"
 import { Plus, Trash2, Upload } from "lucide-react"
 import type { EmployeeRegistration, OrgUnit, Position } from "../api"
-import { fieldClass, type RegistrationValues } from "./schemas"
+import type { RegistrationValues } from "./schemas"
 import { useWatch } from "react-hook-form"
 
 export function RegistrationTabsList({
@@ -102,30 +104,32 @@ export function RegistrationGeneralPanel({
             label={t("hrm.registrations.field.employee_type")}
             error={form.formState.errors.employee_type?.message}
           >
-            <select className={fieldClass} {...form.register("employee_type")}>
-              <option value="EMPLOYEE">
-                {t("hrm.registrations.option.employee")}
-              </option>
-              <option value="COLLABORATOR">
-                {t("hrm.registrations.option.collaborator")}
-              </option>
-              <option value="INTERN">
-                {t("hrm.registrations.option.intern")}
-              </option>
-            </select>
+            <SelectField
+              aria-invalid={Boolean(form.formState.errors.employee_type)}
+              options={[
+                {
+                  value: "EMPLOYEE",
+                  label: t("hrm.registrations.option.employee"),
+                },
+                {
+                  value: "COLLABORATOR",
+                  label: t("hrm.registrations.option.collaborator"),
+                },
+                { value: "INTERN", label: t("hrm.registrations.option.intern") },
+              ]}
+              {...form.register("employee_type")}
+            />
           </FormField>
           <FormField
             label={t("hrm.registrations.field.org_unit")}
             error={form.formState.errors.org_unit_id?.message}
           >
-            <select className={fieldClass} {...form.register("org_unit_id")}>
-              <option value="">{t("hrm.registrations.select.org_unit")}</option>
-              {orgUnits.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.code} - {item.name}
-                </option>
-              ))}
-            </select>
+            <SelectField
+              aria-invalid={Boolean(form.formState.errors.org_unit_id)}
+              placeholder={t("hrm.registrations.select.org_unit")}
+              options={toTreeOptions(orgUnits)}
+              {...form.register("org_unit_id")}
+            />
           </FormField>
           <FormField
             label={t("hrm.registrations.field.full_name")}
@@ -140,16 +144,15 @@ export function RegistrationGeneralPanel({
             />
           </FormField>
           <FormField label={t("hrm.registrations.field.gender")}>
-            <select className={fieldClass} {...form.register("gender")}>
-              <option value="">{t("hrm.registrations.select.gender")}</option>
-              <option value="MALE">{t("hrm.registrations.option.male")}</option>
-              <option value="FEMALE">
-                {t("hrm.registrations.option.female")}
-              </option>
-              <option value="OTHER">
-                {t("hrm.registrations.option.other")}
-              </option>
-            </select>
+            <SelectField
+              placeholder={t("hrm.registrations.select.gender")}
+              options={[
+                { value: "MALE", label: t("hrm.registrations.option.male") },
+                { value: "FEMALE", label: t("hrm.registrations.option.female") },
+                { value: "OTHER", label: t("hrm.registrations.option.other") },
+              ]}
+              {...form.register("gender")}
+            />
           </FormField>
           <FormField label={t("hrm.registrations.field.mobile")}>
             <Input {...form.register("mobile")} />
@@ -161,18 +164,18 @@ export function RegistrationGeneralPanel({
             <Input {...form.register("email")} />
           </FormField>
           <FormField label={t("hrm.registrations.field.marital_status")}>
-            <select className={fieldClass} {...form.register("marital_status")}>
-              <option value="">{t("hrm.registrations.select.marital")}</option>
-              <option value="SINGLE">
-                {t("hrm.registrations.option.single")}
-              </option>
-              <option value="MARRIED">
-                {t("hrm.registrations.option.married")}
-              </option>
-              <option value="OTHER">
-                {t("hrm.registrations.option.other")}
-              </option>
-            </select>
+            <SelectField
+              placeholder={t("hrm.registrations.select.marital")}
+              options={[
+                { value: "SINGLE", label: t("hrm.registrations.option.single") },
+                {
+                  value: "MARRIED",
+                  label: t("hrm.registrations.option.married"),
+                },
+                { value: "OTHER", label: t("hrm.registrations.option.other") },
+              ]}
+              {...form.register("marital_status")}
+            />
           </FormField>
           <FormField
             label={t("hrm.registrations.field.identity_no")}
@@ -317,6 +320,12 @@ export function AssignmentsTable({
 }) {
   const rows = useFieldArray({ control: form.control, name: "assignments" })
   const { t } = useI18n()
+  const orgUnitOptions = toTreeOptions(orgUnits)
+  const positionOptions = positions.map((item) => ({
+    value: item.id,
+    code: item.code,
+    label: item.name,
+  }))
   return (
     <InlineEditTable
       title={t("hrm.registrations.table.assignments.title")}
@@ -345,47 +354,25 @@ export function AssignmentsTable({
             {index + 1}
           </TableCell>
           <TableCell>
-            <select
-              className={fieldClass}
+            <SelectField
+              placeholder={t("hrm.registrations.select.org_unit")}
+              options={orgUnitOptions}
               {...form.register(`assignments.${index}.work_unit_id`)}
-            >
-              <option value="">{t("hrm.registrations.select.org_unit")}</option>
-              {orgUnits.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.code} - {item.name}
-                </option>
-              ))}
-            </select>
+            />
           </TableCell>
           <TableCell>
-            <select
-              className={fieldClass}
+            <SelectField
+              placeholder={t("hrm.registrations.select.department")}
+              options={orgUnitOptions}
               {...form.register(`assignments.${index}.department_id`)}
-            >
-              <option value="">
-                {t("hrm.registrations.select.department")}
-              </option>
-              {orgUnits.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.code} - {item.name}
-                </option>
-              ))}
-            </select>
+            />
           </TableCell>
           <TableCell>
-            <select
-              className={fieldClass}
+            <SelectField
+              placeholder={t("hrm.registrations.select.position")}
+              options={positionOptions}
               {...form.register(`assignments.${index}.position_id`)}
-            >
-              <option value="">
-                {t("hrm.registrations.select.position")}
-              </option>
-              {positions.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.code} - {item.name}
-                </option>
-              ))}
-            </select>
+            />
           </TableCell>
           <TableCell>
             <Input

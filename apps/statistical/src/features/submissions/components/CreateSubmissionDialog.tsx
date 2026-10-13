@@ -12,6 +12,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { statisticalApi, type ReportDefinition } from "../../api"
 
 type Form = {
@@ -81,18 +82,12 @@ export function CreateSubmissionDialog({
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label>{t("statistical.submissions.field.report")}</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            <SelectField
               value={form.report_code}
               onChange={(e) => setForm((c) => ({ ...c, report_code: e.target.value }))}
-            >
-              <option value="">{t("statistical.placeholder.select")}</option>
-              {definitions.map((d) => (
-                <option key={d.id} value={d.code}>
-                  {d.code} — {d.name}
-                </option>
-              ))}
-            </select>
+              placeholder={t("statistical.placeholder.select")}
+              options={definitions.map((d) => ({ value: d.code, code: d.code, label: d.name }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("statistical.submissions.field.period")}</Label>

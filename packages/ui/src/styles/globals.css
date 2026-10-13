@@ -239,6 +239,24 @@
   --layout-sidebar-border: transparent;
 }
 
+/* Personal display preferences (packages/theme appearance.ts). Components size
+   themselves from --control-height, so one attribute changes density
+   app-wide; font scale resizes everything rem-based. */
+:root[data-density="comfortable"] {
+  --control-height: 2.5rem;
+  --control-height-sm: 2.25rem;
+  --control-height-lg: 2.75rem;
+  --table-row-height: 2.75rem;
+}
+
+:root[data-font-scale="sm"] {
+  font-size: 93.75%;
+}
+
+:root[data-font-scale="lg"] {
+  font-size: 106.25%;
+}
+
 .dark {
   color-scheme: dark;
   --canvas: #0b0f19;
