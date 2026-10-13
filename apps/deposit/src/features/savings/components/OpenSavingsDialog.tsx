@@ -18,6 +18,7 @@ import { DateField } from "@workspace/ui/components/date-field"
 import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { depositApi, type SavingsProduct } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 type Form = {
   savings_code: string
@@ -145,10 +146,10 @@ export function OpenSavingsDialog({
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label>{t("deposit.savings.field.amount")}</Label>
-              <Input
-                inputMode="decimal"
+              <MoneyInput
                 value={form.amount}
                 onChange={(e) => setForm((c) => ({ ...c, amount: e.target.value }))}
+                currency={form.currency_code}
               />
             </div>
             <div className="space-y-1.5">

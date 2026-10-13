@@ -3,8 +3,8 @@ import { useI18n } from "@workspace/i18n"
 import { DetailSection } from "@workspace/ui/components/detail-section"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { SelectField } from "@workspace/ui/components/select-field"
 import type { CreateUserValues, EditUserValues } from "../schema"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 type AllValues = CreateUserValues & EditUserValues
 
@@ -75,7 +75,7 @@ export function UserFormSections({ mode, form }: UserFormSectionsProps) {
               label={t("common.field.status")}
               error={errors.status?.message}
             >
-              <SelectField
+              <SegmentedControl
                 aria-invalid={Boolean(errors.status)}
                 options={[
                   { value: "ACTIVE", label: t("admin.users.status.active") },

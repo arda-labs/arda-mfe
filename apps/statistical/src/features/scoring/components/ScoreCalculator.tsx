@@ -5,13 +5,6 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { Calculator, Plus, Trash2 } from "lucide-react"
 import {
   statisticalApi,
@@ -19,6 +12,7 @@ import {
   type ScoreEntry,
   type ScoreResult,
 } from "../../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 const emptyEntry: ScoreEntry = {
   indicator_code: "",
@@ -113,19 +107,15 @@ export function ScoreCalculator({
             <label className="font-medium">
               {t("statistical.scoring.field.subject_type")}
             </label>
-            <Select value={subjectType} onValueChange={setSubjectType}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CUSTOMER">
-                  {t("statistical.scoring.subject_type.CUSTOMER")}
-                </SelectItem>
-                <SelectItem value="AGREEMENT">
-                  {t("statistical.scoring.subject_type.AGREEMENT")}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <SegmentedControl
+              value={subjectType}
+              onValueChange={setSubjectType}
+              size="sm"
+              options={[
+                { value: "CUSTOMER", label: t("statistical.scoring.subject_type.CUSTOMER") },
+                { value: "AGREEMENT", label: t("statistical.scoring.subject_type.AGREEMENT") },
+              ]}
+            />
           </div>
           <div className="space-y-1.5">
             <label className="font-medium">

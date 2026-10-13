@@ -3,13 +3,6 @@ import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
   Table,
   TableBody,
   TableCell,
@@ -28,6 +21,8 @@ import {
   type FetchAccountsFn,
   type PostingDirection,
 } from "./types"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /**
  * Flat editable journal-line grid (FAC bút toán lẻ / bút toán kép):
@@ -108,21 +103,19 @@ export function EntryLinesGrid({
                   {index + 1}
                 </TableCell>
                 <TableCell>
-                  <Select
+                  <SegmentedControl
                     value={row.direction}
-                    disabled={row.pinnedDirection}
                     onValueChange={(value) =>
                       update(row.id, { direction: value as PostingDirection })
                     }
-                  >
-                    <SelectTrigger className="h-8 w-full text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DEBIT">{labels.debit}</SelectItem>
-                      <SelectItem value="CREDIT">{labels.credit}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    disabled={row.pinnedDirection}
+                    size="sm"
+                    fullWidth
+                    options={[
+                      { value: "DEBIT", label: labels.debit },
+                      { value: "CREDIT", label: labels.credit },
+                    ]}
+                  />
                 </TableCell>
                 <TableCell>
                   <Button
@@ -140,12 +133,12 @@ export function EntryLinesGrid({
                   {row.account_name || "—"}
                 </TableCell>
                 <TableCell>
-                  <Input
-                    className="h-8 text-right tabular-nums"
-                    inputMode="decimal"
+                  <MoneyInput
+                    inputClassName="h-8"
                     value={row.amount}
                     disabled={lockAmounts}
                     onChange={(e) => update(row.id, { amount: e.target.value })}
+                    currency={currency}
                   />
                 </TableCell>
                 <TableCell>

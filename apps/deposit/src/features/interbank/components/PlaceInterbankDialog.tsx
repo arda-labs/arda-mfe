@@ -17,6 +17,7 @@ import { DateField } from "@workspace/ui/components/date-field"
 import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { depositApi, type IbmProduct } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /** Stage an IBM contract placement (IBM.200.01) as a maker/checker case. */
 export function PlaceInterbankDialog({
@@ -148,10 +149,10 @@ export function PlaceInterbankDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interbank.field.principal")}</Label>
-            <Input
-              inputMode="decimal"
+            <MoneyInput
               value={principal}
               onChange={(e) => setPrincipal(e.target.value)}
+              currency={currencyCode}
             />
           </div>
           <div className="space-y-1.5">

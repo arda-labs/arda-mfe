@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import { Switch } from "@workspace/ui/components/switch"
 import { ShieldAlert } from "lucide-react"
 import { fetchAgentSettings, saveAgentSettings } from "../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 type ActRisk = "low" | "medium"
 
@@ -80,27 +80,20 @@ export function AgentTab() {
 
         <div className="space-y-1.5">
           <p className="font-medium text-foreground">{t("ai.settings.agent.max_risk_label")}</p>
-          <Select
+          <SegmentedControl
             value={risk}
-            disabled={saving || loading || !enabled}
             onValueChange={(value) => {
               const next = value === "low" ? "low" : "medium"
               setRisk(next)
               void save(enabled, next)
             }}
-          >
-            <SelectTrigger className="h-8 w-40 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="low" className="text-xs">
-                {t("ai.settings.agent.risk_low")}
-              </SelectItem>
-              <SelectItem value="medium" className="text-xs">
-                {t("ai.settings.agent.risk_medium")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            disabled={saving || loading || !enabled}
+            size="sm"
+            options={[
+              { value: "low", label: t("ai.settings.agent.risk_low") },
+              { value: "medium", label: t("ai.settings.agent.risk_medium") },
+            ]}
+          />
           <p className="text-[10px] text-muted-foreground">{t("ai.settings.agent.max_risk_hint")}</p>
         </div>
       </CardContent>

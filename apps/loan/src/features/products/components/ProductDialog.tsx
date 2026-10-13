@@ -12,15 +12,10 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { fromMinor, parseMoneyInput, toMinor } from "@workspace/format"
 import { productApi, type LoanProduct } from "../../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 type ProductForm = {
   code: string
@@ -144,7 +139,8 @@ export function ProductDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="prd-type">{t("loan.loan_products.field.type")}</Label>
-            <Select
+            <SegmentedControl
+              id="prd-type"
               value={form.product_type}
               onValueChange={(value) =>
                 setForm((current) => ({
@@ -152,15 +148,11 @@ export function ProductDialog({
                   product_type: value as ProductForm["product_type"],
                 }))
               }
-            >
-              <SelectTrigger id="prd-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="TERM">TERM</SelectItem>
-                <SelectItem value="LIMIT">LIMIT</SelectItem>
-              </SelectContent>
-            </Select>
+              options={[
+                { value: "TERM", label: "TERM" },
+                { value: "LIMIT", label: "LIMIT" },
+              ]}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="prd-rate">{t("loan.loan_products.field.rate")}</Label>
@@ -176,9 +168,8 @@ export function ProductDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="prd-min">{t("loan.loan_products.field.min_amount")}</Label>
-            <Input
+            <MoneyInput
               id="prd-min"
-              inputMode="numeric"
               value={form.min_amount}
               onChange={(event) =>
                 setForm((current) => ({ ...current, min_amount: event.target.value }))
@@ -187,9 +178,8 @@ export function ProductDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="prd-max">{t("loan.loan_products.field.max_amount")}</Label>
-            <Input
+            <MoneyInput
               id="prd-max"
-              inputMode="numeric"
               value={form.max_amount}
               onChange={(event) =>
                 setForm((current) => ({ ...current, max_amount: event.target.value }))

@@ -11,11 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { SelectField } from "@workspace/ui/components/select-field"
 import { formatAmount, fromMinor, toMinor } from "@workspace/format"
 import { depositApi } from "../../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /** Stage a pay/capitalize interest op (DPM.302/303) as a maker/checker case. */
 export function InterestDialog({
@@ -90,7 +90,7 @@ export function InterestDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interest.field.op_type")}</Label>
-            <SelectField
+            <SegmentedControl
               value={opType}
               onChange={(e) => setOpType(e.target.value as "PAY" | "CAPITALIZE")}
               options={[
@@ -101,10 +101,10 @@ export function InterestDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.interest.field.amount")}</Label>
-            <Input
-              inputMode="decimal"
+            <MoneyInput
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              currency={currencyCode}
             />
           </div>
         </div>

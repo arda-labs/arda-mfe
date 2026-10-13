@@ -17,6 +17,7 @@ import { DateField } from "@workspace/ui/components/date-field"
 import { SelectField } from "@workspace/ui/components/select-field"
 import { toMinor, todayISO } from "@workspace/format"
 import { capitalApi, type FundType } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 type Form = {
   contract_code: string
@@ -143,10 +144,10 @@ export function CreateContractDialog({
             </div>
             <div className="space-y-1.5">
               <Label>{t("capital.contracts.field.amount")}</Label>
-              <Input
-                inputMode="decimal"
+              <MoneyInput
                 value={form.amount}
                 onChange={(e) => setForm((c) => ({ ...c, amount: e.target.value }))}
+                currency={form.currency_code}
               />
             </div>
             <div className="space-y-1.5">

@@ -28,6 +28,7 @@ import {
   type PostingPreviewInput,
   type ValidationResult,
 } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 type PreviewForm = {
   document_type: string
@@ -143,10 +144,10 @@ export function PostingPreviewDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("finance.posting_preview.field.amount")}</Label>
-            <Input
-              inputMode="decimal"
+            <MoneyInput
               value={form.amount}
               onChange={(e) => setForm((c) => ({ ...c, amount: e.target.value }))}
+              currency={form.currency_code}
             />
           </div>
           <div className="space-y-1.5">

@@ -37,6 +37,7 @@ import {
   type FundTab,
 } from "./list-query"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 const FUND_CODES = [
   "DEV",
@@ -276,9 +277,8 @@ export function FundsPage() {
                 <Label className="text-xs">
                   {t("finance.funds.field.amount")}
                 </Label>
-                <Input
-                  className="h-8 text-xs"
-                  inputMode="decimal"
+                <MoneyInput
+                  inputClassName="h-8 text-xs"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                 />

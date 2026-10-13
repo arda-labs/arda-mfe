@@ -33,6 +33,7 @@ import {
 import { notify } from "@workspace/ui/feedback/notify"
 import { Edit2, Plus, Trash2 } from "lucide-react"
 import { interestRateApi, type InterestRate, type InterestRateTier } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 type TierForm = {
   effective_from: string
@@ -318,9 +319,8 @@ export function TierEditorDialog({
                 <Label htmlFor="tier-amount-from">
                   {t("mdm.interest_rates.tiers.field.amount_from")}
                 </Label>
-                <Input
+                <MoneyInput
                   id="tier-amount-from"
-                  inputMode="decimal"
                   placeholder={t("mdm.interest_rates.tiers.placeholder.optional")}
                   value={form.amount_from}
                   onChange={(event) =>
@@ -329,15 +329,15 @@ export function TierEditorDialog({
                       amount_from: event.target.value,
                     }))
                   }
+                  currency={currency}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tier-amount-to">
                   {t("mdm.interest_rates.tiers.field.amount_to")}
                 </Label>
-                <Input
+                <MoneyInput
                   id="tier-amount-to"
-                  inputMode="decimal"
                   placeholder={t("mdm.interest_rates.tiers.placeholder.optional")}
                   value={form.amount_to}
                   onChange={(event) =>
@@ -346,6 +346,7 @@ export function TierEditorDialog({
                       amount_to: event.target.value,
                     }))
                   }
+                  currency={currency}
                 />
               </div>
               <div className="space-y-1.5">

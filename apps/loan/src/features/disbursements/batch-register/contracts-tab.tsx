@@ -1,7 +1,6 @@
 import { memo, useMemo } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { Plus } from "lucide-react"
 import { formatAmount, formatDateShort, fromMinor } from "@workspace/format"
@@ -15,6 +14,7 @@ import {
 import { headroomMinor, inputToMinor } from "../../loan-batches/row-math"
 import type { RegisterRow } from "./batch-register-form"
 import type { RegisterValidationIssue } from "./validation"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 function rowAmountMinor(row: RegisterRow): number {
   return inputToMinor(row.amount, row.agreement.currency_code)
@@ -72,10 +72,8 @@ export const RegisterContractsTab = memo(function RegisterContractsTab({
           </TableCell>
           <TableCell className="text-xs">{row.contract.customer_code}</TableCell>
           <TableCell>
-            <Input
-              id={`disburse-amount-${row.key}`}
-              className="h-8 w-36 text-right tabular-nums"
-              inputMode="decimal"
+            <MoneyInput
+              id={`disburse-amount-${row.key}`} className="w-36" inputClassName="h-8"
               value={row.amount}
               placeholder="0"
               onChange={(e) => onChangeRow(row.key, { amount: e.target.value })}

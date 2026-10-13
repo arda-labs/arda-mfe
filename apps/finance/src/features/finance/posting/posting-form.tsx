@@ -29,6 +29,7 @@ import { accountsApi, postingApi, postingCaseApi, type PostingFlow } from "../ap
 import { usePostingFlowLabels } from "./labels"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
   SINGLE_ENTRY: "FIN_SINGLE_ENTRY",
@@ -206,12 +207,11 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
                 {single ? (
                   <div className="space-y-1.5">
                     <Label htmlFor="posting-amount">{t("finance.posting.field.amount")}</Label>
-                    <Input
+                    <MoneyInput
                       id="posting-amount"
-                      className="text-right tabular-nums"
-                      inputMode="decimal"
                       value={rows[0]?.amount ?? ""}
                       onChange={(e) => handleRowsChange(rows.map((row) => ({ ...row, amount: e.target.value })))}
+                      currency={currency}
                     />
                   </div>
                 ) : (
