@@ -13,7 +13,8 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { useTreeTable } from "@workspace/list-page/use-tree-table"
+import { TreeCell } from "@workspace/ui/components/data-table/tree-cell"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import {
@@ -23,14 +24,21 @@ import {
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { useQuery } from "@tanstack/react-query"
-import { Pencil, Trash2 } from "lucide-react"
+import { ChevronsDownUp, ChevronsUpDown, Pencil, Trash2 } from "lucide-react"
 import {
   hrmApi,
   type OrgUnit,
   type PlatformOrganization,
 } from "../api"
-import { orgUnitsListDefinition } from "./list-query"
 import { OrgUnitFormDialog } from "./components/OrgUnitFormDialog"
+
+const unitId = (unit: OrgUnit) => unit.id
+const unitParentId = (unit: OrgUnit) => unit.parent_id
+const byCode = (a: OrgUnit, b: OrgUnit) => a.code.localeCompare(b.code)
+
+/** Toolbar search: code or name, ignoring case and Vietnamese accents. */
+const fold = (text: string) =>
+  text.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase()
 
 export function OrgUnitsPage() {
   const { t } = useI18n()
@@ -61,11 +69,6 @@ export function OrgUnitsPage() {
     const org = orgs.find((item) => item.id === id)
     return org ? `${org.code} - ${org.name}` : id
   }
-  const parentName = (id?: string) =>
-    id
-      ? ((orgUnitsLookup.data ?? []).find((item) => item.id === id)?.name ?? id)
-      : ""
-
   const columns = useMemo<ColumnDef<OrgUnit>[]>(
     () => [
       {
@@ -82,8 +85,18 @@ export function OrgUnitsPage() {
           t("hrm.org_units.field.code"),
           t("hrm.org_units.search_placeholder")
         ),
+        filterFn: (row, _columnId, value) => {
+          const query = fold(String(value ?? "").trim())
+          return (
+            !query ||
+            fold(row.original.code).includes(query) ||
+            fold(row.original.name).includes(query)
+          )
+        },
         cell: ({ row }) => (
-          <span className="font-mono text-sm">{row.original.code}</span>
+          <TreeCell row={row}>
+            <span className="font-mono text-sm">{row.original.code}</span>
+          </TreeCell>
         ),
       },
       {
@@ -122,21 +135,6 @@ export function OrgUnitsPage() {
         ),
       },
       {
-        id: "parent",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("hrm.org_units.field.parent")}
-          />
-        ),
-        enableSorting: false,
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {parentName(row.original.parent_id ?? undefined) || "-"}
-          </span>
-        ),
-      },
-      {
         id: "department_type",
         accessorKey: "department_type",
         header: ({ column }) => (
@@ -156,6 +154,7 @@ export function OrgUnitsPage() {
           />
         ),
         enableColumnFilter: true,
+        filterFn: "arrIncludesSome",
         meta: multiSelectFilterMeta(t("hrm.org_units.field.status"), [
           { label: t("hrm.status.active"), value: "active" },
           { label: t("hrm.status.inactive"), value: "inactive" },
@@ -201,36 +200,22 @@ export function OrgUnitsPage() {
         enableHiding: false,
       },
     ],
-    [orgUnitsLookup.data, orgs, t]
+    [orgs, t]
   )
 
   /**
-   * Server-driven list controller: URL page/perPage + `code`→q + `status`
-   * filters <-> TanStack Query cache, cancellation, dedupe and previous-page
-   * placeholder handled by @workspace/list-page. The page owns columns,
-   * dialogs and the delete action only.
+   * Tree over the full org-unit list (design board 09, TreeTable): the
+   * structure is the point of this screen, so it reads parent → children
+   * instead of a paged flat list; search keeps the branch of every match.
    */
-  const {
-    total,
-    isLoading,
-    isFetching,
-    error: loadError,
-    refetch,
-    table,
-  } = useServerDataTable<OrgUnit>({
-    ...orgUnitsListDefinition,
+  const { table, total, expandAll, collapseAll } = useTreeTable<OrgUnit>({
+    items: orgUnitsLookup.data ?? [],
     columns,
-    queryFn: async (query) =>
-      hrmApi.listOrgUnitsPaged({
-        page: query.page,
-        perPage: query.perPage,
-        q: query.q === undefined ? undefined : String(query.q),
-        status:
-          query.status === undefined ? undefined : String(query.status),
-        sort: query.sort,
-        order: query.order,
-      }),
+    getId: unitId,
+    getParentId: unitParentId,
+    compare: byCode,
   })
+  const refetch = orgUnitsLookup.refetch
 
   const openCreate = () => {
     setEditTarget(null)
@@ -267,11 +252,11 @@ export function OrgUnitsPage() {
           </Button>
         ),
       }}
-      criticalPending={isLoading}
-      criticalError={loadError}
+      criticalPending={orgUnitsLookup.isLoading}
+      criticalError={orgUnitsLookup.error}
       onRetry={() => void refetch()}
       loadErrorTitle={t("hrm.org_units.load_failed")}
-      fetching={isFetching}
+      fetching={orgUnitsLookup.isFetching}
       table={table}
       toolbar={
         <ListTableToolbar
@@ -281,7 +266,16 @@ export function OrgUnitsPage() {
           exportFilename={t("hrm.org_units.title")}
           sheetName={t("hrm.org_units.title")}
           totalRowsCount={total}
-        />
+        >
+          <Button type="button" variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={expandAll}>
+            <ChevronsUpDown className="size-3.5" />
+            {t("common.tree.expand_all")}
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={collapseAll}>
+            <ChevronsDownUp className="size-3.5" />
+            {t("common.tree.collapse_all")}
+          </Button>
+        </ListTableToolbar>
       }
       dialogs={
         <>

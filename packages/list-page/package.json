@@ -39,7 +39,9 @@
     "./table-columns": "./src/table-columns.tsx",
     "./table-export": "./src/table-export.ts",
     "./table-export-dialog": "./src/table-export-dialog.tsx",
+    "./tree": "./src/tree.ts",
     "./use-data-table": "./src/use-data-table.ts",
-    "./use-record-sheet": "./src/use-record-sheet.ts"
+    "./use-record-sheet": "./src/use-record-sheet.ts",
+    "./use-tree-table": "./src/use-tree-table.ts"
   }
 }
