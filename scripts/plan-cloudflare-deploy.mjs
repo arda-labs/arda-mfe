@@ -15,7 +15,9 @@ import { remoteNames } from "../federation.routes.ts"
 /** Changes here can alter every unit's bundle or its packaging. */
 const SHARED = [
   /^packages\//,
-  /^scripts\//,
+  // Only the scripts that build and package a unit; check-*, gen-* and this
+  // planner do not change what is deployed.
+  /^scripts\/(build-cloudflare-app|asset-release)\.mjs$/,
   /^package\.json$/,
   /^bun\.lock$/,
   /^tsconfig\.json$/,

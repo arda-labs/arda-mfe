@@ -23,6 +23,14 @@ describe("cloudflare deploy plan", () => {
     expect(unitTouched("iam", ["cloudflare/shell-csp.ts"])).toBe(false)
   })
 
+  test("build and packaging scripts deploy every unit, other scripts nothing", () => {
+    expect(unitTouched("hrm", ["scripts/asset-release.mjs"])).toBe(true)
+    for (const file of ["scripts/check-ui-usage.mjs", "scripts/plan-cloudflare-deploy.mjs", "scripts/gen-api-types.mjs"]) {
+      expect(unitTouched("hrm", [file])).toBe(false)
+      expect(unitTouched("shell", [file])).toBe(false)
+    }
+  })
+
   test("docs, tests and CI files deploy nothing", () => {
     const files = ["README.md", "packages/ui/README.md", "tests/federation/release.test.ts", ".github/workflows/verify.yml", "docs/x.md"]
     expect(unitTouched("shell", files)).toBe(false)
