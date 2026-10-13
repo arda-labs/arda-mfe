@@ -63,3 +63,16 @@ export function textMatches(query: unknown, ...values: (string | null | undefine
   const needle = foldText(String(query ?? "").trim())
   return !needle || values.some((value) => value && foldText(value).includes(needle))
 }
+
+/**
+ * Client filter for select / multi-select toolbar filters: the faceted
+ * filter hands either one value or an array; empty means no filter.
+ */
+export function valueIn(cellValue: unknown, filterValue: unknown) {
+  const wanted = Array.isArray(filterValue)
+    ? filterValue
+    : filterValue == null || filterValue === ""
+      ? []
+      : [filterValue]
+  return wanted.length === 0 || wanted.map(String).includes(String(cellValue))
+}

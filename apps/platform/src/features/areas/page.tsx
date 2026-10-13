@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
+import { useQuery } from "@tanstack/react-query"
 import { useI18n } from "@workspace/i18n"
 import { translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
@@ -23,17 +24,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Edit2, Trash2 } from "lucide-react"
+import { ChevronsDownUp, ChevronsUpDown, Edit2, Trash2 } from "lucide-react"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import {
   multiSelectFilterMeta,
   selectFilterMeta,
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
-import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { useTreeTable } from "@workspace/list-page/use-tree-table"
+import { textMatches, valueIn } from "@workspace/list-page/tree"
+import { TreeCell } from "@workspace/ui/components/data-table/tree-cell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import { areasListDefinition } from "./list-query"
 import { AreaFormDialog } from "./components/AreaFormDialog"
+
+const areaId = (area: Area) => area.id
+const areaParentId = (area: Area) => area.parent_id
+const byCode = (a: Area, b: Area) => a.code.localeCompare(b.code, "vi", { numeric: true })
 
 export function AreasPage() {
   const { t, formatDate } = useI18n()
@@ -90,8 +96,18 @@ export function AreasPage() {
           t("platform.areas.field.code"),
           t("platform.areas.placeholder.search")
         ),
+        // Toolbar search: code, name or description, ignoring accents.
+        filterFn: (row, _columnId, value) =>
+          textMatches(
+            value,
+            row.original.code,
+            row.original.name,
+            row.original.description
+          ),
         cell: ({ row }) => (
-          <span className="font-mono text-xs">{row.original.code}</span>
+          <TreeCell row={row}>
+            <span className="font-mono text-xs">{row.original.code}</span>
+          </TreeCell>
         ),
       },
       {
@@ -122,26 +138,12 @@ export function AreasPage() {
           />
         ),
         enableColumnFilter: true,
+        filterFn: (row, columnId, value) => valueIn(row.getValue(columnId), value),
         meta: selectFilterMeta(
           t("platform.areas.field.area_type"),
           areaTypes.map((item) => ({ label: item.name, value: item.code }))
         ),
         cell: ({ row }) => getAreaTypeLabel(row.original.area_type_code),
-      },
-      {
-        id: "parent",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t("platform.areas.field.parent")}
-          />
-        ),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {row.original.parent_id || "-"}
-          </span>
-        ),
-        enableSorting: false,
       },
       {
         id: "admin_unit",
@@ -174,6 +176,7 @@ export function AreasPage() {
           />
         ),
         enableColumnFilter: true,
+        filterFn: (row, columnId, value) => valueIn(row.getValue(columnId), value),
         meta: multiSelectFilterMeta(t("platform.areas.field.status"), [
           { label: t("platform.areas.status.active"), value: "active" },
           { label: t("platform.areas.status.inactive"), value: "inactive" },
@@ -226,40 +229,23 @@ export function AreasPage() {
   )
 
   /**
-   * Server-driven list controller: URL page/perPage + `code`→q +
-   * `area_type_code`/`status` filters <-> TanStack Query cache, cancellation,
-   * dedupe and previous-page placeholder handled by @workspace/list-page.
+   * Areas as a tree (design board 09, TreeTable): region › province ›
+   * district… from parent_id, instead of a paged list whose parent column
+   * showed raw ids. The unpaged areas endpoint returns the whole catalog.
    */
-  const {
-    total,
-    isLoading,
-    isFetching,
-    error: loadError,
-    refetch,
-    table,
-  } = useServerDataTable<Area>({
-    ...areasListDefinition,
-    columns,
-    queryFn: async (listQuery, { signal }) =>
-      areasApi.listAreasPaged(
-        {
-          page: listQuery.page,
-          perPage: listQuery.perPage,
-          q: listQuery.q === undefined ? undefined : String(listQuery.q),
-          status:
-            listQuery.status === undefined
-              ? undefined
-              : String(listQuery.status),
-          areaTypeCode:
-            listQuery.area_type_code === undefined
-              ? undefined
-              : String(listQuery.area_type_code),
-          sort: listQuery.sort,
-          order: listQuery.order,
-        },
-        { signal }
-      ),
+  const areasQuery = useQuery({
+    queryKey: ["platform", "areas", "tree"],
+    queryFn: () => areasApi.listAreas(),
+    staleTime: 60_000,
   })
+  const { table, total, expandAll, collapseAll } = useTreeTable<Area>({
+    items: areasQuery.data ?? [],
+    columns,
+    getId: areaId,
+    getParentId: areaParentId,
+    compare: byCode,
+  })
+  const refetch = areasQuery.refetch
 
   const handleDelete = async () => {
     if (!deleteTarget) return
@@ -288,11 +274,11 @@ export function AreasPage() {
           {t("platform.areas.count", { count: total })}
         </Badge>
       }
-      criticalPending={isLoading || lookupsLoading}
-      criticalError={loadError}
+      criticalPending={areasQuery.isLoading || lookupsLoading}
+      criticalError={areasQuery.error}
       onRetry={() => void refetch()}
       loadErrorTitle={t("platform.areas.load_failed")}
-      fetching={isFetching}
+      fetching={areasQuery.isFetching}
       table={table}
       toolbar={
         <ListTableToolbar
@@ -302,7 +288,16 @@ export function AreasPage() {
             setDialogOpen(true)
           }}
           createLabel={t("platform.areas.create")}
-        />
+        >
+          <Button type="button" variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={expandAll}>
+            <ChevronsUpDown className="size-3.5" />
+            {t("common.tree.expand_all")}
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={collapseAll}>
+            <ChevronsDownUp className="size-3.5" />
+            {t("common.tree.collapse_all")}
+          </Button>
+        </ListTableToolbar>
       }
       dialogs={
         <>
