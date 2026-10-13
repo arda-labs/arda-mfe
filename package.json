@@ -18,6 +18,7 @@
     "gen:federation": "bun ./scripts/generate-federation-glue.mjs",
     "check:pages": "bun ./scripts/check-page-size.mjs",
     "check:features": "bun ./scripts/check-feature-structure.mjs",
+    "check:reference-types": "bun ./scripts/check-reference-types.mjs",
     "check:bundles": "bun ./scripts/check-bundle-budgets.mjs",
     "gen:api-types": "bun ./scripts/gen-api-types.mjs",
     "check:api-types": "bun ./scripts/gen-api-types.mjs --check",
@@ -29,7 +30,7 @@
     "dev": "bun run clear:dev-ports && bun run --filter './apps/*' --parallel dev",
     "lint": "bun run --filter './apps/*' --filter './packages/*' lint",
     "format": "bun run --workspaces --parallel format",
-    "typecheck": "bun run check:i18n && bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run check:pages && bun run check:features && bun run --filter './apps/*' --filter './packages/*' typecheck"
+    "typecheck": "bun run check:i18n && bun run check:packages && bun run check:credentials && bun run check:fallbacks && bun run check:federation && bun run check:pages && bun run check:features && bun run check:reference-types && bun run --filter './apps/*' --filter './packages/*' typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

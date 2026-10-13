@@ -105,9 +105,19 @@ feature hooks → domain adapter → generated contract types → `@workspace/ap
   `T | null`, and request schemas leave every field optional. Handle that in the adapter
   (`items ?? []`, `value ?? undefined`), and use `WireBody<T, K>` to state which fields
   this client always sends.
-- Migrated so far: `apps/deposit` (`deposit-v1`) and `apps/loan` (`loan-v1`, which
-  replaces the hand-written `loan-disbursement-v1`). The other documents are hand-written
+- Migrated so far: `apps/deposit` (`deposit-v1`), `apps/loan` (`loan-v1`, which
+  replaces the hand-written `loan-disbursement-v1`), `apps/workflow` + `apps/crm`
+  (`workflow-v1`) and `apps/mdm` (`mdm-v1`). The other documents are hand-written
   pilots in arda-be until their service generates its document from Go.
+- **Reference types are declared once.** A wire type that several remotes consume
+  (`WorkflowCase`, `WorkItem`, `Customer`, `Organization`, `GeoAdminUnit`, `Parameter`,
+  `InterestRate`, ...) lives only in `@workspace/api/generated/<doc>` or, while the owning
+  service has no generated document, in `packages/api/src/reference/<svc>.ts` (hand-written
+  with the Go source line; replace with generated aliases when the document lands).
+  Remotes alias it (`export type Organization = PlatformOrganization`) or narrow it
+  (`Omit<PlatformParameter, "value_type"> & { value_type: ... }`); they never redeclare
+  the shape. Gate: `bun run check:reference-types` (`scripts/check-reference-types.mjs`,
+  `REFERENCE_TYPES` list) inside `bun run typecheck`.
 
 Generated type modules are stateless and erased at build; if two or more apps import
 them, register the exemption in `federation.shared.ts`:

@@ -132,7 +132,8 @@ bun run check:packages
 # Bao gồm các invariant: check:packages, check:credentials, check:fallbacks,
 # check:federation (glue sinh từ registry + chính sách shared deps + route ownership), check:pages
 # (giới hạn độ dài page.tsx với LEGACY_BASELINE cho debt cũ), check:features
-# (api.ts/types.ts size, transport boundary, cross-feature imports)
+# (api.ts/types.ts size, transport boundary, cross-feature imports), check:reference-types
+# (type tham chiếu chỉ khai báo ở packages/api generated/reference, remote chỉ import)
 bun run typecheck
 
 # Chạy test federation + test feature (adapter/mapper) chạy bằng bun test
