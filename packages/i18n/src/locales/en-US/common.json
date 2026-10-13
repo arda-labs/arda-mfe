@@ -40,7 +40,8 @@
     "clear_date": "Clear date",
     "copy": "Copy",
     "copied": "Copied",
-    "detail": "Detail"
+    "detail": "Detail",
+    "search": "Search"
   },
   "confirm": {
     "delete_title": "Confirm delete",

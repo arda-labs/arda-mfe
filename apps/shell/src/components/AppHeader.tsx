@@ -1,4 +1,4 @@
-import { Building2, Check, Moon, Search, Sparkles, Sun } from "lucide-react"
+import { Building2, Check, Moon, Sparkles, Sun } from "lucide-react"
 import { useState } from "react"
 import {
   SHELL_PAGE_HEADER_SLOT_ID,
@@ -30,7 +30,6 @@ export function AppHeader({
   navigate,
   aiPanelOpen = false,
   onToggleAiPanel,
-  onOpenCommandPalette,
 }: {
   pageTitle: ShellPageTitleState | null
   user: AuthUser | null
@@ -41,7 +40,6 @@ export function AppHeader({
   navigate: (pathname: string) => void
   aiPanelOpen?: boolean
   onToggleAiPanel?: () => void
-  onOpenCommandPalette?: () => void
 }) {
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useI18n()
@@ -131,21 +129,6 @@ export function AppHeader({
               <span className="truncate">{tenantLabel}</span>
             </div>
           )
-        ) : null}
-        {onOpenCommandPalette ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onOpenCommandPalette}
-            className="hidden h-8 gap-2 px-2.5 text-xs text-muted-foreground hover:text-foreground sm:flex"
-            title="Tìm kiếm nhanh (Ctrl+K / ⌘K)"
-          >
-            <Search className="size-3.5" />
-            <span className="hidden md:inline">Tìm kiếm...</span>
-            <kbd className="pointer-events-none hidden h-4.5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 select-none sm:flex">
-              <span className="text-xs">⌘</span>K
-            </kbd>
-          </Button>
         ) : null}
         {onToggleAiPanel ? (
           <Button

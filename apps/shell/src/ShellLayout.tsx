@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useRef, useState, type SetStateAction } from "react"
 import { useLocation, useNavigate, Outlet } from "react-router-dom"
-import { Maximize2, PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
+import { Maximize2, PanelLeftClose, PanelLeftOpen, Search, X } from "lucide-react"
 import { useSystemBranding } from "@workspace/theme/branding"
 import {
   SHELL_PAGE_TITLE_EVENT,
@@ -21,6 +21,7 @@ import { RouteLoading } from "@workspace/ui/components/route-loading"
 import { composeOlorinMessage } from "@workspace/ai/compose"
 import {
   filterNavItems,
+  findActiveHref,
   getNavNodeId,
 } from "./config/nav-config"
 import { useDynamicNavItems } from "./config/use-dynamic-nav"
@@ -108,6 +109,7 @@ export function ShellLayout() {
   const { branding } = useSystemBranding()
   const { items: navSource } = useDynamicNavItems(authScope)
   const visibleNavItems = filterNavItems(navSource, user)
+  const activeHref = findActiveHref(visibleNavItems, pathname)
   const orgIds = user?.orgIds ?? []
   useNotificationStream(authHydrated && isAuthenticated && Boolean(user))
 
@@ -223,14 +225,16 @@ export function ShellLayout() {
     : "?"
 
   return (
-    <div className="fixed inset-0 flex min-h-0 overflow-hidden bg-background text-foreground">
+    // Inset layout (design board 02): the sidebar sits on the neutral canvas and
+    // the page lives in a raised panel, so the working area reads as one sheet.
+    <div className="fixed inset-0 flex min-h-0 overflow-hidden bg-canvas text-foreground">
       <aside
         className={cn(
-          "flex shrink-0 flex-col border-r border-[color:var(--layout-sidebar-border)] bg-[var(--layout-sidebar-background)] transition-all duration-200",
-          sidebarOpen ? "w-64" : "w-14"
+          "flex shrink-0 flex-col bg-[var(--layout-sidebar-background)] transition-all duration-200",
+          sidebarOpen ? "w-60" : "w-14"
         )}
       >
-        <div className="flex h-[52px] items-center gap-3 border-b border-[color:var(--layout-sidebar-border)] px-3">
+        <div className="flex h-[52px] items-center gap-3 px-3">
           <BrandMark
             name={branding.appName}
             logoUrl={branding.dashboardLogoUrl || branding.loginLogoUrl}
@@ -247,13 +251,32 @@ export function ShellLayout() {
             </div>
           )}
         </div>
-        {orgIds.length > 1 ? (
-          <div
+        <div className={cn("px-2 pb-1", !sidebarOpen && "flex justify-center")}>
+          <button
+            type="button"
+            onClick={() => setCommandPaletteOpen(true)}
+            title={`${t("common.action.search")} (Ctrl+K)`}
+            aria-label={t("common.action.search")}
             className={cn(
-              "border-b border-[color:var(--layout-sidebar-border)] p-2",
-              !sidebarOpen && "flex justify-center"
+              "flex h-9 items-center gap-2.5 rounded-lg bg-card text-sm text-muted-foreground shadow-card ring-1 ring-border/60 transition-colors hover:text-foreground",
+              sidebarOpen ? "w-full px-3" : "w-9 justify-center"
             )}
           >
+            <Search className="size-4 shrink-0" />
+            {sidebarOpen ? (
+              <>
+                <span className="min-w-0 flex-1 truncate text-left">
+                  {t("common.action.search")}
+                </span>
+                <kbd className="pointer-events-none rounded border bg-muted px-1.5 font-mono text-[10px] leading-4 select-none">
+                  Ctrl K
+                </kbd>
+              </>
+            ) : null}
+          </button>
+        </div>
+        {orgIds.length > 1 ? (
+          <div className={cn("p-2", !sidebarOpen && "flex justify-center")}>
             <SidebarOrgSwitcher compact={!sidebarOpen} />
           </div>
         ) : null}
@@ -263,7 +286,7 @@ export function ShellLayout() {
               key={getNavNodeId(item)}
               item={item}
               depth={0}
-              locationPath={pathname}
+              activeHref={activeHref}
               navigate={navigate}
               sidebarOpen={sidebarOpen}
               openGroups={openGroups}
@@ -277,7 +300,7 @@ export function ShellLayout() {
         </nav>
         <div
           className={cn(
-            "flex h-[52px] shrink-0 items-center border-t border-[color:var(--layout-sidebar-border)] px-2",
+            "flex h-[52px] shrink-0 items-center px-2",
             sidebarOpen ? "justify-end" : "justify-center"
           )}
         >
@@ -297,7 +320,8 @@ export function ShellLayout() {
           </Button>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden py-2 pr-2">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-background shadow-panel">
         <AppHeader
           pageTitle={pageTitle}
           user={user}
@@ -306,7 +330,6 @@ export function ShellLayout() {
           logout={logout}
           switchTenant={switchTenant}
           navigate={navigate}
-          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           aiPanelOpen={aiEnabled && aiView !== "closed"}
           onToggleAiPanel={
             aiEnabled
@@ -321,6 +344,7 @@ export function ShellLayout() {
           <Outlet key={authScope} />
           <Toaster />
         </main>
+        </div>
       </div>
       <CommandPalette
         items={navSource}
@@ -341,7 +365,7 @@ export function ShellLayout() {
             <aside
               aria-label={t("ai.name")}
               style={{ width: aiPanelWidth }}
-              className="relative hidden shrink-0 flex-col overflow-hidden border-l bg-background md:flex"
+              className="relative my-2 mr-2 hidden shrink-0 flex-col overflow-hidden rounded-2xl bg-background shadow-panel md:flex"
             >
               <div
                 onMouseDown={startAiPanelResize}

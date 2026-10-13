@@ -1,4 +1,8 @@
-export const APPEARANCE_STORAGE_KEY = "arda-appearance"
+// v2 (2026-10): new Arda design language. Settings saved under the old key
+// still carry the previous default font (Inter), so they are
+// migrated once instead of being read as an explicit choice.
+export const APPEARANCE_STORAGE_KEY = "arda-appearance-v2"
+const LEGACY_APPEARANCE_STORAGE_KEY = "arda-appearance"
 export const APPEARANCE_CUSTOM_PRESETS_KEY = "arda-appearance-custom-presets"
 
 export type BaseColor =
@@ -14,7 +18,7 @@ export type BaseColor =
   | "yellow"
   | "violet"
 export type ChartPalette = "default" | "finance" | "cool" | "warm"
-export type FontPreset = "inter" | "system" | "serif" | "mono"
+export type FontPreset = "beVietnam" | "inter" | "system" | "serif" | "mono"
 export type RadiusPreset = "none" | "sm" | "md" | "lg" | "xl"
 export type LayoutSurface =
   "background" | "card" | "muted" | "sidebar" | "accent"
@@ -59,38 +63,39 @@ type FontDefinition = {
 export const defaultAppearance: AppearanceSettings = {
   baseColor: "arda",
   chartPalette: "default",
-  font: "inter",
-  headingFont: "inter",
+  font: "beVietnam",
+  headingFont: "beVietnam",
   radius: "md",
   headerSurface: "background",
   sidebarSurface: "sidebar",
 }
 
+// Keep "arda" in sync with :root / .dark in the @workspace/ui globals.css.
 export const baseColors: Record<BaseColor, BaseColorDefinition> = {
   arda: {
     label: "Arda",
-    swatch: "oklch(0.38 0.105 268)",
+    swatch: "#2459e8",
     light: {
-      "--primary": "oklch(0.38 0.105 268)",
-      "--primary-foreground": "oklch(0.99 0.003 255)",
-      "--accent": "oklch(0.942 0.025 268)",
-      "--accent-foreground": "oklch(0.27 0.08 268)",
-      "--ring": "oklch(0.55 0.12 268)",
-      "--sidebar-primary": "oklch(0.38 0.105 268)",
-      "--sidebar-primary-foreground": "oklch(0.99 0.003 255)",
-      "--sidebar-accent": "oklch(0.93 0.024 268)",
-      "--sidebar-accent-foreground": "oklch(0.27 0.08 268)",
+      "--primary": "#2459e8",
+      "--primary-foreground": "#ffffff",
+      "--accent": "#eaf0ff",
+      "--accent-foreground": "#1a47c4",
+      "--ring": "#2459e8",
+      "--sidebar-primary": "#2459e8",
+      "--sidebar-primary-foreground": "#ffffff",
+      "--sidebar-accent": "#e6e8ee",
+      "--sidebar-accent-foreground": "#0f1424",
     },
     dark: {
-      "--primary": "oklch(0.74 0.11 268)",
-      "--primary-foreground": "oklch(0.18 0.02 260)",
-      "--accent": "oklch(0.29 0.045 268)",
-      "--accent-foreground": "oklch(0.92 0.025 268)",
-      "--ring": "oklch(0.72 0.1 268)",
-      "--sidebar-primary": "oklch(0.74 0.11 268)",
-      "--sidebar-primary-foreground": "oklch(0.18 0.02 260)",
-      "--sidebar-accent": "oklch(0.26 0.04 268)",
-      "--sidebar-accent-foreground": "oklch(0.92 0.025 268)",
+      "--primary": "#6f95ff",
+      "--primary-foreground": "#0b0f19",
+      "--accent": "#1c2a4a",
+      "--accent-foreground": "#c7d6ff",
+      "--ring": "#6f95ff",
+      "--sidebar-primary": "#6f95ff",
+      "--sidebar-primary-foreground": "#0b0f19",
+      "--sidebar-accent": "#182031",
+      "--sidebar-accent-foreground": "#e6e9f0",
     },
   },
   neutral: {
@@ -358,13 +363,7 @@ export const baseColors: Record<BaseColor, BaseColorDefinition> = {
 export const chartPalettes: Record<ChartPalette, ChartPaletteDefinition> = {
   default: {
     label: "Arda default",
-    colors: [
-      "oklch(0.5 0.12 268)",
-      "oklch(0.5 0.09 210)",
-      "oklch(0.7 0.14 75)",
-      "oklch(0.58 0.12 25)",
-      "oklch(0.55 0.08 300)",
-    ],
+    colors: ["#2459e8", "#16a34a", "#f59e0b", "#8b5cf6", "#e5484d"],
   },
   finance: {
     label: "Finance",
@@ -399,6 +398,10 @@ export const chartPalettes: Record<ChartPalette, ChartPaletteDefinition> = {
 }
 
 export const fontPresets: Record<FontPreset, FontDefinition> = {
+  beVietnam: {
+    label: "Be Vietnam Pro",
+    stack: "'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif",
+  },
   inter: {
     label: "Inter",
     stack: "'Inter Variable', ui-sans-serif, system-ui, sans-serif",
@@ -436,12 +439,31 @@ export const layoutSurfacePresets: Record<
 export function readAppearance(): AppearanceSettings {
   if (typeof localStorage === "undefined") return defaultAppearance
   try {
-    const parsed = JSON.parse(
-      localStorage.getItem(APPEARANCE_STORAGE_KEY) || "{}"
-    )
-    return normalizeAppearance(parsed)
+    const stored = localStorage.getItem(APPEARANCE_STORAGE_KEY)
+    if (stored) return normalizeAppearance(JSON.parse(stored))
+    const legacy = localStorage.getItem(LEGACY_APPEARANCE_STORAGE_KEY)
+    if (!legacy) return defaultAppearance
+    const migrated = migrateLegacyAppearance(JSON.parse(legacy))
+    localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(migrated))
+    localStorage.removeItem(LEGACY_APPEARANCE_STORAGE_KEY)
+    return migrated
   } catch {
     return defaultAppearance
+  }
+}
+
+/** Old defaults become the new defaults; anything the user picked is kept. */
+export function migrateLegacyAppearance(
+  value: Partial<AppearanceSettings>
+): AppearanceSettings {
+  const settings = normalizeAppearance(value)
+  return {
+    ...settings,
+    font: settings.font === "inter" ? defaultAppearance.font : settings.font,
+    headingFont:
+      settings.headingFont === "inter"
+        ? defaultAppearance.headingFont
+        : settings.headingFont,
   }
 }
 
@@ -479,9 +501,10 @@ export function applyAppearance(settings: AppearanceSettings) {
     "--radius",
     radiusPresets[settings.radius]?.value ?? radiusPresets.md.value
   )
-  const fontStack = fontPresets[settings.font]?.stack ?? fontPresets.inter.stack
+  const fontStack =
+    fontPresets[settings.font]?.stack ?? fontPresets.beVietnam.stack
   const headingStack =
-    fontPresets[settings.headingFont]?.stack ?? fontPresets.inter.stack
+    fontPresets[settings.headingFont]?.stack ?? fontPresets.beVietnam.stack
   root.style.setProperty("--app-font-sans", fontStack)
   root.style.setProperty("--app-font-heading", headingStack)
   root.style.setProperty("--font-sans", fontStack)
@@ -507,7 +530,7 @@ export function getAppearanceScript() {
   const fonts = JSON.stringify(fontPresets)
   const surfaces = JSON.stringify(layoutSurfacePresets)
 
-  return `(function(){try{var key=${key};var settings=JSON.parse(localStorage.getItem(key)||'null')||${fallback};var bases=${bases};var charts=${charts};var radii=${radii};var fonts=${fonts};var surfaces=${surfaces};var root=document.documentElement;var base=bases[settings.baseColor]||bases.arda;var vars=root.classList.contains('dark')?base.dark:base.light;for(var name in vars){root.style.setProperty(name,vars[name])}var chart=charts[settings.chartPalette]||charts.default;for(var i=0;i<chart.colors.length;i++){root.style.setProperty('--chart-'+(i+1),chart.colors[i])}root.style.setProperty('--radius',(radii[settings.radius]||radii.md).value);var fontStack=(fonts[settings.font]||fonts.inter).stack;var headingStack=(fonts[settings.headingFont]||fonts.inter).stack;root.style.setProperty('--app-font-sans',fontStack);root.style.setProperty('--app-font-heading',headingStack);root.style.setProperty('--font-sans',fontStack);root.style.setProperty('--font-heading',headingStack);root.style.setProperty('--layout-header-background',(surfaces[settings.headerSurface]||surfaces.background).value);root.style.setProperty('--layout-sidebar-background',(surfaces[settings.sidebarSurface]||surfaces.sidebar).value)}catch(e){}})();`
+  return `(function(){try{var key=${key};var settings=JSON.parse(localStorage.getItem(key)||'null')||${fallback};var bases=${bases};var charts=${charts};var radii=${radii};var fonts=${fonts};var surfaces=${surfaces};var root=document.documentElement;var base=bases[settings.baseColor]||bases.arda;var vars=root.classList.contains('dark')?base.dark:base.light;for(var name in vars){root.style.setProperty(name,vars[name])}var chart=charts[settings.chartPalette]||charts.default;for(var i=0;i<chart.colors.length;i++){root.style.setProperty('--chart-'+(i+1),chart.colors[i])}root.style.setProperty('--radius',(radii[settings.radius]||radii.md).value);var fontStack=(fonts[settings.font]||fonts.beVietnam).stack;var headingStack=(fonts[settings.headingFont]||fonts.beVietnam).stack;root.style.setProperty('--app-font-sans',fontStack);root.style.setProperty('--app-font-heading',headingStack);root.style.setProperty('--font-sans',fontStack);root.style.setProperty('--font-heading',headingStack);root.style.setProperty('--layout-header-background',(surfaces[settings.headerSurface]||surfaces.background).value);root.style.setProperty('--layout-sidebar-background',(surfaces[settings.sidebarSurface]||surfaces.sidebar).value)}catch(e){}})();`
 }
 
 function normalizeAppearance(
@@ -546,19 +569,11 @@ function isKey<T extends Record<string, unknown>>(
 export const builtinPresets: AppearancePreset[] = [
   {
     id: "arda-classic",
-    name: "Arda Classic",
-    description: "Deep indigo & violet tones with balanced geometry",
+    name: "Arda",
+    description: "Arda blue on a neutral canvas, Be Vietnam Pro, compact",
     isBuiltin: true,
     themeMode: "system",
-    settings: {
-      baseColor: "arda",
-      chartPalette: "default",
-      font: "inter",
-      headingFont: "inter",
-      radius: "md",
-      headerSurface: "background",
-      sidebarSurface: "sidebar",
-    },
+    settings: defaultAppearance,
   },
   {
     id: "slate-enterprise",
