@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { buildTree, expandedToDepth, textMatches } from "./tree"
+import { buildTree, expandedToDepth, textMatches, valueIn } from "./tree"
 
 type Unit = { id: string; parent?: string; code: string }
 const units: Unit[] = [
@@ -48,5 +48,15 @@ describe("textMatches", () => {
     expect(textMatches("1011", "1011", "Tiền mặt")).toBe(true)
     expect(textMatches("xyz", "1011", undefined)).toBe(false)
     expect(textMatches("  ", "anything")).toBe(true)
+  })
+})
+
+describe("valueIn", () => {
+  test("single value, array or empty filter", () => {
+    expect(valueIn("active", "active")).toBe(true)
+    expect(valueIn("inactive", ["active"])).toBe(false)
+    expect(valueIn("inactive", ["active", "inactive"])).toBe(true)
+    expect(valueIn("x", [])).toBe(true)
+    expect(valueIn("x", undefined)).toBe(true)
   })
 })

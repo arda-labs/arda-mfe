@@ -37,10 +37,13 @@ export function DataTablePagination<TData>({
   const hasSelectionColumn = table
     .getAllLeafColumns()
     .some((column) => column.id === SELECT_COLUMN_ID)
-  const total = totalRows ?? table.getFilteredRowModel().rows.length
   // One page that fits the smallest page size needs no pager (design 16);
-  // unpaged tables (trees, `meta.unpaged`) never have one.
+  // unpaged tables (trees, `meta.unpaged`) never have one, and count every
+  // row they show at any depth, so a filtered tree reports what is visible.
   const unpaged = Boolean(table.options.meta?.unpaged)
+  const total = unpaged
+    ? table.getFilteredRowModel().flatRows.length
+    : (totalRows ?? table.getFilteredRowModel().rows.length)
   const showPager =
     !unpaged && (table.getPageCount() > 1 || total > Math.min(...pageSizeOptions))
 
