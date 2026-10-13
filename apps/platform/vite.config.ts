@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { remoteSharedDeps, remotePorts } from "../../federation.shared"
-import { federationBuild } from "../../federation.shared"
+import { federationBuild, hostRuntimeDevAliases } from "../../federation.shared"
 
 const name = "platform"
 const port = remotePorts[name]
@@ -24,7 +24,9 @@ export default defineConfig(({ command }) => ({
       shared: { ...remoteSharedDeps },
     }),
   ],
-  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
+  resolve: {
+    alias: { "@": path.resolve(__dirname, "./src"), ...hostRuntimeDevAliases },
+  },
   server: {
     port,
     // strictPort: port cố định match shell entry — lệch port = shell
