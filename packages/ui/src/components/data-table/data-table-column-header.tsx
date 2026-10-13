@@ -1,23 +1,8 @@
 "use client"
 
 import type { Column } from "@tanstack/react-table"
-import {
-  ChevronDown,
-  ChevronsUpDown,
-  ChevronUp,
-  EyeOff,
-  MoreHorizontal,
-  X,
-} from "lucide-react"
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
 import { cn } from "@workspace/ui/lib/utils"
 import { useI18n } from "@workspace/i18n"
 
@@ -29,18 +14,11 @@ interface DataTableColumnHeaderProps<
   label: string
 }
 
-function SortIndicator({ sorted }: { sorted: false | "asc" | "desc" }) {
-  if (sorted === "desc") {
-    return <ChevronDown className="size-3.5 shrink-0 text-foreground" />
-  }
-  if (sorted === "asc") {
-    return <ChevronUp className="size-3.5 shrink-0 text-foreground" />
-  }
-  return (
-    <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground/60" />
-  )
-}
-
+/**
+ * Column header (DataTable v2, design board 16): the label sorts on click and
+ * the arrow only shows while hovered, focused or sorted. Hiding columns moved
+ * to the toolbar's "Cột" menu, so headers no longer carry a "⋯" button each.
+ */
 export function DataTableColumnHeader<TData, TValue>({
   column,
   label,
@@ -48,108 +26,51 @@ export function DataTableColumnHeader<TData, TValue>({
   ...props
 }: DataTableColumnHeaderProps<TData, TValue>) {
   const { t } = useI18n()
-  const canSort = column.getCanSort()
-  const canHide = column.getCanHide()
   const sorted = column.getIsSorted()
 
-  if (!canSort && !canHide) {
+  if (!column.getCanSort()) {
     return (
-      <span className={cn("text-xs font-bold text-foreground", className)}>
+      <span
+        className={cn("truncate text-xs font-semibold text-muted-foreground", className)}
+      >
         {label}
       </span>
     )
   }
 
-  if (canSort && !canHide) {
-    return (
-      <button
-        type="button"
-        onClick={() => column.toggleSorting(undefined, false)}
-        className={cn(
-          "-ml-2 inline-flex h-8 max-w-full items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
-          sorted && "text-foreground",
-          className
-        )}
-        {...props}
-      >
-        <span className="truncate">{label}</span>
-        <SortIndicator sorted={sorted} />
-      </button>
-    )
-  }
+  const Icon = sorted === "asc" ? ArrowUp : sorted === "desc" ? ArrowDown : ArrowUpDown
+  const sortLabel =
+    sorted === "asc"
+      ? t("common.table.sort_ascending")
+      : sorted === "desc"
+        ? t("common.table.sort_descending")
+        : undefined
 
   return (
-    <div className={cn("flex items-center gap-0.5", className)}>
-      {canSort ? (
-        <button
-          type="button"
-          onClick={() => column.toggleSorting(undefined, false)}
-          className={cn(
-            "-ml-2 inline-flex h-8 max-w-full flex-1 items-center gap-1 rounded-md px-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
-            sorted && "text-foreground"
-          )}
-        >
-          <span className="truncate">{label}</span>
-          <SortIndicator sorted={sorted} />
-        </button>
-      ) : (
-        <span className="px-2 text-xs font-bold text-foreground">{label}</span>
+    <button
+      type="button"
+      onClick={() => column.toggleSorting(undefined, false)}
+      aria-sort={
+        sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : undefined
+      }
+      title={sortLabel}
+      className={cn(
+        "group/sort -ml-1.5 inline-flex h-7 max-w-full items-center gap-1 rounded-md px-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
+        sorted && "text-foreground",
+        className
       )}
-      {canHide ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0 text-muted-foreground"
-            >
-              <MoreHorizontal className="size-3.5" />
-              <span className="sr-only">
-                {t("common.table.column_options")}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-28">
-            {canSort && (
-              <>
-                <DropdownMenuCheckboxItem
-                  className="relative pr-8 pl-2 [&_svg]:text-muted-foreground [&>span:first-child]:right-2 [&>span:first-child]:left-auto"
-                  checked={sorted === "asc"}
-                  onClick={() => column.toggleSorting(false)}
-                >
-                  <ChevronUp />
-                  {t("common.table.sort_ascending")}
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  className="relative pr-8 pl-2 [&_svg]:text-muted-foreground [&>span:first-child]:right-2 [&>span:first-child]:left-auto"
-                  checked={sorted === "desc"}
-                  onClick={() => column.toggleSorting(true)}
-                >
-                  <ChevronDown />
-                  {t("common.table.sort_descending")}
-                </DropdownMenuCheckboxItem>
-                {sorted && (
-                  <DropdownMenuItem
-                    className="pl-2 [&_svg]:text-muted-foreground"
-                    onClick={() => column.clearSorting()}
-                  >
-                    <X />
-                    {t("common.table.reset_sorting")}
-                  </DropdownMenuItem>
-                )}
-              </>
-            )}
-            <DropdownMenuCheckboxItem
-              className="relative pr-8 pl-2 [&_svg]:text-muted-foreground [&>span:first-child]:right-2 [&>span:first-child]:left-auto"
-              checked={!column.getIsVisible()}
-              onClick={() => column.toggleVisibility(false)}
-            >
-              <EyeOff />
-              {t("common.table.hide_column")}
-            </DropdownMenuCheckboxItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : null}
-    </div>
+      {...props}
+    >
+      <span className="truncate">{label}</span>
+      <Icon
+        aria-hidden
+        className={cn(
+          "size-3.5 shrink-0 transition-opacity",
+          sorted
+            ? "opacity-100"
+            : "opacity-0 group-hover/sort:opacity-60 group-focus-visible/sort:opacity-60"
+        )}
+      />
+    </button>
   )
 }

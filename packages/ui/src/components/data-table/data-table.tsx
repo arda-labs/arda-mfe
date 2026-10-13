@@ -2,8 +2,10 @@ import { flexRender, type Row } from "@tanstack/react-table"
 import type { Table as TanstackTable } from "@tanstack/react-table"
 import * as React from "react"
 
-import { useI18n } from "@workspace/i18n"
-
+import {
+  DataTableEmpty,
+  type DataTableEmptyState,
+} from "@workspace/ui/components/data-table/data-table-empty"
 import { DataTablePagination } from "@workspace/ui/components/data-table/data-table-pagination"
 import {
   Table,
@@ -30,6 +32,8 @@ interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   fetching?: boolean
   /** Adds a semantic class to a row without coupling the table to domain data. */
   rowClassName?: (row: Row<TData>) => string | undefined
+  /** Copy and call to action for a list with no records yet. */
+  emptyState?: DataTableEmptyState
 }
 
 export type DataTableDensity = "compact" | "comfortable" | "spacious"
@@ -85,9 +89,9 @@ export function DataTable<TData>({
   onRowDoubleClick,
   fetching = false,
   rowClassName,
+  emptyState,
   ...props
 }: DataTableProps<TData>) {
-  const { t } = useI18n()
   const [density, setDensity] = React.useState<DataTableDensity>(defaultDensity)
   const densityClass = densityStyles[density]
   const isPanel = layout === "panel"
@@ -135,7 +139,8 @@ export function DataTable<TData>({
     </TableRow>
   ))
 
-  const bodyRows = table.getRowModel().rows.length ? (
+  const hasRows = table.getRowModel().rows.length > 0
+  const bodyRows = hasRows ? (
     table.getRowModel().rows.map((row) => {
       const isStriped = row.index % 2 === 1
 
@@ -187,12 +192,9 @@ export function DataTable<TData>({
       )
     })
   ) : (
-    <TableRow>
-      <TableCell
-        colSpan={table.getAllColumns().length}
-        className={densityClass.empty}
-      >
-        {t("table.no_results")}
+    <TableRow className="hover:bg-transparent">
+      <TableCell colSpan={table.getAllColumns().length} className="p-0">
+        <DataTableEmpty table={table} emptyState={emptyState} />
       </TableCell>
     </TableRow>
   )
@@ -241,13 +243,20 @@ export function DataTable<TData>({
                 className="min-h-0 flex-1 overflow-auto"
                 onScroll={syncHeaderScroll}
               >
-                <table
-                  className={tableClassName}
-                  style={{ width: tableWidth, minWidth: "100%" }}
-                >
-                  {colGroup}
-                  <TableBody>{bodyRows}</TableBody>
-                </table>
+                {hasRows ? (
+                  <table
+                    className={tableClassName}
+                    style={{ width: tableWidth, minWidth: "100%" }}
+                  >
+                    {colGroup}
+                    <TableBody>{bodyRows}</TableBody>
+                  </table>
+                ) : (
+                  // Centered in the panel instead of a one-line row at the top.
+                  <div className="flex min-h-full items-center justify-center">
+                    <DataTableEmpty table={table} emptyState={emptyState} />
+                  </div>
+                )}
               </div>
             </>
           ) : (

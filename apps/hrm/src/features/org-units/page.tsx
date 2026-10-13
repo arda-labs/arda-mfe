@@ -5,7 +5,6 @@ import {
   StatusIndicator,
   StatusLabel,
 } from "@workspace/ui/components/status"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   AlertDialog,
@@ -269,14 +268,15 @@ export function OrgUnitsPage() {
     <ListPageShell
       title={t("hrm.org_units.title")}
       totalRows={total}
-      meta={
-        <Badge
-          variant="secondary"
-          className="px-2.5 py-0.5 text-[10px] font-bold"
-        >
-          {t("hrm.count", { count: total })}
-        </Badge>
-      }
+      emptyState={{
+        title: t("hrm.org_units.empty_title"),
+        description: t("hrm.org_units.empty_description"),
+        action: (
+          <Button type="button" size="sm" onClick={openCreate}>
+            {t("hrm.org_units.create")}
+          </Button>
+        ),
+      }}
       criticalPending={isLoading}
       criticalError={loadError}
       onRetry={() => void refetch()}

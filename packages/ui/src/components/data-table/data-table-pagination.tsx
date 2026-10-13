@@ -38,6 +38,9 @@ export function DataTablePagination<TData>({
     .getAllLeafColumns()
     .some((column) => column.id === SELECT_COLUMN_ID)
   const total = totalRows ?? table.getFilteredRowModel().rows.length
+  // One page that fits the smallest page size needs no pager (design 16).
+  const showPager =
+    table.getPageCount() > 1 || total > Math.min(...pageSizeOptions)
 
   return (
     <div
@@ -53,6 +56,7 @@ export function DataTablePagination<TData>({
           ? ` · ${t("common.pagination.selected", { count: selectedRows })}`
           : null}
       </div>
+      {showPager ? (
       <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium whitespace-nowrap">
@@ -127,6 +131,7 @@ export function DataTablePagination<TData>({
           </Button>
         </div>
       </div>
+      ) : null}
     </div>
   )
 }
