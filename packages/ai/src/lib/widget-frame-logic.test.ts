@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { readChartTheme } from "./chart-theme"
-import { WidgetSlotRegistry, sameChartTheme, shouldApplyHeight } from "./widget-frame-logic"
+import {
+  WidgetSlotRegistry,
+  sameChartTheme,
+  shouldApplyHeight,
+  shouldPostData,
+} from "./widget-frame-logic"
 import { WIDGET_HEIGHT_MAX, WIDGET_HEIGHT_MIN } from "./widget-protocol"
 
 describe("shouldApplyHeight", () => {
@@ -72,5 +77,17 @@ describe("WidgetSlotRegistry", () => {
     expect(new Set(collapsed)).toEqual(new Set(["a"]))
     releases.forEach((release) => release())
     expect(registry.size).toBe(0)
+  })
+})
+
+describe("shouldPostData", () => {
+  test("posts on the first load of a generation only", () => {
+    expect(shouldPostData(null, 0)).toBe(true)
+    expect(shouldPostData(0, 0)).toBe(false)
+  })
+  test("a new generation (rebuild, retry, theme reload) posts again", () => {
+    expect(shouldPostData(0, 1)).toBe(true)
+    expect(shouldPostData(1, 1)).toBe(false)
+    expect(shouldPostData(1, 2)).toBe(true)
   })
 })

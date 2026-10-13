@@ -12,6 +12,15 @@ export function shouldApplyHeight(applied: number, next: number): boolean {
   return Math.abs(clampWidgetHeight(next) - applied) >= WIDGET_HEIGHT_EPSILON
 }
 
+// The iframe `load` event fires for every document the frame ends up showing,
+// and a widget can reload or navigate itself. Business data is handed over only
+// on the first load of a generation (the document the parent built); a later
+// load in the same generation is whatever the frame navigated to and gets
+// nothing. `sent` is the generation data was last posted for.
+export function shouldPostData(sent: number | null, generation: number): boolean {
+  return sent !== generation
+}
+
 // MutationObserver fires on every <html> class change, not only theme flips.
 // Rebuilding the document reloads the iframe, so only a changed theme counts.
 export function sameChartTheme(a: ChartTheme, b: ChartTheme): boolean {

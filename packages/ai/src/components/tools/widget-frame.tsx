@@ -4,7 +4,12 @@ import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { AlertTriangle, Maximize2, Minimize2, Sparkles } from "lucide-react"
 import { observeThemeChange, readChartThemeFromDocument } from "../../lib/chart-theme"
-import { sameChartTheme, shouldApplyHeight, WidgetSlotRegistry } from "../../lib/widget-frame-logic"
+import {
+  sameChartTheme,
+  shouldApplyHeight,
+  shouldPostData,
+  WidgetSlotRegistry,
+} from "../../lib/widget-frame-logic"
 import { buildWidgetDocument, type WidgetSource } from "../../lib/widget-host"
 import {
   WIDGET_MAX_MOUNTED,
@@ -41,6 +46,8 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
   const dataRef = useRef(data)
   const timerRef = useRef<number | null>(null)
   const appliedHeightRef = useRef(clampWidgetHeight(0))
+  // Generation the business data was last posted for (see shouldPostData).
+  const sentGenerationRef = useRef<number | null>(null)
 
   const [theme, setTheme] = useState(readChartThemeFromDocument)
   // Keyed on content, not on the `source` object: the parent may recreate it
@@ -121,31 +128,43 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
 
   // React's onLoad, not addEventListener in an effect: for srcdoc the load
   // event can fire before an effect attaches the listener.
-  const handleLoad = useCallback((event: React.SyntheticEvent<HTMLIFrameElement>) => {
-    event.currentTarget.contentWindow?.postMessage({ type: "arda:data", data: dataRef.current }, "*")
-    // Always armed: the runtime replies to arda:data with arda:height even when
-    // the model handler throws, so any valid height clears this timer. A height
-    // that arrived before this event does not count; only the reply does.
-    if (timerRef.current !== null) window.clearTimeout(timerRef.current)
-    timerRef.current = window.setTimeout(() => {
-      timerRef.current = null
-      setPhase("timeout")
-    }, WIDGET_TIMEOUT_MS)
-  }, [])
+  const handleLoad = useCallback(
+    (event: React.SyntheticEvent<HTMLIFrameElement>) => {
+      // Data goes to the document the parent built, once per generation. A
+      // widget that reloads or navigates itself fires `load` again on the same
+      // contentWindow; that document does not get the data.
+      if (shouldPostData(sentGenerationRef.current, generation)) {
+        sentGenerationRef.current = generation
+        event.currentTarget.contentWindow?.postMessage({ type: "arda:data", data: dataRef.current }, "*")
+      }
+      // Re-armed on every load: the runtime replies to arda:data with arda:height
+      // even when the model handler throws, so any valid height clears this
+      // timer. A self-navigated frame never replies, so the timeout tears it
+      // down. A height that arrived before this event does not count.
+      if (timerRef.current !== null) window.clearTimeout(timerRef.current)
+      timerRef.current = window.setTimeout(() => {
+        timerRef.current = null
+        setPhase("timeout")
+      }, WIDGET_TIMEOUT_MS)
+    },
+    [generation]
+  )
 
   return (
     <div className={cn("my-3 overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xs", className)}>
       <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2 text-xs">
-        <Sparkles className="size-3.5 text-primary" />
-        <span className="font-semibold text-foreground">{title}</span>
-        <span className="ml-auto rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+        <Sparkles className="size-3.5 shrink-0 text-primary" />
+        <span className="min-w-0 truncate font-semibold text-foreground" title={title}>
+          {title}
+        </span>
+        <span className="ml-auto shrink-0 whitespace-nowrap rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
           {t("ai.tool.widget.badge")}
         </span>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="size-6"
+          className="size-6 shrink-0"
           aria-label={expanded ? t("ai.tool.widget.collapse") : t("ai.tool.widget.expand")}
           title={expanded ? t("ai.tool.widget.collapse") : t("ai.tool.widget.expand")}
           onClick={() => setExpanded((value) => !value)}
