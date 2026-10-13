@@ -24,7 +24,7 @@ export function RunStatusBanner({ phase, detail, className }: RunStatusBannerPro
         {phase === "THINKING" && <Sparkles className="size-3 motion-safe:animate-spin" />}
         {phase === "SEARCHING" && <Search className="size-3 motion-safe:animate-pulse" />}
         {phase === "EXECUTING" && <Code className="size-3 motion-safe:animate-bounce" />}
-        {phase === "RESPONDING" && <CheckCircle2 className="size-3 text-emerald-500" />}
+        {phase ==="RESPONDING" && <CheckCircle2 className="size-3 text-success" />}
       </div>
 
       <span className="font-medium text-foreground">

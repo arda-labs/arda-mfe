@@ -35,9 +35,9 @@ function formatAmount(value: number, t: Translate, formatNumber: FormatNumber): 
 
 function accentFor(unit: string): string {
   const lower = unit.toLowerCase()
-  if (lower.includes("vnd") || lower.includes("đ")) return "border-l-blue-500"
-  if (lower.includes("%")) return "border-l-amber-500"
-  return "border-l-slate-400"
+  if (lower.includes("vnd") || lower.includes("đ")) return"border-l-info"
+  if (lower.includes("%")) return"border-l-warning"
+  return"border-l-border"
 }
 
 function renderValue(

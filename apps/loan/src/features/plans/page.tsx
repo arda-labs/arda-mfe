@@ -19,6 +19,7 @@ import {
 import { formatAmount, formatDateShort, fromMinor } from "@workspace/format"
 import { loanPlanApi, type LoanPlan } from "../api"
 import { PlanForm } from "./components/PlanForm"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 const STATUS_FILTER_OPTIONS = ["ACTIVE", "CLOSED", "CANCELLED"]
@@ -30,12 +31,6 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   INACTIVE: "loan.status_inactive",
   CLOSED: "loan.status.closed",
   CANCELLED: "loan.status.cancelled",
-}
-
-function statusVariant(status: string) {
-  if (status === "ACTIVE") return "default" as const
-  if (status === "CANCELLED") return "destructive" as const
-  return "outline" as const
 }
 
 function statusLabel(status: string, t: (key: string) => string) {
@@ -175,9 +170,9 @@ export function PlansPage() {
           }))
         ),
         cell: ({ row }) => (
-          <Badge variant={statusVariant(row.original.status)}>
+          <StatusBadge status={row.original.status}>
             {statusLabel(row.original.status, t)}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

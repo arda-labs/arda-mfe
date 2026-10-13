@@ -136,7 +136,12 @@
     "selected_count": "{count} đã chọn",
     "no_results": "Không tìm thấy kết quả",
     "visible_columns": "Cột hiển thị",
-    "search_columns": "Tìm kiếm cột..."
+    "search_columns": "Tìm kiếm cột...",
+    "columns": "Cột",
+    "empty_title": "Chưa có dữ liệu",
+    "empty_description": "Bản ghi mới sẽ hiện ở đây.",
+    "filtered_empty_title": "Không có kết quả khớp bộ lọc",
+    "filtered_empty_description": "Thử bỏ bớt điều kiện lọc hoặc đổi từ khóa tìm kiếm."
   },
   "date": {
     "today": "Hôm nay",
@@ -146,7 +151,33 @@
   },
   "status": {
     "active": "Đang hoạt động",
-    "inactive": "Ngưng hoạt động"
+    "inactive": "Ngưng hoạt động",
+    "draft": "Nháp",
+    "pending": "Chờ xử lý",
+    "pending_approval": "Chờ duyệt",
+    "submitted": "Đã trình",
+    "in_review": "Đang xem xét",
+    "needs_changes": "Cần chỉnh sửa",
+    "approved": "Đã duyệt",
+    "rejected": "Từ chối",
+    "posted": "Đã hạch toán",
+    "reversed": "Đã đảo",
+    "cancelled": "Đã hủy",
+    "closed": "Đã đóng",
+    "completed": "Hoàn thành",
+    "running": "Đang chạy",
+    "in_progress": "Đang xử lý",
+    "succeeded": "Thành công",
+    "failed": "Thất bại",
+    "timed_out": "Quá thời gian",
+    "skipped": "Bỏ qua",
+    "disbursed": "Đã giải ngân",
+    "planned": "Kế hoạch",
+    "partially_paid": "Trả một phần",
+    "paid": "Đã trả",
+    "expired": "Hết hạn",
+    "locked": "Đã khóa",
+    "suspended": "Tạm ngưng"
   },
   "export": {
     "title": "Xuất Dữ Liệu",
@@ -300,5 +331,17 @@
   "date_field": {
     "placeholder": "dd/mm/yyyy",
     "open_calendar": "Mở lịch"
+  },
+  "doc_code": {
+    "pending": "Mã cấp khi gửi"
+  },
+  "context": {
+    "business_date": "Ngày nghiệp vụ",
+    "status_open": "Đang mở",
+    "status_eod": "Đang chạy cuối ngày",
+    "status_closed": "Đã khóa sổ",
+    "date_mismatch": "Khác ngày hôm nay ({today})",
+    "date_unknown": "Chưa rõ ngày",
+    "eod_short": "EOD"
   }
 }

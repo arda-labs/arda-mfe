@@ -23,11 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { useDebouncedCallback } from "@workspace/ui/hooks/use-debounced-callback"
 import { ArrowLeft, Trash2 } from "lucide-react"
 import { GroupMembersTableView } from "./components/GroupMembersTableView"
@@ -353,16 +349,10 @@ export function GroupMembersDialog({
         accessorKey: "status",
         header: () => t("common.field.status"),
         cell: ({ row }) => (
-          <Status
-            variant={row.original.status === "ACTIVE" ? "success" : "default"}
-          >
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.status === "ACTIVE"
+          <StatusBadge
+            tone={row.original.status === "ACTIVE" ? "success" : "neutral"}>{row.original.status === "ACTIVE"
                 ? t("admin.users.status.active")
-                : t("admin.users.status.disabled")}
-            </StatusLabel>
-          </Status>
+                : t("admin.users.status.disabled")}</StatusBadge>
         ),
       },
       {
@@ -385,7 +375,7 @@ export function GroupMembersDialog({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              className="size-7 text-muted-foreground hover:bg-destructive/50 hover:text-destructive"
               onClick={() => removeFromDraft([row.original.id])}
               title={t("admin.groups.members.remove_row")}
             >

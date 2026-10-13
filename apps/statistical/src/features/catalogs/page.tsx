@@ -29,6 +29,7 @@ import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { matchTextColumnFilter, textSearchMeta } from "@workspace/list-page/column-filters"
 import { sortByColumn, useClientListTable } from "@workspace/list-page/client-list"
 import { statisticalApi, type CatalogItem } from "../api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /**
  * QCMS catalogs (W5): one tab per EPAS catalog screen (indicator type, stat
@@ -118,11 +119,11 @@ export function CatalogsPage() {
           <DataTableColumnHeader column={column} label={t("common.field.status")} />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active
               ? t("statistical.catalogs.active")
               : t("statistical.catalogs.inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

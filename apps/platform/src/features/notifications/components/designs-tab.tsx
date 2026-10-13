@@ -11,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Table,
@@ -25,6 +24,7 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { deleteEmailDesign, listEmailDesigns } from "../api"
 import { type EmailDesign } from "../types"
 import { DesignDialog } from "./design-dialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** Reusable email designs: list + create/edit dialog + delete. */
 export function DesignsTab() {
@@ -138,11 +138,11 @@ export function DesignsTab() {
                   {row.subject || "—"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.is_active ? "default" : "outline"}>
+                  <StatusBadge tone={row.is_active ? "success" : "neutral"}>
                     {row.is_active
                       ? t("platform.working_hours.active")
                       : t("platform.working_hours.inactive")}
-                  </Badge>
+                  </StatusBadge>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
@@ -161,7 +161,7 @@ export function DesignsTab() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+                      className="size-7 text-muted-foreground hover:bg-destructive/50 hover:text-destructive"
                       title={t("common.action.delete")}
                       onClick={() => setDeleteTarget(row)}
                     >

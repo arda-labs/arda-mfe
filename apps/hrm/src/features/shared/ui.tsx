@@ -35,6 +35,7 @@ import { Plus, Trash2, Upload } from "lucide-react"
 import type { EmployeeRegistration, OrgUnit, Position } from "../api"
 import type { RegistrationValues } from "./schemas"
 import { useWatch } from "react-hook-form"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 export function RegistrationTabsList({
   compact = false,
@@ -104,7 +105,7 @@ export function RegistrationGeneralPanel({
             label={t("hrm.registrations.field.employee_type")}
             error={form.formState.errors.employee_type?.message}
           >
-            <SelectField
+            <SegmentedControl
               aria-invalid={Boolean(form.formState.errors.employee_type)}
               options={[
                 {

@@ -22,6 +22,7 @@ import {
 import { formatMoney, fromMinor, todayISO } from "@workspace/format"
 import { generalProvisionApi, type GeneralProvision } from "../api"
 import { ProvisionForm } from "./components/ProvisionForm"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -30,19 +31,6 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   POSTED: "loan.general_provision.status.POSTED",
   REJECTED: "loan.general_provision.status.REJECTED",
   CANCELLED: "loan.general_provision.status.CANCELLED",
-}
-
-function statusVariant(status?: string) {
-  switch (status) {
-    case "POSTED":
-      return "default" as const
-    case "SUBMITTED":
-      return "secondary" as const
-    case "REJECTED":
-      return "destructive" as const
-    default:
-      return "outline" as const
-  }
 }
 
 function statusLabel(status: string, t: (key: string) => string) {
@@ -278,9 +266,9 @@ export function GeneralProvisionPage() {
           }))
         ),
         cell: ({ row }) => (
-          <Badge variant={statusVariant(row.original.status)}>
+          <StatusBadge status={row.original.status}>
             {row.original.status ? statusLabel(row.original.status, t) : "—"}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

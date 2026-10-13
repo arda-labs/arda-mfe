@@ -39,6 +39,7 @@ import {
 } from "../api"
 import { mdmListDefinition } from "./list-query"
 import { MdmItemDialog } from "./components/MdmItemDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** URL/list params that must not leak across catalog switches. */
 const LIST_URL_KEYS = ["page", "perPage", "sort", "code", "is_active"]
@@ -114,11 +115,11 @@ export function MdmPage(_props: { pathname: string }) {
         enableColumnFilter: true,
         meta: activeStatusMeta(t("mdm.field.status"), t("mdm.status.active"), t("mdm.status.inactive")),
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "outline"}>
+          <StatusBadge tone={row.original.is_active ? "success" : "neutral"}>
             {row.original.is_active
               ? t("mdm.status.active")
               : t("mdm.status.inactive")}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {
@@ -156,7 +157,7 @@ export function MdmPage(_props: { pathname: string }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+                className="size-7 text-muted-foreground hover:bg-destructive/50 hover:text-destructive"
                 aria-label={t("common.action.delete")}
                 onClick={() => setDeleteTarget(row.original)}
                 title={t("common.action.delete")}

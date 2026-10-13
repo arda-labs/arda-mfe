@@ -130,8 +130,11 @@ export function CalendarPage() {
           : ` (Le ${holiday.holiday_year || ""})`),
       start: holiday.holiday_date.split("T")[0],
       allDay: true,
-      backgroundColor: holiday.is_recurring ? "#22c55e" : "#f97316",
-      borderColor: holiday.is_recurring ? "#16a34a" : "#ea580c",
+      backgroundColor: holiday.is_recurring ? "var(--success)" : "var(--warning)",
+      borderColor: holiday.is_recurring ? "var(--success)" : "var(--warning)",
+      textColor: holiday.is_recurring
+        ? "var(--success-foreground)"
+        : "var(--warning-foreground)",
       extendedProps: {
         isRecurring: holiday.is_recurring,
         description: holiday.description,
@@ -145,8 +148,9 @@ export function CalendarPage() {
             title: "Ngay lam viec he thong",
             start: status.current_business_date.split("T")[0],
             allDay: true,
-            backgroundColor: "#ef4444",
-            borderColor: "#dc2626",
+            backgroundColor: "var(--destructive)",
+            borderColor: "var(--destructive)",
+            textColor: "var(--destructive-foreground)",
             editable: false,
           },
         ]
@@ -262,7 +266,7 @@ export function CalendarPage() {
             {status && (
               <div className="space-y-0.5 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-red-500" />
+                  <span className="size-2 rounded-full bg-destructive" />
                   <span className="text-muted-foreground">
                     Ngay hach toan (T):
                   </span>
@@ -328,15 +332,15 @@ export function CalendarPage() {
             <h3 className="text-sm font-semibold">Chu thich lich nghi</h3>
             <div className="space-y-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="block size-3 rounded border border-green-600 bg-green-500" />
+                <span className="block size-3 rounded border border-success bg-success" />
                 <span>Le duong lich hang nam</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="block size-3 rounded border border-orange-600 bg-orange-500" />
+                <span className="block size-3 rounded border border-warning bg-warning" />
                 <span>Le theo nam</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="block size-3 rounded border border-red-600 bg-red-500" />
+                <span className="block size-3 rounded border border-destructive bg-destructive" />
                 <span>Ngay lam viec he thong (T)</span>
               </div>
             </div>

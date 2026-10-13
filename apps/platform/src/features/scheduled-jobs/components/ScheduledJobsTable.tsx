@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { notify } from "@workspace/ui/feedback/notify"
-import { apiErrorCode, humanCron, statusVariant } from "../format"
+import { apiErrorCode, humanCron } from "../format"
 import { useCronPreview, useRunJob, useScheduledJobs } from "../hooks"
 import { JOB_PROBLEM, type ScheduledJob } from "../types"
 import { JobEditDialog } from "./JobEditDialog"
@@ -111,7 +111,7 @@ export function ScheduledJobsTable({
                 </TableCell>
                 <TableCell className="align-top">
                   {job.last_status ? (
-                    <StatusBadge status={job.last_status} variant={statusVariant(job.last_status)} />
+                    <StatusBadge status={job.last_status} />
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}

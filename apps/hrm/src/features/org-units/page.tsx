@@ -1,11 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
-import { Badge } from "@workspace/ui/components/badge"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   AlertDialog,
@@ -166,16 +161,10 @@ export function OrgUnitsPage() {
           { label: t("hrm.status.inactive"), value: "inactive" },
         ]),
         cell: ({ row }) => (
-          <Status
-            variant={row.original.status === "active" ? "success" : "default"}
-          >
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.status === "active"
+          <StatusBadge
+            tone={row.original.status === "active" ? "success" : "neutral"}>{row.original.status === "active"
                 ? t("hrm.status.active")
-                : t("hrm.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("hrm.status.inactive")}</StatusBadge>
         ),
       },
       {
@@ -200,7 +189,7 @@ export function OrgUnitsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              className="size-7 text-muted-foreground hover:bg-destructive/50 hover:text-destructive"
               onClick={() => setDeleteTarget(row.original)}
               title={t("common.action.delete")}
             >
@@ -269,14 +258,15 @@ export function OrgUnitsPage() {
     <ListPageShell
       title={t("hrm.org_units.title")}
       totalRows={total}
-      meta={
-        <Badge
-          variant="secondary"
-          className="px-2.5 py-0.5 text-[10px] font-bold"
-        >
-          {t("hrm.count", { count: total })}
-        </Badge>
-      }
+      emptyState={{
+        title: t("hrm.org_units.empty_title"),
+        description: t("hrm.org_units.empty_description"),
+        action: (
+          <Button type="button" size="sm" onClick={openCreate}>
+            {t("hrm.org_units.create")}
+          </Button>
+        ),
+      }}
       criticalPending={isLoading}
       criticalError={loadError}
       onRetry={() => void refetch()}

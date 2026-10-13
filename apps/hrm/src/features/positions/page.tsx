@@ -1,10 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -84,16 +80,10 @@ export function PositionsPage() {
           { label: t("hrm.status.inactive"), value: "inactive" },
         ]),
         cell: ({ row }) => (
-          <Status
-            variant={row.original.status === "active" ? "success" : "default"}
-          >
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.status === "active"
+          <StatusBadge
+            tone={row.original.status === "active" ? "success" : "neutral"}>{row.original.status === "active"
                 ? t("hrm.status.active")
-                : t("hrm.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("hrm.status.inactive")}</StatusBadge>
         ),
       },
       {
@@ -162,7 +152,7 @@ export function PositionsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:bg-red-50/50 hover:text-red-600"
+              className="size-7 text-muted-foreground hover:bg-destructive/50 hover:text-destructive"
               onClick={() => setDeleteTarget(row.original)}
               title={t("common.action.delete")}
             >

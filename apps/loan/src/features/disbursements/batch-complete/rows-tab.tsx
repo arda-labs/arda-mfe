@@ -1,13 +1,13 @@
 import { useMemo } from "react"
 import { useI18n } from "@workspace/i18n"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Input } from "@workspace/ui/components/input"
 import { TableCell, TableRow } from "@workspace/ui/components/table"
 import { formatAmount, fromMinor } from "@workspace/format"
 import type { LoanDisbursementBatchRow } from "../../api"
 import { PostingRulesPreview } from "../../loan-batches"
 import { BatchGridHead, PlanGroupedTable } from "../../loan-batches"
 import { inputToMinor } from "../../loan-batches/row-math"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 export interface CompleteRow extends LoanDisbursementBatchRow {
   key: string
@@ -60,9 +60,9 @@ export function CompleteRowsTab({
             {formatAmount(fromMinor(row.disburse_amt_minor), "VND")}
           </TableCell>
           <TableCell>
-            <Input
-              className="h-8 w-36 text-right tabular-nums"
-              inputMode="decimal"
+            <MoneyInput
+              className="w-36"
+              inputClassName="h-8"
               value={row.isClosed ? "0" : row.amount}
               disabled={row.isClosed || detailPending}
               placeholder="0"

@@ -17,7 +17,8 @@ import { cn } from "@workspace/ui/lib/utils"
 
 const paletteSwatches: Record<ChartPalette, string[]> = {
   ...chartPalettes,
-  default: ["#2459e8", "#16a34a", "#f59e0b", "#8b5cf6", "#e5484d"],
+  // The built-in palette lives in globals.css; show its first five colours.
+  default: [1, 2, 3, 4, 5].map((n) => `var(--chart-${n})`),
 }
 
 /**

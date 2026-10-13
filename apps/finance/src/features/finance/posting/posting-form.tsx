@@ -24,9 +24,12 @@ import {
 } from "@workspace/posting-flow/entry-lines"
 import { PostingPreviewPanel } from "@workspace/posting-flow/posting-preview-panel"
 import type { EntryLineRow } from "@workspace/posting-flow/types"
-import { formatAmount, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
+import { formatAmount, formatDateShort, fromMinor, isValidISODate, parseMoneyInput, todayISO, toMinor } from "@workspace/format"
 import { accountsApi, postingApi, postingCaseApi, type PostingFlow } from "../api"
 import { usePostingFlowLabels } from "./labels"
+import { DraftLifecycle, PendingDocCode } from "./draft-header"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
   SINGLE_ENTRY: "FIN_SINGLE_ENTRY",
@@ -149,6 +152,8 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
 
   return (
     <PostingTabsShell
+      docCode={<PendingDocCode />}
+      progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={{
         title: t(
           flow === "SINGLE_ENTRY"
@@ -159,9 +164,9 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
         ),
       }}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("finance.posting.control.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {
@@ -202,12 +207,11 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
                 {single ? (
                   <div className="space-y-1.5">
                     <Label htmlFor="posting-amount">{t("finance.posting.field.amount")}</Label>
-                    <Input
+                    <MoneyInput
                       id="posting-amount"
-                      className="text-right tabular-nums"
-                      inputMode="decimal"
                       value={rows[0]?.amount ?? ""}
                       onChange={(e) => handleRowsChange(rows.map((row) => ({ ...row, amount: e.target.value })))}
+                      currency={currency}
                     />
                   </div>
                 ) : (
@@ -236,7 +240,7 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
                   labels={labels.shell}
                   unit={unitName}
                   status={t("finance.posting.control.status_draft")}
-                  enteredAt={todayISO()}
+                  enteredAt={formatDateShort(todayISO())}
                   enteredBy={user?.displayName || user?.name}
                 />
               </div>

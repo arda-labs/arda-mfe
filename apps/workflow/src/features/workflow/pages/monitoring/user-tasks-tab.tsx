@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react"
 import { Eye, RefreshCw, UserCheck } from "lucide-react"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
 import { SelectField } from "@workspace/ui/components/select-field"
 import {
   Table,
@@ -17,6 +16,7 @@ import { monitoringApi } from "../../api"
 import type { OperateUserTaskQuery, OperateUserTaskRow } from "../../api"
 import { AutoRefreshSelect } from "./auto-refresh"
 import { formatDateTime } from "./format"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 type DraftFilters = {
   state?: string
@@ -210,7 +210,7 @@ export function UserTasksTab({
       </div>
 
       {source === "unavailable" ? (
-        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-ink">
           {t("workflow.operate.source_unavailable")}
         </div>
       ) : null}
@@ -280,11 +280,12 @@ export function UserTasksTab({
                   {task.dueDate ? formatDateTime(task.dueDate) : "—"}
                 </TableCell>
                 <TableCell>
-                  <Badge
-                    variant={task.state === "CREATED" ? "default" : "secondary"}
+                  <StatusBadge
+                    status={task.state}
+                    tone={task.state === "CREATED" ? "info" : undefined}
                   >
                     {userTaskStateLabel(t, task.state)}
-                  </Badge>
+                  </StatusBadge>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">

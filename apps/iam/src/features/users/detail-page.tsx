@@ -14,11 +14,7 @@ import { DetailFooterBar } from "@workspace/ui/components/detail-footer-bar"
 import { DetailPageShell } from "@workspace/ui/components/detail-page-shell"
 import { DetailSection } from "@workspace/ui/components/detail-section"
 import { DiscardChangesDialog } from "@workspace/ui/components/discard-changes-dialog"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { notify } from "@workspace/ui/feedback/notify"
 import { useUnsavedChangesGuard } from "@workspace/ui/hooks/use-unsaved-changes-guard"
 import { usersApi } from "./api"
@@ -132,16 +128,11 @@ export function UserDetailPage() {
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
+function UserStatusBadge({ status }: { status: string }) {
   const { t } = useI18n()
   const active = status === "ACTIVE"
   return (
-    <Status variant={active ? "success" : "default"}>
-      <StatusIndicator />
-      <StatusLabel>
-        {active ? t("admin.users.status.active") : t("admin.users.status.disabled")}
-      </StatusLabel>
-    </Status>
+    <StatusBadge tone={active ? "success" : "neutral"}>{active ? t("admin.users.status.active") : t("admin.users.status.disabled")}</StatusBadge>
   )
 }
 
@@ -167,7 +158,7 @@ function UserView({
     <DetailPageShell
       title={user.username || user.email}
       subtitle={[displayName, user.email].filter(Boolean).join(" · ")}
-      badges={<StatusBadge status={user.status} />}
+      badges={<UserStatusBadge status={user.status} />}
       backLabel={t("admin.users.detail.back")}
       onBack={() => navigate(USERS_LIST_PATH)}
       actions={actions}
@@ -183,7 +174,7 @@ function UserView({
           items={[
             { label: t("admin.users.field.username"), value: user.username },
             { label: t("common.field.email"), value: user.email },
-            { label: t("common.field.status"), value: <StatusBadge status={user.status} /> },
+            { label: t("common.field.status"), value: <UserStatusBadge status={user.status} /> },
             { label: t("admin.users.field.tenant"), value: user.tenantId },
             {
               label: t("common.field.created"),

@@ -144,7 +144,7 @@ function SmartCellContent({ children }: { children: ReactNode }) {
     (text.endsWith("↑") && !text.startsWith("-"))
   ) {
     return (
-      <span className="inline-flex items-center gap-0.5 font-mono font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+      <span className="inline-flex items-center gap-0.5 font-mono font-medium text-success tabular-nums">
         {text}
       </span>
     )
@@ -157,7 +157,7 @@ function SmartCellContent({ children }: { children: ReactNode }) {
     (text.endsWith("↓") && !text.startsWith("+"))
   ) {
     return (
-      <span className="inline-flex items-center gap-0.5 font-mono font-medium text-rose-600 dark:text-rose-400 tabular-nums">
+      <span className="inline-flex items-center gap-0.5 font-mono font-medium text-destructive tabular-nums">
         {text}
       </span>
     )
@@ -176,8 +176,8 @@ function SmartCellContent({ children }: { children: ReactNode }) {
     normalized === "da duyet"
   ) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-        <span className="size-1.5 rounded-full bg-emerald-500" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-medium text-success">
+        <span className="size-1.5 rounded-full bg-success" />
         {text}
       </span>
     )
@@ -193,8 +193,8 @@ function SmartCellContent({ children }: { children: ReactNode }) {
     normalized === "in progress"
   ) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400">
-        <span className="size-1.5 rounded-full bg-amber-500" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-[11px] font-medium text-warning-ink">
+        <span className="size-1.5 rounded-full bg-warning" />
         {text}
       </span>
     )
@@ -215,8 +215,8 @@ function SmartCellContent({ children }: { children: ReactNode }) {
     normalized === "danger"
   ) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-600 dark:text-rose-400">
-        <span className="size-1.5 rounded-full bg-rose-500" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+        <span className="size-1.5 rounded-full bg-destructive" />
         {text}
       </span>
     )
@@ -504,8 +504,8 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
             >
               {copied ? (
                 <>
-                  <Check className="size-3 text-emerald-500" />
-                  <span className="text-emerald-500 font-medium">{t("ai.table.copied")}</span>
+                  <Check className="size-3 text-success" />
+                  <span className="text-success font-medium">{t("ai.table.copied")}</span>
                 </>
               ) : (
                 <>

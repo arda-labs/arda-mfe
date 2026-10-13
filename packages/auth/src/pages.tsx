@@ -758,7 +758,7 @@ export function RecoveryPage() {
 
         {done ? (
           <div className="space-y-4">
-            <p className="text-sm text-emerald-600">
+            <p className="text-sm text-success">
               {t("auth.recovery.success")}
             </p>
             <Button

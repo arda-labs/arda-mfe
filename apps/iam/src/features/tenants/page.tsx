@@ -15,6 +15,7 @@ import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { CreateTenantDialog } from "./components/create-tenant-dialog"
 import { TenantMembersDialog } from "./components/tenant-members-dialog"
 import { Users, Pencil } from "lucide-react"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 export function TenantsPage() {
   const { t, formatDate } = useI18n()
@@ -89,11 +90,9 @@ export function TenantsPage() {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge
-            variant={row.original.status === "ACTIVE" ? "success" : "secondary"}
-          >
+          <StatusBadge status={row.original.status}>
             {row.original.status || "-"}
-          </Badge>
+          </StatusBadge>
         ),
       },
       {

@@ -4,11 +4,7 @@ import { accountsApi, type Account } from "@/features/finance/api"
 import { useI18n } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
@@ -19,13 +15,11 @@ import { accountsListDefinition } from "./list-query"
 import { CreateAccountDialog } from "./components/CreateAccountDialog"
 
 const ACCOUNT_TYPE_COLORS: Record<string, string> = {
-  ASSET: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  LIABILITY:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  EQUITY: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  INCOME:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
-  EXPENSE: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  ASSET: "bg-info/10 text-info",
+  LIABILITY: "bg-warning/10 text-warning-ink",
+  EQUITY: "bg-muted text-foreground",
+  INCOME: "bg-success/10 text-success",
+  EXPENSE: "bg-destructive/10 text-destructive",
 }
 
 function accountTypeLabel(type: string, t: ReturnType<typeof useI18n>["t"]) {
@@ -138,14 +132,9 @@ export function AccountsPage() {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Status variant={row.original.isActive ? "success" : "default"}>
-            <StatusIndicator />
-            <StatusLabel>
-              {row.original.isActive
+          <StatusBadge tone={row.original.isActive ? "success" : "neutral"}>{row.original.isActive
                 ? t("common.status.active")
-                : t("common.status.inactive")}
-            </StatusLabel>
-          </Status>
+                : t("common.status.inactive")}</StatusBadge>
         ),
       },
       {

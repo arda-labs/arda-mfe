@@ -3,7 +3,6 @@ import { Controller, type UseFormReturn } from "react-hook-form"
 import { getMediaContentUrl } from "@workspace/media"
 import { useI18n } from "@workspace/i18n"
 import { Upload } from "lucide-react"
-import { StatusBadge as SharedStatusBadge } from "@workspace/ui/components/status-badge"
 import { Button } from "@workspace/ui/components/button"
 import { FormField } from "@workspace/ui/components/form-field"
 import { ImageCropDialog } from "@workspace/ui/components/image-crop-dialog"
@@ -172,11 +171,11 @@ export function RegistrationSubmittedBanner({
   t: ReturnType<typeof useI18n>["t"]
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-md border border-info/30 bg-info/10 px-4 py-3 text-sm text-info sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1">
         <p>{t("crm.customers.registrations.submitted_banner")}</p>
         {customer?.workflowCaseId ? (
-          <p className="font-mono text-xs text-sky-800">
+          <p className="font-mono text-xs text-info">
             {t("crm.customers.case_bpm_label")} {customer.workflowCaseId}
           </p>
         ) : null}
@@ -203,13 +202,13 @@ export function RegistrationStatusBar({
   if (!status) return null
 
   const config: Record<string, { classes: string }> = {
-    DRAFT: { classes: "border-amber-200 bg-amber-50 text-amber-700" },
+    DRAFT: { classes: "border-warning/30 bg-warning/10 text-warning-ink" },
     NEEDS_CHANGES: {
-      classes: "border-orange-200 bg-orange-50 text-orange-700",
+      classes: "border-warning/30 bg-warning/10 text-warning-ink",
     },
-    SUBMITTED: { classes: "border-sky-200 bg-sky-50 text-sky-700" },
-    ACTIVE: { classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-    REJECTED: { classes: "border-red-200 bg-red-50 text-red-700" },
+    SUBMITTED: { classes: "border-info/30 bg-info/10 text-info" },
+    ACTIVE: { classes: "border-success/30 bg-success/10 text-success" },
+    REJECTED: { classes: "border-destructive/30 bg-destructive/10 text-destructive" },
   }
 
   const c = config[status] ?? {
@@ -280,11 +279,8 @@ export function Panel({
   )
 }
 
-export function StatusBadge({ status }: { status: string }) {
-  const variant =
-    status === "ACTIVE" || status === "APPROVED" ? "default" : "secondary"
-  return <SharedStatusBadge status={status} variant={variant} />
-}
+// Customer status pills are the shared StatusBadge (tone from the code).
+export { StatusBadge } from "@workspace/ui/components/status-badge"
 
 export function EmptyTable({
   colSpan,

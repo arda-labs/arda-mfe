@@ -5,7 +5,6 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
 import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DateField } from "@workspace/ui/components/date-field"
@@ -33,6 +32,8 @@ import {
 } from "./labels"
 import { ClosingAccountsTable } from "./closing/accounts-table"
 import { CLOSING_PERIOD_LABEL_KEYS, computeClosingTotals, periodEndISO } from "./closing/period"
+import { DraftLifecycle, PendingDocCode } from "./draft-header"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const TAB_INFO = "closing-info"
 const TAB_ACCOUNTS = "closing-accounts"
@@ -174,11 +175,13 @@ export function ClosingFormPage() {
 
   return (
     <PostingTabsShell
+      docCode={<PendingDocCode />}
+      progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("finance.posting.control.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {
@@ -241,8 +244,8 @@ export function ClosingFormPage() {
                       id="closing-result"
                       className={`rounded-md border px-3 py-2 text-right text-sm font-semibold tabular-nums ${
                         totals.resultMinor >= 0
-                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                          : "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400"
+                          ? "border-success/40 bg-success/10 text-success"
+                          : "border-destructive/40 bg-destructive/10 text-destructive"
                       }`}
                     >
                       {formatAmount(fromMinor(totals.resultMinor), "VND")}
@@ -269,7 +272,7 @@ export function ClosingFormPage() {
                 labels={labels.shell}
                 unit={unitName}
                 status={t("finance.posting.control.status_draft")}
-                enteredAt={todayISO()}
+                enteredAt={formatDateShort(todayISO())}
                 enteredBy={user?.displayName || (user?.name ?? "")}
               />
             </div>

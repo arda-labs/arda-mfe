@@ -13,15 +13,10 @@ import {
 import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import type { CrmMember } from "../../api"
 import { formatMinor } from "./member-labels"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 const REQUEST_TYPES = ["REGISTER", "ADDITIONAL", "WITHDRAW"] as const
 type RequestType = (typeof REQUEST_TYPES)[number]
@@ -99,23 +94,21 @@ export function CapitalMovementDialog({
         <div className="grid gap-3">
           <div className="grid gap-1.5">
             <Label>{t("members.capital.requestType")}</Label>
-            <Select value={requestType} onValueChange={(v) => setRequestType(v as RequestType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="REGISTER">{t("members.request.register")}</SelectItem>
-                <SelectItem value="ADDITIONAL">{t("members.request.additional")}</SelectItem>
-                <SelectItem value="WITHDRAW">{t("members.request.withdraw")}</SelectItem>
-              </SelectContent>
-            </Select>
+            <SegmentedControl
+              value={requestType}
+              onValueChange={(v) => setRequestType(v as RequestType)}
+              options={[
+                { value: "REGISTER", label: t("members.request.register") },
+                { value: "ADDITIONAL", label: t("members.request.additional") },
+                { value: "WITHDRAW", label: t("members.request.withdraw") },
+              ]}
+            />
           </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="member-amount">{t("members.capital.amount")}</Label>
-            <Input
+            <MoneyInput
               id="member-amount"
-              inputMode="numeric"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"

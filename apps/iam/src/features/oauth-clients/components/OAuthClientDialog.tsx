@@ -9,9 +9,9 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { SelectField } from "@workspace/ui/components/select-field"
 import { notify } from "@workspace/ui/feedback/notify"
 import { oauthClientsApi, type OAuthClient } from "../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 type FormState = {
   client_id: string
@@ -163,7 +163,7 @@ export function OAuthClientDialog({
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label>{t("admin.oauth_clients.field.auth_method")}</Label>
-            <SelectField
+            <SegmentedControl
               aria-label={t("admin.oauth_clients.field.auth_method")}
               value={form.token_endpoint_auth_method}
               onChange={(e) =>

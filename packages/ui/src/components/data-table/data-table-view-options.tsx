@@ -49,14 +49,14 @@ export function DataTableViewOptions<TData>({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          aria-label={t("table.column_options") || "Toggle columns"}
           role="combobox"
           variant="outline"
-          className="ml-auto hidden size-8 p-0 lg:flex"
+          size="sm"
+          className="ml-auto hidden h-8 gap-1.5 px-2.5 text-xs lg:flex"
           disabled={disabled}
-          title={t("table.column_options") || "Columns"}
         >
-          <Settings2 className="text-muted-foreground" />
+          <Settings2 className="size-3.5 text-muted-foreground" />
+          {t("common.table.columns")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className={cn("w-56 p-0", className)} {...props}>

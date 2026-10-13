@@ -7,11 +7,7 @@ import { Button } from "@workspace/ui/components/button"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { useI18n } from "@workspace/i18n"
 import { auditApi } from "./api"
 import { useAuditColumns } from "./components/audit-columns"
@@ -138,14 +134,9 @@ export function AuditPage() {
   const verifyBanner =
     showVerify && verifyResult ? (
       <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/20 px-3 py-2">
-        <Status variant={verifyResult.valid ? "success" : "error"}>
-          <StatusIndicator />
-          <StatusLabel>
-            {verifyResult.valid
+        <StatusBadge tone={verifyResult.valid ? "success" : "danger"}>{verifyResult.valid
               ? t("admin.audit.chain_intact")
-              : t("admin.audit.tampered_detected")}
-          </StatusLabel>
-        </Status>
+              : t("admin.audit.tampered_detected")}</StatusBadge>
         <span className="text-sm text-muted-foreground">
           {t("admin.audit.entries_checked", { count: verifyResult.total })}
         </span>
@@ -235,7 +226,7 @@ function AuditMetric({
 }) {
   const valueClass =
     tone === "success"
-      ? "text-green-600"
+      ? "text-success"
       : tone === "error"
         ? "text-destructive"
         : "text-foreground"

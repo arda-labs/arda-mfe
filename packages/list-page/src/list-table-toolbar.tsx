@@ -65,7 +65,7 @@ export function ListTableToolbar<TData>({
       <DataTableToolbar table={table}>
         {children}
         {onCreate && createLabel ? (
-          <Button onClick={onCreate} className="h-8 px-3 text-xs font-semibold">
+          <Button onClick={onCreate} size="sm" className="h-8 px-3 text-xs font-semibold">
             <Plus className="mr-1 size-3.5" />
             {createLabel}
           </Button>
@@ -73,12 +73,13 @@ export function ListTableToolbar<TData>({
         <Button
           type="button"
           variant="outline"
-          className="h-8 px-3 text-xs font-semibold border-emerald-600/30 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 hover:border-emerald-600/50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-emerald-950/40 transition-colors shadow-xs"
+          size="sm"
+          className="h-8 px-3 text-xs font-semibold"
           onClick={handleExportClick}
           onPointerEnter={() => void TableExportDialog.preload()}
           onFocus={() => void TableExportDialog.preload()}
         >
-          <FileSpreadsheet className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+          <FileSpreadsheet className="mr-1.5 size-3.5 text-muted-foreground" />
           {t("action.export_excel")}
         </Button>
       </DataTableToolbar>

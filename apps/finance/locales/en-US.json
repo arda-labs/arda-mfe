@@ -435,6 +435,12 @@
       "file_required": "Please choose an XLSX file.",
       "success": "Created transaction {code} with {count} lines.",
       "failed": "Import failed"
+    },
+    "lifecycle": {
+      "label": "Document lifecycle",
+      "maker": "Prepare",
+      "checker": "Check",
+      "posted": "Post"
     }
   },
   "operation": {

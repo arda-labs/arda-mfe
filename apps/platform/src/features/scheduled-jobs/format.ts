@@ -16,16 +16,6 @@ export function isFailureStatus(status: string | null | undefined): boolean {
   return status === "FAILED" || status === "TIMED_OUT"
 }
 
-export type StatusVariant = "success" | "destructive" | "info" | "secondary"
-
-/** Badge colour policy for run / last statuses. */
-export function statusVariant(status: string | null | undefined): StatusVariant {
-  if (status === "SUCCEEDED") return "success"
-  if (isFailureStatus(status)) return "destructive"
-  if (status === "RUNNING") return "info"
-  return "secondary"
-}
-
 /** Problem `code` of an API error, when the thrown value carries one. */
 export function apiErrorCode(error: unknown): string | null {
   if (!error || typeof error !== "object") return null

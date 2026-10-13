@@ -12,19 +12,13 @@ import { Input } from "@workspace/ui/components/input"
 import { MaskInput } from "@workspace/ui/components/mask-input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 type TranslateFn = (
   key: string,
@@ -284,22 +278,16 @@ export function CreditInstitutionFormDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger
-                      id="credit_status"
-                      aria-invalid={Boolean(errors.status)}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">
-                        {t("platform.credit_institutions.status.active")}
-                      </SelectItem>
-                      <SelectItem value="inactive">
-                        {t("platform.credit_institutions.status.inactive")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SegmentedControl
+                    id="credit_status"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    aria-invalid={Boolean(errors.status)}
+                    options={[
+                      { value: "active", label: t("platform.credit_institutions.status.active") },
+                      { value: "inactive", label: t("platform.credit_institutions.status.inactive") },
+                    ]}
+                  />
                 )}
               />
             </FormField>

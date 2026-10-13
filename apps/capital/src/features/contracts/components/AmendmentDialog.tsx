@@ -16,6 +16,7 @@ import { Label } from "@workspace/ui/components/label"
 import { DateField } from "@workspace/ui/components/date-field"
 import { toMinor } from "@workspace/format"
 import { capitalApi } from "../../api"
+import { MoneyInput } from "@workspace/ui/components/money-input"
 
 /** Stage one contract amendment (whitelisted fields) as a maker/checker case. */
 export function AmendmentDialog({
@@ -87,10 +88,10 @@ export function AmendmentDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>{t("capital.contracts.field.amount")}</Label>
-            <Input
-              inputMode="decimal"
+            <MoneyInput
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              currency={currencyCode}
             />
           </div>
           <div className="space-y-1.5">

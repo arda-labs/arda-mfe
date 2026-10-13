@@ -19,12 +19,7 @@ import { listJobRuns, listJobs, runCob, seedCob } from "../api"
 import { type JobDefinition, type JobRun } from "../types"
 import type { ScheduledJobRun } from "../../scheduled-jobs/types"
 import { scheduledRunHref } from "../tabs"
-
-function runStatusVariant(status: string) {
-  if (status === "DONE") return "default" as const
-  if (status === "FAILED") return "destructive" as const
-  return "secondary" as const
-}
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 /** COB step definitions, the manual EOD trigger and the legacy EOD history (W6). */
 export function EodTab() {
@@ -196,7 +191,7 @@ export function EodTab() {
                   <TableCell className="font-mono text-xs">{row.job_code}</TableCell>
                   <TableCell>{row.business_date}</TableCell>
                   <TableCell>
-                    <Badge variant={runStatusVariant(row.status)}>{row.status}</Badge>
+                    <StatusBadge status={row.status} />
                   </TableCell>
                   <TableCell className="max-w-[280px] truncate text-xs text-muted-foreground">
                     {row.error || "—"}

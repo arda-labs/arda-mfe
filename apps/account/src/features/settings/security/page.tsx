@@ -17,11 +17,7 @@ import {
 } from "@workspace/ui/components/input-otp"
 import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { CheckCircle2, Copy, KeyRound, QrCode, ShieldAlert } from "lucide-react"
 import { mfaApi, type MFASecret, type MFAStatus } from "@/features/settings/api"
 
@@ -131,15 +127,9 @@ export function SecurityPage() {
               <span>Two-Factor Authentication (TOTP)</span>
             </div>
             {status && (
-              <Status
-                variant={status.is_enrolled ? "success" : "default"}
-                className="rounded-full px-3"
-              >
-                <StatusIndicator />
-                <StatusLabel className="text-xs font-semibold">
-                  {status.is_enrolled ? "Enabled" : "Disabled"}
-                </StatusLabel>
-              </Status>
+              <StatusBadge
+                tone={status.is_enrolled ? "success" : "neutral"}
+                className="rounded-full px-3"><span className="text-xs font-semibold">{status.is_enrolled ? "Enabled" : "Disabled"}</span></StatusBadge>
             )}
           </CardTitle>
         </CardHeader>
@@ -181,7 +171,7 @@ export function SecurityPage() {
 
           {status?.is_enrolled && step !== "done" && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-2 text-sm font-medium text-success">
                 <CheckCircle2 className="size-4" />
                 <span>Two-factor authentication is active.</span>
               </div>
@@ -286,19 +276,19 @@ export function SecurityPage() {
 
           {step === "done" && backupCodes.length > 0 && (
             <div className="space-y-5 border-t border-muted/50 pt-5">
-              <div className="flex items-center gap-2 text-sm font-bold text-emerald-600">
+              <div className="flex items-center gap-2 text-sm font-bold text-success">
                 <CheckCircle2 className="size-5" />
                 <span>Two-factor authentication successfully enabled!</span>
               </div>
-              <div className="space-y-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-                <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
+              <div className="space-y-3 rounded-2xl border border-success/20 bg-success/5 p-5">
+                <p className="text-sm font-bold text-success">
                   Backup Codes (Save these securely, shown only once)
                 </p>
-                <div className="grid grid-cols-2 gap-2 font-mono text-sm tracking-wider text-emerald-800 dark:text-emerald-200">
+                <div className="grid grid-cols-2 gap-2 font-mono text-sm tracking-wider text-success">
                   {backupCodes.map((backupCode) => (
                     <span
                       key={backupCode}
-                      className="rounded-lg border border-emerald-500/10 bg-background/50 p-1.5 text-center font-semibold"
+                      className="rounded-lg border border-success/10 bg-background/50 p-1.5 text-center font-semibold"
                     >
                       {backupCode}
                     </span>

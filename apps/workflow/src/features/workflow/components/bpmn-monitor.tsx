@@ -176,7 +176,7 @@ export function BpmnViewerPanel({
             className="h-full min-h-[34rem] w-full bg-background"
           />
           {error ? (
-            <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
+            <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-warning-ink shadow-sm">
               {error}
             </div>
           ) : null}
@@ -383,15 +383,15 @@ export function OperateBpmnViewer({
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-[#0f62fe]" />
+            <span className="size-2.5 rounded-full bg-info" />
             {t("workflow.operate.instance_state_active")}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-[#24a148]" />
+            <span className="size-2.5 rounded-full bg-success" />
             {t("workflow.operate.instance_state_completed")}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-[#da1e28]" />
+            <span className="size-2.5 rounded-full bg-destructive" />
             {t("workflow.operate.metric_incident")}
           </span>
         </div>
@@ -402,7 +402,7 @@ export function OperateBpmnViewer({
           className="h-full min-h-[34rem] w-full bg-background"
         />
         {error ? (
-          <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
+          <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-warning-ink shadow-sm">
             {error}
           </div>
         ) : null}
@@ -417,37 +417,34 @@ export function OperateBpmnViewer({
           stroke-width: 4px !important;
         }
         .operate-incident:not(.djs-connection) .djs-visual > :nth-child(1) {
-          stroke: #da1e28 !important;
+          stroke: var(--destructive) !important;
           stroke-width: 3px !important;
         }
         .operate-incident.djs-connection .djs-visual > path {
-          stroke: #da1e28 !important;
+          stroke: var(--destructive) !important;
           stroke-width: 3px !important;
         }
         .operate-active:not(.djs-connection) .djs-visual > :nth-child(1) {
-          stroke: #0f62fe !important;
+          stroke: var(--info) !important;
           stroke-width: 2.5px !important;
         }
         .operate-active.djs-connection .djs-visual > path {
-          stroke: #0f62fe !important;
+          stroke: var(--info) !important;
           stroke-width: 2.5px !important;
         }
         .operate-completed:not(.djs-connection) .djs-visual > :nth-child(1) {
-          stroke: #24a148 !important;
+          stroke: var(--success) !important;
         }
         .operate-completed.djs-connection .djs-visual > path {
-          stroke: #24a148 !important;
+          stroke: var(--success) !important;
         }
         .operate-selected:not(.djs-connection) .djs-visual > :nth-child(1) {
-          stroke: #161616 !important;
+          stroke: var(--foreground) !important;
           stroke-dasharray: 6 3;
         }
         .operate-selected.djs-connection .djs-visual > path {
-          stroke: #161616 !important;
+          stroke: var(--foreground) !important;
           stroke-dasharray: 6 3;
-        }
-        .dark .operate-selected:not(.djs-connection) .djs-visual > :nth-child(1) {
-          stroke: #f4f4f4 !important;
         }
         .operate-element-badge {
           display: flex;
@@ -463,8 +460,8 @@ export function OperateBpmnViewer({
           height: 18px;
           padding: 0 4px;
           border-radius: 999px;
-          background: #0f62fe;
-          color: white;
+          background: var(--info);
+          color: var(--info-foreground);
           font-size: 10px;
           font-weight: 700;
           line-height: 1;
@@ -478,8 +475,8 @@ export function OperateBpmnViewer({
           height: 18px;
           padding: 0 4px;
           border-radius: 999px;
-          background: #da1e28;
-          color: white;
+          background: var(--destructive);
+          color: var(--destructive-foreground);
           font-size: 10px;
           font-weight: 700;
           line-height: 1;
@@ -493,16 +490,13 @@ export function OperateBpmnViewer({
           height: 18px;
           padding: 0 4px;
           border-radius: 999px;
-          background: #24a148;
-          color: white;
+          background: var(--success);
+          color: var(--success-foreground);
           font-size: 10px;
           font-weight: 600;
           line-height: 1;
           box-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
-        .dark .operate-element-badge .badge-active { background: #4589ff; }
-        .dark .operate-element-badge .badge-incident { background: #fa4d56; }
-        .dark .operate-element-badge .badge-completed { background: #42be65; }
       `}</style>
     </div>
   )
@@ -1025,7 +1019,7 @@ function BpmnModelerWorkspace({
             className="arda-bpmn-canvas h-full min-h-0 w-full cursor-default bg-background"
           />
           {error ? (
-            <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-amber-700 shadow-sm">
+            <div className="absolute right-3 bottom-3 left-3 rounded-md border bg-background/95 p-3 text-sm text-warning-ink shadow-sm">
               {error}
             </div>
           ) : null}
@@ -1662,7 +1656,7 @@ function BpmnFileInfoCard({ info }: { info: BpmnFileInfo | null }) {
         ) : null}
       </div>
       {hasWarnings ? (
-        <div className="mt-2 space-y-1 text-xs text-amber-700 dark:text-amber-300">
+        <div className="mt-2 space-y-1 text-xs text-warning-ink">
           {info.missingJobTypes.slice(0, 2).map((id) => (
             <p key={id} className="truncate font-mono">
               {t("workflow.bpmn.file_missing_job_type", { id })}

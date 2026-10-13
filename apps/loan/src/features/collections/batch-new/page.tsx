@@ -5,7 +5,6 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
@@ -32,6 +31,7 @@ import {
 } from "../../loan-batches/labels"
 import { inputToMinor } from "../../loan-batches/row-math"
 import { CollectionContractsTab, type CollectionRow } from "./contracts-tab"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const TAB_INFO = "collection-info"
 const TAB_CONTRACTS = "collection-contracts"
@@ -194,9 +194,9 @@ export function BatchCollectionPage() {
     <PostingTabsShell
       labels={tabsLabels}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("loan.batch.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {

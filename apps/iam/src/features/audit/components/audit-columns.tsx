@@ -7,21 +7,15 @@ import {
   textSearchMeta,
 } from "@workspace/list-page/column-filters"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge, type StatusTone } from "@workspace/ui/components/status-badge"
 import { AUDIT_EVENT_TYPES, AUDIT_RESULTS } from "../list-query"
 import type { AuditEvent } from "../types"
 
-const RESULT_VARIANTS: Partial<
-  Record<string, "default" | "success" | "error" | "warning" | "info">
-> = {
+const RESULT_TONES: Partial<Record<string, StatusTone>> = {
   success: "success",
-  failure: "error",
-  denied: "error",
-  blocked: "warning",
+  failure: "danger",
+  denied: "danger",
+  blocked: "pending",
 }
 
 /**
@@ -136,10 +130,7 @@ export function useAuditColumns(): ColumnDef<AuditEvent>[] {
           }))
         ),
         cell: ({ row }) => (
-          <Status variant={RESULT_VARIANTS[row.original.result] || "default"}>
-            <StatusIndicator />
-            <StatusLabel>{row.original.result || "-"}</StatusLabel>
-          </Status>
+          <StatusBadge tone={RESULT_TONES[row.original.result] || "neutral"}>{row.original.result || "-"}</StatusBadge>
         ),
       },
       {

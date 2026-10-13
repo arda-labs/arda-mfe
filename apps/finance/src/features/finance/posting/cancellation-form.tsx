@@ -5,7 +5,6 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { notify } from "@workspace/ui/feedback/notify"
 import { attachStagedCaseFiles, useStagedAttachments } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DateField } from "@workspace/ui/components/date-field"
@@ -31,6 +30,8 @@ import {
   usePostingTabsLabels,
 } from "./labels"
 import { OriginalEntryLines } from "./original-entry-lines"
+import { DraftLifecycle, PendingDocCode } from "./draft-header"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const TAB_INFO = "transaction-info"
 const TAB_ORIGINAL = "original-entries"
@@ -144,11 +145,13 @@ export function CancellationFormPage() {
 
   return (
     <PostingTabsShell
+      docCode={<PendingDocCode />}
+      progress={<DraftLifecycle maker={user?.displayName || user?.name} />}
       labels={tabsShellLabels}
       meta={
-        <Badge variant="secondary" className="shrink-0">
+        <StatusBadge status="DRAFT">
           {t("finance.posting.control.status_draft")}
-        </Badge>
+        </StatusBadge>
       }
       tabs={[
         {
@@ -265,7 +268,7 @@ export function CancellationFormPage() {
                   labels={labels.shell}
                   unit={unitName}
                   status={t("finance.posting.control.status_draft")}
-                  enteredAt={todayISO()}
+                  enteredAt={formatDateShort(todayISO())}
                   enteredBy={user?.displayName || (user?.name ?? "")}
                 />
               </div>

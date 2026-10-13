@@ -666,7 +666,11 @@
       "term": "Kỳ hạn",
       "contract_date": "Ngày hợp đồng",
       "maturity": "Ngày đáo hạn",
-      "case": "Case hình thành"
+      "case": "Case hình thành",
+      "product": "Sản phẩm",
+      "interest": "Lãi suất",
+      "officer": "Cán bộ quản lý",
+      "unit": "Đơn vị"
     },
     "placeholder": {
       "contract": "Chọn hợp đồng"
@@ -709,6 +713,25 @@
       "owner": "Chủ sở hữu",
       "type": "Loại",
       "value": "Giá trị sử dụng"
+    },
+    "properties": "Thông tin hợp đồng",
+    "lifecycle": {
+      "label": "Vòng đời hợp đồng",
+      "signed": "Ký HĐ",
+      "disbursement": "Giải ngân",
+      "repayment": "Thu nợ",
+      "settled": "Tất toán",
+      "batches": "{count} đợt"
+    },
+    "figure": {
+      "limit": "Hạn mức",
+      "disbursed": "Đã giải ngân",
+      "outstanding": "Dư nợ gốc",
+      "collected": "Đã thu gốc {amount}",
+      "next_due": "Kỳ trả tới",
+      "next_due_hint": "Kỳ {term} · {amount}",
+      "overdue": "Quá hạn",
+      "overdue_terms": "{count} kỳ"
     }
   },
   "adjustment_review": {

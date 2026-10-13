@@ -13,7 +13,7 @@ import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
 import { Combobox, type ComboboxOption } from "@workspace/ui/components/combobox"
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { hrmApi, type Employee } from "../../api"
@@ -182,21 +182,16 @@ export function EmployeeFormDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <ToggleGroup
-                    type="single"
-                    variant="outline"
+                  <SegmentedControl
+                    fullWidth
                     value={field.value}
-                    onValueChange={(next) => next && field.onChange(next)}
+                    onValueChange={field.onChange}
                     aria-label={t("hrm.employees.field.status")}
-                    className="grid w-full grid-cols-2"
-                  >
-                    <ToggleGroupItem value="active" className="h-control">
-                      {t("hrm.status.active")}
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="inactive" className="h-control">
-                      {t("hrm.status.inactive")}
-                    </ToggleGroupItem>
-                  </ToggleGroup>
+                    options={[
+                      { value: "active", label: t("hrm.status.active") },
+                      { value: "inactive", label: t("hrm.status.inactive") },
+                    ]}
+                  />
                 )}
               />
             </FormField>

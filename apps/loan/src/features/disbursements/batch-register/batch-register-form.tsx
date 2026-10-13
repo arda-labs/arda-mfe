@@ -6,18 +6,10 @@ import { useI18n, translateApiError } from "@workspace/i18n"
 import { useAuthStore } from "@workspace/auth/store"
 import { useStagedAttachments } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import {
   ControlInfoCard,
   ObjectInfoCard,
@@ -53,6 +45,8 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 const TAB_INFO = "disburse-info"
 const TAB_CONTRACTS = "disburse-contracts"
@@ -422,7 +416,7 @@ export function BatchRegisterForm() {
       labels={tabsLabels}
       meta={
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="shrink-0">{t("loan.batch.status_draft")}</Badge>
+          <StatusBadge status="DRAFT">{t("loan.batch.status_draft")}</StatusBadge>
           {savedAt ? <span className="text-xs text-muted-foreground">{t("loan.disbursements.batch.saved_at", { time: savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })}</span> : null}
         </div>
       }
@@ -453,22 +447,16 @@ export function BatchRegisterForm() {
                     <Label htmlFor="disburse-method">
                       {t("loan.disbursements.batch.field.payment_method")}
                     </Label>
-                    <Select
+                    <SegmentedControl
+                      id="disburse-method"
                       value={paymentMethod}
                       onValueChange={(value) => { setPaymentMethod(value as "TRANSFER" | "CASH"); setDirty(true) }}
-                    >
-                      <SelectTrigger id="disburse-method" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="TRANSFER">
-                          {t("loan.disbursements.batch.payment.transfer")}
-                        </SelectItem>
-                        <SelectItem value="CASH">
-                          {t("loan.disbursements.batch.payment.cash")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                      fullWidth
+                      options={[
+                        { value: "TRANSFER", label: t("loan.disbursements.batch.payment.transfer") },
+                        { value: "CASH", label: t("loan.disbursements.batch.payment.cash") },
+                      ]}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="disburse-account">
@@ -577,7 +565,7 @@ export function BatchRegisterForm() {
                   {previewQuery.isPending ? <div className="space-y-2"><Skeleton className="h-5 w-1/2" /><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-4/5" /></div> : null}
                   {previewQuery.isError ? <div role="alert" className="space-y-2"><p className="text-sm text-destructive">{t("loan.disbursements.batch.posting_preview_failed")}</p><Button type="button" variant="outline" size="sm" onClick={() => void previewQuery.refetch()}>{t("common.action.retry")}</Button></div> : null}
                   {previewQuery.data ? <>
-                    <p className={previewQuery.data.valid ? "text-sm text-emerald-700" : "text-sm text-destructive"}>
+                    <p className={previewQuery.data.valid ? "text-sm text-success" : "text-sm text-destructive"}>
                       {t(previewQuery.data.valid ? "loan.disbursements.batch.posting_preview_valid" : "loan.disbursements.batch.posting_preview_invalid", { version: previewQuery.data.coa_version_id })}
                     </p>
                     {previewQuery.data.global_errors.map((error, index) => <p key={`${error}-${index}`} className="text-sm text-destructive">{error}</p>)}

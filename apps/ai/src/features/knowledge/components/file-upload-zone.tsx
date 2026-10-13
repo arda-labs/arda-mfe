@@ -89,7 +89,7 @@ export function FileUploadZone({
               {error}
             </span>
           ) : (
-            <CheckCircle2 className="size-4 text-emerald-600" />
+            <CheckCircle2 className="size-4 text-success" />
           )}
           <Button
             type="button"

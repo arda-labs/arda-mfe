@@ -6,7 +6,6 @@ import { useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { uploadFile } from "@workspace/media"
 import { useCaseTabs } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { FormField } from "@workspace/ui/components/form-field"
 import {
   Select,
@@ -64,6 +63,7 @@ import {
   FooterActions,
   FooterBackButton,
 } from "../components/customer-footer"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 function goBack() {
   const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")
@@ -524,9 +524,7 @@ export function CustomerRegistrationPage({
                 description={pageDescription}
                 meta={
                   savedCustomer ? (
-                    <Badge className="shrink-0" variant="secondary">
-                      {savedCustomer.status}
-                    </Badge>
+                    <StatusBadge status={savedCustomer.status} className="shrink-0" />
                   ) : null
                 }
               />
@@ -546,7 +544,7 @@ export function CustomerRegistrationPage({
               ) : null}
               <RegistrationStatusBar customer={savedCustomer} />
               {awaitingMakerResubmit ? (
-                <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                <div className="rounded-md border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-ink">
                   <p className="font-medium">
                     {t(
                       "crm.customers.registrations.needs_changes_banner_title"

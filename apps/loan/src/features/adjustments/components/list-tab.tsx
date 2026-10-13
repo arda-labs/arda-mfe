@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n, translateApiError } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
@@ -24,6 +23,7 @@ import {
 } from "../../api"
 import { caseDisplayLabel } from "../../case-display"
 import { LOAN_DEFAULT_PAGE_SIZE } from "../../loan/list-query"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const ADJUSTMENT_STATUSES = [
   "DRAFT",
@@ -35,22 +35,6 @@ const ADJUSTMENT_STATUSES = [
 
 const CONTRACT_FILTER_KEY = "adjustment_contract_code"
 const STATUS_FILTER_KEY = "adjustment_status"
-
-function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
-  switch (status) {
-    case "ACTIVE":
-    case "APPROVED":
-      return "default"
-    case "PENDING":
-    case "DRAFT":
-      return "secondary"
-    case "REJECTED":
-    case "CANCELLED":
-      return "destructive"
-    default:
-      return "outline"
-  }
-}
 
 /**
  * "Danh sách điều chỉnh {kind}" — BE list server-side
@@ -196,7 +180,7 @@ export function AdjustmentListTab({
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant={statusVariant(row.original.status)}>{row.original.status}</Badge>
+          <StatusBadge status={row.original.status} />
         ),
       },
       {

@@ -3,11 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
 import { multiSelectFilterMeta, textSearchMeta } from "@workspace/list-page/column-filters"
 import { Badge } from "@workspace/ui/components/badge"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import type { User } from "../types"
 import { UserRowActions, type UserRowActionHandlers } from "./UserRowActions"
@@ -89,14 +85,9 @@ export function useUserColumns(
         cell: ({ row }) => {
           const active = row.original.status === "ACTIVE"
           return (
-            <Status variant={active ? "success" : "default"}>
-              <StatusIndicator />
-              <StatusLabel>
-                {active
+            <StatusBadge tone={active ? "success" : "neutral"}>{active
                   ? t("admin.users.status.active")
-                  : t("admin.users.status.disabled")}
-              </StatusLabel>
-            </Status>
+                  : t("admin.users.status.disabled")}</StatusBadge>
           )
         },
       },

@@ -35,11 +35,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import {
-  Status,
-  StatusIndicator,
-  StatusLabel,
-} from "@workspace/ui/components/status"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { notify } from "@workspace/ui/feedback/notify"
 import { fetchPlatformDrafts } from "./drafts/sources"
 import { customerDraftApi } from "./drafts/customer-client"
@@ -448,16 +444,13 @@ function DraftStatus({
   status: PlatformDraft["displayStatus"]
   t: ReturnType<typeof useI18n>["t"]
 }) {
-  const variant = status === "NEEDS_CHANGES" ? "warning" : "default"
+  const tone = status === "NEEDS_CHANGES" ? "pending" : "neutral"
   const label =
     status === "NEEDS_CHANGES"
       ? t("workflow.workbench.drafts.status_needs_changes")
       : t("workflow.workbench.drafts.status_draft")
   return (
-    <Status variant={variant}>
-      <StatusIndicator />
-      <StatusLabel>{label}</StatusLabel>
-    </Status>
+    <StatusBadge tone={tone}>{label}</StatusBadge>
   )
 }
 

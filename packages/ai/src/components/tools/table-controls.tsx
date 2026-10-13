@@ -116,7 +116,7 @@ export function TableSearchInput({
             className={cn(
               "rounded px-1 py-0.5 font-mono text-[9px] font-medium tabular-nums transition-colors",
               filteredCount === 0
-                ? "bg-rose-500/10 text-rose-500 dark:text-rose-400"
+                ? "bg-destructive/10 text-destructive"
                 : "bg-primary/10 text-primary"
             )}
             title={

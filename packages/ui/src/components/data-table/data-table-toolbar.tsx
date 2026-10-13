@@ -112,12 +112,12 @@ function DataTableDensityOptions() {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          aria-label={t("table.density") || "Table density"}
           variant="outline"
-          className="hidden size-8 p-0 lg:flex"
-          title={t("table.density") || "Table density"}
+          size="sm"
+          className="hidden h-8 gap-1.5 px-2.5 text-xs lg:flex"
         >
-          <SlidersHorizontal className="text-muted-foreground" />
+          <SlidersHorizontal className="size-3.5 text-muted-foreground" />
+          {t("table.density") || "Table density"}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-48 p-0">

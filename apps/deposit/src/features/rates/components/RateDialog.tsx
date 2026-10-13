@@ -17,6 +17,7 @@ import { DateField } from "@workspace/ui/components/date-field"
 import { SelectField } from "@workspace/ui/components/select-field"
 import { todayISO } from "@workspace/format"
 import { depositApi, type InterestRate } from "../../api"
+import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 
 /** Stage a rate register/adjust request (DPM.100/101) as a maker/checker case. */
 export function RateDialog({
@@ -146,7 +147,7 @@ export function RateDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.rates.field.method")}</Label>
-            <SelectField
+            <SegmentedControl
               value={method}
               onChange={(e) => setMethod(e.target.value)}
               options={[
@@ -157,7 +158,7 @@ export function RateDialog({
           </div>
           <div className="space-y-1.5">
             <Label>{t("deposit.rates.field.denominator")}</Label>
-            <SelectField
+            <SegmentedControl
               value={denominator}
               onChange={(e) => setDenominator(e.target.value)}
               options={[

@@ -134,8 +134,8 @@ export function DataTableView({
           >
             {copied ? (
               <>
-                <Check className="size-3 text-emerald-500" />
-                <span className="text-emerald-500 font-medium">{t("ai.table.copied")}</span>
+                <Check className="size-3 text-success" />
+                <span className="text-success font-medium">{t("ai.table.copied")}</span>
               </>
             ) : (
               <>

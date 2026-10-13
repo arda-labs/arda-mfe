@@ -5,7 +5,6 @@ import { navigateTo } from "@workspace/federation-runtime/routing"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { useCaseTabs } from "@workspace/case-tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import type { CaseTabItem } from "@workspace/case-tabs/types"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
@@ -393,9 +392,7 @@ export function CustomerAdjustmentPage({
                 description={pageDescription}
                 meta={
                   customer ? (
-                    <Badge className="shrink-0" variant="secondary">
-                      {customer.status}
-                    </Badge>
+                    <StatusBadge status={customer.status} className="shrink-0" />
                   ) : null
                 }
               />
@@ -409,7 +406,7 @@ export function CustomerAdjustmentPage({
                   {t("crm.customers.adjustments.loading_customer")}
                 </div>
               ) : hasCustomerError ? (
-                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                   {t("crm.customers.adjustments.load_customer_error_detail")}
                 </div>
               ) : null}
@@ -435,12 +432,12 @@ export function CustomerAdjustmentPage({
                 </div>
               ) : null}
               {awaitingAmendmentResubmit ? (
-                <div className="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                <div className="rounded-md border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-ink">
                   {t("crm.customers.adjustments.resubmit_banner")}
                 </div>
               ) : null}
               {readOnly && amendment ? (
-                <div className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                <div className="rounded-md border border-info/30 bg-info/10 px-4 py-3 text-sm text-info">
                   {t("crm.customers.adjustments.pending_banner")}
                 </div>
               ) : null}

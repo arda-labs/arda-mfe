@@ -150,7 +150,7 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
   const fieldClass = cn(
     "size-11 rounded-xl border text-lg font-bold shadow-sm transition-all duration-200 first:rounded-xl last:rounded-xl",
     verified
-      ? "border-emerald-500/60 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400"
+      ? "border-success/60 bg-success/5 text-success"
       : error
         ? "border-destructive/60 bg-destructive/5 text-destructive"
         : code.length > 0
@@ -174,7 +174,7 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
                   "bg-destructive/10 text-destructive ring-destructive/20",
                 shake && "animate-otp-shake",
                 verified &&
-                  "bg-emerald-500/10 text-emerald-600 ring-emerald-500/25 dark:text-emerald-400"
+                  "bg-success/10 text-success ring-success/25"
               )}
             >
               <ShieldCheck className="size-7" aria-hidden />
@@ -217,7 +217,7 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
                 aria-live="polite"
               >
                 {verified ? (
-                  <p className="animate-fade-up flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  <p className="animate-fade-up flex items-center gap-1.5 text-sm font-medium text-success">
                     <Check className="size-4" aria-hidden />
                     {t("auth.step_up.verified")}
                   </p>

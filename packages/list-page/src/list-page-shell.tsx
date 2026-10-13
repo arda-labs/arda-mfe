@@ -6,6 +6,7 @@ import { PageErrorDialog } from "./page-error-dialog"
 import { PageLoadOverlay } from "./page-load-overlay"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { DataTable } from "@workspace/ui/components/data-table/data-table"
+import type { DataTableEmptyState } from "@workspace/ui/components/data-table/data-table-empty"
 import { FloatingBatchActionBar } from "@workspace/ui/components/data-table/floating-batch-action-bar"
 import { useDelayedBusy } from "@workspace/ui/hooks/use-delayed-busy"
 
@@ -29,6 +30,8 @@ type ListPageShellProps<TData> = {
   header?: ReactNode
   dialogs?: ReactNode
   onRowDoubleClick?: (row: Row<TData>) => void
+  /** Copy + call to action when the list has no records at all. */
+  emptyState?: DataTableEmptyState
 }
 
 export function ListPageShell<TData>({
@@ -47,6 +50,7 @@ export function ListPageShell<TData>({
   header,
   dialogs,
   onRowDoubleClick,
+  emptyState,
 }: ListPageShellProps<TData>) {
   const showOverlay = useDelayedBusy(criticalPending)
   const showErrorDialog = criticalError != null && !criticalPending
@@ -67,6 +71,7 @@ export function ListPageShell<TData>({
           className="min-h-0 flex-1"
           fetching={fetching}
           onRowDoubleClick={onRowDoubleClick}
+          emptyState={emptyState}
         >
           {toolbar}
         </DataTable>

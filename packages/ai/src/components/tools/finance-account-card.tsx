@@ -1,11 +1,11 @@
 import { useI18n } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   textValue,
   type ToolResultPayload,
 } from "../../lib/messages"
 import type { ToolResultViewProps } from "../../lib/registry"
 import { registerToolRenderer } from "../../lib/registry"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 type FinanceAccount = {
   id?: string
@@ -54,9 +54,9 @@ export function FinanceAccountCard({ result }: ToolResultViewProps) {
     <div className="mt-3 rounded-lg border bg-card p-3">
       <div className="flex items-center gap-2">
         <p className="text-sm font-semibold">{account.name}</p>
-        <Badge variant={account.isActive ? "default" : "secondary"}>
+        <StatusBadge tone={account.isActive ? "success" : "neutral"}>
           {account.isActive ? t("ai.tool.financeAccount.status", { status: "ACTIVE" }) : "INACTIVE"}
-        </Badge>
+        </StatusBadge>
       </div>
       <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
         <div>

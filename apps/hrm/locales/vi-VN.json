@@ -310,6 +310,8 @@
       "org_level_required": "Cấp tổ chức là bắt buộc",
       "department_type_required": "Loại phòng ban là bắt buộc",
       "description_too_long": "Mô tả quá dài"
-    }
+    },
+    "empty_title": "Chưa có phòng ban nào",
+    "empty_description": "Tạo phòng ban đầu tiên để dựng cơ cấu tổ chức."
   }
 }

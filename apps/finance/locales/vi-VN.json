@@ -435,6 +435,12 @@
       "file_required": "Vui lòng chọn tệp XLSX.",
       "success": "Đã tạo giao dịch {code} với {count} dòng.",
       "failed": "Nhập bút toán thất bại"
+    },
+    "lifecycle": {
+      "label": "Vòng đời chứng từ",
+      "maker": "Lập",
+      "checker": "Kiểm soát",
+      "posted": "Hạch toán"
     }
   },
   "operation": {

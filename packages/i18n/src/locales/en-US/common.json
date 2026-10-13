@@ -136,7 +136,12 @@
     "selected_count": "{count} selected",
     "no_results": "No results found.",
     "visible_columns": "Visible columns",
-    "search_columns": "Search columns..."
+    "search_columns": "Search columns...",
+    "columns": "Columns",
+    "empty_title": "Nothing here yet",
+    "empty_description": "New records will appear here.",
+    "filtered_empty_title": "No results match your filters",
+    "filtered_empty_description": "Try removing a filter or changing the search term."
   },
   "date": {
     "today": "Today",
@@ -146,7 +151,33 @@
   },
   "status": {
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "draft": "Draft",
+    "pending": "Pending",
+    "pending_approval": "Pending approval",
+    "submitted": "Submitted",
+    "in_review": "In review",
+    "needs_changes": "Needs changes",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "posted": "Posted",
+    "reversed": "Reversed",
+    "cancelled": "Cancelled",
+    "closed": "Closed",
+    "completed": "Completed",
+    "running": "Running",
+    "in_progress": "In progress",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "timed_out": "Timed out",
+    "skipped": "Skipped",
+    "disbursed": "Disbursed",
+    "planned": "Planned",
+    "partially_paid": "Partially paid",
+    "paid": "Paid",
+    "expired": "Expired",
+    "locked": "Locked",
+    "suspended": "Suspended"
   },
   "export": {
     "title": "Export Data",
@@ -300,5 +331,17 @@
   "date_field": {
     "placeholder": "dd/mm/yyyy",
     "open_calendar": "Open calendar"
+  },
+  "doc_code": {
+    "pending": "Code issued on submit"
+  },
+  "context": {
+    "business_date": "Business date",
+    "status_open": "Open",
+    "status_eod": "End of day running",
+    "status_closed": "Closed",
+    "date_mismatch": "Not today ({today})",
+    "date_unknown": "Date unknown",
+    "eod_short": "EOD"
   }
 }

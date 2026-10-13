@@ -12,6 +12,7 @@ import { sortByColumn, useClientListTable } from "@workspace/list-page/client-li
 import { formatDateShort, formatAmount, formatRatePercent, fromMinor } from "@workspace/format"
 import { depositApi, type InterbankDeposit } from "../api"
 import { PlaceInterbankDialog } from "./components/PlaceInterbankDialog"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -151,9 +152,9 @@ export function InterbankPage(_props: { pathname: string }) {
           />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
+          <StatusBadge status={row.original.status}>
             {t(`deposit.interbank.status.${row.original.status}`)}
-          </Badge>
+          </StatusBadge>
         ),
       },
     ],

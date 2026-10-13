@@ -310,7 +310,7 @@ export function ProfileCard({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 gap-1 px-1.5 text-[10px] text-amber-600"
+                          className="h-7 gap-1 px-1.5 text-[10px] text-warning-ink"
                           disabled={busyModel === model.modelId}
                           title={t("ai.settings.profiles.suggest_apply", {
                             format: t(

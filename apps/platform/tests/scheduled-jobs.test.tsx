@@ -12,8 +12,8 @@ import {
   isFailureStatus,
   runsSearch,
   splitRecipients,
-  statusVariant,
 } from "../src/features/scheduled-jobs/format"
+import { statusTone } from "@workspace/ui/lib/status-tone"
 import {
   buildJobConfigSchema,
   toJobConfigFormValues,
@@ -65,15 +65,15 @@ describe("scheduled jobs adapters", () => {
     )
   })
 
-  test("failure statuses and badge variants", () => {
+  test("failure statuses and badge tones", () => {
     expect(isFailureStatus("FAILED")).toBe(true)
     expect(isFailureStatus("TIMED_OUT")).toBe(true)
     expect(isFailureStatus("SKIPPED")).toBe(false)
     expect(isFailureStatus(null)).toBe(false)
-    expect(statusVariant("SUCCEEDED")).toBe("success")
-    expect(statusVariant("TIMED_OUT")).toBe("destructive")
-    expect(statusVariant("RUNNING")).toBe("info")
-    expect(statusVariant("SKIPPED")).toBe("secondary")
+    expect(statusTone("SUCCEEDED")).toBe("success")
+    expect(statusTone("TIMED_OUT")).toBe("danger")
+    expect(statusTone("RUNNING")).toBe("info")
+    expect(statusTone("SKIPPED")).toBe("neutral")
   })
 
   test("apiErrorCode reads the problem code off any thrown value", () => {
@@ -212,7 +212,9 @@ describe("scheduled jobs UI", () => {
     )
     expect(html).toContain("AI retrieval eval")
     expect(html).toContain("0 6 * * *")
-    expect(html).toContain("FAILED")
+    // FAILED renders as a danger StatusBadge with the shared status label.
+    expect(html).toContain('data-tone="danger"')
+    expect(html).toContain("Thất bại")
     expect(html).toContain('data-testid="target-not-configured"')
     expect(html).toContain('data-testid="preview-slot"')
     expect(html).toContain('data-testid="job-row-ai-eval"')
