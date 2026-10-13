@@ -29,6 +29,7 @@ import { Pencil, Trash2 } from "lucide-react"
 import { hrmApi, type Employee, type JobTitle, type OrgUnit, type Position } from "../api"
 import { employeesListDefinition } from "./list-query"
 import { EmployeeFormDialog } from "./components/EmployeeFormDialog"
+import { toTreeOptions } from "@workspace/ui/lib/tree-options"
 
 export function EmployeesPage() {
   const { t, formatDate } = useI18n()
@@ -260,25 +261,24 @@ export function EmployeesPage() {
 
   const orgUnitOptions = useMemo(
     () =>
-      (orgUnits.data ?? []).map((item) => ({
-        id: item.id,
-        label: `${item.code} - ${item.name}`,
-      })),
+      toTreeOptions(orgUnits.data ?? []),
     [orgUnits.data]
   )
   const positionOptions = useMemo(
     () =>
       (positions.data ?? []).map((item) => ({
-        id: item.id,
-        label: `${item.code} - ${item.name}`,
+        value: item.id,
+        code: item.code,
+        label: item.name,
       })),
     [positions.data]
   )
   const jobTitleOptions = useMemo(
     () =>
       (jobTitles.data ?? []).map((item) => ({
-        id: item.id,
-        label: `${item.code} - ${item.name}`,
+        value: item.id,
+        code: item.code,
+        label: item.name,
       })),
     [jobTitles.data]
   )

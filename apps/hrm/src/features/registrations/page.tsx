@@ -7,7 +7,7 @@ import { useCaseTabs } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { PageTitle as CollapsingPageTitle } from "@workspace/ui/components/page-title"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { Plus, Send } from "lucide-react"
 import {
@@ -179,7 +179,7 @@ export function RegistrationsPage() {
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
           <div className="space-y-4 p-4 pb-3">
             <RegistrationMetaBar registration={savedRegistration} />
-            <CollapsingPageTitle
+            <PageHeader
               title={t("hrm.registrations.title")}
               description={t("hrm.registrations.description")}
               meta={

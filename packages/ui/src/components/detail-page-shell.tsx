@@ -90,9 +90,9 @@ export function DetailPageShell({
           </Button>
         ) : null}
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 space-y-1 border-l-2 border-brand-accent/80 pl-3">
+          <div className="min-w-0 space-y-1">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-semibold tracking-[-0.01em]">
+              <h1 className="truncate text-[1.375rem] leading-tight font-semibold tracking-[-0.015em]">
                 {title}
               </h1>
               {badges}

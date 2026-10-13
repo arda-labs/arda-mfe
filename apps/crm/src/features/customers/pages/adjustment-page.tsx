@@ -9,7 +9,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import type { CaseTabItem } from "@workspace/case-tabs/types"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { PageTitle } from "@workspace/ui/components/page-title"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import {
   Tabs,
   TabsContent,
@@ -352,7 +352,7 @@ export function CustomerAdjustmentPage({
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
         <div className="[scrollbar-gutter-stable] min-h-0 flex-1 overflow-y-auto p-4">
-          <PageTitle title={pageTitle} description={pageDescription} />
+          <PageHeader title={pageTitle} description={pageDescription} />
           <div className="mt-4 rounded-md border px-4 py-3 text-sm text-muted-foreground">
             {t("crm.customers.adjustments.loading_context")}
           </div>
@@ -366,7 +366,7 @@ export function CustomerAdjustmentPage({
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden">
         <div className="[scrollbar-gutter-stable] min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-          <PageTitle title={pageTitle} description={pageDescription} />
+          <PageHeader title={pageTitle} description={pageDescription} />
           <EmptyState
             text={t("crm.customers.adjustments.missing_customer_id")}
           />
@@ -388,7 +388,7 @@ export function CustomerAdjustmentPage({
         <div className="[scrollbar-gutter-stable] min-h-0 flex-1 overflow-y-auto">
           <Tabs defaultValue="general" className="flex flex-col">
             <div className="space-y-4 p-4 pb-3">
-              <PageTitle
+              <PageHeader
                 title={pageTitle}
                 description={pageDescription}
                 meta={

@@ -18,7 +18,7 @@ import {
 } from "@workspace/ui/components/card"
 import { FormField } from "@workspace/ui/components/form-field"
 import { Input } from "@workspace/ui/components/input"
-import { PageTitle } from "@workspace/ui/components/page-title"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { Label } from "@workspace/ui/components/label"
 import { Switch } from "@workspace/ui/components/switch"
 import {
@@ -249,7 +249,7 @@ export function SystemSettingsPage() {
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
         <div className="space-y-4 p-4 pb-3">
-          <PageTitle
+          <PageHeader
             title={t("iam.system_settings.title")}
             description={t("iam.system_settings.description")}
             meta={

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { PageHeader } from "@workspace/ui/components/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
@@ -159,7 +160,7 @@ export function PostingFlowPage({
  *   section.flex.h-full.min-h-0.flex-col
  *   └ form / scroll container
  *     └ Tabs (flex flex-col)
- *       ├ PageTitle block (title + optional status meta)
+ *       ├ PageHeader (title + optional status meta)
  *       ├ sticky tab bar (top-0 z-10 border-b bg-background px-4 py-2)
  *       └ <div.space-y-4.p-4> with one <TabsContent> per `tabs` item
  *
@@ -254,19 +255,7 @@ function PageTitleBlock({
   description?: string
   meta?: ReactNode
 }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h1 className="truncate text-2xl font-semibold">{title}</h1>
-            {meta}
-          </div>
-          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
-        </div>
-      </div>
-    </div>
-  )
+  return <PageHeader title={title} description={description} meta={meta} />
 }
 
 /**
