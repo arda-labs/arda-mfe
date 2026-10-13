@@ -374,5 +374,11 @@
     "balanced": "Balanced",
     "off_by": "Off by {amount}",
     "empty": "No entry lines"
+  },
+  "tree": {
+    "expand": "Expand branch",
+    "collapse": "Collapse branch",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all"
   }
 }
