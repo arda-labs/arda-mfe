@@ -9,6 +9,7 @@ import { RecordSheet } from "@workspace/ui/components/record-sheet"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
 import type { LoanCollection } from "../api"
 import { caseDisplayLabel } from "../case-display"
+import { CaseApprovalTrail } from "@workspace/case-tabs/case-approval-trail"
 
 type SheetState = {
   open: boolean
@@ -93,6 +94,14 @@ export function CollectionSheet({
             { label: t("loan.collections.field.created_by"), value: record.created_by },
           ]}
         />
+        {record.workflow_case_id ? (
+          <section className="space-y-3">
+            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {t("common.approval.label")}
+            </h3>
+            <CaseApprovalTrail caseId={record.workflow_case_id} />
+          </section>
+        ) : null}
       </div>
     </RecordSheet>
   )

@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
-import { api, type ApiSuccess } from "@workspace/api"
 import { useI18n } from "@workspace/i18n"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import {
@@ -12,6 +10,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import type { CaseTimelineEvent } from "./types"
+import { useCaseTimeline } from "./use-case-timeline"
 
 /**
  * "Lưu vết tác vụ" tab (EPAS `lib-task-activity-log`): the case timeline split
@@ -24,32 +23,7 @@ import type { CaseTimelineEvent } from "./types"
  */
 export function CaseActivityLogPanel({ caseId }: { caseId: string }) {
   const { t, formatDate } = useI18n()
-  const [events, setEvents] = useState<CaseTimelineEvent[]>([])
-  const [loading, setLoading] = useState(false)
-  const [failed, setFailed] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      if (!caseId) return
-      setLoading(true)
-      setFailed(false)
-      try {
-        const response = await api.get<ApiSuccess<CaseTimelineEvent[]>>(
-          `/api/workflow/cases/${encodeURIComponent(caseId)}/timeline`
-        )
-        if (!cancelled) setEvents(response.result ?? [])
-      } catch {
-        if (!cancelled) setFailed(true)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    void load()
-    return () => {
-      cancelled = true
-    }
-  }, [caseId])
+  const { events, loading, failed } = useCaseTimeline(caseId)
 
   function eventLabel(eventType: string) {
     const key = `case_tabs.activity.events.${eventType}`

@@ -1,4 +1,7 @@
 export { CaseActivityLogPanel } from "./case-activity-log-panel"
+export { CaseApprovalTrail } from "./case-approval-trail"
+export { deriveApprovalTrail } from "./approval-trail"
+export { useCaseTimeline } from "./use-case-timeline"
 export {
   CaseAttachmentsPanel,
   StagedAttachmentsPanel,

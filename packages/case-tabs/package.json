@@ -25,6 +25,7 @@
     "./case-tabs": "./src/case-tabs.tsx",
     "./case-attachments-panel": "./src/case-attachments-panel.tsx",
     "./case-activity-log-panel": "./src/case-activity-log-panel.tsx",
+    "./case-approval-trail": "./src/case-approval-trail.tsx",
     "./use-case-tabs": "./src/use-case-tabs.tsx",
     "./use-staged-attachments": "./src/use-staged-attachments.tsx",
     "./types": "./src/types.ts"

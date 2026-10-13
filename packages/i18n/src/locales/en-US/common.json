@@ -348,5 +348,31 @@
     "hint": "Quick look at the record. Use ↑/↓ to move between records, Esc to close.",
     "previous": "Previous record",
     "next": "Next record"
+  },
+  "approval": {
+    "label": "Approval flow",
+    "step": {
+      "maker": "Prepare",
+      "checker": "Check",
+      "final": "Complete"
+    },
+    "state": {
+      "done": "Done",
+      "current": "Waiting",
+      "todo": "Not yet",
+      "rejected": "Rejected",
+      "returned": "Returned for changes"
+    }
+  },
+  "ledger": {
+    "no": "No.",
+    "account": "Account",
+    "description": "Description",
+    "debit": "Debit",
+    "credit": "Credit",
+    "total": "Total",
+    "balanced": "Balanced",
+    "off_by": "Off by {amount}",
+    "empty": "No entry lines"
   }
 }

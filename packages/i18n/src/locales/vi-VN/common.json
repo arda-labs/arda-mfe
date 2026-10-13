@@ -348,5 +348,31 @@
     "hint": "Xem nhanh bản ghi. Dùng ↑/↓ để chuyển bản ghi, Esc để đóng.",
     "previous": "Bản ghi trước",
     "next": "Bản ghi sau"
+  },
+  "approval": {
+    "label": "Luồng phê duyệt",
+    "step": {
+      "maker": "Lập",
+      "checker": "Kiểm soát",
+      "final": "Hoàn tất"
+    },
+    "state": {
+      "done": "Xong",
+      "current": "Đang chờ",
+      "todo": "Chưa tới",
+      "rejected": "Từ chối",
+      "returned": "Trả lại bổ sung"
+    }
+  },
+  "ledger": {
+    "no": "STT",
+    "account": "Tài khoản",
+    "description": "Diễn giải",
+    "debit": "Nợ",
+    "credit": "Có",
+    "total": "Tổng",
+    "balanced": "Cân đối",
+    "off_by": "Lệch {amount}",
+    "empty": "Chưa có dòng bút toán"
   }
 }
