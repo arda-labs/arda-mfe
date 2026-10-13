@@ -343,5 +343,10 @@
     "date_mismatch": "Khác ngày hôm nay ({today})",
     "date_unknown": "Chưa rõ ngày",
     "eod_short": "EOD"
+  },
+  "record_sheet": {
+    "hint": "Xem nhanh bản ghi. Dùng ↑/↓ để chuyển bản ghi, Esc để đóng.",
+    "previous": "Bản ghi trước",
+    "next": "Bản ghi sau"
   }
 }

@@ -343,5 +343,10 @@
     "date_mismatch": "Not today ({today})",
     "date_unknown": "Date unknown",
     "eod_short": "EOD"
+  },
+  "record_sheet": {
+    "hint": "Quick look at the record. Use ↑/↓ to move between records, Esc to close.",
+    "previous": "Previous record",
+    "next": "Next record"
   }
 }

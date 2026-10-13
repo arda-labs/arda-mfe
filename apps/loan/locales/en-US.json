@@ -278,11 +278,18 @@
       "contract": "Credit contract (DISBURSED)",
       "principal": "Principal",
       "interest": "Interest",
-      "collection_date": "Collection date"
+      "collection_date": "Collection date",
+      "overdue_interest": "Overdue interest",
+      "total": "Total collected",
+      "journal_entry": "Journal entry",
+      "created_by": "Created by"
     },
     "validation": {
       "contract_required": "Select a contract and enter the disbursement agreement code",
       "amounts_positive": "Principal or interest must be positive"
+    },
+    "view": {
+      "all": "All"
     }
   },
   "disbursements": {

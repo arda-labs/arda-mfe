@@ -28,6 +28,10 @@ interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   layout?: "default" | "panel"
   /** Double-click row to open detail (skipped on buttons/links/checkboxes). */
   onRowDoubleClick?: (row: Row<TData>) => void
+  /** Single click on a row (outside buttons/inputs), e.g. open a RecordSheet. */
+  onRowClick?: (row: Row<TData>) => void
+  /** Row shown in a side sheet; highlighted and marked aria-current. */
+  activeRowId?: string
   /** Dim rows while a background list refetch is in progress. */
   fetching?: boolean
   /** Adds a semantic class to a row without coupling the table to domain data. */
@@ -95,6 +99,8 @@ export function DataTable<TData>({
   defaultDensity = preferredTableDensity(),
   layout = "default",
   onRowDoubleClick,
+  onRowClick,
+  activeRowId,
   fetching = false,
   rowClassName,
   emptyState,
@@ -151,17 +157,37 @@ export function DataTable<TData>({
   const bodyRows = hasRows ? (
     table.getRowModel().rows.map((row) => {
       const isStriped = row.index % 2 === 1
+      const isActive = activeRowId !== undefined && row.id === activeRowId
 
       return (
         <TableRow
           key={row.id}
           data-state={row.getIsSelected() && "selected"}
+          data-active={isActive || undefined}
+          aria-current={isActive ? "true" : undefined}
           className={cn(
             isStriped && "bg-table-row-stripe hover:bg-accent/65",
             !isStriped && "hover:bg-accent/45",
             onRowDoubleClick && "cursor-default",
+            onRowClick && "cursor-pointer",
+            isActive && "bg-accent hover:bg-accent shadow-[inset_2px_0_0_var(--primary)]",
             rowClassName?.(row)
           )}
+          onClick={
+            onRowClick
+              ? (event) => {
+                  const target = event.target as HTMLElement
+                  if (
+                    target.closest(
+                      "button, a, [role='checkbox'], input, select, textarea"
+                    )
+                  ) {
+                    return
+                  }
+                  onRowClick(row)
+                }
+              : undefined
+          }
           onDoubleClick={
             onRowDoubleClick
               ? (event) => {

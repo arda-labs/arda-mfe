@@ -30,6 +30,12 @@ type ListPageShellProps<TData> = {
   header?: ReactNode
   dialogs?: ReactNode
   onRowDoubleClick?: (row: Row<TData>) => void
+  /** Row click, usually `recordSheet.openRow` (see useRecordSheet). */
+  onRowClick?: (row: Row<TData>) => void
+  /** Row open in a RecordSheet, highlighted in the table. */
+  activeRowId?: string
+  /** View tabs over the list (SavedViewTabs), between header and table. */
+  views?: ReactNode
   /** Copy + call to action when the list has no records at all. */
   emptyState?: DataTableEmptyState
 }
@@ -50,6 +56,9 @@ export function ListPageShell<TData>({
   header,
   dialogs,
   onRowDoubleClick,
+  onRowClick,
+  activeRowId,
+  views,
   emptyState,
 }: ListPageShellProps<TData>) {
   const showOverlay = useDelayedBusy(criticalPending)
@@ -63,6 +72,7 @@ export function ListPageShell<TData>({
     <section className="flex h-full min-h-0 flex-col gap-5 overflow-hidden p-4 sm:p-5">
       <PageHeader title={title} meta={meta} actions={actions} />
       {header}
+      {views}
       <div className="relative flex min-h-0 flex-1 flex-col">
         <DataTable
           layout="panel"
@@ -71,6 +81,8 @@ export function ListPageShell<TData>({
           className="min-h-0 flex-1"
           fetching={fetching}
           onRowDoubleClick={onRowDoubleClick}
+          onRowClick={onRowClick}
+          activeRowId={activeRowId}
           emptyState={emptyState}
         >
           {toolbar}
