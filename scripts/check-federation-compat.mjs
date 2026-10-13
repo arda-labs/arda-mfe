@@ -114,6 +114,9 @@ for (const app of appNames) {
   if (!config.includes("shared: { ...remoteSharedDeps }")) {
     violations.push(`apps/${app}/vite.config.ts: shared singleton registry is not spread`)
   }
+  if (!config.includes("...hostRuntimeDevAliases")) {
+    violations.push(`apps/${app}/vite.config.ts: host-only runtimes need hostRuntimeDevAliases for standalone dev`)
+  }
   if (!config.includes('filename: "remoteEntry.js"')) {
     violations.push(`apps/${app}/vite.config.ts: remoteEntry filename is not stable`)
   }
