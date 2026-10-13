@@ -301,8 +301,10 @@ mounted through `RenderWidgetToolUI` in `OlorinPanel`.
 ### How it renders
 
 ```html
-<iframe sandbox="allow-scripts" srcdoc="..." referrerpolicy="no-referrer">
+<iframe sandbox="allow-scripts" srcdoc="..." referrerpolicy="no-referrer" loading="lazy">
 ```
+
+(Key attributes only; see `components/tools/widget-frame.tsx` for the full element.)
 
 - The sandbox is exactly `allow-scripts`. Never add `allow-same-origin`,
   `allow-forms`, `allow-popups`, `allow-modals` or `allow-top-navigation`.
@@ -332,7 +334,8 @@ as HTML. There is no channel for the widget to send text into the conversation.
 Frame behavior: no `arda:height` within 5 s of sending the data shows "did not
 respond" with a retry button; an `arda:error` shows a warning bar (text capped
 at 200 chars) with a reload button and keeps the frame; at most 3 widgets are
-mounted at once (the oldest collapses to a "run again" card); expand is an
+mounted at once, page-wide (the oldest collapses to a "run again" card). This
+limit applies through `WidgetSlot`; using `WidgetFrame` directly bypasses it. Expand is an
 in-place height change (70vh), not a dialog.
 
 ### Data
@@ -366,13 +369,25 @@ Content-Security-Policy: frame-src 'self' blob:; object-src 'none'; frame-ancest
   immutable static files only). If the Worker is bypassed, the header silently
   disappears. A dedicated widget origin, when added, must be added to
   `frame-src`.
-- After deploying a branch, verify the header on a navigation request:
-  `curl -sI -H "Sec-Fetch-Mode: navigate" <shell url> | findstr Content-Security-Policy`.
+- **Every** path that serves the shell HTML must send this same header: the
+  Cloudflare Worker, and any alternative such as the `arda-infra` k8s frontend
+  manifests if they are used to serve `arda.io.vn`. Only the Worker emits it
+  today. Without it the sandbox has no protection against navigation
+  exfiltration, and no unit test fails.
+- Verify the header on a navigation request, against the real production
+  hostname (not only a branch preview). In PowerShell use `curl.exe` (`curl` is
+  an `Invoke-WebRequest` alias) and `findstr /i` (header names are lowercase over
+  HTTP/2-3):
+  `curl.exe -sI -H "Sec-Fetch-Mode: navigate" <shell url> | findstr /i content-security-policy`.
+  Compare the value with `SHELL_CSP` and check both `/` and a deep SPA route.
 - `tests/browser/widget-sandbox.spec.ts` (Playwright) runs a real attacker
-  listener and tries `location.href`, meta refresh and anchor click. Each variant
-  has a control without the header that leaks the data, and a run with
-  `SHELL_CSP` where the browser blocks the navigation and the listener receives
-  nothing.
+  listener and tries `location.href`, meta refresh and anchor click. Each
+  control (no header) reaches the attacker; the `location.href` and anchor
+  variants carry the `ARDA_DATA` payload. With `SHELL_CSP` the browser blocks
+  the navigation and the listener receives nothing. The tests serve
+  `SHELL_CSP` through `page.route` and disable Chromium's Local Network Access
+  checks via launch flags (the attacker is on loopback). They do not test the
+  deployed Worker: use the curl check for that.
 
 Side effects of `frame-src 'self' blob:`:
 
@@ -387,19 +402,27 @@ Side effects of `frame-src 'self' blob:`:
 ### Known limits
 
 - **WebRTC is a residual exfiltration channel.** `RTCPeerConnection` (for
-  example a TURN `username`) is not covered by CSP `connect-src`. Mitigations:
-  the widget only ever receives the minimal `data` the model passes (no
-  tokens, cookies or UI context); the backend code filter rejects
-  `RTCPeerConnection` as an early check; a dedicated widget origin with network
-  egress controls is the planned next step.
+  example a TURN `username`) is not covered by CSP `connect-src`. Nothing
+  limits what the widget can send: it receives the whole `ARDA_DATA` payload
+  (up to 64 KB inline, or a hydrated `execute()` result via `result_id`), which
+  is tenant business data, and all of it can be exfiltrated this way today. The
+  realistic trigger is prompt injection through tool or data content. The
+  backend filter on `RTCPeerConnection` is trivially bypassable (string
+  concatenation, aliases) and must not be relied on. The real mitigations are a
+  dedicated widget origin with network egress controls (planned) and keeping the
+  feature behind the `AI_ENABLE_SANDBOXED_UI` flag. No tokens, cookies or UI
+  context are passed to the widget.
 - The backend forbidden-pattern filter is **not** a security boundary. The
   boundary is the browser sandbox plus the two CSPs above.
-- An infinite loop in widget JS can freeze the tab: a `srcdoc` frame shares the
-  process with the shell. The 5 s timeout only helps when the frame never
-  replies; it cannot interrupt a script that never yields. A dedicated origin
-  would fix this.
-- A widget can draw a fake form. The frame, title and "generated tool" badge
-  are rendered by the parent outside model control.
+- An infinite loop in widget JS can freeze the tab: a `srcdoc` frame may share
+  a process with the shell. A script that never yields while the document is
+  parsed prevents `load` from firing, so the data is never sent and the 5 s
+  timer never starts; the user only sees the loading state. The timeout does
+  not mitigate this. A dedicated origin would help.
+- A widget can draw a fake form. The frame border and the "generated tool"
+  badge are rendered by the parent, but the `title` (up to 200 chars) and the
+  `inputs_summary` (up to 500 chars) are model-supplied text. Never treat
+  in-frame content as trusted UI and never collect credentials in a widget.
 
 ### For domain MFE authors
 
