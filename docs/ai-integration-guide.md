@@ -338,6 +338,29 @@ mounted at once, page-wide (the oldest collapses to a "run again" card). This
 limit applies through `WidgetSlot`; using `WidgetFrame` directly bypasses it. Expand is an
 in-place height change (70vh), not a dialog.
 
+### Helper kit (`window.arda`)
+
+The runtime script also defines `window.arda` (`lib/widget-kit.ts`), so model
+code never draws SVG or formats numbers by hand. Charts then look the same in
+every widget, follow the theme tokens, and bad input shows as `—`, never `NaN`.
+
+| Call | Does |
+|:---|:---|
+| `arda.fmt(v, format)` | `"amount"` (1,25 tỷ / 3,4 triệu / 950.000), `"percent"`, `"int"`, `"number"`; non-finite → `—` |
+| `arda.num(v, fallback)` | finite number or fallback |
+| `arda.$(id)`, `arda.set(id, text)` | element lookup, `textContent` setter |
+| `arda.val(id, fallback)` | numeric input value, clamped to its `min`/`max` |
+| `arda.live(render)` | runs `render` now and on every `input`/`change` |
+| `arda.chart(target, spec)` | SVG chart, redrawn on resize; spec `{ type: "bar" \| "stacked" \| "line" \| "area" \| "donut", categories, series: [{ name, values }], format?, height? }` |
+| `arda.chartSvg(spec, width)` | the same chart as a string |
+| `arda.table(target, { columns: [{ key, label, format? }], rows })` | escaped table with formatted cells |
+
+Tooltips are native SVG `<title>` hover text. The kit is plain ES5 inside the
+runtime `<script>`; it must not contain a closing script tag, `<!--` or an
+`arda:` message literal (`widget-kit.test.ts` checks these). The backend
+prompt (`widgetGuidance` in `ai-service/internal/config/config.go`) tells the
+model to use it; keep the two in sync.
+
 ### Data
 
 The tool result carries either inline `data` (at most 64 KB) or a `result_id`
