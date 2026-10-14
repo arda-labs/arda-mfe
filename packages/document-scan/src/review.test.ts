@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import {
   blockingFields,
   computeOverwrites,
+  effectiveOverwrites,
   fieldSeverity,
   flagSeverity,
   initialValues,
@@ -50,5 +51,17 @@ describe("review rules", () => {
   test("overwrites are fields whose existing form value differs and is non-empty", () => {
     const values = { ...initialValues(result({})), id_number: "082279855585", full_name: "HOÀNG THÙY HUYỀN" }
     expect(computeOverwrites(values, { id_number: "001122334455", full_name: "HOÀNG THÙY HUYỀN", residence: "" })).toEqual(["id_number"])
+  })
+})
+
+describe("effectiveOverwrites", () => {
+  test("drops ticks for fields that no longer overwrite anything", () => {
+    const ticked = new Set<CccdFieldName>(["id_number", "full_name"])
+    expect([...effectiveOverwrites(ticked, ["id_number"])]).toEqual(["id_number"])
+    expect(effectiveOverwrites(ticked, []).size).toBe(0)
+  })
+
+  test("does not tick fields the user has not ticked", () => {
+    expect(effectiveOverwrites(new Set(), ["id_number"]).size).toBe(0)
   })
 })

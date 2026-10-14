@@ -1,5 +1,5 @@
 export { classifyExtractError, extractCccd, fetchCapabilities } from "./api"
-export { blockingFields, computeOverwrites, fieldSeverity, flagSeverity, initialValues } from "./review"
+export { blockingFields, computeOverwrites, effectiveOverwrites, fieldSeverity, flagSeverity, initialValues } from "./review"
 export { CCCD_FIELDS, FIELD_KIND } from "./types"
 export type {
   CardVersion,

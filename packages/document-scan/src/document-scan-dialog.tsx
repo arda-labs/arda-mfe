@@ -28,60 +28,90 @@ export interface DocumentScanDialogProps {
 }
 
 type Shot = { blob: Blob; url: string }
+type Side = "front" | "back"
 
 export function DocumentScanDialog({ open, onOpenChange, modelLocation, existing, onApply }: DocumentScanDialogProps) {
   const { t } = useI18n()
   const [front, setFront] = useState<Shot>()
   const [back, setBack] = useState<Shot>()
+  // The images the current read was started with; review and onApply use these, not whatever is picked later.
+  const [frozen, setFrozen] = useState<{ front: Shot; back?: Shot }>()
   const [ack, setAck] = useState(hasCloudAck)
   const [step, setStep] = useState<"capture" | "reading" | "review">("capture")
   const [result, setResult] = useState<CccdExtractResult>()
   const [error, setError] = useState<string>()
   const [applying, setApplying] = useState(false)
+  const [pendingPicks, setPendingPicks] = useState(0)
   const abort = useRef<AbortController | null>(null)
+  // Bumped on close/unmount: async work started in an earlier epoch must not touch state or create URLs.
+  const epoch = useRef(0)
+  const shots = useRef<Record<Side, Shot | undefined>>({ front: undefined, back: undefined })
+
+  function setShot(side: Side, shot: Shot | undefined) {
+    const old = shots.current[side]
+    if (old) URL.revokeObjectURL(old.url)
+    shots.current[side] = shot
+    ;(side === "front" ? setFront : setBack)(shot)
+  }
+
+  function release() {
+    epoch.current += 1
+    abort.current?.abort()
+    abort.current = null
+    for (const side of ["front", "back"] as const) {
+      const old = shots.current[side]
+      if (old) URL.revokeObjectURL(old.url)
+      shots.current[side] = undefined
+    }
+  }
 
   // Close = abort in-flight request and drop every image (no card data kept).
   useEffect(() => {
     if (open) return
-    abort.current?.abort()
-    abort.current = null
-    const drop = (s?: Shot) => {
-      if (s) URL.revokeObjectURL(s.url)
-      return undefined
-    }
-    setFront(drop)
-    setBack(drop)
+    release()
+    setFront(undefined)
+    setBack(undefined)
+    setFrozen(undefined)
     setResult(undefined)
     setError(undefined)
     setStep("capture")
+    setApplying(false)
   }, [open])
 
-  async function pick(file: File, set: typeof setFront) {
+  // Unmount behaves like close.
+  useEffect(() => release, [])
+
+  async function pick(file: File, side: Side) {
     setError(undefined)
+    const started = epoch.current
+    setPendingPicks((n) => n + 1)
     try {
       const blob = await toJpeg(file)
-      set((old) => {
-        if (old) URL.revokeObjectURL(old.url)
-        return { blob, url: URL.createObjectURL(blob) }
-      })
+      if (epoch.current !== started) return // dialog closed meanwhile: discard, create no URL
+      setShot(side, { blob, url: URL.createObjectURL(blob) })
     } catch {
-      setError(t("document_scan.errors.unsupported"))
+      if (epoch.current === started) setError(t("document_scan.errors.unsupported"))
+    } finally {
+      setPendingPicks((n) => n - 1)
     }
   }
 
   async function read() {
     if (!front) return
+    const started = epoch.current
+    const snapshot = { front, back }
     const controller = new AbortController()
     abort.current = controller
     setError(undefined)
     setStep("reading")
     try {
-      const res = await extractCccd(front.blob, back?.blob, controller.signal)
-      if (controller.signal.aborted) return
+      const res = await extractCccd(snapshot.front.blob, snapshot.back?.blob, controller.signal)
+      if (controller.signal.aborted || epoch.current !== started) return
+      setFrozen(snapshot)
       setResult(res)
       setStep("review")
     } catch (err) {
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted || epoch.current !== started) return
       setError(t(`document_scan.errors.${classifyExtractError(err)}`))
       setStep("capture")
     } finally {
@@ -90,13 +120,17 @@ export function DocumentScanDialog({ open, onOpenChange, modelLocation, existing
   }
 
   async function apply(out: ReviewOutput) {
-    if (!result || !front) return
+    if (!result || !frozen) return
+    const started = epoch.current
     setApplying(true)
+    setError(undefined)
     try {
-      await onApply({ ...out, cardVersion: result.card_version, images: { front: front.blob, back: back?.blob } })
+      await onApply({ ...out, cardVersion: result.card_version, images: { front: frozen.front.blob, back: frozen.back?.blob } })
       onOpenChange(false)
+    } catch {
+      if (epoch.current === started) setError(t("document_scan.errors.unknown"))
     } finally {
-      setApplying(false)
+      if (epoch.current === started) setApplying(false)
     }
   }
 
@@ -110,15 +144,21 @@ export function DocumentScanDialog({ open, onOpenChange, modelLocation, existing
           <DialogDescription>{t("document_scan.description")}</DialogDescription>
         </DialogHeader>
 
-        {step === "review" && result && front ? (
+        {step === "review" && result && frozen ? (
           <ReviewStep
             result={result}
-            frontUrl={front.url}
-            backUrl={back?.url}
+            frontUrl={frozen.front.url}
+            backUrl={frozen.back?.url}
             existing={existing}
             t={t}
             applying={applying}
-            onBack={() => setStep("capture")}
+            error={error}
+            onBack={() => {
+              setResult(undefined)
+              setFrozen(undefined)
+              setError(undefined)
+              setStep("capture")
+            }}
             onApply={apply}
           />
         ) : (
@@ -149,16 +189,16 @@ export function DocumentScanDialog({ open, onOpenChange, modelLocation, existing
                 url={front?.url}
                 pickLabel={t("document_scan.choose_image")}
                 changeLabel={t("document_scan.change_image")}
-                disabled={step === "reading"}
-                onPick={(f) => pick(f, setFront)}
+                disabled={step === "reading" || pendingPicks > 0}
+                onPick={(f) => pick(f, "front")}
               />
               <ImagePicker
                 label={t("document_scan.back")}
                 url={back?.url}
                 pickLabel={t("document_scan.choose_image")}
                 changeLabel={t("document_scan.change_image")}
-                disabled={step === "reading"}
-                onPick={(f) => pick(f, setBack)}
+                disabled={step === "reading" || pendingPicks > 0}
+                onPick={(f) => pick(f, "back")}
               />
             </div>
             {front && !back ? <p className="text-xs text-muted-foreground">{t("document_scan.back_missing_hint")}</p> : null}
@@ -183,7 +223,7 @@ export function DocumentScanDialog({ open, onOpenChange, modelLocation, existing
                   </Button>
                 </>
               ) : (
-                <Button type="button" disabled={!front || needsAck} onClick={read}>
+                <Button type="button" disabled={!front || needsAck || pendingPicks > 0} onClick={read}>
                   {t("document_scan.read")}
                 </Button>
               )}

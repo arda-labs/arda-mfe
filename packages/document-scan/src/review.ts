@@ -54,3 +54,11 @@ export function computeOverwrites(
     return !!current && !!values[f] && current !== values[f]
   })
 }
+
+/** Ticks only count while the overwrite still applies: a tick on a field whose value was edited away is stale. */
+export function effectiveOverwrites(
+  ticked: ReadonlySet<CccdFieldName>,
+  overwrites: readonly CccdFieldName[]
+): Set<CccdFieldName> {
+  return new Set(overwrites.filter((f) => ticked.has(f)))
+}

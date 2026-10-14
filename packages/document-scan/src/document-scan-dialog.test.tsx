@@ -35,4 +35,39 @@ describe("ReviewStep", () => {
     expect(html).toContain("document_scan.will_overwrite")
     expect(html).toMatch(/data-testid="document-scan-apply"[^>]*disabled/)
   })
+
+  test("renders the apply error above the buttons", () => {
+    const html = renderToStaticMarkup(
+      <I18nProvider>
+        <ReviewStep
+          result={result}
+          frontUrl="blob:front"
+          existing={{}}
+          t={(k: string) => k}
+          error="boom failed"
+          onBack={() => {}}
+          onApply={() => {}}
+        />
+      </I18nProvider>
+    )
+    expect(html).toMatch(/<p role="alert" class="[^"]*text-destructive[^"]*">boom failed<\/p>/)
+    expect(html.indexOf("boom failed")).toBeLessThan(html.indexOf('data-testid="document-scan-apply"'))
+  })
+
+  test("badge colour follows each flag, not the worst flag of the field", () => {
+    const mixed: CccdExtractResult = {
+      ...result,
+      fields: {
+        ...result.fields,
+        id_number: { value: "82279855585", raw: "x", flags: ["invalid_format", "not_found"] },
+      },
+    }
+    const html = renderToStaticMarkup(
+      <I18nProvider>
+        <ReviewStep result={mixed} frontUrl="blob:front" existing={{}} t={(k: string) => k} onBack={() => {}} onApply={() => {}} />
+      </I18nProvider>
+    )
+    expect(html).toMatch(/text-destructive[^>]*>document_scan\.flags\.invalid_format/)
+    expect(html).toMatch(/text-muted-foreground[^>]*>document_scan\.flags\.not_found/)
+  })
 })

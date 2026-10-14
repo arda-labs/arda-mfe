@@ -5,7 +5,7 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DateField } from "@workspace/ui/components/date-field"
 import { Input } from "@workspace/ui/components/input"
 import { cn } from "@workspace/ui/lib/utils"
-import { blockingFields, computeOverwrites, fieldSeverity, initialValues } from "./review"
+import { blockingFields, computeOverwrites, effectiveOverwrites, fieldSeverity, flagSeverity, initialValues } from "./review"
 import { CCCD_FIELDS, FIELD_KIND, type CccdExtractResult, type CccdFieldName, type Severity } from "./types"
 
 const SEVERITY_CLASS: Record<Severity, string> = {
@@ -28,6 +28,7 @@ export function ReviewStep({
   onBack,
   onApply,
   applying,
+  error,
 }: {
   result: CccdExtractResult
   frontUrl: string
@@ -37,6 +38,7 @@ export function ReviewStep({
   onBack: () => void
   onApply: (out: ReviewOutput) => void
   applying?: boolean
+  error?: string
 }) {
   const [values, setValues] = useState(() => initialValues(result))
   const [kept, setKept] = useState<Set<CccdFieldName>>(new Set())
@@ -45,6 +47,16 @@ export function ReviewStep({
   const [zoom, setZoom] = useState(false)
   const blocking = blockingFields(result, values, kept)
   const overwrites = useMemo(() => computeOverwrites(values, existing), [values, existing])
+  const setValue = (f: CccdFieldName, value: string) => {
+    setValues((v) => ({ ...v, [f]: value }))
+    // An overwrite tick belongs to the value the user saw; a new value needs a new tick.
+    setAllowOverwrite((s) => {
+      if (!s.has(f)) return s
+      const next = new Set(s)
+      next.delete(f)
+      return next
+    })
+  }
   const toggle = (set: Set<CccdFieldName>, f: CccdFieldName) => {
     const next = new Set(set)
     if (next.has(f)) next.delete(f)
@@ -95,23 +107,23 @@ export function ReviewStep({
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="font-medium">{t(`document_scan.fields.${f}`)}</span>
                 {field.flags.map((flag) => (
-                  <Badge key={flag} variant="outline" className={cn(severity && SEVERITY_CLASS[severity])}>
+                  <Badge key={flag} variant="outline" className={SEVERITY_CLASS[flagSeverity(flag)]}>
                     {t(`document_scan.flags.${flag}`)}
                   </Badge>
                 ))}
               </div>
               {kind === "date" ? (
-                <DateField value={values[f]} onChange={(e) => setValues((v) => ({ ...v, [f]: e.target.value }))} />
+                <DateField value={values[f]} onChange={(e) => setValue(f, e.target.value)} />
               ) : kind === "sex" ? (
                 <div className="flex gap-2">
                   {(["M", "F"] as const).map((s) => (
-                    <Button key={s} type="button" size="sm" variant={values[f] === s ? "default" : "outline"} onClick={() => setValues((v) => ({ ...v, [f]: s }))}>
+                    <Button key={s} type="button" size="sm" variant={values[f] === s ? "default" : "outline"} onClick={() => setValue(f, s)}>
                       {t(`document_scan.sex.${s}`)}
                     </Button>
                   ))}
                 </div>
               ) : (
-                <Input value={values[f]} onChange={(e) => setValues((v) => ({ ...v, [f]: e.target.value }))} />
+                <Input value={values[f]} onChange={(e) => setValue(f, e.target.value)} />
               )}
               {severity === "error" && values[f] === (field.value ?? "") ? (
                 <Button type="button" size="sm" variant="ghost" onClick={() => setKept((k) => toggle(k, f))}>
@@ -127,6 +139,11 @@ export function ReviewStep({
             </div>
           )
         })}
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onBack}>
             {t("document_scan.retake")}
@@ -135,7 +152,7 @@ export function ReviewStep({
             type="button"
             data-testid="document-scan-apply"
             disabled={blocking.length > 0 || applying}
-            onClick={() => onApply({ values, overwrite: allowOverwrite })}
+            onClick={() => onApply({ values, overwrite: effectiveOverwrites(allowOverwrite, overwrites) })}
           >
             {t("document_scan.apply")}
           </Button>
