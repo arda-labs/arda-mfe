@@ -672,6 +672,40 @@
     "title": "How can Olorin help?",
     "hint": "Ask about customers, HR, finance, or internal policies."
   },
+  "starters": {
+    "heading": "Try a sample question",
+    "capabilities": "What can Olorin do?",
+    "knowledge": {
+      "kind": "Knowledge Q&A",
+      "label": "Credit contract approval process",
+      "prompt": "How is the credit contract approval process defined? Cite the source documents."
+    },
+    "report": {
+      "kind": "Report",
+      "label": "Loans by debt group this month",
+      "prompt": "Loan portfolio by debt group report for this month"
+    },
+    "chart": {
+      "kind": "Chart",
+      "label": "Deposit maturity ladder, next 6 months",
+      "prompt": "Chart the deposit maturity ladder for the next 6 months"
+    },
+    "table": {
+      "kind": "Table",
+      "label": "Savings rates by term",
+      "prompt": "Make a table of current savings interest rates by term"
+    },
+    "simulation": {
+      "kind": "Simulation",
+      "label": "1.2bn loan: slide the rate 5–15%",
+      "prompt": "I borrow 1.2 billion VND over 20 years with equal principal payments. Give me a tool to slide the interest rate from 5% to 15% and see total interest and the first monthly payment."
+    },
+    "alerts": {
+      "kind": "Monitoring",
+      "label": "Indicators over alert thresholds",
+      "prompt": "Which indicators are over their alert thresholds?"
+    }
+  },
   "error": {
     "model_unavailable": "The AI assistant is temporarily unavailable. Please try again shortly.",
     "model_unauthorized": "The model configuration is missing or unauthorized. Check AI Settings.",

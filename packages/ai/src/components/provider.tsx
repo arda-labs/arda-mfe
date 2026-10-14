@@ -24,6 +24,7 @@ import { OlorinContext } from "../lib/context"
 import { collectOlorinContext } from "../lib/registry"
 import { artifactToolName } from "../lib/results"
 import { registerOlorinComposeSink } from "../lib/compose"
+import { DICTATION_ENABLED } from "../lib/features"
 import {
   deleteConversation,
   fetchConversationMessages,
@@ -306,9 +307,10 @@ export function OlorinProvider({ children, runtimeUrl, active = true }: OlorinPr
 
   // Voice dictation uses the browser's Web Speech API — zero config, and
   // only mounted when the browser actually supports it (Chrome/Edge/Safari).
+  // Hidden for now, see DICTATION_ENABLED.
   const dictationAdapter = useMemo(
     () =>
-      WebSpeechDictationAdapter.isSupported()
+      DICTATION_ENABLED && WebSpeechDictationAdapter.isSupported()
         ? new WebSpeechDictationAdapter({
             language: "vi-VN",
             continuous: true,
