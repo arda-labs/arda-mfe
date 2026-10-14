@@ -88,11 +88,39 @@
     "title": "Hỏi Olorin bất cứ điều gì về dữ liệu bạn được phân quyền",
     "hint": "Olorin chỉ đọc dữ liệu trong tenant hiện tại và luôn chờ bạn phê duyệt trước khi thực hiện thay đổi."
   },
-  "suggestions": {
-    "customer": "Tra cứu thông tin khách hàng",
-    "knowledge": "Tìm trong tri thức nội bộ",
-    "report": "Phân tích dư nợ theo nhóm nợ",
-    "alerts": "Cảnh báo chỉ tiêu rủi ro"
+  "starters": {
+    "heading": "Thử một câu hỏi mẫu",
+    "capabilities": "Olorin có thể làm được những gì?",
+    "knowledge": {
+      "kind": "Hỏi đáp tri thức",
+      "label": "Quy trình duyệt hợp đồng tín dụng",
+      "prompt": "Quy trình duyệt hợp đồng tín dụng được quy định thế nào? Trích nguồn tài liệu."
+    },
+    "report": {
+      "kind": "Báo cáo",
+      "label": "Dư nợ theo nhóm nợ tháng này",
+      "prompt": "Báo cáo dư nợ theo nhóm nợ tháng này"
+    },
+    "chart": {
+      "kind": "Biểu đồ",
+      "label": "Thang đáo hạn tiền gửi 6 tháng tới",
+      "prompt": "Vẽ biểu đồ thang đáo hạn tiền gửi trong 6 tháng tới"
+    },
+    "table": {
+      "kind": "Bảng số liệu",
+      "label": "Lãi suất tiết kiệm theo kỳ hạn",
+      "prompt": "Lập bảng lãi suất tiết kiệm hiện hành theo kỳ hạn"
+    },
+    "simulation": {
+      "kind": "Mô phỏng",
+      "label": "Vay 1,2 tỷ: kéo lãi suất 5–15%",
+      "prompt": "Tôi vay 1,2 tỷ đồng, kỳ hạn 20 năm, trả gốc đều. Cho tôi công cụ kéo lãi suất 5–15% để xem tổng lãi và khoản trả tháng đầu."
+    },
+    "alerts": {
+      "kind": "Giám sát",
+      "label": "Chỉ tiêu vượt ngưỡng cảnh báo",
+      "prompt": "Chỉ tiêu nào đang vượt ngưỡng cảnh báo?"
+    }
   },
   "tool": {
     "unparsed": "Kết quả công cụ không đọc được.",

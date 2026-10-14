@@ -46,7 +46,6 @@ import {
   Send,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Square,
   ThumbsDown,
   ThumbsUp,
@@ -63,6 +62,8 @@ import {
   markDefaultRenderersRegistered,
   resolveToolRenderer,
 } from "../lib/registry"
+import { OlorinWelcome } from "./olorin-welcome"
+import { DICTATION_ENABLED } from "../lib/features"
 import { registerCustomerSummaryRenderer } from "./tools/customer-summary-card"
 import { registerEmployeeRenderer } from "./tools/employee-card"
 import { registerFinanceAccountRenderer } from "./tools/finance-account-card"
@@ -112,18 +113,6 @@ if (!areDefaultRenderersRegistered()) {
   registerKnowledgeCitationRenderer()
   registerKnowledgeSearchFeedbackRenderer()
   markDefaultRenderersRegistered()
-}
-
-// Suggestions adapt to the module the user is in. Falls back to the default
-// pair on unknown routes.
-function pageSuggestionKeys(): readonly string[] {
-  const path = typeof window !== "undefined" ? window.location.pathname : ""
-  if (path.startsWith("/loans") || path.startsWith("/finance") || path.startsWith("/statistical"))
-    return ["report", "alerts", "customer"] as const
-  if (path.startsWith("/customers") || path.startsWith("/workbench"))
-    return ["customer", "report", "knowledge"] as const
-  if (path.startsWith("/hrm")) return ["customer", "knowledge", "report"] as const
-  return ["report", "alerts", "knowledge"] as const
 }
 
 export function OlorinPanel({
@@ -304,7 +293,7 @@ export function OlorinPanel({
       <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <ThreadPrimitive.Viewport className="relative flex flex-1 flex-col overflow-y-auto scroll-smooth">
           <ThreadPrimitive.Empty>
-            <OlorinWelcome wide={wideChat} />
+            <OlorinWelcome wide={wideChat} composer={<OlorinComposer />} />
           </ThreadPrimitive.Empty>
 
           <div
@@ -529,33 +518,37 @@ function OlorinComposer() {
                     <Maximize2 className="size-3.5" />
                   )}
                 </Button>
-                <AuiIf condition={(s) => s.composer.dictation == null}>
-                  <ComposerPrimitive.Dictate asChild>
-                    <Button
-                      type="button"
-                      size="icon"
-                      aria-label={t("ai.composer.dictate") || "Nhập liệu bằng giọng nói"}
-                      title={t("ai.composer.dictate") || "Nhập liệu bằng giọng nói"}
-                      className="size-7.5 rounded-full shadow-2xs text-muted-foreground"
-                    >
-                      <Mic className="size-3.5" />
-                    </Button>
-                  </ComposerPrimitive.Dictate>
-                </AuiIf>
-                <AuiIf condition={(s) => s.composer.dictation != null}>
-                  <ComposerPrimitive.StopDictation asChild>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="destructive"
-                      aria-label={t("ai.composer.stop_dictation") || "Dừng nhập liệu"}
-                      title={t("ai.composer.stop_dictation") || "Dừng nhập liệu"}
-                      className="size-7.5 rounded-full shadow-2xs"
-                    >
-                      <Square className="size-3 fill-current motion-safe:animate-pulse" />
-                    </Button>
-                  </ComposerPrimitive.StopDictation>
-                </AuiIf>
+                {DICTATION_ENABLED && (
+                  <>
+                  <AuiIf condition={(s) => s.composer.dictation == null}>
+                    <ComposerPrimitive.Dictate asChild>
+                      <Button
+                        type="button"
+                        size="icon"
+                        aria-label={t("ai.composer.dictate") || "Nhập liệu bằng giọng nói"}
+                        title={t("ai.composer.dictate") || "Nhập liệu bằng giọng nói"}
+                        className="size-7.5 rounded-full shadow-2xs text-muted-foreground"
+                      >
+                        <Mic className="size-3.5" />
+                      </Button>
+                    </ComposerPrimitive.Dictate>
+                  </AuiIf>
+                  <AuiIf condition={(s) => s.composer.dictation != null}>
+                    <ComposerPrimitive.StopDictation asChild>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        aria-label={t("ai.composer.stop_dictation") || "Dừng nhập liệu"}
+                        title={t("ai.composer.stop_dictation") || "Dừng nhập liệu"}
+                        className="size-7.5 rounded-full shadow-2xs"
+                      >
+                        <Square className="size-3 fill-current motion-safe:animate-pulse" />
+                      </Button>
+                    </ComposerPrimitive.StopDictation>
+                  </AuiIf>
+                  </>
+                )}
                 <ThreadPrimitive.If running={false}>
                   <ComposerPrimitive.Send asChild>
                     <Button
@@ -643,57 +636,6 @@ function HeaderActivity() {
       <LoaderCircle className="size-3 shrink-0 animate-spin text-primary" />
       <span className="shimmer max-w-[140px] truncate motion-reduce:animate-none">{label}</span>
     </span>
-  )
-}
-
-function OlorinWelcome({ wide = false }: { wide?: boolean }) {
-  const { t } = useI18n()
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-300">
-      <div className="relative mb-4">
-        <div
-          className="absolute inset-0 -z-10 rounded-full bg-primary/20 blur-2xl motion-safe:animate-pulse"
-          aria-hidden="true"
-        />
-        <div className="flex size-14 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/15 via-primary/10 to-brand-accent/10 text-primary shadow-xs ring-1 ring-primary/20 motion-safe:animate-in motion-safe:zoom-in-90 motion-safe:duration-300">
-          <Sparkles className="size-7" />
-        </div>
-      </div>
-      <p className="text-xl font-semibold tracking-tight">{t("ai.empty.title")}</p>
-      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-        {t("ai.empty.hint")}
-      </p>
-
-      <div
-        className={cn(
-          "mt-6 w-full text-left transition-[max-width] duration-300",
-          wide ? "max-w-none" : "max-w-3xl"
-        )}
-      >
-        <OlorinComposer />
-      </div>
-
-      <div className="mt-5 flex max-w-3xl flex-wrap justify-center gap-2">
-        {pageSuggestionKeys().map((key, index) => (
-          <ThreadPrimitive.Suggestion
-            key={key}
-            prompt={t(`ai.suggestions.${key}`)}
-            method="replace"
-            autoSend
-            asChild
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 rounded-full px-4 text-xs font-normal shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1"
-              style={{ animationDelay: `${index * 60}ms` }}
-            >
-              {t(`ai.suggestions.${key}`)}
-            </Button>
-          </ThreadPrimitive.Suggestion>
-        ))}
-      </div>
-    </div>
   )
 }
 
