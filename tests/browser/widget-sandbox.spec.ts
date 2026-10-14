@@ -105,10 +105,11 @@ test("a syntax error in widget code surfaces as arda:error and the frame still r
 
 test("the arda kit draws a chart that follows a slider, with no NaN and no errors", async ({ page }) => {
   const doc = buildWidgetDocument({
-    html: `<input id="rate" type="range" min="5" max="15" value="10"><div id="sum"></div><div id="chart"></div>`,
+    html: `<input id="rate" type="range" min="5" max="15" value="10"><div id="sum"></div><div id="card"></div><div id="chart"></div>`,
     js: `arda.live(function () {
   var r = arda.val("rate", 10), p = arda.num(ARDA_DATA.principal, 0);
   arda.set("sum", arda.fmt(p * r / 100, "amount"));
+  arda.set("card", p * r / 1200, "amount");
   arda.chart("chart", { type: "bar", categories: ["A", "B", "C"], series: [{ name: "x", values: [p, p * r / 100, ARDA_DATA.missing] }], format: "amount" });
 });`,
     theme,
@@ -116,6 +117,8 @@ test("the arda kit draws a chart that follows a slider, with no NaN and no error
   await page.setContent(outerPage(doc, false, { principal: 500_000_000 }))
   const frame = page.frameLocator("#f")
   await expect(frame.locator("#sum")).toHaveText("50 triệu")
+  await expect(frame.locator("#card")).toHaveText("4,17 triệu")
+  await expect(frame.locator("#card")).toHaveAttribute("title", "4.166.667 VNĐ")
   await expect(frame.locator("#chart svg rect[rx='2']")).toHaveCount(3)
   const before = await frame.locator("#chart svg").innerHTML()
   await frame.locator("#rate").fill("15")

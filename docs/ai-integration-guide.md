@@ -346,15 +346,20 @@ every widget, follow the theme tokens, and bad input shows as `—`, never `NaN`
 
 | Call | Does |
 |:---|:---|
-| `arda.fmt(v, format)` | `"amount"` (1,25 tỷ / 3,4 triệu / 950.000), `"percent"`, `"int"`, `"number"`; non-finite → `—` |
+| `arda.fmt(v, format)` | `"amount"` (1,25 tỷ / 3,4 triệu / 950.000), `"vnd"` (1.250.000.000 VNĐ), `"percent"`, `"int"`, `"number"`; non-finite → `—` |
+| `arda.exact(v, format)` | the full figure behind a compact one (`"amount"` → `"vnd"`) |
 | `arda.num(v, fallback)` | finite number or fallback |
 | `arda.$(id)`, `arda.set(id, text)` | element lookup, `textContent` setter |
+| `arda.set(id, value, format)` | compact text, exact figure in `title` (hover) |
 | `arda.val(id, fallback)` | numeric input value, clamped to its `min`/`max` |
 | `arda.live(render)` | runs `render` now and on every `input`/`change` |
 | `arda.chart(target, spec)` | SVG chart, redrawn on resize; spec `{ type: "bar" \| "stacked" \| "line" \| "area" \| "donut", categories, series: [{ name, values }], format?, height? }` |
 | `arda.chartSvg(spec, width)` | the same chart as a string |
-| `arda.table(target, { columns: [{ key, label, format? }], rows })` | escaped table with formatted cells |
+| `arda.table(target, { columns: [{ key, label, format? }], rows })` | escaped table; `"amount"` cells print every digit without the unit (put "(VNĐ)" in the label) |
 
+Compact figures (1,25 tỷ) are for glancing: cards, axes, legends. The exact
+figure is always one hover away (`title`, chart tooltips) and in every table
+cell; `ChartView` (renderChart) follows the same rule (`formatExact`).
 Tooltips are native SVG `<title>` hover text. The kit is plain ES5 inside the
 runtime `<script>`; it must not contain a closing script tag, `<!--` or an
 `arda:` message literal (`widget-kit.test.ts` checks these). The backend

@@ -82,6 +82,15 @@ function formatValue(value: number, format: string, t: Translate, formatNumber: 
   }
 }
 
+// formatExact is the full figure behind a compact one. Axes stay compact for
+// glancing; tooltips show this so the exact amount is one hover away.
+export function formatExact(value: number, format: string, t: Translate, formatNumber: FormatNumber): string {
+  if (format === "amount") {
+    return t("ai.tool.kpi.amount", { value: formatNumber(value, { maximumFractionDigits: 0 }) })
+  }
+  return formatValue(value, format, t, formatNumber)
+}
+
 function formatSubtitle(format: string, t: Translate): string {
   switch (format) {
     case "amount":
@@ -128,7 +137,7 @@ function buildOption(
         trigger: "item",
         formatter: (params: unknown) => {
           const point = params as { name?: unknown; value?: unknown }
-          return `${String(point.name ?? "")}: ${formatValue(Number(point.value) || 0, format, t, formatNumber)}`
+          return `${String(point.name ?? "")}: ${formatExact(Number(point.value) || 0, format, t, formatNumber)}`
         },
       },
       legend: { bottom: 0, type: "scroll", textStyle: { fontSize: 11, color: theme.foreground } },
@@ -175,7 +184,7 @@ function buildOption(
     title: heading,
     tooltip: {
       trigger: "axis",
-      valueFormatter: (value) => formatValue(Number(value) || 0, format, t, formatNumber),
+      valueFormatter: (value) => formatExact(Number(value) || 0, format, t, formatNumber),
     },
     grid: { left: 8, right: 16, top: subtitle || title ? 52 : 24, bottom: 8, containLabel: true },
     xAxis: horizontal ? valueAxis : categoryAxis,
