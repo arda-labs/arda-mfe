@@ -75,11 +75,22 @@ function loadOpenGroups(): Record<string, boolean> {
 
 type AiView = "closed" | "panel" | "full"
 
+/** Below `md` the sidebar starts as a rail and opens over the page. */
+const isNarrowViewport = () =>
+  typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
+
 export function ShellLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = location.pathname
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrowViewport())
+  // On a phone the open sidebar covers the page, so following a link closes
+  // it (adjusting state while rendering, not in an effect).
+  const [navPath, setNavPath] = useState(pathname)
+  if (navPath !== pathname) {
+    setNavPath(pathname)
+    if (isNarrowViewport()) setSidebarOpen(false)
+  }
   // Only the group holding the current page opens by default; the user's own
   // toggles persist across reloads so a long menu does not reshuffle each visit.
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
@@ -251,10 +262,24 @@ export function ShellLayout() {
     // Inset layout (design board 02): the sidebar sits on the neutral canvas and
     // the page lives in a raised panel, so the working area reads as one sheet.
     <div className="fixed inset-0 flex min-h-0 overflow-hidden bg-canvas text-foreground">
+      {sidebarOpen ? (
+        <>
+          {/* Phone: keep the rail's width in the flow and dim the page. */}
+          <div aria-hidden className="w-14 shrink-0 md:hidden" />
+          <button
+            type="button"
+            aria-label={t("common.action.toggle_sidebar")}
+            className="fixed inset-0 z-30 bg-black/45 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        </>
+      ) : null}
       <aside
         className={cn(
           "flex shrink-0 flex-col bg-[var(--layout-sidebar-background)] transition-all duration-200",
-          sidebarOpen ? "w-60" : "w-14"
+          sidebarOpen
+            ? "w-60 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:shadow-panel"
+            : "w-14"
         )}
       >
         <div className="flex h-[52px] items-center gap-3 px-3">
