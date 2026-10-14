@@ -388,5 +388,72 @@
   "checklist": {
     "title": "Kiểm tra trước khi gửi",
     "passed": "{passed}/{total} đạt"
+  },
+  "document_scan": {
+    "title": "Quét căn cước",
+    "description": "Chụp hoặc chọn ảnh hai mặt thẻ. Thông tin đọc được chỉ điền vào form sau khi bạn xác nhận.",
+    "front": "Mặt trước",
+    "back": "Mặt sau",
+    "choose_image": "Chụp hoặc chọn ảnh",
+    "change_image": "Đổi ảnh",
+    "back_missing_hint": "Không có mặt sau sẽ thiếu ngày cấp, nơi cấp (và nơi cư trú với thẻ mẫu 2024).",
+    "cloud_warning_title": "Môi trường thử nghiệm",
+    "cloud_warning_body": "Ảnh được gửi tới dịch vụ AI bên ngoài. Chỉ dùng CCCD mẫu, không dùng giấy tờ thật.",
+    "cloud_ack": "Tôi chỉ dùng thẻ mẫu",
+    "read": "Đọc thông tin",
+    "reading": "Đang đọc thẻ…",
+    "cancel": "Hủy",
+    "retake": "Chụp lại",
+    "review_hint": "Đối chiếu từng trường với ảnh, đặc biệt là dấu trong họ tên.",
+    "apply": "Điền vào form",
+    "keep": "Giữ nguyên",
+    "kept": "Đã xác nhận",
+    "will_overwrite": "Sẽ ghi đè giá trị đang có",
+    "zoom": "Phóng to",
+    "card_version": {
+      "cccd_chip_2021": "CCCD gắn chip",
+      "can_cuoc_2024": "Thẻ Căn cước (2024)",
+      "cccd_barcode": "CCCD mã vạch",
+      "unknown": "Không rõ mẫu thẻ"
+    },
+    "fields": {
+      "id_number": "Số định danh",
+      "full_name": "Họ và tên",
+      "date_of_birth": "Ngày sinh",
+      "sex": "Giới tính",
+      "nationality": "Quốc tịch",
+      "place_of_origin": "Quê quán",
+      "residence": "Nơi thường trú / cư trú",
+      "issue_date": "Ngày cấp",
+      "issue_place": "Nơi cấp",
+      "expiry_date": "Có giá trị đến"
+    },
+    "sex": { "M": "Nam", "F": "Nữ" },
+    "flags": {
+      "invalid_format": "Sai định dạng",
+      "mismatch_id_number": "Không khớp với số định danh",
+      "unknown_province_code": "Mã tỉnh không xác định",
+      "invalid_date": "Ngày không hợp lệ",
+      "date_order": "Thứ tự ngày không hợp lý",
+      "expiry_inconsistent": "Ngày hết hạn không trùng ngày sinh",
+      "expired": "Thẻ đã hết hạn",
+      "not_found": "Không đọc được",
+      "no_expiry": "Không thời hạn"
+    },
+    "warnings": {
+      "back_side_missing": "Chưa có ảnh mặt sau",
+      "card_version_unknown": "Không nhận ra mẫu thẻ",
+      "image_quality_low": "Ảnh mờ hoặc lóa, nên chụp lại"
+    },
+    "errors": {
+      "not_document": "Ảnh không phải thẻ căn cước. Hãy chụp lại đúng thẻ.",
+      "too_large": "Ảnh quá lớn.",
+      "unsupported": "Định dạng ảnh không được hỗ trợ. Hãy chọn ảnh JPEG hoặc PNG.",
+      "timeout": "Đọc thẻ quá lâu. Hãy thử lại với ảnh rõ hơn.",
+      "unavailable": "Chức năng đọc thẻ đang tạm ngừng. Hãy nhập tay.",
+      "bad_output": "Không đọc được kết quả. Hãy thử lại.",
+      "forbidden": "Bạn không có quyền dùng chức năng này.",
+      "unknown": "Có lỗi khi đọc thẻ. Hãy thử lại."
+    }
   }
 }

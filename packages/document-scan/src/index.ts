@@ -12,3 +12,6 @@ export type {
   ModelLocation,
   Severity,
 } from "./types"
+export { hasCloudAck, setCloudAck } from "./cloud-ack"
+export { toJpeg } from "./image"
+export { useDocumentCapabilities } from "./use-document-capabilities"
