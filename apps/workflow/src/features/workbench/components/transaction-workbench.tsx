@@ -16,7 +16,6 @@ import type {
 } from "../api"
 import { workbenchApi } from "../api"
 import { WorkItemTree } from "./workbench-tree"
-import { DecisionDialog, type ReviewDecision } from "./decision-dialog"
 import { TaskFormHost, preloadTaskFormRemote } from "./task-form-host"
 import { taskFormRemoteFor } from "../utils/task-form-routing"
 import type { TaskFormSubmit } from "@workspace/workflow-task"
@@ -31,13 +30,6 @@ import {
 } from "../utils/burst-refetch"
 
 const WORKBENCH_TREE_COLLAPSED_KEY = "arda.workbench.tree.collapsed"
-
-// Case types whose domain remote does not embed the approve/reject action:
-// the workbench completes them directly (CRM registration/adjustment, loan
-// formation, finance postings and loan adjustments keep their own screens).
-// Case types served by the form host (CASE_TYPE_FORM_REMOTE in
-// task-form-host.tsx) are NOT listed here — they render their domain form.
-const GENERIC_DECISION_CASE_TYPES = new Set<string>([])
 
 const directionMeta = {
   incoming: {
@@ -151,7 +143,6 @@ function TransactionWorkbenchInner({
     reload,
   } = useWorkbenchData(queryFilter, baseFilter, refetchInterval)
   const [claimPending, setClaimPending] = useState(false)
-  const [decisionItem, setDecisionItem] = useState<WorkItem | null>(null)
   const [formItem, setFormItem] = useState<WorkItem | null>(null)
   const [decisionSubmitting, setDecisionSubmitting] = useState(false)
 
@@ -166,10 +157,6 @@ function TransactionWorkbenchInner({
       // with a dedicated domain screen keep their deep link (workItemHref).
       if (taskFormRemoteFor(item.caseType)) {
         setFormItem(item)
-        return
-      }
-      if (item.caseType && GENERIC_DECISION_CASE_TYPES.has(item.caseType)) {
-        setDecisionItem(item)
         return
       }
       navigateTo(workItemHref(item, direction))
@@ -255,17 +242,6 @@ function TransactionWorkbenchInner({
       }
     },
     [reload, t]
-  )
-
-  const confirmDecision = useCallback(
-    async (decision: ReviewDecision, comment: string) => {
-      const item = decisionItem
-      if (!item) return
-      if (await completeItem(item, decision, comment)) {
-        setDecisionItem(null)
-      }
-    },
-    [decisionItem, completeItem]
   )
 
   const submitTaskForm = useCallback(
@@ -375,16 +351,6 @@ function TransactionWorkbenchInner({
         submitting={decisionSubmitting}
         onClose={() => setFormItem(null)}
         onSubmit={(submission) => void submitTaskForm(submission)}
-      />
-      <DecisionDialog
-        item={decisionItem}
-        submitting={decisionSubmitting}
-        allowedActions={decisionItem?.allowedActions ?? undefined}
-        requiredCommentOn={decisionItem?.requiredCommentOn ?? undefined}
-        onClose={() => setDecisionItem(null)}
-        onConfirm={(decision, comment) =>
-          void confirmDecision(decision, comment)
-        }
       />
     </Page>
   )
