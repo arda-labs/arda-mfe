@@ -5,6 +5,7 @@ import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -20,6 +21,7 @@ import {
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import type { WorkItem } from "../api"
+import { CaseReviewLayout } from "./case-review-layout"
 
 export type ReviewDecision = "APPROVE" | "REQUEST_CHANGES" | "REJECT" | "SUBMIT"
 
@@ -77,9 +79,10 @@ export function DecisionDialog({
     return decision !== "APPROVE" && decision !== "SUBMIT"
   }
 
-  // Checker context: the maker's attachments ("Hồ sơ đính kèm") and the case
-  // timeline ("Lưu vết tác vụ") — view-only, the dialog never mutates the case
-  // dossier (EPAS approve mode). Labels come from the shared common bundle.
+  // Checker context: the approval trail (who submitted, when, earlier change
+  // requests) beside the inputs, plus the maker's attachments ("Hồ sơ đính
+  // kèm") and the case timeline ("Lưu vết tác vụ") — view-only, the dialog
+  // never mutates the case dossier (EPAS approve mode).
   const caseTabs = useCaseTabs({
     caseId: item?.caseId,
     canUpload: false,
@@ -107,50 +110,56 @@ export function DecisionDialog({
         if (!open && !submitting) onClose()
       }}
     >
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent
+        className={item?.caseId ? "sm:max-w-3xl lg:max-w-5xl" : "sm:max-w-3xl"}
+      >
         <DialogHeader>
           <DialogTitle>{t("workflow.workbench.decision_title")}</DialogTitle>
           <DialogDescription>
             {item ? `${item.caseCode} — ${item.title}` : ""}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="decision-comment">
-            {t("workflow.workbench.decision_comment_label")}
-          </Label>
-          <Textarea
-            id="decision-comment"
-            rows={3}
-            value={comment}
-            disabled={submitting}
-            placeholder={t("workflow.workbench.decision_comment_placeholder")}
-            onChange={(event) => setComment(event.target.value)}
-          />
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        </div>
-        {item?.caseId && caseTabs.length > 0 ? (
-          <Tabs
-            defaultValue={caseTabs[0]?.id}
-            className="flex flex-col gap-2 pt-2"
-          >
-            <TabsList className="h-auto w-fit">
-              {caseTabs.map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {caseTabs.map((tab) => (
-              <TabsContent
-                key={tab.id}
-                value={tab.id}
-                className="mt-0 max-h-80 overflow-y-auto"
+        <DialogBody className="py-3">
+          <CaseReviewLayout caseId={item?.caseId}>
+            <div className="space-y-2">
+              <Label htmlFor="decision-comment">
+                {t("workflow.workbench.decision_comment_label")}
+              </Label>
+              <Textarea
+                id="decision-comment"
+                rows={3}
+                value={comment}
+                disabled={submitting}
+                placeholder={t("workflow.workbench.decision_comment_placeholder")}
+                onChange={(event) => setComment(event.target.value)}
+              />
+              {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            </div>
+            {item?.caseId && caseTabs.length > 0 ? (
+              <Tabs
+                defaultValue={caseTabs[0]?.id}
+                className="flex flex-col gap-2"
               >
-                {tab.content}
-              </TabsContent>
-            ))}
-          </Tabs>
-        ) : null}
+                <TabsList className="h-auto w-fit">
+                  {caseTabs.map((tab) => (
+                    <TabsTrigger key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {caseTabs.map((tab) => (
+                  <TabsContent
+                    key={tab.id}
+                    value={tab.id}
+                    className="mt-0 max-h-80 overflow-y-auto"
+                  >
+                    {tab.content}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            ) : null}
+          </CaseReviewLayout>
+        </DialogBody>
         <DialogFooter className="gap-2 sm:justify-end">
           {actions.includes("REQUEST_CHANGES") ? (
             <Button
