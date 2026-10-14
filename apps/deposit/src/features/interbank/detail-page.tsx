@@ -1,26 +1,30 @@
-import { useCallback, useEffect, useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
 import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
 import { notify } from "@workspace/ui/feedback/notify"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
-import { formatAmount, formatDateShort, formatRatePercent, fromMinor } from "@workspace/format"
-import { depositApi, type IbmDetail, type IbmMovement } from "../api"
+import { DetailPageShell } from "@workspace/ui/components/detail-page-shell"
+import { DocCode } from "@workspace/ui/components/doc-code"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { formatAmount, formatDateShort, formatRatePercent, fromMinor, todayISO } from "@workspace/format"
+import { depositApi, type IbmDetail } from "../api"
 import { printVoucher } from "../../lib/print-voucher"
 import { IbmMovementDialog } from "./components/IbmMovementDialog"
-import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { IbmMovementsTable } from "./components/IbmMovementsTable"
+import { IbmAside, IbmFigures, IbmLifecycle } from "./components/IbmOverview"
+import { interbankLifecycle, summarizeInterbank } from "./interbank-summary"
 
-/** IBM contract detail: info + movements + staging actions. */
+const LIST_PATH = "/deposit/interbank"
+
+/**
+ * IBM placement detail on DetailPageShell v2: contract code and status,
+ * lifecycle, key figures, properties + approval trail aside, then the
+ * movements tab, the case system tabs and the staging actions.
+ */
 export function InterbankDetailPage() {
   const { t } = useI18n()
+  const navigate = useNavigate()
   const { pathname } = useLocation()
   const marker = "/deposit/interbank/"
   const idx = pathname.indexOf(marker)
@@ -45,6 +49,7 @@ export function InterbankDetailPage() {
   }, [load])
 
   const deposit = detail?.deposit
+  const summary = useMemo(() => (detail ? summarizeInterbank(detail, todayISO()) : null), [detail])
   const canStage = deposit?.status === "ACTIVE"
   // EPAS lib-bpm-tabs: business tabs first, then the system tabs. A contract
   // linked to a workflow case owns its case attachments; otherwise files attach
@@ -101,96 +106,55 @@ export function InterbankDetailPage() {
     if (!ok) notify.error(t("deposit.interbank.print.blocked"))
   }
 
-  if (loadError) {
+  const backToList = () => navigate(LIST_PATH)
+
+  if (loadError || !detail || !deposit || !summary) {
     return (
-      <div className="p-6 text-sm text-muted-foreground">
-        {t("deposit.interbank.detail.load_failed")}{" "}
-        <button type="button" className="text-primary hover:underline" onClick={() => void load()}>
-          {t("common.action.retry")}
-        </button>
-      </div>
+      <DetailPageShell
+        title={t("deposit.interbank.title")}
+        backLabel={t("deposit.interbank.title")}
+        onBack={backToList}
+      >
+        <div className="text-sm text-muted-foreground">
+          {loadError ? (
+            <>
+              {t("deposit.interbank.detail.load_failed")}{" "}
+              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => void load()}>
+                {t("common.action.retry")}
+              </Button>
+            </>
+          ) : (
+            t("deposit.loading")
+          )}
+        </div>
+      </DetailPageShell>
     )
   }
-  if (!deposit) {
-    return <div className="p-6 text-sm text-muted-foreground">{t("deposit.loading")}</div>
-  }
 
+  const life = interbankLifecycle(deposit.status)
   const tabs = [
-    {
-      id: "info",
-      label: t("deposit.interbank.detail.tab_info"),
-      content: (
-        <section className="grid grid-cols-2 gap-x-8 gap-y-2 rounded-lg border border-border p-4 text-sm md:grid-cols-4">
-          <Info label={t("deposit.interbank.field.counterparty")} value={`${deposit.counterparty_code}${deposit.counterparty_name ? ` — ${deposit.counterparty_name}` : ""}`} />
-          <Info label={t("deposit.interbank.field.product")} value={deposit.product_code ?? "—"} />
-          <Info label={t("deposit.interbank.field.principal")} value={formatAmount(fromMinor(deposit.principal_minor, deposit.currency_code), deposit.currency_code)} />
-          <Info label={t("deposit.interbank.field.accrued")} value={formatAmount(fromMinor(deposit.accrued_minor, deposit.currency_code), deposit.currency_code)} />
-          <Info label={t("deposit.interbank.field.interest_rate")} value={formatRatePercent(deposit.interest_rate)} />
-          <Info label={t("deposit.interbank.field.deposit_date")} value={formatDateShort(deposit.deposit_date)} />
-          <Info label={t("deposit.interbank.field.maturity_date")} value={formatDateShort(deposit.maturity_date)} />
-          <Info label={t("deposit.interbank.field.last_interest")} value={deposit.last_interest_date ? formatDateShort(deposit.last_interest_date) : "—"} />
-        </section>
-      ),
-    },
     {
       id: "movements",
       label: t("deposit.interbank.movement.title"),
-      content: (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow>
-                <TableHead>{t("deposit.interbank.movement.field.kind")}</TableHead>
-                <TableHead>{t("deposit.interbank.movement.field.date")}</TableHead>
-                <TableHead className="text-right">{t("deposit.interbank.movement.field.amount")}</TableHead>
-                <TableHead>{t("deposit.interbank.movement.field.note")}</TableHead>
-                <TableHead>{t("common.field.status")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(detail?.movements ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
-                    {t("deposit.interbank.movement.empty")}
-                  </TableCell>
-                </TableRow>
-              )}
-              {(detail?.movements ?? []).map((row: IbmMovement) => (
-                <TableRow key={row.id}>
-                  <TableCell>{t(`deposit.interbank.movement_kind.${row.kind}`)}</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatDateShort(row.movement_date)}</TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatAmount(fromMinor(row.amount_minor, row.currency_code), row.currency_code)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{row.note || "—"}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={row.status}>
-                      {t(`deposit.interbank.movement_status.${row.status}`)}
-                    </StatusBadge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      ),
+      content: <IbmMovementsTable movements={detail.movements ?? []} />,
     },
     ...systemTabs,
   ]
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link to="/deposit/interbank" className="text-xs font-medium text-primary hover:underline">
-            ← {t("deposit.interbank.title")}
-          </Link>
-          <h1 className="font-mono text-lg font-semibold">{deposit.deposit_code}</h1>
-          <StatusBadge status={deposit.status}>
-            {t(`deposit.interbank.status.${deposit.status}`)}
-          </StatusBadge>
-        </div>
-        <div className="flex flex-wrap gap-2">
+    <DetailPageShell
+      title={deposit.counterparty_name || deposit.counterparty_code}
+      subtitle={deposit.counterparty_name ? deposit.counterparty_code : undefined}
+      docCode={<DocCode code={deposit.deposit_code} />}
+      badges={
+        <StatusBadge status={deposit.status}>
+          {t(`deposit.interbank.status.${deposit.status}`)}
+        </StatusBadge>
+      }
+      backLabel={t("deposit.interbank.title")}
+      onBack={backToList}
+      actions={
+        <>
           <Button size="sm" variant="outline" onClick={handlePrint}>
             {t("deposit.interbank.action.print")}
           </Button>
@@ -210,9 +174,12 @@ export function InterbankDetailPage() {
               </Button>
             </>
           )}
-        </div>
-      </div>
-
+        </>
+      }
+      progress={life ? <IbmLifecycle deposit={deposit} life={life} /> : undefined}
+      keyFigures={<IbmFigures deposit={deposit} summary={summary} />}
+      aside={<IbmAside deposit={deposit} summary={summary} />}
+    >
       <CaseTabs tabs={tabs} />
 
       <IbmMovementDialog
@@ -223,15 +190,6 @@ export function InterbankDetailPage() {
         defaultKind={movementKind ?? "TOP_UP"}
         onSaved={load}
       />
-    </div>
-  )
-}
-
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="truncate font-medium">{value}</div>
-    </div>
+    </DetailPageShell>
   )
 }

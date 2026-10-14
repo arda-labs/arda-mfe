@@ -30,7 +30,20 @@
     },
     "detail": {
       "load_failed": "Could not load the contract.",
-      "tab_info": "Information"
+      "properties": "Contract properties",
+      "lifecycle": {
+        "label": "Contract lifecycle",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "effective": "In force",
+        "until": "until {date}"
+      },
+      "figure": {
+        "flows": "Topped up {topUp} · Withdrawn {withdrawn}",
+        "collected": "Interest collected {amount}",
+        "pending": "Pending movements",
+        "pending_hint": "Draft or awaiting check"
+      }
     },
     "action": {
       "top_up": "Top up",
@@ -145,7 +158,23 @@
   },
   "savings": {
     "detail": {
-      "load_failed": "Could not load the savings account."
+      "load_failed": "Could not load the savings account.",
+      "properties": "Account properties",
+      "lifecycle": {
+        "label": "Savings account lifecycle",
+        "opened": "Opened",
+        "holding": "Holding",
+        "settled": "Settled",
+        "matures": "matures {date}"
+      },
+      "figure": {
+        "rate": "Interest rate",
+        "rate_hint": "From the latest accrual",
+        "rate_none": "No accrual yet",
+        "capitalized": "Capitalized {amount}",
+        "paid": "Interest paid {amount}",
+        "pending_ops": "{count, plural, one {# interest operation pending} other {# interest operations pending}}"
+      }
     },
     "field": {
       "code": "Savings code",
@@ -161,7 +190,6 @@
       "txn_date": "Transaction date"
     },
     "tab": {
-      "info": "Information",
       "transactions": "Transactions",
       "accruals": "Accruals",
       "interest": "Interest ops"
@@ -391,6 +419,14 @@
     }
   },
   "count": "{count, plural, =0 {No records} one {# record} other {# records}}",
+  "term": {
+    "maturity": "Maturity",
+    "length": "Term",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "days_left": "{count, plural, one {# day left} other {# days left}}",
+    "due_today": "Due today",
+    "overdue": "{count, plural, one {# day past maturity} other {# days past maturity}}"
+  },
   "placeholder": {
     "search": "Search…",
     "select": "— select —"
