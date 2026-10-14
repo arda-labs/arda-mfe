@@ -140,6 +140,8 @@
       "address": "Địa chỉ",
       "position": "Chức vụ",
       "tenant": "Tenant",
+      "tenant_placeholder": "Chọn tenant",
+      "password_hint": "Tối thiểu 8 ký tự",
       "roles": "Vai trò"
     },
     "status": {
