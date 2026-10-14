@@ -39,8 +39,9 @@ export type DateFieldProps = {
   defaultValue?: string
   onChange?: (event: DateFieldChangeEvent) => void
   onBlur?: (event: DateFieldChangeEvent) => void
-  /** ISO bounds; days outside are disabled in the calendar. Numbers are
-   * accepted (and ignored) because register() types min/max that way. */
+  /** ISO bounds: days outside are disabled and the year dropdown stops
+   * there. Numbers are accepted (and ignored) because register() types
+   * min/max that way. */
   min?: string | number
   max?: string | number
   disabled?: boolean
@@ -199,6 +200,9 @@ export const DateField = React.forwardRef<DateFieldHandle, DateFieldProps>(
               onClear={iso && !required ? () => pick("") : undefined}
               defaultMonth={selected ?? maxDate ?? undefined}
               captionLayout="dropdown"
+              // The year/month dropdowns offer only the allowed range.
+              startMonth={minDate}
+              endMonth={maxDate}
               disabled={[
                 ...(minDate ? [{ before: minDate }] : []),
                 ...(maxDate ? [{ after: maxDate }] : []),

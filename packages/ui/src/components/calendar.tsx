@@ -81,10 +81,12 @@ function Calendar({
         className
       )}
       captionLayout={captionLayout}
-      // The dropdown otherwise stops at the current year, which rules out
-      // maturity dates: offer 30 years either side unless the caller narrows it.
-      startMonth={startMonth ?? new Date(currentYear - 30, 0)}
-      endMonth={endMonth ?? new Date(currentYear + 30, 11)}
+      // Years in the dropdown. The library default stops at the current
+      // year (no maturity dates); without bounds from the caller, cover birth
+      // dates (1900) up to long-term maturities (+50 years). Fields narrow it
+      // through DateField min/max.
+      startMonth={startMonth ?? new Date(1900, 0)}
+      endMonth={endMonth ?? new Date(currentYear + 50, 11)}
       locale={locale ?? (isVi ? vi : undefined)}
       footer={footer ?? actions}
       formatters={{
