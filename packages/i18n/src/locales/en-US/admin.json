@@ -140,6 +140,8 @@
       "address": "Address",
       "position": "Position / Title",
       "tenant": "Tenant",
+      "tenant_placeholder": "Select a tenant",
+      "password_hint": "At least 8 characters",
       "roles": "Roles"
     },
     "status": {

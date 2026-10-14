@@ -1,9 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { translateApiError, useI18n } from "@workspace/i18n"
-import { useAuthStore } from "@workspace/auth/store"
 import { useAppQueryClient } from "@workspace/query/provider"
 import { Button } from "@workspace/ui/components/button"
 import { DetailFooterBar } from "@workspace/ui/components/detail-footer-bar"
@@ -13,6 +12,7 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { useUnsavedChangesGuard } from "@workspace/ui/hooks/use-unsaved-changes-guard"
 import { usersApi } from "./api"
 import { UserFormSections } from "./components/UserFormSections"
+import { useTenantOptions } from "./use-tenant-options"
 import {
   createUserDefaultValues,
   createUserSchema,
@@ -26,13 +26,25 @@ export function UserCreatePage() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const queryClient = useAppQueryClient()
-  const actorTenantId = useAuthStore((state) => state.user?.tenantId ?? "")
   const [confirmLeave, setConfirmLeave] = useState(false)
+  const {
+    options: tenantOptions,
+    defaultTenantId,
+    isLoading: tenantOptionsLoading,
+  } = useTenantOptions()
 
   const form = useForm<CreateUserValues>({
     resolver: zodResolver(createUserSchema),
-    defaultValues: { ...createUserDefaultValues, tenantId: actorTenantId },
+    defaultValues: createUserDefaultValues,
   })
+
+  // Preselect the actor's tenant (or the only choice) once the options load;
+  // as a default value so it does not mark the form dirty.
+  useEffect(() => {
+    if (defaultTenantId && !form.getValues("tenantId")) {
+      form.resetField("tenantId", { defaultValue: defaultTenantId })
+    }
+  }, [defaultTenantId, form])
   const { isDirty, isSubmitting } = form.formState
   useUnsavedChangesGuard(isDirty)
 
@@ -77,7 +89,12 @@ export function UserCreatePage() {
           </DetailFooterBar>
         }
       >
-        <UserFormSections mode="create" form={form} />
+        <UserFormSections
+          mode="create"
+          form={form}
+          tenantOptions={tenantOptions}
+          tenantOptionsLoading={tenantOptionsLoading}
+        />
       </DetailPageShell>
       <DiscardChangesDialog
         open={confirmLeave}

@@ -20,6 +20,7 @@ import { useUnsavedChangesGuard } from "@workspace/ui/hooks/use-unsaved-changes-
 import { usersApi } from "./api"
 import { USERS_LIST_PATH } from "./create-page"
 import { UserFormSections } from "./components/UserFormSections"
+import { useTenantOptions } from "./use-tenant-options"
 import { UserRowActions } from "./components/UserRowActions"
 import { useUserActions } from "./components/use-user-actions"
 import {
@@ -242,6 +243,8 @@ function UserEditView({ user, onSaved }: { user: User; onSaved: () => void }) {
   const navigate = useNavigate()
   const [confirmLeave, setConfirmLeave] = useState(false)
 
+  const { options: tenantOptions, isLoading: tenantOptionsLoading } =
+    useTenantOptions()
   const form = useForm<EditUserValues>({
     resolver: zodResolver(editUserSchema),
     defaultValues: toEditUserValues(user),
@@ -300,7 +303,12 @@ function UserEditView({ user, onSaved }: { user: User; onSaved: () => void }) {
           </DetailFooterBar>
         }
       >
-        <UserFormSections mode="edit" form={form} />
+        <UserFormSections
+          mode="edit"
+          form={form}
+          tenantOptions={tenantOptions}
+          tenantOptionsLoading={tenantOptionsLoading}
+        />
       </DetailPageShell>
       <DiscardChangesDialog
         open={confirmLeave}
