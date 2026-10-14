@@ -3,15 +3,23 @@
 // look the same in every widget and bad input never reaches the screen as NaN.
 //
 // API (window.arda):
-//   fmt(value, format)        "amount" | "percent" | "int" | "number"; non-finite → "—"
+//   fmt(value, format)        "amount" (compact: 1,25 tỷ) | "vnd" (exact: 1.250.000.000 VNĐ)
+//                             | "percent" | "int" | "number"; non-finite → "—"
+//   exact(value, format)      the full figure behind a compact one ("amount" → "vnd")
 //   num(value, fallback)      Number(value) when finite, else fallback
 //   $(id)                     document.getElementById
 //   val(id, fallback)         numeric value of an input, clamped to its min/max
 //   set(id, text)             textContent setter
+//   set(id, value, format)    compact text, exact figure in the title (hover)
 //   live(render)              render now and on every input/change in the page
 //   chart(target, spec)       SVG chart, redrawn on resize
 //   chartSvg(spec, width)     the same chart as an SVG string (pure)
-//   table(target, spec)       {columns: [{key, label, format?}], rows}
+//   table(target, spec)       {columns: [{key, label, format?}], rows}; "amount"
+//                             cells print the exact figure without the unit (put
+//                             "(VNĐ)" in the label); tables are for checking
+//
+// Compact figures are for glancing (cards, axes, legends); the exact figure is
+// always one hover away (title, chart tooltips) and in every table cell.
 //
 // spec: {type: "bar" | "line" | "area" | "stacked" | "donut", categories,
 //        series: [{name, values}], format?, height?}
@@ -45,9 +53,11 @@ export const WIDGET_KIT = `(function () {
         if (abs >= 1e9) return numberFormat(2).format(v / 1e9) + " t\\u1ef7";
         if (abs >= 1e6) return numberFormat(2).format(v / 1e6) + " tri\\u1ec7u";
         return numberFormat(0).format(v);
+      case "vnd": return numberFormat(0).format(v) + " VN\\u0110";
       default: return numberFormat(2).format(v);
     }
   }
+  function exact(value, format) { return fmt(value, format === "amount" ? "vnd" : format); }
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\\"": "&quot;", "'": "&#39;" }[c];
@@ -63,7 +73,17 @@ export const WIDGET_KIT = `(function () {
     if (input.max !== "" && input.max != null && v > max) v = max;
     return v;
   }
-  function set(id, text) { var node = el(id); if (node) node.textContent = text == null ? "" : String(text); }
+  function set(id, value, format) {
+    var node = el(id);
+    if (!node) return;
+    if (format === undefined) {
+      node.textContent = value == null ? "" : String(value);
+      if (node.removeAttribute) node.removeAttribute("title");
+      return;
+    }
+    node.textContent = fmt(value, format);
+    node.title = exact(value, format);
+  }
   function live(render) {
     document.addEventListener("input", function () { render(); });
     document.addEventListener("change", function () { render(); });
@@ -117,7 +137,7 @@ export const WIDGET_KIT = `(function () {
       var p = function (rad, ang) { return (cx + rad * Math.cos(ang)).toFixed(2) + " " + (cy + rad * Math.sin(ang)).toFixed(2); };
       out += '<path d="M' + p(r, angle) + " A" + r + " " + r + " 0 " + large + " 1 " + p(r, end) +
         " L" + p(ir, end) + " A" + ir + " " + ir + " 0 " + large + " 0 " + p(ir, angle) + 'Z" style="fill:' + color(i) + ';stroke:var(--card);stroke-width:1">' +
-        "<title>" + esc(cats[i]) + ": " + esc(fmt(v, format)) + "</title></path>";
+        "<title>" + esc(cats[i]) + ": " + esc(exact(v, format)) + "</title></path>";
       angle += a;
     });
     out += '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" style="fill:var(--foreground);font-weight:600;font-size:13px">' + esc(fmt(total, format)) + "</text>";
@@ -205,7 +225,7 @@ export const WIDGET_KIT = `(function () {
     }
     // One transparent hit area per category carries the native tooltip.
     cats.forEach(function (c, i) {
-      var tip = esc(c) + series.map(function (s) { return "\\n" + esc(s.name) + ": " + esc(fmt(s.values[i], format)); }).join("");
+      var tip = esc(c) + series.map(function (s) { return "\\n" + esc(s.name) + ": " + esc(exact(s.values[i], format)); }).join("");
       out += '<rect x="' + (left + band * i).toFixed(1) + '" y="' + top + '" width="' + band.toFixed(1) + '" height="' + ph + '" style="fill:transparent"><title>' + tip + "</title></rect>";
     });
     return head + out + "</svg>";
@@ -232,11 +252,11 @@ export const WIDGET_KIT = `(function () {
     rows.forEach(function (r) {
       html += "<tr>" + cols.map(function (c) {
         var v = r ? r[c.key] : undefined;
-        return "<td>" + esc(c.format ? fmt(v, c.format) : v) + "</td>";
+        return "<td>" + esc(!c.format ? v : c.format === "amount" ? fmt(v, "int") : exact(v, c.format)) + "</td>";
       }).join("") + "</tr>";
     });
     node.innerHTML = html + "</tbody></table>";
   }
 
-  window.arda = { fmt: fmt, num: num, $: el, val: val, set: set, live: live, chart: chart, chartSvg: chartSvg, table: table };
+  window.arda = { fmt: fmt, exact: exact, num: num, $: el, val: val, set: set, live: live, chart: chart, chartSvg: chartSvg, table: table };
 })();`

@@ -3,13 +3,23 @@ import { WIDGET_KIT } from "./widget-kit"
 
 type Kit = {
   fmt: (value: unknown, format?: string) => string
+  exact: (value: unknown, format?: string) => string
+  set: (id: string, value: unknown, format?: string) => void
   num: (value: unknown, fallback?: number) => number
   val: (id: string, fallback?: number) => number
   chartSvg: (spec: unknown, width?: number) => string
   table: (id: string, spec: unknown) => void
 }
 
-type FakeNode = { value?: string; min?: string; max?: string; innerHTML?: string }
+type FakeNode = {
+  value?: string
+  min?: string
+  max?: string
+  innerHTML?: string
+  textContent?: string
+  title?: string
+  removeAttribute?: (name: string) => void
+}
 
 function loadKit(nodes: Record<string, FakeNode> = {}): Kit {
   const win: { arda?: Kit } = {}
@@ -39,6 +49,13 @@ describe("fmt", () => {
     expect(kit.fmt(950_000, "amount")).toBe("950.000")
     expect(kit.fmt(12.345, "percent")).toBe("12,35%")
     expect(kit.fmt(1234567, "int")).toBe("1.234.567")
+  })
+
+  test("vnd prints the exact figure, and exact() maps amount to it", () => {
+    expect(kit.fmt(24_583_333.4, "vnd")).toBe("24.583.333 VNĐ")
+    expect(kit.exact(1_250_000_000, "amount")).toBe("1.250.000.000 VNĐ")
+    expect(kit.exact(12.345, "percent")).toBe("12,35%")
+    expect(kit.exact(NaN, "amount")).toBe("—")
   })
 
   test("never prints NaN or Infinity", () => {
@@ -134,6 +151,44 @@ describe("table", () => {
       rows: [{ k: "<b>1</b>", v: 2_000_000 }],
     })
     expect(node.innerHTML).toContain("&lt;b&gt;1&lt;/b&gt;")
-    expect(node.innerHTML).toContain("2 triệu")
+    expect(node.innerHTML).toContain("<td>2.000.000</td>")
+  })
+})
+
+describe("set", () => {
+  test("with a format: compact text, exact figure in the title", () => {
+    const node: FakeNode = {}
+    const k = loadKit({ out: node })
+    k.set("out", 24_583_333, "amount")
+    expect(node.textContent).toBe("24,58 triệu")
+    expect(node.title).toBe("24.583.333 VNĐ")
+  })
+
+  test("without a format: plain text and any old title removed", () => {
+    const removed: string[] = []
+    const node: FakeNode = { title: "old", removeAttribute: (name) => void removed.push(name) }
+    const k = loadKit({ out: node })
+    k.set("out", "9%/năm")
+    expect(node.textContent).toBe("9%/năm")
+    expect(removed).toEqual(["title"])
+  })
+})
+
+describe("chart tooltips", () => {
+  test("bar tooltips carry the exact figure while the axis stays compact", () => {
+    const svg = kit.chartSvg(
+      { type: "bar", categories: ["K1"], series: [{ name: "Gốc", values: [20_833_333] }], format: "amount" },
+      400
+    )
+    expect(svg).toContain("Gốc: 20.833.333 VNĐ")
+    expect(svg).toMatch(/text-anchor="end"[^>]*>\d+ triệu</)
+  })
+
+  test("donut slices carry the exact figure", () => {
+    const svg = kit.chartSvg(
+      { type: "donut", categories: ["Gốc", "Lãi"], series: [{ name: "x", values: [500_000_000, 46_875_000] }], format: "amount" },
+      400
+    )
+    expect(svg).toContain("Lãi: 46.875.000 VNĐ")
   })
 })
