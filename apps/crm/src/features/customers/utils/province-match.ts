@@ -50,7 +50,7 @@ export function foldVietnamese(s: string): string {
 
 export function matchProvinceCode(
   address: string,
-  provinces: { code: string; name: string; full_name?: string }[]
+  provinces: { code: string; name: string; full_name?: string | null }[]
 ): string | null {
   const segments = address.split(",").map(foldVietnamese).filter(Boolean)
   const last = segments.at(-1)

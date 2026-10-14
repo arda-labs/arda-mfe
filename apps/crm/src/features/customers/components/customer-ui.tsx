@@ -266,14 +266,19 @@ export function RegistrationMetaBar({
 
 export function Panel({
   title,
+  actions,
   children,
 }: {
   title: string
+  actions?: ReactNode
   children: ReactNode
 }) {
   return (
     <section className="space-y-3 rounded-md border p-4">
-      <h2 className="text-base font-semibold">{title}</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base font-semibold">{title}</h2>
+        {actions}
+      </div>
       {children}
     </section>
   )
