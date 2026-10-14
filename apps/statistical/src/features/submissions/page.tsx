@@ -3,22 +3,22 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { useQueryClient } from "@tanstack/react-query"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
-import {
-  multiSelectFilterMeta,
-  textSearchMeta,
-} from "@workspace/list-page/column-filters"
+import { textSearchMeta } from "@workspace/list-page/column-filters"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { SavedViewTabs } from "@workspace/list-page/saved-view-tabs"
+import { useRecordSheet } from "@workspace/list-page/use-record-sheet"
 import { CheckCircle2, Eye } from "lucide-react"
+import { formatDateTime } from "@workspace/format"
 import { statisticalApi, type ReportSubmission } from "../api"
 import { SUBMISSION_STATUSES, submissionsListDefinition } from "./list-query"
 import { CreateSubmissionDialog } from "./components/CreateSubmissionDialog"
 import { SubmissionDetailDialog } from "./components/SubmissionDetailDialog"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { SubmissionSheet } from "./submission-sheet"
 
 /** Report submissions (QCMS): create DRAFT → submit case → approval. */
 export function SubmissionsPage(_props: { pathname: string }) {
@@ -27,14 +27,31 @@ export function SubmissionsPage(_props: { pathname: string }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
 
+  const statusLabels = useMemo<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        SUBMISSION_STATUSES.map((status) => [
+          status,
+          t(`statistical.submissions.status.${status.toLowerCase()}`),
+        ])
+      ),
+    [t]
+  )
+  // Refreshes the list and the view counts (they share the key prefix).
+  const invalidateList = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: submissionsListDefinition.queryKey,
+      }),
+    [queryClient]
+  )
+
   const submit = useCallback(
     async (item: ReportSubmission) => {
       try {
         await statisticalApi.submitSubmission(item.id)
         notify.success(t("statistical.submissions.submit_success"))
-        await queryClient.invalidateQueries({
-          queryKey: submissionsListDefinition.queryKey,
-        })
+        await invalidateList()
       } catch (error) {
         notify.error(
           t("statistical.submissions.submit_failed"),
@@ -42,7 +59,7 @@ export function SubmissionsPage(_props: { pathname: string }) {
         )
       }
     },
-    [queryClient, t]
+    [invalidateList, t]
   )
 
   const columns = useMemo<ColumnDef<ReportSubmission>[]>(
@@ -89,19 +106,9 @@ export function SubmissionsPage(_props: { pathname: string }) {
             label={t("common.field.status")}
           />
         ),
-        enableColumnFilter: true,
-        meta: multiSelectFilterMeta(
-          t("common.field.status"),
-          SUBMISSION_STATUSES.map((status) => ({
-            value: status,
-            label: t(`statistical.submissions.status.${status.toLowerCase()}`),
-          }))
-        ),
         cell: ({ row }) => (
           <StatusBadge status={row.original.status}>
-            {t(
-              `statistical.submissions.status.${row.original.status.toLowerCase()}`
-            )}
+            {statusLabels[row.original.status] ?? row.original.status}
           </StatusBadge>
         ),
       },
@@ -126,6 +133,11 @@ export function SubmissionsPage(_props: { pathname: string }) {
             column={column}
             label={t("common.field.created")}
           />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap tabular-nums">
+            {formatDateTime(row.original.created_at)}
+          </span>
         ),
       },
       {
@@ -161,7 +173,7 @@ export function SubmissionsPage(_props: { pathname: string }) {
         ),
       },
     ],
-    [submit, t]
+    [statusLabels, submit, t]
   )
 
   const {
@@ -186,15 +198,40 @@ export function SubmissionsPage(_props: { pathname: string }) {
       }),
   })
 
+  const sheet = useRecordSheet(table)
+  // Work queues first (design board 12.2): the counts replace the old total badge.
+  const views = useMemo(
+    () => [
+      { id: "all", label: t("statistical.submissions.view.all") },
+      ...SUBMISSION_STATUSES.map((value) => ({
+        id: value,
+        value,
+        label: statusLabels[value],
+      })),
+    ],
+    [statusLabels, t]
+  )
+
   return (
     <ListPageShell
       title={t("statistical.submissions.title")}
       totalRows={total}
-      meta={
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
-          {t("statistical.count", { count: total })}
-        </Badge>
+      views={
+        <SavedViewTabs
+          views={views}
+          urlKey="status"
+          config={submissionsListDefinition.queryConfig}
+          countKey={submissionsListDefinition.queryKey}
+          countFn={(status) =>
+            statisticalApi
+              .listSubmissions({ status, page: 1, perPage: 1 })
+              .then((res) => res.total)
+          }
+          aria-label={t("common.field.status")}
+        />
       }
+      onRowClick={sheet.openRow}
+      activeRowId={sheet.activeRowId}
       criticalPending={isLoading}
       criticalError={loadError}
       onRetry={() => void refetch()}
@@ -215,12 +252,19 @@ export function SubmissionsPage(_props: { pathname: string }) {
           <CreateSubmissionDialog
             open={createOpen}
             onOpenChange={setCreateOpen}
-            onSaved={() => void refetch()}
+            onSaved={() => void invalidateList()}
           />
           <SubmissionDetailDialog
             open={detailId !== null}
             onOpenChange={(open) => !open && setDetailId(null)}
             submissionId={detailId}
+          />
+          <SubmissionSheet
+            record={sheet.record}
+            sheet={sheet}
+            statusLabels={statusLabels}
+            onSubmit={(item) => void submit(item)}
+            onOpenDetail={(item) => setDetailId(item.id)}
           />
         </>
       }

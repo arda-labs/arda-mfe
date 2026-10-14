@@ -277,13 +277,21 @@
     "detail_title": "Submission detail",
     "detail_description": "Read-only report submission information.",
     "detail_empty": "Could not load the submission detail",
+    "sheet_title": "Period {period}",
+    "lifecycle_label": "Submission lifecycle",
+    "view": {
+      "all": "All"
+    },
     "validation": {
       "required": "Pick a report and a period"
     },
     "field": {
       "report": "Report",
       "period": "Period",
-      "submitted_by": "Submitted by"
+      "submitted_by": "Submitted by",
+      "submitted_at": "Submitted at",
+      "case": "Approval case",
+      "created_by": "Created by"
     },
     "status": {
       "draft": "Draft",

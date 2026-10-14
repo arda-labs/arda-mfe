@@ -9,10 +9,14 @@ export const SUBMISSION_STATUSES = [
   "REJECTED",
 ] as const
 
+export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number]
+
 /**
  * URL-synced list contract for report submissions. `report_code` maps to the
- * BE `q` param (ILIKE report_code + period_code); status is a multi-select
- * filter sent as a comma list (BE: status = ANY(string_to_array(...))).
+ * BE `q` param (ILIKE report_code + period_code); status is driven by the
+ * page's SavedViewTabs (one value per view). It stays `multi` because the BE
+ * takes a comma list (status = ANY(string_to_array(...))), so older links
+ * with several statuses keep filtering.
  */
 export const submissionsListDefinition = defineServerList({
   queryKey: ["statistical", "submissions", "list"] as const,
