@@ -78,6 +78,31 @@ render();`,
   await expect(frame.locator("#out")).toHaveText("120")
 })
 
+test("inline handlers in the html reach functions declared by the widget code", async ({ page }) => {
+  // Model html often wires controls with inline handlers. They resolve names
+  // in the global scope, so the code must run at top level, not in a wrapper.
+  const doc = buildWidgetDocument({
+    html: `<input id="rate" type="range" min="5" max="15" step="1" value="9" oninput="render()"><div id="out"></div>`,
+    js: `const principal = window.ARDA_DATA.principal;
+function render() { document.getElementById("out").textContent = String(principal * Number(document.getElementById("rate").value) / 100); }
+render();`,
+    theme,
+  })
+  await page.setContent(outerPage(doc))
+  const frame = page.frameLocator("#f")
+  await expect(frame.locator("#out")).toHaveText("90")
+  await frame.locator("#rate").fill("12")
+  await expect(frame.locator("#out")).toHaveText("120")
+  expect((await msgs(page)).filter((m) => m.type === "arda:error")).toEqual([])
+})
+
+test("a syntax error in widget code surfaces as arda:error and the frame still reports a height", async ({ page }) => {
+  const doc = buildWidgetDocument({ html: `<div id="out">x</div>`, js: `function (`, theme })
+  await page.setContent(outerPage(doc))
+  await expect.poll(async () => (await msgs(page)).some((m) => m.type === "arda:error")).toBe(true)
+  expect((await msgs(page)).some((m) => m.type === "arda:height")).toBe(true)
+})
+
 test("a healthy widget produces no arda:error", async ({ page }) => {
   const doc = buildWidgetDocument({ html: `<div id="out"></div>`, js: `1`, theme })
   await page.setContent(outerPage(doc))

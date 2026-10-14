@@ -53,10 +53,27 @@ function runDocument(
       return true
     },
   }
-  const bodyElement = { getBoundingClientRect: () => ({ height: size.height }) }
+  // appendChild runs an inserted script the way a browser does: synchronously,
+  // with an uncaught error turned into a window "error" event.
+  const bodyElement = {
+    getBoundingClientRect: () => ({ height: size.height }),
+    appendChild: (node: { textContent: string }) => {
+      try {
+        execute(node.textContent)
+      } catch (e) {
+        win.dispatchEvent({ type: "error", message: String((e as Error).message) })
+      }
+    },
+  }
   // The runtime is parsed in <head>: the body does not exist yet and the
   // document is still loading. The body appears before the model script runs.
-  const fakeDocument: { documentElement: unknown; body: unknown; readyState: string; addEventListener: unknown } = {
+  const fakeDocument: {
+    documentElement: unknown
+    body: unknown
+    readyState: string
+    addEventListener: unknown
+    createElement: unknown
+  } = {
     // Must not be used: the runtime measures the body box.
     documentElement: { scrollHeight: 9999 },
     body: null,
@@ -64,6 +81,7 @@ function runDocument(
     addEventListener: (type: string, fn: (event: Event) => void) => {
       ;(documentListeners[type] ??= []).push(fn)
     },
+    createElement: () => ({ textContent: "" }),
   }
   const CustomEvent = function (type: string) {
     return { type }
@@ -71,11 +89,14 @@ function runDocument(
   const ErrorEvent = function (type: string, init: { message: string }) {
     return { type, message: init.message }
   }
+  function execute(code: string) {
+    const run = new Function("window", "document", "CustomEvent", "ErrorEvent", "ResizeObserver", code)
+    run(win, fakeDocument, CustomEvent, ErrorEvent, options.ResizeObserver)
+  }
   const scripts = [...doc.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
   scripts.forEach((code, index) => {
     if (index > 0) fakeDocument.body = bodyElement
-    const run = new Function("window", "document", "CustomEvent", "ErrorEvent", "ResizeObserver", code)
-    run(win, fakeDocument, CustomEvent, ErrorEvent, options.ResizeObserver)
+    execute(code)
   })
   const send = (data: unknown) => {
     for (const fn of listeners.message ?? []) fn({ type: "message", source: parent, data })
@@ -253,6 +274,21 @@ window.parent.postMessage({ type: "probe", value: principal * 2 }, "*")`
     const { posted, send } = runDocument(doc, { height: 10 })
     send({ type: "arda:data", data: { principal: 7 } })
     expect(posted).toContainEqual({ type: "probe", value: 7 })
+  })
+
+  test("model code is carried as a string, not run while the document is parsed", () => {
+    const doc = buildWidgetDocument({ html: "", js: "function render() {}", theme })
+    const modelScript = [...doc.matchAll(/<script>([\s\S]*?)<\/script>/g)][1][1]
+    expect(modelScript).toBe('window.__ardaCode = "function render() {}";')
+  })
+
+  test("a syntax error in model code is reported as arda:error", () => {
+    const doc = buildWidgetDocument({ html: "", js: "function (", theme })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: {} })
+    expect(posted.some((m) => m.type === "arda:error")).toBe(true)
+    // The runtime still answers with a height, so the parent does not time out.
+    expect(posted.some((m) => m.type === "arda:height")).toBe(true)
   })
 
   test("model code runs once even if arda:data arrives twice", () => {
