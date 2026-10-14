@@ -8,6 +8,7 @@ import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { CaseApprovalTrail } from "@workspace/case-tabs/case-approval-trail"
 import { formatEntryNo } from "@workspace/posting-flow/choose-transaction-dialog"
 import type { JournalEntry } from "../api"
+import { DOCUMENT_TYPE_LABEL_KEY } from "./labels"
 
 type SheetState = {
   open: boolean
@@ -65,7 +66,12 @@ export function PostingCaseSheet({
         />
         <PropertyList
           items={[
-            { label: t("finance.journal.field.document_type"), value: record.document_type },
+            {
+              label: t("finance.journal.field.document_type"),
+              value: DOCUMENT_TYPE_LABEL_KEY[record.document_type]
+                ? t(DOCUMENT_TYPE_LABEL_KEY[record.document_type])
+                : record.document_type,
+            },
             {
               label: t("finance.posting.col.document_code"),
               value: record.document_code ? (
