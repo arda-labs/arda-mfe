@@ -7,9 +7,17 @@ import type {
   Savings,
   SavingsDetail,
 } from "../../api"
+import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { DetailTable } from "./DetailTable"
 
 type Translate = ReturnType<typeof useI18n>["t"]
+
+/** deposit-service txn_type (OPEN, DEPOSIT, TOP_UP, WITHDRAW, SETTLE, INTEREST); unknown codes stay raw. */
+function txnTypeLabel(t: Translate, code: string) {
+  const key = `deposit.savings.txn_type.${code}`
+  const label = t(key)
+  return label === key ? code : label
+}
 
 /**
  * Business tabs of a savings book (EPAS lib-bpm-tabs order: these first, then
@@ -36,10 +44,10 @@ export function savingsBusinessTabs(
           ]}
           empty={t("deposit.savings.txn.empty")}
           rows={(detail.transactions ?? []).map((row: DepositTxnLike) => [
-            row.txn_type,
+            txnTypeLabel(t, row.txn_type),
             formatDateShort(row.txn_date),
             money(row.amount_minor, row.currency_code),
-            row.status,
+            <StatusBadge key="status" status={row.status} />,
           ])}
         />
       ),
@@ -81,7 +89,7 @@ export function savingsBusinessTabs(
             t(`deposit.interest.op_type.${row.op_type}`),
             money(row.amount_minor),
             formatDateShort(row.created_at),
-            row.status,
+            <StatusBadge key="status" status={row.status} />,
           ])}
         />
       ),

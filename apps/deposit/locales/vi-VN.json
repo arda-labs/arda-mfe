@@ -263,6 +263,14 @@
     "status": {
       "ACTIVE": "Đang hoạt động",
       "CLOSED": "Đã đóng"
+    },
+    "txn_type": {
+      "OPEN": "Mở sổ",
+      "DEPOSIT": "Gửi tiền",
+      "TOP_UP": "Gửi thêm",
+      "WITHDRAW": "Rút tiền",
+      "SETTLE": "Tất toán",
+      "INTEREST": "Trả lãi"
     }
   },
   "product_task_form": {

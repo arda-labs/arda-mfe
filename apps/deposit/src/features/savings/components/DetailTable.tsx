@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import {
   Table,
   TableBody,
@@ -7,14 +8,14 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 
-/** Read-only table of preformatted cells for the savings detail tabs. */
+/** Read-only table of preformatted cells (text or badges) for the savings detail tabs. */
 export function DetailTable({
   headers,
   rows,
   empty,
 }: {
   headers: string[]
-  rows: string[][]
+  rows: ReactNode[][]
   empty: string
 }) {
   return (

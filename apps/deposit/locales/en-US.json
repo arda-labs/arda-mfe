@@ -263,6 +263,14 @@
     "status": {
       "ACTIVE": "Active",
       "CLOSED": "Closed"
+    },
+    "txn_type": {
+      "OPEN": "Open",
+      "DEPOSIT": "Deposit",
+      "TOP_UP": "Top-up",
+      "WITHDRAW": "Withdrawal",
+      "SETTLE": "Settlement",
+      "INTEREST": "Interest"
     }
   },
   "product_task_form": {
