@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.90.0",
     "@workspace/api": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/media": "workspace:*",
