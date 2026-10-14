@@ -420,7 +420,14 @@
       "currency": "Loại tiền",
       "disburse_date": "Ngày giải ngân",
       "fund_source": "Nguồn vốn",
-      "flow_type": "Luồng"
+      "flow_type": "Luồng",
+      "source_register": "Phiếu khởi tạo gốc",
+      "batch": "Lô giải ngân",
+      "journal_entry": "Bút toán",
+      "closes_contract": "Tất toán hợp đồng"
+    },
+    "view": {
+      "all": "Tất cả"
     },
     "placeholder": {
       "fund_source": "Mã nguồn vốn (tùy chọn)"

@@ -6,6 +6,7 @@ import { notify } from "@workspace/ui/feedback/notify"
 import { Page } from "@workspace/ui/components/page"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { CaseTabs, useCaseTabs } from "@workspace/case-tabs"
+import { CaseApprovalTrail } from "@workspace/case-tabs/case-approval-trail"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Label } from "@workspace/ui/components/label"
@@ -209,7 +210,17 @@ export function AdjustmentReviewPage() {
         }
       />
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
-        <CaseTabs tabs={tabs} />
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_17rem]">
+          <CaseTabs tabs={tabs} />
+          {item.caseId ? (
+            <aside className="space-y-3 lg:border-l lg:pl-4">
+              <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {t("common.approval.label")}
+              </h2>
+              <CaseApprovalTrail caseId={item.caseId} />
+            </aside>
+          ) : null}
+        </div>
 
         {!isMakerStep ? (
           <div className="max-w-xl space-y-1.5">
