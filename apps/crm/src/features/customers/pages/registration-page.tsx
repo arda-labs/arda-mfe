@@ -128,7 +128,7 @@ export function CustomerRegistrationPage({
     caseId: taskCaseId ?? undefined,
     canUpload: !isReadonly,
   })
-  const identityImages = useIdentityImageStaging(taskCaseId)
+  const identityImages = useIdentityImageStaging(taskCaseId, savedCustomer?.id ?? "")
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&

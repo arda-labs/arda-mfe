@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react"
+import { useRef } from "react"
 import { attachStagedCaseFiles } from "@workspace/case-tabs"
 
 type Attach = (ids: string[], caseId: string) => Promise<void>
@@ -37,11 +37,27 @@ export function createIdentityImageStaging(
   }
 }
 
-export function useIdentityImageStaging(caseId: string | null | undefined) {
+/** Staging belongs to one customer. The key is the saved customer id ("" for
+ * an unsaved form): the first save of the current form ("" -> id) is the same
+ * customer, so staged photos survive it; any other change (A -> B, A -> "")
+ * means the page was reused for a different customer and must start clean. */
+export function shouldResetStaging(prevKey: string, nextKey: string): boolean {
+  return prevKey !== "" && prevKey !== nextKey
+}
+
+export function useIdentityImageStaging(caseId: string | null | undefined, customerKey: string) {
   const caseIdRef = useRef(caseId)
   caseIdRef.current = caseId
-  return useMemo(
-    () => createIdentityImageStaging(attachStagedCaseFiles, () => caseIdRef.current),
-    []
-  )
+  const scope = useRef<{ key: string; staging: ReturnType<typeof createIdentityImageStaging> } | null>(null)
+  if (!scope.current || shouldResetStaging(scope.current.key, customerKey)) {
+    scope.current = {
+      key: customerKey,
+      staging: createIdentityImageStaging(attachStagedCaseFiles, () => caseIdRef.current),
+    }
+  } else {
+    scope.current.key = customerKey
+  }
+  // saveAndSubmit closes over the object from the render that started it, so
+  // its flush still sees this customer's pending ids after later renders.
+  return scope.current.staging
 }

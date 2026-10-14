@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createIdentityImageStaging } from "../../src/features/customers/utils/use-identity-image-staging"
+import { createIdentityImageStaging, shouldResetStaging } from "../../src/features/customers/utils/use-identity-image-staging"
 
 describe("identity image staging", () => {
   test("attaches immediately when a case exists", async () => {
@@ -37,5 +37,25 @@ describe("identity image staging", () => {
     current = "case-2"
     expect(await s.stage(["b"])).toBe("attached")
     expect(calls).toEqual([[["b"], "case-2"]])
+  })
+
+  test("a fresh instance for another customer never attaches to a previous case", async () => {
+    const calls: [string[], string][] = []
+    const attach = async (ids: string[], caseId: string) => void calls.push([ids, caseId])
+    const a = createIdentityImageStaging(attach, () => null)
+    await a.stage(["a1"])
+    expect(await a.flush("case-A")).toBe(1)
+    const b = createIdentityImageStaging(attach, () => null)
+    expect(await b.stage(["b1"])).toBe("staged")
+    expect(await b.flush(undefined)).toBe(0)
+    expect(calls).toEqual([[["a1"], "case-A"]])
+  })
+
+  test("shouldResetStaging keeps the first save, resets on a different customer", () => {
+    expect(shouldResetStaging("", "")).toBe(false)
+    expect(shouldResetStaging("", "A")).toBe(false)
+    expect(shouldResetStaging("A", "A")).toBe(false)
+    expect(shouldResetStaging("A", "B")).toBe(true)
+    expect(shouldResetStaging("A", "")).toBe(true)
   })
 })
