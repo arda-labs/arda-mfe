@@ -15,3 +15,5 @@ export type {
 export { hasCloudAck, setCloudAck } from "./cloud-ack"
 export { toJpeg } from "./image"
 export { useDocumentCapabilities } from "./use-document-capabilities"
+export { DocumentScanDialog } from "./document-scan-dialog"
+export type { CccdScanApply, DocumentScanDialogProps } from "./document-scan-dialog"
