@@ -40,10 +40,12 @@ export function DataTablePagination<TData>({
   // One page that fits the smallest page size needs no pager (design 16);
   // unpaged tables (trees, `meta.unpaged`) never have one, and count every
   // row they show at any depth, so a filtered tree reports what is visible.
+  // getRowCount() is the server total on manual (server) lists and the
+  // filtered row count on client lists, so pages need not pass totalRows.
   const unpaged = Boolean(table.options.meta?.unpaged)
   const total = unpaged
     ? table.getFilteredRowModel().flatRows.length
-    : (totalRows ?? table.getFilteredRowModel().rows.length)
+    : (totalRows ?? table.getRowCount())
   const showPager =
     !unpaged && (table.getPageCount() > 1 || total > Math.min(...pageSizeOptions))
 
