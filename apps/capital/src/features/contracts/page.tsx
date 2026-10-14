@@ -2,15 +2,15 @@ import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useI18n } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { textSearchMeta } from "@workspace/list-page/column-filters"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { SavedViewTabs } from "@workspace/list-page/saved-view-tabs"
 import { formatDateShort, formatAmount, formatRatePercent, fromMinor } from "@workspace/format"
 import { capitalApi, type CapitalContract } from "../api"
-import { contractsListDefinition } from "./list-query"
+import { CONTRACT_STATUSES, contractsListDefinition } from "./list-query"
 import { CreateContractDialog } from "./components/CreateContractDialog"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
 
@@ -173,19 +173,40 @@ export function ContractsPage(_props?: { pathname: string }) {
         page: q.page,
         perPage: q.perPage,
         q: q.q === undefined ? undefined : String(q.q),
+        status: q.status === undefined ? undefined : String(q.status),
         sort: q.sort,
         order: q.order,
       }),
   })
 
+  // Work queues first (design board 12.2): the counts replace the old total badge.
+  const views = useMemo(
+    () => [
+      { id: "all", label: t("capital.contracts.view.all") },
+      ...CONTRACT_STATUSES.map((value) => ({
+        id: value,
+        value,
+        label: t(`capital.status.${value}`),
+      })),
+    ],
+    [t]
+  )
+
   return (
     <ListPageShell
       title={t("capital.contracts.title")}
       totalRows={total}
-      meta={
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
-          {t("capital.count", { count: total })}
-        </Badge>
+      views={
+        <SavedViewTabs
+          views={views}
+          urlKey="status"
+          config={contractsListDefinition.queryConfig}
+          countKey={contractsListDefinition.queryKey}
+          countFn={(status) =>
+            capitalApi.listContracts({ status, page: 1, perPage: 1 }).then((res) => res.total)
+          }
+          aria-label={t("common.field.status")}
+        />
       }
       criticalPending={isLoading}
       criticalError={loadError}

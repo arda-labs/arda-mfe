@@ -104,6 +104,9 @@
     "create_failed": "Không thể tạo hợp đồng vốn",
     "validation": {
       "required": "Nhập đủ mã HĐ, loại vốn và số vốn dương"
+    },
+    "view": {
+      "all": "Tất cả"
     }
   },
   "movements": {

@@ -104,6 +104,9 @@
     "create_failed": "Failed to create fund contract",
     "validation": {
       "required": "Enter contract code, fund type and a positive amount"
+    },
+    "view": {
+      "all": "All"
     }
   },
   "movements": {
