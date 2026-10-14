@@ -195,6 +195,7 @@
       "rank_2": "Rank 2",
       "rank_3": "Rank 3",
       "identity_type_cccd": "Citizen ID card",
+      "identity_type_can_cuoc": "Căn cước card",
       "identity_type_cmnd": "ID card",
       "identity_type_passport": "Passport",
       "work_duration_under_1y": "Under 1 year",
@@ -257,6 +258,14 @@
       "reason_label": "Reason",
       "reason_placeholder": "Enter the reason so the maker knows what to fix...",
       "cancel": "Cancel"
+    },
+    "cccd_scan": {
+      "button": "Scan ID card",
+      "applied": "Filled from the card",
+      "applied_province_missing": "Filled. The province could not be determined; please choose it.",
+      "images_staged": "Card photos will be attached when the registration is submitted",
+      "images_attached": "Card photos attached to the registration",
+      "attach_failed": "Could not attach the card photos"
     },
     "geo": {
       "province_label": "Province/City",

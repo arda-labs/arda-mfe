@@ -158,6 +158,7 @@
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
         "@workspace/case-tabs": "workspace:*",
+        "@workspace/document-scan": "workspace:*",
         "@workspace/federation-runtime": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",

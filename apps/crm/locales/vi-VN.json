@@ -195,6 +195,7 @@
       "rank_2": "Hạng 2",
       "rank_3": "Hạng 3",
       "identity_type_cccd": "Căn cước công dân",
+      "identity_type_can_cuoc": "Căn cước",
       "identity_type_cmnd": "Chứng minh nhân dân",
       "identity_type_passport": "Hộ chiếu",
       "work_duration_under_1y": "Dưới 1 năm",
@@ -257,6 +258,14 @@
       "reason_label": "Lý do",
       "reason_placeholder": "Nhập lý do để maker hiểu cần sửa gì...",
       "cancel": "Hủy"
+    },
+    "cccd_scan": {
+      "button": "Quét CCCD",
+      "applied": "Đã điền thông tin từ thẻ",
+      "applied_province_missing": "Đã điền thông tin. Chưa xác định được tỉnh/thành, hãy chọn tay.",
+      "images_staged": "Ảnh thẻ sẽ được đính kèm khi gửi hồ sơ",
+      "images_attached": "Đã đính kèm ảnh thẻ vào hồ sơ",
+      "attach_failed": "Không đính kèm được ảnh thẻ"
     },
     "geo": {
       "province_label": "Tỉnh/Thành phố",
