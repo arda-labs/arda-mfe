@@ -143,6 +143,17 @@ export const DateField = React.forwardRef<DateFieldHandle, DateFieldProps>(
     const minDate = typeof min === "string" ? isoToDate(min) : undefined
     const maxDate = typeof max === "string" ? isoToDate(max) : undefined
     const inactive = disabled || readOnly
+    const today = new Date()
+    const todayAllowed =
+      (!minDate || dateToIso(today) >= dateToIso(minDate)) &&
+      (!maxDate || dateToIso(today) <= dateToIso(maxDate))
+
+    function pick(nextIso: string) {
+      setText(isoToDateText(nextIso))
+      commit(nextIso)
+      setOpen(false)
+      inputRef.current?.focus()
+    }
 
     return (
       <div
@@ -184,6 +195,8 @@ export const DateField = React.forwardRef<DateFieldHandle, DateFieldProps>(
               mode="single"
               locale={locale === "en-US" ? undefined : vi}
               selected={selected}
+              onToday={todayAllowed ? () => pick(dateToIso(today)) : undefined}
+              onClear={iso && !required ? () => pick("") : undefined}
               defaultMonth={selected ?? maxDate ?? undefined}
               captionLayout="dropdown"
               disabled={[
@@ -191,12 +204,7 @@ export const DateField = React.forwardRef<DateFieldHandle, DateFieldProps>(
                 ...(maxDate ? [{ after: maxDate }] : []),
               ]}
               onSelect={(date) => {
-                if (!date) return
-                const nextIso = dateToIso(date)
-                setText(isoToDateText(nextIso))
-                commit(nextIso)
-                setOpen(false)
-                inputRef.current?.focus()
+                if (date) pick(dateToIso(date))
               }}
             />
           </PopoverContent>

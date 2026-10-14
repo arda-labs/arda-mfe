@@ -53,8 +53,6 @@ const RULES = [
 
 /** path -> rule ids the file may break, with the reason. */
 const EXEMPT = new Map([
-  // Month/year pickers inside the filter date popover are part of the primitive.
-  ["packages/ui/src/components/date-popover.tsx", ["native-select"]],
   // Thumbnails draw the light and the dark theme side by side.
   ["apps/account/src/features/settings/appearance/page.tsx", ["hex-color"]],
   // Code blocks keep a dark surface in both themes.

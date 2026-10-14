@@ -177,6 +177,7 @@ export function DataTableDateFilter<TData>({
               !getIsDateRange(selectedDates) ? selectedDates[0] : undefined
             }
             onSelect={onSelect}
+            onToday={() => onSelect(new Date(new Date().setHours(0, 0, 0, 0)))}
           />
         )}
       </PopoverContent>
