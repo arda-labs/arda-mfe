@@ -40,6 +40,8 @@ export function workItemColumns(
     cols.push(
       {
         id: "sla",
+        size: 170,
+        minSize: 150,
         header: t("workflow.workbench.col_sla"),
         cell: ({ row }) => (
           <div className="min-w-32">
@@ -52,15 +54,19 @@ export function workItemColumns(
       },
       {
         id: "progress",
+        size: 250,
+        minSize: 230,
         header: t("workflow.workbench.col_progress"),
         cell: ({ row }) => (
-          <div className="min-w-52">
+          <div className="min-w-0">
             <TimeProgress item={row.original} />
           </div>
         ),
       },
       {
         id: "assignee",
+        size: 210,
+        minSize: 180,
         header: t("workflow.workbench.col_assignee"),
         cell: ({ row }) => (
           <div className="min-w-44">
