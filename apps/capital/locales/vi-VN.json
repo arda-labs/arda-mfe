@@ -34,9 +34,26 @@
     "loading": "Đang tải...",
     "load_failed": "Không tải được hợp đồng.",
     "tab": {
-      "info": "Thông tin",
       "movements": "Lịch sử giao dịch",
       "amendments": "Điều chỉnh"
+    },
+    "properties": "Thông tin hợp đồng",
+    "lifecycle": {
+      "label": "Vòng đời hợp đồng",
+      "created": "Lập hợp đồng",
+      "approval": "Phê duyệt",
+      "active": "Hiệu lực",
+      "settled": "Tất toán",
+      "movements": "{count} giao dịch"
+    },
+    "figure": {
+      "received": "Đã tiếp nhận",
+      "pending": "{count} giao dịch chờ duyệt",
+      "available": "Số dư khả dụng",
+      "outflow": "Đã chi {amount}",
+      "days_left": "Còn {count} ngày",
+      "due_today": "Đến hạn hôm nay",
+      "overdue_days": "Quá hạn {count} ngày"
     }
   },
   "field": {
@@ -87,6 +104,9 @@
     "create_failed": "Không thể tạo hợp đồng vốn",
     "validation": {
       "required": "Nhập đủ mã HĐ, loại vốn và số vốn dương"
+    },
+    "view": {
+      "all": "Tất cả"
     }
   },
   "movements": {

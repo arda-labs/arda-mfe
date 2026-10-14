@@ -124,62 +124,57 @@ export function TimeProgress({
 
   const progress = calcProgress(item.createdAt, item.slaDueAt, item.slaStatus)
 
+  const duration =
+    item.createdAt && item.slaDueAt
+      ? slaDurationLabel(item.createdAt, item.slaDueAt, t)
+      : t("workflow.workbench.no_sla")
+
+  // Bar with the SLA length beside it, then start and deadline at the two
+  // ends: three labels in one row overflowed the column at its min width.
   return (
-    <div className="space-y-2 py-1">
-      {/* Bar */}
-      <div className="relative h-2 overflow-hidden rounded-full bg-muted">
-        <div
+    <div className="space-y-1.5 py-1">
+      <div className="flex items-center gap-2">
+        <div className="relative h-2 min-w-10 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              !sla || sla.dotColor === "bg-success"
+                ? "bg-success"
+                : sla.dotColor === "bg-warning"
+                  ? "bg-warning"
+                  : "bg-destructive"
+            )}
+            style={{ width: `${Math.min(100, Math.max(2, progress))}%` }}
+          />
+        </div>
+        <span
           className={cn(
-            "h-full rounded-full transition-all duration-500",
-            !sla || sla.dotColor ==="bg-success"
-              ? "bg-success"
-              : sla.dotColor ==="bg-warning"
-                ? "bg-warning"
-                : "bg-destructive"
+            "shrink-0 rounded-md px-1.5 py-0.5 text-[11px] leading-none whitespace-nowrap tabular-nums",
+            item.createdAt && item.slaDueAt
+              ? "border border-border bg-background font-medium text-foreground"
+              : "bg-muted/30 text-muted-foreground"
           )}
-          style={{ width: `${Math.min(100, Math.max(2, progress))}%` }}
-        />
+        >
+          {duration}
+        </span>
       </div>
 
-      {/* Labels row */}
-      <div className="flex items-start justify-between gap-4">
-        {/* Start */}
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] leading-tight font-medium text-foreground">
-            {formatTime(item.createdAt)}
+          <p className="text-[11px] leading-tight whitespace-nowrap tabular-nums">
+            <span className="font-medium text-foreground">{formatTime(item.createdAt)}</span>{" "}
+            <span className="text-muted-foreground">{formatDate(item.createdAt)}</span>
           </p>
-          <p className="text-[10px] leading-tight text-muted-foreground tabular-nums">
-            {formatDate(item.createdAt)}
-          </p>
-          <p className="mt-0.5 text-[9px] text-muted-foreground/60">
+          <p className="text-[10px] text-muted-foreground">
             {t("workflow.workbench.start_label")}
           </p>
         </div>
-
-        {/* SLA duration */}
-        {item.createdAt && item.slaDueAt ? (
-          <div className="shrink-0 text-center">
-            <span className="inline-flex items-center rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px] leading-none font-medium text-foreground tabular-nums">
-              {slaDurationLabel(item.createdAt, item.slaDueAt, t)}
-            </span>
-          </div>
-        ) : (
-          <div className="shrink-0 text-center">
-            <span className="inline-flex items-center rounded-md bg-muted/30 px-1.5 py-0.5 text-[11px] text-muted-foreground">
-              {t("workflow.workbench.no_sla")}
-            </span>
-          </div>
-        )}
-
-        {/* Deadline */}
         <div className="min-w-0 text-right">
-          <p className="text-[11px] leading-tight font-medium text-foreground">
-            {formatTime(item.slaDueAt)}
+          <p className="text-[11px] leading-tight whitespace-nowrap tabular-nums">
+            <span className="font-medium text-foreground">{formatTime(item.slaDueAt)}</span>{" "}
+            <span className="text-muted-foreground">{formatDate(item.slaDueAt)}</span>
           </p>
-          <p className="text-[10px] leading-tight text-muted-foreground tabular-nums">
-            {formatDate(item.slaDueAt)}
-          </p>
-          <p className="mt-0.5 text-[9px] text-muted-foreground/60">
+          <p className="text-[10px] text-muted-foreground">
             {t("workflow.workbench.due_label")}
           </p>
         </div>

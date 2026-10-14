@@ -2,16 +2,18 @@ import { useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useNavigate } from "react-router-dom"
 import { useI18n } from "@workspace/i18n"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table/data-table-column-header"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
+import { SavedViewTabs } from "@workspace/list-page/saved-view-tabs"
+import { useRecordSheet } from "@workspace/list-page/use-record-sheet"
 import { formatDateShort } from "@workspace/format"
 import { Plus, Upload } from "lucide-react"
 import { postingApi, type JournalEntry } from "../api"
-import { postingListDefinition } from "./list-query"
+import { POSTING_STATUSES, postingListDefinition, postingStatusParam } from "./list-query"
+import { PostingCaseSheet } from "./case-sheet"
 import { ImportPostingDialog } from "./import-posting-dialog"
 import type { PostingFlow } from "../api"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
@@ -48,8 +50,9 @@ const FLOW_META: Record<PostingFlow, { titleKey: string; createPath: string; cre
 
 /**
  * Shared list controller for the manual posting screens (bút toán lẻ /
- * bút toán kép / ngoại bảng / hủy giao dịch): server-tier list over the
- * journal endpoint pinned to one document_type + a "create" action that
+ * bút toán kép / ngoại bảng / hủy giao dịch / kết chuyển): server-tier list
+ * over the journal endpoint pinned to one document_type, status tabs with
+ * counts, a row quick view (RecordSheet) and a "create" action that
  * navigates to the flow's init route.
  */
 export function PostingCaseListPage({
@@ -66,6 +69,19 @@ export function PostingCaseListPage({
   const meta = FLOW_META[flow]
   const titleKey = meta.titleKey
   const canImport = flow === "SINGLE_ENTRY" || flow === "DOUBLE_ENTRY"
+  // One cache entry per flow: the five lists share the list definition.
+  const queryKey = useMemo(() => [...postingListDefinition.queryKey, documentType], [documentType])
+
+  const statusLabels = useMemo<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        POSTING_STATUSES.map((status) => [
+          status,
+          t(`finance.fund_task_form.status.${status.toLowerCase()}`),
+        ])
+      ),
+    [t]
+  )
 
   const columns = useMemo<ColumnDef<JournalEntry>[]>(
     () => [
@@ -123,7 +139,9 @@ export function PostingCaseListPage({
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <StatusBadge status={row.original.status} />
+          <StatusBadge status={row.original.status}>
+            {statusLabels[row.original.status] ?? row.original.status}
+          </StatusBadge>
         ),
       },
       {
@@ -137,7 +155,7 @@ export function PostingCaseListPage({
         ),
       },
     ],
-    [t]
+    [statusLabels, t]
   )
 
   const {
@@ -149,26 +167,56 @@ export function PostingCaseListPage({
     table,
   } = useServerDataTable<JournalEntry>({
     ...postingListDefinition,
+    queryKey,
     columns,
     queryFn: async (query) =>
       postingApi.listJournalPaged({
         page: query.page,
         perPage: query.perPage,
         document_type: documentType,
+        status: postingStatusParam(query.status === undefined ? undefined : String(query.status)),
         sort: query.sort,
         order: query.order,
       }),
   })
+
+  const sheet = useRecordSheet(table)
+  const views = useMemo(
+    () => [
+      { id: "all", label: t("finance.posting.view.all") },
+      ...POSTING_STATUSES.map((value) => ({ id: value, value, label: statusLabels[value] })),
+    ],
+    [statusLabels, t]
+  )
 
   return (
     <>
       <ListPageShell
         title={t(titleKey)}
         totalRows={total}
-        meta={
-          <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-bold">
-            {t("finance.journal.count", { count: total })}
-          </Badge>
+        views={
+          <SavedViewTabs
+            views={views}
+            urlKey="status"
+            config={postingListDefinition.queryConfig}
+            countKey={queryKey}
+            countFn={(status) =>
+              postingApi
+                .listJournalPaged({
+                  page: 1,
+                  perPage: 1,
+                  document_type: documentType,
+                  status: postingStatusParam(status),
+                })
+                .then((res) => res.total)
+            }
+            aria-label={t("common.field.status")}
+          />
+        }
+        onRowClick={sheet.openRow}
+        activeRowId={sheet.activeRowId}
+        dialogs={
+          <PostingCaseSheet record={sheet.record} sheet={sheet} statusLabels={statusLabels} />
         }
         criticalPending={isLoading}
         criticalError={loadError}

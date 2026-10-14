@@ -31,7 +31,7 @@ import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { MoneyInput } from "@workspace/ui/components/money-input"
 import { BalanceIndicator } from "@workspace/ui/components/ledger-table"
 import { PreSubmitChecklist, hasBlockingIssue } from "@workspace/ui/components/pre-submit-checklist"
-import { postingChecklist } from "./checklist"
+import { postingChecklist, toChecklistItems } from "./checklist"
 
 const FLOW_DOCUMENT_TYPE: Record<PostingFlow, string> = {
   SINGLE_ENTRY: "FIN_SINGLE_ENTRY",
@@ -87,23 +87,18 @@ export function PostingCaseInitPage({ flow }: { flow: PostingFlow }) {
   const totals = useMemo(() => computeTotals(rows, currency), [rows, currency])
   const checklist = useMemo(
     () =>
-      postingChecklist({
-        accountingDate,
-        currency,
-        rows,
-        requireBalanced: !single,
-        balanced: totals.balanced,
-        description,
-        attachmentCount: staged.ids.length,
-      }).map((check) => ({
-        id: check.id,
-        state: check.state,
-        label: t(`finance.posting.checklist.${check.id}`),
-        hint:
-          check.state === "ok"
-            ? undefined
-            : t(`finance.posting.checklist.${check.id}_hint`, { count: check.count ?? 0 }),
-      })),
+      toChecklistItems(
+        postingChecklist({
+          accountingDate,
+          currency,
+          rows,
+          requireBalanced: !single,
+          balanced: totals.balanced,
+          description,
+          attachmentCount: staged.ids.length,
+        }),
+        t
+      ),
     [accountingDate, currency, rows, single, totals.balanced, description, staged.ids.length, t]
   )
   const blocked = hasBlockingIssue(checklist)

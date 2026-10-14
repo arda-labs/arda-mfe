@@ -541,6 +541,7 @@
         "@tanstack/react-table": "^8.21.3",
         "@workspace/api": "workspace:*",
         "@workspace/auth": "workspace:*",
+        "@workspace/case-tabs": "workspace:*",
         "@workspace/federation-runtime": "workspace:*",
         "@workspace/format": "workspace:*",
         "@workspace/i18n": "workspace:*",
@@ -683,6 +684,7 @@
       "name": "@workspace/case-tabs",
       "version": "0.0.0",
       "dependencies": {
+        "@tanstack/react-query": "^5.90.0",
         "@workspace/api": "workspace:*",
         "@workspace/i18n": "workspace:*",
         "@workspace/media": "workspace:*",

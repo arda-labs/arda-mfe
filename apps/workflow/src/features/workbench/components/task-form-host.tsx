@@ -5,6 +5,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -27,6 +28,7 @@ import {
 import type { WorkItem } from "../api"
 import { workbenchApi } from "../api"
 import { taskFormRemoteFor, type TaskFormRemote } from "../utils/task-form-routing"
+import { CaseReviewLayout } from "./case-review-layout"
 import { taskFormModules } from "./task-form-modules.generated"
 
 const moduleLoaders: Record<TaskFormRemote, () => Promise<TaskFormModule>> = taskFormModules
@@ -126,7 +128,9 @@ export function TaskFormHost({
         if (!open && !submitting) onClose()
       }}
     >
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent
+        className={item?.caseId ? "sm:max-w-3xl lg:max-w-5xl" : "sm:max-w-3xl"}
+      >
         <DialogHeader>
           <DialogTitle>{t("workflow.workbench.task_form.title")}</DialogTitle>
           <DialogDescription>
@@ -172,39 +176,41 @@ export function TaskFormHost({
         ) : null}
 
         {state === "ready" && Form && item ? (
-          <>
-            <Form
-              task={item}
-              mode="act"
-              data={data}
-              submitting={submitting}
-              onSubmit={onSubmit}
-              onReturn={onClose}
-            />
-            {caseTabs.length > 0 ? (
-              <Tabs
-                defaultValue={caseTabs[0]?.id}
-                className="flex flex-col gap-2 pt-2"
-              >
-                <TabsList className="h-auto w-fit">
+          <DialogBody className="py-3">
+            <CaseReviewLayout caseId={item.caseId}>
+              <Form
+                task={item}
+                mode="act"
+                data={data}
+                submitting={submitting}
+                onSubmit={onSubmit}
+                onReturn={onClose}
+              />
+              {caseTabs.length > 0 ? (
+                <Tabs
+                  defaultValue={caseTabs[0]?.id}
+                  className="flex flex-col gap-2"
+                >
+                  <TabsList className="h-auto w-fit">
+                    {caseTabs.map((tab) => (
+                      <TabsTrigger key={tab.id} value={tab.id}>
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
                   {caseTabs.map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id}>
-                      {tab.label}
-                    </TabsTrigger>
+                    <TabsContent
+                      key={tab.id}
+                      value={tab.id}
+                      className="mt-0 max-h-80 overflow-y-auto"
+                    >
+                      {tab.content}
+                    </TabsContent>
                   ))}
-                </TabsList>
-                {caseTabs.map((tab) => (
-                  <TabsContent
-                    key={tab.id}
-                    value={tab.id}
-                    className="mt-0 max-h-80 overflow-y-auto"
-                  >
-                    {tab.content}
-                  </TabsContent>
-                ))}
-              </Tabs>
-            ) : null}
-          </>
+                </Tabs>
+              ) : null}
+            </CaseReviewLayout>
+          </DialogBody>
         ) : null}
       </DialogContent>
     </Dialog>

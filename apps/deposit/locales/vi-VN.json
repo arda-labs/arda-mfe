@@ -30,7 +30,20 @@
     },
     "detail": {
       "load_failed": "Không tải được hợp đồng.",
-      "tab_info": "Thông tin"
+      "properties": "Thuộc tính hợp đồng",
+      "lifecycle": {
+        "label": "Vòng đời hợp đồng",
+        "submitted": "Trình duyệt",
+        "approved": "Phê duyệt",
+        "effective": "Hiệu lực",
+        "until": "đến {date}"
+      },
+      "figure": {
+        "flows": "Nộp thêm {topUp} · Rút {withdrawn}",
+        "collected": "Đã thu lãi {amount}",
+        "pending": "Giao dịch chờ duyệt",
+        "pending_hint": "Nháp hoặc đang chờ kiểm soát"
+      }
     },
     "action": {
       "top_up": "Nộp thêm",
@@ -145,7 +158,23 @@
   },
   "savings": {
     "detail": {
-      "load_failed": "Không tải được sổ tiết kiệm."
+      "load_failed": "Không tải được sổ tiết kiệm.",
+      "properties": "Thuộc tính sổ",
+      "lifecycle": {
+        "label": "Vòng đời sổ tiết kiệm",
+        "opened": "Mở sổ",
+        "holding": "Đang gửi",
+        "settled": "Tất toán",
+        "matures": "đáo hạn {date}"
+      },
+      "figure": {
+        "rate": "Lãi suất",
+        "rate_hint": "Theo kỳ dự chi lãi gần nhất",
+        "rate_none": "Chưa có dự chi lãi",
+        "capitalized": "Đã nhập lãi vào gốc {amount}",
+        "paid": "Đã trả lãi {amount}",
+        "pending_ops": "{count} nghiệp vụ lãi chờ duyệt"
+      }
     },
     "field": {
       "code": "Mã sổ",
@@ -161,7 +190,6 @@
       "txn_date": "Ngày giao dịch"
     },
     "tab": {
-      "info": "Thông tin",
       "transactions": "Giao dịch",
       "accruals": "Dự chi lãi",
       "interest": "Trả lãi/nhập gốc"
@@ -235,6 +263,14 @@
     "status": {
       "ACTIVE": "Đang hoạt động",
       "CLOSED": "Đã đóng"
+    },
+    "txn_type": {
+      "OPEN": "Mở sổ",
+      "DEPOSIT": "Gửi tiền",
+      "TOP_UP": "Gửi thêm",
+      "WITHDRAW": "Rút tiền",
+      "SETTLE": "Tất toán",
+      "INTEREST": "Trả lãi"
     }
   },
   "product_task_form": {
@@ -391,6 +427,14 @@
     }
   },
   "count": "{count, plural, =0 {Không có bản ghi} one {# bản ghi} other {# bản ghi}}",
+  "term": {
+    "maturity": "Đáo hạn",
+    "length": "Kỳ hạn",
+    "days": "{count} ngày",
+    "days_left": "Còn {count} ngày",
+    "due_today": "Đến hạn hôm nay",
+    "overdue": "Quá ngày đáo hạn {count} ngày"
+  },
   "placeholder": {
     "search": "Tìm…",
     "select": "— chọn —"

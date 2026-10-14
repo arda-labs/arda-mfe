@@ -224,6 +224,10 @@
       "retry": "Thử lại",
       "close": "Đóng"
     },
+    "trail": {
+      "earlier_requests": "Yêu cầu bổ sung trước đó ({count})",
+      "no_reason": "Không ghi lý do"
+    },
     "keyword_placeholder": "Mã / tiêu đề giao dịch",
     "search_keyword_placeholder": "Mã / tiêu đề",
     "actions_refresh": "Làm mới",

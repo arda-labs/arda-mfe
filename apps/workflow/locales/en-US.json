@@ -224,6 +224,10 @@
       "retry": "Retry",
       "close": "Close"
     },
+    "trail": {
+      "earlier_requests": "Earlier change requests ({count})",
+      "no_reason": "No reason given"
+    },
     "keyword_placeholder": "Code / title",
     "search_keyword_placeholder": "Code / title",
     "actions_refresh": "Refresh",

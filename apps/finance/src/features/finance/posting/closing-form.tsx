@@ -34,6 +34,8 @@ import { ClosingAccountsTable } from "./closing/accounts-table"
 import { CLOSING_PERIOD_LABEL_KEYS, computeClosingTotals, periodEndISO } from "./closing/period"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { PreSubmitChecklist, hasBlockingIssue } from "@workspace/ui/components/pre-submit-checklist"
+import { closingChecklist, toChecklistItems } from "./checklist"
 
 const TAB_INFO = "closing-info"
 const TAB_ACCOUNTS = "closing-accounts"
@@ -124,6 +126,21 @@ export function ClosingFormPage() {
   }, [periodType, accountingDate, description, t])
 
   const totals = useMemo(() => computeClosingTotals(rows), [rows])
+  const checklist = useMemo(
+    () =>
+      toChecklistItems(
+        closingChecklist({
+          accountingDate,
+          rowCount: rows.length,
+          loading,
+          description,
+          attachmentCount: staged.ids.length,
+        }),
+        t
+      ),
+    [accountingDate, rows.length, loading, description, staged.ids.length, t]
+  )
+  const blocked = hasBlockingIssue(checklist)
 
   const submit = async () => {
     if (!isValidISODate(accountingDate)) {
@@ -268,13 +285,16 @@ export function ClosingFormPage() {
                   objectTypes={objectTypes}
                 />
               </div>
-              <ControlInfoCard
-                labels={labels.shell}
-                unit={unitName}
-                status={t("finance.posting.control.status_draft")}
-                enteredAt={formatDateShort(todayISO())}
-                enteredBy={user?.displayName || (user?.name ?? "")}
-              />
+              <div className="space-y-3">
+                <ControlInfoCard
+                  labels={labels.shell}
+                  unit={unitName}
+                  status={t("finance.posting.control.status_draft")}
+                  enteredAt={formatDateShort(todayISO())}
+                  enteredBy={user?.displayName || (user?.name ?? "")}
+                />
+                <PreSubmitChecklist items={checklist} />
+              </div>
             </div>
           ),
         },
@@ -309,7 +329,11 @@ export function ClosingFormPage() {
           <Button variant="outline" onClick={() => navigate("/finance/posting/closing")}>
             {t("common.action.cancel")}
           </Button>
-          <Button onClick={() => void submit()} disabled={savePending}>
+          <Button
+            onClick={() => void submit()}
+            disabled={savePending || blocked}
+            title={blocked ? t("finance.posting.checklist.blocked") : undefined}
+          >
             <Save className="mr-1.5 size-4" />
             {savePending ? t("common.action.saving") : t("finance.posting.action.submit")}
           </Button>

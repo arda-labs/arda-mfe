@@ -1,14 +1,7 @@
 import { useI18n } from "@workspace/i18n"
 import { LedgerTable } from "@workspace/ui/components/ledger-table"
 import type { JournalEntryDetail } from "../api"
-
-/** Label key per document_type shown in the "Loại phát sinh" column. */
-const DOCUMENT_TYPE_LABEL_KEY: Record<string, string> = {
-  FIN_SINGLE_ENTRY: "finance.posting.single.title",
-  FIN_DOUBLE_ENTRY: "finance.posting.double.title",
-  FIN_OFF_BALANCE: "finance.posting.off_balance.title",
-  FIN_TXN_CANCEL: "finance.posting.cancellation.title",
-}
+import { DOCUMENT_TYPE_LABEL_KEY } from "./labels"
 
 /**
  * Read-only bút toán of the original transaction (FAC.300.01 tab 2) as a
