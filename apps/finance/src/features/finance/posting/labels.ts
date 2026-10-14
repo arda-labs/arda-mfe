@@ -8,6 +8,15 @@ import type {
   PostingTabsShellLabels,
 } from "@workspace/posting-flow/types"
 
+/** Label key per finance document_type ("Loại phát sinh", case list sheet). */
+export const DOCUMENT_TYPE_LABEL_KEY: Record<string, string> = {
+  FIN_SINGLE_ENTRY: "finance.posting.single.title",
+  FIN_DOUBLE_ENTRY: "finance.posting.double.title",
+  FIN_OFF_BALANCE: "finance.posting.off_balance.title",
+  FIN_TXN_CANCEL: "finance.posting.cancellation.title",
+  FIN_CLOSING: "finance.posting.closing.title",
+}
+
 /**
  * Locale adapter between the finance app namespaces and the locale-agnostic
  * `@workspace/posting-flow` props. Keeps every display string in

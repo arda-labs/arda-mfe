@@ -32,6 +32,8 @@ import {
 import { OriginalEntryLines } from "./original-entry-lines"
 import { DraftLifecycle, PendingDocCode } from "./draft-header"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { PreSubmitChecklist, hasBlockingIssue } from "@workspace/ui/components/pre-submit-checklist"
+import { cancellationChecklist, toChecklistItems } from "./checklist"
 
 const TAB_INFO = "transaction-info"
 const TAB_ORIGINAL = "original-entries"
@@ -81,6 +83,24 @@ export function CancellationFormPage() {
     if (!detail) return undefined
     return detail.lines.reduce((sum, line) => Math.max(sum, Math.abs(line.amount_minor)), 0)
   }, [detail])
+
+  const checklist = useMemo(
+    () =>
+      toChecklistItems(
+        cancellationChecklist({
+          accountingDate,
+          hasReference: reference !== null,
+          original: detail
+            ? { status: detail.status, reversedByEntryId: detail.reversed_by_entry_id }
+            : undefined,
+          reason,
+          attachmentCount: staged.ids.length,
+        }),
+        t
+      ),
+    [accountingDate, reference, detail, reason, staged.ids.length, t]
+  )
+  const blocked = hasBlockingIssue(checklist)
 
   const selectTransaction = async (entry: TransactionOption) => {
     setDialogOpen(false)
@@ -264,13 +284,16 @@ export function CancellationFormPage() {
                     objectTypes={objectTypes}
                   />
                 </div>
-                <ControlInfoCard
-                  labels={labels.shell}
-                  unit={unitName}
-                  status={t("finance.posting.control.status_draft")}
-                  enteredAt={formatDateShort(todayISO())}
-                  enteredBy={user?.displayName || (user?.name ?? "")}
-                />
+                <div className="space-y-3">
+                  <ControlInfoCard
+                    labels={labels.shell}
+                    unit={unitName}
+                    status={t("finance.posting.control.status_draft")}
+                    enteredAt={formatDateShort(todayISO())}
+                    enteredBy={user?.displayName || (user?.name ?? "")}
+                  />
+                  <PreSubmitChecklist items={checklist} />
+                </div>
               </div>
             </div>
           ),
@@ -287,7 +310,11 @@ export function CancellationFormPage() {
           <Button variant="outline" onClick={() => navigate("/finance/posting/cancellation")}>
             {t("common.action.cancel")}
           </Button>
-          <Button onClick={() => void submit()} disabled={savePending}>
+          <Button
+            onClick={() => void submit()}
+            disabled={savePending || blocked}
+            title={blocked ? t("finance.posting.checklist.blocked") : undefined}
+          >
             <Save className="mr-1.5 size-4" />
             {savePending ? t("common.action.saving") : t("finance.posting.action.submit")}
           </Button>

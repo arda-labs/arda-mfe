@@ -33,6 +33,8 @@ import { DraftLifecycle, PendingDocCode } from "./draft-header"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
 import { SegmentedControl } from "@workspace/ui/components/segmented-control"
 import { MoneyInput } from "@workspace/ui/components/money-input"
+import { PreSubmitChecklist, hasBlockingIssue } from "@workspace/ui/components/pre-submit-checklist"
+import { offBalanceChecklist, toChecklistItems } from "./checklist"
 
 const TAB_INFO = "transaction-info"
 const TAB_LINES = "accounting-lines"
@@ -76,6 +78,22 @@ export function OffBalanceFormPage() {
 
   const direction = offBalanceKind === "IMPORT" ? "DEBIT" : "CREDIT"
   const totals = useMemo(() => computeTotals(rows, currency), [rows, currency])
+  const checklist = useMemo(
+    () =>
+      toChecklistItems(
+        offBalanceChecklist({
+          accountingDate,
+          currency,
+          rows,
+          amount,
+          description,
+          attachmentCount: staged.ids.length,
+        }),
+        t
+      ),
+    [accountingDate, currency, rows, amount, description, staged.ids.length, t]
+  )
+  const blocked = hasBlockingIssue(checklist)
 
   const unitName =
     user?.tenantMemberships?.find((m) => m.tenantId === (user.activeTenantId ?? user.tenantId))
@@ -221,13 +239,16 @@ export function OffBalanceFormPage() {
                   objectTypes={objectTypes}
                 />
               </div>
-              <ControlInfoCard
-                labels={labels.shell}
-                unit={unitName}
-                status={t("finance.posting.control.status_draft")}
-                enteredAt={formatDateShort(todayISO())}
-                enteredBy={user?.displayName || (user?.name ?? "")}
-              />
+              <div className="space-y-3">
+                <ControlInfoCard
+                  labels={labels.shell}
+                  unit={unitName}
+                  status={t("finance.posting.control.status_draft")}
+                  enteredAt={formatDateShort(todayISO())}
+                  enteredBy={user?.displayName || (user?.name ?? "")}
+                />
+                <PreSubmitChecklist items={checklist} />
+              </div>
             </div>
           ),
         },
@@ -303,7 +324,11 @@ export function OffBalanceFormPage() {
           <Button variant="outline" onClick={() => navigate("/finance/posting/off-balance")}>
             {t("common.action.cancel")}
           </Button>
-          <Button onClick={() => void submit()} disabled={savePending}>
+          <Button
+            onClick={() => void submit()}
+            disabled={savePending || blocked}
+            title={blocked ? t("finance.posting.checklist.blocked") : undefined}
+          >
             <Save className="mr-1.5 size-4" />
             {savePending ? t("common.action.saving") : t("finance.posting.action.submit")}
           </Button>

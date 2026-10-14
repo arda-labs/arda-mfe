@@ -457,7 +457,25 @@
       "description_hint": "Reviewers usually ask when it is missing",
       "attachments": "Supporting documents attached",
       "attachments_hint": "You can submit, but attach the source documents",
+      "amount": "Amount above 0",
+      "amount_hint": "Enter the amount in the Amount field",
+      "reference": "Original transaction selected",
+      "reference_hint": "Choose the transaction to cancel",
+      "reversible": "Original transaction can still be cancelled",
+      "reversible_hint": "Only posted transactions that are not yet reversed can be cancelled",
+      "reversible_unknown_hint": "The original transaction's details could not be loaded to check it",
+      "reason": "Cancellation reason entered",
+      "reason_hint": "Enter the reason in the Description field",
+      "closing_rows": "Accounts to close are loaded",
+      "closing_rows_hint": "Click Fetch data on the Closing account list tab",
       "blocked": "Some required checks have not passed"
+    },
+    "view": {
+      "all": "All"
+    },
+    "sheet": {
+      "total": "Total amount",
+      "case": "Case"
     }
   },
   "operation": {

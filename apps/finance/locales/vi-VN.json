@@ -457,7 +457,25 @@
       "description_hint": "Người duyệt thường hỏi lại khi thiếu diễn giải",
       "attachments": "Đã đính kèm chứng từ",
       "attachments_hint": "Vẫn gửi được, nhưng nên đính kèm chứng từ gốc",
+      "amount": "Số tiền lớn hơn 0",
+      "amount_hint": "Nhập số tiền ở ô Số tiền",
+      "reference": "Đã chọn giao dịch gốc",
+      "reference_hint": "Chọn giao dịch gốc cần hủy",
+      "reversible": "Giao dịch gốc còn hủy được",
+      "reversible_hint": "Chỉ hủy được giao dịch đã hạch toán và chưa bị đảo",
+      "reversible_unknown_hint": "Chưa tải được chi tiết giao dịch gốc để kiểm tra",
+      "reason": "Có lý do hủy",
+      "reason_hint": "Nhập lý do hủy vào ô Mô tả",
+      "closing_rows": "Có tài khoản cần kết chuyển",
+      "closing_rows_hint": "Bấm Lấy dữ liệu ở tab Danh sách tài khoản kết chuyển",
       "blocked": "Còn mục bắt buộc chưa đạt"
+    },
+    "view": {
+      "all": "Tất cả"
+    },
+    "sheet": {
+      "total": "Tổng tiền",
+      "case": "Hồ sơ"
     }
   },
   "operation": {
