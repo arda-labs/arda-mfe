@@ -129,6 +129,7 @@ export function CustomerRegistrationPage({
     canUpload: !isReadonly,
   })
   const identityImages = useIdentityImageStaging(taskCaseId, savedCustomer?.id ?? "")
+  const claimStagedCustomer = identityImages.claim
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
@@ -276,12 +277,15 @@ export function CustomerRegistrationPage({
 
   const refreshCustomer = useCallback(
     (customer: Customer) => {
+      // Only save paths come through here: the unsaved form's staged card
+      // photos now belong to this customer (a merely loaded one never claims).
+      claimStagedCustomer(customer.id)
       setSavedCustomer(customer)
       form.reset(toFormValues(customer))
       localStorage.removeItem(`crm_customer_draft:${customer.id}`)
       localStorage.removeItem("crm_customer_draft:new")
     },
-    [form]
+    [form, claimStagedCustomer]
   )
 
   async function saveDraft(payload: CustomerPayload) {

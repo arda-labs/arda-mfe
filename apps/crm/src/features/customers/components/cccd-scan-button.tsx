@@ -36,11 +36,13 @@ export function CccdScanButton({
         const provinces = await platformReferenceApi.listGeoAdminUnits({ level: 1 })
         const code = matchProvinceCode(input.values.residence, provinces)
         const currentProvince = form.getValues("provinceCode") ?? ""
-        if (code && code !== currentProvince && shouldSetProvince(patch, currentProvince)) {
+        if (code && code === currentProvince) {
+          provinceSet = true // already the card's province
+        } else if (code && shouldSetProvince(patch, currentProvince)) {
           // GeoLocationFields clears ward/area when the province changes.
           form.setValue("provinceCode", code, { shouldDirty: true })
+          provinceSet = true
         }
-        provinceSet = !!code
       } catch {
         provinceSet = false
       }

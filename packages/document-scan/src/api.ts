@@ -32,6 +32,9 @@ export function classifyExtractError(err: unknown): ExtractErrorKind {
       return "bad_output"
     case "document.extract.model_unavailable":
       return "unavailable"
+    case "recent_auth_required":
+      // Gateway step-up (403) is a re-authentication prompt, not a missing permission.
+      return "unknown"
   }
   if (e.status === 413) return "too_large"
   if (e.status === 403) return "forbidden"

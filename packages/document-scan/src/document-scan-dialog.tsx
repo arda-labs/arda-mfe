@@ -126,7 +126,8 @@ export function DocumentScanDialog({ open, onOpenChange, modelLocation, existing
     setError(undefined)
     try {
       await onApply({ ...out, cardVersion: result.card_version, images: { front: frozen.front.blob, back: frozen.back?.blob } })
-      onOpenChange(false)
+      // A dialog closed and reopened while onApply ran is a new session: leave it open.
+      if (epoch.current === started) onOpenChange(false)
     } catch {
       if (epoch.current === started) setError(t("document_scan.errors.unknown"))
     } finally {

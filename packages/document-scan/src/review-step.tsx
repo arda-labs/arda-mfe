@@ -125,6 +125,9 @@ export function ReviewStep({
               ) : (
                 <Input value={values[f]} onChange={(e) => setValue(f, e.target.value)} />
               )}
+              {field.value == null && field.raw ? (
+                <p className="text-xs text-muted-foreground">{field.raw}</p>
+              ) : null}
               {severity === "error" && values[f] === (field.value ?? "") ? (
                 <Button type="button" size="sm" variant="ghost" onClick={() => setKept((k) => toggle(k, f))}>
                   {kept.has(f) ? t("document_scan.kept") : t("document_scan.keep")}

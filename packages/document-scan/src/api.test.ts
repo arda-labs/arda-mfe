@@ -11,6 +11,7 @@ describe("classifyExtractError", () => {
     expect(classifyExtractError({ status: 502, code: "document.extract.model_bad_output" })).toBe("bad_output")
     expect(classifyExtractError({ status: 503, code: "document.extract.model_unavailable" })).toBe("unavailable")
     expect(classifyExtractError({ status: 403, code: "forbidden" })).toBe("forbidden")
+    expect(classifyExtractError({ status: 403, code: "recent_auth_required" })).toBe("unknown")
     expect(classifyExtractError(new Error("boom"))).toBe("unknown")
   })
 })

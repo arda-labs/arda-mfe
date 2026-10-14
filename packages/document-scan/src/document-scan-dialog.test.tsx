@@ -70,4 +70,29 @@ describe("ReviewStep", () => {
     expect(html).toMatch(/text-destructive[^>]*>document_scan\.flags\.invalid_format/)
     expect(html).toMatch(/text-muted-foreground[^>]*>document_scan\.flags\.not_found/)
   })
+
+  test("shows the raw card text as a hint when the parsed value is null", () => {
+    const unparsed: CccdExtractResult = {
+      ...result,
+      fields: {
+        ...result.fields,
+        date_of_birth: { value: null, raw: "31/02/1990", flags: ["invalid_date"] },
+      },
+    }
+    const html = renderToStaticMarkup(
+      <I18nProvider>
+        <ReviewStep result={unparsed} frontUrl="blob:front" existing={{}} t={(k: string) => k} onBack={() => {}} onApply={() => {}} />
+      </I18nProvider>
+    )
+    expect(html).toMatch(/text-xs text-muted-foreground[^>]*>31\/02\/1990</)
+  })
+
+  test("no raw hint when the value parsed", () => {
+    const html = renderToStaticMarkup(
+      <I18nProvider>
+        <ReviewStep result={result} frontUrl="blob:front" existing={{}} t={(k: string) => k} onBack={() => {}} onApply={() => {}} />
+      </I18nProvider>
+    )
+    expect(html).not.toMatch(/text-xs text-muted-foreground[^>]*>x</)
+  })
 })
