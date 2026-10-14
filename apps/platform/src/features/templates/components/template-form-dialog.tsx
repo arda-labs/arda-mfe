@@ -331,7 +331,7 @@ export function TemplateFormDialog({
                   </div>
                 ) : fileUrl ? (
                   <div className="flex w-full items-center gap-3 rounded-lg border border-success/20 bg-success/5 p-2">
-                    <File className="size-8 flex-shrink-0 text-success" />
+                    <File className="size-8 shrink-0 text-success" />
                     <div className="min-w-0 flex-1 text-left">
                       <p className="truncate text-sm font-semibold text-foreground">
                         {selectedFile?.name ||
@@ -344,7 +344,7 @@ export function TemplateFormDialog({
                       </p>
                     </div>
                     <div
-                      className="flex flex-shrink-0 items-center gap-1.5"
+                      className="flex shrink-0 items-center gap-1.5"
                       onClick={(event) => event.stopPropagation()}
                     >
                       <Button
@@ -390,7 +390,7 @@ export function TemplateFormDialog({
 
               {fileUrl && !uploadProgress && (
                 <div className="mt-1.5 flex w-full items-start gap-1.5 px-1 font-mono text-[11px] text-muted-foreground">
-                  <AlertCircle className="mt-0.5 size-3 flex-shrink-0 text-success" />
+                  <AlertCircle className="mt-0.5 size-3 shrink-0 text-success" />
                   <div
                     className="flex-1 break-all whitespace-normal"
                     title={fileUrl}
