@@ -8,7 +8,7 @@ import { Button } from "@workspace/ui/components/button"
 import { notify } from "@workspace/ui/feedback/notify"
 import { platformReferenceApi } from "../../api/platform-reference"
 import type { CustomerFormValues } from "../schemas"
-import { cccdFormPatch, existingFromForm } from "../utils/cccd-to-customer"
+import { cccdFormPatch, existingFromForm, shouldSetProvince } from "../utils/cccd-to-customer"
 import { matchProvinceCode } from "../utils/province-match"
 
 export function CccdScanButton({
@@ -35,7 +35,8 @@ export function CccdScanButton({
       try {
         const provinces = await platformReferenceApi.listGeoAdminUnits({ level: 1 })
         const code = matchProvinceCode(input.values.residence, provinces)
-        if (code && code !== form.getValues("provinceCode")) {
+        const currentProvince = form.getValues("provinceCode") ?? ""
+        if (code && code !== currentProvince && shouldSetProvince(patch, currentProvince)) {
           // GeoLocationFields clears ward/area when the province changes.
           form.setValue("provinceCode", code, { shouldDirty: true })
         }
@@ -49,8 +50,11 @@ export function CccdScanButton({
     try {
       const files = [new File([input.images.front], "cccd-mat-truoc.jpg", { type: "image/jpeg" })]
       if (input.images.back) files.push(new File([input.images.back], "cccd-mat-sau.jpg", { type: "image/jpeg" }))
-      const uploaded = await Promise.all(files.map((f) => uploadFile(f, "crm", "", "")))
-      await onImagesUploaded(uploaded.map((u) => u.public_id))
+      const settled = await Promise.allSettled(files.map((f) => uploadFile(f, "crm", "", "")))
+      const ids = settled.flatMap((r) => (r.status === "fulfilled" ? [r.value.public_id] : []))
+      if (ids.length > 0) await onImagesUploaded(ids)
+      const failed = settled.find((r): r is PromiseRejectedResult => r.status === "rejected")
+      if (failed) throw failed.reason
     } catch (error) {
       notify.error(t("crm.customers.cccd_scan.attach_failed"), error instanceof Error ? error.message : undefined)
     }

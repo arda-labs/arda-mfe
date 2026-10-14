@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { defaultValues, type CustomerFormValues } from "../../src/features/customers/schemas"
-import { cccdFormPatch, existingFromForm, toVietnameseNameCase } from "../../src/features/customers/utils/cccd-to-customer"
+import { cccdFormPatch, existingFromForm, shouldSetProvince, toVietnameseNameCase } from "../../src/features/customers/utils/cccd-to-customer"
 import { CCCD_FIELDS, type CccdFieldName } from "@workspace/document-scan"
 
 const ocr = (over: Partial<Record<CccdFieldName, string>> = {}) =>
@@ -55,5 +55,17 @@ describe("existingFromForm", () => {
     expect(e.full_name).toBe("HOÀNG THÙY HUYỀN")
     expect(e.sex).toBe("F")
     expect(e.id_number).toBe("082088123456")
+  })
+})
+
+describe("shouldSetProvince", () => {
+  test("sets when the address was patched", () => {
+    expect(shouldSetProvince({ permanentAddress: "x" }, "79")).toBe(true)
+  })
+  test("sets when not patched but no province chosen", () => {
+    expect(shouldSetProvince({}, "")).toBe(true)
+  })
+  test("keeps the chosen province when the address overwrite was declined", () => {
+    expect(shouldSetProvince({}, "79")).toBe(false)
   })
 })

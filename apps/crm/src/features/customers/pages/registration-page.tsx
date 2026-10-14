@@ -128,7 +128,7 @@ export function CustomerRegistrationPage({
     caseId: taskCaseId ?? undefined,
     canUpload: !isReadonly,
   })
-  const identityImages = useIdentityImageStaging()
+  const identityImages = useIdentityImageStaging(taskCaseId)
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
@@ -646,7 +646,7 @@ export function CustomerRegistrationPage({
                             form={form}
                             disabled={isReadonly}
                             onImagesUploaded={async (ids) => {
-                              const r = await identityImages.stage(ids, taskCaseId)
+                              const r = await identityImages.stage(ids)
                               notify.info(t(r === "attached" ? "crm.customers.cccd_scan.images_attached" : "crm.customers.cccd_scan.images_staged"))
                             }}
                           />

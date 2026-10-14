@@ -76,3 +76,13 @@ export function existingFromForm(values: CustomerFormValues): Partial<Record<Ccc
   }
   return out
 }
+
+/** Set the province from the card address only when the address itself was
+ * applied (the user did not decline overwriting it) or no province is chosen
+ * yet; otherwise GeoLocationFields would wipe the user's ward/area. */
+export function shouldSetProvince(
+  patch: Partial<CustomerFormValues>,
+  currentProvinceCode: string
+): boolean {
+  return "permanentAddress" in patch || currentProvinceCode.trim() === ""
+}
