@@ -697,6 +697,22 @@
         "typescript": "~6",
       },
     },
+    "packages/document-scan": {
+      "name": "@workspace/document-scan",
+      "version": "0.0.0",
+      "dependencies": {
+        "@tanstack/react-query": "^5.90.0",
+        "@workspace/api": "workspace:*",
+        "@workspace/i18n": "workspace:*",
+        "@workspace/ui": "workspace:*",
+        "lucide-react": "^1.22.0",
+        "react": "^19.2.6",
+      },
+      "devDependencies": {
+        "@types/react": "^19",
+        "typescript": "~6",
+      },
+    },
     "packages/federation-runtime": {
       "name": "@workspace/federation-runtime",
       "version": "0.0.0",
@@ -1552,6 +1568,8 @@
     "@workspace/auth": ["@workspace/auth@workspace:packages/auth"],
 
     "@workspace/case-tabs": ["@workspace/case-tabs@workspace:packages/case-tabs"],
+
+    "@workspace/document-scan": ["@workspace/document-scan@workspace:packages/document-scan"],
 
     "@workspace/federation-runtime": ["@workspace/federation-runtime@workspace:packages/federation-runtime"],
 
