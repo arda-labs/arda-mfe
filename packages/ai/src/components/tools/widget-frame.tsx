@@ -36,9 +36,11 @@ type WidgetFrameProps = {
 // (sandbox without allow-same-origin): no cookies, storage or parent DOM.
 // Data goes in once via postMessage; only height and error come back.
 //
-// The iframe element is the same in every state (expand is an in-place height
-// change), and is only recreated through `generation`: theme flip, changed
-// source, or a retry/reload button.
+// The iframe element is the same in every state, and is only recreated through
+// `generation`: theme flip, changed source, or a retry/reload button. Expand
+// therefore restyles the card in place as a fixed overlay over the viewport;
+// moving the iframe into a portal or dialog would reload it and lose what the
+// user changed in it.
 export function WidgetFrame({ title, source, data, inputsSummary, className }: WidgetFrameProps) {
   const { t } = useI18n()
   const { html, css, js } = source
@@ -60,6 +62,15 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
   const [phase, setPhase] = useState<Phase>("loading")
   const [error, setError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement | null>(null)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  // Height the card had in the conversation, kept as a placeholder while it is
+  // an overlay so the thread below does not jump.
+  const [placeholderHeight, setPlaceholderHeight] = useState(0)
+  const toggleExpanded = useCallback(() => {
+    if (!expanded) setPlaceholderHeight(cardRef.current?.offsetHeight ?? 0)
+    setExpanded(!expanded)
+  }, [expanded])
 
   // A new document (theme or source changed) means a fresh iframe: reset the
   // lifecycle state during render, the documented pattern for derived state.
@@ -75,6 +86,18 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
     setPhase("loading")
     setError(null)
   }, [])
+
+  // Escape closes the overlay; focus moves to its close button so keyboard
+  // users land inside it.
+  useEffect(() => {
+    if (!expanded) return
+    toggleRef.current?.focus()
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [expanded])
 
   // Theme flips rebuild the document. The observer fires on any <html> class
   // change, so only a theme that actually differs is stored.
@@ -150,72 +173,96 @@ export function WidgetFrame({ title, source, data, inputsSummary, className }: W
     [generation]
   )
 
+  // The backdrop slot is always present (false when collapsed) so the card
+  // keeps its position among the fragment's children and is never remounted.
   return (
-    <div className={cn("my-3 overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xs", className)}>
-      <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2 text-xs">
-        <Sparkles className="size-3.5 shrink-0 text-primary" />
-        <span className="min-w-0 truncate font-semibold text-foreground" title={title}>
-          {title}
-        </span>
-        <span className="ml-auto shrink-0 whitespace-nowrap rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-          {t("ai.tool.widget.badge")}
-        </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-6 shrink-0"
-          aria-label={expanded ? t("ai.tool.widget.collapse") : t("ai.tool.widget.expand")}
-          title={expanded ? t("ai.tool.widget.collapse") : t("ai.tool.widget.expand")}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          {expanded ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
-        </Button>
-      </div>
-      {error && (
+    <>
+      {expanded && (
         <div
-          data-testid="olorin-widget-error"
-          className="flex items-center gap-2 bg-destructive/10 px-3 py-1.5 text-xs text-destructive"
-        >
-          <AlertTriangle className="size-3.5 shrink-0" />
-          {/* Untrusted model text: plain text child only, React escapes it. */}
-          <span className="min-w-0 truncate">
-            {t("ai.tool.widget.error", { message: error.slice(0, ERROR_DISPLAY_CHARS) })}
-          </span>
-          <Button type="button" variant="ghost" size="sm" className="ml-auto h-6 shrink-0" onClick={reload}>
-            {t("ai.tool.widget.reload")}
-          </Button>
-        </div>
-      )}
-      {phase === "timeout" ? (
-        <div
-          data-testid="olorin-widget-timeout"
-          className="px-3 py-4 text-center text-xs text-muted-foreground"
-        >
-          {t("ai.tool.widget.timeout")}
-          <Button type="button" variant="outline" size="sm" className="ml-2" onClick={reload}>
-            {t("ai.tool.widget.retry")}
-          </Button>
-        </div>
-      ) : (
-        <iframe
-          key={generation}
-          ref={iframeRef}
-          data-testid="olorin-widget-frame"
-          title={title}
-          sandbox={WIDGET_SANDBOX}
-          srcDoc={doc}
-          referrerPolicy="no-referrer"
-          loading="lazy"
-          onLoad={handleLoad}
-          className="block w-full border-0"
-          style={{ height: expanded ? "70vh" : `${height}px` }}
+          aria-hidden
+          data-testid="olorin-widget-backdrop"
+          className="fixed inset-0 z-50 bg-black/40 motion-safe:animate-in motion-safe:fade-in-0"
+          onClick={() => setExpanded(false)}
         />
       )}
-      <div className="border-t border-border/40 px-3 py-1.5 text-[11px] text-muted-foreground">
-        {t("ai.tool.widget.inputs", { summary: inputsSummary })}
+      <div
+        ref={cardRef}
+        role={expanded ? "dialog" : undefined}
+        aria-modal={expanded || undefined}
+        aria-label={expanded ? title : undefined}
+        className={cn(
+          "overflow-hidden rounded-xl border border-border/80 bg-card",
+          expanded ? "fixed inset-2 z-50 flex flex-col shadow-2xl sm:inset-6" : "my-3 shadow-2xs",
+          className
+        )}
+      >
+        <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2 text-xs">
+          <Sparkles className="size-3.5 shrink-0 text-primary" />
+          <span className="min-w-0 truncate font-semibold text-foreground" title={title}>
+            {title}
+          </span>
+          <span className="ml-auto shrink-0 whitespace-nowrap rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            {t("ai.tool.widget.badge")}
+          </span>
+          <Button
+            ref={toggleRef}
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-6 shrink-0"
+            aria-label={expanded ? t("ai.tool.widget.collapse") : t("ai.tool.widget.expand")}
+            title={expanded ? t("ai.tool.widget.collapse") : t("ai.tool.widget.expand")}
+            onClick={toggleExpanded}
+          >
+            {expanded ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+          </Button>
+        </div>
+        {error && (
+          <div
+            data-testid="olorin-widget-error"
+            className="flex items-center gap-2 bg-destructive/10 px-3 py-1.5 text-xs text-destructive"
+          >
+            <AlertTriangle className="size-3.5 shrink-0" />
+            {/* Untrusted model text: plain text child only, React escapes it. */}
+            <span className="min-w-0 truncate">
+              {t("ai.tool.widget.error", { message: error.slice(0, ERROR_DISPLAY_CHARS) })}
+            </span>
+            <Button type="button" variant="ghost" size="sm" className="ml-auto h-6 shrink-0" onClick={reload}>
+              {t("ai.tool.widget.reload")}
+            </Button>
+          </div>
+        )}
+        {phase === "timeout" ? (
+          <div
+            data-testid="olorin-widget-timeout"
+            className="px-3 py-4 text-center text-xs text-muted-foreground"
+          >
+            {t("ai.tool.widget.timeout")}
+            <Button type="button" variant="outline" size="sm" className="ml-2" onClick={reload}>
+              {t("ai.tool.widget.retry")}
+            </Button>
+          </div>
+        ) : (
+          <iframe
+            key={generation}
+            ref={iframeRef}
+            data-testid="olorin-widget-frame"
+            title={title}
+            sandbox={WIDGET_SANDBOX}
+            srcDoc={doc}
+            referrerPolicy="no-referrer"
+            loading="lazy"
+            onLoad={handleLoad}
+            className={cn("block w-full border-0", expanded && "min-h-0 flex-1")}
+            style={expanded ? undefined : { height: `${height}px` }}
+          />
+        )}
+        <div className="border-t border-border/40 px-3 py-1.5 text-[11px] text-muted-foreground">
+          {t("ai.tool.widget.inputs", { summary: inputsSummary })}
+        </div>
       </div>
-    </div>
+      {expanded && <div aria-hidden className="my-3" style={{ height: placeholderHeight }} />}
+    </>
   )
 }
 

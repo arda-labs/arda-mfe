@@ -335,8 +335,22 @@ Frame behavior: no `arda:height` within 5 s of sending the data shows "did not
 respond" with a retry button; an `arda:error` shows a warning bar (text capped
 at 200 chars) with a reload button and keeps the frame; at most 3 widgets are
 mounted at once, page-wide (the oldest collapses to a "run again" card). This
-limit applies through `WidgetSlot`; using `WidgetFrame` directly bypasses it. Expand is an
-in-place height change (70vh), not a dialog.
+limit applies through `WidgetSlot`; using `WidgetFrame` directly bypasses it.
+
+Expand turns the same card into a fixed overlay over the viewport (`inset-2`,
+`sm:inset-6`, dimmed backdrop, `role="dialog"`), with a placeholder keeping its
+place in the thread. It is not a portal or dialog component on purpose: moving
+the iframe reloads it and loses what the user changed. Close with the button,
+the backdrop or Escape. Escape only works while focus is in the page; once the
+user has clicked inside the widget, keys go to the sandboxed frame, which has
+no message for this. This relies on no ancestor of the card creating a
+containing block (`transform`, `filter`, `contain`, `will-change`); the message
+`animate-in` uses `fill-mode: none`, so its transform is gone once it ends.
+
+Thread layout: the thread column is `max-w-6xl`; prose, user turns and activity
+keep a `max-w-4xl` reading column (`READING` in `olorin-panel.tsx`), while
+artifacts (widgets, charts, report cards) take the whole row. "Wide chat" lifts
+both limits.
 
 ### Helper kit (`window.arda`)
 
