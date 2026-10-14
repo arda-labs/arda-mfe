@@ -388,5 +388,72 @@
   "checklist": {
     "title": "Before you submit",
     "passed": "{passed}/{total} passed"
+  },
+  "document_scan": {
+    "title": "Scan ID card",
+    "description": "Take or choose photos of both sides. Fields are filled into the form only after you confirm them.",
+    "front": "Front",
+    "back": "Back",
+    "choose_image": "Take or choose a photo",
+    "change_image": "Change photo",
+    "back_missing_hint": "Without the back side, issue date and issuing authority (and residence on 2024 cards) are missing.",
+    "cloud_warning_title": "Test environment",
+    "cloud_warning_body": "Images are sent to an external AI service. Use sample cards only, never real documents.",
+    "cloud_ack": "I am using a sample card",
+    "read": "Read card",
+    "reading": "Reading the card…",
+    "cancel": "Cancel",
+    "retake": "Retake",
+    "review_hint": "Check every field against the photo, especially the diacritics in the name.",
+    "apply": "Fill the form",
+    "keep": "Keep as is",
+    "kept": "Confirmed",
+    "will_overwrite": "Will overwrite the current value",
+    "zoom": "Zoom",
+    "card_version": {
+      "cccd_chip_2021": "Chip-based CCCD",
+      "can_cuoc_2024": "Căn cước card (2024)",
+      "cccd_barcode": "Barcode CCCD",
+      "unknown": "Unknown card version"
+    },
+    "fields": {
+      "id_number": "ID number",
+      "full_name": "Full name",
+      "date_of_birth": "Date of birth",
+      "sex": "Sex",
+      "nationality": "Nationality",
+      "place_of_origin": "Place of origin",
+      "residence": "Place of residence",
+      "issue_date": "Date of issue",
+      "issue_place": "Issued by",
+      "expiry_date": "Valid until"
+    },
+    "sex": { "M": "Male", "F": "Female" },
+    "flags": {
+      "invalid_format": "Invalid format",
+      "mismatch_id_number": "Does not match the ID number",
+      "unknown_province_code": "Unknown province code",
+      "invalid_date": "Invalid date",
+      "date_order": "Dates out of order",
+      "expiry_inconsistent": "Expiry is not on the birthday",
+      "expired": "Card has expired",
+      "not_found": "Not readable",
+      "no_expiry": "No expiry"
+    },
+    "warnings": {
+      "back_side_missing": "Back side not provided",
+      "card_version_unknown": "Card version not recognised",
+      "image_quality_low": "Photo is blurry or has glare; consider retaking it"
+    },
+    "errors": {
+      "not_document": "This is not an ID card. Please photograph the card itself.",
+      "too_large": "The image is too large.",
+      "unsupported": "Unsupported image format. Choose a JPEG or PNG.",
+      "timeout": "Reading took too long. Try again with a sharper photo.",
+      "unavailable": "Card reading is unavailable. Please type the data.",
+      "bad_output": "The result could not be read. Please try again.",
+      "forbidden": "You are not allowed to use this feature.",
+      "unknown": "Something went wrong while reading the card. Please try again."
+    }
   }
 }

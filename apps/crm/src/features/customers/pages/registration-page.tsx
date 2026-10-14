@@ -27,6 +27,8 @@ import {
   CheckerDecisionDialog,
   type CheckerDecision,
 } from "../components/checker-decision-dialog"
+import { CccdScanButton } from "../components/cccd-scan-button"
+import { useIdentityImageStaging } from "../utils/use-identity-image-staging"
 import { CustomerRegistrationTabsList } from "../components/registration-tabs-list"
 import { RelationshipsPanel } from "../components/relationships-panel"
 import { GeoLocationFields } from "../components/geo-location-fields"
@@ -126,6 +128,8 @@ export function CustomerRegistrationPage({
     caseId: taskCaseId ?? undefined,
     canUpload: !isReadonly,
   })
+  const identityImages = useIdentityImageStaging(taskCaseId, savedCustomer?.id ?? "")
+  const claimStagedCustomer = identityImages.claim
   const canCompleteTask =
     !viewOnly &&
     hasTaskContext(taskContext) &&
@@ -273,12 +277,15 @@ export function CustomerRegistrationPage({
 
   const refreshCustomer = useCallback(
     (customer: Customer) => {
+      // Only save paths come through here: the unsaved form's staged card
+      // photos now belong to this customer (a merely loaded one never claims).
+      claimStagedCustomer(customer.id)
       setSavedCustomer(customer)
       form.reset(toFormValues(customer))
       localStorage.removeItem(`crm_customer_draft:${customer.id}`)
       localStorage.removeItem("crm_customer_draft:new")
     },
-    [form]
+    [form, claimStagedCustomer]
   )
 
   async function saveDraft(payload: CustomerPayload) {
@@ -328,6 +335,9 @@ export function CustomerRegistrationPage({
         },
       })
       refreshCustomer(submitted)
+      await identityImages
+        .flush(submitted.workflowCaseId)
+        .catch(() => notify.warning(t("crm.customers.cccd_scan.attach_failed")))
 
       // Non-blocking UX: navigate straight to the maker edit screen. The
       // screen claims the engine task on demand (with retries) and shows its
@@ -633,7 +643,19 @@ export function CustomerRegistrationPage({
                   </Panel>
                   {isPersonal ? (
                     <>
-                      <Panel title={t("crm.customers.panels.identity")}>
+                      <Panel
+                        title={t("crm.customers.panels.identity")}
+                        actions={
+                          <CccdScanButton
+                            form={form}
+                            disabled={isReadonly}
+                            onImagesUploaded={async (ids) => {
+                              const r = await identityImages.stage(ids)
+                              notify.info(t(r === "attached" ? "crm.customers.cccd_scan.images_attached" : "crm.customers.cccd_scan.images_staged"))
+                            }}
+                          />
+                        }
+                      >
                         <FieldGrid fields={personalFields} form={form} />
                       </Panel>
                       <Panel title={t("crm.customers.panels.extended")}>

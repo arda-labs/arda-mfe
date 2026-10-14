@@ -165,6 +165,17 @@ export const defaultValues: CustomerFormValues = {
   businessLine: "",
 }
 
+/** OCR sex code → gender option value. */
+export const GENDER_BY_SEX = { M: "Nam", F: "Nữ" } as const
+
+/** Card version detected by OCR → identityType value. */
+export const IDENTITY_TYPE_BY_CARD = {
+  cccd_chip_2021: "Căn cước công dân",
+  cccd_barcode: "Căn cước công dân",
+  can_cuoc_2024: "Căn cước",
+  unknown: "Căn cước công dân",
+} as const
+
 /**
  * Option labels are i18n keys under crm.customers.options.*; resolve them
  * with t(option.label) at render time (see FieldGrid / RelationSelect).
@@ -280,6 +291,7 @@ export const selectOptions = {
   ],
   identityType: [
     { value: "Căn cước công dân", label: "crm.customers.options.identity_type_cccd" },
+    { value: "Căn cước", label: "crm.customers.options.identity_type_can_cuoc" },
     { value: "Chứng minh nhân dân", label: "crm.customers.options.identity_type_cmnd" },
     { value: "Hộ chiếu", label: "crm.customers.options.identity_type_passport" },
   ],
