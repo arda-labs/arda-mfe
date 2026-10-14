@@ -20,11 +20,11 @@ export function MovementsTable({ rows }: { rows: CapitalMovement[] }) {
         <TableHeader className="bg-muted/50">
           <TableRow>
             <TableHead>{t("capital.movements.field.type")}</TableHead>
-            <TableHead>{t("capital.movements.field.date")}</TableHead>
+            <TableHead className="whitespace-nowrap">{t("capital.movements.field.date")}</TableHead>
             <TableHead className="text-right">{t("capital.movements.field.amount")}</TableHead>
             <TableHead>{t("capital.movements.field.note")}</TableHead>
             <TableHead>{t("common.field.status")}</TableHead>
-            <TableHead>{t("capital.field.journal")}</TableHead>
+            <TableHead className="whitespace-nowrap">{t("capital.field.journal")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -48,7 +48,7 @@ export function MovementsTable({ rows }: { rows: CapitalMovement[] }) {
                   {t(`capital.movement_status.${row.status}`)}
                 </StatusBadge>
               </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
+              <TableCell className="font-mono text-xs whitespace-nowrap text-muted-foreground">
                 {row.journal_entry_id ? row.journal_entry_id.slice(0, 8) : "—"}
               </TableCell>
             </TableRow>
