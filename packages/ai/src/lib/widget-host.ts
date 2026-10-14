@@ -20,6 +20,7 @@
 //     its function declarations are globals, so inline handlers in the html
 //     (oninput="render()") resolve them.
 import type { ChartTheme } from "./chart-theme"
+import { WIDGET_KIT } from "./widget-kit"
 
 export type WidgetSource = { html: string; css?: string; js: string }
 
@@ -139,7 +140,8 @@ export function buildWidgetDocument(input: WidgetSource & { theme: ChartTheme })
 <meta http-equiv="Content-Security-Policy" content="${WIDGET_CSP}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>${escapeInlineStyle(themeBlock(input.theme))}</style>
-<script>${RUNTIME}</script>
+<script>${RUNTIME}
+${WIDGET_KIT}</script>
 </head>
 <body>
 ${input.html}
