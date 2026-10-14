@@ -16,6 +16,9 @@
 //     So both styles work: reading window.ARDA_DATA at top level, and
 //     listening for arda:data. DOMContentLoaded and load have already fired by
 //     then, so model code waiting for them never runs.
+//     The code runs as a classic script at top level, not inside a function:
+//     its function declarations are globals, so inline handlers in the html
+//     (oninput="render()") resolve them.
 import type { ChartTheme } from "./chart-theme"
 
 export type WidgetSource = { html: string; css?: string; js: string }
@@ -89,11 +92,18 @@ const RUNTIME = `(function () {
     var msg = event.data;
     if (!msg || msg.type !== "arda:data") return;
     window.ARDA_DATA = msg.data;
-    // Model code runs once, now that the data is there (Known limits d). Its
-    // own errors are reported by the wrapper in buildWidgetDocument.
+    // Model code runs once, now that the data is there (Known limits d). An
+    // inserted inline script runs synchronously at top level; its errors,
+    // syntax errors included, reach the "error" listener below.
     if (!ran) {
       ran = true;
-      if (typeof window.__ardaRun === "function") window.__ardaRun();
+      var code = window.__ardaCode;
+      delete window.__ardaCode;
+      if (typeof code === "string" && document.body) {
+        var script = document.createElement("script");
+        script.textContent = code;
+        document.body.appendChild(script);
+      }
     }
     try { window.dispatchEvent(new CustomEvent("arda:data")); } catch (e) { post({ type: "arda:error", message: String(e && e.message || e).slice(0, 500) }); }
     reportHeight();
@@ -118,7 +128,10 @@ const RUNTIME = `(function () {
 
 export function buildWidgetDocument(input: WidgetSource & { theme: ChartTheme }): string {
   const css = escapeInlineStyle(input.css ?? "")
-  const js = escapeInlineScript(input.js)
+  // The model code is carried as a JS string literal and run later by the
+  // runtime. JSON.stringify makes the literal; the escape keeps "</script" and
+  // "<!--" inside it from ending the element.
+  const js = escapeInlineScript(JSON.stringify(input.js))
   return `<!doctype html>
 <html lang="vi">
 <head>
@@ -131,9 +144,7 @@ export function buildWidgetDocument(input: WidgetSource & { theme: ChartTheme })
 <body>
 ${input.html}
 <style>${css}</style>
-<script>window.__ardaRun = function () { try {
-${js}
-} catch (e) { window.dispatchEvent(new ErrorEvent("error", { message: String(e && e.message || e) })); } };</script>
+<script>window.__ardaCode = ${js};</script>
 </body>
 </html>`
 }
