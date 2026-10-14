@@ -296,10 +296,14 @@ export function OlorinPanel({
             <OlorinWelcome wide={wideChat} composer={<OlorinComposer />} />
           </ThreadPrimitive.Empty>
 
+          {/* The thread is wider than the reading column: prose, user turns and
+              activity keep READING width, while artifacts (widgets, charts,
+              report cards) use the whole row. "Wide chat" lifts both limits. */}
           <div
+            data-wide={wideChat}
             className={cn(
-              "mx-auto w-full space-y-4 px-4 sm:px-6 md:px-8 py-4 transition-[max-width] duration-300",
-              wideChat ? "max-w-none" : "max-w-4xl"
+              "group/thread mx-auto w-full space-y-4 px-4 sm:px-6 md:px-8 py-4 transition-[max-width] duration-300",
+              wideChat ? "max-w-none" : "max-w-6xl"
             )}
           >
             <ThreadPrimitive.Messages>
@@ -312,8 +316,10 @@ export function OlorinPanel({
               }}
             </ThreadPrimitive.Messages>
 
-            <ThinkingBubble />
-            <RunErrorBubble />
+            <div className={READING}>
+              <ThinkingBubble />
+              <RunErrorBubble />
+            </div>
           </div>
 
           <ThreadPrimitive.ScrollToBottom asChild>
@@ -639,6 +645,10 @@ function HeaderActivity() {
   )
 }
 
+// Reading column inside the thread (see the thread container): centred,
+// 56rem, lifted when the thread has data-wide=true.
+const READING = "mx-auto w-full max-w-4xl group-data-[wide=true]/thread:max-w-none"
+
 function UserMessage() {
   const { t } = useI18n()
 
@@ -647,7 +657,10 @@ function UserMessage() {
       // User-owned text is not quotable — the selection toolbar only
       // surfaces for assistant content.
       data-aui-quote-selectable="false"
-      className="group/message flex w-full justify-end py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200"
+      className={cn(
+        READING,
+        "group/message flex justify-end py-1.5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200"
+      )}
     >
       <div className="flex max-w-[85%] flex-col items-end gap-1">
         <div className="rounded-2xl bg-muted px-4 py-2.5 text-sm leading-relaxed text-foreground shadow-2xs wrap-break-word">
@@ -675,7 +688,7 @@ function UserMessage() {
 function UserEditComposer() {
   const { t } = useI18n()
   return (
-    <MessagePrimitive.Root className="flex w-full justify-end py-1.5">
+    <MessagePrimitive.Root className={cn(READING, "flex justify-end py-1.5")}>
       <div className="flex max-w-[85%] flex-col items-end gap-1">
         <ComposerPrimitive.Root className="w-full rounded-2xl border bg-card p-1.5 shadow-2xs transition focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20">
           <ComposerPrimitive.Input
@@ -773,26 +786,28 @@ function AssistantMessage() {
                 switch (part.type) {
                   case "group-chainOfThought":
                     return (
-                      <div className="order-1 mb-2">
+                      <div className={cn(READING, "order-1 mb-2")}>
                         <ActivityGroup running={part.status?.type === "running"}>
                           {children}
                         </ActivityGroup>
                       </div>
                     )
                   case "group-text":
-                    return <div className="order-3 space-y-1">{children}</div>
+                    return <div className={cn(READING, "order-3 space-y-1")}>{children}</div>
                   case "group-reasoning": {
                     const running = part.status?.type === "running"
                     return (
-                      <ReasoningRoot streaming={running} defaultOpen={true} variant="ghost">
-                        <ReasoningTrigger
-                          active={running}
-                          label={t("ai.message.reasoning")}
-                        />
-                        <ReasoningContent aria-busy={running}>
-                          <ReasoningText>{children}</ReasoningText>
-                        </ReasoningContent>
-                      </ReasoningRoot>
+                      <div className={READING}>
+                        <ReasoningRoot streaming={running} defaultOpen={true} variant="ghost">
+                          <ReasoningTrigger
+                            active={running}
+                            label={t("ai.message.reasoning")}
+                          />
+                          <ReasoningContent aria-busy={running}>
+                            <ReasoningText>{children}</ReasoningText>
+                          </ReasoningContent>
+                        </ReasoningRoot>
+                      </div>
                     )
                   }
                   case "group-tool":
@@ -816,7 +831,7 @@ function AssistantMessage() {
                     // status row (the external ThinkingBubble covers the window
                     // before the assistant message exists).
                     return (
-                      <div className="order-1 flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
+                      <div className={cn(READING, "order-1 flex items-center gap-2 py-0.5 text-xs text-muted-foreground")}>
                         <LoaderCircle className="size-3.5 shrink-0 animate-spin text-primary" />
                         <span className="shimmer font-medium motion-reduce:animate-none">
                           {t("ai.activity.working")}
@@ -845,7 +860,7 @@ function AssistantMessage() {
               }}
             </MessagePrimitive.GroupedParts>
           </div>
-          <div className="flex items-center gap-1 opacity-100 transition-opacity pl-1 md:opacity-0 md:group-hover/message:opacity-100 md:group-focus-within/message:opacity-100">
+          <div className={cn(READING, "flex items-center gap-1 opacity-100 transition-opacity pl-1 md:opacity-0 md:group-hover/message:opacity-100 md:group-focus-within/message:opacity-100")}>
             <ActionBarPrimitive.Root className="flex items-center gap-0.5">
               <ActionBarPrimitive.Copy asChild>
                 <Button
