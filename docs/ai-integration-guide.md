@@ -423,6 +423,11 @@ Side effects of `frame-src 'self' blob:`:
   badge are rendered by the parent, but the `title` (up to 200 chars) and the
   `inputs_summary` (up to 500 chars) are model-supplied text. Never treat
   in-frame content as trusted UI and never collect credentials in a widget.
+- Markdown answers never render `<img>`, with or without this flag:
+  `MarkdownMessage` turns `![alt](url)` into a plain link. An image the browser
+  loads on render would carry data out with no click (`?d=<tenant data>`), and
+  `SHELL_CSP` has no `img-src` to stop it. Keep that override if you change
+  `components/markdown.tsx`.
 
 ### For domain MFE authors
 
