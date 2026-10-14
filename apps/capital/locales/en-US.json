@@ -34,9 +34,26 @@
     "loading": "Loading...",
     "load_failed": "Could not load the contract.",
     "tab": {
-      "info": "Information",
       "movements": "Transaction history",
       "amendments": "Amendments"
+    },
+    "properties": "Contract information",
+    "lifecycle": {
+      "label": "Contract lifecycle",
+      "created": "Drafted",
+      "approval": "Approval",
+      "active": "Active",
+      "settled": "Settled",
+      "movements": "{count} transactions"
+    },
+    "figure": {
+      "received": "Received",
+      "pending": "{count} transactions awaiting approval",
+      "available": "Available balance",
+      "outflow": "Paid out {amount}",
+      "days_left": "{count} days left",
+      "due_today": "Due today",
+      "overdue_days": "{count} days overdue"
     }
   },
   "field": {
