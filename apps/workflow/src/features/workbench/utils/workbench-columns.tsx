@@ -54,7 +54,7 @@ export function workItemColumns(
         id: "progress",
         header: t("workflow.workbench.col_progress"),
         cell: ({ row }) => (
-          <div className="min-w-44">
+          <div className="min-w-52">
             <TimeProgress item={row.original} />
           </div>
         ),
