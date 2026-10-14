@@ -277,13 +277,21 @@
     "detail_title": "Chi tiết kỳ nộp",
     "detail_description": "Thông tin kỳ nộp báo cáo (chỉ đọc).",
     "detail_empty": "Không tải được chi tiết kỳ nộp",
+    "sheet_title": "Kỳ {period}",
+    "lifecycle_label": "Vòng đời kỳ nộp",
+    "view": {
+      "all": "Tất cả"
+    },
     "validation": {
       "required": "Chọn báo cáo và kỳ nộp"
     },
     "field": {
       "report": "Báo cáo",
       "period": "Kỳ",
-      "submitted_by": "Người nộp"
+      "submitted_by": "Người nộp",
+      "submitted_at": "Thời điểm trình",
+      "case": "Hồ sơ duyệt",
+      "created_by": "Người tạo"
     },
     "status": {
       "draft": "Nháp",
