@@ -13,6 +13,8 @@ import {
 import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { ListPageShell } from "@workspace/list-page/list-page-shell"
 import { ListTableToolbar } from "@workspace/list-page/list-table-toolbar"
+import { SavedViewTabs } from "@workspace/list-page/saved-view-tabs"
+import { useRecordSheet } from "@workspace/list-page/use-record-sheet"
 import { CheckCircle2, CornerDownRight, FilePlus2 } from "lucide-react"
 import { formatDateShort, formatAmount, fromMinor } from "@workspace/format"
 import {
@@ -23,7 +25,10 @@ import {
 import { caseDisplayLabel, truncateMiddle } from "../case-display"
 import { disbursementsListDefinition } from "./list-query"
 import { StatusBadge } from "@workspace/ui/components/status-badge"
+import { DisbursementSheet } from "./disbursement-sheet"
 
+// Lifecycle of lnm_disbursements (loan-service domain/disbursement.go); the
+// workflow CANCEL decision lands rows in CANCELLED, so it gets a view too.
 const STATUS_VALUES = ["DRAFT", "PENDING_APPROVAL", "APPROVED", "POSTED", "REJECTED", "CANCELLED"] as const
 
 const FLOW_VALUES: LoanDisbursementFlowType[] = ["REGISTER", "COMPLETE"]
@@ -188,11 +193,6 @@ export function DisbursementsPage(_props: { pathname: string }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} label={t("loan.field.status")} />
         ),
-        enableColumnFilter: true,
-        meta: selectFilterMeta(
-          t("loan.field.status"),
-          STATUS_VALUES.map((value) => ({ label: statusLabels[value], value }))
-        ),
         cell: ({ row }) => (
           <StatusBadge status={row.original.status}>
             {statusLabels[row.original.status] ?? row.original.status}
@@ -225,7 +225,6 @@ export function DisbursementsPage(_props: { pathname: string }) {
   )
 
   const {
-    total,
     items,
     isLoading,
     isFetching,
@@ -256,13 +255,41 @@ export function DisbursementsPage(_props: { pathname: string }) {
     (item) => item.status === "POSTED" && (item.flow_type ?? "REGISTER") === "REGISTER"
   )
 
+  const sheet = useRecordSheet(table)
+  // Work queues first (design board 12.2): the counts replace the old total badge.
+  const views = useMemo(
+    () => [
+      { id: "all", label: t("loan.disbursements.view.all") },
+      ...STATUS_VALUES.map((value) => ({ id: value, value, label: statusLabels[value] })),
+    ],
+    [statusLabels, t]
+  )
+
   return (
     <ListPageShell
       title={t("loan.disbursements.title")}
-      meta={
-        <Badge variant="secondary" className="px-2.5 py-0.5 text-[10px] font-bold">
-          {t("loan.count_badge", { count: total })}
-        </Badge>
+      views={
+        <SavedViewTabs
+          views={views}
+          urlKey="status"
+          config={disbursementsListDefinition.queryConfig}
+          countKey={disbursementsListDefinition.queryKey}
+          countFn={(status) =>
+            disbursementApi.list({ status, page: 1, per_page: 1 }).then((res) => res.total)
+          }
+          aria-label={t("loan.field.status")}
+        />
+      }
+      onRowClick={sheet.openRow}
+      activeRowId={sheet.activeRowId}
+      dialogs={
+        <DisbursementSheet
+          record={sheet.record}
+          sheet={sheet}
+          statusLabels={statusLabels}
+          flowLabels={flowLabels}
+          onSubmit={(item) => void submit(item)}
+        />
       }
       criticalPending={isLoading}
       criticalError={loadError}

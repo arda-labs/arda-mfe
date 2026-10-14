@@ -420,7 +420,14 @@
       "currency": "Currency",
       "disburse_date": "Disbursement date",
       "fund_source": "Fund source",
-      "flow_type": "Flow"
+      "flow_type": "Flow",
+      "source_register": "Source register",
+      "batch": "Disbursement batch",
+      "journal_entry": "Journal entry",
+      "closes_contract": "Closes the contract"
+    },
+    "view": {
+      "all": "All"
     },
     "placeholder": {
       "fund_source": "Fund source code (optional)"
