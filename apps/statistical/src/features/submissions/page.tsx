@@ -12,6 +12,7 @@ import { useServerDataTable } from "@workspace/list-page/server-data-table"
 import { SavedViewTabs } from "@workspace/list-page/saved-view-tabs"
 import { useRecordSheet } from "@workspace/list-page/use-record-sheet"
 import { CheckCircle2, Eye } from "lucide-react"
+import { formatDateTime } from "@workspace/format"
 import { statisticalApi, type ReportSubmission } from "../api"
 import { SUBMISSION_STATUSES, submissionsListDefinition } from "./list-query"
 import { CreateSubmissionDialog } from "./components/CreateSubmissionDialog"
@@ -132,6 +133,11 @@ export function SubmissionsPage(_props: { pathname: string }) {
             column={column}
             label={t("common.field.created")}
           />
+        ),
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap tabular-nums">
+            {formatDateTime(row.original.created_at)}
+          </span>
         ),
       },
       {
