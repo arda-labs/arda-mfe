@@ -61,10 +61,28 @@ function clampZoom(value: number) {
 }
 
 /** Minimal Highlight API access (lib.dom types vary across TS versions). */
+// Styles for the search highlights. They are injected at runtime because
+// Lightning CSS (Vite's CSS minifier) does not know ::highlight() yet and
+// warns on every build when the rules live in globals.css.
+const HIGHLIGHT_STYLE_ID = "arda-pdf-highlight-style"
+const HIGHLIGHT_CSS =
+  "::highlight(arda-pdf-search){background-color:rgb(250 204 21 / 0.45)}" +
+  "::highlight(arda-pdf-search-active){background-color:rgb(249 115 22 / 0.7)}"
+
+function ensureHighlightStyle() {
+  if (typeof document === "undefined" || document.getElementById(HIGHLIGHT_STYLE_ID)) return
+  const style = document.createElement("style")
+  style.id = HIGHLIGHT_STYLE_ID
+  style.textContent = HIGHLIGHT_CSS
+  document.head.appendChild(style)
+}
+
 function highlightsRegistry(): Map<string, unknown> | null {
   const css = globalThis.CSS as unknown as
     { highlights?: Map<string, unknown> } | undefined
-  return css?.highlights ?? null
+  if (!css?.highlights) return null
+  ensureHighlightStyle()
+  return css.highlights
 }
 
 function highlightCtor(): HighlightCtor | null {
