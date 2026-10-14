@@ -10,8 +10,12 @@
 // (c) The parent must accept only arda:height and arda:error, only from the
 //     contentWindow of its own iframe (event.source), and must render
 //     arda:error text as plain text: that text comes from model code.
-// (d) Handshake: model listeners register while the document is parsed, before
-//     the iframe `load` event. The parent must send arda:data after `load`.
+// (d) Handshake: the parent sends arda:data after the iframe `load` event. The
+//     model code does not run while the document is parsed: the runtime runs
+//     it once, after ARDA_DATA is set, and then dispatches the arda:data event.
+//     So both styles work: reading window.ARDA_DATA at top level, and
+//     listening for arda:data. DOMContentLoaded and load have already fired by
+//     then, so model code waiting for them never runs.
 import type { ChartTheme } from "./chart-theme"
 
 export type WidgetSource = { html: string; css?: string; js: string }
@@ -72,6 +76,7 @@ th:first-child, td:first-child { text-align: left; }`
 // must validate (Known limits c).
 const RUNTIME = `(function () {
   var parent = window.parent;
+  var ran = false;
   function post(msg) { try { parent.postMessage(msg, "*"); } catch (e) {} }
   function reportHeight() {
     var body = document.body;
@@ -84,6 +89,12 @@ const RUNTIME = `(function () {
     var msg = event.data;
     if (!msg || msg.type !== "arda:data") return;
     window.ARDA_DATA = msg.data;
+    // Model code runs once, now that the data is there (Known limits d). Its
+    // own errors are reported by the wrapper in buildWidgetDocument.
+    if (!ran) {
+      ran = true;
+      if (typeof window.__ardaRun === "function") window.__ardaRun();
+    }
     try { window.dispatchEvent(new CustomEvent("arda:data")); } catch (e) { post({ type: "arda:error", message: String(e && e.message || e).slice(0, 500) }); }
     reportHeight();
   });
@@ -120,9 +131,9 @@ export function buildWidgetDocument(input: WidgetSource & { theme: ChartTheme })
 <body>
 ${input.html}
 <style>${css}</style>
-<script>(function () { try {
+<script>window.__ardaRun = function () { try {
 ${js}
-} catch (e) { window.dispatchEvent(new ErrorEvent("error", { message: String(e && e.message || e) })); } })();</script>
+} catch (e) { window.dispatchEvent(new ErrorEvent("error", { message: String(e && e.message || e) })); } };</script>
 </body>
 </html>`
 }

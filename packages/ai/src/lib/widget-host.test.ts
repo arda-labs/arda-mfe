@@ -132,7 +132,8 @@ describe("buildWidgetDocument", () => {
     const js = `window.parent.postMessage({ type: "probe", a: "</SCRIPT >", b: "</script/" }, "*")`
     const doc = buildWidgetDocument({ html: "", js, theme })
     expect((doc.match(/<\/script/gi) ?? []).length).toBe(2)
-    const { posted } = runDocument(doc, { height: 10 })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: {} })
     expect(posted).toContainEqual({ type: "probe", a: "</SCRIPT >", b: "</script/" })
   })
 
@@ -145,7 +146,8 @@ describe("buildWidgetDocument", () => {
     const modelScript = [...doc.matchAll(/<script>([\s\S]*?)<\/script>/g)][1][1]
     expect(modelScript).not.toContain("<!--")
     expect((doc.match(/<\/script>/g) ?? []).length).toBe(2)
-    const { posted } = runDocument(doc, { height: 10 })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: {} })
     expect(posted).toContainEqual({ type: "probe", c: "<!-- <script" })
   })
 
@@ -219,13 +221,53 @@ describe("buildWidgetDocument", () => {
 
   test("a thrown model error reaches the parent as arda:error via the runtime path", () => {
     const doc = buildWidgetDocument({ html: "", js: 'throw new Error("boom")', theme })
-    const { posted } = runDocument(doc, { height: 10 })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: {} })
     expect(posted).toContainEqual({ type: "arda:error", message: "boom" })
+  })
+
+  test("model code does not run before arda:data", () => {
+    const js = `window.parent.postMessage({ type: "probe", ran: true }, "*")`
+    const doc = buildWidgetDocument({ html: "", js, theme })
+    const { posted, load } = runDocument(doc, { height: 10 })
+    load()
+    expect(posted.filter((m) => m.type === "probe")).toEqual([])
+  })
+
+  test("model code reading ARDA_DATA at top level sees the data", () => {
+    // The shape the agent actually writes: read once at top level, then render.
+    const js = `var D = window.ARDA_DATA || {};
+var principal = D.principal;
+window.parent.postMessage({ type: "probe", value: principal * 2 }, "*")`
+    const doc = buildWidgetDocument({ html: "", js, theme })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: { principal: 600 } })
+    expect(posted).toContainEqual({ type: "probe", value: 1200 })
+  })
+
+  test("an arda:data listener registered by model code still fires", () => {
+    const js = `window.addEventListener("arda:data", function () {
+  window.parent.postMessage({ type: "probe", value: window.ARDA_DATA.principal }, "*")
+})`
+    const doc = buildWidgetDocument({ html: "", js, theme })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: { principal: 7 } })
+    expect(posted).toContainEqual({ type: "probe", value: 7 })
+  })
+
+  test("model code runs once even if arda:data arrives twice", () => {
+    const js = `window.parent.postMessage({ type: "probe" }, "*")`
+    const doc = buildWidgetDocument({ html: "", js, theme })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: {} })
+    send({ type: "arda:data", data: {} })
+    expect(posted.filter((m) => m.type === "probe").length).toBe(1)
   })
 
   test("arda:error text is capped at 500 characters", () => {
     const doc = buildWidgetDocument({ html: "", js: `throw new Error("x".repeat(900))`, theme })
-    const { posted } = runDocument(doc, { height: 10 })
+    const { posted, send } = runDocument(doc, { height: 10 })
+    send({ type: "arda:data", data: {} })
     const error = posted.find((m) => m.type === "arda:error")
     expect(String(error?.message).length).toBe(500)
   })

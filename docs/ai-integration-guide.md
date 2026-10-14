@@ -322,7 +322,7 @@ mounted through `RenderWidgetToolUI` in `OlorinPanel`.
 
 | Direction | Message | Notes |
 |:---|:---|:---|
-| parent -> iframe | `{ type: "arda:data", data }` | sent once per iframe load, after the `load` event (model listeners are registered while parsing); the iframe sets `window.ARDA_DATA` and fires an `arda:data` event |
+| parent -> iframe | `{ type: "arda:data", data }` | sent once per iframe load, after the `load` event; the iframe sets `window.ARDA_DATA`, runs the model JS once (it is not run while parsing), then fires an `arda:data` event. Model JS may read `ARDA_DATA` at top level or listen for `arda:data`; `DOMContentLoaded`/`load` have already fired |
 | iframe -> parent | `{ type: "arda:height", height }` | clamped to 160-720 px |
 | iframe -> parent | `{ type: "arda:error", message }` | capped at 500 chars |
 

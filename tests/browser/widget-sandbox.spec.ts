@@ -58,6 +58,26 @@ test("widget reads ARDA_DATA and reports height; fetch is blocked by CSP", async
   console.log("[probe] console errors:", JSON.stringify(consoleErrors))
 })
 
+test("widget reading ARDA_DATA at top level computes from the data and reacts to a slider", async ({ page }) => {
+  // The shape the agent writes for "what-if" tools: read the data once at top
+  // level, render, re-render on input. Run at parse time it would show NaN.
+  const doc = buildWidgetDocument({
+    html: `<input id="rate" type="range" min="5" max="15" step="1" value="9"><div id="out"></div>`,
+    js: `var D = window.ARDA_DATA || {};
+var principal = D.principal;
+var rate = document.getElementById("rate");
+function render() { document.getElementById("out").textContent = String(principal * Number(rate.value) / 100); }
+rate.addEventListener("input", render);
+render();`,
+    theme,
+  })
+  await page.setContent(outerPage(doc))
+  const frame = page.frameLocator("#f")
+  await expect(frame.locator("#out")).toHaveText("90")
+  await frame.locator("#rate").fill("12")
+  await expect(frame.locator("#out")).toHaveText("120")
+})
+
 test("a healthy widget produces no arda:error", async ({ page }) => {
   const doc = buildWidgetDocument({ html: `<div id="out"></div>`, js: `1`, theme })
   await page.setContent(outerPage(doc))
