@@ -17,6 +17,7 @@ import type {
   RateRequest,
   BatchInterestResult,
   RateChangePayload,
+  ProductUpsertRequest,
   WireBody,
 } from "./types"
 import type {
@@ -75,10 +76,7 @@ export const depositApi = {
   ) => postCanonical<SavingsProduct>("/api/deposit/products", body),
   submitProductRequest: (
     requestType: "REGISTER" | "EDIT",
-    body: WireBody<
-      Omit<DepositProductRequestInput, "request_type">,
-      "product_code" | "name" | "term_months" | "interest_rate"
-    >
+    body: ProductUpsertRequest
   ) =>
     postCanonical<DepositSubmission>("/api/deposit/product-requests", {
       request_type: requestType,

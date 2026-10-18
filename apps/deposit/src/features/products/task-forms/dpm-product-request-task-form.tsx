@@ -8,6 +8,7 @@ import {
   type TaskFormProps,
 } from "@workspace/workflow-task"
 import { depositApi, type ProductRequest } from "../../api"
+import { formatRoundNo, roundTypeLabelKey } from "../round-config"
 
 /**
  * DPM.102/103 product register/edit — the checker sees the staged payload from
@@ -77,6 +78,17 @@ export function DpmProductRequestTaskForm({
     commentRequired: t("deposit.product_task_form.comment_required"),
   }
 
+  // An edit without rounding keeps what the product has; a registration has none.
+  const unsetRound = request
+    ? t(
+        `deposit.product_task_form.round_unset.${request.request_type.toLowerCase()}`
+      )
+    : ""
+  const roundTypeText = (code: string) => {
+    const labelKey = roundTypeLabelKey(code)
+    return labelKey ? `${code} · ${t(labelKey)}` : code
+  }
+
   const rows: Array<{ label: string; value: string }> = request
     ? [
         {
@@ -104,6 +116,19 @@ export function DpmProductRequestTaskForm({
         {
           label: t("deposit.product_task_form.field.currency"),
           value: request.currency_code,
+        },
+        {
+          label: t("deposit.product_task_form.field.round_no"),
+          value:
+            request.round_no == null
+              ? unsetRound
+              : formatRoundNo(request.round_no),
+        },
+        {
+          label: t("deposit.product_task_form.field.round_type"),
+          value: request.round_type
+            ? roundTypeText(request.round_type)
+            : unsetRound,
         },
         {
           label: t("deposit.product_task_form.field.status"),

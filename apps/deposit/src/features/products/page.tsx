@@ -20,6 +20,7 @@ import { useServerList } from "@workspace/list-page/server-list"
 import { formatDateShort, formatRatePercent } from "@workspace/format"
 import { depositApi, type SavingsProduct } from "../api"
 import { ProductFormDialog } from "./components/ProductFormDialog"
+import { formatRoundNo, roundTypeLabelKey } from "./round-config"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -86,6 +87,55 @@ export function ProductsPage(_props: { pathname: string }) {
         cell: ({ row }) => (
           <span className="tabular-nums">{formatRatePercent(row.original.interest_rate)}</span>
         ),
+      },
+      {
+        id: "round_no",
+        accessorKey: "round_no",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.products.field.round_no")}
+          />
+        ),
+        cell: ({ row }) =>
+          row.original.round_no == null ? (
+            <span className="text-muted-foreground">
+              {t("deposit.products.round_unset")}
+            </span>
+          ) : (
+            <span className="font-mono tabular-nums">
+              {formatRoundNo(row.original.round_no)}
+            </span>
+          ),
+      },
+      {
+        id: "round_type",
+        accessorKey: "round_type",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            label={t("deposit.products.field.round_type")}
+          />
+        ),
+        cell: ({ row }) => {
+          const code = row.original.round_type
+          if (!code) {
+            return (
+              <span className="text-muted-foreground">
+                {t("deposit.products.round_unset")}
+              </span>
+            )
+          }
+          const labelKey = roundTypeLabelKey(code)
+          return (
+            <span className="flex flex-col">
+              <span className="font-mono text-xs">{code}</span>
+              {labelKey ? (
+                <span className="text-xs text-muted-foreground">{t(labelKey)}</span>
+              ) : null}
+            </span>
+          )
+        },
       },
       {
         id: "currency_code",
@@ -187,6 +237,8 @@ export function ProductsPage(_props: { pathname: string }) {
         name: (a, b) => a.name.localeCompare(b.name),
         term_months: (a, b) => a.term_months - b.term_months,
         interest_rate: (a, b) => a.interest_rate - b.interest_rate,
+        round_no: (a, b) => (a.round_no ?? -1) - (b.round_no ?? -1),
+        round_type: (a, b) => (a.round_type ?? "").localeCompare(b.round_type ?? ""),
         currency_code: (a, b) => a.currency_code.localeCompare(b.currency_code),
         created_at: (a, b) =>
           (a.created_at ?? "").localeCompare(b.created_at ?? ""),

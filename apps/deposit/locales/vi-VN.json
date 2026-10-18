@@ -282,7 +282,13 @@
       "term_months": "Kỳ hạn (tháng)",
       "interest_rate": "Lãi suất",
       "currency": "Loại tiền",
+      "round_no": "Bước làm tròn",
+      "round_type": "Kiểu làm tròn",
       "status": "Trạng thái"
+    },
+    "round_unset": {
+      "register": "Chưa cấu hình",
+      "edit": "Giữ nguyên cấu hình hiện có"
     },
     "request_type": {
       "register": "Đăng ký mới",
@@ -462,8 +468,20 @@
     "months_short": "tháng",
     "field": {
       "term_months": "Kỳ hạn (tháng)",
-      "interest_rate": "Lãi suất"
+      "interest_rate": "Lãi suất",
+      "round_no": "Bước làm tròn",
+      "round_no_hint": "Số nguyên không âm, ví dụ 1000 hoặc 1.000; 0 là làm tròn đồng một lần",
+      "round_type": "Kiểu làm tròn",
+      "round_type_hint": "Dự chi lãi lũy kế dùng hai giá trị này. Để trống cả hai nếu chưa cấu hình: sản phẩm sẽ bị bỏ qua khi dự chi",
+      "round_type_hint_edit": "Để trống cả hai nếu không đổi: cấu hình hiện có được giữ nguyên"
     },
+    "round_type": {
+      "unset": "— chưa cấu hình —",
+      "cm163_001": "Làm tròn thường (HALF_UP)",
+      "cm163_002": "Làm tròn lên (CEILING)",
+      "cm163_003": "Làm tròn xuống (FLOOR)"
+    },
+    "round_unset": "Chưa cấu hình",
     "validation": {
       "term_number": "Kỳ hạn phải là số",
       "term_integer": "Kỳ hạn phải là số tháng nguyên",
@@ -471,7 +489,11 @@
       "term_too_long": "Kỳ hạn tối đa 600 tháng",
       "rate_number": "Lãi suất phải là số",
       "rate_non_negative": "Lãi suất không được âm",
-      "rate_too_high": "Lãi suất tối đa 100"
+      "rate_too_high": "Lãi suất tối đa 100",
+      "round_no_invalid": "Bước làm tròn phải là số nguyên không âm (không dùng số thập phân)",
+      "round_no_required": "Nhập bước làm tròn khi đã chọn kiểu làm tròn",
+      "round_type_invalid": "Kiểu làm tròn phải là CM163.001, CM163.002 hoặc CM163.003",
+      "round_type_required": "Chọn kiểu làm tròn khi đã nhập bước làm tròn"
     },
     "request_success": "Đã trình duyệt sản phẩm (chờ duyệt)",
     "request_failed": "Không thể trình duyệt sản phẩm",

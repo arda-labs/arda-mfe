@@ -15,6 +15,7 @@ import type {
   DepositInterestOp,
   DepositInterestRate,
   DepositProductRequest,
+  DepositProductRequestInput,
   DepositRateRequest,
   DepositSavings,
   DepositSavingsDetail,
@@ -65,3 +66,13 @@ export interface RateChangePayload {
  * fields this client always sends, and must be real backend fields.
  */
 export type WireBody<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>
+
+/**
+ * Body of POST /api/deposit/product-requests without its request_type: the
+ * product fields the maker stages. round_no and round_type go together or not
+ * at all; omitted on an EDIT they leave the stored rounding unchanged.
+ */
+export type ProductUpsertRequest = WireBody<
+  Omit<DepositProductRequestInput, "request_type">,
+  "product_code" | "name" | "term_months" | "interest_rate"
+>
