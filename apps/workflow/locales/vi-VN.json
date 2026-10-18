@@ -228,6 +228,26 @@
       "earlier_requests": "Yêu cầu bổ sung trước đó ({count})",
       "no_reason": "Không ghi lý do"
     },
+    "case_view": {
+      "loading": "Đang tải hồ sơ...",
+      "not_found": "Không tìm thấy hồ sơ {code} hoặc bạn không có quyền xem.",
+      "load_error": "Không tải được hồ sơ {code}.",
+      "summary": "Thông tin hồ sơ",
+      "field": {
+        "case_type": "Loại nghiệp vụ",
+        "status": "Trạng thái",
+        "current_step": "Bước hiện tại",
+        "created_by": "Người tạo",
+        "created_at": "Ngày tạo",
+        "completed_at": "Ngày hoàn tất"
+      },
+      "status": {
+        "COMPLETED": "Hoàn tất",
+        "REJECTED": "Từ chối",
+        "CANCELLED": "Đã hủy",
+        "IN_PROGRESS": "Đang xử lý"
+      }
+    },
     "keyword_placeholder": "Mã / tiêu đề giao dịch",
     "search_keyword_placeholder": "Mã / tiêu đề",
     "actions_refresh": "Làm mới",

@@ -228,6 +228,26 @@
       "earlier_requests": "Earlier change requests ({count})",
       "no_reason": "No reason given"
     },
+    "case_view": {
+      "loading": "Loading case...",
+      "not_found": "Case {code} was not found, or you do not have access to it.",
+      "load_error": "Could not load case {code}.",
+      "summary": "Case information",
+      "field": {
+        "case_type": "Business type",
+        "status": "Status",
+        "current_step": "Current step",
+        "created_by": "Created by",
+        "created_at": "Created",
+        "completed_at": "Completed"
+      },
+      "status": {
+        "COMPLETED": "Completed",
+        "REJECTED": "Rejected",
+        "CANCELLED": "Cancelled",
+        "IN_PROGRESS": "In progress"
+      }
+    },
     "keyword_placeholder": "Code / title",
     "search_keyword_placeholder": "Code / title",
     "actions_refresh": "Refresh",
