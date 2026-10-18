@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import {
@@ -11,57 +10,19 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { FormField } from "@workspace/ui/components/form-field"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { translateApiError, useI18n } from "@workspace/i18n"
 import { notify } from "@workspace/ui/feedback/notify"
 import { depositApi } from "../../api"
 import type { SavingsProduct } from "../../api"
-
-const buildProductSchema = (t: (key: string) => string) =>
-  z.object({
-    code: z
-      .string()
-      .trim()
-      .min(1, t("deposit.validation.code_required"))
-      .max(64, t("deposit.validation.code_too_long")),
-    name: z
-      .string()
-      .trim()
-      .min(1, t("deposit.validation.name_required"))
-      .max(255, t("deposit.validation.name_too_long")),
-    term_months: z
-      .number({ error: t("deposit.products.validation.term_number") })
-      .int(t("deposit.products.validation.term_integer"))
-      .min(1, t("deposit.products.validation.term_positive"))
-      .max(600, t("deposit.products.validation.term_too_long")),
-    interest_rate: z
-      .number({ error: t("deposit.products.validation.rate_number") })
-      .min(0, t("deposit.products.validation.rate_non_negative"))
-      .max(100, t("deposit.products.validation.rate_too_high")),
-    currency_code: z
-      .string()
-      .trim()
-      .length(3, t("deposit.validation.currency_length")),
-  })
-
-type ProductFormValues = z.infer<ReturnType<typeof buildProductSchema>>
-
-const productDefaultValues: ProductFormValues = {
-  code: "",
-  name: "",
-  term_months: 12,
-  interest_rate: 5,
-  currency_code: "VND",
-}
-
-function toProductValues(product: SavingsProduct): ProductFormValues {
-  return {
-    code: product.code,
-    name: product.name,
-    term_months: product.term_months,
-    interest_rate: product.interest_rate,
-    currency_code: product.currency_code,
-  }
-}
+import {
+  buildProductSchema,
+  productDefaultValues,
+  toProductValues,
+  toRequestBody,
+  type ProductFormValues,
+} from "../schema"
+import { ROUND_TYPES, roundTypeLabelKey } from "../round-config"
 
 interface ProductFormDialogProps {
   open: boolean
@@ -101,13 +62,7 @@ export function ProductFormDialog({
     try {
       const submission = await depositApi.submitProductRequest(
         product ? "EDIT" : "REGISTER",
-        {
-          product_code: values.code.trim(),
-          name: values.name.trim(),
-          term_months: values.term_months,
-          interest_rate: values.interest_rate,
-          currency_code: values.currency_code.trim().toUpperCase(),
-        }
+        toRequestBody(values)
       )
       notify.success(t("deposit.products.request_success"), submission.case_code)
       onOpenChange(false)
@@ -176,6 +131,40 @@ export function ProductFormDialog({
                   event.target.value = event.target.value.toUpperCase()
                 },
               })}
+            />
+          </FormField>
+          <FormField
+            label={t("deposit.products.field.round_no")}
+            error={errors.round_no?.message}
+            description={t("deposit.products.field.round_no_hint")}
+          >
+            <Input
+              inputMode="numeric"
+              autoComplete="off"
+              aria-invalid={Boolean(errors.round_no)}
+              className="font-mono"
+              {...register("round_no")}
+            />
+          </FormField>
+          <FormField
+            label={t("deposit.products.field.round_type")}
+            error={errors.round_type?.message}
+            description={
+              product
+                ? t("deposit.products.field.round_type_hint_edit")
+                : t("deposit.products.field.round_type_hint")
+            }
+          >
+            <SelectField
+              aria-invalid={Boolean(errors.round_type)}
+              placeholder={t("deposit.products.round_type.unset")}
+              searchable={false}
+              options={ROUND_TYPES.map((code) => ({
+                value: code,
+                code,
+                label: t(roundTypeLabelKey(code) ?? code),
+              }))}
+              {...register("round_type")}
             />
           </FormField>
           <Button className="w-full" type="submit" disabled={isSubmitting || saving}>

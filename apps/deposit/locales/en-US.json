@@ -282,7 +282,13 @@
       "term_months": "Term (months)",
       "interest_rate": "Interest rate",
       "currency": "Currency",
+      "round_no": "Rounding step",
+      "round_type": "Rounding mode",
       "status": "Status"
+    },
+    "round_unset": {
+      "register": "Not configured",
+      "edit": "Keep the current configuration"
     },
     "request_type": {
       "register": "New registration",
@@ -462,8 +468,20 @@
     "months_short": "months",
     "field": {
       "term_months": "Term (months)",
-      "interest_rate": "Interest rate"
+      "interest_rate": "Interest rate",
+      "round_no": "Rounding step",
+      "round_no_hint": "A non-negative whole number such as 1000 or 1.000; 0 rounds once to the dong",
+      "round_type": "Rounding mode",
+      "round_type_hint": "The cumulative daily accrual uses both values. Leave both empty if not configured: the product is then skipped by the accrual",
+      "round_type_hint_edit": "Leave both empty to keep the current configuration"
     },
+    "round_type": {
+      "unset": "— not configured —",
+      "cm163_001": "Round half up (HALF_UP)",
+      "cm163_002": "Round up (CEILING)",
+      "cm163_003": "Round down (FLOOR)"
+    },
+    "round_unset": "Not configured",
     "validation": {
       "term_number": "Term must be a number",
       "term_integer": "Term must be a whole number of months",
@@ -471,7 +489,11 @@
       "term_too_long": "Term must be at most 600 months",
       "rate_number": "Interest rate must be a number",
       "rate_non_negative": "Interest rate cannot be negative",
-      "rate_too_high": "Interest rate must be at most 100"
+      "rate_too_high": "Interest rate must be at most 100",
+      "round_no_invalid": "The rounding step must be a non-negative whole number (no decimals)",
+      "round_no_required": "Enter the rounding step when a rounding mode is chosen",
+      "round_type_invalid": "The rounding mode must be CM163.001, CM163.002 or CM163.003",
+      "round_type_required": "Choose the rounding mode when a rounding step is entered"
     },
     "request_success": "Product request submitted for approval",
     "request_failed": "Failed to submit the product request",
