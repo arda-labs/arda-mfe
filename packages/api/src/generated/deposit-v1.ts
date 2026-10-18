@@ -997,6 +997,8 @@ export interface components {
             name: string;
             product_code: string;
             request_type: string;
+            round_no?: number | null;
+            round_type?: string | null;
             status: string;
             tenant_id: string;
             term_months: number;
@@ -1009,6 +1011,8 @@ export interface components {
             name?: string;
             product_code?: string;
             request_type?: string;
+            round_no?: number | null;
+            round_type?: string | null;
             term_months?: number;
         };
         ProductRequestList: {
@@ -1134,6 +1138,8 @@ export interface components {
             interest_rate: number;
             is_active: boolean;
             name: string;
+            round_no?: number | null;
+            round_type?: string | null;
             tenant_id: string;
             term_months: number;
             /** Format: date-time */
@@ -1149,6 +1155,8 @@ export interface components {
             interest_rate?: number;
             is_active?: boolean;
             name?: string;
+            round_no?: number | null;
+            round_type?: string | null;
             tenant_id?: string;
             term_months?: number;
             /** Format: date-time */
