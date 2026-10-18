@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import { useCaseTabs } from "@workspace/case-tabs"
 import { useI18n } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
@@ -12,49 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs"
-import {
-  registryFromModule,
-  resolveTaskForm,
-  type TaskFormComponent,
-  type TaskFormModule,
-  type TaskFormSubmit,
-} from "@workspace/workflow-task"
+import type { TaskFormSubmit } from "@workspace/workflow-task"
 import type { WorkItem } from "../api"
-import { workbenchApi } from "../api"
-import { taskFormRemoteFor, type TaskFormRemote } from "../utils/task-form-routing"
+import type { TaskFormRemote } from "../utils/task-form-routing"
 import { CaseReviewLayout } from "./case-review-layout"
-import { taskFormModules } from "./task-form-modules.generated"
-
-const moduleLoaders: Record<TaskFormRemote, () => Promise<TaskFormModule>> = taskFormModules
-
-const moduleCache = new Map<TaskFormRemote, Promise<TaskFormModule>>()
-
-function loadTaskFormModule(remote: TaskFormRemote): Promise<TaskFormModule> {
-  const cached = moduleCache.get(remote)
-  if (cached) return cached
-  const load = moduleLoaders[remote]().catch((error: unknown) => {
-    moduleCache.delete(remote) // failures stay retryable
-    throw error
-  })
-  moduleCache.set(remote, load)
-  return load
-}
-
-function loadTaskFormForLocale(
-  remote: TaskFormRemote,
-  locale: string
-): Promise<TaskFormModule> {
-  return loadTaskFormModule(remote).then(async (module) => {
-    await module.locales?.preload(locale)
-    return module
-  })
-}
+import { CaseTabsPanel } from "./case-tabs-panel"
+import { loadTaskFormForLocale, useTaskForm } from "./use-task-form"
 
 /**
  * Server-driven task form host: resolves the form by the work item's
@@ -73,51 +35,9 @@ export function TaskFormHost({
   onClose: () => void
   onSubmit: (submission: TaskFormSubmit) => void | Promise<void>
 }) {
-  const { t, locale } = useI18n()
-  const [form, setForm] = useState<TaskFormComponent | null>(null)
-  const [data, setData] = useState<Record<string, unknown> | undefined>(
-    undefined
-  )
-  const [state, setState] = useState<
-    "loading" | "ready" | "unsupported" | "error"
-  >("loading")
-  const [attempt, setAttempt] = useState(0)
-
-  const remote = item ? taskFormRemoteFor(item.caseType) : undefined
+  const { t } = useI18n()
+  const { form, data, state, retry } = useTaskForm(item)
   const caseTabs = useCaseTabs({ caseId: item?.caseId, canUpload: false })
-
-  useEffect(() => {
-    if (!item || !remote) return
-    let cancelled = false
-    setState("loading")
-    setForm(null)
-    setData(undefined)
-    void (async () => {
-      try {
-        const [module, caseVars] = await Promise.all([
-          loadTaskFormForLocale(remote, locale),
-          workbenchApi.getCaseVariables(item.caseId),
-        ])
-        const component = resolveTaskForm(
-          registryFromModule(module),
-          item.formKey
-        )
-        if (!component) {
-          if (!cancelled) setState("unsupported")
-          return
-        }
-        if (cancelled) return
-        setData(caseVars.variables)
-        setForm(() => component)
-        setState("ready")
-      } catch {
-        if (!cancelled) setState("error")
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [item, remote, locale, attempt])
 
   const Form = form
 
@@ -168,7 +88,7 @@ export function TaskFormHost({
               <Button type="button" variant="outline" onClick={onClose}>
                 {t("workflow.workbench.task_form.close")}
               </Button>
-              <Button type="button" onClick={() => setAttempt((n) => n + 1)}>
+              <Button type="button" onClick={retry}>
                 {t("workflow.workbench.task_form.retry")}
               </Button>
             </DialogFooter>
@@ -186,29 +106,7 @@ export function TaskFormHost({
                 onSubmit={onSubmit}
                 onReturn={onClose}
               />
-              {caseTabs.length > 0 ? (
-                <Tabs
-                  defaultValue={caseTabs[0]?.id}
-                  className="flex flex-col gap-2"
-                >
-                  <TabsList className="h-auto w-fit">
-                    {caseTabs.map((tab) => (
-                      <TabsTrigger key={tab.id} value={tab.id}>
-                        {tab.label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  {caseTabs.map((tab) => (
-                    <TabsContent
-                      key={tab.id}
-                      value={tab.id}
-                      className="mt-0 max-h-80 overflow-y-auto"
-                    >
-                      {tab.content}
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              ) : null}
+              <CaseTabsPanel tabs={caseTabs} />
             </CaseReviewLayout>
           </DialogBody>
         ) : null}

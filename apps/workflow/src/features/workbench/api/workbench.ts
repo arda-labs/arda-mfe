@@ -58,6 +58,16 @@ export const workbenchApi = {
     }>(`/api/workflow/cases/${encodeURIComponent(caseId)}/variables`)
   },
 
+  /** Case header by exact code, any status (the list matches by keyword). */
+  async findCaseByCode(caseCode: string) {
+    const code = caseCode.trim()
+    const search = buildSearchParams({ keyword: code, limit: 20 })
+    const items = await getItems<WorkflowCase>(
+      `/api/workflow/cases?${search.toString()}`
+    )
+    return items.find((item) => item.caseCode === code)
+  },
+
   async listCasesByDirection(direction: WorkbenchDirection) {
     const groups = await Promise.all(
       caseTypesByDirection[direction].map((caseType) =>
