@@ -21,17 +21,12 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { notify } from "@workspace/ui/feedback/notify"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@workspace/ui/components/alert-dialog"
 import { OperateBpmnViewer } from "../../components/bpmn-monitor-lazy"
+import { operateActionErrorMessage } from "../../components/operate-action-error"
+import {
+  CancelInstanceDialog,
+  OperateReasonField,
+} from "../../components/operate-reason"
 import { casesApi, definitionsApi, monitoringApi } from "../../api"
 import type {
   ElementInstanceStat,
@@ -95,6 +90,7 @@ export function InstanceDetail({
     name: string
     value: string
     scopeKey: string
+    reason: string
   } | null>(null)
   const [savingVariable, setSavingVariable] = useState(false)
 
@@ -289,22 +285,25 @@ export function InstanceDetail({
     }
   }, [incidents, load, t])
 
-  const handleCancel = useCallback(async () => {
-    setActing(true)
-    try {
-      await monitoringApi.cancelProcessInstance(instanceKey)
-      notify.success(t("workflow.operate.cancel_success"))
-      setCancelOpen(false)
-      await load()
-    } catch (reason) {
-      notify.error(
-        t("workflow.operate.cancel_failed"),
-        reason instanceof Error ? reason.message : undefined
-      )
-    } finally {
-      setActing(false)
-    }
-  }, [instanceKey, load, t])
+  const handleCancel = useCallback(
+    async (reason: string) => {
+      setActing(true)
+      try {
+        await monitoringApi.cancelProcessInstance(instanceKey, reason)
+        notify.success(t("workflow.operate.cancel_success"))
+        setCancelOpen(false)
+        await load()
+      } catch (error) {
+        notify.error(
+          t("workflow.operate.cancel_failed"),
+          operateActionErrorMessage(t, error)
+        )
+      } finally {
+        setActing(false)
+      }
+    },
+    [instanceKey, load, t]
+  )
 
   const handleRetryIncident = useCallback(
     async (incidentKey: string) => {
@@ -365,6 +364,11 @@ export function InstanceDetail({
 
   const handleSaveVariable = useCallback(async () => {
     if (!editingVariable) return
+    const reason = editingVariable.reason.trim()
+    if (!reason) {
+      notify.error(t("workflow.operate.reason_required"))
+      return
+    }
     let parsed: unknown
     try {
       parsed = JSON.parse(editingVariable.value)
@@ -382,15 +386,16 @@ export function InstanceDetail({
             detail && editingVariable.scopeKey !== detail.processInstanceKey
               ? editingVariable.scopeKey
               : undefined,
+          reason,
         }
       )
       notify.success(t("workflow.operate.edit_variable_success"))
       setEditingVariable(null)
       await load()
-    } catch (reason) {
+    } catch (error) {
       notify.error(
         t("workflow.operate.edit_variable_failed"),
-        reason instanceof Error ? reason.message : undefined
+        operateActionErrorMessage(t, error)
       )
     } finally {
       setSavingVariable(false)
@@ -694,6 +699,7 @@ export function InstanceDetail({
                                       name: variable.name,
                                       value: variable.value,
                                       scopeKey: variable.scopeKey,
+                                      reason: "",
                                     })
                                   }
                                 >
@@ -758,6 +764,7 @@ export function InstanceDetail({
                                 name: variable.name,
                                 value: variable.value,
                                 scopeKey: variable.scopeKey,
+                                reason: "",
                               })
                             }
                           >
@@ -1002,6 +1009,15 @@ export function InstanceDetail({
               )
             }
           />
+          <OperateReasonField
+            value={editingVariable?.reason ?? ""}
+            disabled={savingVariable}
+            onChange={(reason) =>
+              setEditingVariable((previous) =>
+                previous ? { ...previous, reason } : previous
+              )
+            }
+          />
           <DialogFooter>
             <Button
               type="button"
@@ -1013,7 +1029,9 @@ export function InstanceDetail({
             </Button>
             <Button
               type="button"
-              disabled={savingVariable}
+              disabled={
+                savingVariable || !editingVariable?.reason.trim()
+              }
               onClick={() => void handleSaveVariable()}
             >
               {t("workflow.operate.edit_variable_save")}
@@ -1022,33 +1040,12 @@ export function InstanceDetail({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("workflow.operate.cancel_confirm_title")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("workflow.operate.cancel_confirm_description")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={acting}>
-              {t("workflow.operate.cancel_confirm_cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={acting}
-              onClick={(event) => {
-                event.preventDefault()
-                void handleCancel()
-              }}
-            >
-              {t("workflow.operate.cancel_confirm_action")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CancelInstanceDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        pending={acting}
+        onConfirm={(reason) => void handleCancel(reason)}
+      />
     </div>
   )
 }

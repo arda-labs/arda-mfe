@@ -511,7 +511,16 @@
     "edit_variable_cancel": "Cancel",
     "edit_variable_invalid_json": "Value is not valid JSON",
     "edit_variable_success": "Variable updated",
-    "edit_variable_failed": "Variable update failed"
+    "edit_variable_failed": "Variable update failed",
+    "reason_label": "Reason",
+    "reason_hint": "The reason is recorded on the case timeline together with the actor.",
+    "reason_placeholder": "Enter the reason for this action",
+    "reason_required": "Please enter a reason",
+    "error_protected_variables": "Protected variables cannot be changed: {names}",
+    "error_not_found": "Instance not found, or the variable scope does not belong to this instance",
+    "error_case_closed": "The case is already closed and cannot be cancelled",
+    "error_engine": "The process engine could not perform the action; the instance was not changed. Please try again later.",
+    "error_unavailable": "The variable scope cannot be verified because runtime data is unavailable. Edit at the instance scope or try again later."
   },
   "bpmn": {
     "highlight_not_found": "BPMN element \"{id}\" not found for highlighting.",
