@@ -113,6 +113,35 @@ export interface OperateHistoryPage {
   nextCursor?: string
 }
 
+export interface SetInstanceVariablesOptions {
+  /** Required by workflow-service: recorded with the actor and the
+   * before/after values on the case timeline (OPERATE_VARIABLES_SET). */
+  reason: string
+  /** Only accepted when it belongs to the same process instance. */
+  elementInstanceKey?: string
+  local?: boolean
+}
+
+export function setInstanceVariablesBody(
+  variables: Record<string, unknown>,
+  options: SetInstanceVariablesOptions
+) {
+  return {
+    variables,
+    elementInstanceKey: options.elementInstanceKey
+      ? Number(options.elementInstanceKey)
+      : undefined,
+    local: options.local,
+    reason: options.reason.trim(),
+  }
+}
+
+/** Body of POST .../process-instances/{key}/cancel; `reason` is required and
+ * recorded on the CASE_CANCELLED timeline row. */
+export function cancelProcessInstanceBody(reason: string) {
+  return { reason: reason.trim() }
+}
+
 export const monitoringInstancesApi = {
   listOperateProcessDefinitions() {
     return request<ProcessDefinitionOperate[]>(
@@ -142,20 +171,11 @@ export const monitoringInstancesApi = {
   setInstanceVariables(
     key: string,
     variables: Record<string, unknown>,
-    options?: { elementInstanceKey?: string; local?: boolean }
+    options: SetInstanceVariablesOptions
   ) {
     return request<{ status: string; elementInstanceKey: string }>(
       `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/variables`,
-      {
-        method: "POST",
-        body: {
-          variables,
-          elementInstanceKey: options?.elementInstanceKey
-            ? Number(options.elementInstanceKey)
-            : undefined,
-          local: options?.local,
-        },
-      }
+      { method: "POST", body: setInstanceVariablesBody(variables, options) }
     )
   },
   listInstanceJobs(key: string) {
@@ -191,10 +211,10 @@ export const monitoringInstancesApi = {
       { method: "POST" }
     )
   },
-  cancelProcessInstance(key: string) {
+  cancelProcessInstance(key: string, reason: string) {
     return request<{ status: string }>(
       `/api/workflow/operate/process-instances/${encodeURIComponent(key)}/cancel`,
-      { method: "POST" }
+      { method: "POST", body: cancelProcessInstanceBody(reason) }
     )
   },
   deleteProcessInstance(key: string) {

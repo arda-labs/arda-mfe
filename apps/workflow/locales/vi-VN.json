@@ -511,7 +511,16 @@
     "edit_variable_cancel": "Hủy",
     "edit_variable_invalid_json": "Giá trị không phải JSON hợp lệ",
     "edit_variable_success": "Đã cập nhật biến",
-    "edit_variable_failed": "Cập nhật biến thất bại"
+    "edit_variable_failed": "Cập nhật biến thất bại",
+    "reason_label": "Lý do",
+    "reason_hint": "Lý do được ghi vào nhật ký hồ sơ cùng người thực hiện.",
+    "reason_placeholder": "Nhập lý do thao tác",
+    "reason_required": "Vui lòng nhập lý do thao tác",
+    "error_protected_variables": "Không được sửa biến được bảo vệ: {names}",
+    "error_not_found": "Không tìm thấy instance, hoặc phạm vi biến không thuộc instance này",
+    "error_case_closed": "Hồ sơ đã kết thúc nên không thể hủy",
+    "error_engine": "Engine quy trình không thực hiện được thao tác, instance chưa thay đổi. Vui lòng thử lại sau.",
+    "error_unavailable": "Chưa xác minh được phạm vi biến vì dữ liệu runtime chưa sẵn sàng. Hãy sửa ở phạm vi instance hoặc thử lại sau."
   },
   "bpmn": {
     "highlight_not_found": "Không tìm thấy BPMN element \"{id}\" để highlight.",

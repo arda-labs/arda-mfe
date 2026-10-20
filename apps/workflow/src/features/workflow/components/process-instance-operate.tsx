@@ -50,6 +50,8 @@ import type {
 } from "../api"
 import { useProcessInstanceRuntime } from "../shared/use-process-instance-runtime"
 import { OperateBpmnViewer } from "./bpmn-monitor-lazy"
+import { operateActionErrorMessage } from "./operate-action-error"
+import { CancelInstanceDialog } from "./operate-reason"
 
 type ProcessInstanceOperateProps = {
   cases: WorkflowCase[]
@@ -199,6 +201,7 @@ export function ProcessInstanceOperate({
   const [instanceFilter, setInstanceFilter] = useState("all")
   const [retryJobPending, setRetryJobPending] = useState<string | null>(null)
   const [actionPending, setActionPending] = useState<string | null>(null)
+  const [cancelOpen, setCancelOpen] = useState(false)
   const runtimeQuery = useProcessInstanceRuntime(selected?.processInstanceKey ?? undefined)
   const runtime: import("../api").ProcessInstanceRuntime | undefined =
     runtimeQuery.data ?? undefined
@@ -349,18 +352,20 @@ export function ProcessInstanceOperate({
     }
   }
 
-  async function handleCancel() {
+  async function handleCancel(reason: string) {
     if (!selected?.processInstanceKey) return
     setActionPending("cancel")
     try {
       await monitoringApi.cancelProcessInstance(
-        String(selected.processInstanceKey)
+        String(selected.processInstanceKey),
+        reason
       )
       notify.success(t("workflow.operate.cancel_instance_success"))
+      setCancelOpen(false)
     } catch (error) {
       notify.error(
         t("workflow.operate.cancel_failed"),
-        error instanceof Error ? error.message : undefined
+        operateActionErrorMessage(t, error)
       )
     } finally {
       setActionPending(null)
@@ -595,7 +600,7 @@ export function ProcessInstanceOperate({
                     variant="outline"
                     className="h-7 text-xs text-destructive"
                     disabled={actionPending != null}
-                    onClick={handleCancel}
+                    onClick={() => setCancelOpen(true)}
                   >
                     <Ban className="mr-1 size-3.5" />
                     {t("workflow.operate.action_cancel")}
@@ -918,6 +923,12 @@ export function ProcessInstanceOperate({
           )}
         </aside>
       </div>
+      <CancelInstanceDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        pending={actionPending === "cancel"}
+        onConfirm={(reason) => void handleCancel(reason)}
+      />
     </div>
   )
 }
