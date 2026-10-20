@@ -1289,6 +1289,9 @@ export interface components {
             /** @constant */
             success: true;
         };
+        CancelInstanceRequest: {
+            reason?: string;
+        };
         CancelResult: {
             /** Format: int64 */
             processInstanceKey: number;
@@ -1990,6 +1993,7 @@ export interface components {
             /** Format: int64 */
             elementInstanceKey?: number;
             local?: boolean;
+            reason?: string;
             variables?: {
                 [key: string]: unknown;
             } | null;
@@ -3901,7 +3905,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelInstanceRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -5113,6 +5121,7 @@ export type WorkflowAssignmentResultSuccess = components["schemas"]["AssignmentR
 export type WorkflowBusinessCase = components["schemas"]["BusinessCase"]
 export type WorkflowBusinessCaseSuccess = components["schemas"]["BusinessCaseSuccess"]
 export type WorkflowBusinessCasesSuccess = components["schemas"]["BusinessCasesSuccess"]
+export type WorkflowCancelInstanceRequest = components["schemas"]["CancelInstanceRequest"]
 export type WorkflowCancelResult = components["schemas"]["CancelResult"]
 export type WorkflowCancelResultSuccess = components["schemas"]["CancelResultSuccess"]
 export type WorkflowCaseActorRequest = components["schemas"]["CaseActorRequest"]
