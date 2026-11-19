@@ -59,6 +59,30 @@
       "revisitWhen": "a lockfile refresh can move all three majors to 5.0.12 / 1.1.21 / 2.1.7 without re-resolving unrelated packages (bun overrides take one version per package name, so the three majors cannot be pinned separately)",
       "reviewed": "2026-10-11",
       "reviewBy": "2027-01-11"
+    },
+    {
+      "id": "GHSA-g3hv-75wg-m249",
+      "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+      "package": "minimatch",
+      "severity": "moderate",
+      "scope": "development only (lint), not shipped to the browser",
+      "via": "@eslint/config-array (eslint) requires minimatch ^10.2.4",
+      "reason": "Denial of service through glob-part amplification. The only vulnerable copy (10.2.6) is loaded by ESLint's config resolver, which only matches the repository's own config globs at lint time on a developer machine or in CI; no user-controlled pattern reaches it and nothing ships to the browser. The fix exists only in minimatch 11.0.1, a major version eslint does not accept yet, so overriding it would risk breaking lint for no reachable gain.",
+      "revisitWhen": "@eslint/config-array (eslint) accepts minimatch >= 11.0.1",
+      "reviewed": "2026-11-19",
+      "reviewBy": "2027-01-19"
+    },
+    {
+      "id": "GHSA-mrhx-c7xc-m3w5",
+      "url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "severity": "high",
+      "scope": "production path in the AI chat only (zod 3.25.76); every workspace package is on patched zod ^4.6.7",
+      "via": "@ag-ui/core and @ag-ui/client 0.0.58 require zod ^3.22.4",
+      "reason": "Memory exhaustion while validating oversized constrained collections. The workspace's own zod is now >= 4.6.7 (patched). The remaining zod 3.25.76 is pulled only by @ag-ui 0.0.58, which validates AG-UI events streamed from our own ai-service to the signed-in user's tab; the worst case is that user's tab running out of memory on a malformed stream from our backend, with no cross-user effect. The fix requires moving to @ag-ui 1.x (zod ^3.25.18 || ^4 peer) together with @assistant-ui/react-ag-ui 0.1.x, a breaking AI-chat upgrade deferred by the feature freeze (HOA-8).",
+      "revisitWhen": "@ag-ui/* and @assistant-ui/react-ag-ui are upgraded to releases that use zod >= 4.6.6 (after the HOA-8 freeze)",
+      "reviewed": "2026-11-19",
+      "reviewBy": "2027-01-19"
     }
   ]
 }
