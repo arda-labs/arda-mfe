@@ -2,6 +2,17 @@
 
 Tài liệu hướng dẫn toàn diện dành cho các AI Agent (Antigravity, Cursor, Copilot) và Kỹ sư phát triển khi làm việc với Monorepo **Arda MFE**.
 
+## ⛔ Tạm dừng tính năng mới (HOA-8) — đọc trước khi viết code
+
+Cho tới khi xong GĐ1 (làm thử LNM.201.02 theo luồng đặc tả → test → code),
+**không thêm tính năng mới**: logic Arda đang lệch chuẩn nghiệp vụ, làm thêm sẽ
+phải làm lại.
+
+- Không: thêm remote mới trong `apps/`, thêm màn hình/tính năng mới cho `ai`,
+  thêm màn hình quản lý quy trình BPMN/Zeebe mới, thêm script `check:*` mới.
+- Được: sửa lỗi, bảo mật, các issue GĐ0/GĐ1 trong Linear project `arda`.
+- Nếu yêu cầu rơi vào mục "Không", dừng lại và hỏi, không lách.
+
 ---
 
 ## 1. Tổng quan Kiến trúc Micro-Frontend (MFE Architecture)
