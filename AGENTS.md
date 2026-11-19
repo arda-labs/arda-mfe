@@ -120,7 +120,7 @@ Tạo feature mới: `bun run create:feature <app> <domain>`.
 ## 5. Lệnh Phát triển & Kiểm thử (Commands)
 
 ```bash
-# Cài đặt dependencies (sử dụng bun 1.3.14+)
+# Cài đặt dependencies (sử dụng bun 1.4.4+)
 bun install
 
 # Kiểm tra ranh giới package: không vòng, import phải khai báo, khai báo
